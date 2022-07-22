@@ -85,9 +85,16 @@
     "B496F": {"allowed_sphere_radius": 2, "atom_name": "CB", "chain_identifier": "B", "linker_length": 20, "linker_width": 3.5, "radius1": 3.5, "residue_seq_number": 496, "simulation_grid_resolution": 2.0,"simulation_type": "AV1"},
     "B525F": {"allowed_sphere_radius": 3, "atom_name": "CB", "chain_identifier": "B", "linker_length": 20, "linker_width": 3.5, "radius1": 3.5, "residue_seq_number": 525, "simulation_grid_resolution": 2.0,"simulation_type": "AV1"},
     "B540F": {"allowed_sphere_radius": 2, "atom_name": "CB", "chain_identifier": "B", "linker_length": 20, "linker_width": 3.5, "radius1": 3.5, "residue_seq_number": 540, "simulation_grid_resolution": 2.0,"simulation_type": "AV1"},
-    "B577F": {"allowed_sphere_radius": 2, "atom_name": "CB", "chain_identifier": "B", "linker_length": 20, "linker_width": 3.5, "radius1": 3.5, "residue_seq_number": 577, "simulation_grid_resolution": 2.0,"simulation_type": "AV1"}
+    "B577F": {"allowed_sphere_radius": 2, "atom_name": "CB", "chain_identifier": "B", "linker_length": 20, "linker_width": 3.5, "radius1": 3.5, "residue_seq_number": 577, "simulation_grid_resolution": 2.0,"simulation_type": "AV1"},
+    "A577F_eGFP": {"allowed_sphere_radius": 2, "atom_name": "CB", "chain_identifier": "A", "linker_length": 20, "linker_width": 3.5, "radius1": 3.5, "residue_seq_number": 825, "simulation_grid_resolution": 2.0,"simulation_type": "AV1"},
+    "A577F_mCh": {"allowed_sphere_radius": 2, "atom_name": "CB", "chain_identifier": "B", "linker_length": 20, "linker_width": 3.5, "radius1": 3.5, "residue_seq_number": 815, "simulation_grid_resolution": 2.0,"simulation_type": "AV1"}
   },
   "χ²": {
+    "577_577": {
+      "distances": [
+        "A577F_eGFP-A577F_mCh"
+      ]
+    },
     "inter": {
       "distances": [
         "A18F-B18F",
