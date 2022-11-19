@@ -1,11 +1,13 @@
 """
-Complexes
-=========
+Guanylate binding proteins: Combining restraints
+========================================
 This example illustrate modeling of the GDP-AlFx dimer
 of human guanylate binding protein 1 (hGBP1) by rigid
 bodies (RBs) in PMI. Note, this example serves illustration
 and not scientific purposes.
 """
+# sphinx_gallery_thumbnail_path = 'img/example_structure_mgbp2_dimer_fp.png'
+
 import pathlib
 
 import IMP
@@ -64,7 +66,7 @@ rb = mol.get_children()[2]
 
 # %%
 # General restraints
-# --------------------
+# ------------------
 # Connectivity keeps things connected along the backbone (ignores if inside same rigid body)
 crs = []
 moldict = bs.get_molecules()[0]
@@ -74,7 +76,6 @@ for molname in moldict:
         IMP.pmi.tools.display_bonds(mol)
         cr = IMP.pmi.restraints.stereochemistry.ConnectivityRestraint(mol)
         cr.add_to_model()
-        cr.set_label(molname)
         output_objects.append(cr)
         crs.append(cr)
         mols.append(mol)
@@ -175,7 +176,7 @@ else:
 # can operate on the mean position of AVs. If the restraint operates on
 # mean positions, the AV is treated as rigid body member and the distances
 # between the mean dye positions computed for the initial RB arrangement
-# are used for scoring (with the use of a transfer function). Elsewise,
+# are used for scoring (with the use of a transfer function). Otherwise,
 # the AVs are recalculated on each restraint evaluation.
 fps_json_fn = str(root_dir / "mGBP2_FP.fps.json")
 score_set = "577_577"  # molecule in close c2, go from c2 -> open c1
@@ -185,6 +186,7 @@ fret_restraint = IMP.bff.restraints.AVNetworkRestraintWrapper(
     occupy_volume=False,
     score_set=score_set
 )
+IMP.pmi.tools.add_restraint_to_model(mdl, gem.rs, True)
 fret_restraint.add_to_model()
 output_objects.append(fret_restraint)
 
@@ -205,7 +207,7 @@ output_objects.append(fret_restraint)
 
 # Monte carlo sampling. For better results increase the number of frames
 num_frames = 100000
-rex = IMP.pmi.macros.ReplicaExchange0(
+rex = IMP.pmi.macros.ReplicaExchange(
     mdl,
     simulated_annealing=False,
     root_hier=hier,  # pass the root hierarchy
