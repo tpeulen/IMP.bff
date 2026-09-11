@@ -155,8 +155,10 @@ jobs:
           restore-keys: imp-trimmed-${{ runner.os }}-${{ hashFiles('conda-recipe/imp/**') }}-
       - name: Build our imp (when the cache is cold)
         if: steps.imp-cache.outputs.cache-hit != 'true'
-        shell: bash -el {0}
+        shell: bash --noprofile --norc -eo pipefail {0}
         run: |
+          export CONDA_PREFIX="$CONDA/envs/test"
+          export PATH="$CONDA_PREFIX/bin:$CONDA/bin:$PATH"
           # setup-miniconda installs rattler-build into the activated `test`
           # environment. Cache restore can re-enter this login shell without
           # preserving that environment's PATH, so make the tool location
@@ -205,7 +207,7 @@ jobs:
           echo "IMP_BFF_DATA_CACHE=$HOME/.cache/imp-bff-data" >> "$GITHUB_ENV"
 
       - name: Build the conda package
-        shell: bash -el {0}
+        shell: bash --noprofile --norc -eo pipefail {0}
         # --env-isolation none: rattler-build's default (`strict`) hands
         # build.sh a clean environment, which silently cost two caches --
         # IMP_BFF_DATA_CACHE never reached it, so every package build
@@ -214,6 +216,8 @@ jobs:
         # (wiped with the work dir). `none` inherits the host environment,
         # tttrlib's effective behavior under conda-build.
         run: |
+          export CONDA_PREFIX="$CONDA/envs/test"
+          export PATH="$CONDA_PREFIX/bin:$CONDA/bin:$PATH"
           export PATH="$CONDA/envs/test/bin:$PATH"
           if [ "$RUNNER_OS" = "Windows" ]; then
             RB="$RATTLER_BUILD_EXE"
