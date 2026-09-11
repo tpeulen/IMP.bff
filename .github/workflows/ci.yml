@@ -318,6 +318,12 @@ jobs:
     steps:
       - uses: mozilla-actions/sccache-action@v0.0.9
         continue-on-error: true
+      - name: Ensure sccache is available (macOS fallback)
+        if: runner.os == 'macOS'
+        run: |
+          if ! command -v sccache >/dev/null 2>&1; then
+            brew install sccache
+          fi
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0   # setuptools_scm reads the tag

@@ -152,9 +152,11 @@ repair-wheel-command = "delocate-wheel --require-archs {delocate_archs} -w {dest
 
 [tool.cibuildwheel.macos.environment]
 MACOSX_DEPLOYMENT_TARGET = "11.0"
-# sccache is an optional optimization. Do not set a compiler launcher here:
-# the download can fail transiently, and cibuildwheel must still build with
-# the platform compiler when that happens.
+# sccache is installed by the workflow and uses the GitHub Actions cache
+# backend. The workflow has a Homebrew fallback when the action download fails.
+CMAKE_C_COMPILER_LAUNCHER = "sccache"
+CMAKE_CXX_COMPILER_LAUNCHER = "sccache"
+SCCACHE_GHA_ENABLED = "true"
 
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]
@@ -186,5 +188,7 @@ repair-wheel-command = "delvewheel repair --no-dll imp_bff.dll -w {dest_dir} {wh
 CMAKE_GENERATOR = "Ninja"
 CMAKE_C_COMPILER = "cl"
 CMAKE_CXX_COMPILER = "cl"
-# sccache is optional; an unavailable cache binary must not break CMake's
-# compiler detection on Windows.
+# sccache uses the GitHub Actions cache backend configured by the workflow.
+CMAKE_C_COMPILER_LAUNCHER = "sccache"
+CMAKE_CXX_COMPILER_LAUNCHER = "sccache"
+SCCACHE_GHA_ENABLED = "true"
