@@ -1503,11 +1503,13 @@ DunbrackRotamers read_dunbrack_rotamers(const std::string& path, char residue_,
     // ptolib's reader decodes by the object's encoding; brotli_unpack's
     // second pass here decompressed plain records and failed.
     const std::vector<unsigned char> records = pto.data(pto.objects()[at]);
-    if (records.size() != static_cast<std::size_t>(r->n_rotamers) *
-                                   residue_bytes(*r)) {
+    // One object carries the whole residue table: every backbone bin and its
+    // fixed number of rotamer records. residue_bytes() already includes that
+    // grid dimension, so multiplying by n_rotamers again rejects valid data.
+    if (records.size() != residue_bytes(*r)) {
         IMP_THROW("read_dunbrack_rotamers: " << path << " holds "
                   << records.size() << " bytes for " << r->code
-                  << ", expected " << r->n_rotamers * residue_bytes(*r),
+                  << ", expected " << residue_bytes(*r),
                   IOException);
     }
 
