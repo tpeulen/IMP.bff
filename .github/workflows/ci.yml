@@ -157,6 +157,11 @@ jobs:
         if: steps.imp-cache.outputs.cache-hit != 'true'
         shell: bash -el {0}
         run: |
+          # setup-miniconda installs rattler-build into the activated `test`
+          # environment. Cache restore can re-enter this login shell without
+          # preserving that environment's PATH, so make the tool location
+          # explicit instead of relying on shell activation side effects.
+          export PATH="$CONDA/envs/test/bin:$PATH"
           ls imp-bld/*/*.conda >/dev/null 2>&1 && exit 0
           if [ "$RUNNER_OS" = "Windows" ]; then
             RB="$RATTLER_BUILD_EXE"
@@ -203,6 +208,7 @@ jobs:
         # (wiped with the work dir). `none` inherits the host environment,
         # tttrlib's effective behavior under conda-build.
         run: |
+          export PATH="$CONDA/envs/test/bin:$PATH"
           RB=rattler-build
           if [ "$RUNNER_OS" = "Windows" ]; then RB="$RATTLER_BUILD_EXE"; fi
           "$RB" build --recipe conda-recipe/recipe.yaml \
