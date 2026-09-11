@@ -166,7 +166,13 @@ jobs:
           if [ "$RUNNER_OS" = "Windows" ]; then
             RB="$RATTLER_BUILD_EXE"
           else
-            RB=rattler-build
+            RB="$CONDA/envs/test/bin/rattler-build"
+            if [ ! -x "$RB" ]; then RB="$CONDA/bin/rattler-build"; fi
+          fi
+          if [ ! -x "$RB" ]; then
+            echo "rattler-build was not found; searched test and base environments"
+            find "$CONDA" -name rattler-build -type f -print
+            exit 1
           fi
           "$RB" build --recipe conda-recipe/imp/recipe.yaml \
                       --env-isolation none \
@@ -209,8 +215,17 @@ jobs:
         # tttrlib's effective behavior under conda-build.
         run: |
           export PATH="$CONDA/envs/test/bin:$PATH"
-          RB=rattler-build
-          if [ "$RUNNER_OS" = "Windows" ]; then RB="$RATTLER_BUILD_EXE"; fi
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            RB="$RATTLER_BUILD_EXE"
+          else
+            RB="$CONDA/envs/test/bin/rattler-build"
+            if [ ! -x "$RB" ]; then RB="$CONDA/bin/rattler-build"; fi
+          fi
+          if [ ! -x "$RB" ]; then
+            echo "rattler-build was not found; searched test and base environments"
+            find "$CONDA" -name rattler-build -type f -print
+            exit 1
+          fi
           "$RB" build --recipe conda-recipe/recipe.yaml \
                       --env-isolation none \
                       --channel ./imp-bld --channel conda-forge \
