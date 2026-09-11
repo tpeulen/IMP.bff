@@ -152,14 +152,9 @@ repair-wheel-command = "delocate-wheel --require-archs {delocate_archs} -w {dest
 
 [tool.cibuildwheel.macos.environment]
 MACOSX_DEPLOYMENT_TARGET = "11.0"
-# sccache: CMake reads these as the initial values of the
-# CMAKE_<LANG>_COMPILER_LAUNCHER cache variables, and the standalone
-# CMakeLists sets no launcher of its own, so the environment's initial
-# value stands. The action's binary is on PATH and its tokens are inherited
-# from the job.
-CMAKE_C_COMPILER_LAUNCHER = "sccache"
-CMAKE_CXX_COMPILER_LAUNCHER = "sccache"
-SCCACHE_GHA_ENABLED = "true"
+# sccache is an optional optimization. Do not set a compiler launcher here:
+# the download can fail transiently, and cibuildwheel must still build with
+# the platform compiler when that happens.
 
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]
@@ -191,7 +186,5 @@ repair-wheel-command = "delvewheel repair --no-dll imp_bff.dll -w {dest_dir} {wh
 CMAKE_GENERATOR = "Ninja"
 CMAKE_C_COMPILER = "cl"
 CMAKE_CXX_COMPILER = "cl"
-# sccache: see the Linux table above for why this lives here.
-CMAKE_C_COMPILER_LAUNCHER = "sccache"
-CMAKE_CXX_COMPILER_LAUNCHER = "sccache"
-SCCACHE_GHA_ENABLED = "true"
+# sccache is optional; an unavailable cache binary must not break CMake's
+# compiler detection on Windows.
