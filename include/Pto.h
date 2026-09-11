@@ -101,6 +101,15 @@ public:
                   const std::string& encoding, const void* data,
                   std::size_t size);
 
+    //! Compress and attach one payload, recording its uncompressed size.
+    /*! Unlike add(), this owns the codec step. Use it whenever
+        \p encoding has a codec suffix so readers can decode the object
+        without application-specific framing. */
+    PtoObject add_coded(const std::string& name, const std::string& kind,
+                        const std::string& inner_encoding,
+                        const std::string& codec, const void* data,
+                        std::size_t size, int level = -1);
+
     //! Commit and close. Idempotent.
     void close();
 

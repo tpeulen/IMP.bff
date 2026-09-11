@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <exception>
 #include <memory>
 
 // The vendored codec, the same one `.drot` uses. The paths are relative to
@@ -26,37 +27,7 @@ IMPBFF_BEGIN_NAMESPACE
 
 namespace {
 
-//! brotli, behind an eight-octet little-endian decompressed size.
-/*! The size is in the payload because the decoder needs the whole output
-    buffer up front and reports a buffer that is too small as an error, not
-    as "needs more room". A reader that guesses the size from the compressed
-    length -- `size * 8`, which is what `.drot`'s reader does -- therefore
-    fails outright on anything that compresses better than eight times, and
-    a table of repeated numbers compresses far better than that: the UNRES
-    text is 2.4 MB of digits in 100 KB. Writing the length down costs eight
-    octets and removes the guess.
-
-    Named apart from `.drot`'s copies because the module is built as one
-    translation unit, where two file-local functions of one name collide. */
-std::vector<unsigned char> pot_brotli_compress(
-        const std::vector<unsigned char>& in, int quality = 11) {
-    std::vector<unsigned char> packed;
-    if (!pto::compress_bytes("brotli", in.empty() ? NULL : &in[0], in.size(),
-                             quality, packed)) {
-        IMP_THROW("write_potential_tables: brotli compression failed",
-                  IOException);
-    }
-    std::vector<unsigned char> out;
-    out.reserve(8 + packed.size());
-    unsigned long long raw = in.size();
-    for (int i = 0; i < 8; ++i) {
-        out.push_back(static_cast<unsigned char>((raw >> (8 * i)) & 0xff));
-    }
-    out.insert(out.end(), packed.begin(), packed.end());
-    return out;
-}
-
-//! The inverse: read the size, allocate exactly that, decode once.
+//! Decode the pre-PTO-codec framing used by the shipped v1 container.
 std::vector<unsigned char> pot_brotli_decompress(const unsigned char* data,
                                                  std::size_t size) {
     if (size < 8) {
@@ -79,6 +50,19 @@ std::vector<unsigned char> pot_brotli_decompress(const unsigned char* data,
                   IOException);
     }
     return out;
+}
+
+//! Read a payload, accepting the v1 manually framed container during migration.
+std::vector<unsigned char> read_potential_payload(const PtoReader& reader,
+                                                   const PtoObject& object) {
+    try {
+        return reader.data(object);
+    } catch (const std::exception&) {
+        const std::vector<unsigned char> stored =
+                reader.file().read_stored(object.uid);
+        return pot_brotli_decompress(stored.empty() ? NULL : &stored[0],
+                                     stored.size());
+    }
 }
 
 const char* const kGridKind = "pot.grid";
@@ -171,7 +155,8 @@ std::string read_potential_manifest(std::string path) {
     const int i = reader.find(kManifestName);
     if (i < 0) return std::string("{}");
     // ptolib's reader decodes by the object's encoding -- no second pass.
-    const std::vector<unsigned char> raw = reader.data(reader.objects()[i]);
+    const std::vector<unsigned char> raw =
+            read_potential_payload(reader, reader.objects()[i]);
     return std::string(raw.begin(), raw.end());
 }
 
@@ -188,7 +173,7 @@ PotentialTable read_potential_table(std::string name, std::string path) {
     }
     const PtoObject& object = reader.objects()[i];
     // ptolib's reader decodes by the object's encoding -- no second pass.
-    const std::vector<unsigned char> raw = reader.data(object);
+    const std::vector<unsigned char> raw = read_potential_payload(reader, object);
 
     PotentialTable table(name, object.kind);
     if (object.kind == kPmfKind) {
@@ -209,11 +194,8 @@ void write_potential_tables(const std::string& path,
     PtoWriter writer(path);
     const std::vector<unsigned char> manifest(manifest_json.begin(),
                                               manifest_json.end());
-    const std::vector<unsigned char> packed_manifest =
-            pot_brotli_compress(manifest);
-    writer.add(kManifestName, "pot.manifest", "utf8+brotli",
-               packed_manifest.empty() ? NULL : &packed_manifest[0],
-               packed_manifest.size());
+    writer.add_coded(kManifestName, "pot.manifest", "utf8", "brotli",
+                     manifest.empty() ? NULL : &manifest[0], manifest.size());
 
     for (std::size_t i = 0; i < tables.size(); ++i) {
         const PotentialTable& t = tables[i];
@@ -222,11 +204,10 @@ void write_potential_tables(const std::string& path,
                 is_text ? std::vector<unsigned char>(t.text.begin(),
                                                      t.text.end())
                         : to_bytes(t.values);
-        const std::vector<unsigned char> packed = pot_brotli_compress(raw);
-        writer.add(stored_name(t.name, is_text ? kPmfKind : kGridKind),
-                   is_text ? kPmfKind : kGridKind,
-                   is_text ? "utf8+brotli" : "f64+brotli",
-                   packed.empty() ? NULL : &packed[0], packed.size());
+        writer.add_coded(stored_name(t.name, is_text ? kPmfKind : kGridKind),
+                         is_text ? kPmfKind : kGridKind,
+                         is_text ? "utf8" : "f64", "brotli",
+                         raw.empty() ? NULL : &raw[0], raw.size(), 11);
     }
     writer.close();
 }

@@ -97,6 +97,24 @@ PtoObject PtoWriter::add(const std::string& name, const std::string& kind,
     return object;
 }
 
+PtoObject PtoWriter::add_coded(const std::string& name,
+                               const std::string& kind,
+                               const std::string& inner_encoding,
+                               const std::string& codec, const void* data,
+                               std::size_t size, int level) {
+    if (closed_) IMP_THROW("PTO: the writer is closed", IOException);
+    const unsigned long long uid = file_.add_coded(
+            kind, inner_encoding, codec, name,
+            static_cast<const unsigned char*>(data), size, level);
+    if (uid == 0) {
+        IMP_THROW("PTO: writing " << file_.filename() << " failed: "
+                  << file_.error(), IOException);
+    }
+    PtoObject object = to_object(file_.object(uid));
+    objects_.push_back(object);
+    return object;
+}
+
 void PtoWriter::close() {
     if (closed_) return;
     closed_ = true;
