@@ -41,6 +41,32 @@
 // typemaps/attribute.swg); the older std_attribute.i spelling is gone.
 %include <attribute.i>
 
+/* IMP's module entry supplies this conversion for ParticleIndexes. The BFF
+ * module imports IMP rather than expanding its entry file, so repeat the
+ * boundary typemap here: a Python sequence of ParticleIndex, Particle, or
+ * Decorator values is the public input form for the restraint builders. */
+%typemap(in) IMP::ParticleIndexes const& {
+  try {
+    assign($1, ConvertSequence<IMP::ParticleIndexes,
+           Convert<IMP::ParticleIndex> >::get_cpp_object(
+               $input, "$symname", $argnum, "$1_type",
+               $descriptor(IMP::ParticleIndex*), $descriptor(IMP::Particle*),
+               $descriptor(IMP::Decorator*)));
+  } catch (const IMP::Exception &e) {
+    PyErr_SetString(PyExc_TypeError, e.what());
+    return NULL;
+  }
+}
+%typemap(freearg) IMP::ParticleIndexes const& {
+  delete_if_pointer($1);
+}
+%typecheck(SWIG_TYPECHECK_POINTER) IMP::ParticleIndexes const& {
+  $1 = ConvertSequence<IMP::ParticleIndexes,
+       Convert<IMP::ParticleIndex> >::get_is_cpp_object(
+           $input, $descriptor(IMP::ParticleIndex*),
+           $descriptor(IMP::Particle*), $descriptor(IMP::Decorator*));
+}
+
 %define %attribute_np(Class, Type, Name, GetMethod, SetMethod...)
     %extend Class {
     #if #SetMethod != ""
@@ -156,4 +182,3 @@
         }
     }
 %enddef
-
