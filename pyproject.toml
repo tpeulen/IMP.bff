@@ -116,7 +116,7 @@ test-requires = ["pytest", "pooch"]
 test-command = "python -c \"import IMP.bff as b; assert b.get_build() == 'core'; [getattr(b, n) for n in ('FitDataset', 'FitChiSquared', 'FitJointChiSquared', 'GraphEvaluation', 'FitMinimizer', 'TCSPCDecay')]; assert b.built_with_gpu_support(); print(b.get_module_version())\""
 
 [tool.cibuildwheel.linux]
-manylinux-x86_64-image = "manylinux_2_28"
+manylinux-x86_64-image = "quay.io/pypa/manylinux_2_28_x86_64:latest"
 manylinux-aarch64-image = "manylinux_2_28"
 archs = ["x86_64"]
 # Boost and Eigen headers from the distribution; cereal from
