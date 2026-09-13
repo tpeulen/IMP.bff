@@ -84,6 +84,13 @@ else
   ninja install -j ${JOBS}
 fi
 
+# IMP's generated module install copies selected BFF documentation examples,
+# but not the structure fixtures the module's public example API returns.
+# Install the complete BFF tree beside the module so get_example_path() has
+# the same contract in a package as it has from the checkout.
+mkdir -p "${PREFIX}/share/doc/IMP/examples/bff"
+cp -R modules/bff/examples/. "${PREFIX}/share/doc/IMP/examples/bff/"
+
 # Activation scripts: our kernel's compiled-in data path does not survive
 # rattler-build's prefix relocation (the search list arrives empty at run
 # time; conda-build builds don't hit this), so IMP_DATA -- the first thing
