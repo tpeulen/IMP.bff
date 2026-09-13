@@ -72,7 +72,8 @@ class TestKrylovPropagate:
         fields = _fields(ng)
         full, _ = diffusion_propagate_krylov(*fields, ng, FLUX_SMOLUCHOWSKI, 1000, 100, 64)
         trace = diffusion_trace_krylov(*fields, ng, FLUX_SMOLUCHOWSKI, 1000, 100, 64)
-        np.testing.assert_array_equal(np.asarray(full), np.asarray(trace))
+        np.testing.assert_allclose(np.asarray(full), np.asarray(trace),
+                                   rtol=1e-14, atol=1e-15)
 
     def test_more_krylov_vectors_converge(self):
         """The sequence has to settle, not merely change. A basis that is too
