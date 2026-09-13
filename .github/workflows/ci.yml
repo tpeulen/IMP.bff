@@ -95,10 +95,10 @@ jobs:
         continue-on-error: true
         with:
           path: ${{ env.CONDA }}/pkgs
-          key: conda-pkgs-${{ runner.os }}-${{ hashFiles('conda-recipe/recipe.yaml') }}-${{ steps.get-date.outputs.week }}
+          key: conda-pkgs-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('conda-recipe/imp/**') }}-${{ steps.get-date.outputs.week }}
           restore-keys: |
-            conda-pkgs-${{ runner.os }}-${{ hashFiles('conda-recipe/recipe.yaml') }}-
-            conda-pkgs-${{ runner.os }}-
+            conda-pkgs-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('conda-recipe/imp/**') }}-
+            conda-pkgs-${{ runner.os }}-${{ runner.arch }}-
 
       # sccache caches object files across runs (via the GitHub Actions cache
       # backend), so only what actually changed since the last run on this OS
@@ -142,7 +142,17 @@ jobs:
       # The recipe unpacks IMP, overlays this checkout at modules/bff, and
       # configures the root IMP project once. Installing its output therefore
       # installs IMP.bff beside the matching IMP libraries and SWIG fragments.
+      # The completed artifact is cached separately from conda packages and
+      # sccache objects. An exact hit skips rattler-build entirely; a failed
+      # build is never saved, so a partial output cannot poison a later run.
+      - name: Restore the custom IMP+BFF package
+        id: imp-package-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: imp-bld
+          key: custom-imp-bff-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('conda-recipe/imp/**', 'CMakeLists.txt', 'Headers.cmake', 'src/**', 'include/**', 'pyext/**', 'thirdparty/ptolib/**', 'data/**', 'examples/**', 'bin/**', 'cmake/**') }}
       - name: Build our imp
+        if: steps.imp-package-cache.outputs.cache-hit != 'true'
         shell: bash -e {0}
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
@@ -158,6 +168,12 @@ jobs:
           "$builder" build --recipe conda-recipe/imp/recipe.yaml \
               --env-isolation none \
               --channel conda-forge --output-dir imp-bld
+      - name: Save the custom IMP+BFF package
+        if: steps.imp-package-cache.outputs.cache-hit != 'true' && success()
+        uses: actions/cache/save@v4
+        with:
+          path: imp-bld
+          key: custom-imp-bff-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('conda-recipe/imp/**', 'CMakeLists.txt', 'Headers.cmake', 'src/**', 'include/**', 'pyext/**', 'thirdparty/ptolib/**', 'data/**', 'examples/**', 'bin/**', 'cmake/**') }}
       - name: Compiler cache statistics
         if: always()
         continue-on-error: true
