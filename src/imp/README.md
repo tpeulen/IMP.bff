@@ -26,6 +26,7 @@ tree, so a public subdirectory is not an option -- and are named in
 | `ProbePotentialRestraints.h` | `ProbePotentialRestraints.cpp` | `IMP::Restraint` factories for coarse-grained potentials, and the restraint factories over a typed dye system (formerly the IMP half of `RotamerScoring.h`) |
 | `Docking.h` | `Docking.cpp` | rigid-body docking assemblies over `IMP::atom::Hierarchy` |
 | `ProbeDynamics.h` | `ProbeDynamics.cpp` | `IMP::atom::Simulator` (Langevin / Brownian) for an attached probe |
+| `MolecularProbeSimulation.h` | `MolecularProbeSimulation.cpp` | the array-facing wrapper around an attached probe simulation; coordinates are read and restored through the dynamics particle order |
 | `FPSProject.h`, `FPSExport.h` | `FPSProject.cpp`, `FPSExport.cpp` | the fps.json project and its exports, which drive `Docking.h` |
 | `ProbeAttachment.h` | `ProbeAttachment.cpp` | attaching a probe hierarchy to a protein hierarchy: site resolution, backbone frame, placement, alignment (all over `IMP::atom::Hierarchy`) |
 | `IMPAlgebraBridge.h` | `IMPAlgebraBridge.cpp` | the core's flat rigid-body numbers as `IMP::algebra::Transformation3D` and back (formerly in `RRT.h`) |

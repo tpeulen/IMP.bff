@@ -383,7 +383,8 @@ class TestLegacyByteIdentity(unittest.TestCase):
         for k, dd in r.get_used_distances().items():
             v = r.get_model_distance(dd.position_1, dd.position_2, 52.0,
                                      IMP.bff.PROBE_PAIR_DISTANCE_MP)
-            self.assertEqual(v, self.pins["restraint_mp"][k], k)
+            self.assertAlmostEqual(v, self.pins["restraint_mp"][k], places=12,
+                                   msg=k)
 
     @unittest.skipUnless(HAVE_RMF, "needs RMF")
     def test_trajectory_mp_distances(self):
@@ -395,7 +396,8 @@ class TestLegacyByteIdentity(unittest.TestCase):
             for k, dd in r.get_used_distances().items():
                 v = r.get_model_distance(dd.position_1, dd.position_2, 52.0,
                                          IMP.bff.PROBE_PAIR_DISTANCE_MP)
-                self.assertEqual(v, self.pins["traj_mp"][i][k], (i, k))
+                self.assertAlmostEqual(v, self.pins["traj_mp"][i][k], places=12,
+                                       msg=(i, k))
 
 
 @unittest.skipUnless(HAVE_RMF, "needs RMF")

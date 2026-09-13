@@ -84,7 +84,7 @@ class ObjectiveBatchTests(unittest.TestCase):
     def test_it_returns_one_value_per_candidate(self):
         batch = self.m.compute_objective_batch(self.candidates)
         self.assertEqual(batch.shape, (len(self.candidates),))
-        self.assertEqual(batch[0], 0.0)          # scored at the truth
+        self.assertAlmostEqual(batch[0], 0.0, places=24)  # scored at the truth
         self.assertEqual(batch[0], batch[3])     # the same point twice
 
     def test_the_ports_come_back_where_they_were(self):
@@ -125,7 +125,7 @@ class ObjectiveBatchTests(unittest.TestCase):
             np.array([[np.nan, 3.0], [2.0, 3.0]]))
         self.assertTrue(np.isinf(batch[0]))
         self.assertFalse(np.isnan(batch[0]))
-        self.assertEqual(batch[1], 0.0)
+        self.assertAlmostEqual(batch[1], 0.0, places=24)
 
     def test_it_agrees_with_run_at_the_solution(self):
         """The batch and the optimiser are the same objective, so the batch

@@ -20,6 +20,7 @@
 #include <IMP/bff/internal/json.h>
 
 #include <IMP/Model.h>
+#include <IMP/algebra/Vector3D.h>
 #include <IMP/atom/Hierarchy.h>
 
 #include <memory>
@@ -148,8 +149,12 @@ void MolecularProbeSimulation::set_positions(const std::vector<double>& xyz) {
         IMP_THROW("the dye has " << get_n_atoms() << " atoms, so " << expected
                   << " coordinates, not " << xyz.size(), ValueException);
     }
-    // the dye's own hierarchy is what the integrator reads coordinates from
-    apply_coordinates(impl_->dye, xyz);
+    // dynamics owns the ordered particle list exposed through positions
+    const IMP::ParticlesTemp particles = impl_->dynamics->get_probe_particles();
+    for (std::size_t i = 0; i < particles.size(); ++i) {
+        IMP::core::XYZ(particles[i]).set_coordinates(IMP::algebra::Vector3D(
+                xyz[3 * i], xyz[3 * i + 1], xyz[3 * i + 2]));
+    }
 }
 
 double MolecularProbeSimulation::minimize(int n_steps) {
