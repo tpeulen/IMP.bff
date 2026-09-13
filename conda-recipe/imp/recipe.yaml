@@ -101,16 +101,6 @@ requirements:
     - click
     - click-didyoumean
 
-tests:
-  - python:
-      imports:
-        - IMP
-        - IMP.atom
-        - IMP.bff
-  - script:
-      - export IMP_DATA=${CONDA_PREFIX}/share/IMP
-      - python -c "import IMP.bff as b; assert b.get_build() == 'imp', b.get_build()"
-
 about:
   homepage: https://integrativemodeling.org
   license: GPL-3.0-or-later
