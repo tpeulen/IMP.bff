@@ -245,29 +245,29 @@ jobs:
           # Keep test discovery and execution in the same interpreter invocation
           # to avoid shell-feature differences across runners.
           conda run -n bff-test --no-capture-output python - <<'PY'
-            import os
-            import subprocess
-            import sys
-            from pathlib import Path
+          import os
+          import subprocess
+          import sys
+          from pathlib import Path
 
-            # Our imp's compiled-in data/example paths do not survive rattler's
-            # prefix relocation; set these first (IMP checks here first).
-            conda_prefix = os.environ["CONDA_PREFIX"]
-            os.environ["IMP_DATA"] = str(Path(conda_prefix) / "share" / "IMP")
-            os.environ["IMP_EXAMPLE_DATA"] = str(Path(conda_prefix) / "share" / "doc" / "IMP" / "examples")
+          # Our imp's compiled-in data/example paths do not survive rattler's
+          # prefix relocation; set these first (IMP checks here first).
+          conda_prefix = os.environ["CONDA_PREFIX"]
+          os.environ["IMP_DATA"] = str(Path(conda_prefix) / "share" / "IMP")
+          os.environ["IMP_EXAMPLE_DATA"] = str(Path(conda_prefix) / "share" / "doc" / "IMP" / "examples")
 
-            tests = sorted(
-                str(p) for p in Path("test").rglob("*.py")
-                if p.name.startswith("test_") or p.name.startswith("medium_test_")
-            )
-            if not tests:
+          tests = sorted(
+              str(p) for p in Path("test").rglob("*.py")
+              if p.name.startswith("test_") or p.name.startswith("medium_test_")
+          )
+          if not tests:
               print("No matching fast/medium tests found under test/")
               sys.exit(0)
 
-            print(f"{len(tests)} test files selected")
-            sys.exit(
-                subprocess.call([sys.executable, "-m", "pytest", *tests, "-v"])
-            )
+          print(f"{len(tests)} test files selected")
+          sys.exit(
+              subprocess.call([sys.executable, "-m", "pytest", *tests, "-v"])
+          )
           PY
 
       - uses: actions/upload-artifact@v4
