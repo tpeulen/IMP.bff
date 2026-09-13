@@ -15,10 +15,6 @@
 
 IMPBFF_BEGIN_NAMESPACE
 
-namespace {
-const double kNormalPi = std::acos(-1.0);
-}
-
 //! The vector kernel behind the public (void, view-publishing) wrapper.
 /*! Kept private so the skew and two-Gaussian kernels can reuse the normal
     density without allocating a second managed view. */
@@ -26,7 +22,7 @@ std::vector<double> normal_density(const std::vector<double>& x, double loc,
                                    double scale) {
     std::vector<double> y(x.size(), 0.0);
     if (scale == 0.0) return y;
-    const double a = 1.0 / (std::sqrt(2.0 * kNormalPi) * scale);
+    const double a = 1.0 / (std::sqrt(2.0 * M_PI) * scale);
     const double two_s2 = 2.0 * scale * scale;
     for (std::size_t i = 0; i < x.size(); ++i) {
         const double d = x[i] - loc;
@@ -52,7 +48,7 @@ void normal_distribution(const std::vector<double>& x, double loc,
                          double** out_view, int* n_out_view) {
     std::vector<double> y(x.size(), 0.0);
     if (scale != 0.0) {
-        const double a = 1.0 / (std::sqrt(2.0 * kNormalPi) * scale);
+        const double a = 1.0 / (std::sqrt(2.0 * M_PI) * scale);
         const double two_s2 = 2.0 * scale * scale;
         for (std::size_t i = 0; i < x.size(); ++i) {
             const double d = x[i] - loc;

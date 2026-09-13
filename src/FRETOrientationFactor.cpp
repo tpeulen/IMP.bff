@@ -27,8 +27,6 @@
 IMPBFF_BEGIN_NAMESPACE
 
 namespace {
-const double kOrientationPi = std::acos(-1.0);
-
 //! Second-rank Legendre polynomial of a cosine, P2(cos x).
 inline double p2_of_angle(double x) {
     const double c = std::cos(x);
@@ -127,10 +125,10 @@ Kappa2Distribution wobbling_kappa2_distribution_delta(
     k2_scale = bin_edges(n_bins, k2_min, k2_max);
     k2_hist.assign(k2_scale.empty() ? 0 : k2_scale.size() - 1, 0.0);
 
-    const double d_rad = step * kOrientationPi / 180.0;
+    const double d_rad = step * M_PI / 180.0;
     std::vector<double> beta1, phi;
-    for (double b = 0.001; b < kOrientationPi / 2.0; b += d_rad) beta1.push_back(b);
-    for (double p = 0.001; p < 2.0 * kOrientationPi; p += d_rad) phi.push_back(p);
+    for (double b = 0.001; b < M_PI / 2.0; b += d_rad) beta1.push_back(b);
+    for (double p = 0.001; p < 2.0 * M_PI; p += d_rad) phi.push_back(p);
 
     std::vector<double> k2(beta1.size() * phi.size(), 0.0);
     const double sd = std::sin(delta), cd = std::cos(delta);
