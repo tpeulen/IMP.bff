@@ -185,6 +185,7 @@ jobs:
           # to avoid shell-feature differences across runners.
           conda run -n bff-test --no-capture-output python - <<'PY'
           import os
+          import shutil
           import subprocess
           import sys
           from pathlib import Path
@@ -193,13 +194,18 @@ jobs:
           # prefix relocation; set these first (IMP checks here first).
           conda_prefix = os.environ["CONDA_PREFIX"]
           os.environ["IMP_DATA"] = str(Path(conda_prefix) / "share" / "IMP")
-          example_roots = (
-              Path(conda_prefix) / "share" / "doc" / "IMP" / "examples" / "bff",
-              Path(conda_prefix) / "Library" / "share" / "doc" / "IMP" / "examples" / "bff",
-          )
-          os.environ["IMP_EXAMPLE_DATA"] = str(next(
-              (path for path in example_roots if path.is_dir()), example_roots[0]
-          ))
+          # IMP module lookup expects each example root to contain bff/.
+          # The checkout is flat, so make that module layout in the ephemeral
+          # workspace while still importing the installed custom IMP package.
+          fixture_root = Path.cwd() / ".ci-bff-examples"
+          shutil.rmtree(fixture_root, ignore_errors=True)
+          fixture_bff = fixture_root / "bff"
+          fixture_root.mkdir()
+          try:
+              fixture_bff.symlink_to(Path.cwd() / "examples", target_is_directory=True)
+          except OSError:
+              shutil.copytree(Path.cwd() / "examples", fixture_bff)
+          os.environ["IMP_EXAMPLE_DATA"] = str(fixture_root)
 
           tests = sorted(
               str(p) for p in Path("test").rglob("*.py")
