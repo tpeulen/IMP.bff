@@ -42,8 +42,12 @@ if errorlevel 1 exit 1
 :: Avoid running out of memory (particularly on 32-bit) by splitting up IMP.cgal
 set PERCPPCOMP="-DIMP_PER_CPP_COMPILATION=cgal"
 
-:: Don't build the scratch or cnmultifit modules
-set DISABLED=EMageFit:bayesianem:bff:cgal:cnmultifit:domino:em2d:emseqfinder:example:foxs:gsl:integrative_docking:kmeans:misc:modeller:mpi:multi_state:multifit:nestor:npc:npctransport:parallel:pepdock:pmi1:sampcon:saxs_merge:scratch:spatiotemporal:spb:symmetry
+:: Fetch BFF's out-of-git data before IMP installs the BFF module with the rest.
+python modules\bff\utility\data_registry.py --fetch modules\bff\data --quiet
+if errorlevel 1 exit 1
+
+:: Build the current modules\bff overlay with the custom IMP package.
+set DISABLED=EMageFit:bayesianem:cgal:cnmultifit:domino:em2d:emseqfinder:example:foxs:gsl:integrative_docking:kmeans:misc:modeller:mpi:multi_state:multifit:nestor:npc:npctransport:parallel:pepdock:pmi1:sampcon:saxs_merge:scratch:spatiotemporal:spb:symmetry
 
 :: We use the conda boost package, which includes
 :: zlib support, but defining BOOST_ALL_DYN_LINK (below) makes boost try to
