@@ -43,7 +43,7 @@ if errorlevel 1 exit 1
 set PERCPPCOMP="-DIMP_PER_CPP_COMPILATION=cgal"
 
 :: Fetch BFF's out-of-git data before IMP installs the BFF module with the rest.
-python modules\bff\utility\data_registry.py --fetch modules\bff\data --quiet
+python ..\modules\bff\utility\data_registry.py --fetch ..\modules\bff\data --quiet
 if errorlevel 1 exit 1
 
 :: Build the current modules\bff overlay with the custom IMP package.
