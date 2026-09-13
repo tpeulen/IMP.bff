@@ -2,12 +2,13 @@ name: CI
 
 # Two builds, then the tests, on macOS, Linux and Windows:
 #
-#   1. bff as an IMP module      -- the conda package `imp.bff`
+#   1. bff as an IMP module      -- one custom `imp` package with this
+#      checkout overlaid at `modules/bff`
 #   2. bff as a standalone pip   -- the wheels of the IMP-free core (`bff`,
 #      package                      import name IMP.bff)
 #
-# Both carry a test stage: the conda package against the fast + medium
-# tiers, the wheel through cibuildwheel's test-command.
+# Both carry a test stage: the custom IMP package against the fast tier, the
+# wheel through cibuildwheel's test-command.
 
 on:
   push:
@@ -63,7 +64,7 @@ jobs:
             echo 'wheel_matrix={"include":[{"os":"ubuntu-latest","arch":"x86_64"}]}' >> "$GITHUB_OUTPUT"
           fi
 
-  # ── 1. bff as an IMP module: the conda package `imp.bff` ──────────────────
+  # ── 1. bff as an in-tree IMP module ──────────────────────────────────────
   imp_module:
     name: IMP module (${{ matrix.os }})
     needs: setup
@@ -137,17 +138,10 @@ jobs:
         run: |
           "$CONDA/bin/conda" install -y -n test rattler-build
 
-      # ── our own imp ────────────────────────────────────────────────────────
-      # The published conda-forge imp ships salilab/imp's historical bff
-      # module -- its Python files land in site-packages/IMP/bff/ and its
-      # swig fragments in share/IMP/swig/, clobbering (or clobbered by)
-      # this package's IMP.bff: a fresh build answered import with the old
-      # module's surface. So the job builds imp itself, from conda-forge's
-      # recipe (conda-recipe/imp/, trimmed to the 14 modules bff uses,
-      # bff disabled).
-      # Build IMP on every run. Its package cache caused the correctness path
-      # to depend on a fallback archive and a shell guard; build reliability
-      # matters more than avoiding this one repeated build.
+      # ── custom IMP with this checkout at modules/bff ───────────────────────
+      # The recipe unpacks IMP, overlays this checkout at modules/bff, and
+      # configures the root IMP project once. Installing its output therefore
+      # installs IMP.bff beside the matching IMP libraries and SWIG fragments.
       - name: Build our imp
         shell: bash -e {0}
         run: |
@@ -164,78 +158,24 @@ jobs:
           "$builder" build --recipe conda-recipe/imp/recipe.yaml \
               --env-isolation none \
               --channel conda-forge --output-dir imp-bld
-      # The large data (data/registry.json) is not in git: it comes from the
-      # download host, cached between runs keyed by the registry (tttrlib's
-      # pattern) so only a changed registry downloads again. The build
-      # scripts copy from this cache into data/ (IMP_BFF_DATA_CACHE) and the
-      # checkout gets it too, for the tests that read data/ directly.
-      - name: Cache the large data
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/imp-bff-data
-          key: imp-bff-data-${{ hashFiles('data/registry.json') }}
-      - name: Fetch the large data
-        shell: bash -e {0}
-        run: |
-          python -m pip install -q pooch
-          # cgprobe only: the 229-file rotamer_library is the bulk of the
-          # download, and the tests read it through the packaged copy
-          # (share/IMP/bff), not the checkout.
-          python utility/data_registry.py --fetch data --only cgprobe \
-              --cache "$HOME/.cache/imp-bff-data" --quiet
-          echo "IMP_BFF_DATA_CACHE=$HOME/.cache/imp-bff-data" >> "$GITHUB_ENV"
-
-      - name: Build the conda package
-        shell: bash -e {0}
-        # --env-isolation none: rattler-build's default (`strict`) hands
-        # build.sh a clean environment, which silently cost two caches --
-        # IMP_BFF_DATA_CACHE never reached it, so every package build
-        # re-downloaded all 284 registry files from peulen.xyz, and the
-        # sccache GHA tokens never did, so compiles cached to local disk
-        # (wiped with the work dir). `none` inherits the host environment,
-        # tttrlib's effective behavior under conda-build.
-        run: |
-          if [ "$RUNNER_OS" = "Windows" ]; then
-            builder="$RATTLER_BUILD_EXE"
-          else
-            builder="$CONDA/envs/test/bin/rattler-build"
-          fi
-          if [ ! -x "$builder" ]; then
-            echo "::error::rattler-build is unavailable at $builder"
-            exit 1
-          fi
-          "$builder" build --recipe conda-recipe/recipe.yaml \
-              --env-isolation none \
-              --channel ./imp-bld --channel conda-forge \
-              --output-dir conda-bld
-
       - name: Compiler cache statistics
         if: always()
         continue-on-error: true
         run: sccache --show-stats
 
-      # Retries: this reuses the same conda package cache rattler-build's own
-      # internal test env (the recipe's `imp_bff --help` smoke test) just
-      # solved into moments earlier, and an in-progress lock on that cache
-      # occasionally isn't released before this step starts, corrupting an
-      # extraction ("Could not set lock", empty index.json). Transient, not a
-      # dependency problem -- a clean retry always passes.
-      - name: Install the freshly built package into a test env
+      - name: Install the custom IMP module build into a test env
         shell: bash -e {0}
         run: |
           for attempt in 1 2 3; do
-            # --strict-channel-priority: our imp must win the 2.25.0 tie
-            # against conda-forge's (whose build carries the historical bff
-            # on the same paths) even if its build number ever ties again.
             conda create -y -n bff-test --strict-channel-priority \
-              -c ./conda-bld -c ./imp-bld -c conda-forge \
-              imp.bff pytest pooch python-ihm && break
+              -c ./imp-bld -c conda-forge \
+              imp pytest pooch ihm && break
             [ "$attempt" -lt 3 ] || exit 1
             echo "retrying test env creation (attempt $attempt failed)"
             sleep 10
           done
 
-      # Only test_*.py is the maintained fast package gate. medium_test_*.py
+      # Only test_*.py is the maintained fast integration gate. medium_test_*.py
       # records longer validation experiments with separate inputs and pins;
       # it must not turn a package smoke test into an unrelated API migration.
       - name: Run fast tests
@@ -271,8 +211,8 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: conda-package-${{ matrix.os }}
-          path: conda-bld/**/*.conda
+          name: custom-imp-with-bff-${{ matrix.os }}
+          path: imp-bld/**/*.conda
           if-no-files-found: error
 
   # ── 2. bff as a standalone pip package: the IMP-free core, as wheels ──────

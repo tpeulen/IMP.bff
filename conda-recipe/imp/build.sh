@@ -5,8 +5,15 @@
 # Make sure the default encoding for files opened by Python 3 is UTF8
 export LANG=en_US.UTF-8
 
-# Don't build the scratch or cnmultifit modules
-DISABLED=EMageFit:bayesianem:bff:cgal:cnmultifit:domino:em2d:emseqfinder:example:foxs:gsl:integrative_docking:kmeans:misc:modeller:mpi:multi_state:multifit:nestor:npc:npctransport:parallel:pepdock:pmi1:sampcon:saxs_merge:scratch:spatiotemporal:spb:symmetry
+# Fetch BFF's out-of-git data into the module tree before IMP's install rules
+# copy it beside the compiled module.
+python modules/bff/utility/data_registry.py --fetch modules/bff/data --quiet \
+  ${IMP_BFF_DATA_CACHE:+--cache "$IMP_BFF_DATA_CACHE"}
+
+# Don't build modules BFF does not need. BFF itself is deliberately absent:
+# this recipe overlays the current checkout into modules/bff and installs it
+# as part of this custom IMP package.
+DISABLED=EMageFit:bayesianem:cgal:cnmultifit:domino:em2d:emseqfinder:example:foxs:gsl:integrative_docking:kmeans:misc:modeller:mpi:multi_state:multifit:nestor:npc:npctransport:parallel:pepdock:pmi1:sampcon:saxs_merge:scratch:spatiotemporal:spb:symmetry
 
 # Avoid running out of memory on by splitting up IMP.cgal and IMP.spb
 
