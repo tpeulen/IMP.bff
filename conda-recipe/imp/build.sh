@@ -90,7 +90,7 @@ fi
 # Install the complete BFF tree beside the module so get_example_path() has
 # the same contract in a package as it has from the checkout.
 mkdir -p "${PREFIX}/share/doc/IMP/examples/bff"
-cp -R modules/bff/examples/. "${PREFIX}/share/doc/IMP/examples/bff/"
+cp -R "${SRC_DIR}/modules/bff/examples/." "${PREFIX}/share/doc/IMP/examples/bff/"
 
 # Activation scripts: our kernel's compiled-in data path does not survive
 # rattler-build's prefix relocation (the search list arrives empty at run
