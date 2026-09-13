@@ -134,7 +134,7 @@
   "thirdparty/lz4/lz4hc.h": "e43824e8a9ba16f54100c4ccbccfa5782a858ca9ab83c48aac303fea3e76e21e",
   "thirdparty/lz4/xxhash.c": "37982751eed89252553f7f57eed03c9d493920ca13347efa2a0079bef0c411fd",
   "thirdparty/lz4/xxhash.h": "aefdd236f35130495c18764cabed3f7b216906855fc5e6a9025cd2040bc84444",
-  "thirdparty/miniz/LICENSE": "0115478d567121238cf6cc1c0c361926cf07a49d9e4c9e66da97fac6a01646b3",
+  "thirdparty/miniz/LICENSE": "6f20fa7672b00e2e975c291df737cf227addf3ad32e36fef3fe0f416e4664d3d",
   "thirdparty/miniz/miniz.c": "0fcdc9888cb3a29ca8f176bac087e5fe6c7258a6ab06b1c271c1e109a11d3740",
   "thirdparty/miniz/miniz.h": "295d1a0041aea09609598c0f1f35c1977ca05ad662acbadcfdaac44c140af37b",
   "thirdparty/nlohmann_json/LICENSE.MIT": "46a65cffd1ea955132d95a8dd921640714a8d6b537d2e4e482d31145ae95b603",
