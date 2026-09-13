@@ -193,7 +193,7 @@ jobs:
           # prefix relocation; set these first (IMP checks here first).
           conda_prefix = os.environ["CONDA_PREFIX"]
           os.environ["IMP_DATA"] = str(Path(conda_prefix) / "share" / "IMP")
-          os.environ["IMP_EXAMPLE_DATA"] = str(Path(conda_prefix) / "share" / "doc" / "IMP" / "examples")
+          os.environ["IMP_EXAMPLE_DATA"] = str(Path(conda_prefix) / "share" / "doc" / "IMP" / "examples" / "bff")
 
           tests = sorted(
               str(p) for p in Path("test").rglob("*.py")
