@@ -53,9 +53,12 @@ fi
 # anywhere on the machine makes them build (windows found one in the SDK)
 # -- refuse it explicitly, both platforms. (No comments inside the
 # continuation: a '#' starts a comment that eats the line's backslash.)
+NUMPY_INCLUDE="$(${PREFIX}/bin/python -c 'import numpy; print(numpy.get_include())')"
 cmake "${SCCACHE_ARGS[@]}" -DCMAKE_BUILD_TYPE=Release -DIMP_DISABLED_MODULES=${DISABLED} \
       -G Ninja \
       -DPYTHON_EXECUTABLE="${PREFIX}/bin/python" \
+      -DPYTHON_NUMPY_FOUND=TRUE \
+      -DPYTHON_NUMPY_INCLUDE_DIR="${NUMPY_INCLUDE}" \
       -DIMP_USE_SYSTEM_RMF=off \
       -DDOXYGEN_EXECUTABLE=DOXYGEN_EXECUTABLE-NOTFOUND \
       -DIMP_USE_SYSTEM_IHM=off \
