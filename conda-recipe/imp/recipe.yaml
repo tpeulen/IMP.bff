@@ -32,6 +32,9 @@ package:
 source:
   - url: https://github.com/salilab/imp/releases/download/${{ version }}/imp-src-${{ version }}.tar.gz
     sha256: 2f7c1403524e8fa991e8b6cb59fa6c0d5d6c2005c41c20cabb66185f07ba3c5c
+    filter:
+      exclude:
+        - modules/bff/**
     patches:
       - imp-swig45.patch
       # the bundled RMF's swig_helpers.h has the same Python-2-era spellings
