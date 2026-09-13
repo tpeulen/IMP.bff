@@ -111,8 +111,8 @@ jobs:
           echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
           echo "SCCACHE_IDLE_TIMEOUT=0" >> "$GITHUB_ENV"
 
-      # Windows, Linux and macOS use the same standalone rattler-build binary
-      # release to avoid conda-launcher issues in GitHub Actions.
+      # Windows uses the standalone binary because its shell launcher is not
+      # reliable. Unix runners use the package installed in the test prefix.
       - name: Install rattler-build (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -135,36 +135,7 @@ jobs:
         if: runner.os != 'Windows'
         shell: bash -e {0}
         run: |
-          tag="v0.76.0"
-          case "$RUNNER_OS" in
-            Linux)
-              asset="rattler-build-x86_64-unknown-linux-musl.tar.gz"
-              ;;
-            macOS)
-              asset="rattler-build-aarch64-apple-darwin.tar.gz"
-              ;;
-            *)
-              echo "::error::unsupported runner OS: $RUNNER_OS"
-              exit 1
-              ;;
-          esac
-
-          dest="${RUNNER_TEMP}/rattler-build"
-          mkdir -p "${dest}"
-          url="https://github.com/prefix-dev/rattler-build/releases/download/${tag}/${asset}"
-          echo "downloading rattler-build from ${url}"
-          curl -fL -o "${dest}/${asset}" "${url}"
-          tar -xzf "${dest}/${asset}" -C "${dest}"
-
-          RATTLER_BUILD_EXE="${dest}/${asset%.tar.gz}/rattler-build"
-          if [ ! -f "$RATTLER_BUILD_EXE" ]; then
-            echo "::error::failed to unpack rattler-build from ${asset}"
-            find "${dest}" -maxdepth 2 -type f
-            exit 1
-          fi
-          chmod +x "$RATTLER_BUILD_EXE"
-          echo "RATTLER_BUILD_EXE=${RATTLER_BUILD_EXE}" >> "$GITHUB_ENV"
-          "$RATTLER_BUILD_EXE" --version
+          "$CONDA/bin/conda" install -y -n test rattler-build
 
       # ── our own imp ────────────────────────────────────────────────────────
       # The published conda-forge imp ships salilab/imp's historical bff
@@ -173,44 +144,26 @@ jobs:
       # this package's IMP.bff: a fresh build answered import with the old
       # module's surface. So the job builds imp itself, from conda-forge's
       # recipe (conda-recipe/imp/, trimmed to the 14 modules bff uses,
-      # bff disabled) and cached by the recipe's content.
-      # The key is stable for this runner and recipe revision, so successful
-      # builds are exact cache hits on later runs. A failed build is never
-      # saved, which prevents a partial dependency tree from poisoning the
-      # next run.
-      - name: Restore our imp package
-        id: imp-cache
-        uses: actions/cache/restore@v4
-        with:
-          path: imp-bld
-          key: imp-trimmed-${{ runner.os }}-${{ hashFiles('conda-recipe/imp/**') }}
-      - name: Build our imp (when the cache is cold)
+      # bff disabled).
+      # Build IMP on every run. Its package cache caused the correctness path
+      # to depend on a fallback archive and a shell guard; build reliability
+      # matters more than avoiding this one repeated build.
+      - name: Build our imp
         shell: bash -e {0}
         run: |
-          if [ -z "${RATTLER_BUILD_EXE}" ]; then
-            echo "::error::could not locate rattler-build"
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            builder="$RATTLER_BUILD_EXE"
+          else
+            builder="$CONDA/envs/test/bin/rattler-build"
+          fi
+          if [ ! -x "$builder" ]; then
+            echo "::error::rattler-build is unavailable at $builder"
             exit 1
           fi
-          echo "Using rattler-build=$RATTLER_BUILD_EXE"
-          # A cache miss leaves no imp-bld directory.  Under bash -e the old
-          # find|grep guard exited here with status 1, so rattler-build never
-          # ran and the job failed in 1s.  Treat a missing directory as an
-          # ordinary cache miss.
-          if [ -d imp-bld ]; then
-            archive=$(find imp-bld -type f \( -name '*.conda' -o -name '*.tar.bz2' \) -print -quit 2>/dev/null || true)
-            if [ -n "$archive" ]; then
-              exit 0
-            fi
-          fi
-          "$RATTLER_BUILD_EXE" build --recipe conda-recipe/imp/recipe.yaml \
+          "$builder" --version
+          "$builder" build --recipe conda-recipe/imp/recipe.yaml \
               --env-isolation none \
               --channel conda-forge --output-dir imp-bld
-      - name: Save our imp package
-        if: steps.imp-cache.outputs.cache-hit != 'true' && success()
-        uses: actions/cache/save@v4
-        with:
-          path: imp-bld
-          key: imp-trimmed-${{ runner.os }}-${{ hashFiles('conda-recipe/imp/**') }}
       # The large data (data/registry.json) is not in git: it comes from the
       # download host, cached between runs keyed by the registry (tttrlib's
       # pattern) so only a changed registry downloads again. The build
@@ -242,12 +195,16 @@ jobs:
         # (wiped with the work dir). `none` inherits the host environment,
         # tttrlib's effective behavior under conda-build.
         run: |
-          if [ -z "${RATTLER_BUILD_EXE}" ]; then
-            echo "::error::could not locate rattler-build"
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            builder="$RATTLER_BUILD_EXE"
+          else
+            builder="$CONDA/envs/test/bin/rattler-build"
+          fi
+          if [ ! -x "$builder" ]; then
+            echo "::error::rattler-build is unavailable at $builder"
             exit 1
           fi
-          echo "Using rattler-build=$RATTLER_BUILD_EXE"
-          "$RATTLER_BUILD_EXE" build --recipe conda-recipe/recipe.yaml \
+          "$builder" build --recipe conda-recipe/recipe.yaml \
               --env-isolation none \
               --channel ./imp-bld --channel conda-forge \
               --output-dir conda-bld
