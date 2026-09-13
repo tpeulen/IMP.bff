@@ -79,6 +79,10 @@ if errorlevel 1 exit 1
 ninja install -j1
 if errorlevel 1 exit 1
 
+if not exist "%LIBRARY_PREFIX%\share\doc\IMP\examples\bff" mkdir "%LIBRARY_PREFIX%\share\doc\IMP\examples\bff"
+xcopy /e /k /h /i ..\modules\bff\examples "%LIBRARY_PREFIX%\share\doc\IMP\examples\bff"
+if errorlevel 1 exit 1
+
 :: Add wrappers to path for each Python command line tool
 :: (all files without an extension)
 cd bin
