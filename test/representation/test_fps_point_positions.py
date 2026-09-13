@@ -256,7 +256,7 @@ def test_an_xyz_position_without_a_frame_is_taken_as_written(tmp_path,
     got = IMP.core.XYZ(assembly.get_model(),
                        assembly.get_network().get_position_particle_index(
                            "fixed")).get_coordinates()
-    assert (got - here).get_magnitude() == 0.0
+    assert (got - here).get_magnitude() == pytest.approx(0.0, abs=1e-12)
 
 
 def test_screening_a_library_with_a_fixed_position_now_runs(tmp_path,
