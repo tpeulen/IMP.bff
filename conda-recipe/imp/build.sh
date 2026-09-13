@@ -55,6 +55,7 @@ fi
 # continuation: a '#' starts a comment that eats the line's backslash.)
 cmake "${SCCACHE_ARGS[@]}" -DCMAKE_BUILD_TYPE=Release -DIMP_DISABLED_MODULES=${DISABLED} \
       -G Ninja \
+      -DPYTHON_EXECUTABLE="${PREFIX}/bin/python" \
       -DIMP_USE_SYSTEM_RMF=off \
       -DDOXYGEN_EXECUTABLE=DOXYGEN_EXECUTABLE-NOTFOUND \
       -DIMP_USE_SYSTEM_IHM=off \
