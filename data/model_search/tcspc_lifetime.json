@@ -42,6 +42,12 @@
    },
    "measurement_time": {
     "label": "Measurement time [s]"
+   },
+   "response_start": {
+    "label": "IRF start [ns]"
+   },
+   "response_stop": {
+    "label": "IRF stop [ns]"
    }
   }
  },
@@ -60,7 +66,9 @@
   "measurement_time": 1.0,
   "amplitude_threshold": 0.0,
   "convolution_stop": 1e+18,
-  "scale_stop": 1e+18
+  "scale_stop": 1e+18,
+  "response_start": 0.0,
+  "response_stop": 1e+18
  },
  "optional_datasets": [
   "linearization"
@@ -121,6 +129,14 @@
    "lower": "-0.5*response_size",
    "upper": "0.5*response_size",
    "group": "instrument"
+  },
+  "instrument.response_background": {
+   "name": "lamp background",
+   "group": "instrument",
+   "initial": 0.0,
+   "free": false,
+   "lower": 0.0,
+   "upper": "response_max"
   }
  },
  "initial_axes": {
@@ -155,7 +171,11 @@
       "dead_time",
       "measurement_time"
      ],
-     "amplitude_threshold": "amplitude_threshold"
+     "amplitude_threshold": "amplitude_threshold",
+     "response_range": [
+      "max(0,floor(response_start/dt))",
+      "min(response_size,floor(response_stop/dt))"
+     ]
     },
     "bind": {
      "response": "response",
@@ -174,7 +194,8 @@
      "scatter": "#instrument.scatter",
      "background": "#instrument.background",
      "n0": "#instrument.n0",
-     "timeshift": "#instrument.timeshift"
+     "timeshift": "#instrument.timeshift",
+     "response_background": "#instrument.response_background"
     },
     "outputs": {
      "@name": "float_vector"

@@ -12,6 +12,7 @@
 #include <IMP/bff/FitDataset.h>
 #include <IMP/bff/GraphNode.h>
 #include <IMP/bff/GraphPort.h>
+#include <IMP/bff/internal/ResponseFunction.h>
 
 #include <string>
 #include <vector>
@@ -72,6 +73,13 @@ class IMPBFFEXPORT Convolution : public GraphNode {
   void set_period(double samples);
   double get_period() const { return period_; }
 
+  //! Clean the response before use: zero it outside `[start, stop)` samples.
+  /*! As TCSPCDecay::set_response_range; the two share one preparation. */
+  void set_response_range(int start, int stop);
+
+  //! The key of the optional scalar input carrying the response's background.
+  static const char* response_background_port_key() { return "response_background"; }
+
   //! The key of the input port carrying the curve.
   static const char* curve_port_key() { return "curve"; }
   //! The key of the optional scalar input port carrying the timeshift.
@@ -91,6 +99,8 @@ class IMPBFFEXPORT Convolution : public GraphNode {
   std::string mode_ = "causal";
   double period_ = 0.0;
   std::vector<double> full_;
+  std::vector<double> cleaned_;
+  internal::ResponsePreparation preparation_;
 };
 
 IMPBFF_END_NAMESPACE

@@ -242,3 +242,42 @@ def test_a_frame_switches_the_convolution_to_periodic_by_a_flag():
     spec.set_scalar("periodic", 2.0)
     with pytest.raises((ValueError, RuntimeError)):
         spec.get_model()
+
+
+def _prepared(response, background, start, stop, timeshift):
+    """ChiSurf's IRF preparation: background, clip, window, shift, unit sum."""
+    from numpy import clip
+    r = clip(response - background, 0.0, None)
+    r[:start] = 0.0
+    r[stop:] = 0.0
+    ts = -timeshift
+    i0 = int(np.floor(ts)); f = ts - i0
+    shifted = np.array([
+        (1 - f) * (r[j + i0] if 0 <= j + i0 < r.size else 0.0)
+        + f * (r[j + i0 + 1] if 0 <= j + i0 + 1 < r.size else 0.0)
+        for j in range(r.size)])
+    return shifted / shifted.sum()
+
+
+@pytest.mark.parametrize("kind", ["Convolution", "TCSPCDecay"])
+def test_both_nodes_prepare_the_response_the_same_way(kind):
+    x, response = _response(center=1.5, width=0.12)
+    response = response * 1000.0 + 7.0          # a lamp background under the peak
+    delta = np.zeros(N)
+    delta[0] = 1.0
+    if kind == "Convolution":
+        node = _node(kind, "conv", response, response_range=[10, 90])
+        _vector_input(node, "curve", delta)
+        node.add_input_port("timeshift", bff.GraphPort(-1.4))
+        key = "conv"
+    else:
+        node = _node(kind, "decay", response, curve_from_port=True, timing=[DT, 12.5],
+                     response_range=[10, 90])
+        _vector_input(node, "curve", np.zeros(N))
+        node.get_input_port("scatter").value = 1.0
+        node.get_input_port("timeshift").value = -1.4
+        key = "decay"
+    node.add_input_port("response_background", bff.GraphPort(7.5))
+    node.update()
+    np.testing.assert_allclose(np.asarray(node.get_output_port(key).value),
+                               _prepared(response, 7.5, 10, 90, -1.4), rtol=1e-12, atol=1e-15)

@@ -38,6 +38,17 @@ void Convolution::set_normalize_response(bool v) {
   set_valid(false);
 }
 
+void Convolution::set_response_range(int start, int stop) {
+  if (start < 0) {
+    throw std::domain_error(
+        "Convolution::set_response_range: the window starts before sample 0");
+  }
+  preparation_.active = true;
+  preparation_.start = start;
+  preparation_.stop = stop;
+  set_valid(false);
+}
+
 void Convolution::set_mode(const std::string& mode) {
   if (mode != "causal" && mode != "periodic" && mode != "centered") {
     throw std::domain_error("Convolution::set_mode: '" + mode +
@@ -78,14 +89,27 @@ void Convolution::evaluate() {
   }
   const std::shared_ptr<GraphPort> shift = get_input_port(timeshift_port_key());
   const double timeshift = shift ? shift->get_value() : 0.0;
+  internal::ResponsePreparation preparation = preparation_;
+  if (const std::shared_ptr<GraphPort> bg =
+          get_input_port(response_background_port_key())) {
+    preparation.active = true;
+    preparation.background = bg->get_value();
+  }
   if (normalize_response_) {
-    internal::prepare_response(response_, timeshift, shifted_, prepared_);
-  } else if (timeshift != 0.0) {
-    prepared_.resize(response_.size());
-    shift_lamp_ad<double>(prepared_.data(), response_.data(), -timeshift,
-                          static_cast<int>(response_.size()), 0.0);
+    internal::prepare_response(response_, preparation, timeshift, cleaned_,
+                               shifted_, prepared_);
   } else {
-    prepared_ = response_;
+    // The same cleaning and shift, without the unit sum: a kernel whose
+    // area means something (a measured instrument broadening) keeps it.
+    const double* source =
+        internal::clean_response(response_, preparation, cleaned_);
+    prepared_.resize(response_.size());
+    if (timeshift != 0.0) {
+      shift_lamp_ad<double>(prepared_.data(), source, -timeshift,
+                            static_cast<int>(response_.size()), 0.0);
+    } else {
+      std::copy(source, source + response_.size(), prepared_.begin());
+    }
   }
   const int n = static_cast<int>(curve.size());
   out_.resize(curve.size());
@@ -125,6 +149,14 @@ std::string Convolution::get_node_type() const { return "Convolution"; }
 
 void Convolution::configure(const std::string& json_text) {
   internal::NodeConfig config(get_node_type(), json_text);
+  if (config.has("response_range")) {
+    const std::vector<int> range = config.get_ints("response_range");
+    if (range.size() != 2) {
+      throw std::domain_error(
+          "node type 'Convolution': setting 'response_range' must be [start, stop]");
+    }
+    set_response_range(range[0], range[1]);
+  }
   if (config.has("mode")) set_mode(config.get_string("mode"));
   if (config.has("period")) set_period(config.get_double("period"));
   if (config.has("normalize_response")) {
