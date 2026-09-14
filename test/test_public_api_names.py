@@ -33,6 +33,8 @@ RMF_NAMES = [
 #: A sample of the always-defined flat surface, one per source `.i` group.
 FLAT_NAMES = [
     "GraphNode",                  # graph runtime
+    "GraphNodeRegistry",          # node types by name
+    "ModelSearchSpec",            # a model family read from data
     "FitDataset",                 # deterministic fitting data
     "FitChiSquared",              # one fit objective
     "FitJointChiSquared",         # grouped objectives

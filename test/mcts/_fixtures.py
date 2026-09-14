@@ -1,17 +1,24 @@
 """The model-search problems the golden record pins.
 
 Construction lives here, alone, because it is the only thing the declarative
-port is allowed to change.  Each function returns a
-``MultiStructureModelSearchProblem`` built the way the shipped factories build
-it today; when a family becomes a description, only the body of its function
-moves, and ``test_model_search_golden.py`` must keep passing untouched.
+port was allowed to change.  It has now changed: every family below is read
+from a JSON description rather than assembled by a C++ factory, and
+``test_model_search_golden.py`` still passes untouched.  That is the whole
+argument for the port, so this file is the place to read it.
+
+What a caller still does is bind the measurement and the few numbers that
+belong to the instrument rather than the model.  A description holds no data.
 """
 
 from __future__ import annotations
 
+import pathlib
+
 import numpy as np
 
 import IMP.bff as bff
+
+SPECS = pathlib.Path(__file__).resolve().parent / "specs"
 
 
 def fcs_curve_2d(axis, n=2.5, baseline=1.0, td=0.7):
@@ -19,30 +26,39 @@ def fcs_curve_2d(axis, n=2.5, baseline=1.0, td=0.7):
     return baseline + (1.0 / n) / (1.0 + axis / td)
 
 
-def _fcs_axis():
-    return np.geomspace(1.0e-3, 20.0, 80)
+def fcs_correlation_dataset(axis, data, error):
+    """One correlation curve as a measurement: lags, values and their errors.
+
+    The errors travel as a stored variance rather than as a loose array,
+    which is what lets one objective read the whole measurement -- mask and
+    noise family included -- instead of three vectors that can disagree.
+    """
+    dataset = bff.FitDataset()
+    dataset.set_values_array(np.ascontiguousarray(np.asarray(data, dtype=float)))
+    dataset.set_coordinate_array(
+        0, "lag", np.ascontiguousarray(np.asarray(axis, dtype=float))
+    )
+    dataset.set_noise_family(bff.FIT_NOISE_FAMILY_STORED)
+    errors = np.full(len(data), float(error)) if np.isscalar(error) else np.asarray(error)
+    dataset.set_stored_variance_array(np.ascontiguousarray(errors ** 2))
+    return dataset
 
 
 def fcs_analytical():
     """The whole analytical family: 2-D and 3-D, one or two components."""
-    axis = _fcs_axis()
-    data = fcs_curve_2d(axis)
-    return bff.FCSModelSearchFactory.create_analytical(
-        list(axis), list(data), [0.01] * len(axis)
-    )
+    axis = np.geomspace(1.0e-3, 20.0, 80)
+    spec = bff.ModelSearchSpec.from_name("fcs_analytical")
+    spec.set_dataset("curve", fcs_correlation_dataset(axis, fcs_curve_2d(axis), 0.01))
+    return spec.build()
 
 
 def fcs_two_dimensional_single():
     """One topology only -- the configuration whose fit accuracy is asserted."""
     axis = np.geomspace(1.0e-3, 20.0, 100)
     data = fcs_curve_2d(axis, n=3.2, baseline=0.97, td=0.42)
-    config = bff.FCSModelSearchConfig()
-    config.set_include_3d(False)
-    config.set_max_diffusion_components(1)
-    config.set_max_relaxation_terms(0)
-    return bff.FCSModelSearchFactory.create_analytical(
-        list(axis), list(data), [0.002] * len(axis), config
-    )
+    spec = bff.ModelSearchSpec.from_file(str(SPECS / "fcs_2d_single.json"))
+    spec.set_dataset("curve", fcs_correlation_dataset(axis, data, 0.002))
+    return spec.build()
 
 
 def _tcspc_dataset():
@@ -74,19 +90,18 @@ def _tcspc_dataset():
 def tcspc_lifetime():
     """One to three lifetime components over a two-component decay."""
     data, irf, dt, period = _tcspc_dataset()
-    factory = bff.TCSPCLifetimeSearchFactory()
-    factory.set_dataset(data)
-    factory.set_response(list(irf))
-    factory.set_timing(dt, period)
-    factory.set_component_range(1, 3)
-    factory.set_parameter("instrument.n0", 15000.0, True, 0.0, 1e6)
-    factory.set_parameter("instrument.background", 0.0, False, 0.0, 1e5)
-    space = factory.build()
-    problem = space.get_problem()
-    # The space, not the problem, retains this family's decay and objective
-    # nodes -- a port holds its node weakly -- so the space has to outlive it.
-    problem._keepalive = space
-    return problem
+    response = bff.FitDataset()
+    response.set_values_array(np.ascontiguousarray(irf))
+    spec = bff.ModelSearchSpec.from_name("tcspc_lifetime")
+    spec.set_dataset("decay", data)
+    spec.set_dataset("response", response)
+    # The channel width and the excitation period are the instrument, not the
+    # model, so the description names them and the caller supplies them.
+    spec.set_scalar("dt", dt)
+    spec.set_scalar("period", period)
+    spec.set_parameter("instrument.n0", 15000.0, True, 0.0, 1e6)
+    spec.set_parameter("instrument.background", 0.0, False, 0.0, 1e5)
+    return spec.build()
 
 
 #: Golden-record name -> the function that builds its problem.

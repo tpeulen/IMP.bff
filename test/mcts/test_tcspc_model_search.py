@@ -1,86 +1,98 @@
-"""Native TCSPC model-family construction and structural search."""
+"""The TCSPC lifetime family, now read from a description.
+
+The assertions are the ones the C++ factory had to satisfy: the same
+topologies, the same canonical registry underneath all of them, a search that
+finds the generating component count, and a refusal rather than a fallback
+when a caller names a parameter the family does not have.  Only the way the
+family is built has changed.
+"""
+
+import sys
+import pathlib
 
 import numpy as np
+import pytest
 
 import IMP.bff as bff
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
-def _synthetic_two_component_data():
-    n = 192
-    dt = 0.05
-    period = 12.5
-    x = np.arange(n) * dt
-    irf = np.exp(-0.5 * ((x - 0.8) / 0.08) ** 2)
-    source = bff.TCSPCDecay("source")
-    source.set_number_of_lifetimes(2)
-    source.add_output_port("source", bff.GraphPort([0.0], False, True))
-    source.set_response_array(np.ascontiguousarray(irf))
-    source.set_timing(dt, period)
-    source.set_convolution_range(n, n)
-    source.get_input_port("a0").value = 0.65
-    source.get_input_port("t0").value = 0.7
-    source.get_input_port("a1").value = 0.35
-    source.get_input_port("t1").value = 3.8
-    source.get_input_port("n0").value = 20000.0
-    source.set_normalize_amplitudes(True)
-    source.update()
-    clean = np.asarray(source.get_output_port("source").value)
-    data = bff.FitDataset()
-    data.set_values_array(np.ascontiguousarray(clean))
-    data.set_noise_family(bff.FIT_NOISE_FAMILY_POISSON)
-    return data, irf, dt, period
+import _fixtures  # noqa: E402
 
 
-def _space(maximum=3):
-    data, irf, dt, period = _synthetic_two_component_data()
-    factory = bff.TCSPCLifetimeSearchFactory()
-    factory.set_dataset(data)
-    factory.set_response(list(irf))
-    factory.set_timing(dt, period)
-    factory.set_component_range(1, maximum)
-    factory.set_parameter("instrument.n0", 15000.0, True, 0.0, 1e6)
-    factory.set_parameter("instrument.background", 0.0, False, 0.0, 1e5)
-    return factory.build()
+def _problem():
+    return _fixtures.tcspc_lifetime()
+
+
+def _spec():
+    """The description plus its measurements, before it is built."""
+    data, irf, dt, period = _fixtures._tcspc_dataset()
+    response = bff.FitDataset()
+    response.set_values_array(np.ascontiguousarray(irf))
+    spec = bff.ModelSearchSpec.from_name("tcspc_lifetime")
+    spec.set_dataset("decay", data)
+    spec.set_dataset("response", response)
+    spec.set_scalar("dt", dt)
+    spec.set_scalar("period", period)
+    return spec
 
 
 def test_every_topology_reads_one_canonical_parameter_registry():
-    space = _space()
-    assert list(space.get_structure_keys()) == [
+    problem = _problem()
+    assert list(problem.get_structure_keys()) == [
         "lifetime.components.1",
         "lifetime.components.2",
         "lifetime.components.3",
     ]
-    tau0 = space.get_parameter("lifetime.tau.0")
-    first = space.get_decay("lifetime.components.1")
-    third = space.get_decay("lifetime.components.3")
-    assert first.get_input_port("t0").link.uid == tau0.uid
-    assert third.get_input_port("t0").link.uid == tau0.uid
-    assert first.get_output_port(first.name).get_node().uid == first.uid
+    # Every candidate graph follows the same owner port rather than holding a
+    # copy of its value, which is what makes switching topology safe.
+    tau0 = problem.get_parameter("lifetime.tau.0")
+    for key in problem.get_structure_keys():
+        objective = problem.get_structure_objective(key)
+        decay = objective.get_input_port("model").link.get_node()
+        assert decay is not None
+        assert decay.get_input_port("t0").link.uid == tau0.uid
 
 
 def test_search_uses_native_objectives_and_activates_a_complete_topology():
-    space = _space(maximum=2)
-    search = bff.ModelSearch(space.get_problem())
+    problem = _problem()
+    search = bff.ModelSearch(problem)
     config = bff.ModelSearchConfig()
     config.set_number_of_simulations(40)
     config.set_dirichlet_fraction(0.0)
     config.set_seed(3)
     search.set_config(config)
+
     result = search.run()
 
     assert result.get_best_state().get_structure_key() == "lifetime.components.2"
-    active = space.get_problem().get_active_objective()
+    active = problem.get_active_objective()
     assert active is not None
     active.update()
     assert np.isfinite(np.asarray(active.get_output_port("residuals").value)).all()
 
 
-def test_factory_rejects_unknown_parameters_instead_of_falling_back():
-    data, irf, dt, period = _synthetic_two_component_data()
-    factory = bff.TCSPCLifetimeSearchFactory()
-    factory.set_dataset(data)
-    factory.set_response(list(irf))
-    factory.set_timing(dt, period)
-    factory.set_parameter("chisurf.callback", 1.0, True, 0.0, 2.0)
-    with np.testing.assert_raises(ValueError):
-        factory.build()
+def test_an_unknown_parameter_is_refused_instead_of_falling_back():
+    spec = _spec()
+    spec.set_parameter("chisurf.callback", 1.0, True, 0.0, 2.0)
+    # A caller override that matches nothing is a caller talking about a
+    # different model; building anyway would fit without it and say nothing.
+    with pytest.raises((ValueError, RuntimeError)):
+        spec.build()
+
+
+def test_a_description_cannot_be_built_without_its_measurements():
+    spec = bff.ModelSearchSpec.from_name("tcspc_lifetime")
+    assert set(spec.get_dataset_names()) == {"decay", "response"}
+    assert set(spec.get_scalar_names()) == {"dt", "period"}
+    with pytest.raises((ValueError, RuntimeError)):
+        spec.build()
+
+
+def test_the_instrument_is_supplied_by_the_caller_not_the_description():
+    """A channel width belongs to a measurement, so the file cannot hold it."""
+    spec = _spec()
+    spec.set_scalar("dt", 0.0)
+    spec.set_scalar("period", 0.0)
+    with pytest.raises((ValueError, RuntimeError)):
+        spec.build()

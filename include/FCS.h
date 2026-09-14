@@ -297,6 +297,8 @@ class IMPBFFEXPORT FCSMdfCurve : public GraphNode {
 
   std::string get_node_type() const override;
   void configure(const std::string& json_text) override;
+  void bind_dataset(const std::string& role,
+                    const FitDataset& dataset) override;
 
  private:
   //! Bring the cached quadrature up to date with `n_herm_`.
@@ -588,6 +590,8 @@ class IMPBFFEXPORT FCSSaturationCurve : public GraphNode {
 
   std::string get_node_type() const override;
   void configure(const std::string& json_text) override;
+  void bind_dataset(const std::string& role,
+                    const FitDataset& dataset) override;
 
  private:
   std::vector<double> tau_;
