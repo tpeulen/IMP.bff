@@ -252,3 +252,28 @@ def test_component_order_is_presentation_not_a_constraint(short_first):
     mixture = sorted((tau, a / total) for tau, a in rows)
     assert [tau for tau, _ in mixture] == pytest.approx([0.6, 3.5], rel=1e-3)
     assert [f for _, f in mixture] == pytest.approx([0.25, 0.75], rel=1e-3)
+
+
+def test_a_polarized_family_is_the_lifetime_family_times_rotations():
+    data, irf, dt, period = _fixtures._tcspc_dataset()
+    response = bff.FitDataset()
+    response.set_values_array(np.ascontiguousarray(irf))
+    spec = bff.ModelSearchSpec.from_name("tcspc_polarized")
+    spec.set_dataset("decay", data)
+    spec.set_dataset("response", response)
+    spec.set_scalar("dt", dt)
+    spec.set_scalar("period", period)
+    model = spec.get_model()
+    assert len(model.get_structure_keys()) == 3 * 2
+    key = "lifetime.components.2.rotations.2"
+    model.select_structure(key)
+    node = model.get_structure_curve_node(key, "decay")
+    magic = []
+    for polarization in (0.0, 1.0, 2.0):
+        spec.set_scalar("polarization", polarization)
+        model = spec.get_model()
+        model.select_structure(key)
+        magic.append(np.array(model.get_structure_output(key, node)))
+    vm, vv, vh = magic
+    # Parallel and perpendicular differ, and neither is the magic-angle decay.
+    assert not np.allclose(vv, vh) and not np.allclose(vv, vm)
