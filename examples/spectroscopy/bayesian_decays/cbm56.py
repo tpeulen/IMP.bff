@@ -573,7 +573,7 @@ def rl_deconvolve(R, tau, dt, n_iter=500, eps=1e-12, f0=None):
 
 
 def model(loaded=None, n_coef=25, which='h20', verbose=True,
-          samples=('D0', 'A0', 'DA'), detectors=None, irf='h20', rebin=True, growth=1.05,
+          samples=('D0', 'A0', 'DA'), detectors=None, irf='h20', rebin=False, growth=1.05,
           rl_iterations=500):
     """Everything the fit needs: the maps on this axis, the measured responses,
     the twelve histograms, and the graph.
@@ -597,6 +597,14 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
     E['pulse_alias'] = {'g2p': 'gp', 'g2s': 'gs', 'r2p': 'rp', 'r2s': 'rs'}
     E['pulse_offset'] = {a: off * cal['dt'] for a in E['pulse_alias']}
     E['pie_full'] = True
+    #: REBIN OFF BY DEFAULT, for now.  The widening bins are right in principle
+    #: and cost nothing statistically, and today they break the walk: the same
+    #: donor-only fit that converges unbinned to D/dof 1.219 (reference 1.116
+    #: +- 0.050, z +2.0 -- the first real measurement to pass Rule 0,
+    #: 2026-09-14) runs on the binned axis to a "converged" mode with the green
+    #: response shifted by +15.99 ns onto the red pulse, or to a background
+    #: fraction of 4.79. That is the start and the step, not the bins (R3 of
+    #: okf/prd-real-data-fast.md), and until it is fixed the bins stay opt-in.
     if rebin:
         rb = pulse_bins(E, [info[det]['peak_channel'] for det in DETECTORS if det[0] == 'g'], off, growth)
         E['R'] = rb['R']; E['tc'] = rb['tc']; E['wid'] = rb['wid']; E['n_bin'] = len(rb['tc'])
