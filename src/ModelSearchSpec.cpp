@@ -358,6 +358,17 @@ SpecJson expand(const SpecJson& node,
 }
 
 
+//! Whether a measurement slot is one a description lets a caller omit.
+bool is_optional_dataset(const SpecJson& document, const std::string& slot) {
+  SpecJson::const_iterator optional = document.find("optional_datasets");
+  if (optional == document.end() || !optional->is_array()) return false;
+  for (SpecJson::const_iterator it = optional->begin(); it != optional->end();
+       ++it) {
+    if (it->is_string() && it->get<std::string>() == slot) return true;
+  }
+  return false;
+}
+
 //! Turn `axes` + `template` + `moves` into explicit structures and actions.
 /*!
     A general model family is a cross-product -- lifetimes by rotations by
@@ -675,7 +686,29 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build()
     const {
   // Everything the description says it needs has to be here before anything
   // is built. A half-wired graph still evaluates, and fits the wrong thing.
-  std::map<std::string, double> scope = impl_->scalars;
+  // Optional scalars are per-fit switches and instrument numbers a caller
+  // may leave alone -- autoscaling, pile-up -- so the description supplies a
+  // default and a caller overrides it. A required scalar still has none.
+  std::map<std::string, double> scope;
+  SpecJson::const_iterator optional_scalars =
+      impl_->document.find("optional_scalars");
+  if (optional_scalars != impl_->document.end()) {
+    if (!optional_scalars->is_object()) {
+      refuse("'optional_scalars' must map a name to its default");
+    }
+    for (SpecJson::const_iterator it = optional_scalars->begin();
+         it != optional_scalars->end(); ++it) {
+      if (!it->is_number()) {
+        refuse("optional scalar '" + it.key() + "' needs a numeric default");
+      }
+      scope[it.key()] = it->get<double>();
+    }
+  }
+  for (std::map<std::string, double>::const_iterator it =
+           impl_->scalars.begin();
+       it != impl_->scalars.end(); ++it) {
+    scope[it->first] = it->second;
+  }
   const std::vector<std::string> wanted_datasets = get_dataset_names();
   for (std::size_t i = 0; i < wanted_datasets.size(); ++i) {
     std::map<std::string, FitDataset>::const_iterator found =
@@ -842,6 +875,9 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build()
           std::map<std::string, FitDataset>::const_iterator data =
               impl_->datasets.find(slot);
           if (data == impl_->datasets.end()) {
+            // An optional measurement nobody supplied -- a linearisation
+            // table on an instrument without one -- leaves that stage off.
+            if (is_optional_dataset(impl_->document, slot)) continue;
             refuse(node_where + " binds '" + bit.key() + "' to '" + slot +
                    "', which nothing supplied");
           }

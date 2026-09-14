@@ -12,6 +12,7 @@
  */
 
 #include <IMP/bff/TCSPCDecay.h>
+#include <cstdlib>
 #include <IMP/bff/internal/NodeConfig.h>
 
 // The kernels. A byte-identical copy of tttrlib's
@@ -621,6 +622,18 @@ void TCSPCDecay::configure(const std::string& json_text) {
   }
   if (config.has("autoscale")) set_autoscale(config.get_bool("autoscale"));
   if (config.has("pile_up")) set_pile_up(config.get_bool("pile_up"));
+  if (config.has("pile_up_parameters")) {
+    const std::vector<double> p = config.get_doubles("pile_up_parameters");
+    if (p.size() != 2) {
+      throw std::domain_error(
+          "node type 'TCSPCDecay': setting 'pile_up_parameters' must be "
+          "[dead_time_ns, measurement_time_s]");
+    }
+    set_pile_up_parameters(p[0], p[1]);
+  }
+  if (config.has("amplitude_threshold")) {
+    set_amplitude_threshold(config.get_double("amplitude_threshold"));
+  }
   if (config.has("spectrum_from_port")) {
     set_spectrum_from_port(config.get_bool("spectrum_from_port"));
   }
@@ -637,8 +650,29 @@ void TCSPCDecay::bind_dataset(const std::string& role,
     set_response(dataset.get_values());
     return;
   }
+  if (role == "data") {
+    // Used only when the node autoscales or corrects for pile-up; harmless
+    // otherwise, since FitChiSquared holds its own copy for the misfit. The
+    // errors come from the dataset's variance, so a caller passing measured
+    // errors stores them as a variance and they arrive unchanged.
+    const std::vector<double>& values = dataset.get_values();
+    double* view = nullptr;
+    int n = 0;
+    dataset.variance(values, &view, &n);
+    std::vector<double> errors(static_cast<std::size_t>(std::max(n, 0)));
+    for (int i = 0; i < n; ++i) errors[i] = std::sqrt(std::max(view[i], 0.0));
+    std::free(view);
+    set_data(values, errors);
+    return;
+  }
+  if (role == "linearization") {
+    // A measured table of each channel's effective width; configuration, not
+    // a fitted port, so it arrives the way the response does.
+    set_linearization(dataset.get_values());
+    return;
+  }
   throw std::domain_error("node type 'TCSPCDecay' has no role '" + role +
-                          "'; it takes 'response'");
+                          "'; it takes 'response', 'data' or 'linearization'");
 }
 
 IMPBFF_END_NAMESPACE
