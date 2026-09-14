@@ -139,7 +139,7 @@ class TorchSpectralForward:
         else:
             irf0 = L.analytic_irf(E, L.tt(0.0), L.tt(nom[1]), L.tt(nom[3]))
             self.irf0 = irf0
-            self.A, self.IRF0, self.col_sum = self._kernel(irf0)
+            self.A, self.IRF0, self.col_sum, _ = self._kernel(irf0)
             self.irf0_np = np.ascontiguousarray(irf0.numpy())
         #: the parts to evaluate: (channel, which amplitude vector, detector)
         self.parts = []
@@ -151,7 +151,7 @@ class TorchSpectralForward:
         self.dets = sorted({d for _, _, d in self.parts})
 
     def _kernel(self, irf):
-        """`(A, IRF0, col_sum)` for one response: the periodic reconvolution of
+        """`(A, IRF0, col_sum, irf)` for one response: the periodic reconvolution of
         every grid lifetime, in the frequency domain.
 
         Linear in `irf` -- the trapezoid, the transform and the multiplication
@@ -169,24 +169,43 @@ class TorchSpectralForward:
         A = torch.fft.rfft(u, self.M, -1) * self.GK
         IRF0 = torch.fft.rfft(irf, self.n_p)
         col_sum = self._fold(torch.fft.irfft(A, self.M, -1)).sum(-1)
-        return A, IRF0, col_sum
+        return A, IRF0, col_sum, irf
+
+    def _response_for(self, det, vals):
+        """The measured response of ONE PART-DETECTOR, exactly as the prototype
+        builds it: background dropped, shifted, and renormalised.
+
+        THE SHIFT IS BAKED IN RATHER THAN APPLIED AS A PHASE RAMP, and that is
+        not a stylistic choice.  `shift_irf_fft` clamps the phase ramp's Gibbs
+        ringing to zero before renormalising, and a clamp has no counterpart in
+        the frequency domain: ramping the kernel instead left the accelerated
+        objective agreeing with the prototype only where every `irf_shift_` sat
+        at zero, and differing by 204 nats a third of a prior sd away -- enough
+        to move the mode.  Everything else agreed to 1e-15, which is how the
+        shift was identified (2026-09-14).
+
+        It costs nothing here.  A measured response already has its background
+        fitted, so its kernel is rebuilt every evaluation anyway; baking the
+        shift in only means one kernel per part-detector instead of one per
+        physical detector -- four small batched transforms rather than two.
+        """
+        d0 = self.alias.get(det, det)
+        irf = self._inst0._drop_background(self.measured[d0], vals, d0)
+        irf = self.L.shift_irf_fft(irf, self.shift_of(vals, det) / self.dt)
+        return irf / irf.sum().clamp_min(1e-300)
 
     def _kernel_for(self, det, vals):
-        """one detector's kernel at the response the fit currently holds"""
-        irf = self._inst0._drop_background(self.measured[det], vals, det)
-        return self._kernel(irf / irf.sum().clamp_min(1e-300))
+        """one part-detector's kernel at the response the fit currently holds,
+        with that detector's shift already in it"""
+        return self._kernel(self._response_for(det, vals))
 
     def kernels(self, vals):
-        """Each detector's `(A, IRF0, col_sum)` at the response the fit
-        currently holds.  One entry when the response is analytic and shared;
-        one per physical detector when it is measured."""
+        """Each PART-detector's `(A, IRF0, col_sum, irf)` at the response the
+        fit currently holds -- `None` when the response is analytic and shared,
+        in which case the shift stays a phase ramp on the shared kernel."""
         if not self.measured:
             return None
-        out = {}
-        for det in sorted(self.measured):
-            irf = self._inst0._drop_background(self.measured[det], vals, det)
-            out[det] = self._kernel(irf / irf.sum().clamp_min(1e-300))
-        return out
+        return {d: self._kernel_for(d, vals) for d in self.dets}
 
     def _fold(self, lin):
         out = lin[..., :self.n_p] + lin[..., self.n_p:2 * self.n_p]
@@ -200,12 +219,16 @@ class TorchSpectralForward:
         return vals[f'irf_shift_{d0}'] + self.offset.get(det, 0.0)
 
     def responses(self, vals, kern=None):
-        """Each detector's response at its own shift, on the fine axis."""
+        """Each part-detector's response at its own shift, on the fine axis --
+        the scatter column.  When the response is measured the shift is already
+        in it (see `_response_for`); when it is analytic it is a phase ramp on
+        the one shared response."""
+        if kern is not None:
+            return {d: kern[d][3] for d in self.dets}
         out = {}
         for d in self.dets:
             sb = self.shift_of(vals, d) / self.dt
-            base = self.IRF0 if kern is None else kern[self.alias.get(d, d)][1]
-            out[d] = torch.fft.irfft(base * torch.exp(-2j * math.pi * self.freq_N * sb), self.n_p)
+            out[d] = torch.fft.irfft(self.IRF0 * torch.exp(-2j * math.pi * self.freq_N * sb), self.n_p)
         return out
 
     def __call__(self, vals, amplitudes):
@@ -220,11 +243,12 @@ class TorchSpectralForward:
         spec, phase, flat, Ad = [], [], [], []
         for _, kk, d in self.parts:
             a = amplitudes[kk]
-            A, _, cs = (self.A, None, self.col_sum) if kern is None \
-                else kern[self.alias.get(d, d)]
+            A, _, cs, _ = (self.A, None, self.col_sum, None) if kern is None else kern[d]
             spec.append((a[1:self.K + 1] / cs).to(torch.complex128))
-            sb = self.shift_of(vals, d) / self.dt
-            phase.append(torch.exp(-2j * math.pi * self.freq_M * sb))
+            #: no ramp when the shift is already in the response
+            sb = 0.0 if kern is not None else self.shift_of(vals, d) / self.dt
+            phase.append(torch.exp(-2j * math.pi * self.freq_M * sb)
+                         if kern is None else torch.ones_like(self.freq_M, dtype=torch.complex128))
             flat.append(a)
             if kern is not None:
                 Ad.append(A)
@@ -311,12 +335,12 @@ class SpectralInstrument:
     def basis(self, det, vals):
         import math as _m
         f = self.f
-        sb = f.shift_of(vals, det) / f.dt
         if f.measured:
-            d0 = f.alias.get(det, det)
-            A, IRF0, _ = f._kernel_for(d0, vals)
+            A, IRF0, _, _ = f._kernel_for(det, vals)
+            sb = 0.0                       # already in the response
         else:
             A, IRF0 = f.A, f.IRF0
+            sb = f.shift_of(vals, det) / f.dt
         cols = f._fold(torch.fft.irfft(A * torch.exp(-2j * _m.pi * f.freq_M * sb), f.M, -1)).clamp_min(0.0)
         cols = cols / cols.sum(-1, keepdim=True).clamp_min(1e-300)
         irf = torch.fft.irfft(IRF0 * torch.exp(-2j * _m.pi * f.freq_N * sb), f.n_p).clamp_min(0.0)
@@ -503,7 +527,10 @@ def accelerate(model, graph, forward=None):
     graph.log_posterior = obj
     graph.raw_counts = raw_counts
     graph.expected_counts = expected_counts
-    graph.inst = SpectralInstrumentD(fwd, model)
+    #: the derivative-supplying instrument only when the response is analytic;
+    #: with a measured one its analytic shift-derivative does not exist (see
+    #: `SpectralInstrumentD.dbasis`) and the prototype differentiates `basis`.
+    graph.inst = (SpectralInstrument if fwd.measured else SpectralInstrumentD)(fwd, model)
     graph._fast = obj
     graph.fast_amplitudes = fast_amplitudes
     #: EVERY GRAPH DERIVED FROM THIS ONE GETS THE SAME TREATMENT. A fit builds
@@ -525,6 +552,72 @@ def accelerate(model, graph, forward=None):
 
     graph.accelerator = lambda gg: accelerate(model, gg)
     return graph
+
+
+def gate(model, graph, theta, amount=0.3, tol=1e-12, names=None, verbose=True):
+    """THE CHECK THAT WAS MISSING: the accelerated LOG POSTERIOR against the
+    prototype's, not the forward model against the forward model.
+
+    `accelerate` replaces four entry points, and each of them was checked
+    against what it replaces. That is not the same as checking the objective:
+    on the first real measurement the forward model agreed with the prototype at
+    5e-16 while the log posterior built on it was wrong by 590,000 nats, and the
+    accelerated fit converged to a deviance per degree of freedom of 8841 where
+    the prototype reached 1.313. Two defects were hiding behind that agreement
+    -- `stage2` keying the scope dictionary by sample rather than by scope, so
+    the red-pulse partner of every histogram got the green pulse's amplitudes;
+    and the response shift applied as a phase ramp, where the prototype's
+    `shift_irf_fft` clamps the ramp's ringing before renormalising.
+
+    Neither could be caught at one point in parameter space: the first needs a
+    graph with more scopes than samples, which only interleaved excitation has,
+    and the second is exactly zero wherever the shifts are. So this perturbs one
+    parameter group at a time and compares the two objectives at each.
+
+    ACCELERATES `graph` IN PLACE -- the prototype's values are taken first.
+    Returns `{name: {...}}` plus `ok`; `verbose` prints the table.
+    """
+    L = model['L']
+    if getattr(graph, '_fast', None) is not None:
+        raise ValueError('gate() needs an un-accelerated graph: it takes the '
+                         'prototype values first and accelerates afterwards')
+    order = names if names is not None else \
+        [None] + [n for n, (a, b) in graph.offsets.items() if b > a]
+
+    def bumped(n):
+        t = theta.clone()
+        if n is not None:
+            a, b = graph.offsets[n]; t[a:b] = t[a:b] + float(amount)
+        return t
+
+    ref = {}
+    for n in order:
+        t = bumped(n); vals, _ = graph.unpack(t)
+        ref[n] = (float(graph.log_posterior(t)),
+                  {k: v.detach().clone() for k, v in graph.raw_counts(vals).items()})
+    accelerate(model, graph)
+    out, ok = {}, True
+    for n in order:
+        t = bumped(n); vals, _ = graph.unpack(t)
+        lp = float(graph.log_posterior(t)); raw = graph.raw_counts(vals)
+        d = ref[n][0] - lp
+        rel = abs(d) / max(abs(ref[n][0]), 1.0)
+        rr = max(float((ref[n][1][k] - raw[k]).abs().max()
+                       / ref[n][1][k].abs().max().clamp_min(1e-300))
+                 for k in graph.data_keys)
+        out[n] = dict(d_log_posterior=d, rel=rel, raw_rel=rr,
+                      passes=bool(rel < tol and rr < tol))
+        ok &= out[n]['passes']
+    out['ok'] = bool(ok)
+    if verbose:
+        print(f'{"perturbed":<22}{"d log posterior":>18}{"rel":>11}{"max raw rel":>14}')
+        for n in order:
+            r = out[n]
+            print(f'{str(n):<22}{r["d_log_posterior"]:>18.6f}{r["rel"]:>11.1e}'
+                  f'{r["raw_rel"]:>14.2e}{"" if r["passes"] else "   <-- FAILS"}')
+        print(f'accelerated objective vs prototype: {"PASSES" if ok else "FAILS"} '
+              f'at tol {tol:g} over {len(order)} perturbations')
+    return out
 
 
 def _rebin(f, B):
@@ -578,14 +671,22 @@ class SpectralInstrumentD(SpectralInstrument):
 
     def dbasis(self, det, vals):
         f = self.f
-        kern = f._kernel_for(f.alias.get(det, det), vals) if f.measured else None
-        return _spectral_basis(f, f.shift_of(vals, det) / f.dt,
-                               with_derivative=True, kern=kern)
+        if f.measured:
+            #: NOT AVAILABLE FOR A MEASURED RESPONSE.  The analytic derivative
+            #: below is the phase ramp's, and a measured response is shifted by
+            #: `shift_irf_fft`, which CLAMPS the ramp's ringing before
+            #: renormalising -- a clamp the ramp knows nothing about.  Returning
+            #: the ramp's derivative anyway would be a wrong Jacobian that looks
+            #: right, so `accelerate` installs the plain `SpectralInstrument`
+            #: instead and the prototype differentiates `basis` itself.
+            raise NotImplementedError('no analytic shift-derivative for a measured response')
+        return _spectral_basis(f, f.shift_of(vals, det) / f.dt, with_derivative=True, kern=None)
 
     def basis(self, det, vals):
         f = self.f
-        kern = f._kernel_for(f.alias.get(det, det), vals) if f.measured else None
-        return _spectral_basis(f, f.shift_of(vals, det) / f.dt, kern=kern)
+        if f.measured:
+            return _spectral_basis(f, 0.0, kern=f._kernel_for(det, vals))
+        return _spectral_basis(f, f.shift_of(vals, det) / f.dt, kern=None)
 
 
 def check_dbasis(model, graph, vals, det=None):
