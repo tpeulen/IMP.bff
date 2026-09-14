@@ -5,8 +5,7 @@
  *  subcommands of the one executable `bin/imp_bff.cpp` (owner rulings
  *  2026-09-09 and 2026-09-14). The groups live one file each,
  *  `src/CommandLine<Group>.cpp` and `src/imp/CommandLine<Group>.cpp`; this
- *  file builds the root app from them, owns the exit codes, and forwards the
- *  commands not compiled yet to the Python program `imp_bff_py`.
+ *  file builds the root app from them and owns the exit codes.
  *
  *  The grammar is CLI11 (include/internal/CLI11.h, vendored verbatim from
  *  github.com/CLIUtils/CLI11 v2.7.2, BSD-3): subcommands first-class, the
@@ -32,12 +31,8 @@
 #include <sys/stat.h>
 #ifdef _WIN32
 #  include <direct.h>
-#  include <process.h>
 #else
 #  include <unistd.h>
-#  include <spawn.h>
-#  include <sys/wait.h>
-extern char** environ;
 #endif
 
 IMPBFF_BEGIN_INTERNAL_NAMESPACE
@@ -288,47 +283,7 @@ std::string OrderedJson::dump(int depth) const {
 
 namespace dispatch {
 
-//! The Python program the not-yet-compiled commands still run in.
-const char* PY_PROGRAM = "imp_bff_py";
-
-//! The commands of the former `bin/imp_bff` that are not compiled yet.
-/*! Each is forwarded, words untouched, to `imp_bff_py`. An entry leaves this
-    list in the commit that compiles it. */
-const char* const FORWARDED[][2] = {
-};
-
-//! Run `imp_bff_py <words...>` and hand back its exit code.
-int run_python_program(const std::vector<std::string>& words) {
-  std::vector<char*> argv;
-  argv.push_back(const_cast<char*>(PY_PROGRAM));
-  for (std::size_t i = 0; i < words.size(); ++i) {
-    argv.push_back(const_cast<char*>(words[i].c_str()));
-  }
-  argv.push_back(nullptr);
-  std::cout << std::flush;
-  std::cerr << std::flush;
-#ifdef _WIN32
-  const intptr_t rc = _spawnvp(_P_WAIT, PY_PROGRAM,
-                               const_cast<const char* const*>(&argv[0]));
-  if (rc == -1) {
-    throw SubError(std::string("cannot run ") + PY_PROGRAM + ": " + std::strerror(errno));
-  }
-  return static_cast<int>(rc);
-#else
-  pid_t pid = 0;
-  const int err = posix_spawnp(&pid, PY_PROGRAM, nullptr, nullptr, &argv[0], environ);
-  if (err != 0) {
-    throw SubError(std::string("cannot run ") + PY_PROGRAM + " (the Python half of the "
-                   "command line, not compiled yet): " + std::strerror(err));
-  }
-  int status = 0;
-  if (waitpid(pid, &status, 0) < 0) throw SubError("waitpid failed");
-  if (WIFEXITED(status)) return WEXITSTATUS(status);
-  return 1;
-#endif
-}
-
-//! The root app, every group attached. \p rc receives a forwarded exit code.
+//! The root app, every group attached. \p rc is the exit code a sub may set.
 std::unique_ptr<CLI::App> build_app(std::shared_ptr<int> rc) {
   std::unique_ptr<CLI::App> app(new CLI::App(
       "imp_bff -- fluorescence forward models on structures. One program; "
@@ -372,21 +327,6 @@ std::unique_ptr<CLI::App> build_app(std::shared_ptr<int> rc) {
   add_analysis_subs(*app);
 #endif
 
-  for (std::size_t i = 0; i < sizeof(FORWARDED) / sizeof(FORWARDED[0]); ++i) {
-    const std::string name = FORWARDED[i][0];
-    CLI::App* sub = app->add_subcommand(name, FORWARDED[i][1]);
-    // every word after the name, --help included, belongs to the Python program
-    sub->prefix_command();
-    sub->allow_extras();
-    sub->set_help_flag();
-    sub->callback([sub, name, rc] {
-      set_current_sub(name);
-      std::vector<std::string> words(1, name);
-      const std::vector<std::string> rest = sub->remaining();
-      words.insert(words.end(), rest.begin(), rest.end());
-      *rc = run_python_program(words);
-    });
-  }
   return app;
 }
 

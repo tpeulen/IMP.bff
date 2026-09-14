@@ -334,15 +334,6 @@ are weighted by the linker's chain statistics rather than uniformly. Read
 `okf/validation/chain_weighting.md` before turning it on -- the shipped table
 does not cover a dye-length linker, and the code says so.
 
-# imp_bff_py: the commands of imp_bff not compiled yet {#imp_bff_py}
-
-The Python half of `imp_bff` while the port to C++ runs (owner ruling
-2026-09-14). `imp_bff` forwards each command it does not compile yet --
-`flexfit`, `rmsd`, `select-pairs`, `openmm`, `av-export`, `dye`, `rotamer`,
-`av-vs-rotamer`, `analyze-trajectories`, `simulate`, `build-system`, `dock`,
-`dock-errors` -- to this program with the words unchanged, so call `imp_bff`,
-not this. It leaves `bin/` when its last command is compiled.
-
 # imp_bff_traj2bcif: convert a trajectory to BinaryCIF {#imp_bff_traj2bcif}
 
 Converts a DCD or XTC trajectory to a BinaryCIF `_atom_site` coordinate
@@ -550,7 +541,7 @@ Writes the `_atom_site` records for a dye structure, deriving the element from
 the atom name where the PDB does not carry one. The conversion itself is
 `IMP.bff.io.structure.convert_pdb_to_cif`; this is its command-line driver.
 
-# imp_bff_potentials2pto: build the potential-table container {#imp_bff_potentials2pto}
+## imp_bff potentials2pto -- build the potential-table container {#imp_bff_potentials2pto}
 
 Writes `data/potentials.pto`, the one container carrying every parameter table
 the coarse-grained potentials read: the Miyazawa-Jernigan contact matrix, the
@@ -565,7 +556,7 @@ UNRES go in as text in IMP's PMF format, so `IMP.core.StatisticalPairScore`
 reads them directly.
 
 ```bash
-imp_bff_potentials2pto --database ../chisurf/chisurf/core/structure/potential/database
+imp_bff potentials2pto --database ../chisurf/chisurf/core/structure/potential/database
 ```
 
 Rebuilding the container is a maintainer's job: the shipped one is in the
