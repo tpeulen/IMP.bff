@@ -1,4 +1,5 @@
 [
+ "equations",
  "fcs_analytical",
  "tcspc_anisotropy",
  "tcspc_lifetime"

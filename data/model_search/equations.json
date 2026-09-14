@@ -1,0 +1,36 @@
+{
+ "schema": "bff.model_search.v1",
+ "family": "equations",
+ "title": "Equations over the coordinates of a measurement",
+ "presentation": {
+  "_comment": "Generic: the catalogue supplies every equation; this frame knows none. Read by applications, ignored by the engine.",
+  "groups": {"equation": "Parameters"},
+  "datasets": {"curve": {"label": "Data", "primary": true}}
+ },
+ "datasets": ["curve"],
+ "parameters": {},
+ "structures": {},
+ "equations": {
+  "dataset": "curve",
+  "expression_node": "model",
+  "moves": "all",
+  "structure": {
+   "nodes": {
+    "model": {
+     "type": "GraphExpression",
+     "inputs": {},
+     "outputs": {"@name": "float_vector"}
+    },
+    "objective": {
+     "type": "FitChiSquared",
+     "bind": {"data": "curve"},
+     "inputs": {"model": "model"},
+     "outputs": {"@name": "float", "residuals": "float_vector"}
+    }
+   },
+   "objective": "objective",
+   "ess": "curve_size",
+   "selection": "bic"
+  }
+ }
+}

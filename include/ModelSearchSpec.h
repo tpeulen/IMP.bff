@@ -120,6 +120,18 @@ class IMPBFFEXPORT ModelSearchSpec {
   //! Whether #get_model would return the model without rebuilding it.
   bool get_model_is_current() const;
 
+  //! Supply the catalogue of equations a generic equations family is built from.
+  /*! JSON: `{key: {"equation": text, "initial": {var: value},
+      "fixed": [var], "bounds": {var: [lower, upper]}, "groups": {var: group},
+      "label": text}}`. Each entry becomes one structure. A variable naming a
+      coordinate of the fitted measurement is an axis; every other variable is
+      a parameter shared by name across the catalogue, unbounded unless
+      bounded here, freed unless held. Expanded when the model is built, since
+      which names are coordinates is a property of the bound data.
+      \throws std::domain_error for a family without an `equations` frame or a
+      catalogue that is not an object of equations. */
+  void set_equations(const std::string& catalogue_json);
+
   //! Evaluate an expression over what is bound, as a description's rules are.
   /*! Scalars, optional-scalar defaults and the named statistics of every
       bound measurement (`decay_sum`, `decay_dx`, ...). For an application
