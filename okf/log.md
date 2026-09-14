@@ -40,6 +40,34 @@
   `Option::count()`. `FPS.h` gains `fps_linker_presets()`/`fps_default_grid()` (FPS's `linker.txt` and
   `AVEngine.cs:568`). The fps tests call `command_line_main(["fps", ...])` instead of CliRunner over
   the script; `fps-av` and `fps-export`, which had no test, have some.
+- **The rest of the command line compiled; `bin/imp_bff_py` is gone (T-20260914-02)**: seven groups were
+  ported in parallel worktrees, each built privately as a standalone `IMPBFF_WITH_IMP` lane linked against
+  the IMP build tree (~80 s, no build lock needed) and diffed against the Python program, then cherry-picked
+  and rebuilt here (271 command-line tests green before the analysis merge). What each group found:
+  * `potentials2pto` (core, `internal/Npy.h`, `convert_*_potential` in ProbePotentialTables): on ChiSurf's
+    database stdout, all four tables and the manifest match the Python and the shipped `data/potentials.pto`.
+  * `av-export`, `openmm`, `build-system`, `select-pairs`, `rotamer r0|predict` (`CommandLineModelling.cpp`):
+    byte-identical incl. pandas' TSV. `rotamer predict` had never run (None into C++ int/string vectors).
+  * `dye ...` (`CommandLineDye.cpp`): PDBs byte-identical, RMF frames/coordinates identical. The DOF walk is
+    `probe_collision_walk` and draws CPython's own MT19937/gauss (`internal/PythonRandom.h`), so seeded
+    walks reproduce the Python exactly. PDB-id downloads are not compiled (prints the RCSB URL instead).
+  * `simulate` (`ProbeSystemSimulation.h`): `simple_md` byte-identical; hybrid/multi-restart agree over 20/10
+    seeds. Two Python bugs not carried over: the hybrid call passed nine arguments shifted (MD ran at the MC
+    temperature with rb_max_trans as friction) -- **old hybrid results used scrambled parameters** -- and
+    `--fixed-flex-mode flex` crashed.
+  * `dock`, `dock-errors`, `flexfit` (`DockingReplicaExchange.cpp`, `FlexibleFitting.h`): PMI's ReplicaExchange
+    on one replica rewritten in C++ with PMI's file layout; seeded runs byte-identical (PDBs, CSVs, RMF
+    coordinates). `dependencies.py` now requires `kinematics`. Kept on purpose: dock runs at kT = 1 whatever
+    `--temperature` says (PMI did). Fixed: PMI's stat header no longer dumps the process environment (it
+    carried an API key), `dock-errors` writes the uncertainty files it meant to, flexfit resume runs.
+  * `rmsd` (core), `analyze-trajectories`, `av-vs-rotamer` (`TrajectoryAnalysis.h`, `ProbeTrajectoryDensity.h`,
+    `ProbeModelComparison.h`, numpy/LAPACK-compatible arithmetic in `internal/NumpyCompat.h`): identical
+    except last digits; both `rmsd` (pandas 2) and `analyze-trajectories` (SWIG maps) were broken in Python.
+    `test/references/cgprobe_av_vs_rotamer_pins.json` is stale against the Python too and needs regenerating.
+  `decays` was unreachable and is dropped. The forwarder (`posix_spawnp` to `imp_bff_py`) is removed.
+  Standalone `IMPBFF_WITH_IMP` lanes get `IMPBFF_WITH_IMP_RMF`/`_KINEMATICS` when those modules are linked.
+  Downloaded data: `python utility/data_registry.py --fetch` restored `data/rotamer_library` and
+  `data/cgprobe`, which the dye/rotamer tests need and this checkout had lost.
 - **Two `cmake .` in one build tree destroy each other** (15:06/15:13): IMP's `clean_build_dir` deletes
   `build_info/*` and generated kernel headers at the start of a configure, so a second configure started
   meanwhile reports every module disabled (`build_info/disabled` missing) or `Object.h` missing. The build
