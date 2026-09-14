@@ -16,6 +16,10 @@
 #include <IMP/bff/IMPCompatibility.h>
 
 #include <algorithm>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <limits>
 #include <cstring>
 #include <memory>
 
@@ -230,6 +234,229 @@ void write_potential_tables(const std::string& path,
         IMP_THROW("PTO: writing " << path << " failed: " << writer.error(), IOException);
     }
     writer.close();
+}
+
+// ---- the converters of ChiSurf's loose .npy tables ---------------------------
+
+// named, not anonymous: the module build is one translation unit
+namespace potential_conversion {
+
+//! Python's `repr(float)`: shortest digits that read back, positional for
+//! decimal exponents -4..15, scientific otherwise.
+std::string python_repr(double v) {
+    if (std::isnan(v)) return "nan";
+    if (std::isinf(v)) return v > 0 ? "inf" : "-inf";
+    const std::string sign = std::signbit(v) ? "-" : "";
+    const double a = std::fabs(v);
+    if (a == 0.0) return sign + "0.0";
+    char buf[48];
+    for (int p = 1; p <= 17; ++p) {
+        std::snprintf(buf, sizeof(buf), "%.*e", p - 1, a);
+        if (std::strtod(buf, nullptr) == a) break;
+    }
+    const std::string sci = buf;
+    const std::size_t e = sci.find('e');
+    std::string digits = sci.substr(0, e);
+    digits.erase(std::remove(digits.begin(), digits.end(), '.'), digits.end());
+    while (digits.size() > 1 && digits[digits.size() - 1] == '0') {
+        digits.erase(digits.size() - 1);
+    }
+    const int exponent = std::atoi(sci.c_str() + e + 1);
+    const int n = static_cast<int>(digits.size());
+    if (exponent >= -4 && exponent < 16) {
+        const int point = exponent + 1;
+        if (point <= 0) {
+            return sign + "0." + std::string(static_cast<std::size_t>(-point), '0') + digits;
+        }
+        if (point >= n) {
+            return sign + digits + std::string(static_cast<std::size_t>(point - n), '0') + ".0";
+        }
+        return sign + digits.substr(0, point) + "." + digits.substr(point);
+    }
+    const std::string mantissa =
+            n == 1 ? digits : digits.substr(0, 1) + "." + digits.substr(1);
+    char exp[16];
+    std::snprintf(exp, sizeof(exp), "e%c%02d", exponent < 0 ? '-' : '+', std::abs(exponent));
+    return sign + mantissa + exp;
+}
+
+//! numpy's round-half-to-even `int(round(x))`.
+int round_half_even(double x) { return static_cast<int>(std::nearbyint(x)); }
+
+const std::size_t kResidueTypes = 20;
+
+}  // namespace potential_conversion
+
+using potential_conversion::python_repr;
+using potential_conversion::round_half_even;
+using potential_conversion::kResidueTypes;
+
+std::vector<std::string> potential_residue_order() {
+    static const char* const names[] = {
+        "CYS", "MET", "PHE", "ILE", "LEU", "VAL", "TRP", "TYR", "ALA", "GLY",
+        "THR", "SER", "GLN", "ASN", "GLU", "ASP", "HIS", "ARG", "LYS", "PRO"};
+    return std::vector<std::string>(names, names + kResidueTypes);
+}
+
+std::string potential_pmf_text(double bin_width, const std::vector<double>& values,
+                               int n_bins) {
+    const std::vector<std::string> names = potential_residue_order();
+    const std::size_t n = names.size();
+    const std::size_t bins = static_cast<std::size_t>(n_bins);
+    if (n_bins <= 0 || values.size() != n * n * bins) {
+        IMP_THROW("potential_pmf_text: " << values.size() << " values are not "
+                  << n << " x " << n << " x " << n_bins, ValueException);
+    }
+    std::string out = python_repr(bin_width) + " " + std::to_string(n) + "\n";
+    for (std::size_t i = 0; i < n; ++i) {
+        for (std::size_t j = i; j < n; ++j) {
+            out += names[i] + " " + names[j];
+            const std::size_t base = (i * n + j) * bins;
+            for (std::size_t k = 0; k < bins; ++k) {
+                out += " " + python_repr(values[base + k]);
+            }
+            out += "\n";
+        }
+    }
+    return out;
+}
+
+PotentialConversion convert_mj_potential(const std::vector<double>& matrix,
+                                         double cutoff) {
+    const std::size_t n = kResidueTypes;
+    if (matrix.size() != n * n) {
+        IMP_THROW("convert_mj_potential: " << matrix.size()
+                  << " values are not a 20 x 20 matrix", ValueException);
+    }
+    std::vector<double> values(n * n * 2);
+    for (std::size_t k = 0; k < n * n; ++k) {
+        values[2 * k] = matrix[k];
+        values[2 * k + 1] = matrix[k];
+    }
+    PotentialConversion out;
+    out.table = PotentialTable("mj", "pot.pmf");
+    out.table.text = potential_pmf_text(cutoff / 2.0, values, 2);
+    return out;
+}
+
+PotentialConversion convert_unres_potential(const std::vector<double>& grid,
+                                            int n_bins, double bin_width,
+                                            double min_dist, double repulsion) {
+    const std::size_t n = kResidueTypes;
+    const std::size_t bins = static_cast<std::size_t>(n_bins);
+    if (n_bins <= 0 || grid.size() != n * n * bins) {
+        IMP_THROW("convert_unres_potential: " << grid.size() << " values are not 20 x 20 x "
+                  << n_bins, ValueException);
+    }
+    PotentialConversion out;
+    std::vector<double> clean(grid);
+    for (std::size_t k = 0; k < clean.size(); ++k) {
+        if (std::isnan(clean[k])) {
+            clean[k] = repulsion;
+            ++out.n_changed;
+        } else if (std::isinf(clean[k])) {
+            clean[k] = clean[k] > 0 ? std::numeric_limits<double>::max()
+                                    : -std::numeric_limits<double>::max();
+        }
+    }
+    const std::size_t below =
+            std::min<std::size_t>(bins, static_cast<std::size_t>(
+                    std::max(0, round_half_even(min_dist / bin_width))));
+    for (std::size_t p = 0; p < n * n; ++p) {
+        for (std::size_t k = 0; k < below; ++k) clean[p * bins + k] = repulsion;
+    }
+    // the upper triangle carries the potential: (a, b) reads [min][max]
+    std::vector<double> values(n * n * bins);
+    for (std::size_t i = 0; i < n; ++i) {
+        for (std::size_t j = 0; j < n; ++j) {
+            const std::size_t src = (std::min(i, j) * n + std::max(i, j)) * bins;
+            std::copy(clean.begin() + src, clean.begin() + src + bins,
+                      values.begin() + (i * n + j) * bins);
+        }
+    }
+    out.table = PotentialTable("unres", "pot.pmf");
+    out.table.text = potential_pmf_text(bin_width, values, n_bins);
+    return out;
+}
+
+PotentialConversion convert_hbond_potential(const std::vector<double>& table,
+                                            int n_channels, int n_bins,
+                                            double bin_width, double physical_A) {
+    const std::size_t channels = static_cast<std::size_t>(n_channels);
+    const std::size_t bins = static_cast<std::size_t>(n_bins);
+    if (n_channels <= 0 || n_bins <= 0 || table.size() != channels * bins) {
+        IMP_THROW("convert_hbond_potential: " << table.size() << " values are not "
+                  << n_channels << " x " << n_bins, ValueException);
+    }
+    const int first = round_half_even(physical_A / bin_width);
+    if (first < 0 || static_cast<std::size_t>(first) >= bins) {
+        IMP_THROW("convert_hbond_potential: " << physical_A << " A is outside the table",
+                  ValueException);
+    }
+    PotentialConversion out;
+    std::vector<double> clean(table);
+    for (std::size_t c = 0; c < channels; ++c) {
+        const double held = clean[c * bins + static_cast<std::size_t>(first)];
+        for (std::size_t k = 0; k < static_cast<std::size_t>(first); ++k) {
+            if (std::fabs(clean[c * bins + k]) > 1e5) ++out.n_changed;
+            clean[c * bins + k] = held;
+        }
+    }
+    out.table = PotentialTable("hbond", "pot.grid");
+    out.table.shape.push_back(n_channels);
+    out.table.shape.push_back(n_bins);
+    out.table.values.swap(clean);
+    return out;
+}
+
+PotentialConversion convert_ramachandran_potential(const std::vector<double>& stack,
+                                                   int n_channels, int n_bins) {
+    const std::size_t cells = static_cast<std::size_t>(n_bins) * static_cast<std::size_t>(n_bins);
+    if (n_channels < 2 || n_bins <= 0 || stack.size() % static_cast<std::size_t>(n_channels) ||
+        (stack.size() / static_cast<std::size_t>(n_channels)) *
+                        (static_cast<std::size_t>(n_channels) - 2) != 3 * cells) {
+        IMP_THROW("convert_ramachandran_potential: " << stack.size() << " values in "
+                  << n_channels << " channels do not leave 3 x " << n_bins << " x "
+                  << n_bins << " maps after the two coordinate grids", ValueException);
+    }
+    const std::size_t offset = 2 * (stack.size() / static_cast<std::size_t>(n_channels));
+    PotentialConversion out;
+    std::vector<double> maps(stack.begin() + offset, stack.end());
+    for (std::size_t c = 0; c < 3; ++c) {
+        const std::vector<double>::iterator begin = maps.begin() + c * cells;
+        bool any = false, have_least = false, nan_seen = false;
+        double least = 0.0;
+        for (std::size_t k = 0; k < cells; ++k) {
+            const double v = *(begin + k);
+            if (v > 0.0) {
+                any = true;
+            } else if (std::isnan(v)) {
+                // numpy's min propagates a NaN
+                least = v;
+                have_least = nan_seen = true;
+            } else if (!nan_seen && (!have_least || v < least)) {
+                least = v;
+                have_least = true;
+            }
+        }
+        if (!any) continue;
+        if (!have_least) {
+            IMP_THROW("convert_ramachandran_potential: channel " << c
+                      << " holds only sentinels", ValueException);
+        }
+        for (std::size_t k = 0; k < cells; ++k) {
+            if (*(begin + k) > 0.0) {
+                *(begin + k) = least;
+                ++out.n_changed;
+            }
+        }
+    }
+    out.table = PotentialTable("ramachandran", "pot.grid");
+    out.table.shape.push_back(3);
+    out.table.shape.push_back(n_bins);
+    out.table.shape.push_back(n_bins);
+    out.table.values.swap(maps);
+    return out;
 }
 
 IMPBFF_END_NAMESPACE

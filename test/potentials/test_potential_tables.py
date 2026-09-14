@@ -3,7 +3,9 @@
 The tables arrived as four loose `.npy` files in a ChiSurf directory. They ship
 as one PTO container, which is what this module already does for
 `dyes.drot.pto` and `dyes.mmfdb.pto`, and it is built by
-`bin/imp_bff_potentials2pto`.
+`imp_bff potentials2pto` (src/CommandLinePotentials.cpp; the conversions are
+`convert_*_potential` in ProbePotentialTables.h). The command itself is run in
+test_potentials2pto_command.py.
 
 What these tests hold to: the container reads, its manifest describes what is
 in it, the two text tables are what `IMP.core.StatisticalPairScore` reads

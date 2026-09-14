@@ -94,7 +94,7 @@ IMPBFFEXPORT PotentialTable read_potential_table(std::string name,
 
 //! Write a container: the tables, and a manifest that describes them.
 /*!
-    What `bin/imp_bff_potentials2pto` calls, and what a caller with tables of
+    What `imp_bff potentials2pto` calls, and what a caller with tables of
     its own calls -- a potential this module does not ship is a file, not a
     patch.
 
@@ -109,6 +109,63 @@ IMPBFFEXPORT PotentialTable read_potential_table(std::string name,
 IMPBFFEXPORT void write_potential_tables(
         const std::string& path, const std::vector<PotentialTable>& tables,
         const std::string& manifest_json = "{}");
+
+#ifndef SWIG
+//! A table converted from ChiSurf's loose `.npy` form, and how many values
+//! the conversion had to change (the number the manifest reports).
+struct IMPBFFEXPORT PotentialConversion {
+    PotentialTable table;
+    int n_changed;
+    PotentialConversion() : n_changed(0) {}
+};
+
+//! ChiSurf's `res2id` order, which is Miyazawa and Jernigan's.
+/*! It indexes the `mj` and `unres` source arrays and nothing beyond the
+    converter needs it: the PMF files name residues. */
+IMPBFFEXPORT std::vector<std::string> potential_residue_order();
+
+//! A PMF file in IMP's format: `<bin_width> <n_types>`, then one line per
+//! unordered pair of residue types, `A B v0 v1 ...`, values spelled as
+//! Python's `repr(float)`.
+/*! \param[in] values n_types x n_types x n_bins, C order, indexed in
+               #potential_residue_order; the pair (a, b) with a before b in
+               that order is read at `[a][b]` */
+IMPBFFEXPORT std::string potential_pmf_text(double bin_width,
+                                            const std::vector<double>& values,
+                                            int n_bins);
+
+//! The Miyazawa-Jernigan contact matrix (20 x 20) as a PMF.
+/*! Two bins of half the cutoff, both the same value: a contact potential is
+    flat to the cutoff and nothing past it, and IMP's reader builds a spline
+    per pair, which needs two values. \p n_changed is 0. */
+IMPBFFEXPORT PotentialConversion convert_mj_potential(
+        const std::vector<double>& matrix, double cutoff = 6.5);
+
+//! The UNRES centroid table (20 x 20 x n_bins) as a PMF.
+/*! NaNs become \p repulsion (`numpy.nan_to_num`, so infinities become the
+    largest finite double), every bin below \p min_dist holds \p repulsion,
+    and **the upper triangle is what is written** -- the source is filled in
+    that half only. \p n_changed is the number of NaNs in the source. */
+IMPBFFEXPORT PotentialConversion convert_unres_potential(
+        const std::vector<double>& grid, int n_bins, double bin_width = 0.05,
+        double min_dist = 3.5, double repulsion = 100.0);
+
+//! The four-channel hydrogen-bond lookup (n_channels x n_bins) as a grid.
+/*! The bins below \p physical_A are held at the value there: the table
+    diverges to 7e33 where no two atoms are. \p n_changed counts the values
+    above 1e5 in magnitude in that range. */
+IMPBFFEXPORT PotentialConversion convert_hbond_potential(
+        const std::vector<double>& table, int n_channels, int n_bins,
+        double bin_width = 0.01, double physical_A = 1.3);
+
+//! The Ramachandran stack (n_channels x n_bins^2; channels 0 and 1 are the
+//! phi and psi coordinate grids) as a 3 x n_bins x n_bins grid of maps.
+/*! The values are `log(P/Pmax)`, never positive -- except a sentinel `1.0`
+    where proline has no data. Those cells become the least probable measured
+    value of their channel. \p n_changed counts them. */
+IMPBFFEXPORT PotentialConversion convert_ramachandran_potential(
+        const std::vector<double>& stack, int n_channels, int n_bins = 360);
+#endif
 
 IMPBFF_END_NAMESPACE
 
