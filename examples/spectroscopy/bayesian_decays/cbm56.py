@@ -403,7 +403,7 @@ def histograms(loaded, n=None) -> dict:
 # the model's environment, on this spectrometer's time axis
 # --------------------------------------------------------------------------
 
-def environment(n_coef=25, n=488, cache=True, verbose=True):
+def environment(n_coef=25, n=488, cache=True, verbose=True, rho_grid=None):
     """The transfer maps, built on THIS instrument's axis rather than the
     prototype's.
 
@@ -449,7 +449,17 @@ def environment(n_coef=25, n=488, cache=True, verbose=True):
             print(f'  transfer maps on the CBM56 axis in {time.time() - t0:.0f} s')
         if cache:
             torch.save(E, f)
-    f2 = ck / f'cbm56_rho_{n}_{len(M.RHO_GRID)}.pt'
+    #: THE ROTATIONAL GRID (R1(a), prompt 416: "residuals are awful!"): the
+    #: prototype's runs 0.1-20 ns in nine points, and under a tail-free
+    #: response the donor-only parallel channel misfits early while the
+    #: perpendicular one passes -- a polarised, early defect, which is what a
+    #: rotational component outside the grid looks like. `rho_grid` widens it;
+    #: the prior on its weights (`default_variables`) reads the same module
+    #: constant, so both follow.
+    if rho_grid is not None:
+        M.RHO_GRID = np.asarray(rho_grid, float)
+    tag = f'{len(M.RHO_GRID)}_{M.RHO_GRID.min():g}_{M.RHO_GRID.max():g}'
+    f2 = ck / f'cbm56_rho_{n}_{tag}.pt'
     if cache and f2.exists():
         E['S_rho'] = torch.load(f2, weights_only=False)
     else:
@@ -664,7 +674,7 @@ def peak_fit_response(h, dt, stop_after_peak=1.0, start_fraction=0.05, pre=8, pu
 
 def model(loaded=None, n_coef=25, which='h20', verbose=True,
           samples=('D0', 'A0', 'DA'), detectors=None, irf='h20', rebin=False, growth=1.05,
-          rl_iterations=500, irf_conv_stop=None, peak_stop=1.0, peak_pulse='gn'):
+          rl_iterations=500, irf_conv_stop=None, peak_stop=1.0, peak_pulse='gn', rho_grid=None):
     """Everything the fit needs: the maps on this axis, the measured responses,
     the twelve histograms, and the graph.
 
@@ -678,7 +688,7 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
     peak_fits = {}
     d = loaded or load()
     cal = d['cal']
-    E, rel, spl, L = environment(n_coef=n_coef, verbose=verbose)
+    E, rel, spl, L = environment(n_coef=n_coef, verbose=verbose, rho_grid=rho_grid)
     n = int(E['n'])
     irf, info, off = responses(d, which=which, n=n)
     irf_h20 = {k: v.copy() for k, v in irf.items()}
