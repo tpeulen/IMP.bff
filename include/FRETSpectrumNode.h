@@ -54,6 +54,20 @@ IMPBFF_BEGIN_NAMESPACE
  * | `tau0` | the donor lifetime $R_0$ was determined at |
  * | `kappa2` | the orientation factor |
  *
+ * \par Orientation
+ * `kappa2` is one orientation factor for every molecule -- dipoles that
+ * reorient fast against the donor's lifetime (`orientation: "dynamic"`, the
+ * default). For dipoles that stay put (`"static"`), each molecule has its own
+ * kappa^2 from a distribution, and a distance and an orientation factor make
+ * one transfer rate together, `k = 3/2 kappa^2 / tau0 (R0/r)^6`. The
+ * distribution arrives on the port `kappa2_distribution` as interleaved
+ * `(w, kappa^2)`, or is the isotropic one (`"static_isotropic"`, the density on
+ * `kappa2_points` points over `[0.01, 4]`, 128 as ChiSurf samples it). With
+ * `kappa2_bins` 0 every pair is its own species; otherwise the pairs are
+ * histogrammed by apparent distance `r (<kappa^2>/kappa^2)^(1/6)` into that
+ * many linear bins, whose rates use `<kappa^2>` -- the same rate for a pair at
+ * a bin centre, and far fewer species for the instrument to reconvolve.
+ *
  * Besides the lifetime spectrum (the output keyed by the node's name), an
  * output named `fret_rates`, where one exists, receives the interleaved
  * `(p, k_FRET)` transfer rates per distance, before any donor is combined.
@@ -76,8 +90,23 @@ class IMPBFFEXPORT FRETSpectrumNode : public GraphNode {
   std::string describe() const;
 
   std::string get_node_type() const override;
+  //! Settings: `orientation` (`dynamic`, `static`, `static_isotropic`),
+  //! `kappa2_bins` (0 exact), `kappa2_points`.
+  void configure(const std::string& json_text) override;
+
+  void set_orientation(const std::string& orientation);
+  const std::string& get_orientation() const { return orientation_; }
+  void set_kappa2_bins(int n);
+  int get_kappa2_bins() const { return kappa2_bins_; }
 
  private:
+  //! The transfer rates `(p, k)` of the distances under the orientation.
+  std::vector<double> transfer_rates(const std::vector<double>& distances,
+                                     double forster_radius, double tau0,
+                                     double kappa2) const;
+  std::string orientation_ = "dynamic";
+  int kappa2_bins_ = 0;
+  int kappa2_points_ = 128;
   std::vector<double> spectrum_;
   GraphPort* donor_port_ = nullptr;
   GraphPort* distance_port_ = nullptr;

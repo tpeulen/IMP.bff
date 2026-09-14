@@ -54,6 +54,13 @@
    "rotations": {
     "label": "Rotational correlation times"
    },
+   "static_orientation": {
+    "label": "Static isotropic \u03ba\u00b2",
+    "kind": "flag"
+   },
+   "kappa2_bins": {
+    "label": "\u03ba\u00b2 apparent-distance bins (0 exact)"
+   },
    "dt": {
     "label": "dt [ns]",
     "default": "decay_dx"
@@ -182,6 +189,8 @@
   "rda_linear": 0,
   "polarization": 0,
   "rotations": 1,
+  "static_orientation": 0,
+  "kappa2_bins": 512,
   "autoscale": 0,
   "pile_up": 0,
   "dead_time": 0.0,
@@ -485,6 +494,16 @@
    },
    "fret": {
     "type": "FRETSpectrumNode",
+    "config_rules": {
+     "orientation": {
+      "options": [
+       "dynamic",
+       "static_isotropic"
+      ],
+      "index": "static_orientation"
+     },
+     "kappa2_bins": "kappa2_bins"
+    },
     "inputs": {
      "donor_lifetime_spectrum": "donor",
      "distance_distribution": "distances",
