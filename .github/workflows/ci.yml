@@ -310,18 +310,19 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.VCPKG_ROOT_RESOLVED }}\installed
-          key: vcpkg-bff-x64-windows-${{ runner.os }}-v1
+          key: vcpkg-bff-x64-windows-${{ runner.os }}-v2
       - name: Install Boost and Eigen (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           # Header-only ports of exactly what the core includes
-          # (boost/random, boost/range). vcpkg's network installs fail
-          # transiently often enough to warrant the retry.
+          # (boost/random, boost/range, boost/math for i0's exact Bessel
+          # function). vcpkg's network installs fail transiently often
+          # enough to warrant the retry.
           $vcpkg = "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe"
           $attempts = 3
           for ($i = 1; $i -le $attempts; $i++) {
-            & $vcpkg install boost-random boost-range eigen3:x64-windows --recurse --no-print-usage
+            & $vcpkg install boost-random boost-range boost-math eigen3:x64-windows --recurse --no-print-usage
             if ($LASTEXITCODE -eq 0) { break }
             if ($i -eq $attempts) { exit 1 }
             Write-Host "vcpkg install failed (attempt $i of $attempts); retrying in 90 s"
@@ -332,7 +333,7 @@ jobs:
           # restored cache reports "already installed" and the failure
           # surfaces much later as a configure error with nothing pointing
           # back here. The eigen3 port keeps the headers under include/eigen3.
-          foreach ($f in @("include\boost\version.hpp", "include\eigen3\Eigen\Dense", "share\eigen3\Eigen3Config.cmake")) {
+          foreach ($f in @("include\boost\version.hpp", "include\boost\math\special_functions\bessel.hpp", "include\eigen3\Eigen\Dense", "share\eigen3\Eigen3Config.cmake")) {
             if (-not (Test-Path "$root\$f")) {
               Write-Host "::error::vcpkg reported success but $root\$f is missing."
               Write-Host "The cached vcpkg tree is incomplete. Bump the key"
