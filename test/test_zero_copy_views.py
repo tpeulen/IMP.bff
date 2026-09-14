@@ -22,7 +22,6 @@ what is asserted here is only that the *view contract* holds.
 """
 
 import gc
-import resource
 
 import numpy as np
 import pytest
@@ -31,6 +30,10 @@ import IMP.bff
 import IMP.bff as _kernels
 import IMP.bff as qmaps
 
+try:
+    import resource  # POSIX-only; Windows has no equivalent stdlib RSS probe
+except ImportError:
+    resource = None
 
 
 def rss_mb():
@@ -203,6 +206,7 @@ def test_the_kernel_does_not_write_to_its_inputs(name):
         np.testing.assert_array_equal(a, b, err_msg=f"{name}: input {i} mutated")
 
 
+@pytest.mark.skipif(resource is None, reason="no portable RSS probe (resource is POSIX-only)")
 @pytest.mark.parametrize("name", sorted(KERNELS))
 def test_repeated_calls_do_not_grow_the_heap(name):
     """The buffer is freed when the array dies.
