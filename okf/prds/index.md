@@ -21,7 +21,7 @@ move of each.
 
 | PRD | what | status | next |
 |---|---|---|---|
-| [142](prd-142.md) | the Bayesian decay analysis of a real measurement (CBM56), ported from ucfret into bff's C++, with tests | active (2026-09-14) | step 1: `BayesianMeasuredResponse.h` + its test |
+| [142](prd-142.md) | the Bayesian decay analysis of a real measurement (CBM56), ported from ucfret into bff's C++, with tests | active (2026-09-14) | step 2: `BayesianGoodnessOfFit.h` + its test |
 | [141](prd-141.md) | one precise flat vocabulary for IMP.bff | active (2026-09-11) | Stage 0: baseline the Graph/Fit/Inference slice. |
 | [138](prd-138.md) | flat consolidation, then the interface pass | active (2026-09-07) | merge table in the PRD; Faspr first. |
 | [136](prd-136.md) | dye-timewarp — a site-conditioned, time-coarsened generative model of dye+linker dynamics learned from MD | active (2026-09-07): stage 1 passed on 65 runs / 12.9 µs; `free_v1` training on heinzehub | G1–G3 on the first checkpoints, PRD-116 parity, then the arm B site builder. |
