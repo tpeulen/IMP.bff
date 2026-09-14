@@ -296,6 +296,19 @@ class IMPBFFEXPORT GraphNode : public GraphObject,
   virtual void bind_dataset(const std::string& role,
                             const FitDataset& dataset);
 
+  //! Take another node as a member of this one.
+  /*!
+      \param[in] member the node to include
+      \param[in] residual_key the member's output this node should read
+
+      Grouping is not a port link a description can write for itself: a node
+      that gathers members decides how it reaches them. As with #configure
+      and #bind_dataset, the node knows and the loader does not; the base
+      refuses, which is what a node that groups nothing should do.
+  */
+  virtual void add_member_node(std::shared_ptr<GraphNode> member,
+                               const std::string& residual_key);
+
   //! Invalidate the cached execution plan.
   //!
   //! Every structural mutator calls this, and so does a GraphPort whose link

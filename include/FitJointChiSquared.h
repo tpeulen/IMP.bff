@@ -127,6 +127,8 @@ class IMPBFFEXPORT FitJointChiSquared : public GraphNode {
 
   std::string get_node_type() const override;
   void configure(const std::string& json_text) override;
+  void add_member_node(std::shared_ptr<GraphNode> member,
+                       const std::string& residual_key) override;
 
  private:
   std::vector<std::shared_ptr<GraphNode> > members_;

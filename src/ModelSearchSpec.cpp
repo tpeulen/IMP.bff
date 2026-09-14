@@ -305,9 +305,12 @@ SpecJson expand(const SpecJson& node,
   if (node.is_array()) {
     SpecJson out = SpecJson::array();
     for (SpecJson::const_iterator it = node.begin(); it != node.end(); ++it) {
-      if (it->is_object() && it->contains("repeat") && it->size() == 1) {
+      // `each` expands into several elements; `repeat` inside an object
+      // merges keys into that one object. An array can hold either, so they
+      // cannot share a name -- a list of seed maps wants the second.
+      if (it->is_object() && it->contains("each") && it->size() == 1) {
         const std::vector<SpecJson> many =
-            expand_repeat((*it)["repeat"], bindings, "array", nullptr);
+            expand_repeat((*it)["each"], bindings, "array", nullptr);
         for (std::size_t k = 0; k < many.size(); ++k) out.push_back(many[k]);
       } else {
         out.push_back(expand(*it, bindings));
@@ -828,6 +831,43 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build()
         const std::string name =
             oit.key() == "@name" ? built[node_order[n]]->get_name() : oit.key();
         built[node_order[n]]->add_output_port(name, port);
+      }
+    }
+
+    // Members, between outputs and inputs: a group reads its members'
+    // residual outputs, which have to exist, and the order a description
+    // lists them in is the order their residual blocks appear.
+    for (std::size_t n = 0; n < node_order.size(); ++n) {
+      const SpecJson& node_spec = nodes[node_order[n]];
+      const std::string node_where = where + " node '" + node_order[n] + "'";
+      SpecJson::const_iterator members_it = node_spec.find("members");
+      if (members_it == node_spec.end()) continue;
+      if (!members_it->is_array()) refuse(node_where + " 'members' must be an array");
+      for (SpecJson::const_iterator mit = members_it->begin();
+           mit != members_it->end(); ++mit) {
+        std::string member_key;
+        std::string residual_key = "residuals";
+        if (mit->is_string()) {
+          member_key = mit->get<std::string>();
+        } else if (mit->is_object()) {
+          member_key = require_string(*mit, "node", node_where + " member");
+          if (mit->contains("residuals")) {
+            residual_key = (*mit)["residuals"].get<std::string>();
+          }
+        } else {
+          refuse(node_where + " each member is a node name or an object");
+        }
+        std::map<std::string, std::shared_ptr<GraphNode> >::const_iterator
+            member = built.find(member_key);
+        if (member == built.end()) {
+          refuse(node_where + " groups '" + member_key +
+                 "', which this structure does not declare");
+        }
+        try {
+          built[node_order[n]]->add_member_node(member->second, residual_key);
+        } catch (const std::exception& error) {
+          refuse(node_where + ": " + error.what());
+        }
       }
     }
 
