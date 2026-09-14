@@ -62,8 +62,9 @@
 #include <vector>
 
 #include <sys/stat.h>
-#ifndef _WIN32
-#include <dirent.h>
+#ifdef _WIN32
+#include <direct.h>
+#else
 #include <stdlib.h>
 #include <unistd.h>
 #endif
@@ -105,7 +106,11 @@ std::vector<std::string> split_parts(const std::string& path) {
 
 std::string cwd() {
   char buf[4096];
+#ifdef _WIN32
+  const char* c = _getcwd(buf, sizeof(buf));
+#else
   const char* c = getcwd(buf, sizeof(buf));
+#endif
   return c ? std::string(c) : std::string(".");
 }
 
@@ -799,20 +804,17 @@ std::vector<std::string> probe_system_paths(const std::string& system_cif,
     IMP_THROW("Provide --system-cif or --systems-dir", IMP::ValueException);
   }
   std::vector<std::string> paths;
-#ifndef _WIN32
-  DIR* d = opendir(systems_dir.c_str());
-  if (d == NULL) IMP_THROW("cannot list " << systems_dir, IMP::IOException);
-  std::vector<std::string> names;
-  for (struct dirent* e = readdir(d); e != NULL; e = readdir(d)) {
-    const std::string name = e->d_name;
-    if (name.size() >= 4 && name.compare(name.size() - 4, 4, ".cif") == 0) names.push_back(name);
+  if (!internal::file_exists(systems_dir)) {
+    IMP_THROW("cannot list " << systems_dir, IMP::IOException);
   }
-  closedir(d);
-  std::sort(names.begin(), names.end());
-  for (std::size_t i = 0; i < names.size(); ++i) {
-    paths.push_back(probe_system_simulation::join(systems_dir, names[i]));
+  std::vector<std::string> files, dirs;
+  internal::directory_listing(systems_dir, files, dirs);
+  for (std::size_t i = 0; i < files.size(); ++i) {
+    const std::string& name = files[i];
+    if (name.size() >= 4 && name.compare(name.size() - 4, 4, ".cif") == 0) {
+      paths.push_back(probe_system_simulation::join(systems_dir, name));
+    }
   }
-#endif
   if (paths.empty()) IMP_THROW("No .cif files found in " << systems_dir, IMP::ValueException);
   return paths;
 }

@@ -67,7 +67,6 @@
 #include <thread>
 #include <vector>
 
-#include <dirent.h>
 #include <sys/stat.h>
 #ifndef _WIN32
 #  include <sys/wait.h>
@@ -372,23 +371,8 @@ void append(const std::string& path, const std::string& text) {
 //! subdirectories.
 void walk_files(const std::string& directory, const std::vector<std::string>& suffixes,
                 std::vector<std::string>& out) {
-    DIR* d = opendir(directory.c_str());
-    if (d == NULL) return;
     std::vector<std::string> files, dirs;
-    for (struct dirent* e = readdir(d); e != NULL; e = readdir(d)) {
-        const std::string name = e->d_name;
-        if (name == "." || name == "..") continue;
-        struct stat st;
-        if (stat((directory + "/" + name).c_str(), &st) != 0) continue;
-        if ((st.st_mode & S_IFMT) == S_IFDIR) {
-            dirs.push_back(name);
-        } else {
-            files.push_back(name);
-        }
-    }
-    closedir(d);
-    std::sort(files.begin(), files.end());
-    std::sort(dirs.begin(), dirs.end());
+    internal::directory_listing(directory, files, dirs);
     for (std::size_t i = 0; i < files.size(); ++i) {
         for (std::size_t k = 0; k < suffixes.size(); ++k) {
             if (internal::ends_with(files[i], suffixes[k])) {
