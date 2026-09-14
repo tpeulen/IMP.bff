@@ -121,22 +121,22 @@ std::vector<double> GaussianDistances::get_weights_jacobian() const {
     throw std::domain_error("GaussianDistances '" + get_name() +
                             "' has no distance axis");
   }
-  using internal::Dual;
+  using Dual3 = internal::Dual<tttrlib::GradVec<3> >;
   const std::size_t n = axis_.size();
   const std::size_t n_params = static_cast<std::size_t>(4 * n_components_);
   std::vector<double> jacobian(n * n_params, 0.0);
 
   // Each component through the same kernel evaluate() uses, on dual numbers
   // in its own mean, sigma and shape: g[c] and its derivatives.
-  std::vector<std::vector<Dual> > g(static_cast<std::size_t>(n_components_));
+  std::vector<std::vector<Dual3> > g(static_cast<std::size_t>(n_components_));
   std::vector<double> raw_mean(n_components_), raw_amplitude(n_components_);
   for (int c = 0; c < n_components_; ++c) {
     const std::size_t base = static_cast<std::size_t>(4 * c);
     raw_mean[c] = component_ports_[base]->get_value();
     raw_amplitude[c] = component_ports_[base + 3]->get_value();
-    const Dual mean = Dual::variable(std::fabs(raw_mean[c]), 0);
-    const Dual sigma = Dual::variable(component_ports_[base + 1]->get_value(), 1);
-    const Dual shape = Dual::variable(component_ports_[base + 2]->get_value(), 2);
+    const Dual3 mean = Dual3::variable(std::fabs(raw_mean[c]), tttrlib::GradVec<3>::Unit(0));
+    const Dual3 sigma = Dual3::variable(component_ports_[base + 1]->get_value(), tttrlib::GradVec<3>::Unit(1));
+    const Dual3 shape = Dual3::variable(component_ports_[base + 2]->get_value(), tttrlib::GradVec<3>::Unit(2));
     g[c] = distance_between_gaussians_
                ? internal::distance_between_gaussian_t(axis_, mean, sigma)
                : internal::generalized_normal_density_t(axis_, mean, sigma, shape, true);
@@ -147,7 +147,7 @@ std::vector<double> GaussianDistances::get_weights_jacobian() const {
   std::vector<double> D(n, 0.0);
   for (int c = 0; c < n_components_; ++c) {
     const double w = std::fabs(raw_amplitude[c]);
-    for (std::size_t j = 0; j < n; ++j) D[j] += w * g[c][j].v;
+    for (std::size_t j = 0; j < n; ++j) D[j] += w * g[c][j].val;
   }
   double S = 0.0;
   for (double v : D) S += v;
@@ -162,17 +162,17 @@ std::vector<double> GaussianDistances::get_weights_jacobian() const {
     double dS[3] = {0.0, 0.0, 0.0};
     double G = 0.0;
     for (std::size_t j = 0; j < n; ++j) {
-      for (int k = 0; k < 3; ++k) dS[k] += w * g[c][j].d[k];
-      G += g[c][j].v;
+      for (int k = 0; k < 3; ++k) dS[k] += w * g[c][j].grad[k];
+      G += g[c][j].val;
     }
     const std::size_t col = static_cast<std::size_t>(4 * c);
     for (std::size_t j = 0; j < n; ++j) {
       const double p = D[j] / S;
       const std::size_t row = j * n_params;
       for (int k = 0; k < 3; ++k) {
-        jacobian[row + col + k] = signs[k] * (w * g[c][j].d[k] - p * dS[k]) / S;
+        jacobian[row + col + k] = signs[k] * (w * g[c][j].grad[k] - p * dS[k]) / S;
       }
-      jacobian[row + col + 3] = s_amplitude * (g[c][j].v - p * G) / S;
+      jacobian[row + col + 3] = s_amplitude * (g[c][j].val - p * G) / S;
     }
   }
   return jacobian;
