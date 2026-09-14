@@ -91,19 +91,36 @@ def test_training_learns_something_rather_than_the_mean():
         assert error[determined] < 0.1 * PREDICTING_THE_MEAN, determined
 
 
-def test_a_proposal_lands_near_the_parameters_that_made_the_curve():
+def test_a_proposal_improves_the_seed_where_the_seed_is_weak():
+    """Measured against the start it replaces, not against a chosen number.
+
+    An absolute tolerance would have proved nothing here. The declared start
+    is computed from the curve and is already within 3% on the amplitude and
+    1% on the plateau, so a proposal "near the truth" on those is the seeding
+    rule's achievement, not the network's. Where the seed is genuinely weak
+    is the diffusion times -- a single characteristic lag stands in for both,
+    290% out on the faster one -- and that is the parameter whose basin the
+    search keeps missing. So the claim is comparative: the proposal must beat
+    the seed there.
+    """
     play = _played(600)
     network = play.train([64, 64], 1000, 0.02)
-    proposal = list(play.propose(network))
     ids = list(_spec().build().get_parameter_ids())
-    got = dict(zip(ids, proposal))
-    # The amplitude and the plateau are read off the curve almost exactly; the
-    # two diffusion times are the hard part and are only bracketed. The
-    # measured limitation is recorded rather than asserted away.
-    assert got["fcs.N"] == pytest.approx(2.0, rel=0.15)
-    assert got["fcs.baseline"] == pytest.approx(1.0, rel=0.15)
-    assert 0.005 < got["fcs.diffusion_time.1"] < 0.5
-    assert got["fcs.diffusion_time.2"] > got["fcs.diffusion_time.1"]
+    proposed = dict(zip(ids, play.propose(network)))
+
+    problem = _spec().build()
+    problem.activate_structure(STRUCTURE)
+    declared = {name: problem.get_parameter(name).value for name in ids}
+
+    def error(value, truth):
+        return abs(value - truth) / abs(truth)
+
+    # The fast species: what a one-component seed cannot see.
+    assert error(proposed["fcs.diffusion_time.1"], 0.08) < error(
+        declared["fcs.diffusion_time.1"], 0.08
+    )
+    # And the two species stay ordered, which is what makes them two.
+    assert proposed["fcs.diffusion_time.2"] > proposed["fcs.diffusion_time.1"]
 
 
 def test_a_trained_proposer_is_read_back_through_the_ordinary_network():
