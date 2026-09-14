@@ -574,7 +574,7 @@ def rl_deconvolve(R, tau, dt, n_iter=500, eps=1e-12, f0=None):
 
 def model(loaded=None, n_coef=25, which='h20', verbose=True,
           samples=('D0', 'A0', 'DA'), detectors=None, irf='h20', rebin=False, growth=1.05,
-          rl_iterations=500):
+          rl_iterations=500, irf_conv_stop=None):
     """Everything the fit needs: the maps on this axis, the measured responses,
     the twelve histograms, and the graph.
 
@@ -597,6 +597,10 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
     E['pulse_alias'] = {'g2p': 'gp', 'g2s': 'gs', 'r2p': 'rp', 'r2s': 'rs'}
     E['pulse_offset'] = {a: off * cal['dt'] for a in E['pulse_alias']}
     E['pie_full'] = True
+    #: chisurf's trick for a bad response (prompt 413): convolve the lifetimes
+    #: with the pulse only -- `irf_conv_stop` ns after the peak -- and let the
+    #: scatter column carry the measured tail
+    E['irf_conv_stop'] = None if irf_conv_stop is None else float(irf_conv_stop)
     #: REBIN OFF BY DEFAULT, for now.  The widening bins are right in principle
     #: and cost nothing statistically, and today they break the walk: the same
     #: donor-only fit that converges unbinned to D/dof 1.219 (reference 1.116
