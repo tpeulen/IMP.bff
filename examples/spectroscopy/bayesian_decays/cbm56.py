@@ -547,13 +547,13 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
                       inst, spl, ps)
     g.rel = rel
     g.start_y = {k: y[k] * E['win_green'] for k in pairs}
-    return dict(L=L, E=E, rel=rel, spl=spl, keys=keys, pairs=pairs, graph=g,
+    return dict(L=L, E=E, Ep=E, rel=rel, spl=spl, keys=keys, pairs=pairs, graph=g,
                 y=y, masks=masks, irf=irf, irf_info=info, offset_channels=off,
                 cal=cal, loaded=d, n=n, n_coef=n_coef,
                 bkg_medians=bkg_med, scale_medians=scale_med, irf_bg_medians=irf_bg_med)
 
 
-def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True):
+def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=True):
     """The Laplace posterior of the whole model on the twelve histograms.
 
     **Automatic differentiation, not the analytic Jacobian.** The hand-written
@@ -565,6 +565,12 @@ def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True):
     import torch
     L = m['L']
     L.Laplace.analytic = False
+    if accelerate:
+        #: the spectral forward model, which now takes a MEASURED response per
+        #: detector.  Checked against the prototype at 5e-16 on this graph, with
+        #: and without a fitted response background.
+        import fast_forward as FF
+        FF.accelerate(m, m['graph'])
     gen = torch.Generator().manual_seed(int(seed))
     post = L.fit_sample(m['graph'], m['y'], gen, m['rel'], verbose=verbose, start='mem',
                         optimiser='fisher', hessian='fisher',
