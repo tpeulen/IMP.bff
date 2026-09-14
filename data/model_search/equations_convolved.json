@@ -22,6 +22,9 @@
    },
    "background_pattern": {
     "label": "Background"
+   },
+   "linearization_curve": {
+    "label": "DNL measurement"
    }
   },
   "scalars": {
@@ -66,6 +69,16 @@
    "generated_response": {
     "label": "Model the IRF (no measured IRF)",
     "kind": "flag"
+   },
+   "lin_window_length": {
+    "label": "DNL window [channels]"
+   },
+   "lin_window": {
+    "label": "DNL window (0 flat, 1 hanning, 2 hamming, 3 bartlett, 4 blackman)"
+   },
+   "reverse_linearization": {
+    "label": "Reverse DNL table",
+    "kind": "flag"
    }
   }
  },
@@ -75,7 +88,8 @@
  "optional_datasets": [
   "response",
   "linearization",
-  "background_pattern"
+  "background_pattern",
+  "linearization_curve"
  ],
  "scalars": [
   "period"
@@ -93,7 +107,10 @@
   "t_background": 1.0,
   "t_decay": 1.0,
   "shift_background": 1,
-  "generated_response": 0
+  "generated_response": 0,
+  "lin_window_length": 17,
+  "lin_window": 1,
+  "reverse_linearization": 0
  },
  "parameters": {
   "instrument.scatter": {
@@ -252,13 +269,30 @@
        "t_decay"
       ],
       "shift_background_with_response": "shift_background",
-      "response_from_port": "generated_response"
+      "response_from_port": "generated_response",
+      "linearization_smoothing": [
+       "lin_window_length",
+       "fit_start",
+       "min(decay_size,fit_stop)",
+       "reverse_linearization"
+      ],
+      "linearization_window": {
+       "options": [
+        "flat",
+        "hanning",
+        "hamming",
+        "bartlett",
+        "blackman"
+       ],
+       "index": "lin_window"
+      }
      },
      "bind": {
       "response": "response",
       "data": "decay",
       "linearization": "linearization",
-      "background_pattern": "background_pattern"
+      "background_pattern": "background_pattern",
+      "linearization_curve": "linearization_curve"
      },
      "inputs": {
       "curve": "convolved",

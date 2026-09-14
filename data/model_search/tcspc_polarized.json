@@ -24,6 +24,9 @@
    },
    "background_pattern": {
     "label": "Background"
+   },
+   "linearization_curve": {
+    "label": "DNL measurement"
    }
   },
   "scalars": {
@@ -79,6 +82,16 @@
    },
    "polarization": {
     "label": "Polarization (0 VM, 1 VV, 2 VH, 3 VV/VH)"
+   },
+   "lin_window_length": {
+    "label": "DNL window [channels]"
+   },
+   "lin_window": {
+    "label": "DNL window (0 flat, 1 hanning, 2 hamming, 3 bartlett, 4 blackman)"
+   },
+   "reverse_linearization": {
+    "label": "Reverse DNL table",
+    "kind": "flag"
    }
   }
  },
@@ -105,12 +118,18 @@
   "periodic_excitation": 1,
   "convolve": 1,
   "generated_response": 0,
-  "polarization": 1
+  "polarization": 1,
+  "fit_start": 0,
+  "fit_stop": 1e+18,
+  "lin_window_length": 17,
+  "lin_window": 1,
+  "reverse_linearization": 0
  },
  "optional_datasets": [
   "response",
   "linearization",
-  "background_pattern"
+  "background_pattern",
+  "linearization_curve"
  ],
  "axes": {
   "n": {
@@ -383,13 +402,30 @@
       "index": "periodic_excitation"
      },
      "convolve": "convolve",
-     "response_from_port": "generated_response"
+     "response_from_port": "generated_response",
+     "linearization_smoothing": [
+      "lin_window_length",
+      "fit_start",
+      "min(decay_size,fit_stop)",
+      "reverse_linearization"
+     ],
+     "linearization_window": {
+      "options": [
+       "flat",
+       "hanning",
+       "hamming",
+       "bartlett",
+       "blackman"
+      ],
+      "index": "lin_window"
+     }
     },
     "bind": {
      "response": "response",
      "data": "decay",
      "linearization": "linearization",
-     "background_pattern": "background_pattern"
+     "background_pattern": "background_pattern",
+     "linearization_curve": "linearization_curve"
     },
     "inputs": {
      "lifetime_spectrum": "polarized",
