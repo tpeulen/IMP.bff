@@ -48,6 +48,7 @@
 #include <IMP/bff/BayesianMeasuredResponse.h>
 #include <IMP/bff/BayesianTransforms.h>
 #include <IMP/bff/BayesianFisherScoring.h>
+#include <IMP/bff/PhotophysicsPolarisation.h>
 #include <IMP/bff/internal/json.h>
 #include <IMP/bff/internal/ThreadPool.h>
 #include <algorithm>
@@ -445,7 +446,8 @@ inline std::vector<double> bayesian_decay_amplitudes(const BayesianDecayExperime
         const BayesianDecayScope& sc = f.scopes[pt.scope];
         const Species& S = sp[pt.scope];
         const bool vh = pt.pol == 1, red = pt.colour == 1;
-        const double sign = vh ? (-1.0 + 3.0 * bayesian_decay_scalar(v, "l2")) : (2.0 - 3.0 * bayesian_decay_scalar(v, "l1"));
+        //: the polarised channel weight through PhotophysicsPolarisation.h: 2 - 3 l1 (VV), -1 + 3 l2 (VH)
+        const double sign = anisotropy_weight(vh ? POL_VH : POL_VV, bayesian_decay_scalar(v, "l1"), bayesian_decay_scalar(v, "l2"));
         const double gf = vh ? (red && v.count("g_r") ? bayesian_decay_scalar(v, "g_r") : bayesian_decay_scalar(v, "g")) : 1.0;
         const bool is_ref = sc.r0 == "r0_ref";
         const std::vector<double>& Srho = is_ref ? Srho_ref : Srho_d;
@@ -453,13 +455,14 @@ inline std::vector<double> bayesian_decay_amplitudes(const BayesianDecayExperime
         std::vector<double> mix(K);
         const double Gc = red ? bayesian_decay_scalar(v, "G_RED") : bayesian_decay_scalar(v, "G_GREEN");
         const double CD = red ? bayesian_decay_scalar(v, "C_RD") : bayesian_decay_scalar(v, "C_GD"), CA = red ? bayesian_decay_scalar(v, "C_RA") : bayesian_decay_scalar(v, "C_GA");
-        for (std::size_t k = 0; k < K; ++k) {
-            double rot = 0.0;
-            for (std::size_t i = 0; i < Kint; ++i) rot += Srho[k * Kint + i] * S.don[1 + i];
-            const double pol_d = S.don[k] + sign * r0 * rot;
-            const double pol_a = S.acc[k] + sign * r0_a * S.accr[k];
-            mix[k] = Gc * (CD * pol_d + CA * pol_a) / gf;
-        }
+        //: donor and acceptor each mixed by PhotophysicsPolarisation.h's mix_polarised
+        //: ((iso + w r0 aniso) / g_channel, g applied once below)
+        std::vector<double> rot(K, 0.0), pol_d(K), pol_a(K);
+        for (std::size_t k = 0; k < K; ++k)
+            for (std::size_t i = 0; i < Kint; ++i) rot[k] += Srho[k * Kint + i] * S.don[1 + i];
+        mix_polarised(S.don.data(), rot.data(), K, r0, sign, 1.0, pol_d.data());
+        mix_polarised(S.acc.data(), S.accr.data(), K, r0_a, sign, 1.0, pol_a.data());
+        for (std::size_t k = 0; k < K; ++k) mix[k] = Gc * (CD * pol_d[k] + CA * pol_a[k]) / gf;
         // instrument: scale, scatter into column 0, background into the last
         const std::string samp = pt.sample, chan = pt.channel;
         const double sc_ = std::exp(bayesian_decay_scalar(v, "log_scale_" + samp));
@@ -731,7 +734,8 @@ inline std::vector<double> bayesian_decay_amplitude_jacobian(const BayesianDecay
         const std::size_t si = pt.scope; const BayesianDecayScope& sc = f.scopes[si]; const Blocks& B = blk[si];
         const bool vh = pt.pol == 1, red = pt.colour == 1;
         const bool has_don = !sc.spectrum.empty(), has_acc = sc.has_acc;
-        const double sign = vh ? (-1.0 + 3.0 * bayesian_decay_scalar(v, "l2")) : (2.0 - 3.0 * bayesian_decay_scalar(v, "l1"));
+        //: the polarised channel weight through PhotophysicsPolarisation.h: 2 - 3 l1 (VV), -1 + 3 l2 (VH)
+        const double sign = anisotropy_weight(vh ? POL_VH : POL_VV, bayesian_decay_scalar(v, "l1"), bayesian_decay_scalar(v, "l2"));
         const std::string gname = (vh && red && v.count("g_r")) ? "g_r" : "g";
         const double gf = vh ? bayesian_decay_scalar(v, gname) : 1.0;
         const std::string r0n = sc.r0, rhon = sc.rho;
@@ -743,12 +747,11 @@ inline std::vector<double> bayesian_decay_amplitude_jacobian(const BayesianDecay
         const std::string cdn = red ? "C_RD" : "C_GD", can = red ? "C_RA" : "C_GA", gn = red ? "G_RED" : "G_GREEN";
         const double Gc = bayesian_decay_scalar(v, gn), CD = bayesian_decay_scalar(v, cdn), CA = bayesian_decay_scalar(v, can);
         std::vector<double> rot_dn(K, 0.0), pol_d(K, 0.0), pol_a(K, 0.0), mix(K, 0.0);
-        for (std::size_t k = 0; k < K; ++k) {
+        for (std::size_t k = 0; k < K; ++k)
             for (std::size_t i = 0; i < Kint; ++i) rot_dn[k] += Srho[k * Kint + i] * B.don[1 + i];
-            pol_d[k] = B.don[k] + sign * r0 * rot_dn[k];
-            pol_a[k] = B.acc[k] + sign * r0_a * B.accr[k];
-            mix[k] = Gc * (CD * pol_d[k] + CA * pol_a[k]) / gf;
-        }
+        mix_polarised(B.don.data(), rot_dn.data(), K, r0, sign, 1.0, pol_d.data());
+        mix_polarised(B.acc.data(), B.accr.data(), K, r0_a, sign, 1.0, pol_a.data());
+        for (std::size_t k = 0; k < K; ++k) mix[k] = Gc * (CD * pol_d[k] + CA * pol_a[k]) / gf;
         std::vector<double> Jk(K * dim, 0.0);
         if (has_don) {
             for (std::size_t k = 0; k < K; ++k) for (std::size_t c = 0; c < dim; ++c) {
