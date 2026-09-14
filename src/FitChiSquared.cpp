@@ -366,4 +366,16 @@ void FitChiSquared::configure(const std::string& json_text) {
   config.require_all_used();
 }
 
+void FitChiSquared::bind_dataset(const std::string& role,
+                                 const FitDataset& dataset) {
+  // One role: the measurement this objective is the misfit of. Its errors,
+  // mask and noise family travel with it, which is the point of binding a
+  // dataset rather than three loose vectors.
+  if (role != "data") {
+    throw std::domain_error("node type 'FitChiSquared' has no role '" + role +
+                            "'; it takes 'data'");
+  }
+  set_dataset(dataset);
+}
+
 IMPBFF_END_NAMESPACE

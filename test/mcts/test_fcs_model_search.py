@@ -1,22 +1,26 @@
-"""Native FCS topology and canonical-registry contracts for model search."""
+"""The analytical FCS family, now read from a description.
+
+Same contracts the C++ factory had to meet: the canonical registry in its
+declared order, the full topology family over it, a real fit through the
+native graph with no Python callback, and refusals where a description or a
+measurement does not add up.
+"""
+
+import sys
+import pathlib
 
 import numpy as np
 import pytest
 
 import IMP.bff as bff
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
-def _curve_2d(axis, n=2.5, baseline=1.0, td=0.7):
-    return baseline + (1.0 / n) / (1.0 + axis / td)
+import _fixtures  # noqa: E402
 
 
-def test_factory_builds_complete_analytical_family_over_one_registry():
-    axis = np.geomspace(1.0e-3, 20.0, 80)
-    data = _curve_2d(axis)
-
-    problem = bff.FCSModelSearchFactory.create_analytical(
-        list(axis), list(data), [0.01] * len(axis)
-    )
+def test_the_description_builds_the_whole_family_over_one_registry():
+    problem = _fixtures.fcs_analytical()
 
     assert list(problem.get_parameter_ids()) == [
         "fcs.N",
@@ -42,20 +46,11 @@ def test_factory_builds_complete_analytical_family_over_one_registry():
         objective = problem.get_structure_objective(key)
         model = objective.get_input_port("model").link.get_node()
         assert model is not None  # the problem owns the complete graph
-        follower = model.get_input_port("N")
-        assert follower.link.uid == owner.uid
+        assert model.get_input_port("N").link.uid == owner.uid
 
 
 def test_single_2d_topology_fits_without_a_python_model_callback():
-    axis = np.geomspace(1.0e-3, 20.0, 100)
-    data = _curve_2d(axis, n=3.2, baseline=0.97, td=0.42)
-    config = bff.FCSModelSearchConfig()
-    config.set_include_3d(False)
-    config.set_max_diffusion_components(1)
-    config.set_max_relaxation_terms(0)
-    problem = bff.FCSModelSearchFactory.create_analytical(
-        list(axis), list(data), [0.002] * len(axis), config
-    )
+    problem = _fixtures.fcs_two_dimensional_single()
     search_config = bff.ModelSearchConfig()
     search_config.set_number_of_simulations(12)
     search_config.set_dirichlet_fraction(0.0)
@@ -75,14 +70,69 @@ def test_single_2d_topology_fits_without_a_python_model_callback():
     assert np.max(np.abs(residuals * 0.002)) < 1.5e-4
 
 
-def test_factory_rejects_incomplete_data_and_an_empty_mode_set():
-    with pytest.raises((ValueError, RuntimeError)):
-        bff.FCSModelSearchFactory.create_analytical([1.0], [], [])
+def test_seeds_are_read_from_the_measurement_not_written_in_the_file():
+    """One description, two curves, two different starting points.
 
-    config = bff.FCSModelSearchConfig()
-    config.set_include_2d(False)
-    config.set_include_3d(False)
-    with pytest.raises((ValueError, RuntimeError)):
-        bff.FCSModelSearchFactory.create_analytical(
-            [1.0, 2.0], [1.2, 1.1], [0.1, 0.1], config
+    The baseline seed is the last lag of the curve itself, which still holds
+    a little correlation -- the least contaminated estimate available before
+    a model exists, not the true plateau. So this checks the seed tracks the
+    measurement it was read from, which is the property that matters: nothing
+    about either curve is written in the file.
+    """
+    axis = np.geomspace(1.0e-3, 20.0, 80)
+    seeds = []
+    for baseline, td in ((1.0, 0.7), (5.0, 3.0)):
+        curve = _fixtures.fcs_curve_2d(axis, baseline=baseline, td=td)
+        spec = bff.ModelSearchSpec.from_name("fcs_analytical")
+        spec.set_dataset("curve", _fixtures.fcs_correlation_dataset(axis, curve, 0.01))
+        problem = spec.build()
+        seeds.append(
+            (
+                problem.get_parameter("fcs.baseline").value,
+                problem.get_parameter("fcs.diffusion_time.1").value,
+                curve[-1],
+            )
         )
+    for seeded_baseline, _, last_lag in seeds:
+        assert abs(seeded_baseline - last_lag) < 1e-9
+    # A four-fold slower curve must seed a longer diffusion time.
+    assert seeds[0][1] < seeds[1][1]
+    assert seeds[0][0] < seeds[1][0]
+
+
+def test_a_description_without_its_measurement_builds_nothing():
+    spec = bff.ModelSearchSpec.from_name("fcs_analytical")
+    assert list(spec.get_dataset_names()) == ["curve"]
+    with pytest.raises((ValueError, RuntimeError)):
+        spec.build()
+
+
+def test_a_description_that_does_not_add_up_is_refused():
+    broken = """
+    {"schema": "bff.model_search.v1", "family": "broken",
+     "parameters": {"a": {"initial": 1.0, "lower": 0.0, "upper": 2.0}},
+     "initial_structure": "only",
+     "structures": {"only": {
+        "nodes": {"m": {"type": "GraphExpression",
+                        "config": {"expression": "a*x"},
+                        "inputs": {"a": "#a", "x": "#nonexistent"}}},
+        "objective": "m", "free": ["a"]}}}
+    """
+    spec = bff.ModelSearchSpec.from_json(broken)
+    with pytest.raises((ValueError, RuntimeError)) as caught:
+        spec.build()
+    assert "nonexistent" in str(caught.value)
+
+
+def test_an_unknown_node_type_names_what_is_available():
+    broken = """
+    {"schema": "bff.model_search.v1", "family": "broken",
+     "parameters": {"a": {"initial": 1.0, "lower": 0.0, "upper": 2.0}},
+     "initial_structure": "only",
+     "structures": {"only": {
+        "nodes": {"m": {"type": "GraphExpresion"}},
+        "objective": "m", "free": ["a"]}}}
+    """
+    with pytest.raises((ValueError, RuntimeError)) as caught:
+        bff.ModelSearchSpec.from_json(broken).build()
+    assert "GraphExpression" in str(caught.value)

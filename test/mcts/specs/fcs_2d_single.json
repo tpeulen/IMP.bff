@@ -1,0 +1,110 @@
+{
+ "schema": "bff.model_search.v1",
+ "family": "fcs_2d_single",
+ "title": "Analytical FCS restricted to one 2-D diffusing species",
+ "datasets": [
+  "curve"
+ ],
+ "scalars": [],
+ "parameters": {
+  "fcs.N": {
+   "name": "N",
+   "initial": "(curve_amplitude>1e-12)*(1/max(curve_amplitude,1e-12))+(curve_amplitude<=1e-12)*1",
+   "lower": 1e-09,
+   "upper": 1000000000000.0
+  },
+  "fcs.baseline": {
+   "name": "b",
+   "initial": "curve_last",
+   "lower": -1000000.0,
+   "upper": 1000000.0
+  },
+  "fcs.structure_parameter": {
+   "name": "s",
+   "initial": 3.5,
+   "lower": 0.001,
+   "upper": 10000.0
+  },
+  "fcs.diffusion_time.1": {
+   "name": "td1",
+   "initial": "curve_characteristic",
+   "lower": 1e-12,
+   "upper": 1000000000000.0
+  },
+  "fcs.diffusion_fraction.1": {
+   "name": "a1",
+   "initial": 0.5,
+   "lower": 0.0,
+   "upper": 1.0
+  },
+  "fcs.diffusion_time.2": {
+   "name": "td2",
+   "initial": "max(4*curve_characteristic,curve_characteristic+1e-12)",
+   "lower": 1e-12,
+   "upper": 1000000000000.0
+  },
+  "fcs.relaxation_amplitude.1": {
+   "name": "ba1",
+   "initial": 0.1,
+   "lower": 0.0,
+   "upper": 1.0
+  },
+  "fcs.relaxation_time.1": {
+   "name": "bt1",
+   "initial": "max(curve_characteristic/20,1e-12)",
+   "lower": 1e-12,
+   "upper": 1000000000000.0
+  }
+ },
+ "initial_structure": "fcs.2d.1diff.0relax",
+ "structures": {
+  "fcs.2d.1diff.0relax": {
+   "nodes": {
+    "model": {
+     "type": "GraphExpression",
+     "config": {
+      "expression": "b+1/abs(N)*((1+x/abs(td1))**(-1))"
+     },
+     "inputs": {
+      "x": "@curve.axis",
+      "N": "#fcs.N",
+      "b": "#fcs.baseline",
+      "td1": "#fcs.diffusion_time.1"
+     },
+     "outputs": {
+      "@name": "float_vector"
+     }
+    },
+    "chi2": {
+     "type": "FitChiSquared",
+     "bind": {
+      "data": "curve"
+     },
+     "inputs": {
+      "model": "model"
+     },
+     "outputs": {
+      "@name": "float",
+      "residuals": "float_vector"
+     }
+    }
+   },
+   "objective": "chi2",
+   "free": [
+    "fcs.N",
+    "fcs.baseline",
+    "fcs.diffusion_time.1"
+   ],
+   "ess": "curve_size"
+  }
+ },
+ "actions": [
+  {
+   "from": "fcs.2d.1diff.0relax",
+   "action": "fit-and-stop",
+   "to": "fcs.2d.1diff.0relax",
+   "prior": 0.2,
+   "terminal": true
+  }
+ ]
+}

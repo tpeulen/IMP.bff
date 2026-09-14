@@ -1075,4 +1075,22 @@ void FCSSaturationCurve::configure(const std::string& json_text) {
   config.require_all_used();
 }
 
+void FCSMdfCurve::bind_dataset(const std::string& role,
+                               const FitDataset& dataset) {
+  if (role != "axis") {
+    throw std::domain_error("node type 'FCSMdfCurve' has no role '" + role +
+                            "'; it takes 'axis'");
+  }
+  set_axis(dataset.get_values());
+}
+
+void FCSSaturationCurve::bind_dataset(const std::string& role,
+                                      const FitDataset& dataset) {
+  if (role != "axis") {
+    throw std::domain_error("node type 'FCSSaturationCurve' has no role '" +
+                            role + "'; it takes 'axis'");
+  }
+  set_axis(dataset.get_values());
+}
+
 IMPBFF_END_NAMESPACE

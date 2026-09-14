@@ -38,6 +38,7 @@
 #define IMPBFF_GRAPHNODE_H
 
 #include <IMP/bff/bff_config.h>
+#include <IMP/bff/FitDataset.h>
 #include <IMP/bff/GraphPort.h>
 
 #include <functional>
@@ -279,6 +280,21 @@ class IMPBFFEXPORT GraphNode : public GraphObject,
       An empty object is always valid and does nothing.
   */
   virtual void configure(const std::string& json_text);
+
+  //! Hand this node a measurement for one of the roles it accepts.
+  /*!
+      \param[in] role what the data is *to this node* -- "data" for the
+      signal it is fitted against, "response" for an instrument function,
+      "axis" for a sampling grid.
+      \param[in] dataset the measurement, with its mask and noise family.
+
+      Bound at run time and never written into a description, because a
+      model outlives any one experiment. As with #configure, each node
+      decides what it accepts, so no loader has to know; the base refuses
+      every role, which is what a node that takes no measurement should do.
+  */
+  virtual void bind_dataset(const std::string& role,
+                            const FitDataset& dataset);
 
   //! Invalidate the cached execution plan.
   //!

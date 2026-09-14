@@ -14,7 +14,3 @@
 %shared_ptr(IMP::bff::TCSPCDecay);
 %include "IMP/bff/TCSPCDecay.h"
 
-// Complete multi-exponential TCSPC topology family over canonical owner
-// ports, with native objectives and BIC scoring.
-%shared_ptr(IMP::bff::TCSPCLifetimeSearchSpace);
-%include "IMP/bff/TCSPCModelSearch.h"

@@ -96,6 +96,12 @@ import numpy as np
    would build a list of every point first. */
 %apply(double* IN_ARRAY1, int DIM1) {(double* in_values, int n_values)};
 %ignore IMP::bff::GraphPort::get_values_ref;
+/* GraphNode::bind_dataset takes a FitDataset, whose own %include comes much
+   later in this file. SWIG's parser only needs to know the qualified name
+   exists to emit the director signature; the definition it wraps arrives in
+   the fitting-data block below. */
+namespace IMP { namespace bff { class FitDataset; } }
+
 %include "IMP/bff/GraphPort.h"
 %include "IMP/bff/GraphNode.h"
 %template(MapStringPort) std::map<std::string, std::shared_ptr<IMP::bff::GraphPort> >;
@@ -640,6 +646,10 @@ IMP_SWIG_VALUE(IMP::bff, ModelSearchResult, ModelSearchResults);
 // appears as the return type of a virtual method.  Declare the proxy after
 // the header so generated wrappers use std::vector::operator[].
 %template(ModelSearchActions) std::vector<IMP::bff::ModelSearchAction>;
+
+/* A model family read from data rather than compiled in. It hands back the
+   same MultiStructureModelSearchProblem a factory used to build. */
+%include "IMP/bff/ModelSearchSpec.h"
 
 %extend IMP::bff::MCMCSampler {
     %pythoncode {

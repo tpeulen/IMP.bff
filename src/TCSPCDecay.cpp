@@ -624,4 +624,17 @@ void TCSPCDecay::configure(const std::string& json_text) {
   config.require_all_used();
 }
 
+void TCSPCDecay::bind_dataset(const std::string& role,
+                              const FitDataset& dataset) {
+  // The response is an instrument function rather than a signal, but it is
+  // measured too, so it arrives the same way. The decay is not compared to
+  // anything itself -- that is the objective's job -- so it takes no "data".
+  if (role == "response") {
+    set_response(dataset.get_values());
+    return;
+  }
+  throw std::domain_error("node type 'TCSPCDecay' has no role '" + role +
+                          "'; it takes 'response'");
+}
+
 IMPBFF_END_NAMESPACE

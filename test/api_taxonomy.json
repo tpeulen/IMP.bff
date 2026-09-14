@@ -477,7 +477,11 @@
     "AVOccupancyMap": "ProbeAccessibleVolumeOccupancyMap",
     "get_cgprobe_data_dir": "get_probe_data_dir",
     "select_informative_pairs": "select_probe_pairs",
-    "select_informative_sites": "select_probe_positions"
+    "select_informative_sites": "select_probe_positions",
+    "TCSPCLifetimeSearchFactory": "ModelSearchSpec",
+    "TCSPCLifetimeSearchSpace": "ModelSearchSpec",
+    "FCSModelSearchFactory": "ModelSearchSpec",
+    "FCSModelSearchConfig": "ModelSearchSpec"
   },
   "exported_before": [
     "AnisotropySpectrum",
@@ -541,7 +545,11 @@
     "write_drot_with_provenance",
     "write_dunbrack_bin",
     "write_dunbrack_library",
-    "write_rotamer_fps"
+    "write_rotamer_fps",
+    "TCSPCLifetimeSearchFactory",
+    "TCSPCLifetimeSearchSpace",
+    "FCSModelSearchFactory",
+    "FCSModelSearchConfig"
   ],
   "investigations": {
     "States": "Retained: exposes general weighted point clouds, distance statistics, and non-probe callers; probe-only ownership is not established.",

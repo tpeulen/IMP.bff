@@ -459,6 +459,14 @@ std::string GraphNode::describe() const {
 
 std::string GraphNode::get_node_type() const { return "GraphNode"; }
 
+void GraphNode::bind_dataset(const std::string& role,
+                             const FitDataset& dataset) {
+  (void)dataset;
+  throw std::domain_error("node type '" + get_node_type() +
+                          "' takes no measurement, so it has no role '" +
+                          role + "'");
+}
+
 void GraphNode::configure(const std::string& json_text) {
   // A plain node has no settings of its own, so every key is one this node
   // has no meaning for. NodeConfig says which, by name.

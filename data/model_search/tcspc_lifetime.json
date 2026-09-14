@@ -1,0 +1,340 @@
+{
+ "schema": "bff.model_search.v1",
+ "family": "tcspc_lifetime",
+ "title": "TCSPC: a multi-exponential decay through a measured response",
+ "datasets": [
+  "decay",
+  "response"
+ ],
+ "scalars": [
+  "dt",
+  "period"
+ ],
+ "parameters": {
+  "lifetime.amplitude.0": {
+   "name": "a0",
+   "initial": 1.0,
+   "lower": 0.0,
+   "upper": 1.0
+  },
+  "lifetime.tau.0": {
+   "name": "t0",
+   "initial": "min(period,max(dt,1))",
+   "lower": "max(dt*0.01,1e-12)",
+   "upper": "period"
+  },
+  "lifetime.amplitude.1": {
+   "name": "a1",
+   "initial": 0.5,
+   "lower": 0.0,
+   "upper": 1.0
+  },
+  "lifetime.tau.1": {
+   "name": "t1",
+   "initial": "min(period,max(dt,2))",
+   "lower": "max(dt*0.01,1e-12)",
+   "upper": "period"
+  },
+  "lifetime.amplitude.2": {
+   "name": "a2",
+   "initial": 0.3333333333333333,
+   "lower": 0.0,
+   "upper": 1.0
+  },
+  "lifetime.tau.2": {
+   "name": "t2",
+   "initial": "min(period,max(dt,3))",
+   "lower": "max(dt*0.01,1e-12)",
+   "upper": "period"
+  },
+  "instrument.scatter": {
+   "name": "scatter",
+   "initial": 0.0,
+   "free": false,
+   "lower": 0.0,
+   "upper": 1.0
+  },
+  "instrument.background": {
+   "name": "background",
+   "initial": 0.0,
+   "lower": 0.0,
+   "upper": "decay_max"
+  },
+  "instrument.n0": {
+   "name": "n0",
+   "initial": "decay_sum",
+   "lower": 0.0,
+   "upper": "100*decay_sum"
+  },
+  "instrument.timeshift": {
+   "name": "timeshift",
+   "initial": 0.0,
+   "free": false,
+   "lower": "-0.5*response_size",
+   "upper": "0.5*response_size"
+  }
+ },
+ "initial_structure": "lifetime.components.1",
+ "structures": {
+  "lifetime.components.1": {
+   "nodes": {
+    "decay": {
+     "type": "TCSPCDecay",
+     "config": {
+      "number_of_lifetimes": 1,
+      "normalize_amplitudes": true,
+      "absolute_amplitudes": true
+     },
+     "config_rules": {
+      "timing": [
+       "dt",
+       "period"
+      ],
+      "convolution_range": [
+       "decay_size",
+       "decay_size"
+      ],
+      "scale_range": [
+       0,
+       "decay_size"
+      ]
+     },
+     "bind": {
+      "response": "response"
+     },
+     "inputs": {
+      "a0": "#lifetime.amplitude.0",
+      "t0": "#lifetime.tau.0",
+      "scatter": "#instrument.scatter",
+      "background": "#instrument.background",
+      "n0": "#instrument.n0",
+      "timeshift": "#instrument.timeshift"
+     },
+     "outputs": {
+      "@name": "float_vector"
+     }
+    },
+    "objective": {
+     "type": "FitChiSquared",
+     "bind": {
+      "data": "decay"
+     },
+     "inputs": {
+      "model": "decay"
+     },
+     "outputs": {
+      "@name": "float",
+      "residuals": "float_vector"
+     }
+    }
+   },
+   "objective": "objective",
+   "free": [
+    "lifetime.tau.0",
+    "instrument.scatter",
+    "instrument.background",
+    "instrument.n0",
+    "instrument.timeshift"
+   ],
+   "initial": {
+    "lifetime.amplitude.0": 1.0,
+    "lifetime.amplitude.1": 1.0,
+    "lifetime.amplitude.2": 1.0
+   },
+   "ess": "decay_size"
+  },
+  "lifetime.components.2": {
+   "nodes": {
+    "decay": {
+     "type": "TCSPCDecay",
+     "config": {
+      "number_of_lifetimes": 2,
+      "normalize_amplitudes": true,
+      "absolute_amplitudes": true
+     },
+     "config_rules": {
+      "timing": [
+       "dt",
+       "period"
+      ],
+      "convolution_range": [
+       "decay_size",
+       "decay_size"
+      ],
+      "scale_range": [
+       0,
+       "decay_size"
+      ]
+     },
+     "bind": {
+      "response": "response"
+     },
+     "inputs": {
+      "a0": "#lifetime.amplitude.0",
+      "t0": "#lifetime.tau.0",
+      "a1": "#lifetime.amplitude.1",
+      "t1": "#lifetime.tau.1",
+      "scatter": "#instrument.scatter",
+      "background": "#instrument.background",
+      "n0": "#instrument.n0",
+      "timeshift": "#instrument.timeshift"
+     },
+     "outputs": {
+      "@name": "float_vector"
+     }
+    },
+    "objective": {
+     "type": "FitChiSquared",
+     "bind": {
+      "data": "decay"
+     },
+     "inputs": {
+      "model": "decay"
+     },
+     "outputs": {
+      "@name": "float",
+      "residuals": "float_vector"
+     }
+    }
+   },
+   "objective": "objective",
+   "free": [
+    "lifetime.amplitude.1",
+    "lifetime.tau.0",
+    "lifetime.tau.1",
+    "instrument.scatter",
+    "instrument.background",
+    "instrument.n0",
+    "instrument.timeshift"
+   ],
+   "initial": {
+    "lifetime.amplitude.0": 0.5,
+    "lifetime.amplitude.1": 0.5,
+    "lifetime.amplitude.2": 0.5
+   },
+   "ess": "decay_size"
+  },
+  "lifetime.components.3": {
+   "nodes": {
+    "decay": {
+     "type": "TCSPCDecay",
+     "config": {
+      "number_of_lifetimes": 3,
+      "normalize_amplitudes": true,
+      "absolute_amplitudes": true
+     },
+     "config_rules": {
+      "timing": [
+       "dt",
+       "period"
+      ],
+      "convolution_range": [
+       "decay_size",
+       "decay_size"
+      ],
+      "scale_range": [
+       0,
+       "decay_size"
+      ]
+     },
+     "bind": {
+      "response": "response"
+     },
+     "inputs": {
+      "a0": "#lifetime.amplitude.0",
+      "t0": "#lifetime.tau.0",
+      "a1": "#lifetime.amplitude.1",
+      "t1": "#lifetime.tau.1",
+      "a2": "#lifetime.amplitude.2",
+      "t2": "#lifetime.tau.2",
+      "scatter": "#instrument.scatter",
+      "background": "#instrument.background",
+      "n0": "#instrument.n0",
+      "timeshift": "#instrument.timeshift"
+     },
+     "outputs": {
+      "@name": "float_vector"
+     }
+    },
+    "objective": {
+     "type": "FitChiSquared",
+     "bind": {
+      "data": "decay"
+     },
+     "inputs": {
+      "model": "decay"
+     },
+     "outputs": {
+      "@name": "float",
+      "residuals": "float_vector"
+     }
+    }
+   },
+   "objective": "objective",
+   "free": [
+    "lifetime.amplitude.1",
+    "lifetime.amplitude.2",
+    "lifetime.tau.0",
+    "lifetime.tau.1",
+    "lifetime.tau.2",
+    "instrument.scatter",
+    "instrument.background",
+    "instrument.n0",
+    "instrument.timeshift"
+   ],
+   "initial": {
+    "lifetime.amplitude.0": 0.3333333333333333,
+    "lifetime.amplitude.1": 0.3333333333333333,
+    "lifetime.amplitude.2": 0.3333333333333333
+   },
+   "ess": "decay_size"
+  }
+ },
+ "actions": [
+  {
+   "from": "lifetime.components.1",
+   "action": "stop",
+   "to": "lifetime.components.1",
+   "prior": 0.25,
+   "terminal": true
+  },
+  {
+   "from": "lifetime.components.1",
+   "action": "add-component",
+   "to": "lifetime.components.2",
+   "prior": 0.5
+  },
+  {
+   "from": "lifetime.components.2",
+   "action": "stop",
+   "to": "lifetime.components.2",
+   "prior": 0.25,
+   "terminal": true
+  },
+  {
+   "from": "lifetime.components.2",
+   "action": "add-component",
+   "to": "lifetime.components.3",
+   "prior": 0.5
+  },
+  {
+   "from": "lifetime.components.2",
+   "action": "remove-component",
+   "to": "lifetime.components.1",
+   "prior": 0.25
+  },
+  {
+   "from": "lifetime.components.3",
+   "action": "stop",
+   "to": "lifetime.components.3",
+   "prior": 0.25,
+   "terminal": true
+  },
+  {
+   "from": "lifetime.components.3",
+   "action": "remove-component",
+   "to": "lifetime.components.2",
+   "prior": 0.25
+  }
+ ]
+}

@@ -363,6 +363,8 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
 
   std::string get_node_type() const override;
   void configure(const std::string& json_text) override;
+  void bind_dataset(const std::string& role,
+                    const FitDataset& dataset) override;
 
  private:
   std::vector<double> response_;
