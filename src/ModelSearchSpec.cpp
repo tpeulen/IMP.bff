@@ -730,6 +730,42 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build()
 
     problem->add_structure(key, objective->second, ids, owners, initial_values,
                            fixed_mask, residual_key);
+
+    // Further declared starting points. One seed cannot be trusted to reach
+    // the best fit a topology admits, and a topology judged on a bad basin
+    // loses a model comparison it should win. Declared, so the best of them
+    // still depends on the model and the data alone.
+    SpecJson::const_iterator starts_it = structure.find("starts");
+    if (starts_it != structure.end()) {
+      if (!starts_it->is_array()) refuse(where + " 'starts' must be an array");
+      for (SpecJson::const_iterator sit2 = starts_it->begin();
+           sit2 != starts_it->end(); ++sit2) {
+        if (!sit2->is_object()) {
+          refuse(where + " each entry of 'starts' must be an object");
+        }
+        std::map<std::string, double> overrides;
+        for (SpecJson::const_iterator oit = sit2->begin(); oit != sit2->end();
+             ++oit) {
+          if (!owner_by_id.count(oit.key())) {
+            refuse(where + " start seeds '" + oit.key() +
+                   "', which is not a parameter");
+          }
+          overrides[oit.key()] =
+              evaluate_rule(*oit, where + " start '" + oit.key() + "'", scope);
+        }
+        std::vector<double> start_values = initial_values;
+        for (std::size_t i = 0; i < ids.size(); ++i) {
+          std::map<std::string, double>::const_iterator over =
+              overrides.find(ids[i]);
+          if (over == overrides.end()) continue;
+          // A caller who pinned a value meant it; a description's alternative
+          // start does not get to argue with them.
+          if (impl_->overrides.count(ids[i])) continue;
+          start_values[i] = over->second;
+        }
+        problem->add_structure_start(key, start_values);
+      }
+    }
     for (std::size_t n = 0; n < node_order.size(); ++n) {
       if (node_order[n] == objective_key) continue;
       problem->add_structure_node(key, built[node_order[n]]);

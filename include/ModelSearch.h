@@ -259,6 +259,24 @@ class IMPBFFEXPORT MultiStructureModelSearchProblem
       const std::vector<double>& initial_values,
       const std::vector<int>& fixed_mask,
       const std::string& residual_key = "residuals");
+  //! Declare another starting point for a structure, tried alongside its own.
+  /*!
+      \param[in] structure_key the structure this start belongs to
+      \param[in] initial_values one value per canonical parameter, in
+      registry order, exactly as #add_structure takes them
+
+      Every declared start is fitted and the best result kept, so a
+      topology's score is the best fit it admits rather than whatever the one
+      seed happened to find. Measured on a two-species FCS curve, the
+      generating topology scores -915 from its declared seed and -12.6 from a
+      good one -- a difference large enough to lose the model selection.
+
+      Because the starts are *declared*, the best of them still depends only
+      on the model and the data, not on the route the search took to get
+      here. That is the property #set_warm_start would otherwise cost.
+  */
+  void add_structure_start(const std::string& structure_key,
+                           const std::vector<double>& initial_values);
   std::vector<std::string> get_structure_keys() const;
   std::shared_ptr<GraphNode> get_structure_objective(
       const std::string& key) const;
@@ -276,6 +294,28 @@ class IMPBFFEXPORT MultiStructureModelSearchProblem
                   const std::string& action_key,
                   const std::string& result_structure, double prior = 1.0,
                   bool terminal = false);
+
+  //! Carry a parent's fitted values into the parameters a child also frees.
+  /*!
+      Off by default, and that default is the important part.
+
+      Warm starting is cheap and usually helps, but it makes a topology
+      inherit whichever optimum its *route* landed in: the same structure,
+      the same data and the same free parameters score differently depending
+      on the order of the moves that reached them -- measured at 2528.9 in
+      reward across two orderings of two commuting moves
+      (okf/validation/model-search-strategy.md). A candidate that has no
+      score of its own cannot be compared with another, which is the one
+      thing model selection does.
+
+      With warm starting off, every structure is fitted from the seeds it
+      declares, so its score is a property of the model and the data and
+      nothing else. Turn it on only where speed matters more than
+      comparability -- refining a single known topology, not choosing between
+      topologies.
+  */
+  void set_warm_start(bool value);
+  bool get_warm_start() const;
 
   //! Use this structure's scalar output directly as reward.
   void set_structure_score_output(const std::string& structure_key,
