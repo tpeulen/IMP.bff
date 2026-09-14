@@ -299,7 +299,6 @@ const char* const FORWARDED[][2] = {
     {"rmsd", "RMSDs of an OLGA ol4 table to reference structures (runs imp_bff_py)."},
     {"av-vs-rotamer", "Compare AV and rotamer label models (runs imp_bff_py)."},
     {"analyze-trajectories", "Dye density analysis of trajectories (runs imp_bff_py)."},
-    {"simulate", "Molecular probe simulation (runs imp_bff_py)."},
     {"dock", "Replica-exchange rigid-body docking (runs imp_bff_py)."},
     {"dock-errors", "Docking spread over independent starts (runs imp_bff_py)."},
 };
@@ -373,6 +372,7 @@ std::unique_ptr<CLI::App> build_app(std::shared_ptr<int> rc) {
   add_fps_export_subs(*app);
   add_modelling_subs(*app);
   add_dye_subs(*app);
+  add_simulate_subs(*app);
 #endif
 
   for (std::size_t i = 0; i < sizeof(FORWARDED) / sizeof(FORWARDED[0]); ++i) {
