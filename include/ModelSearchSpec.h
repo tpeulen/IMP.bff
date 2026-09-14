@@ -86,6 +86,16 @@ class IMPBFFEXPORT ModelSearchSpec {
   void set_parameter(const std::string& canonical_id, double initial,
                      bool free, double lower, double upper);
 
+  //! Override a parameter's starting value and whether it is free, keeping
+  //! the bounds the description declares.
+  /*! For a caller that knows what the user chose but has no bounds of its
+      own. Having to supply bounds anyway meant inventing them, and an
+      invented bound replaces a description's data-derived one -- a
+      background capped at the measured maximum, a lifetime at the period --
+      which quietly changes the fit. */
+  void set_parameter_value(const std::string& canonical_id, double initial,
+                           bool free);
+
   //! Build the problem this description and the bound data describe.
   /*! \throws std::domain_error naming what is missing, unknown or
       inconsistent. A description that cannot be built completely builds

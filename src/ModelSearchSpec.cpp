@@ -532,6 +532,9 @@ struct ModelSearchSpec::Impl {
     bool free;
     double lower;
     double upper;
+    //! False when the caller supplied a value but not bounds; the
+    //! description's own bounds then stand.
+    bool has_bounds = true;
   };
   std::map<std::string, Override> overrides;
 };
@@ -656,6 +659,17 @@ void ModelSearchSpec::set_parameter(const std::string& canonical_id,
   impl_->overrides[canonical_id] = override_value;
 }
 
+void ModelSearchSpec::set_parameter_value(const std::string& canonical_id,
+                                          double initial, bool free) {
+  Impl::Override override_value;
+  override_value.initial = initial;
+  override_value.free = free;
+  override_value.lower = 0.0;
+  override_value.upper = 0.0;
+  override_value.has_bounds = false;
+  impl_->overrides[canonical_id] = override_value;
+}
+
 std::vector<std::string> ModelSearchSpec::get_available_names() {
   // The families are files, so the list belongs beside them rather than in
   // this function -- it was hardcoded here and had already fallen a family
@@ -762,9 +776,14 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build()
         impl_->overrides.find(id);
     if (over != impl_->overrides.end()) {
       initial = over->second.initial;
-      lower = over->second.lower;
-      upper = over->second.upper;
       free = over->second.free;
+      if (over->second.has_bounds) {
+        lower = over->second.lower;
+        upper = over->second.upper;
+      }
+      // A starting value outside the description's own bounds is the
+      // caller's value clipped, not the bound silently widened.
+      initial = std::min(upper, std::max(lower, initial));
     }
     if (!(upper > lower)) {
       refuse(where + " has an empty range [" + std::to_string(lower) + ", " +
