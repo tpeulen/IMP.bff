@@ -42,6 +42,38 @@ IMPBFF_BEGIN_NAMESPACE
 */
 IMPBFFEXPORT double i0(double x);
 
+//! Regularised upper incomplete gamma \f$Q(a, x)\f$.
+/*!
+    Boost.Math's `gamma_q`, named here so there is one place in this library
+    that answers for it. Boost headers are already a hard requirement of both
+    builds -- the standalone CMakeLists asks for them outright -- and
+    Boost.Math is header-only, so this costs no dependency and, more to the
+    point, writes no new numerics. A hand-rolled series and continued fraction
+    is a well-known recipe and still a second implementation of something the
+    toolchain already carries correctly.
+
+    \param[in] a shape, positive
+    \param[in] x argument, non-negative
+*/
+IMPBFFEXPORT double gamma_q(double a, double x);
+
+//! The goodness-of-fit probability of a chi-square: \f$P(\chi^2 \ge c)\f$.
+/*!
+    How often a correct model with this many degrees of freedom would produce
+    a misfit at least this large. Small means the model does not describe the
+    data; near one can mean the errors are overstated or the model has too
+    many parameters for the question.
+
+    This answers a different question from BIC or AIC. Those rank candidates
+    against each other, and the best of a bad family is still bad -- nothing
+    in a comparison says whether the winner fits. Reduced chi-square is the
+    same statistic without the calibration; this is the probability.
+
+    \param[in] chi2 the misfit, non-negative
+    \param[in] dof degrees of freedom: observations less fitted parameters
+*/
+IMPBFFEXPORT double chi2_p_value(double chi2, double dof);
+
 //! i0() over an axis.
 /*!
     \param[in] x the arguments

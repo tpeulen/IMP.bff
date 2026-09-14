@@ -1,5 +1,7 @@
 /** \file IMP/bff/ModelSearch.cpp */
 #include <IMP/bff/ModelSearch.h>
+
+#include <IMP/bff/SpecialFunctions.h>
 #include <IMP/bff/FitMinimizer.h>
 #include <IMP/bff/GraphNode.h>
 #include <IMP/bff/GraphPort.h>
@@ -690,6 +692,10 @@ struct MultiStructureRecord {
   double complexity = 0.0;
   bool use_bic = false;
   ModelSelectionCriterion criterion = MODEL_SELECTION_BIC;
+  //! Least goodness-of-fit probability this structure may have and still be
+  //! reported as describing the data.
+  double acceptance = 0.0;
+  bool has_acceptance = false;
   //! measurement name -> the node whose curve is compared against it.
   std::map<std::string, std::string> curves;
   std::vector<std::string> curve_order;
@@ -706,6 +712,7 @@ struct MultiStructureModelSearchProblem::Impl {
   std::string initial_structure;
   std::string active_structure;
   double last_reduced_chi2 = 0.0;
+  double last_chi2_p_value = 0.0;
   std::map<std::string, FitSearchSnapshot> snapshots;
   std::map<std::string, std::string> snapshot_structures;
   unsigned long long next_snapshot = 1;
@@ -849,6 +856,8 @@ struct MultiStructureModelSearchProblem::Impl {
       const MultiStructureRecord& selected) {
     selected.objective->update();
     double reward = 0.0;
+    bool acceptable_from_fit = false;
+    bool has_acceptable_from_fit = false;
     if (!selected.score_output.empty()) {
       const std::shared_ptr<GraphPort> score =
           selected.objective->get_output_port(selected.score_output);
@@ -894,11 +903,18 @@ struct MultiStructureModelSearchProblem::Impl {
           selected.effective_sample_size - selected.complexity - 1.0;
       last_reduced_chi2 = dof > 0.0 ? chi2 / dof
                                     : std::numeric_limits<double>::infinity();
+      last_chi2_p_value = chi2_p_value(chi2, dof);
+      if (selected.has_acceptance) {
+        // Accepting on the test rather than on the ranking: a topology can
+        // be the best of its family and still be refused here.
+        acceptable_from_fit = last_chi2_p_value >= selected.acceptance;
+        has_acceptable_from_fit = true;
+      }
     }
     if (!std::isfinite(reward)) {
       throw ModelSearchConfigurationError("model-search reward is not finite");
     }
-    bool acceptable = false;
+    bool acceptable = has_acceptable_from_fit ? acceptable_from_fit : false;
     if (!selected.acceptable_output.empty()) {
       const std::shared_ptr<GraphPort> port =
           selected.objective->get_output_port(selected.acceptable_output);
@@ -1193,12 +1209,27 @@ void MultiStructureModelSearchProblem::set_structure_selection(
   selected.use_bic = true;
 }
 
+void MultiStructureModelSearchProblem::set_structure_acceptance(
+    const std::string& structure_key, double least_probability) {
+  if (least_probability < 0.0 || least_probability > 1.0) {
+    throw ModelSearchConfigurationError(
+        "an acceptance level is a probability, between zero and one");
+  }
+  MultiStructureRecord& selected = impl_->structure(structure_key);
+  selected.acceptance = least_probability;
+  selected.has_acceptance = true;
+}
+
 void MultiStructureModelSearchProblem::clear_structure_selection(
     const std::string& structure_key) {
   MultiStructureRecord& selected = impl_->structure(structure_key);
   selected.effective_sample_size = 0.0;
   selected.complexity = 0.0;
   selected.use_bic = false;
+}
+
+double MultiStructureModelSearchProblem::get_last_chi2_p_value() const {
+  return impl_->last_chi2_p_value;
 }
 
 double MultiStructureModelSearchProblem::get_last_reduced_chi2() const {
@@ -1221,6 +1252,8 @@ ModelSearchState MultiStructureModelSearchProblem::get_initial_state() {
     double best_reward = 0.0;
     bool best_acceptable = false;
     FitSearchSnapshot best_snapshot;
+    double best_reduced_chi2 = 0.0;
+    double best_p_value = 0.0;
     for (std::size_t attempt = 0; attempt < starts.size(); ++attempt) {
       impl_->apply_initial(selected, starts[attempt]);
       impl_->active_structure = impl_->initial_structure;
@@ -1257,11 +1290,15 @@ ModelSearchState MultiStructureModelSearchProblem::get_initial_state() {
         have_best = true;
         best_reward = attempt_score.first;
         best_acceptable = attempt_score.second;
+        best_reduced_chi2 = impl_->last_reduced_chi2;
+        best_p_value = impl_->last_chi2_p_value;
         best_snapshot = impl_->capture();
       }
     }
     impl_->restore_values(best_snapshot);
     impl_->active_structure = impl_->initial_structure;
+    impl_->last_reduced_chi2 = best_reduced_chi2;
+    impl_->last_chi2_p_value = best_p_value;
     selected.objective->update();
     const std::pair<double, bool> score =
         std::make_pair(best_reward, best_acceptable);
@@ -1318,6 +1355,11 @@ ModelSearchState MultiStructureModelSearchProblem::evaluate(
     bool best_acceptable = false;
     FitSearchSnapshot best_snapshot;
     int best_status = 0;
+    // The diagnostics have to describe the state that is returned. Keeping
+    // only the last start's would report one fit's goodness beside another
+    // fit's answer, which is worse than reporting none.
+    double best_reduced_chi2 = 0.0;
+    double best_p_value = 0.0;
     std::string last_failure;
 
     for (std::size_t attempt = 0; attempt < starts.size(); ++attempt) {
@@ -1365,6 +1407,8 @@ ModelSearchState MultiStructureModelSearchProblem::evaluate(
         best_reward = score.first;
         best_acceptable = score.second;
         best_status = status;
+        best_reduced_chi2 = impl_->last_reduced_chi2;
+        best_p_value = impl_->last_chi2_p_value;
         best_snapshot = impl_->capture();
       }
     }
@@ -1382,6 +1426,8 @@ ModelSearchState MultiStructureModelSearchProblem::evaluate(
     impl_->restore_values(best_snapshot);
     impl_->active_structure = target_key;
     impl_->last_status = best_status;
+    impl_->last_reduced_chi2 = best_reduced_chi2;
+    impl_->last_chi2_p_value = best_p_value;
     target.objective->update();
     std::ostringstream state_key;
     state_key << target_key << "@" << impl_->next_snapshot++;

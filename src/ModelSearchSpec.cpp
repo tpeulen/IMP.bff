@@ -1164,6 +1164,14 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build()
       // Complexity is counted, never declared: the two cannot disagree.
       problem->set_structure_selection(key, criterion, ess,
                                        static_cast<double>(complexity));
+      // Optional: the chi-square test a structure must pass to be reported
+      // as describing the data, which is not the same as winning.
+      SpecJson::const_iterator accept_it = structure.find("acceptable_above");
+      if (accept_it != structure.end()) {
+        problem->set_structure_acceptance(
+            key, evaluate_rule(*accept_it, where + " 'acceptable_above'",
+                               scope));
+      }
     }
     SpecJson::const_iterator score_it = structure.find("score_output");
     if (score_it != structure.end()) {

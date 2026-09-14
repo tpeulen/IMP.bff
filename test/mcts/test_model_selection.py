@@ -118,3 +118,95 @@ def test_the_penalty_is_what_the_criterion_says_it_is():
     free = sum(1 for f in problem.get_cached_fixed(state.get_key()) if f == 0)
     expected = -0.5 * chi2 - 0.5 * free * np.log(len(axis))
     assert state.get_reward() == pytest.approx(expected, rel=1e-9)
+
+
+def test_the_chi2_test_answers_a_question_the_comparison_cannot():
+    """Whether the winner describes the data, not whether it beat the others.
+
+    The probability comes from Boost.Math's regularised incomplete gamma,
+    named in bff as chi2_p_value -- the toolchain already carried it
+    correctly, and a hand-rolled series would have been a second
+    implementation rather than a new capability.
+    """
+    problem = _fixtures.fcs_analytical()
+    problem.get_initial_state()
+    p_value = problem.get_last_chi2_p_value()
+    assert 0.0 <= p_value <= 1.0
+    # The fixture is the model's own curve, so it fits: the test must not
+    # reject it.
+    assert p_value > 0.01
+
+
+def test_the_probability_is_the_incomplete_gamma_it_claims_to_be():
+    from math import isclose
+    # Q(dof/2, chi2/2), checked against the identity Q + P = 1 and against
+    # known values of the chi-square survival function.
+    assert isclose(bff.chi2_p_value(0.0, 4.0), 1.0, abs_tol=1e-12)
+    assert bff.chi2_p_value(1e6, 4.0) < 1e-12
+    # A chi-square equal to its degrees of freedom sits near the middle.
+    assert 0.2 < bff.chi2_p_value(10.0, 10.0) < 0.6
+    # gamma_q is the function underneath, and Q(1, x) = exp(-x).
+    assert isclose(bff.gamma_q(1.0, 2.0), np.exp(-2.0), rel_tol=1e-12)
+
+
+def test_no_degrees_of_freedom_means_no_answer():
+    """A model with a parameter per point reaches the data exactly; saying
+    it fits perfectly would be saying nothing."""
+    assert np.isnan(bff.chi2_p_value(0.0, 0.0))
+
+
+def test_a_model_that_cannot_describe_the_data_fails_the_test():
+    """Acceptance is the chi-square test, not the ranking.
+
+    A single diffusing species cannot describe a curve built from two a
+    decade apart, and the test says so. The two questions are independent:
+    the comparison orders candidates, the test asks whether the one you kept
+    is any good, and the best of a bad family is still bad.
+    """
+    axis = np.geomspace(1.0e-3, 20.0, 120)
+    fast, slow, fraction, n, baseline = 0.08, 0.8, 0.4, 2.0, 1.0
+    curve = baseline + (1.0 / n) * (
+        fraction / (1.0 + axis / fast) + (1.0 - fraction) / (1.0 + axis / slow)
+    )
+    document = copy.deepcopy(FAMILY)
+    for structure in document["structures"].values():
+        structure["acceptable_above"] = 0.05  # the conventional level
+    spec = bff.ModelSearchSpec.from_json(json.dumps(document))
+    spec.set_dataset("curve", _fixtures.fcs_correlation_dataset(axis, curve, 0.002))
+    problem = spec.build()
+
+    root = problem.get_initial_state()
+    assert root.get_structure_key() == "fcs.2d.1diff.0relax"
+    assert problem.get_last_chi2_p_value() < 0.05
+    assert problem.get_last_reduced_chi2() > 2.0
+    assert not root.get_acceptable()
+
+    # The topology with the freedom to describe it passes the same test.
+    state = _characterize._walk(problem, root, ["add-diffusion-component"])
+    assert state.get_structure_key() == "fcs.2d.2diff.0relax"
+    assert problem.get_last_chi2_p_value() > 0.05
+    assert state.get_acceptable()
+
+
+def test_the_diagnostics_describe_the_state_that_was_returned():
+    """Not whichever declared start happened to run last.
+
+    Multistart fits a structure from several starts and keeps the best. The
+    goodness-of-fit numbers have to come from that one: reporting one fit's
+    quality beside another fit's answer is worse than reporting none, and it
+    misleads exactly the person trying to work out why a fit is poor.
+    """
+    axis = np.geomspace(1.0e-3, 20.0, 120)
+    curve = 1.0 + 0.5 * (0.4 / (1.0 + axis / 0.08) + 0.6 / (1.0 + axis / 0.8))
+    spec = bff.ModelSearchSpec.from_name("fcs_analytical")
+    spec.set_dataset("curve", _fixtures.fcs_correlation_dataset(axis, curve, 0.002))
+    problem = spec.build()
+    root = problem.get_initial_state()
+    # This structure declares extra starts, so the last one tried is very
+    # unlikely to be the one kept.
+    state = _characterize._walk(problem, root, ["add-diffusion-component"])
+    chi2 = problem.get_last_reduced_chi2() * (len(axis) - 5.0 - 1.0)
+    # The reward is -chi2/2 - penalty, so the misfit behind the score and the
+    # misfit behind the diagnostics have to be the same misfit.
+    penalty = 0.5 * 5.0 * np.log(len(axis))
+    assert state.get_reward() == pytest.approx(-0.5 * chi2 - penalty, rel=1e-6)
