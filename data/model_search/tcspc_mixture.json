@@ -28,9 +28,6 @@
    }
   },
   "scalars": {
-   "number_of_models": {
-    "label": "Mixed models"
-   },
    "dt": {
     "label": "dt [ns]",
     "default": "decay_dx"
@@ -119,6 +116,13 @@
    "x": "time (ns)",
    "y": "counts",
    "scale_y": "log"
+  },
+  "sources": {
+   "label": "Mixed models",
+   "count": "number_of_models",
+   "port": "lifetime_spectrum.{i}",
+   "output": "lifetime_spectrum",
+   "parameter": "mixture.fraction.{i}"
   }
  },
  "datasets": [
