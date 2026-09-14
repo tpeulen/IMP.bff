@@ -678,6 +678,13 @@ struct MultiStructureRecord {
   std::string score_output;
   std::string acceptable_output;
   std::vector<double> initial_values;
+  //! Further declared starting points, tried alongside initial_values.
+  /*! A single seed cannot be trusted to reach the best fit a topology
+      admits -- measured on a two-species FCS curve, where the generating
+      model reaches -915 from its declared seed and -12.6 from a good one.
+      Every start is declared, so the best of them is still a property of
+      the model and the data rather than of the route taken. */
+  std::vector<std::vector<double> > extra_starts;
   std::vector<int> fixed;
   double effective_sample_size = 0.0;
   double complexity = 0.0;
@@ -697,6 +704,9 @@ struct MultiStructureModelSearchProblem::Impl {
   std::map<std::string, FitSearchSnapshot> snapshots;
   std::map<std::string, std::string> snapshot_structures;
   unsigned long long next_snapshot = 1;
+  //! See MultiStructureModelSearchProblem::set_warm_start; off by default so
+  //! a candidate's score belongs to the candidate.
+  bool warm_start = false;
   std::atomic<bool> cancelled;
   int last_status = 0;
   std::string last_failure;
@@ -786,19 +796,21 @@ struct MultiStructureModelSearchProblem::Impl {
     select_and_update(structure_key);
   }
 
-  void apply_initial(const MultiStructureRecord& target) {
+  void apply_initial(const MultiStructureRecord& target,
+                     const std::vector<double>& seeds) {
     for (std::size_t i = 0; i < parameter_order.size(); ++i) {
       const std::shared_ptr<GraphPort>& port =
           parameters.find(parameter_order[i])->second;
       port->set_fixed(false);
-      port->set_value(target.initial_values[i]);
+      port->set_value(seeds[i]);
       port->set_fixed(target.fixed[i] != 0);
     }
   }
 
   std::vector<std::shared_ptr<GraphPort> > apply_transition(
       const MultiStructureRecord& parent,
-      const MultiStructureRecord& target) {
+      const MultiStructureRecord& target,
+      const std::vector<double>& seeds) {
     std::vector<std::shared_ptr<GraphPort> > free_ports;
     for (std::size_t i = 0; i < parameter_order.size(); ++i) {
       const std::shared_ptr<GraphPort>& port =
@@ -806,13 +818,26 @@ struct MultiStructureModelSearchProblem::Impl {
       const bool was_free = parent.fixed[i] == 0;
       const bool is_free = target.fixed[i] == 0;
       port->set_fixed(false);
-      if (!is_free || !was_free) {
-        port->set_value(target.initial_values[i]);
+      // Without warm starting every structure begins from its declared
+      // seeds, so its score does not depend on the route that reached it.
+      if (!warm_start || !is_free || !was_free) {
+        port->set_value(seeds[i]);
       }
       port->set_fixed(!is_free);
       if (is_free) free_ports.push_back(port);
     }
     return free_ports;
+  }
+
+  //! The declared starting points for a structure, primary first.
+  std::vector<std::vector<double> > starts_for(
+      const MultiStructureRecord& record) const {
+    std::vector<std::vector<double> > starts;
+    starts.push_back(record.initial_values);
+    for (std::size_t i = 0; i < record.extra_starts.size(); ++i) {
+      starts.push_back(record.extra_starts[i]);
+    }
+    return starts;
   }
 
   std::pair<double, bool> score_current(
@@ -1042,6 +1067,31 @@ void MultiStructureModelSearchProblem::add_structure_node(
   selected.graph_nodes.push_back(std::move(node));
 }
 
+void MultiStructureModelSearchProblem::set_warm_start(bool value) {
+  impl_->warm_start = value;
+}
+
+bool MultiStructureModelSearchProblem::get_warm_start() const {
+  return impl_->warm_start;
+}
+
+void MultiStructureModelSearchProblem::add_structure_start(
+    const std::string& structure_key,
+    const std::vector<double>& initial_values) {
+  MultiStructureRecord& selected = impl_->structure(structure_key);
+  if (initial_values.size() != impl_->parameter_order.size()) {
+    throw ModelSearchConfigurationError(
+        "a declared start must cover every canonical parameter");
+  }
+  for (std::size_t i = 0; i < initial_values.size(); ++i) {
+    if (!std::isfinite(initial_values[i])) {
+      throw ModelSearchConfigurationError(
+          "a declared start must be finite");
+    }
+  }
+  selected.extra_starts.push_back(initial_values);
+}
+
 void MultiStructureModelSearchProblem::set_initial_structure(
     const std::string& key) {
   require_key(key, "initial structure");
@@ -1137,33 +1187,60 @@ ModelSearchState MultiStructureModelSearchProblem::get_initial_state() {
   const FitSearchSnapshot previous = impl_->capture();
   const std::string previous_structure = impl_->active_structure;
   try {
-    impl_->apply_initial(selected);
+    // The root is scored like any other candidate, so it is fitted from
+    // every declared start too; otherwise the one topology nothing has to
+    // move to would be the one judged on a single seed.
+    const std::vector<std::vector<double> > starts =
+        impl_->starts_for(selected);
+    bool have_best = false;
+    double best_reward = 0.0;
+    bool best_acceptable = false;
+    FitSearchSnapshot best_snapshot;
+    for (std::size_t attempt = 0; attempt < starts.size(); ++attempt) {
+      impl_->apply_initial(selected, starts[attempt]);
+      impl_->active_structure = impl_->initial_structure;
+      std::vector<std::shared_ptr<GraphPort> > free_ports;
+      for (std::size_t i = 0; i < impl_->parameter_order.size(); ++i) {
+        const std::shared_ptr<GraphPort>& port =
+            impl_->parameters.find(impl_->parameter_order[i])->second;
+        if (!port->get_fixed()) free_ports.push_back(port);
+      }
+      if (!free_ports.empty() && !impl_->cancelled.load()) {
+        if (selected.residual_key.empty()) {
+          throw ModelSearchConfigurationError(
+              "initial structure with free parameters requires residuals");
+        }
+        FitMinimizer minimizer;
+        minimizer.set_parameter_ports(free_ports);
+        minimizer.set_objective(selected.objective, selected.residual_key);
+        impl_->last_status = minimizer.run();
+        if (impl_->last_status < 1 || impl_->last_status > 4) {
+          if (attempt + 1 < starts.size()) continue;
+          if (!have_best) {
+            throw ModelSearchConfigurationError(
+                "initial model-search structure did not converge");
+          }
+          break;
+        }
+      } else {
+        selected.objective->update();
+        impl_->last_status = impl_->cancelled.load() ? -1 : 1;
+      }
+      const std::pair<double, bool> attempt_score =
+          impl_->score_current(selected);
+      if (!have_best || attempt_score.first > best_reward) {
+        have_best = true;
+        best_reward = attempt_score.first;
+        best_acceptable = attempt_score.second;
+        best_snapshot = impl_->capture();
+      }
+    }
+    impl_->restore_values(best_snapshot);
     impl_->active_structure = impl_->initial_structure;
-    std::vector<std::shared_ptr<GraphPort> > free_ports;
-    for (std::size_t i = 0; i < impl_->parameter_order.size(); ++i) {
-      const std::shared_ptr<GraphPort>& port =
-          impl_->parameters.find(impl_->parameter_order[i])->second;
-      if (!port->get_fixed()) free_ports.push_back(port);
-    }
-    if (!free_ports.empty() && !impl_->cancelled.load()) {
-      if (selected.residual_key.empty()) {
-        throw ModelSearchConfigurationError(
-            "initial structure with free parameters requires residuals");
-      }
-      FitMinimizer minimizer;
-      minimizer.set_parameter_ports(free_ports);
-      minimizer.set_objective(selected.objective, selected.residual_key);
-      impl_->last_status = minimizer.run();
-      if (impl_->last_status < 1 || impl_->last_status > 4) {
-        throw ModelSearchConfigurationError(
-            "initial model-search structure did not converge");
-      }
-    } else {
-      selected.objective->update();
-      impl_->last_status = impl_->cancelled.load() ? -1 : 1;
-    }
-    const std::pair<double, bool> score = impl_->score_current(selected);
-    impl_->snapshots[impl_->initial_structure] = impl_->capture();
+    selected.objective->update();
+    const std::pair<double, bool> score =
+        std::make_pair(best_reward, best_acceptable);
+    impl_->snapshots[impl_->initial_structure] = best_snapshot;
     impl_->snapshot_structures[impl_->initial_structure] =
         impl_->initial_structure;
     return ModelSearchState(impl_->initial_structure,
@@ -1207,53 +1284,86 @@ ModelSearchState MultiStructureModelSearchProblem::evaluate(
       impl_->structure(parent.get_structure_key());
   const MultiStructureRecord& target = impl_->structure(target_key);
   try {
-    impl_->restore_values(parent_snapshot->second);
-    std::vector<std::shared_ptr<GraphPort> > free_ports =
-        impl_->apply_transition(source, target);
-    impl_->active_structure = target_key;
-    if (impl_->cancelled.load()) {
-      impl_->last_status = -1;
-      impl_->last_failure = "cancelled before minimization";
+    // Every declared start is tried and the best kept. A topology's score is
+    // meant to be the best fit it admits, so one seed that happens to land in
+    // a poor basin must not be allowed to speak for the model.
+    const std::vector<std::vector<double> > starts = impl_->starts_for(target);
+    bool have_best = false;
+    double best_reward = 0.0;
+    bool best_acceptable = false;
+    FitSearchSnapshot best_snapshot;
+    int best_status = 0;
+    std::string last_failure;
+
+    for (std::size_t attempt = 0; attempt < starts.size(); ++attempt) {
+      impl_->restore_values(parent_snapshot->second);
+      std::vector<std::shared_ptr<GraphPort> > free_ports =
+          impl_->apply_transition(source, target, starts[attempt]);
+      impl_->active_structure = target_key;
+      if (impl_->cancelled.load()) {
+        impl_->last_status = -1;
+        impl_->last_failure = "cancelled before minimization";
+        impl_->rollback(parent_snapshot->second, parent.get_structure_key());
+        return parent;
+      }
+      int status = 1;
+      if (!free_ports.empty()) {
+        if (target.residual_key.empty()) {
+          throw ModelSearchConfigurationError(
+              "a structure with free parameters requires a residual output");
+        }
+        FitMinimizer minimizer;
+        minimizer.set_parameter_ports(free_ports);
+        minimizer.set_objective(target.objective, target.residual_key);
+        IMP::Pointer<FitSearchCancelObserver> observer(
+            new FitSearchCancelObserver(&impl_->cancelled));
+        minimizer.set_observer(observer.get());
+        status = minimizer.run();
+        if (minimizer.get_cancelled() || impl_->cancelled.load()) {
+          impl_->last_status = -1;
+          impl_->last_failure = "minimization cancelled";
+          impl_->rollback(parent_snapshot->second, parent.get_structure_key());
+          return parent;
+        }
+        if (status < 1 || status > 4) {
+          std::ostringstream message;
+          message << "minimizer did not converge (status " << status << ")";
+          last_failure = message.str();
+          continue;  // another start may still reach a usable optimum
+        }
+      } else {
+        target.objective->update();
+      }
+      const std::pair<double, bool> score = impl_->score_current(target);
+      if (!have_best || score.first > best_reward) {
+        have_best = true;
+        best_reward = score.first;
+        best_acceptable = score.second;
+        best_status = status;
+        best_snapshot = impl_->capture();
+      }
+    }
+
+    if (!have_best) {
+      impl_->last_status = 0;
+      impl_->last_failure = last_failure.empty()
+                                ? std::string("no declared start converged")
+                                : last_failure;
       impl_->rollback(parent_snapshot->second, parent.get_structure_key());
       return parent;
     }
-    if (!free_ports.empty()) {
-      if (target.residual_key.empty()) {
-        throw ModelSearchConfigurationError(
-            "a structure with free parameters requires a residual output");
-      }
-      FitMinimizer minimizer;
-      minimizer.set_parameter_ports(free_ports);
-      minimizer.set_objective(target.objective, target.residual_key);
-      IMP::Pointer<FitSearchCancelObserver> observer(
-          new FitSearchCancelObserver(&impl_->cancelled));
-      minimizer.set_observer(observer.get());
-      impl_->last_status = minimizer.run();
-      if (minimizer.get_cancelled() || impl_->cancelled.load()) {
-        impl_->last_status = -1;
-        impl_->last_failure = "minimization cancelled";
-        impl_->rollback(parent_snapshot->second, parent.get_structure_key());
-        return parent;
-      }
-      if (impl_->last_status < 1 || impl_->last_status > 4) {
-        std::ostringstream message;
-        message << "minimizer did not converge (status " << impl_->last_status
-                << ")";
-        impl_->last_failure = message.str();
-        impl_->rollback(parent_snapshot->second, parent.get_structure_key());
-        return parent;
-      }
-    } else {
-      target.objective->update();
-      impl_->last_status = 1;
-    }
-    const std::pair<double, bool> score = impl_->score_current(target);
+
+    // Leave the graph standing at the best start, not at the last one tried.
+    impl_->restore_values(best_snapshot);
+    impl_->active_structure = target_key;
+    impl_->last_status = best_status;
+    target.objective->update();
     std::ostringstream state_key;
     state_key << target_key << "@" << impl_->next_snapshot++;
     const std::string key = state_key.str();
-    impl_->snapshots[key] = impl_->capture();
+    impl_->snapshots[key] = best_snapshot;
     impl_->snapshot_structures[key] = target_key;
-    return ModelSearchState(key, target_key, score.first, score.second);
+    return ModelSearchState(key, target_key, best_reward, best_acceptable);
   } catch (const std::exception& error) {
     impl_->last_failure = error.what();
     impl_->last_status = 0;
