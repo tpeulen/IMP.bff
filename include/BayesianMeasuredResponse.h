@@ -24,6 +24,7 @@
 
 #include <IMP/bff/IMPCompatibility.h>
 #include <IMP/bff/BayesianFisherScoring.h>
+#include <IMP/bff/internal/ResponseFunction.h>
 #include <algorithm>
 #include <cmath>
 #include <complex>
@@ -165,18 +166,16 @@ inline BayesianResponseBasis bayesian_response_basis(const BayesianPeriodicKerne
   BayesianResponseBasis out;
   out.n = n; out.K = K;
 
-  // 1. background, and d/d b
-  double sum = 0.0, mx = -1e300, n_sup = 0.0;
-  for (double t : measured) { sum += t; mx = std::max(mx, t); if (t > 0.0) n_sup += 1.0; }
-  n_sup = std::max(n_sup, 1.0);
-  const double level = background_fraction * sum / n_sup, sc = 1e-4 * mx;
-  std::vector<double> u(n, 0.0), du_b(tangents ? n : 0, 0.0);
-  for (std::size_t i = 0; i < n; ++i) {
-    if (!(measured[i] > 0.0)) continue;
-    const double x = (measured[i] - level) / sc;
-    u[i] = bayesian_soft_positive(x, opt.soft, BAYESIAN_TORCH_SOFTPLUS_THRESHOLD) * sc;
-    if (tangents) du_b[i] = bayesian_soft_positive_derivative(x, opt.soft, BAYESIAN_TORCH_SOFTPLUS_THRESHOLD) * (-sum / n_sup);
-  }
+  // 1. the background through internal/ResponseFunction.h (mode fraction_of_support), and d/d b
+  internal::ResponsePreparation prep;
+  prep.active = true;
+  prep.background_mode = internal::ResponseBackground::fraction_of_support;
+  prep.background = background_fraction;
+  prep.soft = opt.soft;
+  std::vector<double> cleaned, du_b(tangents ? n : 0, 0.0);
+  const double* cleaned_ptr = internal::clean_response(measured, prep, cleaned);
+  std::vector<double> u(cleaned_ptr, cleaned_ptr + n);
+  if (tangents) internal::clean_response_background_derivative(measured, prep, du_b.data());
   // 2. the shift, clamped; tangents in b (through the ramp) and in the shift
   std::vector<cd> U(n / 2 + 1), T(n / 2 + 1), ramp(n / 2 + 1);
   bayesian_rfft(u.data(), n, U.data());
@@ -194,14 +193,8 @@ inline BayesianResponseBasis bayesian_response_basis(const BayesianPeriodicKerne
       for (std::size_t i = 0; i < n; ++i) if (!(y[i] >= 0.0)) { dy_b[i] = 0.0; dy_s[i] = 0.0; }
   }
   if (opt.clamp) for (double& t : y) t = std::max(t, 0.0);
-  // 3. unit sum
-  double S = 0.0; for (double t : y) S += t;
-  auto quotient = [&](std::vector<double>& d) {
-    double sd = 0.0; for (double q : d) sd += q;
-    for (std::size_t i = 0; i < n; ++i) d[i] = d[i] / S - y[i] * sd / (S * S);
-  };
-  if (tangents) { quotient(dy_b); quotient(dy_s); }
-  for (double& t : y) t /= S;
+  // 3. unit sum, through internal/ResponseFunction.h
+  internal::normalize_unit_sum(y.data(), n, tangents ? std::vector<double*>{dy_b.data(), dy_s.data()} : std::vector<double*>{}, 0.0);
   out.response = y;
   // 4. the basis and its tangents
   out.B.assign(n * K, 0.0);
@@ -223,19 +216,23 @@ inline BayesianResponseBasis bayesian_response_basis(const BayesianPeriodicKerne
     const std::vector<cd>& KF = kernel.fft(c);
     for (std::size_t k = 0; k < h; ++k) tmp[k] = KF[k] * Y[k];
     bayesian_irfft(tmp.data(), np, col.data());
-    double csum = 0.0;
-    for (std::size_t i = 0; i < n; ++i) csum += std::max(col[i], 0.0);
-    csum = std::max(csum, 1e-300);
-    for (std::size_t i = 0; i < n; ++i) out.B[i * K + 1 + c] = std::max(col[i], 0.0) / csum;
-    if (!tangents) continue;
-    for (int which = 0; which < 2; ++which) {
-      const std::vector<cd>& D = which == 0 ? Db : Ds;
-      std::vector<double>& dB = which == 0 ? out.dB_background : out.dB_shift;
-      for (std::size_t k = 0; k < h; ++k) tmp[k] = KF[k] * D[k];
-      bayesian_irfft(tmp.data(), np, dcol.data());
-      double dsum = 0.0;
-      for (std::size_t i = 0; i < n; ++i) { if (!(col[i] >= 0.0)) dcol[i] = 0.0; dsum += dcol[i]; }
-      for (std::size_t i = 0; i < n; ++i) dB[i * K + 1 + c] = dcol[i] / csum - std::max(col[i], 0.0) * dsum / (csum * csum);
+    //: clamp at zero, then unit sum with the tangents masked by the clamp -- through
+    //: internal/ResponseFunction.h's normalize_unit_sum
+    std::vector<double> cc(n), d_b(tangents ? n : 0), d_s(tangents ? n : 0);
+    for (std::size_t i = 0; i < n; ++i) cc[i] = std::max(col[i], 0.0);
+    if (tangents) {
+      for (int which = 0; which < 2; ++which) {
+        const std::vector<cd>& D = which == 0 ? Db : Ds;
+        std::vector<double>& d = which == 0 ? d_b : d_s;
+        for (std::size_t k = 0; k < h; ++k) tmp[k] = KF[k] * D[k];
+        bayesian_irfft(tmp.data(), np, dcol.data());
+        for (std::size_t i = 0; i < n; ++i) d[i] = (col[i] >= 0.0) ? dcol[i] : 0.0;
+      }
+    }
+    internal::normalize_unit_sum(cc.data(), n, tangents ? std::vector<double*>{d_b.data(), d_s.data()} : std::vector<double*>{});
+    for (std::size_t i = 0; i < n; ++i) {
+      out.B[i * K + 1 + c] = cc[i];
+      if (tangents) { out.dB_background[i * K + 1 + c] = d_b[i]; out.dB_shift[i * K + 1 + c] = d_s[i]; }
     }
   }
   return out;
