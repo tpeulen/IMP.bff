@@ -157,4 +157,12 @@ void FitJointChiSquared::configure(const std::string& json_text) {
   config.require_all_used();
 }
 
+void FitJointChiSquared::add_member_node(std::shared_ptr<GraphNode> member,
+                                        const std::string& residual_key) {
+  // Members are evaluated, and their residuals concatenated, in the order
+  // they are added -- so the order a description lists them in is the order
+  // a caller can map a residual block back to the dataset that produced it.
+  add_member(member, residual_key);
+}
+
 IMPBFF_END_NAMESPACE

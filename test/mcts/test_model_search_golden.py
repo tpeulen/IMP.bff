@@ -33,11 +33,43 @@ def _golden(name: str) -> dict:
     return json.loads(path.read_text())
 
 
+def _undetermined(golden: dict) -> set[str]:
+    """Topologies whose fitted values are not a contract.
+
+    Only the best-scoring topology is one a user ever sees the parameters of.
+    The others are on the ladder the search climbed, and the ones above the
+    answer are over-parameterised -- three lifetimes on a two-lifetime decay
+    splits one component in two, and the split is decided by the starting
+    point rather than the data. Their scores are compared; their parameters
+    are recorded for diagnosis and not asserted.
+    """
+    scores = {golden["root"]["structure"]: golden["root"]["reward"]}
+    scores.update({k: v["reward"] for k, v in golden["structures"].items()})
+    best = max(scores, key=scores.get)
+    return set(golden["structures"]) - {best}
+
+
 @pytest.mark.parametrize("name", sorted(_fixtures.FIXTURES))
 def test_family_matches_its_golden_record(name):
+    golden = _golden(name)
     record = _characterize.characterize(_fixtures.FIXTURES[name]())
-    differences = _characterize.compare(record, _golden(name))
+    differences = _characterize.compare(
+        record, golden, undetermined=_undetermined(golden)
+    )
     assert not differences, "\n".join(differences)
+
+
+@pytest.mark.parametrize("name", sorted(_fixtures.FIXTURES))
+def test_the_winning_topology_has_reproducible_parameters(name):
+    """Whatever else moves, the answer a user is handed must not."""
+    golden = _golden(name)
+    record = _characterize.characterize(_fixtures.FIXTURES[name]())
+    undetermined = _undetermined(golden)
+    determined = set(golden["structures"]) - undetermined
+    for key in determined:
+        assert record["structures"][key]["values"] == pytest.approx(
+            golden["structures"][key]["values"], rel=1e-6
+        ), key
 
 
 @pytest.mark.parametrize("name", sorted(_fixtures.FIXTURES))

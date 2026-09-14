@@ -1,0 +1,459 @@
+{
+ "schema": "bff.model_search.v1",
+ "family": "tcspc_anisotropy",
+ "title": "TCSPC polarisation: VV, VH and VM fitted as one observation",
+ "datasets": [
+  "vv",
+  "vh",
+  "vm",
+  "response"
+ ],
+ "scalars": [
+  "dt",
+  "period"
+ ],
+ "axes": {
+  "n": {
+   "from": 1,
+   "to": 3
+  },
+  "m": {
+   "from": 1,
+   "to": 2
+  }
+ },
+ "parameters": {
+  "repeat": {
+   "index": "j",
+   "count": "m_max",
+   "body": {
+    "rotation.amplitude.{j}": {
+     "name": "b{j}",
+     "initial": "1/({j}+1)",
+     "lower": 0.0,
+     "upper": 1.0
+    },
+    "rotation.time.{j}": {
+     "name": "rho{j}",
+     "initial": "min(period,max(dt,{j}+1))",
+     "lower": "max(dt*0.01,1e-12)",
+     "upper": "period"
+    }
+   }
+  },
+  "anisotropy.r0": {
+   "name": "r0",
+   "initial": 0.38,
+   "lower": 0.0,
+   "upper": 0.4
+  },
+  "anisotropy.g": {
+   "name": "g",
+   "initial": 1.0,
+   "free": false,
+   "lower": 0.1,
+   "upper": 10.0
+  },
+  "anisotropy.l1": {
+   "name": "l1",
+   "initial": 0.0308,
+   "free": false,
+   "lower": 0.0,
+   "upper": 1.0
+  },
+  "anisotropy.l2": {
+   "name": "l2",
+   "initial": 0.0368,
+   "free": false,
+   "lower": 0.0,
+   "upper": 1.0
+  },
+  "instrument.vv.n0": {
+   "name": "n0_vv",
+   "initial": "vv_sum",
+   "lower": 0.0,
+   "upper": "100*vv_sum"
+  },
+  "instrument.vv.background": {
+   "name": "bg_vv",
+   "initial": 0.0,
+   "lower": 0.0,
+   "upper": "vv_max"
+  },
+  "instrument.vv.scatter": {
+   "name": "sc_vv",
+   "initial": 0.0,
+   "free": false,
+   "lower": 0.0,
+   "upper": 1.0
+  },
+  "instrument.vh.n0": {
+   "name": "n0_vh",
+   "initial": "vh_sum",
+   "lower": 0.0,
+   "upper": "100*vh_sum"
+  },
+  "instrument.vh.background": {
+   "name": "bg_vh",
+   "initial": 0.0,
+   "lower": 0.0,
+   "upper": "vh_max"
+  },
+  "instrument.vh.scatter": {
+   "name": "sc_vh",
+   "initial": 0.0,
+   "free": false,
+   "lower": 0.0,
+   "upper": 1.0
+  },
+  "instrument.vm.n0": {
+   "name": "n0_vm",
+   "initial": "vm_sum",
+   "lower": 0.0,
+   "upper": "100*vm_sum"
+  },
+  "instrument.vm.background": {
+   "name": "bg_vm",
+   "initial": 0.0,
+   "lower": 0.0,
+   "upper": "vm_max"
+  },
+  "instrument.vm.scatter": {
+   "name": "sc_vm",
+   "initial": 0.0,
+   "free": false,
+   "lower": 0.0,
+   "upper": 1.0
+  },
+  "instrument.timeshift": {
+   "name": "timeshift",
+   "initial": 0.0,
+   "free": false,
+   "lower": "-0.5*response_size",
+   "upper": "0.5*response_size"
+  }
+ },
+ "initial_axes": {
+  "n": 1,
+  "m": 1
+ },
+ "template": {
+  "key": "tcspc.l{n}.r{m}",
+  "nodes": {
+   "spectrum": {
+    "type": "PhotophysicsLifetimeSpectrumNode",
+    "config": {
+     "number_of_lifetimes": "{n}",
+     "normalize_amplitudes": true
+    },
+    "inputs": {
+     "repeat": {
+      "index": "i",
+      "count": "n",
+      "body": {
+       "a{i}": "#lifetime.amplitude.{i}",
+       "t{i}": "#lifetime.tau.{i}"
+      }
+     }
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "vv_aniso": {
+    "type": "PhotophysicsAnisotropySpectrumNode",
+    "config": {
+     "number_of_rotations": "{m}",
+     "polarization": "VV"
+    },
+    "inputs": {
+     "lifetime_spectrum": "spectrum",
+     "repeat": {
+      "index": "j",
+      "count": "m",
+      "body": {
+       "b{j}": "#rotation.amplitude.{j}",
+       "rho{j}": "#rotation.time.{j}"
+      }
+     },
+     "r0": "#anisotropy.r0",
+     "g": "#anisotropy.g",
+     "l1": "#anisotropy.l1",
+     "l2": "#anisotropy.l2"
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "vh_aniso": {
+    "type": "PhotophysicsAnisotropySpectrumNode",
+    "config": {
+     "number_of_rotations": "{m}",
+     "polarization": "VH"
+    },
+    "inputs": {
+     "lifetime_spectrum": "spectrum",
+     "repeat": {
+      "index": "j",
+      "count": "m",
+      "body": {
+       "b{j}": "#rotation.amplitude.{j}",
+       "rho{j}": "#rotation.time.{j}"
+      }
+     },
+     "r0": "#anisotropy.r0",
+     "g": "#anisotropy.g",
+     "l1": "#anisotropy.l1",
+     "l2": "#anisotropy.l2"
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "vv_decay": {
+    "type": "TCSPCDecay",
+    "config": {
+     "number_of_lifetimes": "{n}",
+     "spectrum_from_port": true,
+     "memoize": true
+    },
+    "config_rules": {
+     "timing": [
+      "dt",
+      "period"
+     ],
+     "convolution_range": [
+      "vv_size",
+      "vv_size"
+     ],
+     "scale_range": [
+      0,
+      "vv_size"
+     ]
+    },
+    "bind": {
+     "response": "response"
+    },
+    "inputs": {
+     "lifetime_spectrum": "vv_aniso",
+     "scatter": "#instrument.vv.scatter",
+     "background": "#instrument.vv.background",
+     "n0": "#instrument.vv.n0",
+     "timeshift": "#instrument.timeshift"
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "vv_chi2": {
+    "type": "FitChiSquared",
+    "bind": {
+     "data": "vv"
+    },
+    "inputs": {
+     "model": "vv_decay"
+    },
+    "outputs": {
+     "@name": "float",
+     "residuals": "float_vector"
+    }
+   },
+   "vh_decay": {
+    "type": "TCSPCDecay",
+    "config": {
+     "number_of_lifetimes": "{n}",
+     "spectrum_from_port": true,
+     "memoize": true
+    },
+    "config_rules": {
+     "timing": [
+      "dt",
+      "period"
+     ],
+     "convolution_range": [
+      "vh_size",
+      "vh_size"
+     ],
+     "scale_range": [
+      0,
+      "vh_size"
+     ]
+    },
+    "bind": {
+     "response": "response"
+    },
+    "inputs": {
+     "lifetime_spectrum": "vh_aniso",
+     "scatter": "#instrument.vh.scatter",
+     "background": "#instrument.vh.background",
+     "n0": "#instrument.vh.n0",
+     "timeshift": "#instrument.timeshift"
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "vh_chi2": {
+    "type": "FitChiSquared",
+    "bind": {
+     "data": "vh"
+    },
+    "inputs": {
+     "model": "vh_decay"
+    },
+    "outputs": {
+     "@name": "float",
+     "residuals": "float_vector"
+    }
+   },
+   "vm_decay": {
+    "type": "TCSPCDecay",
+    "config": {
+     "number_of_lifetimes": "{n}",
+     "spectrum_from_port": true,
+     "memoize": true
+    },
+    "config_rules": {
+     "timing": [
+      "dt",
+      "period"
+     ],
+     "convolution_range": [
+      "vm_size",
+      "vm_size"
+     ],
+     "scale_range": [
+      0,
+      "vm_size"
+     ]
+    },
+    "bind": {
+     "response": "response"
+    },
+    "inputs": {
+     "lifetime_spectrum": "spectrum",
+     "scatter": "#instrument.vm.scatter",
+     "background": "#instrument.vm.background",
+     "n0": "#instrument.vm.n0",
+     "timeshift": "#instrument.timeshift"
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "vm_chi2": {
+    "type": "FitChiSquared",
+    "bind": {
+     "data": "vm"
+    },
+    "inputs": {
+     "model": "vm_decay"
+    },
+    "outputs": {
+     "@name": "float",
+     "residuals": "float_vector"
+    }
+   },
+   "joint": {
+    "type": "FitJointChiSquared",
+    "members": [
+     "vv_chi2",
+     "vh_chi2",
+     "vm_chi2"
+    ],
+    "outputs": {
+     "@name": "float",
+     "residuals": "float_vector"
+    }
+   }
+  },
+  "objective": "joint",
+  "free": [
+   {
+    "each": {
+     "index": "i",
+     "from": 1,
+     "count": "n",
+     "body": "lifetime.amplitude.{i}"
+    }
+   },
+   {
+    "each": {
+     "index": "i",
+     "count": "n",
+     "body": "lifetime.tau.{i}"
+    }
+   },
+   {
+    "each": {
+     "index": "j",
+     "from": 1,
+     "count": "m",
+     "body": "rotation.amplitude.{j}"
+    }
+   },
+   {
+    "each": {
+     "index": "j",
+     "count": "m",
+     "body": "rotation.time.{j}"
+    }
+   },
+   "anisotropy.r0",
+   "anisotropy.g",
+   "anisotropy.l1",
+   "anisotropy.l2",
+   "instrument.timeshift",
+   "instrument.vv.n0",
+   "instrument.vv.background",
+   "instrument.vv.scatter",
+   "instrument.vh.n0",
+   "instrument.vh.background",
+   "instrument.vh.scatter",
+   "instrument.vm.n0",
+   "instrument.vm.background",
+   "instrument.vm.scatter"
+  ],
+  "initial": {
+   "repeat": {
+    "index": "i",
+    "count": "n_max",
+    "body": {
+     "lifetime.amplitude.{i}": "1/{n}"
+    }
+   }
+  },
+  "ess": "vv_size+vh_size+vm_size"
+ },
+ "moves": [
+  {
+   "action": "stop",
+   "prior": 0.25,
+   "terminal": true
+  },
+  {
+   "action": "add-lifetime",
+   "axis": "n",
+   "delta": 1,
+   "prior": 0.5
+  },
+  {
+   "action": "remove-lifetime",
+   "axis": "n",
+   "delta": -1,
+   "prior": 0.25
+  },
+  {
+   "action": "add-rotation",
+   "axis": "m",
+   "delta": 1,
+   "prior": 0.5
+  },
+  {
+   "action": "remove-rotation",
+   "axis": "m",
+   "delta": -1,
+   "prior": 0.25
+  }
+ ]
+}

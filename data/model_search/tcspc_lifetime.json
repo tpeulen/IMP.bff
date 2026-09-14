@@ -127,7 +127,7 @@
   "objective": "objective",
   "free": [
    {
-    "repeat": {
+    "each": {
      "index": "i",
      "from": 1,
      "count": "n",
@@ -135,7 +135,7 @@
     }
    },
    {
-    "repeat": {
+    "each": {
      "index": "i",
      "count": "n",
      "body": "lifetime.tau.{i}"
@@ -155,7 +155,27 @@
     }
    }
   },
-  "ess": "decay_size"
+  "ess": "decay_size",
+  "starts": [
+   {
+    "repeat": {
+     "index": "i",
+     "count": "n_max",
+     "body": {
+      "lifetime.tau.{i}": "max(dt*2,period/(2*4**({n}-1-{i})))"
+     }
+    }
+   },
+   {
+    "repeat": {
+     "index": "i",
+     "count": "n_max",
+     "body": {
+      "lifetime.tau.{i}": "max(dt*2,period/(2*12**({n}-1-{i})))"
+     }
+    }
+   }
+  ]
  },
  "moves": [
   {

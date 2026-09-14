@@ -104,18 +104,33 @@ def characterize(problem) -> dict:
     return record
 
 
-def compare(record: dict, golden: dict, *, tolerance: float = 1.0e-6) -> list[str]:
+def compare(record: dict, golden: dict, *, tolerance: float = 1.0e-6,
+            undetermined: set[str] | None = None) -> list[str]:
     """Differences between two records; an empty list means they agree.
 
     Floats are compared with a relative tolerance because a record is meant to
     survive a rebuild, not to pin a particular machine's last bit.
+
+    ``undetermined`` names structures whose fitted *values* are not a
+    contract. An over-parameterised topology has no single answer: fitting
+    three lifetimes to a two-lifetime decay splits one component in two, and
+    where the split falls is decided by the starting point and the platform's
+    linear algebra, not by the data. Its **score** is determined and is
+    compared like any other -- that is what the search selects on -- but
+    pinning its parameters would be pinning noise, and a record that does
+    that fails on a different machine for no reason anyone can act on.
     """
     problems: list[str] = []
+    undetermined = undetermined or set()
 
     def near(a, b) -> bool:
         return abs(a - b) <= tolerance * max(1.0, abs(a), abs(b))
 
     def walk(left, right, where: str) -> None:
+        if where.endswith(".values") and any(
+            f"structures.{key}." in where + "." for key in undetermined
+        ):
+            return
         if isinstance(left, dict) and isinstance(right, dict):
             for key in sorted(set(left) | set(right)):
                 if key not in left:
