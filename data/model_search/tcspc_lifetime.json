@@ -1,7 +1,7 @@
 {
  "schema": "bff.model_search.v1",
  "family": "tcspc_lifetime",
- "title": "TCSPC: a multi-exponential decay through a measured response",
+ "title": "Lifetime",
  "presentation": {
   "_comment": "How an application presents this family. Read by applications, ignored by the engine.",
   "groups": {

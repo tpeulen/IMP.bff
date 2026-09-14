@@ -1,7 +1,7 @@
 {
  "schema": "bff.model_search.v1",
  "family": "tcspc_polarized",
- "title": "TCSPC: a polarised decay, lifetimes times rotations, through a measured response",
+ "title": "Lifetime: polarized",
  "presentation": {
   "_comment": "How an application presents this family. Read by applications, ignored by the engine.",
   "groups": {
