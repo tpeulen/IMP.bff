@@ -34,6 +34,14 @@ class IMPBFFEXPORT DiscreteDistances : public GraphNode {
   void set_number_of_distances(int n);
   int get_number_of_distances() const { return n_distances_; }
 
+  //! The derivative of the output weights by the parameters, row-major.
+  /*! `n x 2n`: entry `[i * 2n + c]` is d p_i / d theta_c with the parameters
+      in #get_parameter_names order (`distance0, amplitude0, distance1, ...`).
+      The weights do not depend on the distances, so those columns are 0; the
+      amplitude columns carry `sign(amplitude)`, undefined at 0. */
+  std::vector<double> get_weights_jacobian() const;
+  std::vector<std::string> get_parameter_names() const;
+
   void evaluate() override;
   std::string get_node_type() const override;
   void configure(const std::string& json_text) override;

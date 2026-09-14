@@ -58,17 +58,42 @@ class IMPBFFEXPORT PolymerDistances : public GraphNode {
   void set_n_k(int n_k) { n_k_ = n_k; set_valid(false); }
   int get_n_k() const { return n_k_; }
 
+  //! Normalise the weights to unit sum on the axis (default false).
+  /*! Off, the output keeps each kernel's own normalisation, which is what
+      ChiSurf's models were fitted against; on, the weights sum to 1 on any
+      caller's grid, and #get_weights_jacobian differentiates that. */
+  void set_normalize_weights(bool v) { normalize_weights_ = v; set_valid(false); }
+  bool get_normalize_weights() const { return normalize_weights_; }
+
+  //! The derivative of the output weights by the mode's parameters.
+  /*! Row-major, `n_axis x n_params`: entry `[j * n_params + c]` is
+      d p_j / d theta_c in #get_parameter_names order, of exactly what the
+      node outputs (the #set_normalize_weights normalisation included), at the
+      ports' current values. By central differences with the step
+      `relative_step * max(|theta_c|, 1)`: a mode's two to five parameters make
+      that cheap, and with the default 1e-5 the difference to half the step is
+      below 1e-8 on ChiSurf's distance axis (pinned by the tests). Columns
+      whose parameter the weights do not depend on smoothly are 0: the Ising
+      residue count (rounded to an integer) and the linker width without the
+      linker. */
+  std::vector<double> get_weights_jacobian(double relative_step = 1e-5) const;
+  //! The parameter names of #get_weights_jacobian's columns, in order.
+  std::vector<std::string> get_parameter_names() const;
+
   //! The interleaved `(p, r)` distribution from the last evaluation.
   const std::vector<double>& get_distribution() const { return spectrum_; }
 
   void evaluate() override;
 
   std::string get_node_type() const override;
-  //! Settings: `mode`, `n_k`, and the axis as `axis` or `axis_range`
+  //! Settings: `mode`, `n_k`, `normalize_weights`, and the axis as `axis` or `axis_range`
   //! `[min, max, n]` with `axis_scale`.
   void configure(const std::string& json_text) override;
 
  private:
+  std::vector<double> weights_at(const std::vector<double>& parameters) const;
+  std::vector<double> current_parameters() const;
+  bool normalize_weights_ = false;
   std::string mode_;
   std::vector<double> axis_;
   std::vector<double> spectrum_;

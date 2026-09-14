@@ -66,6 +66,39 @@ void DiscreteDistances::evaluate() {
   set_valid(true);
 }
 
+std::vector<std::string> DiscreteDistances::get_parameter_names() const {
+  std::vector<std::string> names;
+  for (int i = 0; i < n_distances_; ++i) {
+    names.push_back("distance" + std::to_string(i));
+    names.push_back("amplitude" + std::to_string(i));
+  }
+  return names;
+}
+
+std::vector<double> DiscreteDistances::get_weights_jacobian() const {
+  const std::size_t n = static_cast<std::size_t>(n_distances_);
+  std::vector<double> amplitude(n);
+  double total = 0.0;
+  for (std::size_t i = 0; i < n; ++i) {
+    const std::shared_ptr<GraphPort> port = get_input_port("amplitude" + std::to_string(i));
+    if (!port) {
+      throw std::domain_error("DiscreteDistances '" + get_name() + "' has no ports");
+    }
+    amplitude[i] = port->get_value();
+    total += std::fabs(amplitude[i]);
+  }
+  std::vector<double> jacobian(n * 2 * n, 0.0);
+  if (!(total > 0.0)) return jacobian;
+  for (std::size_t i = 0; i < n; ++i) {
+    const double p = std::fabs(amplitude[i]) / total;
+    for (std::size_t k = 0; k < n; ++k) {
+      const double sign = amplitude[k] > 0.0 ? 1.0 : (amplitude[k] < 0.0 ? -1.0 : 0.0);
+      jacobian[i * 2 * n + 2 * k + 1] = sign * ((i == k ? 1.0 : 0.0) - p) / total;
+    }
+  }
+  return jacobian;
+}
+
 std::string DiscreteDistances::get_node_type() const { return "DiscreteDistances"; }
 
 void DiscreteDistances::configure(const std::string& json_text) {

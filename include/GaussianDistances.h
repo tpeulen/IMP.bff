@@ -79,6 +79,19 @@ class IMPBFFEXPORT GaussianDistances : public GraphNode {
   void evaluate() override;
 
   std::string get_node_type() const override;
+  //! The derivative of the output weights by the component parameters.
+  /*! Row-major, `n_axis x 4 * n_components`: entry `[j * 4n + c]` is
+      d p_j / d theta_c with the parameters in #get_parameter_names order
+      (`mean0, sigma0, shape0, amplitude0, mean1, ...`). It is the derivative
+      of exactly what the node outputs, both normalisations included, at the
+      ports' current values, computed analytically. The node takes `|mean|`
+      and `|amplitude|`, so their columns carry `sign(x)`; the derivative is
+      undefined at 0. A generalized-normal argument clamped below 0 has no
+      derivative there and contributes 0. */
+  std::vector<double> get_weights_jacobian() const;
+  //! The parameter names of #get_weights_jacobian's columns, in order.
+  std::vector<std::string> get_parameter_names() const;
+
   //! Settings: `number_of_components`, `distance_between_gaussians`, and the
   //! axis as `axis` or `axis_range` `[min, max, n]` with `axis_scale`.
   void configure(const std::string& json_text) override;
