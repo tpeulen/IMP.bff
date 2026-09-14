@@ -381,7 +381,7 @@ def responses(loaded, which='h20', pad=(15, 150), n=None) -> dict:
     return out, info, off
 
 
-def histograms(loaded, n=None) -> dict:
+def histograms(loaded, n=None, mask_edges=None) -> dict:
     """The twelve measured histograms keyed the way the model keys them, and
     the mask that excludes the channels beyond the laser period.
 
@@ -400,6 +400,16 @@ def histograms(loaded, n=None) -> dict:
         h = np.asarray(loaded['reference'][('rhd110', colour, pol)], float)[:n]
         y[('REF', f'{det}_{KIND[det]}')] = h
         mask[('REF', f'{det}_{KIND[det]}')] = np.ones(n)
+    if mask_edges is not None:
+        #: A6: the period's edge channels -- channel 0 is the TAC's edge (5-6
+        #: channels hold half the pre-rise flat), and 488 x 64 ps = 31.232 ns
+        #: against a 31.249 ns period leaves the last channel partial
+        a_, b_ = mask_edges
+        for k in mask:
+            if a_:
+                mask[k][:a_] = 0.0
+            if b_:
+                mask[k][n - b_:] = 0.0
     return y, mask
 
 
@@ -407,7 +417,17 @@ def histograms(loaded, n=None) -> dict:
 # the model's environment, on this spectrometer's time axis
 # --------------------------------------------------------------------------
 
-def environment(n_coef=25, n=488, cache=True, verbose=True, rho_grid=None):
+#: THE MAPS' CONSTRUCTION (okf/prd-real-data-fast.md A2, 2026-09-14): 'exact'
+#: builds every periodic column with the exact bin-integrated kernel and the
+#: rotational and FRET maps with targets built the basis's own way, projected by
+#: ridge -- 1.9e-5 of the decay peak against the exact column, where 'legacy'
+#: (the trapezoid kernel, sampled targets, NNLS: every fit before 18:30 that
+#: day) is 3.6e-2.  The acceptor maps keep their own construction; they enter
+#: the green detectors only through C_GA and are the red phase's to gate.
+MAPS = 'exact'
+
+
+def environment(n_coef=25, n=488, cache=True, verbose=True, rho_grid=None, maps=None):
     """The transfer maps, built on THIS instrument's axis rather than the
     prototype's.
 
@@ -434,6 +454,15 @@ def environment(n_coef=25, n=488, cache=True, verbose=True, rho_grid=None):
     import s80_analytic_stage2 as A, s79_fret_stage2 as S
     import s83_relative_distance as R3, s86_sensitised as S6, s87_amortized_nn as M
 
+    import s53_phase1_pseudolik as S53
+    maps = MAPS if maps is None else maps
+    if maps == 'exact':
+        S53.KERNEL, S.MAP_TARGET, S.MAP_SOLVER = 'exact', 'periodic', 'ridge'
+    elif maps == 'legacy':
+        S53.KERNEL, S.MAP_TARGET, S.MAP_SOLVER = 'trapezoid', 'sampled', 'nnls'
+    else:
+        raise ValueError(f"maps must be 'exact' or 'legacy', not {maps!r}")
+    mtag = '' if maps == 'legacy' else f'_{S53.KERNEL}_{S.MAP_TARGET}_{S.MAP_SOLVER}'
     cal = CAL or _cal()
     dt = cal['dt']
     rel, edges = R3.grid(M.N_REL)
@@ -441,7 +470,7 @@ def environment(n_coef=25, n=488, cache=True, verbose=True, rho_grid=None):
     S.R_GRID = S.R0_FOERSTER * rel
     ck = d / 'ckpt' / 'homog'
     ck.mkdir(parents=True, exist_ok=True)
-    f = ck / f'cbm56_env_{n}_{M.N_REL}.pt'
+    f = ck / f'cbm56_env_{n}_{M.N_REL}{mtag}.pt'
     if cache and f.exists():
         E = torch.load(f, weights_only=False)
         if verbose:
@@ -463,7 +492,7 @@ def environment(n_coef=25, n=488, cache=True, verbose=True, rho_grid=None):
     if rho_grid is not None:
         M.RHO_GRID = np.asarray(rho_grid, float)
     tag = f'{len(M.RHO_GRID)}_{M.RHO_GRID.min():g}_{M.RHO_GRID.max():g}'
-    f2 = ck / f'cbm56_rho_{n}_{tag}.pt'
+    f2 = ck / f'cbm56_rho_{n}_{tag}{mtag}.pt'
     if cache and f2.exists():
         E['S_rho'] = torch.load(f2, weights_only=False)
     else:
@@ -478,7 +507,7 @@ def environment(n_coef=25, n=488, cache=True, verbose=True, rho_grid=None):
         if cache:
             torch.save(E['S_rho'], f2)
     E['rho'] = M.RHO_GRID
-    f3 = ck / f'cbm56_rhoa_{n}_{len(M.RHO_A_GRID)}.pt'
+    f3 = ck / f'cbm56_rhoa_{n}_{len(M.RHO_A_GRID)}{mtag}.pt'
     if cache and f3.exists():
         d3 = torch.load(f3, weights_only=False)
     else:
@@ -679,7 +708,7 @@ def peak_fit_response(h, dt, stop_after_peak=1.0, start_fraction=0.05, pre=8, pu
 def model(loaded=None, n_coef=25, which='h20', verbose=True,
           samples=('D0', 'A0', 'DA'), detectors=None, irf='h20', rebin=False, growth=1.05,
           rl_iterations=500, irf_conv_stop=None, peak_stop=1.0, peak_pulse='gn', rho_grid=None,
-          d0_from=None):
+          d0_from=None, maps=None, mask_edges=None):
     """Everything the fit needs: the maps on this axis, the measured responses,
     the twelve histograms, and the graph.
 
@@ -693,11 +722,11 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
     peak_fits = {}
     d = loaded or load()
     cal = d['cal']
-    E, rel, spl, L = environment(n_coef=n_coef, verbose=verbose, rho_grid=rho_grid)
+    E, rel, spl, L = environment(n_coef=n_coef, verbose=verbose, rho_grid=rho_grid, maps=maps)
     n = int(E['n'])
     irf, info, off = responses(d, which=which, n=n)
     irf_h20 = {k: v.copy() for k, v in irf.items()}
-    y_np, mask_np = histograms(d, n=n)
+    y_np, mask_np = histograms(d, n=n, mask_edges=mask_edges)
     if d0_from is not None:
         #: THE REFERENCE DYE AS THE DONOR-ONLY SAMPLE (tpeulen, prompt 418: "try
         #: Rh110 and see if you can get l1,l2").  A free dye is one lifetime and
@@ -1294,6 +1323,30 @@ def reference_dye(loaded, which='rhd110', pad=(15, 220), n=None) -> dict:
                          flat_per_channel=flat,
                          background_fraction=float(min(flat * (b - a) / max(seg.sum(), 1), 0.95)))
     return out, info
+
+
+def apply_physical_bounds(m, r0_max=None, l_bounds=None, verbose=True):
+    """Bound what physics bounds, instead of letting the fit use it as a knob
+    (A3 of the plan, 2026-09-14).  The configuration of record put `l1` at
+    -0.117 (a mixing fraction cannot be negative), `r0_ref` at 0.445 (a dye's
+    fundamental anisotropy cannot exceed 0.4) and `r0_d` on its lower bound.
+
+    `r0_max`: both fundamental anisotropies on Logit(0.15, r0_max) with a
+    uniform prior.  `l_bounds=(lo, hi)`: l1 and l2 on Logit(lo, hi), uniform.
+    Replaces the variables' transforms and priors in place, before any start
+    or fit is computed from them."""
+    L = m['L']; changed = []
+    for v in m['graph'].V:
+        if r0_max is not None and v.name in ('r0_d', 'r0_ref'):
+            v.transform = L.Logit(0.15, float(r0_max)); v.prior = L.Uniform(0.15, float(r0_max))
+            changed.append((v.name, 0.15, float(r0_max)))
+        if l_bounds is not None and v.name in ('l1', 'l2'):
+            lo, hi = map(float, l_bounds)
+            v.transform = L.Logit(lo, hi); v.prior = L.Uniform(lo, hi)
+            changed.append((v.name, lo, hi))
+    if verbose and changed:
+        print('physical bounds: ' + ', '.join(f'{n} in [{a:g}, {b:g}]' for n, a, b in changed))
+    return changed
 
 
 def apply_calibration_priors(m, g_sd=0.02, l_sd=0.005, verbose=True):
