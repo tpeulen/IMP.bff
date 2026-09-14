@@ -156,6 +156,7 @@
    }
   },
   "ess": "decay_size",
+  "selection": "bic",
   "starts": [
    {
     "repeat": {

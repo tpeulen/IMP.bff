@@ -689,6 +689,7 @@ struct MultiStructureRecord {
   double effective_sample_size = 0.0;
   double complexity = 0.0;
   bool use_bic = false;
+  ModelSelectionCriterion criterion = MODEL_SELECTION_BIC;
   //! measurement name -> the node whose curve is compared against it.
   std::map<std::string, std::string> curves;
   std::vector<std::string> curve_order;
@@ -704,6 +705,7 @@ struct MultiStructureModelSearchProblem::Impl {
   std::map<std::string, ModelSearchActions> actions;
   std::string initial_structure;
   std::string active_structure;
+  double last_reduced_chi2 = 0.0;
   std::map<std::string, FitSearchSnapshot> snapshots;
   std::map<std::string, std::string> snapshot_structures;
   unsigned long long next_snapshot = 1;
@@ -872,11 +874,26 @@ struct MultiStructureModelSearchProblem::Impl {
       for (std::size_t i = 0; i < values.size(); ++i) {
         chi2 += values[i] * values[i];
       }
-      reward = -0.5 * chi2;
-      if (selected.use_bic) {
-        reward -= 0.5 * selected.complexity *
-                  std::log(selected.effective_sample_size);
+      // A comparison between models, not a preference for the larger one.
+      if (!selected.use_bic) {
+        throw ModelSearchConfigurationError(
+            "structure '" + active_structure +
+            "' says nothing about how it should be compared with the others; "
+            "declare a selection criterion or a score output, because "
+            "ranking by misfit alone always prefers the richer model");
       }
+      const double penalty =
+          selected.criterion == MODEL_SELECTION_AIC
+              ? selected.complexity
+              : 0.5 * selected.complexity *
+                    std::log(selected.effective_sample_size);
+      reward = -0.5 * chi2 - penalty;
+      // Goodness of fit is a different question from model choice, and a
+      // model can win its family while describing the data badly.
+      const double dof =
+          selected.effective_sample_size - selected.complexity - 1.0;
+      last_reduced_chi2 = dof > 0.0 ? chi2 / dof
+                                    : std::numeric_limits<double>::infinity();
     }
     if (!std::isfinite(reward)) {
       throw ModelSearchConfigurationError("model-search reward is not finite");
@@ -1158,29 +1175,34 @@ void MultiStructureModelSearchProblem::clear_structure_acceptable_output(
   impl_->structure(structure_key).acceptable_output.clear();
 }
 
-void MultiStructureModelSearchProblem::set_structure_bic_metadata(
-    const std::string& structure_key, double effective_sample_size,
-    double complexity) {
-  if (!std::isfinite(effective_sample_size) || effective_sample_size <= 0.0) {
-    throw ModelSearchConfigurationError(
-        "effective sample size must be finite and positive");
-  }
-  if (!std::isfinite(complexity) || complexity < 0.0) {
-    throw ModelSearchConfigurationError(
-        "model complexity must be finite and non-negative");
-  }
+void MultiStructureModelSearchProblem::set_structure_selection(
+    const std::string& structure_key, ModelSelectionCriterion criterion,
+    double effective_sample_size, double complexity) {
   MultiStructureRecord& selected = impl_->structure(structure_key);
+  if (!(effective_sample_size > 0.0)) {
+    throw ModelSearchConfigurationError(
+        "a selection criterion needs a positive number of observations");
+  }
+  if (complexity < 0.0) {
+    throw ModelSearchConfigurationError(
+        "a selection criterion needs a non-negative parameter count");
+  }
+  selected.criterion = criterion;
   selected.effective_sample_size = effective_sample_size;
   selected.complexity = complexity;
   selected.use_bic = true;
 }
 
-void MultiStructureModelSearchProblem::clear_structure_bic_metadata(
+void MultiStructureModelSearchProblem::clear_structure_selection(
     const std::string& structure_key) {
   MultiStructureRecord& selected = impl_->structure(structure_key);
   selected.effective_sample_size = 0.0;
   selected.complexity = 0.0;
   selected.use_bic = false;
+}
+
+double MultiStructureModelSearchProblem::get_last_reduced_chi2() const {
+  return impl_->last_reduced_chi2;
 }
 
 ModelSearchState MultiStructureModelSearchProblem::get_initial_state() {
