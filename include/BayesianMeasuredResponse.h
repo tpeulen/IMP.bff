@@ -15,6 +15,13 @@
 #ifndef IMPBFF_BAYESIANMEASUREDRESPONSE_H
 #define IMPBFF_BAYESIANMEASUREDRESPONSE_H
 
+//! The FFT is pocketfft, reached through tttrlib (`"pocketfft/pocketfft_hdronly.h"`
+//! with tttrlib's `thirdparty/` on the include path, as tttrlib's own sources
+//! include it). Where it is not on the path -- the IMP module build today -- this
+//! header declares nothing, so that `IMP/bff.h`, which includes every public header,
+//! still compiles.
+#if __has_include("pocketfft/pocketfft_hdronly.h")
+
 #include <IMP/bff/IMPCompatibility.h>
 #include <algorithm>
 #include <cmath>
@@ -46,8 +53,10 @@ struct BayesianDecayAxis {
 inline double bayesian_softplus(double x) { return x > 20.0 ? x : std::log1p(std::exp(x)); }
 //! d softplus / dx with the same threshold: 1 above 20, the logistic below.
 inline double bayesian_softplus_derivative(double x) { return x > 20.0 ? 1.0 : 1.0 / (1.0 + std::exp(-x)); }
-//! `soft * softplus(x / soft)`: equal to `x` above a few `soft`, never below zero, smooth.
-inline double bayesian_soft_positive(double x, double soft) { return soft * bayesian_softplus(x / soft); }
+//! `soft * softplus(x / soft)` with torch's threshold: equal to `x` above a few `soft`, never below
+//! zero, smooth. `bayesian_soft_positive` (BayesianFisherScoring.h) is the same floor without the
+//! threshold; they differ by under `soft * 2e-9` where `x / soft > 20`.
+inline double bayesian_soft_positive_thresholded(double x, double soft) { return soft * bayesian_softplus(x / soft); }
 
 //! Real FFT of length n (unscaled), bins 0..n/2 -- numpy's `rfft`.
 inline void bayesian_rfft(const double* x, std::size_t n, std::complex<double>* X) {
@@ -166,7 +175,7 @@ inline BayesianResponseBasis bayesian_response_basis(const BayesianPeriodicKerne
   using cd = std::complex<double>;
   const BayesianDecayAxis& ax = kernel.axis();
   const std::size_t n = measured.size(), np = ax.n_period, h = np / 2 + 1, nt = kernel.tau().size(), K = nt + 2;
-  const double two_pi = 2.0 * M_PI;
+  const double two_pi = 2.0 * 3.14159265358979323846;
   BayesianResponseBasis out;
   out.n = n; out.K = K;
 
@@ -179,7 +188,7 @@ inline BayesianResponseBasis bayesian_response_basis(const BayesianPeriodicKerne
   for (std::size_t i = 0; i < n; ++i) {
     if (!(measured[i] > 0.0)) continue;
     const double x = (measured[i] - level) / sc;
-    u[i] = bayesian_soft_positive(x, opt.soft) * sc;
+    u[i] = bayesian_soft_positive_thresholded(x, opt.soft) * sc;
     if (tangents) du_b[i] = bayesian_softplus_derivative(x / opt.soft) * (-sum / n_sup);
   }
   // 2. the shift, clamped; tangents in b (through the ramp) and in the shift
@@ -249,5 +258,7 @@ inline BayesianResponseBasis bayesian_response_basis(const BayesianPeriodicKerne
 //! @}
 
 IMPBFF_END_NAMESPACE
+
+#endif  // __has_include("pocketfft/pocketfft_hdronly.h")
 
 #endif /* IMPBFF_BAYESIANMEASUREDRESPONSE_H */
