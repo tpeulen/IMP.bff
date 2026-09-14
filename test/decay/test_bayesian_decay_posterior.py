@@ -30,7 +30,7 @@ import bayesian_decay_synthetic as syn
 
 DRIVER = r"""
 #include <IMP/bff/BayesianDecayPosterior.h>
-#include <IMP/bff/BayesianGoodnessOfFit.h>
+#include <IMP/bff/FitStatistics.h>
 #include <cstdio>
 #include <random>
 using namespace IMP::bff;
@@ -81,7 +81,7 @@ int main(int, char** argv) {
     ex.arrays["y"].d = y;
     const BayesianDecayFit F = bayesian_decay_fit_node(ex, E, start, 1.0, 1000);
     const std::vector<double> S = bayesian_decay_covariance(F.pt, dim);
-    const BayesianGoodnessOfFit G = bayesian_goodness_of_fit(ex["y"].d, F.pt.lam, ex["mask"].d, ex.data_keys.size(), double(dim));
+    const PoissonGoodnessOfFit G = poisson_goodness_of_fit(ex["y"].d, F.pt.lam, ex["mask"].d, ex.data_keys.size(), double(dim));
     double zmax = 0; for (auto& h : G.histograms) zmax = std::max(zmax, std::fabs(h.z));
     std::printf("\"%s\": {\"converged\": %s, \"iterations\": %d, \"evidence_finite\": %s, \"covariance_pd\": %s, \"z\": %.4f, \"z_max\": %.4f, \"dpd\": %.4f}",
                 name, F.converged ? "true" : "false", F.iterations, std::isfinite(F.evidence) ? "true" : "false",

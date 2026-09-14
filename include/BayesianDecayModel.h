@@ -49,6 +49,7 @@
 #include <IMP/bff/BayesianTransforms.h>
 #include <IMP/bff/BayesianFisherScoring.h>
 #include <IMP/bff/internal/json.h>
+#include <IMP/bff/internal/ThreadPool.h>
 #include <algorithm>
 #include <atomic>
 #include <cmath>
@@ -69,76 +70,23 @@ IMPBFF_BEGIN_NAMESPACE
 
 namespace internal {
 
-//! A persistent pool of `BFF_BAYESIAN_THREADS` - 1 workers (default 4 threads in all):
-//! parallel_for hands them body(i) for i in [0, n), the calling thread takes a
-//! share too, and nothing is created per call (seven thread launches per
-//! evaluation were a tenth of it). Not re-entrant: a body must not call
-//! parallel_for itself.
-class BayesianThreadPool {
- public:
-    static BayesianThreadPool& get() { static BayesianThreadPool p; return p; }
-    std::size_t size() const { return workers_.size() + 1; }
-    //! set on a thread that is itself one of several concurrent fits: its
-    //! parallel_for calls then run inline instead of contending for the pool
-    static bool& serial_here() { static thread_local bool s = false; return s; }
-    template <typename Body>
-    void run(std::size_t n, Body& body) {
-        if (n == 0) return;
-        if (serial_here() || workers_.empty() || n == 1) { for (std::size_t i = 0; i < n; ++i) body(i); return; }
-        {
-            std::lock_guard<std::mutex> lk(m_);
-            task_ = [&body](std::size_t i) { body(i); };
-            n_ = n; next_ = 0; pending_ = workers_.size(); ++generation_;
-        }
-        cv_.notify_all();
-        drain();
-        std::unique_lock<std::mutex> lk(m_);
-        done_.wait(lk, [&] { return pending_ == 0; });
-        task_ = nullptr;
-    }
-    ~BayesianThreadPool() {
-        { std::lock_guard<std::mutex> lk(m_); stop_ = true; }
-        cv_.notify_all();
-        for (auto& w : workers_) w.join();
-    }
- private:
-    BayesianThreadPool() {
-        const char* e = std::getenv("BFF_BAYESIAN_THREADS");
-        const std::size_t nt = std::size_t(e ? std::max(1, std::atoi(e)) : 4);
-        for (std::size_t t = 1; t < nt; ++t) workers_.emplace_back([this] { loop(); });
-    }
-    void drain() {
-        for (;;) {
-            const std::size_t i = next_.fetch_add(1);
-            if (i >= n_) return;
-            task_(i);
-        }
-    }
-    void loop() {
-        std::size_t seen = 0;
-        for (;;) {
-            {
-                std::unique_lock<std::mutex> lk(m_);
-                cv_.wait(lk, [&] { return stop_ || generation_ != seen; });
-                if (stop_) return;
-                seen = generation_;
-            }
-            drain();
-            { std::lock_guard<std::mutex> lk(m_); --pending_; }
-            done_.notify_one();
-        }
-    }
-    std::vector<std::thread> workers_;
-    std::mutex m_;
-    std::condition_variable cv_, done_;
-    std::function<void(std::size_t)> task_;
-    std::atomic<std::size_t> next_{0};
-    std::size_t n_ = 0, pending_ = 0, generation_ = 0;
-    bool stop_ = false;
-};
-
+//! The pool the decay model's loops run on: bff's `ThreadPool`, one per process,
+//! `BFF_BAYESIAN_THREADS` threads in all (default 4).
+inline ThreadPool& bayesian_thread_pool() {
+    static ThreadPool pool([] { const char* e = std::getenv("BFF_BAYESIAN_THREADS"); return e ? std::max(1, std::atoi(e)) : 4; }());
+    return pool;
+}
+//! Set on a thread that is itself one of several concurrent fits: its loops then
+//! run inline instead of contending for the one pool (which is not re-entrant).
+inline bool& bayesian_serial_here() { static thread_local bool s = false; return s; }
+//! body(i) for i in [0, n), on the pool unless this thread runs serially.
 template <typename Body>
-inline void bayesian_parallel_for(std::size_t n, Body body) { BayesianThreadPool::get().run(n, body); }
+inline void bayesian_parallel_for(std::size_t n, Body body) {
+    if (n == 0) return;
+    if (bayesian_serial_here() || n == 1) { for (std::size_t i = 0; i < n; ++i) body(i); return; }
+    const std::function<void(std::size_t)> fn = body;
+    bayesian_thread_pool().run(n, fn);
+}
 
 }  // namespace internal
 

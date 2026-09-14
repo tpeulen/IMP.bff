@@ -25,7 +25,7 @@ from bayesian_cxx import run_driver
 
 DRIVER = r"""
 #include <IMP/bff/BayesianDecayPosterior.h>
-#include <IMP/bff/BayesianGoodnessOfFit.h>
+#include <IMP/bff/FitStatistics.h>
 #include <chrono>
 #include <cstdio>
 using namespace IMP::bff;
@@ -40,7 +40,7 @@ int main(int, char** argv) {
   const std::vector<double> S = bayesian_decay_covariance(F.pt, dim);
   std::vector<double> p, sd;
   bayesian_decay_distribution_with_sd(ex, E, F.theta, S, p, sd);
-  const BayesianGoodnessOfFit G = bayesian_goodness_of_fit(ex["y"].d, F.pt.lam, ex["mask"].d, ex.data_keys.size(), double(dim));
+  const PoissonGoodnessOfFit G = poisson_goodness_of_fit(ex["y"].d, F.pt.lam, ex["mask"].d, ex.data_keys.size(), double(dim));
   const double secs = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
   const auto& pol = m["polished"];
   const auto& pr = ex["p_polished"].d, & sr = ex["p_sd_polished"].d;
