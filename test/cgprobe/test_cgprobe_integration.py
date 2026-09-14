@@ -104,6 +104,34 @@ class TestIntegration(unittest.TestCase):
             self.assertEqual([l.split("\t")[0] for l in lines[1:]], ["0", "1"])
             self.assertIn("Meta-sampling complete.", result.stdout)
 
+    def test_analyze_trajectories_reads_what_simulate_wrote(self):
+        """`imp_bff analyze-trajectories`, end to end on a `simulate` run: the
+        region densities, profiles and the axis definition. The Python command
+        this replaces failed on its first template (`.get` on a SWIG value)."""
+        template = os.path.join(os.path.dirname(os.path.dirname(__file__)), "input",
+                                "cgprobe", "atto655_regions.template.cif")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            traj = os.path.join(tmpdir, "traj")
+            result = self.run_sim([
+                "--system-cif", self.system_cif, "--output-root", traj,
+                "--sampling-mode", "simple_md", "--md-steps", "10", "--write-every", "5",
+            ])
+            self.assertEqual(result.returncode, 0, msg=result.stderr)
+            out = os.path.join(tmpdir, "analysis")
+            analysed = subprocess.run(
+                [sys.executable, "-c", DISPATCH, "analyze-trajectories",
+                 "--traj-root", traj, "--output-dir", out, "--mobile", "atto655",
+                 "--mobile-template-cif", template, "--axis-element", "S"],
+                env=os.environ.copy(), capture_output=True, text=True, timeout=300)
+            self.assertEqual(analysed.returncode, 0, msg=analysed.stderr + analysed.stdout)
+            written = os.path.join(out, "atto655")
+            for name in ("axis_z_profile_regions.csv", "axis_xy_profile_regions.csv",
+                         "axis_mobile_vs_fixed_orientation.csv",
+                         "fixed_axis_definition.json", "occupancy_linker.mrc",
+                         "occupancy_top.mrc", "occupancy_middle.mrc",
+                         "occupancy_bottom.mrc"):
+                self.assertTrue(os.path.isfile(os.path.join(written, name)), name)
+
     def test_simple_md_mode(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             result = self.run_sim([
