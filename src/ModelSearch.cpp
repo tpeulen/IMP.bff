@@ -748,13 +748,27 @@ struct MultiStructureModelSearchProblem::Impl {
         throw ModelSearchConfigurationError(
             "canonical parameter registry contains a missing owner");
       }
-      if (found->second->get_is_vector() || found->second->get_link()) {
+      // A follower reads through its link, so the scalar is the one it follows.
+      GraphPort* source = found->second.get();
+      while (source->get_link()) source = source->get_link().get();
+      if (source->get_is_vector()) {
         throw ModelSearchConfigurationError(
-            "canonical parameters must remain scalar unlinked owner ports");
+            "canonical parameters must remain scalar ports");
       }
       if (!owners.insert(found->second.get()).second) {
         throw ModelSearchConfigurationError(
             "canonical parameter registry contains a duplicate owner");
+      }
+    }
+    for (std::size_t i = 0; i < parameter_order.size(); ++i) {
+      GraphPort* followed = parameters.find(parameter_order[i])->second->get_link().get();
+      while (followed) {
+        if (owners.count(followed)) {
+          throw ModelSearchConfigurationError(
+              "canonical parameter '" + parameter_order[i] +
+              "' follows another parameter of the same model");
+        }
+        followed = followed->get_link().get();
       }
     }
   }
@@ -854,7 +868,7 @@ struct MultiStructureModelSearchProblem::Impl {
     for (std::size_t i = 0; i < parameter_order.size(); ++i) {
       const std::shared_ptr<GraphPort>& port =
           parameters.find(parameter_order[i])->second;
-      if (locked.count(parameter_order[i])) {
+      if (held(i)) {
         // Held by the user: neither freed nor re-seeded.
         port->set_fixed(true);
         continue;
@@ -870,9 +884,15 @@ struct MultiStructureModelSearchProblem::Impl {
   }
 
   //! Whether a topology fits one parameter, after the user has had a say.
+  //! Held by the user: locked, or following a port of another model.
+  bool held(std::size_t i) const {
+    const std::string& id = parameter_order[i];
+    return locked.count(id) != 0 || parameters.find(id)->second->get_link();
+  }
+
   bool is_free(const MultiStructureRecord& record, std::size_t i) const {
     const std::string& id = parameter_order[i];
-    if (locked.count(id)) return false;
+    if (held(i)) return false;
     if (released.count(id) && uses(record, i)) return true;
     return record.fixed[i] == 0;
   }
@@ -897,7 +917,7 @@ struct MultiStructureModelSearchProblem::Impl {
     for (std::size_t i = 0; i < parameter_order.size(); ++i) {
       const std::shared_ptr<GraphPort>& port =
           parameters.find(parameter_order[i])->second;
-      if (locked.count(parameter_order[i])) {
+      if (held(i)) {
         port->set_fixed(true);
         continue;
       }
@@ -1037,14 +1057,19 @@ void MultiStructureModelSearchProblem::add_parameter(
   if (!owner) {
     throw ModelSearchConfigurationError("canonical parameter is null");
   }
-  if (owner->get_is_vector()) {
-    throw ModelSearchConfigurationError(
-        "model search supports scalar canonical parameters only");
+  {
+    // A follower reads through its link, so the scalar is the one it follows.
+    const GraphPort* source = owner.get();
+    while (source->get_link()) source = source->get_link().get();
+    if (source->get_is_vector()) {
+      throw ModelSearchConfigurationError(
+          "model search supports scalar canonical parameters only");
+    }
   }
-  if (owner->get_link()) {
-    throw ModelSearchConfigurationError(
-        "canonical parameters must be owner ports, not linked followers");
-  }
+  // A canonical parameter may follow a port *outside* this registry -- a user
+  // linking a lifetime across two fits. It is then held like a locked one;
+  // following another canonical parameter of the same model is refused when
+  // the registry is validated, since the two ids would be one parameter.
   for (std::map<std::string, std::shared_ptr<GraphPort> >::const_iterator it =
            impl_->parameters.begin();
        it != impl_->parameters.end(); ++it) {

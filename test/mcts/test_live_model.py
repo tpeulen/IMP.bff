@@ -277,3 +277,30 @@ def test_a_polarized_family_is_the_lifetime_family_times_rotations():
     vm, vv, vh = magic
     # Parallel and perpendicular differ, and neither is the magic-angle decay.
     assert not np.allclose(vv, vh) and not np.allclose(vv, vm)
+
+
+def test_a_parameter_linked_to_another_model_is_held_and_survives_a_rebuild():
+    first, second = _spec(), _spec()
+    a, b = first.get_model(), second.get_model()
+    for model in (a, b):
+        model.select_structure("lifetime.components.2")
+    b.get_parameter("lifetime.tau.1").set_link(a.get_parameter("lifetime.tau.1"))
+    a.get_parameter("lifetime.tau.1").value = 3.3
+    assert b.get_parameter("lifetime.tau.1").value == pytest.approx(3.3)
+    b.fit_active_structure()                       # held: not fitted, not re-seeded
+    assert b.get_parameter("lifetime.tau.1").value == pytest.approx(3.3)
+
+    data, _, _, _ = _fixtures._tcspc_dataset()
+    second.set_dataset("decay", data)
+    second.set_scalar("period", 12.0)
+    rebuilt = second.get_model()
+    assert rebuilt.get_parameter("lifetime.tau.1").get_link() is not None
+    a.get_parameter("lifetime.tau.1").value = 2.9
+    assert rebuilt.get_parameter("lifetime.tau.1").value == pytest.approx(2.9)
+
+
+def test_two_parameters_of_one_model_may_not_follow_each_other():
+    model = _spec().get_model()
+    model.get_parameter("lifetime.tau.1").set_link(model.get_parameter("lifetime.tau.0"))
+    with pytest.raises((ValueError, RuntimeError)):
+        model.get_initial_state()

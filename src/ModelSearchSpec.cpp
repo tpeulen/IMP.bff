@@ -1130,7 +1130,11 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build_over(
       owner->set_fixed(false);
       owner->set_bounds(lower, upper);
       owner->set_is_bounded(true);
-      owner->set_value(std::min(upper, std::max(lower, owner->get_value())));
+      // A parameter that follows another model keeps following it; its
+      // value is that model's, not one to clip here.
+      if (!owner->get_link()) {
+        owner->set_value(std::min(upper, std::max(lower, owner->get_value())));
+      }
     } else {
       owner = std::make_shared<GraphPort>(initial, false, false, false, true,
                                           lower, upper, GRAPH_PORT_FLOAT, name);
