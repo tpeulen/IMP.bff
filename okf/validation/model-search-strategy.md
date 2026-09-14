@@ -259,6 +259,46 @@ Whether the model recovers its parameters and whether the optimiser reaches
 them from generic seeds are different questions, and only the first belongs in
 a unit test while the second stays measured here at 3 of 7.
 
+## The joint anisotropy fit is unstable, not merely hard (2026-09-14)
+
+Four cross-platform CI rounds on `test_tcspc_anisotropy.py` turned "converges
+in 3 of 7 noise draws" into something sharper. The two-lifetime joint fit
+does not merely miss its optimum; it **diverges under perturbations it should
+absorb**:
+
+| change | child (`tcspc.l2.r1`) reward |
+|---|---|
+| simulated background 0 counts (macOS) | **-36.5** |
+| same, on Linux | **-61058** |
+| background 5 counts (macOS) | **-62134** |
+| background 20 counts (macOS) | **-66215** |
+
+The root (`tcspc.l1.r1`) is stable at -237.4 on both platforms, so this is the
+two-lifetime fit specifically, not the family or the data.
+
+A first diagnosis blamed the three per-channel background parameters, whose
+measured sensitivity was 2.05e-11 against ~1e-5 for everything else. That was
+**wrong, and wrong for an instructive reason**: the probe used a relative step,
+`|v| * 1e-4`, and those parameters sit at zero, so the step was the 1e-8 floor
+and the tiny response was the probe's rather than the model's. Normalising by
+the step gives a column-magnitude spread of ~9e4 whatever the background is.
+A sensitivity measured with a step proportional to the value says nothing
+about a parameter whose value is zero.
+
+What this costs: no test may assert the *outcome* of fitting this family.
+Four were written and all four failed on Linux while passing here --
+recovery from noisy curves, recovery from clean curves, and the weakest claim
+available, that adding a lifetime beats not adding it. The wiring is tested
+instead, at truth and without an optimiser, which is the claim the family
+actually makes.
+
+What it is worth: this is a much better-specified problem than "seeding is
+hard". A fit that returns -36 or -62134 depending on a five-count background
+is not a fit that needs better starting points; something in the
+twenty-four-parameter joint problem is losing conditioning, and *that* is the
+thing to find. It is also the clearest evidence yet for why the self-play
+proposer targets parameter placement rather than action choice.
+
 ## What follows
 
 1. **Sorting.** TCSPC component labels permute between slots depending on the
