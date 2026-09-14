@@ -19,6 +19,7 @@
 #define IMPBFF_INTERNAL_NODECONFIG_H
 
 #include <IMP/bff/bff_config.h>
+#include <IMP/bff/GraphNode.h>
 #include <IMP/bff/internal/json.h>
 
 #include <set>
@@ -100,6 +101,14 @@ class NodeConfig {
       out.push_back(it->get<int>());
     }
     return out;
+  }
+
+  //! Apply the settings every node has, whatever kernel it is.
+  /*! Caching is a property of GraphNode rather than of any one kernel, so it
+      is read here and no subclass has to re-declare it. A subclass calls
+      this once, before #require_all_used. */
+  void apply_common(GraphNode& node) {
+    if (has("memoize")) node.set_memoize(get_bool("memoize"));
   }
 
   //! Refuse every setting no getter consumed.

@@ -468,9 +468,10 @@ void GraphNode::bind_dataset(const std::string& role,
 }
 
 void GraphNode::configure(const std::string& json_text) {
-  // A plain node has no settings of its own, so every key is one this node
-  // has no meaning for. NodeConfig says which, by name.
+  // Caching is a property of every node rather than of any one kernel, so
+  // it is read here and every subclass inherits it.
   internal::NodeConfig config(get_node_type(), json_text);
+  config.apply_common(*this);
   config.require_all_used();
 }
 

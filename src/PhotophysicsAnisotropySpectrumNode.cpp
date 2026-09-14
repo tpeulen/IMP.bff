@@ -2,6 +2,7 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 #include <IMP/bff/PhotophysicsAnisotropySpectrumNode.h>
+#include <IMP/bff/internal/NodeConfig.h>
 #include "internal/SpectrumNodeHelpers.h"
 #include <IMP/bff/PhotophysicsLifetimeSpectrum.h>
 #include <algorithm>
@@ -201,5 +202,20 @@ std::string PhotophysicsAnisotropySpectrumNode::describe() const {
 }
 
 std::string PhotophysicsAnisotropySpectrumNode::get_node_type() const { return "PhotophysicsAnisotropySpectrumNode"; }
+
+void PhotophysicsAnisotropySpectrumNode::configure(
+    const std::string& json_text) {
+  internal::NodeConfig config(get_node_type(), json_text);
+  if (config.has("number_of_rotations")) {
+    set_number_of_rotations(config.get_int("number_of_rotations"));
+  }
+  // By name, not by code: a description saying "VH" survives a renumbering
+  // of the enum, and says what it means to a reader.
+  if (config.has("polarization")) {
+    set_polarization_name(config.get_string("polarization"));
+  }
+  config.apply_common(*this);
+  config.require_all_used();
+}
 
 IMPBFF_END_NAMESPACE

@@ -363,6 +363,7 @@ void FitChiSquared::configure(const std::string& json_text) {
   if (config.has("residuals_port_key")) {
     set_residuals_port_key(config.get_string("residuals_port_key"));
   }
+  config.apply_common(*this);
   config.require_all_used();
 }
 

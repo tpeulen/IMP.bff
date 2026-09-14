@@ -2,6 +2,7 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 #include <IMP/bff/PhotophysicsLifetimeSpectrumNode.h>
+#include <IMP/bff/internal/NodeConfig.h>
 #include "internal/SpectrumNodeHelpers.h"
 #include <algorithm>
 #include <cctype>
@@ -80,5 +81,20 @@ void PhotophysicsLifetimeSpectrumNode::evaluate() {
 }
 
 std::string PhotophysicsLifetimeSpectrumNode::get_node_type() const { return "PhotophysicsLifetimeSpectrumNode"; }
+
+void PhotophysicsLifetimeSpectrumNode::configure(const std::string& json_text) {
+  internal::NodeConfig config(get_node_type(), json_text);
+  if (config.has("number_of_lifetimes")) {
+    set_number_of_lifetimes(config.get_int("number_of_lifetimes"));
+  }
+  if (config.has("absolute_amplitudes")) {
+    set_absolute_amplitudes(config.get_bool("absolute_amplitudes"));
+  }
+  if (config.has("normalize_amplitudes")) {
+    set_normalize_amplitudes(config.get_bool("normalize_amplitudes"));
+  }
+  config.apply_common(*this);
+  config.require_all_used();
+}
 
 IMPBFF_END_NAMESPACE

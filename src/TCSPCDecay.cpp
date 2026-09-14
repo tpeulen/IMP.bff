@@ -621,6 +621,10 @@ void TCSPCDecay::configure(const std::string& json_text) {
   }
   if (config.has("autoscale")) set_autoscale(config.get_bool("autoscale"));
   if (config.has("pile_up")) set_pile_up(config.get_bool("pile_up"));
+  if (config.has("spectrum_from_port")) {
+    set_spectrum_from_port(config.get_bool("spectrum_from_port"));
+  }
+  config.apply_common(*this);
   config.require_all_used();
 }
 
