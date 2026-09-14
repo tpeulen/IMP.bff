@@ -100,22 +100,47 @@ class TorchSpectralForward:
         self.offset = dict(E.get('pulse_offset') or {})
         self.M = good_fft_length(2 * self.n_p)
         nom = E['instrument']
-        #: everything that does not depend on the shift, once
-        irf0 = L.analytic_irf(E, L.tt(0.0), L.tt(nom[1]), L.tt(nom[3]))
-        l = 0.5 * self.dt * irf0
-        e = torch.exp(-self.dt / self.taus)[:, None]
-        u = (torch.roll(l, 1)[None, :] * e + l[None, :]).clone()
-        u[:, 0] = l[0]                       # no wrap into the trapezoid at i = 0
+        self.freq_M = torch.fft.rfftfreq(self.M, d=1.0)
+        self.freq_N = torch.fft.rfftfreq(self.n_p, d=1.0)
         i = torch.arange(self.n_p, dtype=torch.float64)[None, :]
         gk = torch.exp(-i * self.dt / self.taus[:, None]) / \
             (1.0 - torch.exp(-self.period / self.taus)).clamp_min(1e-300)[:, None]
-        self.A = torch.fft.rfft(u, self.M, -1) * torch.fft.rfft(gk, self.M, -1)
-        self.IRF0 = torch.fft.rfft(irf0, self.n_p)
-        self.irf0_np = np.ascontiguousarray(irf0.numpy())
-        self.freq_M = torch.fft.rfftfreq(self.M, d=1.0)
-        self.freq_N = torch.fft.rfftfreq(self.n_p, d=1.0)
-        #: the column sums, which normalise the prototype's basis to unit total
-        self.col_sum = self._fold(torch.fft.irfft(self.A, self.M, -1)).sum(-1)
+        self.GK = torch.fft.rfft(gk, self.M, -1)
+        #: A MEASURED RESPONSE PER DETECTOR, when the graph has one.
+        #:
+        #: This model was written for the instrument the prototype simulates:
+        #: one analytic response, the same shape in every detector, moved only
+        #: by a phase ramp.  A real spectrometer has four different measured
+        #: responses, each with its own fitted background, and refusing them
+        #: sent the first real measurement through the prototype's plain
+        #: autograd -- the slowest of the four routes in this folder, where the
+        #: accelerated one is eight times faster (tpeulen, 2026-09-14: "why is
+        #: it using torch not bff?").
+        #:
+        #: What survives is the structure: everything from the response to the
+        #: reconvolution kernel is LINEAR in the response, so the kernel can be
+        #: rebuilt from whatever shape the fit currently holds at the cost of
+        #: one batched transform per detector -- microseconds against the
+        #: seconds an autograd evaluation costs -- and the background stays a
+        #: free parameter with a gradient rather than a constant chosen in
+        #: advance.
+        inst = getattr(graph, 'inst', None)
+        self.measured = dict(getattr(inst, 'measured', {}) or {}) \
+            if getattr(inst, 'kind', 'analytic') == 'measured' else {}
+        #: the prototype's own instrument, kept because `accelerate` replaces
+        #: `graph.inst` with a spectral one and the response's background is
+        #: subtracted by the prototype's method -- there is one implementation
+        #: of that and this is how the fast path reaches it
+        self._inst0 = inst
+        if self.measured:
+            self.irf0 = None
+            self.A = self.IRF0 = self.col_sum = None
+            self.irf0_np = None
+        else:
+            irf0 = L.analytic_irf(E, L.tt(0.0), L.tt(nom[1]), L.tt(nom[3]))
+            self.irf0 = irf0
+            self.A, self.IRF0, self.col_sum = self._kernel(irf0)
+            self.irf0_np = np.ascontiguousarray(irf0.numpy())
         #: the parts to evaluate: (channel, which amplitude vector, detector)
         self.parts = []
         for k in self.keys:
@@ -124,6 +149,44 @@ class TorchSpectralForward:
                 kp = self.pairs[k]
                 self.parts.append((k, kp, L.parse_channel(kp)[1]))
         self.dets = sorted({d for _, _, d in self.parts})
+
+    def _kernel(self, irf):
+        """`(A, IRF0, col_sum)` for one response: the periodic reconvolution of
+        every grid lifetime, in the frequency domain.
+
+        Linear in `irf` -- the trapezoid, the transform and the multiplication
+        by the steady-state kernel all are -- which is what lets a measured
+        response with a FITTED background go through it every evaluation and
+        still carry a gradient.
+        """
+        l = 0.5 * self.dt * irf
+        e = torch.exp(-self.dt / self.taus)[:, None]
+        u = torch.roll(l, 1)[None, :] * e + l[None, :]
+        #: no wrap into the trapezoid at i = 0, written without an in-place
+        #: assignment so that autograd can follow it
+        u = u - torch.nn.functional.pad(
+            (e[:, 0] * l[-1])[:, None], (0, self.n_p - 1))
+        A = torch.fft.rfft(u, self.M, -1) * self.GK
+        IRF0 = torch.fft.rfft(irf, self.n_p)
+        col_sum = self._fold(torch.fft.irfft(A, self.M, -1)).sum(-1)
+        return A, IRF0, col_sum
+
+    def _kernel_for(self, det, vals):
+        """one detector's kernel at the response the fit currently holds"""
+        irf = self._inst0._drop_background(self.measured[det], vals, det)
+        return self._kernel(irf / irf.sum().clamp_min(1e-300))
+
+    def kernels(self, vals):
+        """Each detector's `(A, IRF0, col_sum)` at the response the fit
+        currently holds.  One entry when the response is analytic and shared;
+        one per physical detector when it is measured."""
+        if not self.measured:
+            return None
+        out = {}
+        for det in sorted(self.measured):
+            irf = self._inst0._drop_background(self.measured[det], vals, det)
+            out[det] = self._kernel(irf / irf.sum().clamp_min(1e-300))
+        return out
 
     def _fold(self, lin):
         out = lin[..., :self.n_p] + lin[..., self.n_p:2 * self.n_p]
@@ -136,12 +199,13 @@ class TorchSpectralForward:
         d0 = self.alias.get(det, det)
         return vals[f'irf_shift_{d0}'] + self.offset.get(det, 0.0)
 
-    def responses(self, vals):
+    def responses(self, vals, kern=None):
         """Each detector's response at its own shift, on the fine axis."""
         out = {}
         for d in self.dets:
             sb = self.shift_of(vals, d) / self.dt
-            out[d] = torch.fft.irfft(self.IRF0 * torch.exp(-2j * math.pi * self.freq_N * sb), self.n_p)
+            base = self.IRF0 if kern is None else kern[self.alias.get(d, d)][1]
+            out[d] = torch.fft.irfft(base * torch.exp(-2j * math.pi * self.freq_N * sb), self.n_p)
         return out
 
     def __call__(self, vals, amplitudes):
@@ -151,22 +215,34 @@ class TorchSpectralForward:
         transform, so the cost is one transform of (channels, padded length)
         rather than one per channel per lifetime.
         """
-        irf = self.responses(vals)
-        spec, phase, flat = [], [], []
+        kern = self.kernels(vals)
+        irf = self.responses(vals, kern)
+        spec, phase, flat, Ad = [], [], [], []
         for _, kk, d in self.parts:
             a = amplitudes[kk]
-            spec.append((a[1:self.K + 1] / self.col_sum).to(torch.complex128))
+            A, _, cs = (self.A, None, self.col_sum) if kern is None \
+                else kern[self.alias.get(d, d)]
+            spec.append((a[1:self.K + 1] / cs).to(torch.complex128))
             sb = self.shift_of(vals, d) / self.dt
             phase.append(torch.exp(-2j * math.pi * self.freq_M * sb))
             flat.append(a)
-        S = torch.stack(spec) @ self.A                       # (parts, M/2+1)
+            if kern is not None:
+                Ad.append(A)
+        if kern is None:
+            S = torch.stack(spec) @ self.A                   # (parts, M/2+1)
+        else:
+            #: one kernel per part, so the contraction is per part rather than
+            #: one matmul; still a single batched transform afterwards
+            S = torch.einsum('ik,ikm->im', torch.stack(spec), torch.stack(Ad))
         curves = self._fold(torch.fft.irfft(S * torch.stack(phase), self.M, -1))
         out = {}
         for i, (k, kk, d) in enumerate(self.parts):
             a = flat[i]
             c = curves[i] + a[0] * irf[d] + a[-1] / self.n
             out[k] = (out[k] + c) if k in out else c
-        return {k: self.R @ v for k, v in out.items()}
+        #: no rebin when the model's fine axis IS the measured one, which is
+        #: what a real instrument's channels give
+        return out if self.R is None else {k: self.R @ v for k, v in out.items()}
 
     def check_against(self, vals, amplitudes=None):
         """The check that can fail: against the prototype's basis-and-multiply,
@@ -236,12 +312,17 @@ class SpectralInstrument:
         import math as _m
         f = self.f
         sb = f.shift_of(vals, det) / f.dt
-        cols = f._fold(torch.fft.irfft(f.A * torch.exp(-2j * _m.pi * f.freq_M * sb), f.M, -1)).clamp_min(0.0)
+        if f.measured:
+            d0 = f.alias.get(det, det)
+            A, IRF0, _ = f._kernel_for(d0, vals)
+        else:
+            A, IRF0 = f.A, f.IRF0
+        cols = f._fold(torch.fft.irfft(A * torch.exp(-2j * _m.pi * f.freq_M * sb), f.M, -1)).clamp_min(0.0)
         cols = cols / cols.sum(-1, keepdim=True).clamp_min(1e-300)
-        irf = torch.fft.irfft(f.IRF0 * torch.exp(-2j * _m.pi * f.freq_N * sb), f.n_p).clamp_min(0.0)
+        irf = torch.fft.irfft(IRF0 * torch.exp(-2j * _m.pi * f.freq_N * sb), f.n_p).clamp_min(0.0)
         e1 = torch.ones(f.n, dtype=cols.dtype) / f.n
         B_full = torch.cat([irf[:, None], cols.T[:f.n], e1[:, None]], 1)
-        return (f.E['R'] @ B_full) if f.E.get('R') is not None else B_full
+        return _rebin(f, B_full)
 
 
 class FastPrior:
@@ -446,17 +527,28 @@ def accelerate(model, graph, forward=None):
     return graph
 
 
-def _spectral_basis(f, sb, with_derivative=False):
+def _rebin(f, B):
+    """the rebin, or nothing when the model's fine axis IS the measured one"""
+    R = f.E.get('R')
+    return B if R is None else R @ B
+
+
+def _spectral_basis(f, sb, with_derivative=False, kern=None):
     """The rebinned basis at shift `sb` (in fine bins), and optionally its
-    derivative with respect to that shift -- both from one phase ramp."""
+    derivative with respect to that shift -- both from one phase ramp.
+
+    `kern` is one detector's `(A, IRF0, col_sum)` when the response is
+    measured; without it the shared analytic kernel is used.
+    """
+    A, IRF0 = (f.A, f.IRF0) if kern is None else (kern[0], kern[1])
     ph = torch.exp(-2j * math.pi * f.freq_M * sb)
-    X = f.A * ph
+    X = A * ph
     cols = f._fold(torch.fft.irfft(X, f.M, -1))
     cs = cols.sum(-1, keepdim=True).clamp_min(1e-300)
     ph_n = torch.exp(-2j * math.pi * f.freq_N * sb)
-    irf = torch.fft.irfft(f.IRF0 * ph_n, f.n_p)
+    irf = torch.fft.irfft(IRF0 * ph_n, f.n_p)
     e1 = torch.ones(f.n, dtype=cols.dtype) / f.n
-    B = f.E['R'] @ torch.cat([irf[:, None], (cols / cs).T[:f.n], e1[:, None]], 1)
+    B = _rebin(f, torch.cat([irf[:, None], (cols / cs).T[:f.n], e1[:, None]], 1))
     if not with_derivative:
         return B
     #: d/d(shift) is multiplication by -2 pi i f in the frequency domain; the
@@ -466,9 +558,9 @@ def _spectral_basis(f, sb, with_derivative=False):
     dcols = f._fold(torch.fft.irfft(X * w, f.M, -1))
     dcs = dcols.sum(-1, keepdim=True)
     dnorm = (dcols * cs - cols * dcs) / (cs * cs)
-    dirf = torch.fft.irfft(f.IRF0 * ph_n * (-2j * math.pi * f.freq_N), f.n_p)
+    dirf = torch.fft.irfft(IRF0 * ph_n * (-2j * math.pi * f.freq_N), f.n_p)
     z = torch.zeros(f.n, dtype=cols.dtype)
-    dB = f.E['R'] @ torch.cat([dirf[:, None], dnorm.T[:f.n], z[:, None]], 1)
+    dB = _rebin(f, torch.cat([dirf[:, None], dnorm.T[:f.n], z[:, None]], 1))
     return B, dB
 
 
@@ -485,11 +577,15 @@ class SpectralInstrumentD(SpectralInstrument):
     """
 
     def dbasis(self, det, vals):
-        sb = self.f.shift_of(vals, det) / self.f.dt
-        return _spectral_basis(self.f, sb, with_derivative=True)
+        f = self.f
+        kern = f._kernel_for(f.alias.get(det, det), vals) if f.measured else None
+        return _spectral_basis(f, f.shift_of(vals, det) / f.dt,
+                               with_derivative=True, kern=kern)
 
     def basis(self, det, vals):
-        return _spectral_basis(self.f, self.f.shift_of(vals, det) / self.f.dt)
+        f = self.f
+        kern = f._kernel_for(f.alias.get(det, det), vals) if f.measured else None
+        return _spectral_basis(f, f.shift_of(vals, det) / f.dt, kern=kern)
 
 
 def check_dbasis(model, graph, vals, det=None):
