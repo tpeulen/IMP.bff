@@ -557,7 +557,7 @@ REFERENCE_DYES = {
     'rhd110': dict(
         name='Rhodamine 110 in water',
         tau=(4.00, 0.05, 'log10 decades', 'Magde, Rojas & Seybold, Photochem. Photobiol. 75, 327 (2002)'),
-        rho=None,          # rotational correlation time: no citable value supplied
+        rho=(0.10, 0.20, 'ns, range', 'tpeulen, 2026-09-14 (prompt 425)'),
         r0=None,           # fundamental anisotropy: no citable value supplied
     ),
 }
@@ -574,6 +574,15 @@ def apply_reference_priors(m, dye='rhd110', verbose=True):
         if v.name == 'log10_tau_ref' and d.get('tau'):
             mu, sd = d['tau'][0], d['tau'][1]
             v.prior = L.Gaussian(math.log10(mu), sd); done.append(('log10_tau_ref', f'{mu} ns +- {sd} decades', d['tau'][3]))
+        if v.name == 'w_rho_ref' and d.get('rho'):
+            #: a range (lo, hi): a log-normal bump at the geometric centre with
+            #: half the range in decades as its width, as the donor's own
+            #: rotational prior is built (`log_bump`, `alr_of`, unit sd on ALR)
+            lo, hi = d['rho'][0], d['rho'][1]
+            centre = math.sqrt(lo * hi); width = 0.5 * math.log10(hi / lo)
+            grid = np.asarray(m['E']['rho'], float)
+            v.prior = L.LogisticNormal(L.alr_of(L.log_bump(grid, centre, width)), np.ones(len(grid) - 1))
+            done.append(('w_rho_ref', f'{lo}-{hi} ns (bump at {centre:.3f} ns, {width:.2f} decades)', d['rho'][3]))
         if v.name == 'r0_ref' and d.get('r0'):
             mu, sd = d['r0'][0], d['r0'][1]
             lo, hi = max(0.0, mu - 2 * sd), min(0.4, mu + 2 * sd)
