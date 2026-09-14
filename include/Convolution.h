@@ -80,6 +80,9 @@ class IMPBFFEXPORT Convolution : public GraphNode {
   //! The key of the optional scalar input carrying the response's background.
   static const char* response_background_port_key() { return "response_background"; }
 
+  //! Read the response from the vector input port `response` on every evaluation.
+  void set_response_from_port(bool v);
+
   //! The key of the input port carrying the curve.
   static const char* curve_port_key() { return "curve"; }
   //! The key of the optional scalar input port carrying the timeshift.
@@ -97,6 +100,7 @@ class IMPBFFEXPORT Convolution : public GraphNode {
   std::vector<double> out_;
   bool normalize_response_ = true;
   std::string mode_ = "causal";
+  bool response_from_port_ = false;
   double period_ = 0.0;
   std::vector<double> full_;
   std::vector<double> cleaned_;

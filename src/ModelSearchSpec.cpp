@@ -103,6 +103,17 @@ void add_dataset_scalars(const std::string& slot, const FitDataset& dataset,
   scope[slot + "_first"] = first_value;
   scope[slot + "_last"] = last_value;
   scope[slot + "_amplitude"] = amplitude;
+  // Where the curve first rises above a tenth of its maximum: the channel a
+  // modelled response peak starts from, which ChiSurf takes as its position.
+  {
+    double peak = -std::numeric_limits<double>::infinity();
+    for (std::size_t i = 0; i < n; ++i) peak = std::max(peak, values[i]);
+    std::size_t rise = 0;
+    for (std::size_t i = 0; i < n; ++i) {
+      if (values[i] > 0.1 * peak) { rise = i; break; }
+    }
+    scope[slot + "_rise_index"] = static_cast<double>(rise);
+  }
   scope[slot + "_coordinates"] =
       static_cast<double>(dataset.get_number_of_coordinates());
   // The sampling step of an evenly sampled axis -- a TCSPC channel width, read

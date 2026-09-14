@@ -359,3 +359,35 @@ def test_the_basis_is_only_the_periodic_convolutions():
         decay.set_emit_basis(True)
     with pytest.raises((ValueError, RuntimeError)):
         decay.set_convolution_mode("reflected")
+
+
+def test_a_modelled_response_is_the_generalized_normal_peak():
+    node = bff.GraphNodeRegistry.create("GeneralizedNormalCurve", "irf")
+    node.configure(json.dumps({"n_points": N, "dt": DT, "area": 5000.0, "floor": 1.0}))
+    for key, value in {"loc": 1.2, "scale": 0.12, "shape": -0.31}.items():
+        node.add_input_port(key, bff.GraphPort(value))
+    node.add_output_port("irf", bff.GraphPort([0.0], False, True))
+    node.update()
+    x = np.arange(N) * DT
+    density = np.asarray(bff.generalized_normal_distribution(x, 1.2, 0.12, -0.31, True)) * 5000.0
+    density[density < 1.0] = 0.0
+    np.testing.assert_allclose(np.asarray(node.get_output_port("irf").value), density, rtol=1e-13)
+
+
+def test_a_lifetime_family_fits_with_a_modelled_response():
+    """No IRF measured: the peak's width is a parameter like any other."""
+    x = np.arange(N) * DT
+    spec = bff.ModelSearchSpec.from_name("tcspc_lifetime")
+    placeholder = bff.FitDataset()
+    placeholder.set_values_array(np.ascontiguousarray(np.full(N, 10.0)))
+    placeholder.set_coordinate_array(0, "x", np.ascontiguousarray(x))
+    spec.set_dataset("decay", placeholder)
+    spec.set_scalar("dt", DT)
+    spec.set_scalar("period", 12.5)
+    spec.set_scalar("generated_response", 1.0)
+    model = spec.get_model()
+    model.select_structure("lifetime.components.1")
+    assert "instrument.irf_width" in list(model.get_parameter_ids())
+    node = model.get_structure_curve_node("lifetime.components.1", "decay")
+    curve = np.array(model.get_structure_output("lifetime.components.1", node))
+    assert np.all(np.isfinite(curve)) and curve.max() > curve.min()
