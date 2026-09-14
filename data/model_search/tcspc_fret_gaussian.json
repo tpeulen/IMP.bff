@@ -247,7 +247,7 @@
     "count": "g_max",
     "body": {
      "distance.mean.{i}": {
-      "name": "R{i}",
+      "name": "RDA{i}",
       "initial": "50+10*{i}",
       "lower": "rda_min",
       "upper": "rda_max",
