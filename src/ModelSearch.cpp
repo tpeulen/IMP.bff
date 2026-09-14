@@ -673,6 +673,29 @@ const std::string& FittingModelSearchProblem::get_last_failure() const {
 
 namespace {
 
+//! Copies one port of whichever topology is current to a port that stays put.
+class OutputRelay : public GraphNode {
+ public:
+  explicit OutputRelay(const std::string& name) : GraphNode(name) {}
+  void evaluate() override {
+    const std::shared_ptr<GraphPort> in = get_input_port("in");
+    const std::shared_ptr<GraphPort> out = get_output_port("out");
+    if (in && out && in->is_linked()) {
+      out->set_value_vector(in->get_link_ref()->get_values_ref());
+    }
+    set_valid(true);
+  }
+  std::string get_node_type() const override { return "OutputRelay"; }
+};
+
+struct PublishedOutput {
+  std::string node;
+  std::string port;
+  std::shared_ptr<GraphNode> relay;
+  //! The port the relay currently follows; compared, never dereferenced.
+  const GraphPort* source = nullptr;
+};
+
 struct MultiStructureRecord {
   std::shared_ptr<GraphNode> objective;
   std::vector<std::shared_ptr<GraphNode> > graph_nodes;
@@ -730,6 +753,8 @@ struct MultiStructureModelSearchProblem::Impl {
   //! set_parameter_released.
   std::set<std::string> released;
   std::atomic<bool> cancelled;
+  //! See MultiStructureModelSearchProblem::publish_output.
+  std::map<std::string, PublishedOutput> outputs;
   int last_status = 0;
   std::string last_failure;
 
@@ -823,7 +848,37 @@ struct MultiStructureModelSearchProblem::Impl {
   void select_and_update(const std::string& structure_key) {
     MultiStructureRecord& selected = structure(structure_key);
     active_structure = structure_key;
+    relink_outputs();
     selected.objective->update();
+  }
+
+  //! Point every published output at the current topology's port.
+  void relink_outputs() {
+    if (outputs.empty() || active_structure.empty()) return;
+    const MultiStructureRecord& selected = structure(active_structure);
+    for (std::map<std::string, PublishedOutput>::iterator it = outputs.begin();
+         it != outputs.end(); ++it) {
+      PublishedOutput& published = it->second;
+      const std::string wanted = active_structure + "." + published.node;
+      std::shared_ptr<GraphPort> source;
+      std::vector<std::shared_ptr<GraphNode> > candidates = selected.graph_nodes;
+      candidates.push_back(selected.objective);
+      for (std::size_t i = 0; i < candidates.size() && !source; ++i) {
+        if (candidates[i] && (candidates[i]->get_name() == wanted ||
+                              candidates[i]->get_name() == published.node)) {
+          source = candidates[i]->get_output_port(published.port);
+        }
+      }
+      if (source.get() == published.source) continue;
+      const std::shared_ptr<GraphPort> in = published.relay->get_input_port("in");
+      if (source) {
+        in->set_link(source);
+      } else {
+        in->unlink();
+      }
+      published.relay->set_valid(false);
+      published.source = source.get();
+    }
   }
 
   void restore(const FitSearchSnapshot& snapshot,
@@ -1825,6 +1880,83 @@ std::vector<double> MultiStructureModelSearchProblem::get_structure_output(
         "node '" + node_name + "' publishes no output under its own name");
   }
   return out->get_values_ref();
+}
+
+void MultiStructureModelSearchProblem::publish_output(
+    const std::string& name, const std::string& node_name,
+    const std::string& port_name) {
+  if (name.empty() || node_name.empty() || port_name.empty()) {
+    throw ModelSearchConfigurationError(
+        "a published output needs a name, a node and a port");
+  }
+  PublishedOutput& published = impl_->outputs[name];
+  published.node = node_name;
+  published.port = port_name;
+  published.source = nullptr;
+  if (!published.relay) {
+    published.relay = std::make_shared<OutputRelay>("output." + name);
+    published.relay->add_input_port(
+        "in", std::make_shared<GraphPort>(std::vector<double>(1, 0.0)));
+    published.relay->add_output_port(
+        "out", std::make_shared<GraphPort>(std::vector<double>(1, 0.0), false,
+                                           true, false, false, 0.0, 0.0,
+                                           GRAPH_PORT_FLOAT_VECTOR, "out"));
+  } else {
+    published.relay->get_input_port("in")->unlink();
+  }
+  impl_->relink_outputs();
+}
+
+std::shared_ptr<GraphPort> MultiStructureModelSearchProblem::get_output_port(
+    const std::string& name) const {
+  std::map<std::string, PublishedOutput>::const_iterator found =
+      impl_->outputs.find(name);
+  if (found == impl_->outputs.end()) {
+    std::ostringstream known;
+    for (std::map<std::string, PublishedOutput>::const_iterator it =
+             impl_->outputs.begin();
+         it != impl_->outputs.end(); ++it) {
+      known << (it == impl_->outputs.begin() ? " " : ", ") << it->first;
+    }
+    throw ModelSearchConfigurationError(
+        "the model publishes no output '" + name + "'; it publishes" +
+        (impl_->outputs.empty() ? std::string(" none") : known.str()));
+  }
+  return found->second.relay->get_output_port("out");
+}
+
+std::vector<std::string> MultiStructureModelSearchProblem::get_output_names()
+    const {
+  std::vector<std::string> names;
+  for (std::map<std::string, PublishedOutput>::const_iterator it =
+           impl_->outputs.begin();
+       it != impl_->outputs.end(); ++it) {
+    names.push_back(it->first);
+  }
+  return names;
+}
+
+void MultiStructureModelSearchProblem::adopt_output_ports(
+    const MultiStructureModelSearchProblem& previous) {
+  for (std::map<std::string, PublishedOutput>::const_iterator it =
+           previous.impl_->outputs.begin();
+       it != previous.impl_->outputs.end(); ++it) {
+    PublishedOutput& published = impl_->outputs[it->first];
+    if (published.relay) {
+      // Declared here already: keep this model's node and port, and the
+      // previous relay that everything follows.
+      const std::string node = published.node;
+      const std::string port = published.port;
+      published = it->second;
+      published.node = node;
+      published.port = port;
+    } else {
+      published = it->second;
+    }
+    published.source = nullptr;
+    published.relay->get_input_port("in")->unlink();
+  }
+  impl_->relink_outputs();
 }
 
 std::vector<double> MultiStructureModelSearchProblem::get_structure_port(

@@ -1,11 +1,11 @@
 {
  "schema": "bff.model_search.v1",
- "family": "tcspc_lifetime",
- "title": "Lifetime",
+ "family": "tcspc_mixture",
+ "title": "Lifetime mixture",
  "presentation": {
   "_comment": "How an application presents this family. Read by applications, ignored by the engine.",
   "groups": {
-   "lifetimes": "Lifetimes",
+   "fractions": "Fractions",
    "instrument": "Instrument"
   },
   "datasets": {
@@ -28,6 +28,9 @@
    }
   },
   "scalars": {
+   "number_of_models": {
+    "label": "Mixed models"
+   },
    "dt": {
     "label": "dt [ns]",
     "default": "decay_dx"
@@ -35,9 +38,6 @@
    "period": {
     "label": "Period [ns]",
     "default": 12.5
-   },
-   "max_components": {
-    "label": "Most lifetime components"
    },
    "autoscale": {
     "label": "Autoscale n0",
@@ -129,7 +129,7 @@
   "period"
  ],
  "optional_scalars": {
-  "max_components": 3,
+  "number_of_models": 1,
   "autoscale": 0,
   "pile_up": 0,
   "dead_time": 0.0,
@@ -159,8 +159,8 @@
  ],
  "axes": {
   "n": {
-   "from": 1,
-   "to": "max_components"
+   "from": "number_of_models",
+   "to": "number_of_models"
   }
  },
  "parameters": {
@@ -168,19 +168,12 @@
    "index": "i",
    "count": "n_max",
    "body": {
-    "lifetime.amplitude.{i}": {
-     "name": "a{i}",
-     "initial": "1/({i}+1)",
+    "mixture.fraction.{i}": {
+     "name": "x{i}",
+     "initial": 1.0,
      "lower": 0.0,
      "upper": null,
-     "group": "lifetimes"
-    },
-    "lifetime.tau.{i}": {
-     "name": "t{i}",
-     "initial": "min(period,max(dt,{i}+1))",
-     "lower": "max(dt*0.01,1e-12)",
-     "upper": "period",
-     "group": "lifetimes"
+     "group": "fractions"
     }
    }
   },
@@ -248,10 +241,10 @@
   }
  },
  "initial_axes": {
-  "n": 1
+  "n": "number_of_models"
  },
  "template": {
-  "key": "lifetime.components.{n}",
+  "key": "mixture.models.{n}",
   "nodes": {
    "generated_response": {
     "type": "GeneralizedNormalCurve",
@@ -272,12 +265,30 @@
      "@name": "float_vector"
     }
    },
+   "mixture": {
+    "type": "LifetimeSpectrumMixture",
+    "config": {
+     "number_of_species": "{n}"
+    },
+    "inputs": {
+     "repeat": {
+      "index": "i",
+      "count": "n",
+      "body": {
+       "s{i}": "$lifetime_spectrum.{i}",
+       "x{i}": "#mixture.fraction.{i}"
+      }
+     }
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
    "decay": {
     "type": "TCSPCDecay",
     "config": {
-     "number_of_lifetimes": "{n}",
-     "normalize_amplitudes": true,
-     "absolute_amplitudes": true
+     "number_of_lifetimes": 1,
+     "spectrum_from_port": true
     },
     "config_rules": {
      "timing": [
@@ -342,14 +353,7 @@
      "linearization_curve": "linearization_curve"
     },
     "inputs": {
-     "repeat": {
-      "index": "i",
-      "count": "n",
-      "body": {
-       "a{i}": "#lifetime.amplitude.{i}",
-       "t{i}": "#lifetime.tau.{i}"
-      }
-     },
+     "lifetime_spectrum": "mixture",
      "scatter": "#instrument.scatter",
      "background": "#instrument.background",
      "n0": "#instrument.n0",
@@ -383,14 +387,7 @@
      "index": "i",
      "from": 1,
      "count": "n",
-     "body": "lifetime.amplitude.{i}"
-    }
-   },
-   {
-    "each": {
-     "index": "i",
-     "count": "n",
-     "body": "lifetime.tau.{i}"
+     "body": "mixture.fraction.{i}"
     }
    },
    "instrument.scatter",
@@ -398,62 +395,32 @@
    "instrument.n0",
    "instrument.timeshift"
   ],
-  "initial": {
-   "repeat": {
-    "index": "i",
-    "count": "n_max",
-    "body": {
-     "lifetime.amplitude.{i}": "1/{n}"
-    }
-   }
-  },
   "ess": "decay_size",
   "selection": "bic",
-  "starts": [
-   {
-    "repeat": {
-     "index": "i",
-     "count": "n_max",
-     "body": {
-      "lifetime.tau.{i}": "max(dt*2,period/(2*4**({n}-1-{i})))"
-     }
-    }
-   },
-   {
-    "repeat": {
-     "index": "i",
-     "count": "n_max",
-     "body": {
-      "lifetime.tau.{i}": "max(dt*2,period/(2*12**({n}-1-{i})))"
-     }
-    }
-   }
-  ],
-  "label": "{n} lifetime(s)"
+  "label": "{n} model(s)"
  },
  "moves": [
   {
    "action": "stop",
-   "prior": 0.25,
+   "prior": 1.0,
    "terminal": true
-  },
-  {
-   "action": "add-component",
-   "axis": "n",
-   "delta": 1,
-   "prior": 0.5
-  },
-  {
-   "action": "remove-component",
-   "axis": "n",
-   "delta": -1,
-   "prior": 0.25
   }
  ],
  "outputs": {
   "lifetime_spectrum": {
    "node": "decay",
    "port": "spectrum"
+  }
+ },
+ "ports": {
+  "repeat": {
+   "index": "i",
+   "count": "n_max",
+   "body": {
+    "lifetime_spectrum.{i}": {
+     "label": "Lifetime spectrum of model {i}"
+    }
+   }
   }
  }
 }

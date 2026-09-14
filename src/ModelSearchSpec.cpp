@@ -455,6 +455,9 @@ void expand_template(SpecJson& document,
   if (document.contains("parameters")) {
     document["parameters"] = expand(document["parameters"], widest);
   }
+  if (document.contains("ports")) {
+    document["ports"] = expand(document["ports"], widest);
+  }
 
   std::vector<std::vector<int> > combinations(1, std::vector<int>());
   for (std::size_t a = 0; a < names.size(); ++a) {
@@ -548,7 +551,12 @@ void expand_template(SpecJson& document,
       if (!start_it->contains(names[a])) {
         refuse("'initial_axes' does not say where '" + names[a] + "' starts");
       }
-      start.push_back((*start_it)[names[a]].get<int>());
+      const double v = evaluate_rule((*start_it)[names[a]],
+                                     "'initial_axes' '" + names[a] + "'", values);
+      if (v != std::floor(v)) {
+        refuse("'initial_axes' '" + names[a] + "' must be an integer");
+      }
+      start.push_back(static_cast<int>(v));
     }
     if (!keys.count(start)) refuse("'initial_axes' is outside the family");
     document["initial_structure"] = keys[start];
@@ -736,6 +744,8 @@ struct ModelSearchSpec::Impl {
   bool dirty = true;
   //! A catalogue of equations to expand into structures; see set_equations.
   SpecJson equations;
+  //! Ports outside this model a description reads as `$<name>`.
+  std::map<std::string, std::shared_ptr<GraphPort> > ports;
   //! The document after expanding what depends on bound data.
   //! The description as written, when its axes are read from scalars.
   SpecJson source;
@@ -887,6 +897,38 @@ void ModelSearchSpec::set_dataset(const std::string& name,
 
 void ModelSearchSpec::unset_dataset(const std::string& name) {
   if (impl_->datasets.erase(name)) impl_->dirty = true;
+}
+
+void ModelSearchSpec::set_port(const std::string& name,
+                               std::shared_ptr<GraphPort> port) {
+  if (!port) refuse("the port bound to '" + name + "' is null");
+  std::map<std::string, std::shared_ptr<GraphPort> >::const_iterator found =
+      impl_->ports.find(name);
+  if (found != impl_->ports.end() && found->second == port) return;
+  impl_->ports[name] = port;
+  impl_->dirty = true;
+}
+
+void ModelSearchSpec::unset_port(const std::string& name) {
+  if (impl_->ports.erase(name)) impl_->dirty = true;
+}
+
+std::vector<std::string> ModelSearchSpec::get_port_names() const {
+  std::vector<std::string> names;
+  SpecJson document = impl_->document;
+  if (!impl_->equations.is_null() || !impl_->source.is_null()) {
+    try {
+      document = impl_->expanded();
+    } catch (const std::exception&) {
+    }
+  }
+  SpecJson::const_iterator found = document.find("ports");
+  if (found != document.end() && found->is_object()) {
+    for (SpecJson::const_iterator it = found->begin(); it != found->end(); ++it) {
+      names.push_back(it.key());
+    }
+  }
+  return names;
 }
 
 const std::vector<double>& ModelSearchSpec::get_dataset_values(
@@ -1420,6 +1462,28 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build_over(
           continue;
         }
 
+        if (!reference.empty() && reference[0] == '$') {
+          const std::string name = reference.substr(1);
+          SpecJson::const_iterator declared = document.find("ports");
+          if (declared == document.end() || !declared->contains(name)) {
+            refuse(input_where + " reads the port '" + name +
+                   "', which the description does not declare");
+          }
+          std::map<std::string, std::shared_ptr<GraphPort> >::const_iterator
+              bound = impl_->ports.find(name);
+          if (bound == impl_->ports.end()) {
+            refuse(input_where + " reads the port '" + name +
+                   "', which nothing bound");
+          }
+          std::shared_ptr<GraphPort> port = node->get_input_port(port_name);
+          if (!port) {
+            port = std::make_shared<GraphPort>(std::vector<double>(1, 0.0));
+            node->add_input_port(port_name, port);
+          }
+          port->set_link(bound->second);
+          continue;
+        }
+
         if (!reference.empty() && reference[0] == '@') {
           const std::string body = reference.substr(1);
           const std::size_t dot = body.find('.');
@@ -1703,6 +1767,20 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build_over(
         evaluate_rule(*budget_it, "the description 'maxfev'", scope);
     if (!(budget > 0.0)) refuse("'maxfev' must be positive");
     problem->set_minimizer_maxfev(static_cast<int>(budget));
+  }
+
+  // What the model publishes, for another model to follow. The ports stay
+  // the ones a previous build published, so a follower keeps following.
+  if (previous) problem->adopt_output_ports(*previous);
+  SpecJson::const_iterator outputs_it = document.find("outputs");
+  if (outputs_it != document.end()) {
+    if (!outputs_it->is_object()) refuse("'outputs' must be an object");
+    for (SpecJson::const_iterator oit = outputs_it->begin();
+         oit != outputs_it->end(); ++oit) {
+      const std::string where = "output '" + oit.key() + "'";
+      problem->publish_output(oit.key(), require_string(*oit, "node", where),
+                              require_string(*oit, "port", where));
+    }
   }
 
   problem->set_initial_structure(

@@ -452,6 +452,24 @@ class IMPBFFEXPORT MultiStructureModelSearchProblem
                                          const std::string& node_name,
                                          const std::string& port_name);
 
+  //! Publish a named output of the model, whichever topology is current.
+  /*! `node_name` is a node of every topology as a description names it
+      (`decay`, not `lifetime.components.2.decay`) and `port_name` one of its
+      outputs. The port #get_output_port returns stays the same object while
+      the model moves between topologies and while it is rebuilt, so another
+      model's graph can follow it: a mixture reads the lifetime spectrum of
+      each model it mixes this way, evaluated on demand. A topology without
+      that node leaves the output unlinked. */
+  void publish_output(const std::string& name, const std::string& node_name,
+                      const std::string& port_name);
+  //! The stable port of a published output. \throws ModelSearchConfigurationError
+  std::shared_ptr<GraphPort> get_output_port(const std::string& name) const;
+  //! The names of the published outputs.
+  std::vector<std::string> get_output_names() const;
+  //! Keep the published output ports of `previous`, which this model replaces.
+  /*! Whatever follows them keeps following, now into this model. */
+  void adopt_output_ports(const MultiStructureModelSearchProblem& previous);
+
   //! Make a topology current without touching any value.
   /*! What an application does when a user picks a topology: the registry
       keeps the numbers the user sees, and only which of them the topology
