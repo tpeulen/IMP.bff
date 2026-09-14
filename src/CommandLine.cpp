@@ -295,12 +295,9 @@ const char* PY_PROGRAM = "imp_bff_py";
 /*! Each is forwarded, words untouched, to `imp_bff_py`. An entry leaves this
     list in the commit that compiles it. */
 const char* const FORWARDED[][2] = {
-    {"flexfit", "Flexible fitting against FRET distances (runs imp_bff_py)."},
     {"rmsd", "RMSDs of an OLGA ol4 table to reference structures (runs imp_bff_py)."},
     {"av-vs-rotamer", "Compare AV and rotamer label models (runs imp_bff_py)."},
     {"analyze-trajectories", "Dye density analysis of trajectories (runs imp_bff_py)."},
-    {"dock", "Replica-exchange rigid-body docking (runs imp_bff_py)."},
-    {"dock-errors", "Docking spread over independent starts (runs imp_bff_py)."},
 };
 
 //! Run `imp_bff_py <words...>` and hand back its exit code.
@@ -373,6 +370,7 @@ std::unique_ptr<CLI::App> build_app(std::shared_ptr<int> rc) {
   add_modelling_subs(*app);
   add_dye_subs(*app);
   add_simulate_subs(*app);
+  add_dock_subs(*app);
 #endif
 
   for (std::size_t i = 0; i < sizeof(FORWARDED) / sizeof(FORWARDED[0]); ++i) {

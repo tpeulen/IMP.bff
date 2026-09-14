@@ -174,6 +174,8 @@ IMPBFFEXPORT void add_modelling_subs(CLI::App& app);
 IMPBFFEXPORT void add_dye_subs(CLI::App& app);
 //! simulate (IMP layer)
 IMPBFFEXPORT void add_simulate_subs(CLI::App& app);
+//! dock, dock-errors, flexfit (IMP layer)
+IMPBFFEXPORT void add_dock_subs(CLI::App& app);
 #endif
 
 }  // namespace cli
