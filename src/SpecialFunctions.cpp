@@ -5,6 +5,11 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 #include <IMP/bff/SpecialFunctions.h>
+
+#include <boost/math/special_functions/gamma.hpp>
+
+#include <limits>
+#include <stdexcept>
 #include <IMP/bff/internal/OutputView.h>
 
 #include <cmath>
@@ -43,6 +48,29 @@ void i0_array(const std::vector<double>& x, double** out_view, int* n_out_view) 
     std::vector<double> out(x.size());
     for (std::size_t i = 0; i < x.size(); ++i) out[i] = i0(x[i]);
     internal::copy_to_view(out, out_view, n_out_view);
+}
+
+double gamma_q(double a, double x) {
+  if (!(a > 0.0)) {
+    throw std::domain_error("gamma_q: the shape must be positive");
+  }
+  if (x < 0.0) {
+    throw std::domain_error("gamma_q: the argument must be non-negative");
+  }
+  return boost::math::gamma_q(a, x);
+}
+
+double chi2_p_value(double chi2, double dof) {
+  if (!(dof > 0.0)) {
+    // No degrees of freedom left: the model can reach the data exactly and
+    // the fit says nothing about whether it should. Refusing to answer is
+    // more honest than returning a probability of one.
+    return std::numeric_limits<double>::quiet_NaN();
+  }
+  if (chi2 < 0.0) {
+    throw std::domain_error("chi2_p_value: the misfit must be non-negative");
+  }
+  return gamma_q(0.5 * dof, 0.5 * chi2);
 }
 
 IMPBFF_END_NAMESPACE

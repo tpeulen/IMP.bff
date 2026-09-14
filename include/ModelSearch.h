@@ -365,6 +365,19 @@ class IMPBFFEXPORT MultiStructureModelSearchProblem
                                double complexity);
   void clear_structure_selection(const std::string& structure_key);
 
+  //! Refuse a structure whose chi-square test falls below this probability.
+  /*! Acceptability then means "describes the data", which is separate from
+      winning the comparison. */
+  void set_structure_acceptance(const std::string& structure_key,
+                                double least_probability);
+
+  //! Goodness of fit of the last evaluation: P(chi2 >= observed).
+  /*! The chi-square test, which asks whether the winner describes the data
+      at all -- a question no comparison between candidates answers, because
+      the best of a bad family is still bad. NaN when the fit left no degrees
+      of freedom. */
+  double get_last_chi2_p_value() const;
+
   //! Reduced chi-square of the last evaluation: chi2 / (n - k - 1).
   /*! The goodness-of-fit question, which is separate from the comparison:
       a model can be the best of a family and still not describe the data.
