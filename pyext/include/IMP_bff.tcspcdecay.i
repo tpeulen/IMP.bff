@@ -14,3 +14,7 @@
 %shared_ptr(IMP::bff::TCSPCDecay);
 %include "IMP/bff/TCSPCDecay.h"
 
+/* A sampled curve convolved with a measured response -- generic, and what
+   feeds TCSPCDecay's instrument stage when the model is already a decay. */
+%shared_ptr(IMP::bff::Convolution);
+%include "IMP/bff/Convolution.h"

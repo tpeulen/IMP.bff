@@ -1,5 +1,6 @@
 [
  "equations",
+ "equations_convolved",
  "fcs_analytical",
  "tcspc_anisotropy",
  "tcspc_lifetime"
