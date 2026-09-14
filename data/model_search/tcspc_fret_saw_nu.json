@@ -8,6 +8,8 @@
    "chain": "Chain",
    "fret": "FRET",
    "donor": "Donor",
+   "rotations": "Rotations",
+   "anisotropy": "Anisotropy",
    "instrument": "Instrument"
   },
   "datasets": {
@@ -45,6 +47,12 @@
    "rda_linear": {
     "label": "Linear distance axis",
     "kind": "flag"
+   },
+   "polarization": {
+    "label": "Polarization (0 VM, 1 VV, 2 VH, 3 VV/VH)"
+   },
+   "rotations": {
+    "label": "Rotational correlation times"
    },
    "dt": {
     "label": "dt [ns]",
@@ -172,6 +180,8 @@
   "rda_max": 130.0,
   "rda_resolution": 96,
   "rda_linear": 0,
+  "polarization": 0,
+  "rotations": 1,
   "autoscale": 0,
   "pile_up": 0,
   "dead_time": 0.0,
@@ -203,6 +213,10 @@
   "d": {
    "from": "donor_lifetimes",
    "to": "donor_lifetimes"
+  },
+  "m": {
+   "from": "rotations",
+   "to": "rotations"
   }
  },
  "parameters": {
@@ -225,6 +239,28 @@
       "lower": "max(dt*0.01,1e-12)",
       "upper": "period",
       "group": "donor",
+      "free": false
+     }
+    }
+   },
+   {
+    "index": "j",
+    "count": "m_max",
+    "body": {
+     "rotation.amplitude.{j}": {
+      "name": "b{j}",
+      "initial": "1/({j}+1)",
+      "lower": 0.0,
+      "upper": 1.0,
+      "group": "rotations",
+      "free": false
+     },
+     "rotation.time.{j}": {
+      "name": "rho{j}",
+      "initial": "min(period,max(dt,{j}+1))",
+      "lower": "max(dt*0.01,1e-12)",
+      "upper": "period",
+      "group": "rotations",
       "free": false
      }
     }
@@ -274,6 +310,38 @@
    "lower": 0.0,
    "upper": 1.0,
    "group": "fret"
+  },
+  "anisotropy.r0": {
+   "name": "r0",
+   "initial": 0.38,
+   "lower": 0.0,
+   "upper": 0.4,
+   "group": "anisotropy",
+   "free": false
+  },
+  "anisotropy.g": {
+   "name": "g",
+   "initial": 1.0,
+   "free": false,
+   "lower": 0.1,
+   "upper": 10.0,
+   "group": "anisotropy"
+  },
+  "anisotropy.l1": {
+   "name": "l1",
+   "initial": 0.0308,
+   "free": false,
+   "lower": 0.0,
+   "upper": 1.0,
+   "group": "anisotropy"
+  },
+  "anisotropy.l2": {
+   "name": "l2",
+   "initial": 0.0368,
+   "free": false,
+   "lower": 0.0,
+   "upper": 1.0,
+   "group": "anisotropy"
   },
   "instrument.scatter": {
    "name": "scatter",
@@ -339,7 +407,8 @@
   }
  },
  "initial_axes": {
-  "d": "donor_lifetimes"
+  "d": "donor_lifetimes",
+  "m": "rotations"
  },
  "template": {
   "key": "tcspc_fret_saw_nu.donor.{d}",
@@ -429,6 +498,41 @@
      "fret_rates": "float_vector"
     }
    },
+   "polarized": {
+    "type": "PhotophysicsAnisotropySpectrumNode",
+    "config": {
+     "number_of_rotations": "{m}"
+    },
+    "config_rules": {
+     "polarization": {
+      "options": [
+       "VM",
+       "VV",
+       "VH",
+       "VV/VH"
+      ],
+      "index": "polarization"
+     }
+    },
+    "inputs": {
+     "lifetime_spectrum": "fret",
+     "repeat": {
+      "index": "j",
+      "count": "m",
+      "body": {
+       "b{j}": "#rotation.amplitude.{j}",
+       "rho{j}": "#rotation.time.{j}"
+      }
+     },
+     "r0": "#anisotropy.r0",
+     "g": "#anisotropy.g",
+     "l1": "#anisotropy.l1",
+     "l2": "#anisotropy.l2"
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
    "decay": {
     "type": "TCSPCDecay",
     "config": {
@@ -498,7 +602,7 @@
      "linearization_curve": "linearization_curve"
     },
     "inputs": {
-     "lifetime_spectrum": "fret",
+     "lifetime_spectrum": "polarized",
      "scatter": "#instrument.scatter",
      "background": "#instrument.background",
      "n0": "#instrument.n0",
