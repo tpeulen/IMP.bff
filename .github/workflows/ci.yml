@@ -190,7 +190,7 @@ jobs:
           for attempt in 1 2 3; do
             "$conda_exe" create -y -n bff-test --strict-channel-priority \
               -c ./imp-bld -c conda-forge \
-              imp pytest pooch ihm && break
+              imp pytest pooch ihm scipy && break
             [ "$attempt" -lt 3 ] || exit 1
             echo "retrying test env creation (attempt $attempt failed)"
             sleep 10
