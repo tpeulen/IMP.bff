@@ -182,8 +182,13 @@ jobs:
       - name: Install the custom IMP module build into a test env
         shell: bash -e {0}
         run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            conda_exe="$CONDA/Scripts/conda.exe"
+          else
+            conda_exe=conda
+          fi
           for attempt in 1 2 3; do
-            conda create -y -n bff-test --strict-channel-priority \
+            "$conda_exe" create -y -n bff-test --strict-channel-priority \
               -c ./imp-bld -c conda-forge \
               imp pytest pooch ihm && break
             [ "$attempt" -lt 3 ] || exit 1
@@ -197,9 +202,14 @@ jobs:
       - name: Run fast tests
         shell: bash -e {0}
         run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            conda_exe="$CONDA/Scripts/conda.exe"
+          else
+            conda_exe=conda
+          fi
           # Keep test discovery and execution in the same interpreter invocation
           # to avoid shell-feature differences across runners.
-          conda run -n bff-test --no-capture-output python - <<'PY'
+          "$conda_exe" run -n bff-test --no-capture-output python - <<'PY'
           import os
           import shutil
           import subprocess
