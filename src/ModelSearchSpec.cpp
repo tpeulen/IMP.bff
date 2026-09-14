@@ -613,6 +613,16 @@ void ModelSearchSpec::set_dataset(const std::string& name,
   impl_->datasets[name] = dataset;
 }
 
+const std::vector<double>& ModelSearchSpec::get_dataset_values(
+    const std::string& name) const {
+  std::map<std::string, FitDataset>::const_iterator found =
+      impl_->datasets.find(name);
+  if (found == impl_->datasets.end()) {
+    refuse("nothing is bound to the measurement '" + name + "'");
+  }
+  return found->second.get_values();
+}
+
 void ModelSearchSpec::set_scalar(const std::string& name, double value) {
   impl_->scalars[name] = value;
 }
@@ -1064,6 +1074,25 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build()
 
     problem->add_structure(key, objective->second, ids, owners, initial_values,
                            fixed_mask, residual_key);
+
+    // Which node's curve is compared against which measurement. The objective
+    // bound to a measurement reads its model from one node, so this is not a
+    // guess -- and recording it lets the family be run backwards, generating
+    // the measurement its parameters imply.
+    for (std::size_t n = 0; n < node_order.size(); ++n) {
+      const SpecJson& node_spec = nodes[node_order[n]];
+      SpecJson::const_iterator bind = node_spec.find("bind");
+      if (bind == node_spec.end()) continue;
+      SpecJson::const_iterator data = bind->find("data");
+      if (data == bind->end()) continue;
+      const std::shared_ptr<GraphPort> model_port =
+          built[node_order[n]]->get_input_port("model");
+      if (!model_port || !model_port->get_link()) continue;
+      const std::shared_ptr<GraphNode> source = model_port->get_link()->get_node();
+      if (!source) continue;
+      problem->set_structure_curve(key, data->get<std::string>(),
+                                   source->get_name());
+    }
 
     // Further declared starting points. One seed cannot be trusted to reach
     // the best fit a topology admits, and a topology judged on a bad basin

@@ -171,6 +171,47 @@ fit.** Multistart raised FCS from -915 to -25.6 and anisotropy from 0/7 to
 *place* parameters before it compares topologies, not a better guess at where
 they start.
 
+## A family teaching itself where to start (2026-09-14)
+
+Because the bottleneck is placement rather than choice, the self-play engine
+(`ModelSearchSelfPlay`) learns starting points, not an action policy. A
+description can already produce the curve it predicts, so any family -- one
+added tomorrow as a file included -- generates its own episodes with no
+hand-written simulator: sample parameters, simulate the measurement they
+imply, keep the pair. Training uses the vendored MlpCore backward pass and
+writes the JSON `NeuralNet` already reads, so there is one MLP
+implementation and tttrlib owns it.
+
+Measured on the two-species FCS curve, learning the five parameters
+`fcs.2d.2diff.0relax` frees:
+
+| target | MSE (unit scale) | proposal vs truth |
+|---|---|---|
+| `fcs.N` | 0.0006 | 1.976 against 2.0 |
+| `fcs.baseline` | 0.0005 | 1.015 against 1.0 |
+| `fcs.diffusion_time.1` | 0.015 | 0.130 against 0.08 |
+| `fcs.diffusion_time.2` | 0.027 | 1.149 against 0.8 |
+| `fcs.diffusion_fraction.1` | 0.054 | 0.55 against 0.4 |
+
+Predicting the mean of these targets scores 0.083, which is the bar; the
+amplitude and the plateau are read off the curve to about a percent.
+
+**It does not yet change the selection.** Adding the proposal as a declared
+start leaves the generating topology at -25.6 and third of eight: the
+diffusion times are bracketed to within a factor of 1.6, and this landscape
+needs better than that -- seeded at the truth the same topology reaches -12.6
+and wins. So the engine works and the proposal is real, but it is not yet
+accurate enough on the separations that matter.
+
+Two defects were found by measuring rather than by reading, and both had the
+same shape -- a quantity described relative to its *bound* instead of to the
+data. Features were peak-normalised, which threw away the amplitude and the
+plateau and then asked the network to predict them; and parameters were
+sampled across their declared bounds, so an FCS baseline bounded at +/-1e6
+made every episode a flat line at 10^6 with identical features. Both showed
+up as a mean squared error sitting exactly at the variance of the target,
+which is the signature of a network that has been given nothing.
+
 ## What follows
 
 1. **Sorting.** TCSPC component labels permute between slots depending on the

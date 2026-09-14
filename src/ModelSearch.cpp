@@ -689,6 +689,9 @@ struct MultiStructureRecord {
   double effective_sample_size = 0.0;
   double complexity = 0.0;
   bool use_bic = false;
+  //! measurement name -> the node whose curve is compared against it.
+  std::map<std::string, std::string> curves;
+  std::vector<std::string> curve_order;
 };
 
 }  // namespace
@@ -1425,6 +1428,42 @@ void MultiStructureModelSearchProblem::restore_state(
                                          state_key + "'");
   }
   impl_->restore(found->second, structure->second);
+}
+
+void MultiStructureModelSearchProblem::activate_structure(
+    const std::string& key) {
+  const MultiStructureRecord& selected = impl_->structure(key);
+  impl_->apply_initial(selected, selected.initial_values);
+  impl_->select_and_update(key);
+}
+
+void MultiStructureModelSearchProblem::set_structure_curve(
+    const std::string& structure_key, const std::string& dataset_name,
+    const std::string& node_name) {
+  MultiStructureRecord& selected = impl_->structure(structure_key);
+  if (!selected.curves.count(dataset_name)) {
+    selected.curve_order.push_back(dataset_name);
+  }
+  selected.curves[dataset_name] = node_name;
+}
+
+std::vector<std::string>
+MultiStructureModelSearchProblem::get_structure_curve_datasets(
+    const std::string& structure_key) const {
+  return impl_->structure(structure_key).curve_order;
+}
+
+std::string MultiStructureModelSearchProblem::get_structure_curve_node(
+    const std::string& structure_key, const std::string& dataset_name) const {
+  const MultiStructureRecord& selected = impl_->structure(structure_key);
+  const std::map<std::string, std::string>::const_iterator found =
+      selected.curves.find(dataset_name);
+  if (found == selected.curves.end()) {
+    throw ModelSearchConfigurationError("structure '" + structure_key +
+                                        "' produces no curve for '" +
+                                        dataset_name + "'");
+  }
+  return found->second;
 }
 
 std::vector<double> MultiStructureModelSearchProblem::get_structure_output(
