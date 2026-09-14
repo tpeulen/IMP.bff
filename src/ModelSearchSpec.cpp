@@ -206,6 +206,286 @@ int port_type_from_name(const std::string& name, const std::string& where) {
   return GRAPH_PORT_FLOAT;
 }
 
+
+//! Replace every {name} in a string with the binding of that name.
+std::string substitute_text(const std::string& text,
+                            const std::map<std::string, int>& bindings) {
+  std::string out;
+  out.reserve(text.size());
+  for (std::size_t i = 0; i < text.size();) {
+    if (text[i] != '{') {
+      out.push_back(text[i++]);
+      continue;
+    }
+    const std::size_t close = text.find('}', i);
+    if (close == std::string::npos) {
+      out.push_back(text[i++]);
+      continue;
+    }
+    const std::string name = text.substr(i + 1, close - i - 1);
+    std::map<std::string, int>::const_iterator found = bindings.find(name);
+    if (found == bindings.end()) {
+      // Not a binding: leave it alone, so an expression keeping braces for
+      // its own reasons survives untouched.
+      out.append(text, i, close - i + 1);
+    } else {
+      out += std::to_string(found->second);
+    }
+    i = close + 1;
+  }
+  return out;
+}
+
+//! How many times a repeat runs: an integer, or the value of an axis.
+int repeat_count(const SpecJson& value, const std::map<std::string, int>& bindings,
+                 const std::string& where) {
+  if (value.is_number_integer()) return value.get<int>();
+  if (value.is_string()) {
+    const std::string name = value.get<std::string>();
+    std::map<std::string, int>::const_iterator found = bindings.find(name);
+    if (found == bindings.end()) {
+      refuse(where + ": '" + name + "' is not an axis in scope");
+    }
+    return found->second;
+  }
+  refuse(where + ": a repeat count must be an integer or an axis name");
+  return 0;
+}
+
+SpecJson expand(const SpecJson& node, const std::map<std::string, int>& bindings);
+
+//! One `repeat` block, yielding the expansions of its body in order.
+std::vector<SpecJson> expand_repeat(const SpecJson& spec,
+                                    const std::map<std::string, int>& bindings,
+                                    const std::string& where,
+                                    std::vector<std::string>* keys) {
+  if (!spec.is_object()) refuse(where + ": 'repeat' must be an object");
+  const std::string index = require_string(spec, "index", where + " repeat");
+  const SpecJson::const_iterator count_it = spec.find("count");
+  if (count_it == spec.end()) refuse(where + " repeat needs a 'count'");
+  const int count = repeat_count(*count_it, bindings, where + " repeat count");
+  int from = 0;
+  if (spec.contains("from")) from = spec["from"].get<int>();
+  const SpecJson::const_iterator body = spec.find("body");
+  if (body == spec.end()) refuse(where + " repeat needs a 'body'");
+
+  std::vector<SpecJson> out;
+  for (int i = from; i < count; ++i) {
+    std::map<std::string, int> inner = bindings;
+    inner[index] = i;
+    if (body->is_object() && keys != nullptr) {
+      // Merged into the surrounding object: remember the keys in order.
+      for (SpecJson::const_iterator it = body->begin(); it != body->end();
+           ++it) {
+        keys->push_back(substitute_text(it.key(), inner));
+        out.push_back(expand(*it, inner));
+      }
+    } else {
+      out.push_back(expand(*body, inner));
+    }
+  }
+  return out;
+}
+
+//! Substitute bindings and run every repeat, leaving ordinary JSON alone.
+SpecJson expand(const SpecJson& node,
+                const std::map<std::string, int>& bindings) {
+  if (node.is_string()) {
+    const std::string text = node.get<std::string>();
+    // A value that is nothing but one binding becomes the number, so a
+    // setting declared as an integer stays an integer.
+    if (text.size() > 2 && text[0] == '{' && text[text.size() - 1] == '}' &&
+        text.find('}') == text.size() - 1) {
+      std::map<std::string, int>::const_iterator found =
+          bindings.find(text.substr(1, text.size() - 2));
+      if (found != bindings.end()) return SpecJson(found->second);
+    }
+    return SpecJson(substitute_text(text, bindings));
+  }
+  if (node.is_array()) {
+    SpecJson out = SpecJson::array();
+    for (SpecJson::const_iterator it = node.begin(); it != node.end(); ++it) {
+      if (it->is_object() && it->contains("repeat") && it->size() == 1) {
+        const std::vector<SpecJson> many =
+            expand_repeat((*it)["repeat"], bindings, "array", nullptr);
+        for (std::size_t k = 0; k < many.size(); ++k) out.push_back(many[k]);
+      } else {
+        out.push_back(expand(*it, bindings));
+      }
+    }
+    return out;
+  }
+  if (node.is_object()) {
+    SpecJson out = SpecJson::object();
+    for (SpecJson::const_iterator it = node.begin(); it != node.end(); ++it) {
+      if (it.key() == "repeat") {
+        std::vector<std::string> keys;
+        const std::vector<SpecJson> many =
+            expand_repeat(*it, bindings, "object", &keys);
+        for (std::size_t k = 0; k < many.size() && k < keys.size(); ++k) {
+          out[keys[k]] = many[k];
+        }
+      } else {
+        out[substitute_text(it.key(), bindings)] = expand(*it, bindings);
+      }
+    }
+    return out;
+  }
+  return node;
+}
+
+
+//! Turn `axes` + `template` + `moves` into explicit structures and actions.
+/*!
+    A general model family is a cross-product -- lifetimes by rotations by
+    whether a term is present -- and writing it out is neither reviewable nor
+    maintainable past a handful of topologies. This is the `for` loop the C++
+    factories had, moved into the description: one construct, not a language.
+
+    Everything downstream sees only the expanded document, so a family may be
+    written either way and the rest of the loader neither knows nor cares.
+*/
+void expand_template(SpecJson& document) {
+  SpecJson::const_iterator axes_it = document.find("axes");
+  SpecJson::const_iterator template_it = document.find("template");
+  if (axes_it == document.end() && template_it == document.end()) return;
+  if (axes_it == document.end() || template_it == document.end()) {
+    refuse("'axes' and 'template' are only meaningful together");
+  }
+  if (document.contains("structures")) {
+    refuse("a family is written with 'structures' or with 'axes' and "
+           "'template', not both");
+  }
+
+  std::vector<std::string> names;
+  std::vector<int> lows;
+  std::vector<int> highs;
+  for (SpecJson::const_iterator it = axes_it->begin(); it != axes_it->end();
+       ++it) {
+    if (!it->is_object() || !it->contains("from") || !it->contains("to")) {
+      refuse("axis '" + it.key() + "' needs 'from' and 'to'");
+    }
+    const int low = (*it)["from"].get<int>();
+    const int high = (*it)["to"].get<int>();
+    if (high < low) refuse("axis '" + it.key() + "' is empty");
+    names.push_back(it.key());
+    lows.push_back(low);
+    highs.push_back(high);
+  }
+
+  // The registry has to cover the widest topology any axis value asks for.
+  // Alongside each axis, its bounds: a registry has to cover the widest
+  // topology the family admits, not just the one being expanded.
+  std::map<std::string, int> bounds;
+  for (std::size_t a = 0; a < names.size(); ++a) {
+    bounds[names[a] + "_min"] = lows[a];
+    bounds[names[a] + "_max"] = highs[a];
+  }
+  std::map<std::string, int> widest = bounds;
+  for (std::size_t a = 0; a < names.size(); ++a) widest[names[a]] = highs[a];
+  if (document.contains("parameters")) {
+    document["parameters"] = expand(document["parameters"], widest);
+  }
+
+  std::vector<std::vector<int> > combinations(1, std::vector<int>());
+  for (std::size_t a = 0; a < names.size(); ++a) {
+    std::vector<std::vector<int> > grown;
+    for (std::size_t c = 0; c < combinations.size(); ++c) {
+      for (int v = lows[a]; v <= highs[a]; ++v) {
+        std::vector<int> one = combinations[c];
+        one.push_back(v);
+        grown.push_back(one);
+      }
+    }
+    combinations.swap(grown);
+  }
+
+  std::map<std::vector<int>, std::string> keys;
+  SpecJson structures = SpecJson::object();
+  for (std::size_t c = 0; c < combinations.size(); ++c) {
+    std::map<std::string, int> bindings = bounds;
+    for (std::size_t a = 0; a < names.size(); ++a) {
+      bindings[names[a]] = combinations[c][a];
+    }
+    SpecJson one = expand(*template_it, bindings);
+    const SpecJson::const_iterator key_it = one.find("key");
+    if (key_it == one.end() || !key_it->is_string()) {
+      refuse("the template needs a string 'key'");
+    }
+    const std::string key = key_it->get<std::string>();
+    one.erase("key");
+    if (structures.contains(key)) {
+      refuse("the template produces the key '" + key + "' more than once");
+    }
+    keys[combinations[c]] = key;
+    structures[key] = one;
+  }
+  document["structures"] = structures;
+
+  SpecJson actions = document.contains("actions") ? document["actions"]
+                                                  : SpecJson::array();
+  SpecJson::const_iterator moves_it = document.find("moves");
+  if (moves_it != document.end()) {
+    if (!moves_it->is_array()) refuse("'moves' must be an array");
+    for (std::size_t c = 0; c < combinations.size(); ++c) {
+      for (SpecJson::const_iterator m = moves_it->begin();
+           m != moves_it->end(); ++m) {
+        const std::string action = require_string(*m, "action", "a move");
+        const double prior = m->contains("prior")
+                                 ? (*m)["prior"].get<double>() : 1.0;
+        if (!m->contains("axis")) {
+          // A move with no axis stays where it is: the stop.
+          SpecJson one = SpecJson::object();
+          one["from"] = keys[combinations[c]];
+          one["action"] = action;
+          one["to"] = keys[combinations[c]];
+          one["prior"] = prior;
+          one["terminal"] = m->contains("terminal")
+                                ? (*m)["terminal"].get<bool>() : true;
+          actions.push_back(one);
+          continue;
+        }
+        const std::string axis = (*m)["axis"].get<std::string>();
+        std::size_t index = names.size();
+        for (std::size_t a = 0; a < names.size(); ++a) {
+          if (names[a] == axis) index = a;
+        }
+        if (index == names.size()) {
+          refuse("move '" + action + "' names the axis '" + axis +
+                 "', which the family does not declare");
+        }
+        const int delta = m->contains("delta") ? (*m)["delta"].get<int>() : 1;
+        std::vector<int> target = combinations[c];
+        target[index] += delta;
+        if (target[index] < lows[index] || target[index] > highs[index]) {
+          continue;  // the move would leave the family
+        }
+        SpecJson one = SpecJson::object();
+        one["from"] = keys[combinations[c]];
+        one["action"] = action;
+        one["to"] = keys[target];
+        one["prior"] = prior;
+        one["terminal"] = false;
+        actions.push_back(one);
+      }
+    }
+  }
+  document["actions"] = actions;
+
+  SpecJson::const_iterator start_it = document.find("initial_axes");
+  if (start_it != document.end()) {
+    std::vector<int> start;
+    for (std::size_t a = 0; a < names.size(); ++a) {
+      if (!start_it->contains(names[a])) {
+        refuse("'initial_axes' does not say where '" + names[a] + "' starts");
+      }
+      start.push_back((*start_it)[names[a]].get<int>());
+    }
+    if (!keys.count(start)) refuse("'initial_axes' is outside the family");
+    document["initial_structure"] = keys[start];
+  }
+}
+
 }  // namespace
 
 struct ModelSearchSpec::Impl {
@@ -246,6 +526,7 @@ ModelSearchSpec ModelSearchSpec::from_json(const std::string& text) {
   }
   spec.impl_->family =
       require_string(spec.impl_->document, "family", "the description");
+  expand_template(spec.impl_->document);
   require_object(spec.impl_->document, "parameters", "the description");
   require_object(spec.impl_->document, "structures", "the description");
   return spec;
