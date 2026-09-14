@@ -125,6 +125,16 @@ class TorchSpectralForward:
         #: free parameter with a gradient rather than a constant chosen in
         #: advance.
         inst = getattr(graph, 'inst', None)
+        #: A GRAPH DERIVED FROM AN ACCELERATED ONE ARRIVES HERE WITH A
+        #: `SpectralInstrument` AS ITS INSTRUMENT -- `with_fixed` hands the
+        #: parent's `inst` on, and every penalty node of a fit is such a graph.
+        #: That instrument reports kind 'analytic' and no measured responses,
+        #: so this model silently fell back to the ANALYTIC response for every
+        #: node while the parent graph, the only one any gate was run on, used
+        #: the measured one exactly (2026-09-14: pointwise gates at 1e-15 on the
+        #: parent, D/dof 13.2 against 2.279 on the fit). Unwrap to the original.
+        while isinstance(inst, SpectralInstrument):
+            inst = inst.f._inst0
         self.measured = dict(getattr(inst, 'measured', {}) or {}) \
             if getattr(inst, 'kind', 'analytic') == 'measured' else {}
         #: the prototype's own instrument, kept because `accelerate` replaces
@@ -527,10 +537,15 @@ def accelerate(model, graph, forward=None):
     graph.log_posterior = obj
     graph.raw_counts = raw_counts
     graph.expected_counts = expected_counts
-    #: the derivative-supplying instrument only when the response is analytic;
-    #: with a measured one its analytic shift-derivative does not exist (see
-    #: `SpectralInstrumentD.dbasis`) and the prototype differentiates `basis`.
-    graph.inst = (SpectralInstrument if fwd.measured else SpectralInstrumentD)(fwd, model)
+    #: THE INSTRUMENT IS REPLACED ONLY FOR AN ANALYTIC RESPONSE.  For a
+    #: measured one the spectral basis is no faster (2.3 ms against 1.8 for the
+    #: four detectors, 2026-09-14) and its derivative with respect to the shift
+    #: differs from the prototype's by 4.6e-3 through the clamp in
+    #: `shift_irf_fft` -- the one quantity that disagreed in every gate while
+    #: values, prior, gradient and Hessian agreed to 1e-15 -- so the prototype
+    #: keeps its own instrument and differentiates it itself.
+    if not fwd.measured:
+        graph.inst = SpectralInstrumentD(fwd, model)
     graph._fast = obj
     graph.fast_amplitudes = fast_amplitudes
     #: EVERY GRAPH DERIVED FROM THIS ONE GETS THE SAME TREATMENT. A fit builds
@@ -595,8 +610,27 @@ def gate(model, graph, theta, amount=0.3, tol=1e-12, names=None, verbose=True):
         t = bumped(n); vals, _ = graph.unpack(t)
         ref[n] = (float(graph.log_posterior(t)),
                   {k: v.detach().clone() for k, v in graph.raw_counts(vals).items()})
+    #: AND ON A DERIVED GRAPH, because that is where a fit lives: every penalty
+    #: node is `graph.with_fixed(log10_lam=...)`, re-accelerated through the
+    #: parent's `accelerator`, and on 2026-09-14 the parent passed at 1e-15
+    #: while its nodes were silently running on the analytic response.
+    node_ref = None
+    if 'log10_lam' in graph.offsets:
+        trl = graph.index['log10_lam'].transform
+        z0 = trl.to_unconstrained(L.tt([0.0]))
+        gd = graph.with_fixed(log10_lam=z0)
+        td = gd.restrict(gd, theta)
+        node_ref = (z0, td, float(gd.log_posterior(td)))
     accelerate(model, graph)
     out, ok = {}, True
+    if node_ref is not None:
+        z0, td, lp_ref = node_ref
+        gd = graph.with_fixed(log10_lam=z0)
+        lp = float(gd.log_posterior(td))
+        rel = abs(lp_ref - lp) / max(abs(lp_ref), 1.0)
+        out['derived node'] = dict(d_log_posterior=lp_ref - lp, rel=rel, raw_rel=float('nan'),
+                                   passes=bool(rel < tol))
+        ok &= out['derived node']['passes']
     for n in order:
         t = bumped(n); vals, _ = graph.unpack(t)
         lp = float(graph.log_posterior(t)); raw = graph.raw_counts(vals)
@@ -611,7 +645,7 @@ def gate(model, graph, theta, amount=0.3, tol=1e-12, names=None, verbose=True):
     out['ok'] = bool(ok)
     if verbose:
         print(f'{"perturbed":<22}{"d log posterior":>18}{"rel":>11}{"max raw rel":>14}')
-        for n in order:
+        for n in order + (['derived node'] if 'derived node' in out else []):
             r = out[n]
             print(f'{str(n):<22}{r["d_log_posterior"]:>18.6f}{r["rel"]:>11.1e}'
                   f'{r["raw_rel"]:>14.2e}{"" if r["passes"] else "   <-- FAILS"}')
