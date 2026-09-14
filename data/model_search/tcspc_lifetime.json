@@ -88,6 +88,34 @@
     "label": "Reverse DNL table",
     "kind": "flag"
    }
+  },
+  "distributions": {
+   "lifetime_spectrum": {
+    "label": "Lifetime",
+    "node": "decay",
+    "port": "spectrum"
+   }
+  },
+  "statistics": {
+   "tau_species": {
+    "label": "<tau>x",
+    "of": "lifetime_spectrum",
+    "statistic": "species_averaged_lifetime"
+   },
+   "tau_fluorescence": {
+    "label": "<tau>F",
+    "of": "lifetime_spectrum",
+    "statistic": "fluorescence_averaged_lifetime"
+   }
+  },
+  "reference_modes": [
+   "tcspc_total_photons",
+   "tcspc_peak_photons"
+  ],
+  "axis": {
+   "x": "time (ns)",
+   "y": "counts",
+   "scale_y": "log"
   }
  },
  "datasets": [
@@ -326,7 +354,8 @@
      "response": "generated_response"
     },
     "outputs": {
-     "@name": "float_vector"
+     "@name": "float_vector",
+     "spectrum": "float_vector"
     }
    },
    "objective": {

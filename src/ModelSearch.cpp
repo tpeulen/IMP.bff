@@ -1802,6 +1802,33 @@ std::vector<double> MultiStructureModelSearchProblem::get_structure_output(
   return out->get_values_ref();
 }
 
+std::vector<double> MultiStructureModelSearchProblem::get_structure_port(
+    const std::string& structure_key, const std::string& node_name,
+    const std::string& port_name) {
+  const MultiStructureRecord& selected = impl_->structure(structure_key);
+  impl_->select_and_update(structure_key);
+  std::shared_ptr<GraphNode> found;
+  if (selected.objective && selected.objective->get_name() == node_name) {
+    found = selected.objective;
+  }
+  for (std::size_t i = 0; i < selected.graph_nodes.size() && !found; ++i) {
+    if (selected.graph_nodes[i] && selected.graph_nodes[i]->get_name() == node_name) {
+      found = selected.graph_nodes[i];
+    }
+  }
+  if (!found) {
+    throw ModelSearchConfigurationError("structure '" + structure_key +
+                                        "' has no node named '" + node_name + "'");
+  }
+  found->update();
+  const std::shared_ptr<GraphPort> out = found->get_output_port(port_name);
+  if (!out) {
+    throw ModelSearchConfigurationError("node '" + node_name +
+                                        "' has no output '" + port_name + "'");
+  }
+  return out->get_values_ref();
+}
+
 const std::string& MultiStructureModelSearchProblem::get_active_structure()
     const {
   return impl_->active_structure;
