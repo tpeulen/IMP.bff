@@ -572,7 +572,7 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
                 bkg_medians=bkg_med, scale_medians=scale_med, irf_bg_medians=irf_bg_med)
 
 
-def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=False):
+def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=True):
     """The Laplace posterior of the whole model on the twelve histograms.
 
     **Automatic differentiation, not the analytic Jacobian.** The hand-written
@@ -600,17 +600,29 @@ def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=False):
             th0[a:b] = m['graph'].index[nm].transform.to_unconstrained(L.tt([med]))
     m['theta_start'] = th0
     if accelerate:
-        #: OFF BY DEFAULT, AND THIS IS WHY. The spectral forward model now takes
-        #: a measured response per detector and agrees with the prototype at
-        #: 5e-16, and its basis at 7e-16 -- but the OBJECTIVE built on top of it
-        #: does not: on the same parameters the two log posteriors differ by
-        #: 590,000 nats, and the accelerated fit converges to a deviance per
-        #: degree of freedom of 8841 where the prototype reaches 1.313.
+        #: ON, AND GATED THIS TIME AGAINST THE OBJECTIVE.
         #:
-        #: The lesson is the gate, not the arithmetic. Extending the forward
-        #: model and checking the forward model is a check that cannot catch a
-        #: consumer of it, and `FastTorchObjective` is such a consumer. Until it
-        #: is gated against the prototype on a measured response, this stays off.
+        #: It was off, because the accelerated log posterior differed from the
+        #: prototype's by 590,000 nats and converged to a deviance per degree of
+        #: freedom of 8841 where the prototype reached 1.313 -- while the
+        #: forward model it is built on agreed at 5e-16. Checking the piece I
+        #: changed could not catch a CONSUMER of it. Two defects were hiding
+        #: there, and both were invisible to the simulated benchmark:
+        #:
+        #:   * `stage2` keyed the scope dictionary by SAMPLE. Without
+        #:     interleaved excitation sample and scope are the same word; with
+        #:     it, each sample appears under both pulses, and the red-pulse
+        #:     partner of every histogram was handed the GREEN pulse's
+        #:     amplitudes -- a factor of 500 on the donor-only sample.
+        #:   * the shift was a phase ramp on the kernel, while the prototype
+        #:     shifts the response with `shift_irf_fft`, which CLAMPS the ramp's
+        #:     ringing before renormalising. Agreement therefore held only where
+        #:     every shift sat at zero.
+        #:
+        #: `fast_forward.gate` now compares the two log posteriors under a
+        #: perturbation of each parameter group in turn; it reports 1e-15 on
+        #: this measurement and on the analytic eight-decay configuration of
+        #: S5 (run S5ord3, realisation 134), and it would have caught both.
         import fast_forward as FF
         FF.accelerate(m, m['graph'])
     gen = torch.Generator().manual_seed(int(seed))
@@ -635,15 +647,38 @@ def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=False):
     #: a node that did not converge has no evidence, and mixing over it would
     #: put a NaN through everything downstream
     ev = np.array([float(nodes[float(l)].get('evidence', np.nan)) for l in lam_nodes], float)
-    ok = np.isfinite(ev) & np.array([bool(nodes[float(l)].get('converged')) for l in lam_nodes])
+    conv = np.array([bool(nodes[float(l)].get('converged')) for l in lam_nodes])
+    #: NOT CONVERGING IS A RESULT, AND IT GETS REPORTED RATHER THAN RAISED.
+    #: On this measurement no node converges while `g` is free: the g factor and
+    #: the donor's fundamental anisotropy are two handles on the same VV/VH
+    #: ratio, and the optimiser walks between them.  Raising here hid that
+    #: behind a traceback and left the notebook with no outputs at all; Rule 0
+    #: excludes and COUNTS a failing fit, which needs the fit in hand.
+    converged_any = bool(conv.any())
+    if not converged_any:
+        conv = np.ones_like(conv)
+    ok = np.isfinite(ev) & conv
     if not ok.any():
-        raise RuntimeError('no penalty node converged')
+        #: the nodes reached their modes but the curvature there is not positive
+        #: definite, so there is no Laplace evidence to mix with.  That is a
+        #: statement about the posterior -- some direction is flat or worse --
+        #: and it is reported rather than raised, because the modes are still
+        #: the modes and a reader needs to see them.
+        ok = conv
+        evidence_available = False
+    else:
+        evidence_available = True
     w = np.zeros_like(ev)
-    w[ok] = np.exp(ev[ok] - ev[ok].max()); w = w / w.sum()
+    if evidence_available:
+        w[ok] = np.exp(ev[ok] - ev[ok].max())
+    else:
+        w[ok] = 1.0
+    w = w / w.sum()
     best = float(np.asarray(lam_nodes, float)[int(np.argmax(w))])
     post = dict(nodes[best])
     post.update(nodes=nodes, lam_nodes=[float(x) for x in lam_nodes], weights=w,
-                ev=ev, best_lam=best)
+                ev=ev, best_lam=best, evidence_available=bool(evidence_available),
+                converged_any=converged_any)
     vals, _ = post['graph'].unpack(post['theta'])
     lam = post['graph'].expected_counts(vals)
     rows, dev, dof = L.rule0(post['graph'], m['y'], lam)
