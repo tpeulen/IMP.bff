@@ -60,15 +60,41 @@ def test_family_matches_its_golden_record(name):
 
 
 @pytest.mark.parametrize("name", sorted(_fixtures.FIXTURES))
-def test_the_winning_topology_has_reproducible_parameters(name):
-    """Whatever else moves, the answer a user is handed must not."""
+def test_the_ranking_is_the_contract(name):
+    """Which topology beats which, exactly -- that is what selection means.
+
+    The scores themselves are compared to what a converged fit guarantees,
+    but their *order* is ordinal and has to hold outright: a port, a rebuild
+    or another platform may move a reward by parts in ten thousand and must
+    never move the answer.
+    """
     golden = _golden(name)
     record = _characterize.characterize(_fixtures.FIXTURES[name]())
-    undetermined = _undetermined(golden)
-    determined = set(golden["structures"]) - undetermined
-    for key in determined:
-        assert record["structures"][key]["values"] == pytest.approx(
-            golden["structures"][key]["values"], rel=1e-6
+
+    def ranking(source):
+        scores = {source["root"]["structure"]: source["root"]["reward"]}
+        scores.update({k: v["reward"] for k, v in source["structures"].items()})
+        return sorted(scores, key=scores.get, reverse=True)
+
+    assert ranking(record) == ranking(golden)
+
+
+@pytest.mark.parametrize("name", sorted(_fixtures.FIXTURES))
+def test_the_winning_topology_has_reproducible_parameters(name):
+    """Whatever else moves, the answer a user is handed must not.
+
+    Only the parameters the winning topology *frees*. A fixed one carries
+    whichever declared start happened to win, which is a seed rather than an
+    answer -- on one platform an unused third lifetime slot sat at 12.5 and
+    on another at 3.0, with every fitted parameter identical.
+    """
+    golden = _golden(name)
+    record = _characterize.characterize(_fixtures.FIXTURES[name]())
+    for key in set(golden["structures"]) - _undetermined(golden):
+        mask = golden["structures"][key]["fixed"]
+        free = [i for i, fixed in enumerate(mask) if fixed == 0]
+        assert [record["structures"][key]["values"][i] for i in free] == pytest.approx(
+            [golden["structures"][key]["values"][i] for i in free], rel=1e-4
         ), key
 
 
