@@ -65,6 +65,95 @@ double rescale_factor(const std::vector<double>& model,
 
 }  // namespace
 
+std::vector<double> linearization_table(const std::vector<double>& data,
+                                        int window_length,
+                                        const std::string& window_type,
+                                        int x_min, int x_max,
+                                        double fill_value) {
+  const int n = static_cast<int>(data.size());
+  const int lo = std::max(0, x_min);
+  const int hi = std::min(n, x_max < 0 ? n : x_max);
+  if (hi <= lo) {
+    throw std::domain_error("linearization_table: the range is empty");
+  }
+  // Divided by the mean over [x_min, x_max) ...
+  double mean = 0.0;
+  for (int i = lo; i < hi; ++i) mean += data[static_cast<std::size_t>(i)];
+  mean /= (hi - lo);
+  std::vector<double> x2(data.size());
+  for (int i = 0; i < n; ++i) x2[static_cast<std::size_t>(i)] = data[static_cast<std::size_t>(i)] / mean;
+  // ... then everything outside [x_min, x_max] -- inclusive, as the masked
+  // array it was written with -- is the fill, and the rest divided by its mean.
+  double masked_mean = 0.0;
+  int kept = 0;
+  for (int i = 0; i < n; ++i) {
+    if (i < x_min || i > x_max) continue;
+    masked_mean += x2[static_cast<std::size_t>(i)];
+    ++kept;
+  }
+  if (kept == 0) throw std::domain_error("linearization_table: the range is empty");
+  masked_mean /= kept;
+  std::vector<double> yn(data.size());
+  for (int i = 0; i < n; ++i) {
+    yn[static_cast<std::size_t>(i)] =
+        (i < x_min || i > x_max) ? fill_value : x2[static_cast<std::size_t>(i)] / masked_mean;
+  }
+  if (n < window_length) {
+    throw std::domain_error("linearization_table: the curve is shorter than the window");
+  }
+  if (window_length < 3) return yn;
+  const int m = window_length;
+  std::vector<double> w(static_cast<std::size_t>(m));
+  const double pi = 3.14159265358979323846;
+  for (int k = 0; k < m; ++k) {
+    const double phase = (m > 1) ? 2.0 * pi * k / (m - 1) : 0.0;
+    double value;
+    if (window_type == "flat") {
+      value = 1.0;
+    } else if (window_type == "hanning") {
+      value = 0.5 - 0.5 * std::cos(phase);
+    } else if (window_type == "hamming") {
+      value = 0.54 - 0.46 * std::cos(phase);
+    } else if (window_type == "bartlett") {
+      value = 2.0 / (m - 1) * ((m - 1) / 2.0 - std::fabs(k - (m - 1) / 2.0));
+    } else if (window_type == "blackman") {
+      value = 0.42 - 0.5 * std::cos(phase) + 0.08 * std::cos(2.0 * phase);
+    } else {
+      throw std::domain_error("linearization_table: '" + window_type +
+                              "' is not a window; the windows are flat, hanning, "
+                              "hamming, bartlett and blackman");
+    }
+    w[static_cast<std::size_t>(k)] = value;
+  }
+  double total = 0.0;
+  for (double v : w) total += v;
+  for (double& v : w) v /= total;
+  // Reflected copies of both ends, m - 1 samples each.
+  std::vector<double> padded;
+  padded.reserve(static_cast<std::size_t>(n + 2 * (m - 1)));
+  // numpy: 2*d[0] - d[m:1:-1] and 2*d[-1] - d[-1:-m:-1].
+  for (int k = m; k >= 2; --k) padded.push_back(2.0 * yn[0] - yn[static_cast<std::size_t>(k)]);
+  padded.insert(padded.end(), yn.begin(), yn.end());
+  for (int k = 0; k <= m - 2; ++k) {
+    padded.push_back(2.0 * yn[static_cast<std::size_t>(n - 1)] - yn[static_cast<std::size_t>(n - 1 - k)]);
+  }
+  const int length = static_cast<int>(padded.size());
+  // numpy's convolve(w, padded, "same") is the middle `length` of the full
+  // convolution, offset (m - 1) / 2; the table is that, less m - 1 at each end.
+  std::vector<double> out(static_cast<std::size_t>(n));
+  const int offset = (m - 1) / 2;
+  for (int i = 0; i < n; ++i) {
+    const int centre = i + (m - 1) + offset;   // index into the full convolution
+    double sum = 0.0;
+    for (int k = 0; k < m; ++k) {
+      const int j = centre - k;
+      if (j >= 0 && j < length) sum += w[static_cast<std::size_t>(k)] * padded[static_cast<std::size_t>(j)];
+    }
+    out[static_cast<std::size_t>(i)] = sum;
+  }
+  return out;
+}
+
 // Deliberately empty. A `GraphNode` that owns ports has to be owned by a
 // `shared_ptr` first -- `add_port` reaches for `shared_from_this()` -- so a
 // constructor cannot create any, and every Python-wrapped node is
@@ -167,6 +256,31 @@ void TCSPCDecay::set_response_range(int start, int stop) {
   response_preparation_.stop = stop;
   irf_valid_ = false;
   set_valid(false);
+}
+
+void TCSPCDecay::rebuild_linearization() {
+  if (linearization_curve_.empty()) return;
+  std::vector<double> table = linearization_table(
+      linearization_curve_, lin_window_length_, lin_window_type_, lin_x_min_,
+      lin_x_max_ < 0 ? static_cast<int>(linearization_curve_.size()) : lin_x_max_);
+  if (lin_reverse_) std::reverse(table.begin(), table.end());
+  set_linearization(table);
+}
+
+void TCSPCDecay::set_linearization_curve(const std::vector<double>& curve) {
+  linearization_curve_ = curve;
+  rebuild_linearization();
+}
+
+void TCSPCDecay::set_linearization_smoothing(int window_length,
+                                             const std::string& window_type,
+                                             int x_min, int x_max, bool reverse) {
+  lin_window_length_ = window_length;
+  lin_window_type_ = window_type;
+  lin_x_min_ = x_min;
+  lin_x_max_ = x_max;
+  lin_reverse_ = reverse;
+  rebuild_linearization();
 }
 
 void TCSPCDecay::set_background_pattern(const std::vector<double>& pattern) {
@@ -809,6 +923,25 @@ void TCSPCDecay::configure(const std::string& json_text) {
   if (config.has("response_from_port")) {
     set_response_from_port(config.get_bool("response_from_port"));
   }
+  if (config.has("linearization_smoothing")) {
+    // [window_length, x_min, x_max, reverse]; the window's name separately.
+    const std::vector<double> v = config.get_doubles("linearization_smoothing");
+    if (v.size() != 4) {
+      throw std::domain_error(
+          "node type 'TCSPCDecay': setting 'linearization_smoothing' must be "
+          "[window_length, x_min, x_max, reverse]");
+    }
+    const std::string window = config.has("linearization_window")
+                                   ? config.get_string("linearization_window")
+                                   : lin_window_type_;
+    set_linearization_smoothing(static_cast<int>(v[0]), window,
+                                static_cast<int>(v[1]), static_cast<int>(v[2]),
+                                v[3] != 0.0);
+  } else if (config.has("linearization_window")) {
+    set_linearization_smoothing(lin_window_length_,
+                                config.get_string("linearization_window"),
+                                lin_x_min_, lin_x_max_, lin_reverse_);
+  }
   if (config.has("background_times")) {
     const std::vector<double> times = config.get_doubles("background_times");
     if (times.size() != 2) {
@@ -861,6 +994,11 @@ void TCSPCDecay::bind_dataset(const std::string& role,
     set_data(values, errors);
     return;
   }
+  if (role == "linearization_curve") {
+    // The measurement of uncorrelated light itself; the table is derived.
+    set_linearization_curve(dataset.get_values());
+    return;
+  }
   if (role == "background_pattern") {
     // A measured background decay; how much of it the data holds follows
     // from the two measurement times.
@@ -874,7 +1012,7 @@ void TCSPCDecay::bind_dataset(const std::string& role,
     return;
   }
   throw std::domain_error("node type 'TCSPCDecay' has no role '" + role +
-                          "'; it takes 'response', 'data', 'linearization' or 'background_pattern'");
+                          "'; it takes 'response', 'data', 'linearization', 'linearization_curve' or 'background_pattern'");
 }
 
 IMPBFF_END_NAMESPACE

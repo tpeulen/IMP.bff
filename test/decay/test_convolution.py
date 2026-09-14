@@ -391,3 +391,20 @@ def test_a_lifetime_family_fits_with_a_modelled_response():
     node = model.get_structure_curve_node("lifetime.components.1", "decay")
     curve = np.array(model.get_structure_output("lifetime.components.1", node))
     assert np.all(np.isfinite(curve)) and curve.max() > curve.min()
+
+
+@pytest.mark.parametrize("window", ["flat", "hanning", "hamming", "bartlett", "blackman"])
+def test_the_linearization_table_is_chisurfs(window):
+    """ChiSurf's compute_linearization_table, written out in numpy as it was."""
+    rng = np.random.default_rng(0)
+    x = np.linspace(0, 40, 128)
+    data = rng.poisson(np.sin(x) * 100 + 9900).astype(float)
+    length, x_min, x_max = 12, 10, 90
+    x2 = data / data[x_min:x_max].mean()
+    mask = np.array([i < x_min or i > x_max for i in range(x2.size)])
+    yn = np.where(mask, 1.0, x2 / x2[~mask].mean())
+    s = np.r_[2 * yn[0] - yn[length:1:-1], yn, 2 * yn[-1] - yn[-1:-length:-1]]
+    w = np.ones(length) if window == "flat" else getattr(np, window)(length)
+    expected = np.convolve(w / w.sum(), s, mode="same")[length - 1:-length + 1]
+    got = np.asarray(bff.linearization_table(data, length, window, x_min, x_max, 1.0))
+    np.testing.assert_allclose(got, expected, rtol=1e-12)

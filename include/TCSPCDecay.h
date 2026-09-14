@@ -79,6 +79,20 @@ IMPBFF_BEGIN_NAMESPACE
  * writes cost more than the convolution they feed. See
  * #set_spectrum_from_port for the measurement.
  */
+//! A DNL linearization table from a measurement of uncorrelated light.
+/*! ChiSurf's `compute_linearization_table`: the curve is divided by its mean
+    over `[x_min, x_max)`, channels outside `[x_min, x_max]` are set to
+    \p fill_value and the rest divided by their mean again, and the result
+    is smoothed by a normalised window (`flat`, `hanning`, `hamming`,
+    `bartlett` or `blackman`) over reflected copies of both ends. A window
+    shorter than 3 leaves it unsmoothed.
+    \throws std::domain_error for an unknown window, a window longer than the
+    curve, or an empty range. */
+IMPBFFEXPORT std::vector<double> linearization_table(
+    const std::vector<double>& data, int window_length,
+    const std::string& window_type, int x_min, int x_max,
+    double fill_value = 1.0);
+
 class IMPBFFEXPORT TCSPCDecay : public GraphNode {
  public:
   explicit TCSPCDecay(const std::string& name = "decay");
@@ -276,6 +290,14 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
   /*! Off, the model is the ideal decay on the channel axis, with the periodic
       tail in the periodic mode; the response still shapes the scatter term. */
   void set_convolve(bool v);
+
+  //! Derive the linearization table from a measured curve instead of taking one.
+  /*! The table is `linearization_table(curve, window_length, window_type,
+      x_min, x_max)`, flipped end to end when \p reverse; bound as the
+      dataset role `linearization_curve`. */
+  void set_linearization_curve(const std::vector<double>& curve);
+  void set_linearization_smoothing(int window_length, const std::string& window_type,
+                                   int x_min, int x_max, bool reverse);
 
   //! A measured background decay, added in proportion to how long it was measured.
   /*!
@@ -491,6 +513,13 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
   bool autoscale_ = false;
   bool pile_up_ = false;
   bool periodic_ = true;
+  std::vector<double> linearization_curve_;
+  int lin_window_length_ = 17;
+  std::string lin_window_type_ = "hanning";
+  int lin_x_min_ = 0;
+  int lin_x_max_ = -1;
+  bool lin_reverse_ = false;
+  void rebuild_linearization();
   bool response_from_port_ = false;
   bool convolve_ = true;
   std::vector<double> background_pattern_;
