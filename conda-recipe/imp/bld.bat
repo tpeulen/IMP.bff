@@ -90,8 +90,12 @@ if errorlevel 1 exit 1
 ninja install -j1
 if errorlevel 1 exit 1
 
+:: /y: ninja install (above) already installed these same files via CMake's
+:: own install() rules for modules/bff/examples, so this xcopy is copying
+:: over an existing tree -- without /y, xcopy prompts "Overwrite ... (Yes/
+:: No/All)?" per file and hangs forever on this non-interactive runner.
 if not exist "%LIBRARY_PREFIX%\share\doc\IMP\examples\bff" mkdir "%LIBRARY_PREFIX%\share\doc\IMP\examples\bff"
-xcopy /e /k /h /i "%SRC_DIR%\modules\bff\examples" "%LIBRARY_PREFIX%\share\doc\IMP\examples\bff"
+xcopy /e /k /h /i /y "%SRC_DIR%\modules\bff\examples" "%LIBRARY_PREFIX%\share\doc\IMP\examples\bff"
 if errorlevel 1 exit 1
 
 :: Add wrappers to path for each Python command line tool
