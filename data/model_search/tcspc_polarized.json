@@ -38,6 +38,9 @@
     "label": "Period [ns]",
     "default": 12.5
    },
+   "max_components": {
+    "label": "Most lifetime components"
+   },
    "autoscale": {
     "label": "Autoscale n0",
     "kind": "flag"
@@ -131,6 +134,7 @@
   "period"
  ],
  "optional_scalars": {
+  "max_components": 3,
   "autoscale": 0,
   "pile_up": 0,
   "dead_time": 0.0,
@@ -162,7 +166,7 @@
  "axes": {
   "n": {
    "from": 1,
-   "to": 3
+   "to": "max_components"
   },
   "m": {
    "from": 1,

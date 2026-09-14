@@ -110,3 +110,18 @@ def test_the_instrument_is_supplied_by_the_caller_not_the_description():
     spec.set_scalar("period", 0.0)
     with pytest.raises((ValueError, RuntimeError)):
         spec.build()
+
+
+def test_how_many_components_a_fit_may_use_is_the_callers_choice():
+    """The axis is bounded by a value, not by the file, and rebuilds over the same ports."""
+    spec = _spec()
+    assert list(spec.get_structure_keys())[-1] == "lifetime.components.3"
+    model = spec.get_model()
+    tau0 = model.get_parameter("lifetime.tau.0")
+    spec.set_scalar("max_components", 6)
+    assert list(spec.get_structure_keys())[-1] == "lifetime.components.6"
+    model = spec.get_model()
+    assert "lifetime.tau.5" in model.get_parameter_ids()
+    assert model.get_parameter("lifetime.tau.0").uid == tau0.uid
+    model.select_structure("lifetime.components.5")
+    assert model.get_active_structure() == "lifetime.components.5"

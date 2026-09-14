@@ -401,7 +401,8 @@ bool is_optional_dataset(const SpecJson& document, const std::string& slot) {
     Everything downstream sees only the expanded document, so a family may be
     written either way and the rest of the loader neither knows nor cares.
 */
-void expand_template(SpecJson& document) {
+void expand_template(SpecJson& document,
+                     const std::map<std::string, double>& values) {
   SpecJson::const_iterator axes_it = document.find("axes");
   SpecJson::const_iterator template_it = document.find("template");
   if (axes_it == document.end() && template_it == document.end()) return;
@@ -421,8 +422,20 @@ void expand_template(SpecJson& document) {
     if (!it->is_object() || !it->contains("from") || !it->contains("to")) {
       refuse("axis '" + it.key() + "' needs 'from' and 'to'");
     }
-    const int low = (*it)["from"].get<int>();
-    const int high = (*it)["to"].get<int>();
+    // A bound may be a number or an expression over the scalars, so how
+    // wide a family is can be a caller's choice (the most components a fit
+    // may use) rather than fixed in the file.
+    const auto bound = [&](const char* side) {
+      const double v = evaluate_rule((*it)[side],
+                                     "axis '" + it.key() + "' '" + side + "'",
+                                     values);
+      if (v != std::floor(v)) {
+        refuse("axis '" + it.key() + "' '" + side + "' must be an integer");
+      }
+      return static_cast<int>(v);
+    };
+    const int low = bound("from");
+    const int high = bound("to");
     if (high < low) refuse("axis '" + it.key() + "' is empty");
     names.push_back(it.key());
     lows.push_back(low);
@@ -724,8 +737,31 @@ struct ModelSearchSpec::Impl {
   //! A catalogue of equations to expand into structures; see set_equations.
   SpecJson equations;
   //! The document after expanding what depends on bound data.
+  //! The description as written, when its axes are read from scalars.
+  SpecJson source;
+  //! Optional scalar defaults overlaid by the caller's values.
+  std::map<std::string, double> scalar_values() const {
+    std::map<std::string, double> values;
+    const SpecJson& origin = source.is_null() ? document : source;
+    SpecJson::const_iterator optional = origin.find("optional_scalars");
+    if (optional != origin.end() && optional->is_object()) {
+      for (SpecJson::const_iterator it = optional->begin();
+           it != optional->end(); ++it) {
+        if (it->is_number()) values[it.key()] = it->get<double>();
+      }
+    }
+    for (std::map<std::string, double>::const_iterator it = scalars.begin();
+         it != scalars.end(); ++it) {
+      values[it->first] = it->second;
+    }
+    return values;
+  }
   SpecJson expanded() const {
     SpecJson result = document;
+    if (!source.is_null()) {
+      result = source;
+      expand_template(result, scalar_values());
+    }
     if (!equations.is_null()) expand_equations(result, equations, datasets);
     return result;
   }
@@ -755,7 +791,11 @@ ModelSearchSpec ModelSearchSpec::from_json(const std::string& text) {
   }
   spec.impl_->family =
       require_string(spec.impl_->document, "family", "the description");
-  expand_template(spec.impl_->document);
+  if (spec.impl_->document.contains("axes") ||
+      spec.impl_->document.contains("template")) {
+    spec.impl_->source = spec.impl_->document;
+    expand_template(spec.impl_->document, spec.impl_->scalar_values());
+  }
   require_object(spec.impl_->document, "parameters", "the description");
   require_object(spec.impl_->document, "structures", "the description");
   return spec;
@@ -806,7 +846,7 @@ std::vector<std::string> ModelSearchSpec::get_parameter_ids() const {
   // Expanded when a catalogue and its measurement allow it, so a caller
   // sees the structures a catalogue will build before building it.
   SpecJson document = impl_->document;
-  if (!impl_->equations.is_null()) {
+  if (!impl_->equations.is_null() || !impl_->source.is_null()) {
     try {
       document = impl_->expanded();
     } catch (const std::exception&) {
@@ -825,7 +865,7 @@ std::vector<std::string> ModelSearchSpec::get_structure_keys() const {
   // Expanded when a catalogue and its measurement allow it, so a caller
   // sees the structures a catalogue will build before building it.
   SpecJson document = impl_->document;
-  if (!impl_->equations.is_null()) {
+  if (!impl_->equations.is_null() || !impl_->source.is_null()) {
     try {
       document = impl_->expanded();
     } catch (const std::exception&) {
@@ -1007,7 +1047,7 @@ void ModelSearchSpec::set_equations(const std::string& catalogue_json) {
 std::string ModelSearchSpec::get_description_json() const {
   // With a catalogue and its measurement bound, the structures exist only
   // after expansion; without the measurement, the frame is what there is.
-  if (!impl_->equations.is_null()) {
+  if (!impl_->equations.is_null() || !impl_->source.is_null()) {
     try {
       return impl_->expanded().dump();
     } catch (const std::exception&) {
