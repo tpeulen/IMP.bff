@@ -372,6 +372,7 @@ std::unique_ptr<CLI::App> build_app(std::shared_ptr<int> rc) {
   add_trajectory_subs(*app);
   add_labelizer_subs(*app);
   add_fps_distance_subs(*app);
+  add_potentials_subs(*app);
 #if IMPBFF_CLI_HAS_IMP_LAYER
   add_fps_subs(*app);
   add_fps_av_subs(*app);

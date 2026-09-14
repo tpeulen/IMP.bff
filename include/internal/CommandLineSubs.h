@@ -158,6 +158,8 @@ IMPBFFEXPORT void add_trajectory_subs(CLI::App& app);
 IMPBFFEXPORT void add_labelizer_subs(CLI::App& app);
 //! fps-distance
 IMPBFFEXPORT void add_fps_distance_subs(CLI::App& app);
+//! potentials2pto
+IMPBFFEXPORT void add_potentials_subs(CLI::App& app);
 
 #if IMPBFF_CLI_HAS_IMP_LAYER
 //! fps-av (IMP layer)
