@@ -56,7 +56,17 @@ set DISABLED=EMageFit:bayesianem:cgal:cnmultifit:domino:em2d:emseqfinder:example
 :: one, link against kernel32 instead (which pretty much everything links
 :: against, so this doesn't introduce an extra dependency)
 
+:: -DDOXYGEN_EXECUTABLE=...-NOTFOUND alone does not stick: RMF is vendored
+:: via add_subdirectory (IMP_USE_SYSTEM_RMF=off) and carries its own copy of
+:: cmake_modules/FindCurrentDoxygen.cmake, unpinned to a version (IMP's own
+:: copy requires exactly 1.8.6), which runs a second, independent
+:: find_package(Doxygen QUIET) and finds this runner's Strawberry Perl
+:: doxygen.exe regardless of the override -- IMP.rmf-doc's docs target then
+:: runs `mkdir -p` / `ln -s -f` through cmd.exe, which understands neither.
+:: CMAKE_DISABLE_FIND_PACKAGE_Doxygen stops every find_package(Doxygen) call
+:: at the call site, however many copies of the finder module exist.
 cmake -DDOXYGEN_EXECUTABLE=DOXYGEN_EXECUTABLE-NOTFOUND ^
+      -DCMAKE_DISABLE_FIND_PACKAGE_Doxygen=TRUE ^
       -DCMAKE_PREFIX_PATH="%PREFIX:\=/%;%PREFIX:\=/%\Library" ^
       -DCMAKE_BUILD_TYPE=Release -DIMP_DISABLED_MODULES=%DISABLED% ^
       -DCMAKE_INSTALL_PREFIX="%LIBRARY_PREFIX:\=/%" ^
@@ -66,7 +76,6 @@ cmake -DDOXYGEN_EXECUTABLE=DOXYGEN_EXECUTABLE-NOTFOUND ^
       -DPYTHON_EXECUTABLE="%PYTHON:\=/%" ^
       -DPython3_EXECUTABLE="%PYTHON:\=/%" ^
       -DIMP_USE_SYSTEM_RMF=off -DIMP_USE_SYSTEM_IHM=off ^
-      -DDOXYGEN_EXECUTABLE=DOXYGEN_EXECUTABLE-NOTFOUND ^
       -DCMAKE_CXX_FLAGS="/DBOOST_ALL_DYN_LINK /EHsc /D_HDF5USEDLL_ /DH5_BUILT_AS_DYNAMIC_LIB /DPROTOBUF_USE_DLLS /DWIN32 /DGSL_DLL /DMSMPI_NO_DEPRECATE_20 /D_USE_MATH_DEFINES /bigobj /DBOOST_ZLIB_BINARY=kernel32 /std:c++17" ^
       %PERCPPCOMP% -G Ninja ..
 if errorlevel 1 exit 1
