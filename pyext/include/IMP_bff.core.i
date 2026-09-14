@@ -651,6 +651,9 @@ IMP_SWIG_VALUE(IMP::bff, ModelSearchResult, ModelSearchResults);
    same MultiStructureModelSearchProblem a factory used to build. */
 %include "IMP/bff/ModelSearchSpec.h"
 
+/* A family generating its own training data, and the proposer it trains. */
+%include "IMP/bff/ModelSearchSelfPlay.h"
+
 %extend IMP::bff::MCMCSampler {
     %pythoncode {
         algorithm = property(lambda self: self.get_algorithm(),

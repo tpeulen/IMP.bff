@@ -75,6 +75,9 @@ class IMPBFFEXPORT ModelSearchSpec {
 
   //! Bind one measurement to a slot the description names.
   void set_dataset(const std::string& name, const FitDataset& dataset);
+  //! The values bound to one measurement slot.
+  const std::vector<double>& get_dataset_values(const std::string& name) const;
+
   //! Supply one scalar the description names (a channel width, a period).
   void set_scalar(const std::string& name, double value);
 

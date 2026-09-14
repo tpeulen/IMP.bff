@@ -344,6 +344,28 @@ class IMPBFFEXPORT MultiStructureModelSearchProblem
   std::vector<double> get_cached_values(const std::string& state_key) const;
   std::vector<int> get_cached_fixed(const std::string& state_key) const;
   void restore_state(const std::string& state_key);
+  //! Make one topology current, with its declared seeds and its fixed mask.
+  /*! Evaluating a structure is not the same as selecting it: reading a
+      node's output leaves the registry as it stands, while this puts the
+      registry into the state the structure declares -- which is also what
+      says *which* parameters that topology frees. */
+  void activate_structure(const std::string& key);
+
+  //! Record which node produces the curve compared against one measurement.
+  /*! A described family knows this -- the objective bound to a measurement
+      reads its model from exactly one node -- and it is what lets a family
+      be run backwards, as its own generator, without anyone guessing at a
+      naming convention. */
+  void set_structure_curve(const std::string& structure_key,
+                           const std::string& dataset_name,
+                           const std::string& node_name);
+  //! The measurements this structure produces a curve for.
+  std::vector<std::string> get_structure_curve_datasets(
+      const std::string& structure_key) const;
+  //! The node producing the curve for one measurement.
+  std::string get_structure_curve_node(const std::string& structure_key,
+                                       const std::string& dataset_name) const;
+
   //! Evaluate one topology and read what a node in it produced.
   /*!
       \param[in] structure_key the topology to make current and evaluate
