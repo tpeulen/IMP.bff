@@ -167,9 +167,8 @@ The command line is one compiled program, `imp_bff` (`bin/imp_bff.cpp`, the
 dispatcher in `include/CommandLine.h`). Every program that used to be a script
 in `bin/` is a group of it, named after the old file without the `imp_bff_`
 prefix -- `imp_bff fps ...`, `imp_bff fps-av`, `imp_bff fps-distance`,
-`imp_bff fps-export ...`, `imp_bff labelizer`, `imp_bff traj2drot`,
-`imp_bff probe-pdb2cif`, and as they are compiled `imp_bff potentials2pto`
-and `imp_bff traj2bcif`. The modelling commands sit at the top level: `flexfit`
+`imp_bff fps-export ...`, `imp_bff labelizer`, `imp_bff potentials2pto`,
+`imp_bff probe-pdb2cif`, `imp_bff traj2bcif` and `imp_bff traj2drot`. The modelling commands sit at the top level: `flexfit`
 and `rmsd` fit against distance restraints, `select-pairs` ranks labelling
 pairs before an experiment is done, `openmm` writes a restrained OpenMM run,
 `av-export` writes one volume for a viewer, `dye` is explicit-dye labelling
@@ -334,19 +333,19 @@ are weighted by the linker's chain statistics rather than uniformly. Read
 `okf/validation/chain_weighting.md` before turning it on -- the shipped table
 does not cover a dye-length linker, and the code says so.
 
-# imp_bff_traj2bcif: convert a trajectory to BinaryCIF {#imp_bff_traj2bcif}
+## imp_bff traj2bcif -- convert a trajectory to BinaryCIF {#imp_bff_traj2bcif}
 
 Converts a DCD or XTC trajectory to a BinaryCIF `_atom_site` coordinate
 category, which is the format the shipped rotamer libraries use. Lossless
 float32 by default: the FRETpredict pins are sensitive to dipole *directions*
 between atoms about 1.7 A apart, so a quantisation grid that looks harmless as
 a displacement is not one as an angle. `--grid` opts into quantisation for
-corpora where that does not hold. Reading a DCD needs only `IMP.bff`; reading
-an XTC needs `mdtraj`, which `imp_bff` already imports.
+corpora where that does not hold. DCD and XTC are both read by the library
+(`read_dcd`, `read_xtc`); no Python package is involved.
 
-# imp_bff_traj2drot: build a rotamer library {#imp_bff_traj2drot}
+## imp_bff traj2drot -- build a rotamer library {#imp_bff_traj2drot}
 
-Converts a trajectory (`.bcif`, `.dcd`, or `.xtc` through `mdtraj`) plus a
+Converts a trajectory (`.bcif`, `.dcd` or `.xtc`) plus a
 template PDB into a `.drot` rotamer library -- the internal-coordinate store
 the shipped libraries use (PRD-118), written as `<stem>.drot.pto` in the PTO
 container this stack shares with tttrlib's photon streams and chimol's
