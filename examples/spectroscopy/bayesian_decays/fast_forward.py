@@ -81,6 +81,11 @@ class TorchSpectralForward:
     def __init__(self, model, graph):
         L, E = model['L'], model['Ep']
         self.L, self.E, self.graph = L, E, graph
+        import s53_phase1_pseudolik as _S53
+        if getattr(_S53, 'KERNEL', 'trapezoid') != 'trapezoid':
+            #: this model's kernel is the trapezoid, written out in `_kernel`;
+            #: the prototype's is now selectable (A2) and would silently differ
+            raise NotImplementedError(f"fast_forward implements the trapezoid kernel only, not {_S53.KERNEL!r}")
         shape_nodes = [n for n in graph.offsets if n.startswith('irf_width_') or n.startswith('irf_skew_')]
         if shape_nodes:
             raise NotImplementedError(
