@@ -110,3 +110,42 @@ def test_settings_that_only_make_sense_together_are_required_together():
 def test_a_node_type_without_settings_still_accepts_an_empty_description():
     for name in ("GaussianDistances", "PolymerDistances", "FRETSpectrumNode"):
         bff.GraphNodeRegistry.create(name).configure("{}")
+
+
+def test_the_anisotropy_chain_is_reachable_from_a_description():
+    """VV/VH anisotropy is a component count like any other.
+
+    A polarisation-resolved decay is a lifetime spectrum, transformed by an
+    anisotropy spectrum, convolved by the instrument. Each of the three is a
+    registered kernel that takes its settings as data, so the family is a
+    file rather than a factory -- including the rotation count, which is an
+    axis exactly as the lifetime count is.
+    """
+    spectrum = bff.GraphNodeRegistry.create("PhotophysicsLifetimeSpectrumNode")
+    spectrum.configure('{"number_of_lifetimes": 2, "normalize_amplitudes": true}')
+    assert {"a0", "a1", "t0", "t1"} <= set(spectrum.get_input_ports())
+
+    anisotropy = bff.GraphNodeRegistry.create("PhotophysicsAnisotropySpectrumNode")
+    anisotropy.configure('{"number_of_rotations": 2, "polarization": "VH"}')
+    ports = set(anisotropy.get_input_ports())
+    assert {"b0", "rho0", "b1", "rho1", "r0", "g", "l1", "l2"} <= ports
+    assert "lifetime_spectrum" in ports  # what the transform reads
+
+    decay = bff.GraphNodeRegistry.create("TCSPCDecay")
+    decay.configure('{"number_of_lifetimes": 1, "spectrum_from_port": true}')
+    assert "lifetime_spectrum" in decay.get_input_ports()
+
+
+def test_a_polarization_is_named_not_numbered():
+    """A description says VH; it must not have to know the enum's integer."""
+    with pytest.raises((ValueError, RuntimeError)) as caught:
+        bff.GraphNodeRegistry.create(
+            "PhotophysicsAnisotropySpectrumNode"
+        ).configure('{"polarization": "sideways"}')
+    assert "sideways" in str(caught.value)
+
+
+def test_caching_is_a_property_of_every_node():
+    """memoize belongs to GraphNode, so no kernel has to re-declare it."""
+    for name in ("TCSPCDecay", "GraphExpression", "FCSMdfCurve"):
+        bff.GraphNodeRegistry.create(name).configure('{"memoize": true}')

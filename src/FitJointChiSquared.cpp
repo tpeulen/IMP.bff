@@ -153,6 +153,7 @@ void FitJointChiSquared::configure(const std::string& json_text) {
   }
   // Members are not settings: a member is another node, and a description
   // adds it by naming the graph edge, not by naming a value here.
+  config.apply_common(*this);
   config.require_all_used();
 }
 

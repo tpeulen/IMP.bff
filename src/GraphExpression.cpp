@@ -484,6 +484,7 @@ void GraphExpression::configure(const std::string& json_text) {
   if (config.has("expression")) {
     set_expression(config.get_string("expression"));
   }
+  config.apply_common(*this);
   config.require_all_used();
 }
 

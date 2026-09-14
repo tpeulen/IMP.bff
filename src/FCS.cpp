@@ -1031,6 +1031,7 @@ void FCSMdfCurve::configure(const std::string& json_text) {
     set_length_scale(config.get_double("length_scale"));
   }
   if (config.has("normalize")) set_normalize(config.get_bool("normalize"));
+  config.apply_common(*this);
   config.require_all_used();
 }
 
@@ -1072,6 +1073,7 @@ void FCSSaturationCurve::configure(const std::string& json_text) {
   if (config.has("include_bunching")) {
     set_include_bunching(config.get_bool("include_bunching"));
   }
+  config.apply_common(*this);
   config.require_all_used();
 }
 
