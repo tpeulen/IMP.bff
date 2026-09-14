@@ -322,11 +322,24 @@ SpecJson expand(const SpecJson& node,
     SpecJson out = SpecJson::object();
     for (SpecJson::const_iterator it = node.begin(); it != node.end(); ++it) {
       if (it.key() == "repeat") {
-        std::vector<std::string> keys;
-        const std::vector<SpecJson> many =
-            expand_repeat(*it, bindings, "object", &keys);
-        for (std::size_t k = 0; k < many.size() && k < keys.size(); ++k) {
-          out[keys[k]] = many[k];
+        // One object often repeats over more than one thing -- a registry
+        // repeats over lifetimes *and* rotations -- and a JSON object holds
+        // one key of a name, so a list of blocks is the only way to say it.
+        std::vector<SpecJson> blocks;
+        if (it->is_array()) {
+          for (SpecJson::const_iterator b = it->begin(); b != it->end(); ++b) {
+            blocks.push_back(*b);
+          }
+        } else {
+          blocks.push_back(*it);
+        }
+        for (std::size_t b = 0; b < blocks.size(); ++b) {
+          std::vector<std::string> keys;
+          const std::vector<SpecJson> many =
+              expand_repeat(blocks[b], bindings, "object", &keys);
+          for (std::size_t k = 0; k < many.size() && k < keys.size(); ++k) {
+            out[keys[k]] = many[k];
+          }
         }
       } else {
         out[substitute_text(it.key(), bindings)] = expand(*it, bindings);
