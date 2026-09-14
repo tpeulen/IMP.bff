@@ -458,7 +458,7 @@ void run(const Args& a) {
 
 void add_rmsd_subs(CLI::App& app) {
   std::shared_ptr<rmsd::Args> a = std::make_shared<rmsd::Args>();
-  CLI::App* sub = app.add_subcommand("rmsd", "Compute RMSDs ");
+  CLI::App* sub = app.add_subcommand("rmsd", "Compute RMSDs of the structures an OLGA .ol4 table names against reference structures.");
   sub->footer(
       "Adds one column per reference structure, and one per best-scoring row, to an OLGA\n"
       ".ol4 table and writes <table>.rmsd.ol4 beside it. The structure column names a file\n"
