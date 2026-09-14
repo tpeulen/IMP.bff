@@ -646,9 +646,29 @@ void ModelSearchSpec::set_parameter(const std::string& canonical_id,
 }
 
 std::vector<std::string> ModelSearchSpec::get_available_names() {
-  // The shipped families are files; listing them is the capability answer.
-  static const char* kShipped[] = {"fcs_analytical", "tcspc_lifetime"};
-  return std::vector<std::string>(kShipped, kShipped + 2);
+  // The families are files, so the list belongs beside them rather than in
+  // this function -- it was hardcoded here and had already fallen a family
+  // behind. Reading a manifest rather than the directory because portable
+  // directory iteration is not available in this build's standard, and a
+  // test asserts the manifest matches what is shipped, so it cannot drift
+  // again quietly.
+  std::vector<std::string> names;
+  try {
+    std::ifstream in(get_data_path("model_search/index.json").c_str());
+    if (!in) return names;
+    std::ostringstream text;
+    text << in.rdbuf();
+    const SpecJson listed = SpecJson::parse(text.str());
+    if (!listed.is_array()) return names;
+    for (SpecJson::const_iterator it = listed.begin(); it != listed.end();
+         ++it) {
+      if (it->is_string()) names.push_back(it->get<std::string>());
+    }
+  } catch (const std::exception&) {
+    return std::vector<std::string>();  // no data installed: nothing to offer
+  }
+  std::sort(names.begin(), names.end());
+  return names;
 }
 
 std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build()

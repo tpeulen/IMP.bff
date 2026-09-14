@@ -210,3 +210,19 @@ def test_the_diagnostics_describe_the_state_that_was_returned():
     # misfit behind the diagnostics have to be the same misfit.
     penalty = 0.5 * 5.0 * np.log(len(axis))
     assert state.get_reward() == pytest.approx(-0.5 * chi2 - penalty, rel=1e-6)
+
+
+def test_the_family_list_matches_what_is_shipped():
+    """The capability answer and the files cannot disagree.
+
+    It was a hardcoded list in C++ and had already fallen one family behind,
+    so a caller asking what bff can search was told something untrue.
+    """
+    directory = pathlib.Path(bff.get_data_path("model_search"))
+    shipped = sorted(
+        path.stem
+        for path in directory.glob("*.json")
+        if path.stem not in ("schema", "index")
+    )
+    assert list(bff.ModelSearchSpec.get_available_names()) == shipped
+    assert "tcspc_anisotropy" in shipped  # the one the old list missed
