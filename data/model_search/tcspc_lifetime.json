@@ -10,6 +10,18 @@
   "dt",
   "period"
  ],
+ "optional_scalars": {
+  "autoscale": 0,
+  "pile_up": 0,
+  "dead_time": 0.0,
+  "measurement_time": 1.0,
+  "amplitude_threshold": 0.0,
+  "convolution_stop": 1e+18,
+  "scale_stop": 1e+18
+ },
+ "optional_datasets": [
+  "linearization"
+ ],
  "axes": {
   "n": {
    "from": 1,
@@ -82,15 +94,24 @@
      ],
      "convolution_range": [
       "decay_size",
-      "decay_size"
+      "min(decay_size,convolution_stop)"
      ],
      "scale_range": [
       0,
-      "decay_size"
-     ]
+      "min(decay_size,scale_stop)"
+     ],
+     "autoscale": "autoscale",
+     "pile_up": "pile_up",
+     "pile_up_parameters": [
+      "dead_time",
+      "measurement_time"
+     ],
+     "amplitude_threshold": "amplitude_threshold"
     },
     "bind": {
-     "response": "response"
+     "response": "response",
+     "data": "decay",
+     "linearization": "linearization"
     },
     "inputs": {
      "repeat": {

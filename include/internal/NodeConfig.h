@@ -55,8 +55,15 @@ class NodeConfig {
 
   bool get_bool(const std::string& key) {
     const nlohmann::json& value = read(key);
-    if (!value.is_boolean()) throw wrong_type(key, "a boolean");
-    return value.get<bool>();
+    // A switch may be literal, or the 0/1 a rule over caller-supplied values
+    // evaluates to -- which is how a per-fit choice such as autoscaling
+    // reaches a node without the description itself having to branch.
+    if (value.is_boolean()) return value.get<bool>();
+    if (value.is_number_integer()) {
+      const long long n = value.get<long long>();
+      if (n == 0 || n == 1) return n == 1;
+    }
+    throw wrong_type(key, "a boolean, or 0 or 1");
   }
 
   int get_int(const std::string& key) {
