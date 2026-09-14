@@ -33,13 +33,17 @@ dipoles: 44.3 ms -> 4.68 ms.
 """
 
 import gc
-import resource
 
 import numpy as np
 import pytest
 
 import IMP.bff
 from IMP.bff import fret_pair_efficiencies, fret_pair_geometry
+
+try:
+    import resource  # POSIX-only; Windows has no equivalent stdlib RSS probe
+except ImportError:
+    resource = None
 
 
 def _reference(p1, w1, p2, w2, mu1=None, mu2=None):
@@ -137,6 +141,7 @@ def test_r_vectors_is_gone():
 
 # --- the hazards of a numpy view --------------------------------------------
 
+@pytest.mark.skipif(resource is None, reason="no portable RSS probe (resource is POSIX-only)")
 def test_the_view_is_managed_not_leaked():
     """`base` must be a capsule that frees the buffer.
 
