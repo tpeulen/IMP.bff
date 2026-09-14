@@ -281,3 +281,41 @@ def test_both_nodes_prepare_the_response_the_same_way(kind):
     node.update()
     np.testing.assert_allclose(np.asarray(node.get_output_port(key).value),
                                _prepared(response, 7.5, 10, 90, -1.4), rtol=1e-12, atol=1e-15)
+
+
+def _classic_background_pattern(curve, pattern, data, timeshift, t_background, t_decay, shift=True):
+    """ChiSurf's LifetimeModel: shift the pattern, split the counts, add."""
+    if shift and timeshift != 0.0:
+        ts = -timeshift
+        i0 = int(np.floor(ts)); f = ts - i0
+        pattern_used = np.array([
+            (1 - f) * (pattern[j + i0] if 0 <= j + i0 < pattern.size else 0.0)
+            + f * (pattern[j + i0 + 1] if 0 <= j + i0 + 1 < pattern.size else 0.0)
+            for j in range(pattern.size)])
+    else:
+        pattern_used = pattern
+    n_bg = pattern.sum() / t_background * t_decay
+    n_fl = max(data.sum() - n_bg, 1.0)
+    return curve * n_fl / curve.sum() + pattern_used * n_bg / pattern_used.sum()
+
+
+@pytest.mark.parametrize("shift", [True, False])
+def test_a_background_pattern_takes_its_share_of_the_counts(shift):
+    x, response = _response()
+    curve = np.convolve(np.exp(-x / 1.5), response / response.sum(), "full")[:N] * 500.0
+    pattern = 40.0 + 30.0 * np.exp(-0.5 * ((x - 2.0) / 0.5) ** 2)
+    data = np.full(N, 25.0)
+    decay = _node("TCSPCDecay", "decay", response, curve_from_port=True, timing=[DT, 12.5],
+                  background_times=[4.0, 2.5], shift_background_with_response=shift)
+    measured = bff.FitDataset()
+    measured.set_values_array(np.ascontiguousarray(data))
+    decay.bind_dataset("data", measured)
+    background = bff.FitDataset()
+    background.set_values_array(np.ascontiguousarray(pattern))
+    decay.bind_dataset("background_pattern", background)
+    _vector_input(decay, "curve", curve)
+    decay.get_input_port("timeshift").value = 1.3
+    decay.get_input_port("n0").value = 1.0
+    decay.update()
+    expected = _classic_background_pattern(curve, pattern, data, 1.3, 4.0, 2.5, shift)
+    np.testing.assert_allclose(np.asarray(decay.get_output_port("decay").value), expected, rtol=1e-12)

@@ -260,6 +260,29 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
   void set_spectrum_from_port(bool v);
   bool get_spectrum_from_port() const { return spectrum_from_port_; }
 
+  //! A measured background decay, added in proportion to how long it was measured.
+  /*!
+      A background recorded on its own -- buffer, a dark sample -- carries
+      its own shape, which a constant does not. ChiSurf's treatment, in its
+      order, after the scatter term and before pile-up and scaling: the
+      pattern is shifted with the response's timeshift (unless told not to);
+      the counts it contributes to the measurement are
+      `n_bg = sum(pattern) / t_background * t_decay`; the model is rescaled to
+      the remaining `n_fl = max(sum(data) - n_bg, 1)` counts, and the pattern,
+      rescaled to `n_bg`, is added. It needs the data (#set_data). Empty
+      turns it off.
+  */
+  void set_background_pattern(const std::vector<double>& pattern);
+  void set_background_pattern_array(double* in_pattern, int n_pattern);
+  const std::vector<double>& get_background_pattern() const { return background_pattern_; }
+
+  //! How long the background pattern and the decay were each measured.
+  /*! \throws std::domain_error unless both are positive. */
+  void set_background_times(double t_background, double t_decay);
+
+  //! Whether the background pattern moves with the response's timeshift (default true).
+  void set_shift_background_with_response(bool v);
+
   //! Clean the response before use: zero it outside `[start, stop)` channels.
   /*! Setting a window also clips the response at zero after its background,
       which is ChiSurf's IRF preparation; see #response_background_port_key. */
@@ -450,6 +473,11 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
   double n0_ = 1.0;
   bool autoscale_ = false;
   bool pile_up_ = false;
+  std::vector<double> background_pattern_;
+  std::vector<double> background_shifted_;
+  double t_background_ = 1.0;
+  double t_decay_ = 1.0;
+  bool shift_background_with_response_ = true;
   double pile_up_dead_time_ns_ = 85.0;
   double pile_up_measurement_time_s_ = 0.0;
   bool spectrum_from_port_ = false;
