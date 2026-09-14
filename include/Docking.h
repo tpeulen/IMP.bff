@@ -1364,11 +1364,11 @@ IMPBFFEXPORT void shuffle_configuration(IMP::atom::Hierarchy root,
       resumes a run (a failed collision-free placement is not an error, as it
       was not in the Python program);
     - #DockingParameters::n_frames frames of
-      #DockingParameters::mc_steps steps per mover at **kT = 1**. One replica's
-      temperature ladder is its minimum temperature, and PMI sets the sampler
-      to it, so #DockingParameters::mc_temperature never reached the walk. That
-      is reproduced, not corrected: the numbers a run of this command produced
-      were produced at kT = 1.
+      #DockingParameters::mc_steps steps per mover at
+      #DockingParameters::mc_temperature (the one replica's temperature). The
+      PMI program this replaces ran at kT = 1 whatever it was given -- one
+      replica's ladder is its minimum temperature -- so runs made with it before
+      2026-09-14 were at kT = 1; the default is still 1.
 
     Files, in PMI's layout under \p output_dir: `initial.0.rmf3` (the start),
     `rmfs/0.rmf3` (a frame per frame), `pdbs/model.<i>.pdb` for the
