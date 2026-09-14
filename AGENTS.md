@@ -61,8 +61,8 @@ The exceptions are exact:
 * **programs** are C++ too: one executable, `bin/imp_bff.cpp`, whose
   subcommand groups are the former `bin/` scripts (owner ruling 2026-09-14;
   grammar in `include/CommandLine.h`, one `src/CommandLine<Group>.cpp` or
-  `src/imp/CommandLine<Group>.cpp` per group). `bin/imp_bff_py` holds the
-  commands not compiled yet and shrinks to nothing;
+  `src/imp/CommandLine<Group>.cpp` per group). No Python program is left in
+  `bin/`;
 * what is genuinely neither — a `%pythoncode` shim restoring a caller's array
   shape, a table of dictionary item names — goes in a `pyext/*.i` file.
 

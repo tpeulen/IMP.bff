@@ -16,8 +16,7 @@ IMPBFF_BEGIN_NAMESPACE
     function (owner rulings 2026-09-09 and 2026-09-14). The groups carry the
     old file names minus `imp_bff_` -- `imp_bff fps ...`, `imp_bff fps-av`,
     `imp_bff labelizer`, `imp_bff traj2drot`, ... -- and the commands of the
-    former `bin/imp_bff` sit at the top level. Commands not compiled yet are
-    forwarded to the Python program `imp_bff_py`.
+    former `bin/imp_bff` sit at the top level. No Python program is left.
 
     The wheel's `imp_bff` console script calls the vector overload.
 
