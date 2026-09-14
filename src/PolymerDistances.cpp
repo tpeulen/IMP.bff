@@ -2,6 +2,8 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 #include <IMP/bff/PolymerDistances.h>
+#include <IMP/bff/internal/DistanceAxis.h>
+#include <IMP/bff/internal/NodeConfig.h>
 #include "internal/SpectrumNodeHelpers.h"
 #include <IMP/bff/PolymerChain.h>
 #include <algorithm>
@@ -135,5 +137,16 @@ void PolymerDistances::evaluate() {
 }
 
 std::string PolymerDistances::get_node_type() const { return "PolymerDistances"; }
+
+void PolymerDistances::configure(const std::string& json_text) {
+  internal::NodeConfig config(get_node_type(), json_text);
+  const std::vector<double> axis =
+      internal::configured_distance_axis(config, "PolymerDistances '" + get_name() + "'");
+  if (!axis.empty()) set_axis(axis);
+  if (config.has("mode")) set_mode(config.get_string("mode"));
+  if (config.has("n_k")) set_n_k(config.get_int("n_k"));
+  config.apply_common(*this);
+  config.require_all_used();
+}
 
 IMPBFF_END_NAMESPACE

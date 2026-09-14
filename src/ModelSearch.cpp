@@ -866,7 +866,9 @@ struct MultiStructureModelSearchProblem::Impl {
       for (std::size_t i = 0; i < candidates.size() && !source; ++i) {
         if (candidates[i] && (candidates[i]->get_name() == wanted ||
                               candidates[i]->get_name() == published.node)) {
-          source = candidates[i]->get_output_port(published.port);
+          // `@name`: the output a node writes under its own name.
+          source = candidates[i]->get_output_port(
+              published.port == "@name" ? candidates[i]->get_name() : published.port);
         }
       }
       if (source.get() == published.source) continue;
@@ -1923,6 +1925,14 @@ std::shared_ptr<GraphPort> MultiStructureModelSearchProblem::get_output_port(
         (impl_->outputs.empty() ? std::string(" none") : known.str()));
   }
   return found->second.relay->get_output_port("out");
+}
+
+std::vector<double> MultiStructureModelSearchProblem::get_output(
+    const std::string& name) {
+  const std::shared_ptr<GraphPort> port = get_output_port(name);
+  const std::shared_ptr<GraphNode> relay = port->get_node();
+  if (relay) relay->update();
+  return port->get_values_ref();
 }
 
 std::vector<std::string> MultiStructureModelSearchProblem::get_output_names()

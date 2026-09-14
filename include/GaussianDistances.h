@@ -79,6 +79,9 @@ class IMPBFFEXPORT GaussianDistances : public GraphNode {
   void evaluate() override;
 
   std::string get_node_type() const override;
+  //! Settings: `number_of_components`, `distance_between_gaussians`, and the
+  //! axis as `axis` or `axis_range` `[min, max, n]` with `axis_scale`.
+  void configure(const std::string& json_text) override;
 
  private:
   std::vector<double> axis_;

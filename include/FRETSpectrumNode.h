@@ -53,6 +53,10 @@ IMPBFF_BEGIN_NAMESPACE
  * | `forster_radius` | $R_0$, in the units of the distances |
  * | `tau0` | the donor lifetime $R_0$ was determined at |
  * | `kappa2` | the orientation factor |
+ *
+ * Besides the lifetime spectrum (the output keyed by the node's name), an
+ * output named `fret_rates`, where one exists, receives the interleaved
+ * `(p, k_FRET)` transfer rates per distance, before any donor is combined.
  */
 class IMPBFFEXPORT FRETSpectrumNode : public GraphNode {
  public:
