@@ -200,4 +200,6 @@ std::string PhotophysicsAnisotropySpectrumNode::describe() const {
   return out.str();
 }
 
+std::string PhotophysicsAnisotropySpectrumNode::get_node_type() const { return "PhotophysicsAnisotropySpectrumNode"; }
+
 IMPBFF_END_NAMESPACE

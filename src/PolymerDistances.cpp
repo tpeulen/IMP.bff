@@ -134,4 +134,6 @@ void PolymerDistances::evaluate() {
   set_valid(true);
 }
 
+std::string PolymerDistances::get_node_type() const { return "PolymerDistances"; }
+
 IMPBFF_END_NAMESPACE

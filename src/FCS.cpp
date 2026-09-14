@@ -17,6 +17,7 @@
  *  Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 #include <IMP/bff/FCS.h>
+#include <IMP/bff/internal/NodeConfig.h>
 
 #include <algorithm>
 #include <cmath>
@@ -999,6 +1000,79 @@ std::string FCSSaturationCurve::describe() const {
       << ", wavelength=" << wavelength_m_
       << ", include_bunching=" << (include_bunching_ ? 1 : 0) << ")";
   return out.str();
+}
+
+std::string FCSMdfCurve::get_node_type() const { return "FCSMdfCurve"; }
+
+void FCSMdfCurve::configure(const std::string& json_text) {
+  internal::NodeConfig config(get_node_type(), json_text);
+  // The lag axis comes from the measurement; the optics and the quadrature
+  // are the instrument and the numerics, and both belong to a description.
+  if (config.has("optics")) {
+    const std::vector<double> optics = config.get_doubles("optics");
+    if (optics.size() != 4) {
+      throw std::domain_error(
+          "node type 'FCSMdfCurve': setting 'optics' must be "
+          "[excitation_wavelength, emission_wavelength, refractive_index, "
+          "pinhole_radius]");
+    }
+    set_optics(optics[0], optics[1], optics[2], optics[3]);
+  }
+  if (config.has("quadrature")) {
+    const std::vector<double> q = config.get_doubles("quadrature");
+    if (q.size() != 3) {
+      throw std::domain_error(
+          "node type 'FCSMdfCurve': setting 'quadrature' must be "
+          "[n_grid, span, n_herm]");
+    }
+    set_quadrature(static_cast<int>(q[0]), q[1], static_cast<int>(q[2]));
+  }
+  if (config.has("length_scale")) {
+    set_length_scale(config.get_double("length_scale"));
+  }
+  if (config.has("normalize")) set_normalize(config.get_bool("normalize"));
+  config.require_all_used();
+}
+
+std::string FCSSaturationCurve::get_node_type() const {
+  return "FCSSaturationCurve";
+}
+
+void FCSSaturationCurve::configure(const std::string& json_text) {
+  internal::NodeConfig config(get_node_type(), json_text);
+  // The photokinetic scheme is the dye, not the experiment: rates, cross
+  // sections and per-state brightness describe a molecule and are exactly
+  // the kind of thing that should be written down rather than compiled in.
+  const char* kScheme[] = {"scheme_states", "scheme_dark_matrix",
+                           "scheme_excitation_matrix", "scheme_brightness"};
+  int supplied = 0;
+  for (int i = 0; i < 4; ++i) supplied += config.has(kScheme[i]) ? 1 : 0;
+  if (supplied != 0 && supplied != 4) {
+    throw std::domain_error(
+        "node type 'FCSSaturationCurve': the photokinetic scheme needs "
+        "'scheme_states', 'scheme_dark_matrix', 'scheme_excitation_matrix' "
+        "and 'scheme_brightness' together, or none of them");
+  }
+  if (supplied == 4) {
+    set_scheme(config.get_doubles("scheme_dark_matrix"),
+               config.get_doubles("scheme_excitation_matrix"),
+               config.get_int("scheme_states"),
+               config.get_doubles("scheme_brightness"));
+  }
+  if (config.has("quadrature")) {
+    const std::vector<int> q = config.get_ints("quadrature");
+    if (q.size() != 2) {
+      throw std::domain_error(
+          "node type 'FCSSaturationCurve': setting 'quadrature' must be "
+          "[n_r, n_z]");
+    }
+    set_quadrature(q[0], q[1]);
+  }
+  if (config.has("wavelength")) set_wavelength(config.get_double("wavelength"));
+  if (config.has("include_bunching")) {
+    set_include_bunching(config.get_bool("include_bunching"));
+  }
+  config.require_all_used();
 }
 
 IMPBFF_END_NAMESPACE

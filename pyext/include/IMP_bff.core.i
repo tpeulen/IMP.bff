@@ -100,6 +100,13 @@ import numpy as np
 %include "IMP/bff/GraphNode.h"
 %template(MapStringPort) std::map<std::string, std::shared_ptr<IMP::bff::GraphPort> >;
 
+/* Node types by name. The registry's std::function factory is not something
+   Python needs to supply -- a node type is a numerical kernel, and those are
+   C++ -- so only the lookup side crosses. */
+%ignore IMP::bff::GraphNodeRegistry::register_type;
+%ignore IMP::bff::GraphNodeRegistry::Factory;
+%include "IMP/bff/GraphNodeRegistry.h"
+
 /* The chinet surface on top of the accessors: scalar-or-array values that
    follow the port's vectorness flag, dict priors, tuple bounds with NaN
    standing in for chinet's None. */

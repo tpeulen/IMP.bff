@@ -19,6 +19,7 @@
  */
 
 #include <IMP/bff/GraphExpression.h>
+#include <IMP/bff/internal/NodeConfig.h>
 
 // The engine is ptolib's (https://github.com/tpeulen/ptolib), carried here as
 // the verbatim copy `include/internal/ptolib.h` and compiled once in
@@ -471,6 +472,19 @@ std::string GraphExpression::describe() const {
     s += (i ? ", " : "") + variables_[i];
   }
   return s + "\n";
+}
+
+std::string GraphExpression::get_node_type() const { return "GraphExpression"; }
+
+void GraphExpression::configure(const std::string& json_text) {
+  internal::NodeConfig config(get_node_type(), json_text);
+  // The expression *is* the model for this node, so a description that omits
+  // it has described nothing; leaving it optional keeps that a caller's
+  // decision rather than silently producing an empty function.
+  if (config.has("expression")) {
+    set_expression(config.get_string("expression"));
+  }
+  config.require_all_used();
 }
 
 IMPBFF_END_NAMESPACE

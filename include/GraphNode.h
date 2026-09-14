@@ -256,6 +256,30 @@ class IMPBFFEXPORT GraphNode : public GraphObject,
   //! A one-line summary: name, ports, validity.
   std::string describe() const;
 
+  //! The name this node's type is registered under, or "GraphNode".
+  /*!
+      A description names a kernel and the registry builds it; this is the
+      same name read back, so a graph that was loaded can be written again.
+      \see GraphNodeRegistry
+  */
+  virtual std::string get_node_type() const;
+
+  //! Apply the settings a description carries for this node.
+  /*!
+      \param[in] json_text a JSON object whose keys are this node's own
+      settings -- the ones that are not ports, because a port is reached by
+      linking it rather than by configuring it.
+
+      Each subclass implements this beside the setters it forwards to, so no
+      loader has to know what a node can be told. The base refuses any key
+      it was not given a meaning for: a description whose setting is
+      misspelled or belongs to another node type must fail where it is read,
+      not evaluate quietly to something else.
+
+      An empty object is always valid and does nothing.
+  */
+  virtual void configure(const std::string& json_text);
+
   //! Invalidate the cached execution plan.
   //!
   //! Every structural mutator calls this, and so does a GraphPort whose link

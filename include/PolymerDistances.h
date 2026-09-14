@@ -63,6 +63,8 @@ class IMPBFFEXPORT PolymerDistances : public GraphNode {
 
   void evaluate() override;
 
+  std::string get_node_type() const override;
+
  private:
   std::string mode_;
   std::vector<double> axis_;

@@ -90,6 +90,8 @@ class IMPBFFEXPORT PhotophysicsAnisotropySpectrumNode : public GraphNode {
 
   std::string describe() const;
 
+  std::string get_node_type() const override;
+
  private:
   std::vector<double> rotation_;
   std::vector<double> spectrum_;

@@ -12,6 +12,7 @@
  */
 
 #include <IMP/bff/TCSPCDecay.h>
+#include <IMP/bff/internal/NodeConfig.h>
 
 // The kernels. A byte-identical copy of tttrlib's
 // `modules/spectroscopy/decay/include/DecayConvolution.h`, kept in step by
@@ -574,6 +575,53 @@ std::string TCSPCDecay::describe() const {
       << "autoscale      : " << (autoscale_ ? "yes" : "no") << "\n"
       << "n0             : " << n0_ << "\n";
   return out.str();
+}
+
+std::string TCSPCDecay::get_node_type() const { return "TCSPCDecay"; }
+
+void TCSPCDecay::configure(const std::string& json_text) {
+  internal::NodeConfig config(get_node_type(), json_text);
+  // The instrument response and the measured decay are bound at runtime;
+  // what a description fixes is the shape of the model over them.
+  if (config.has("number_of_lifetimes")) {
+    set_number_of_lifetimes(config.get_int("number_of_lifetimes"));
+  }
+  if (config.has("timing")) {
+    const std::vector<double> timing = config.get_doubles("timing");
+    if (timing.size() != 2) {
+      throw std::domain_error(
+          "node type 'TCSPCDecay': setting 'timing' must be "
+          "[channel_width, excitation_period]");
+    }
+    set_timing(timing[0], timing[1]);
+  }
+  if (config.has("convolution_range")) {
+    const std::vector<int> range = config.get_ints("convolution_range");
+    if (range.size() != 2) {
+      throw std::domain_error(
+          "node type 'TCSPCDecay': setting 'convolution_range' must be "
+          "[convolution_stop, stop]");
+    }
+    set_convolution_range(range[0], range[1]);
+  }
+  if (config.has("scale_range")) {
+    const std::vector<int> range = config.get_ints("scale_range");
+    if (range.size() != 2) {
+      throw std::domain_error(
+          "node type 'TCSPCDecay': setting 'scale_range' must be "
+          "[start, stop]");
+    }
+    set_scale_range(range[0], range[1]);
+  }
+  if (config.has("normalize_amplitudes")) {
+    set_normalize_amplitudes(config.get_bool("normalize_amplitudes"));
+  }
+  if (config.has("absolute_amplitudes")) {
+    set_absolute_amplitudes(config.get_bool("absolute_amplitudes"));
+  }
+  if (config.has("autoscale")) set_autoscale(config.get_bool("autoscale"));
+  if (config.has("pile_up")) set_pile_up(config.get_bool("pile_up"));
+  config.require_all_used();
 }
 
 IMPBFF_END_NAMESPACE

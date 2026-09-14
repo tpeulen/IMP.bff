@@ -6,6 +6,7 @@
  */
 
 #include <IMP/bff/FitChiSquared.h>
+#include <IMP/bff/internal/NodeConfig.h>
 
 #include <algorithm>
 #include <new>
@@ -335,6 +336,34 @@ void fit_weighted_residuals(
   }
   *out_wres = out;
   *n_out_wres = n;
+}
+
+std::string FitChiSquared::get_node_type() const { return "FitChiSquared"; }
+
+void FitChiSquared::configure(const std::string& json_text) {
+  internal::NodeConfig config(get_node_type(), json_text);
+  // The data, errors and mask are the measurement, not the model, so they
+  // are bound at runtime by whoever holds the dataset -- never written into
+  // a description that is meant to outlive any one experiment.
+  if (config.has("noise_model")) {
+    set_noise_model_name(config.get_string("noise_model"));
+  }
+  if (config.has("fit_range")) {
+    const std::vector<int> range = config.get_ints("fit_range");
+    if (range.size() != 2) {
+      throw std::domain_error(
+          "node type 'FitChiSquared': setting 'fit_range' must be "
+          "[xmin, xmax]");
+    }
+    set_fit_range(range[0], range[1]);
+  }
+  if (config.has("model_port_key")) {
+    set_model_port_key(config.get_string("model_port_key"));
+  }
+  if (config.has("residuals_port_key")) {
+    set_residuals_port_key(config.get_string("residuals_port_key"));
+  }
+  config.require_all_used();
 }
 
 IMPBFF_END_NAMESPACE

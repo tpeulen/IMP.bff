@@ -193,6 +193,9 @@ class IMPBFFEXPORT FitChiSquared : public GraphNode {
 
   std::string describe() const;
 
+  std::string get_node_type() const override;
+  void configure(const std::string& json_text) override;
+
  private:
   FitDataset dataset_;
   bool has_dataset_ = false;
