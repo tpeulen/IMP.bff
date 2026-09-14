@@ -77,6 +77,43 @@ inline void make_directory(const std::string& path) {
 #endif
 }
 
+//! The entries directly in \p path, split into files and directories, each
+//! sorted by name; `.` and `..` left out. Nothing is appended when \p path is
+//! not a directory. Portable: MSVC has no `<dirent.h>`.
+inline void directory_listing(const std::string& path, std::vector<std::string>& files,
+                              std::vector<std::string>& dirs) {
+    const std::string dir = path.empty() ? std::string(".") : path;
+    std::vector<std::string> f, d;
+#ifdef _WIN32
+    WIN32_FIND_DATAA data;
+    HANDLE handle = FindFirstFileA((dir + "\\*").c_str(), &data);
+    if (handle == INVALID_HANDLE_VALUE) return;
+    do {
+        const std::string name = data.cFileName;
+        if (name == "." || name == "..") continue;
+        if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) d.push_back(name);
+        else f.push_back(name);
+    } while (FindNextFileA(handle, &data));
+    FindClose(handle);
+#else
+    DIR* handle = opendir(dir.c_str());
+    if (handle == NULL) return;
+    for (struct dirent* entry = readdir(handle); entry != NULL; entry = readdir(handle)) {
+        const std::string name = entry->d_name;
+        if (name == "." || name == "..") continue;
+        struct stat info;
+        if (stat((dir + "/" + name).c_str(), &info) != 0) continue;
+        if ((info.st_mode & S_IFMT) == S_IFDIR) d.push_back(name);
+        else f.push_back(name);
+    }
+    closedir(handle);
+#endif
+    std::sort(f.begin(), f.end());
+    std::sort(d.begin(), d.end());
+    files.insert(files.end(), f.begin(), f.end());
+    dirs.insert(dirs.end(), d.begin(), d.end());
+}
+
 //! The files directly in \p path with the given lower-case suffix, sorted.
 /*! Empty when \p path is not a directory, which is how a caller tells a
     directory of structures from one structure. \p path may be empty, which
