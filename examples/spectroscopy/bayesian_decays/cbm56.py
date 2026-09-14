@@ -33,6 +33,7 @@ See `okf/prd-cbm56-real-data.md` in the ucfret repository for the plan.
 """
 from __future__ import annotations
 
+import math
 import re
 from pathlib import Path
 
@@ -945,7 +946,8 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
                 bkg_medians=bkg_med, scale_medians=scale_med, irf_bg_medians=irf_bg_med)
 
 
-def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=False, fixed=None):
+def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=False, fixed=None,
+        spec_smoothness=None):
     """The Laplace posterior of the whole model on the twelve histograms.
 
     **Automatic differentiation, not the analytic Jacobian.** The hand-written
@@ -968,13 +970,26 @@ def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=False, f
     #: the start uses that and the fit refines it under a prior a sixth of a
     #: decade wide.  Worth 18.6 to 13.0 in the deviance at the start, and the
     #: difference between a fit that converges and one that does not.
+    #: THE LIFETIME SPECTRA'S CONTINUITY (R3, 2026-09-14): free log amplitudes
+    #: on the lifetime grid are flat, non-concave directions and no node
+    #: converged without it.  'evidence' chooses lambda_s on the donor-only
+    #: decay alone, as the prototype's `fit_sample` does, and holds it.
+    m['spec_smooth_evidence'] = None
+    if spec_smoothness == 'evidence':
+        ss, ev_s = L.choose_spectrum_smoothness(m['graph'], m['y'])
+        m['graph'].spec_smooth = ss; m['spec_smooth_evidence'] = ev_s
+        if verbose:
+            print('  spectrum smoothness by evidence on D0: ' + ', '.join(f'{k:g}: {v:.1f}' for k, v in ev_s.items())
+                  + f' -> log10 lambda_s {math.log10(ss.lam_s) if ss else float("nan"):g}')
+    elif spec_smoothness is not None:
+        m['graph'].spec_smooth = L.SpectrumSmoothness(m['E']['Kint'], lam_s=10.0 ** float(spec_smoothness), weak_sd=3.0)
     th0, _ = L.start_from_data(m['graph'], m['y'], verbose=False, method='mem')
     for k, med in m['bkg_medians'].items():
         nm = f'bkg_{k[0]}_{k[1]}'
         if nm in m['graph'].offsets:
             a, b = m['graph'].offsets[nm]
             th0[a:b] = m['graph'].index[nm].transform.to_unconstrained(L.tt([med]))
-    if 'spec_ref_eps' in m['graph'].offsets:
+    if 'spec_ref_eps' in m['graph'].offsets:          # the 'free' reference spectrum only
         #: the reference dye's spectrum starts where the donor's does -- a
         #: start, not a prior; `start_from_data` knows only the donor's
         a, b = m['graph'].offsets['spec_ref_eps']; a0, b0 = m['graph'].offsets['spec_eps']
