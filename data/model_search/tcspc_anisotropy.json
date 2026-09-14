@@ -444,6 +444,7 @@
    }
   },
   "ess": "vv_size+vh_size+vm_size",
+  "selection": "bic",
   "starts": [
    {
     "repeat": [

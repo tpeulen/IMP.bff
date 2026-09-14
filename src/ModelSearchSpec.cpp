@@ -1134,16 +1134,36 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build()
       problem->add_structure_node(key, built[node_order[n]]);
     }
 
+    // How this topology is to be compared with the others. A family that
+    // says nothing here is refused rather than ranked on misfit alone, which
+    // is not a comparison between models but a preference for the larger.
     SpecJson::const_iterator ess_it = structure.find("ess");
+    SpecJson::const_iterator selection_it = structure.find("selection");
+    const bool has_score = structure.contains("score_output");
+    if (ess_it == structure.end() && !has_score) {
+      refuse(where + " declares no 'ess', so nothing says how many "
+                     "observations its score is judged against; a family "
+                     "without a selection criterion always prefers its "
+                     "richest topology");
+    }
     if (ess_it != structure.end()) {
-      const double ess =
-          evaluate_rule(*ess_it, where + " 'ess'", scope);
+      const double ess = evaluate_rule(*ess_it, where + " 'ess'", scope);
       if (!(ess > 0.0)) {
         refuse(where + " has a non-positive effective sample size");
       }
+      ModelSelectionCriterion criterion = MODEL_SELECTION_BIC;
+      if (selection_it != structure.end()) {
+        const std::string name = selection_it->get<std::string>();
+        if (name == "aic") {
+          criterion = MODEL_SELECTION_AIC;
+        } else if (name != "bic") {
+          refuse(where + " selects on '" + name +
+                 "', which is neither 'bic' nor 'aic'");
+        }
+      }
       // Complexity is counted, never declared: the two cannot disagree.
-      problem->set_structure_bic_metadata(key, ess,
-                                          static_cast<double>(complexity));
+      problem->set_structure_selection(key, criterion, ess,
+                                       static_cast<double>(complexity));
     }
     SpecJson::const_iterator score_it = structure.find("score_output");
     if (score_it != structure.end()) {

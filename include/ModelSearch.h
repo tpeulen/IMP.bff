@@ -31,6 +31,27 @@ class IMPBFFEXPORT ModelSearchConfigurationError
 };
 
 //! One fully evaluated model state; its key is opaque to the tree.
+//! How two competing models are compared.
+/*!
+    Not by chi-square alone. A richer model always fits at least as well, so
+    a comparison that only counts misfit always prefers the richer one --
+    measured here: dropping the sample size from a description makes the
+    analytical FCS family choose a spurious relaxation term on a curve built
+    from one diffusing species. Both criteria below are that misfit plus a
+    price for each free parameter; they differ in the price.
+
+    The reward the search maximises is a monotone transform of the criterion
+    -- `-BIC/2` or `-AIC/2` -- so maximising reward is minimising the
+    criterion, and the numbers a result carries can be read as either.
+*/
+enum ModelSelectionCriterion {
+  //! chi2 + k ln n. The price grows with the data, so on a long measurement
+  //! BIC is the more reluctant of the two to buy another parameter.
+  MODEL_SELECTION_BIC = 0,
+  //! chi2 + 2k. A fixed price per parameter, and the more permissive.
+  MODEL_SELECTION_AIC = 1
+};
+
 class IMPBFFEXPORT ModelSearchState {
  public:
   ModelSearchState();
@@ -325,11 +346,30 @@ class IMPBFFEXPORT MultiStructureModelSearchProblem
   void set_structure_acceptable_output(const std::string& structure_key,
                                        const std::string& output_key);
   void clear_structure_acceptable_output(const std::string& structure_key);
-  //! Use BIC scoring for this structure when there is no explicit score.
-  void set_structure_bic_metadata(const std::string& structure_key,
-                                  double effective_sample_size,
-                                  double complexity);
-  void clear_structure_bic_metadata(const std::string& structure_key);
+  //! How this structure is compared with the others, when it has no explicit
+  //! score output.
+  /*!
+      \param[in] criterion BIC or AIC
+      \param[in] effective_sample_size observations the fit actually used
+      \param[in] complexity free parameters, counted once each
+
+      A structure must have either this or a score output. There is
+      deliberately no default: scoring by misfit alone is not a comparison
+      between models, it is a preference for the larger one, and a family
+      that forgot to say how it should be judged must fail rather than
+      quietly overfit.
+  */
+  void set_structure_selection(const std::string& structure_key,
+                               ModelSelectionCriterion criterion,
+                               double effective_sample_size,
+                               double complexity);
+  void clear_structure_selection(const std::string& structure_key);
+
+  //! Reduced chi-square of the last evaluation: chi2 / (n - k - 1).
+  /*! The goodness-of-fit question, which is separate from the comparison:
+      a model can be the best of a family and still not describe the data.
+      Near one is the expectation. */
+  double get_last_reduced_chi2() const;
 
   ModelSearchState get_initial_state() override;
   ModelSearchActions get_actions(

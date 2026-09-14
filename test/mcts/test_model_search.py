@@ -272,8 +272,8 @@ def _multi_structure_linear_problem():
     problem.add_structure_node("expanded", expanded_objective._graph[0])
     del root_objective._graph
     del expanded_objective._graph
-    problem.set_structure_bic_metadata("root", len(x), 1.0)
-    problem.set_structure_bic_metadata("expanded", len(x), 2.0)
+    problem.set_structure_selection("root", bff.MODEL_SELECTION_BIC, len(x), 1.0)
+    problem.set_structure_selection("expanded", bff.MODEL_SELECTION_BIC, len(x), 2.0)
     problem.set_initial_structure("root")
     problem.add_action("root", "add-intercept", "expanded", 1.0)
     problem.add_action("expanded", "stop", "expanded", 1.0, True)
@@ -366,6 +366,11 @@ def test_multi_structure_failed_fit_rolls_back_registry_and_active_graph():
     problem.add_structure(
         "underdetermined", invalid_objective, ids, ports, [50.0, 20.0], [0, 0]
     )
+    # Both are compared, so both have to say on what.
+    problem.set_structure_selection("root", bff.MODEL_SELECTION_BIC, len(x), 1.0)
+    problem.set_structure_selection(
+        "underdetermined", bff.MODEL_SELECTION_BIC, len(x), 2.0
+    )
     problem.set_initial_structure("root")
     problem.add_action("root", "fail", "underdetermined", 1.0)
     problem._keepalive = (root_objective, invalid_objective, slope, intercept)
@@ -409,16 +414,31 @@ def test_multi_structure_problem_accepts_a_joint_target_objective():
     problem.add_parameter("lifetime", lifetime)
     ids = ["amplitude-0", "amplitude-1", "lifetime"]
     ports = [amplitudes[0], amplitudes[1], lifetime]
+    # Both topologies score the *same* two curves and differ only in whether
+    # the shared lifetime is free. That is what makes them comparable: no
+    # criterion can choose between models fitted to different data, and this
+    # fixture used to ask it to -- one structure saw one curve and the other
+    # saw two, which only looked like a contest because nothing was charging
+    # for parameters.
     problem.add_structure(
-        "fixed-lifetime", members[0], ids, ports, [2.0, 5.0, 1.0], [0, 1, 1]
+        "fixed-lifetime", joint, ids, ports, [2.0, 5.0, 1.0], [0, 0, 1]
     )
     problem.add_structure(
         "joint-free-lifetime", joint, ids, ports, [2.0, 5.0, 2.0], [0, 0, 0]
     )
-    problem.add_structure_node("fixed-lifetime", members[0]._graph[0])
+    for key in ("fixed-lifetime", "joint-free-lifetime"):
+        for member in members:
+            problem.add_structure_node(key, member._graph[0])
     for member in members:
-        problem.add_structure_node("joint-free-lifetime", member._graph[0])
         del member._graph
+    # Same observations for both, so the comparison is between models rather
+    # than between datasets; they differ by the one parameter BIC charges for.
+    problem.set_structure_selection(
+        "fixed-lifetime", bff.MODEL_SELECTION_BIC, 2 * len(x), 2.0
+    )
+    problem.set_structure_selection(
+        "joint-free-lifetime", bff.MODEL_SELECTION_BIC, 2 * len(x), 3.0
+    )
     problem.set_initial_structure("fixed-lifetime")
     problem.add_action(
         "fixed-lifetime", "fit-joint", "joint-free-lifetime", 1.0

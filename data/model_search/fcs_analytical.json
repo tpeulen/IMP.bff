@@ -95,7 +95,8 @@
     "fcs.baseline",
     "fcs.diffusion_time.1"
    ],
-   "ess": "curve_size"
+   "ess": "curve_size",
+   "selection": "bic"
   },
   "fcs.2d.1diff.1relax": {
    "nodes": {
@@ -138,7 +139,8 @@
     "fcs.relaxation_amplitude.1",
     "fcs.relaxation_time.1"
    ],
-   "ess": "curve_size"
+   "ess": "curve_size",
+   "selection": "bic"
   },
   "fcs.2d.2diff.0relax": {
    "nodes": {
@@ -191,7 +193,8 @@
      "fcs.diffusion_time.1": "curve_characteristic/10",
      "fcs.diffusion_time.2": "curve_characteristic*10"
     }
-   ]
+   ],
+   "selection": "bic"
   },
   "fcs.2d.2diff.1relax": {
    "nodes": {
@@ -248,7 +251,8 @@
      "fcs.diffusion_time.1": "curve_characteristic/10",
      "fcs.diffusion_time.2": "curve_characteristic*10"
     }
-   ]
+   ],
+   "selection": "bic"
   },
   "fcs.3d.1diff.0relax": {
    "nodes": {
@@ -289,7 +293,8 @@
     "fcs.diffusion_time.1",
     "fcs.structure_parameter"
    ],
-   "ess": "curve_size"
+   "ess": "curve_size",
+   "selection": "bic"
   },
   "fcs.3d.1diff.1relax": {
    "nodes": {
@@ -334,7 +339,8 @@
     "fcs.relaxation_amplitude.1",
     "fcs.relaxation_time.1"
    ],
-   "ess": "curve_size"
+   "ess": "curve_size",
+   "selection": "bic"
   },
   "fcs.3d.2diff.0relax": {
    "nodes": {
@@ -389,7 +395,8 @@
      "fcs.diffusion_time.1": "curve_characteristic/10",
      "fcs.diffusion_time.2": "curve_characteristic*10"
     }
-   ]
+   ],
+   "selection": "bic"
   },
   "fcs.3d.2diff.1relax": {
    "nodes": {
@@ -448,7 +455,8 @@
      "fcs.diffusion_time.1": "curve_characteristic/10",
      "fcs.diffusion_time.2": "curve_characteristic*10"
     }
-   ]
+   ],
+   "selection": "bic"
   }
  },
  "actions": [
