@@ -73,7 +73,8 @@ void PolymerDistances::set_axis_array(double* in_axis, int n_axis) {
   set_axis(std::vector<double>(in_axis, in_axis + n_axis));
 }
 
-void PolymerDistances::evaluate() {
+std::vector<double> PolymerDistances::weights_at(
+    const std::vector<double>& parameters) const {
   if (mode_.empty()) {
     throw std::domain_error("PolymerDistances '" + get_name() +
                             "' has no mode; call set_mode() first");
@@ -88,8 +89,8 @@ void PolymerDistances::evaluate() {
   double* view = nullptr;
   int n_view = 0;
   if (mode_ == "worm_like_chain" || mode_ == "worm_like_chain_linker") {
-    const double chain_length = parameter_ports_[0]->get_value();
-    const double persistence_length = parameter_ports_[1]->get_value();
+    const double chain_length = parameters[0];
+    const double persistence_length = parameters[1];
     if (!(chain_length > 0.0)) {
       throw std::domain_error("PolymerDistances '" + get_name() +
                               "': chain_length is not positive");
@@ -106,34 +107,86 @@ void PolymerDistances::evaluate() {
       // in PRD-105 on the flag itself).
       worm_like_chain(axis_, kappa, chain_length, true, false, &view, &n_view);
     } else {
-      worm_like_chain_linker(axis_, kappa, chain_length,
-                             parameter_ports_[2]->get_value(), true,
+      worm_like_chain_linker(axis_, kappa, chain_length, parameters[2], true,
                              &view, &n_view);
     }
   } else if (mode_ == "saw_nu") {
-    saw_nu(axis_, parameter_ports_[0]->get_value(),
-           parameter_ports_[1]->get_value(), 1.1615, &view, &n_view);
+    saw_nu(axis_, parameters[0], parameters[1], 1.1615, &view, &n_view);
   } else {  // ising_chain
-    const int n_residues = static_cast<int>(
-        std::lround(parameter_ports_[0]->get_value()));
-    ising_chain(axis_, n_residues, parameter_ports_[1]->get_value(),
-                parameter_ports_[2]->get_value(),
-                parameter_ports_[3]->get_value(),
-                parameter_ports_[4]->get_value(), n_k_, &view, &n_view);
+    const int n_residues = static_cast<int>(std::lround(parameters[0]));
+    ising_chain(axis_, n_residues, parameters[1], parameters[2], parameters[3],
+                parameters[4], n_k_, &view, &n_view);
   }
   if (view == nullptr || n_view != static_cast<int>(axis_.size())) {
     std::free(view);
     throw std::domain_error("PolymerDistances '" + get_name() +
                             "': the kernel returned no distribution");
   }
+  std::vector<double> weights(view, view + n_view);
+  std::free(view);
+  if (normalize_weights_) {
+    double total = 0.0;
+    for (double v : weights) total += v;
+    if (total > 0.0) {
+      for (double& v : weights) v /= total;
+    }
+  }
+  return weights;
+}
+
+std::vector<double> PolymerDistances::current_parameters() const {
+  std::vector<double> values;
+  for (GraphPort* port : parameter_ports_) values.push_back(port->get_value());
+  return values;
+}
+
+void PolymerDistances::evaluate() {
+  const std::vector<double> weights = weights_at(current_parameters());
   spectrum_.resize(2 * axis_.size());
   for (std::size_t j = 0; j < axis_.size(); ++j) {
-    spectrum_[2 * j] = view[j];
+    spectrum_[2 * j] = weights[j];
     spectrum_[2 * j + 1] = axis_[j];
   }
-  std::free(view);
   spectrum_node_detail::publish(this, spectrum_);
   set_valid(true);
+}
+
+std::vector<std::string> PolymerDistances::get_parameter_names() const {
+  if (mode_ == "worm_like_chain" || mode_ == "worm_like_chain_linker") {
+    return {"chain_length", "persistence_length", "sigma_linker"};
+  }
+  if (mode_ == "saw_nu") return {"r_rms", "nu"};
+  if (mode_ == "ising_chain") {
+    return {"n_residues", "b_structured", "b_unstructured", "coupling", "field"};
+  }
+  return {};
+}
+
+std::vector<double> PolymerDistances::get_weights_jacobian(double relative_step) const {
+  if (!(relative_step > 0.0)) {
+    throw std::domain_error("PolymerDistances::get_weights_jacobian: a positive step");
+  }
+  const std::vector<double> at = current_parameters();
+  const std::size_t n = axis_.size();
+  const std::size_t n_params = at.size();
+  std::vector<double> jacobian(n * n_params, 0.0);
+  const bool ising = mode_ == "ising_chain";
+  for (std::size_t c = 0; c < n_params; ++c) {
+    // The residue count is rounded to an integer: the weights are piecewise
+    // constant in it, and the derivative is 0 almost everywhere. Without the
+    // linker the linker width is not read at all.
+    if ((ising && c == 0) || (mode_ == "worm_like_chain" && c == 2)) continue;
+    const double h = relative_step * std::max(std::fabs(at[c]), 1.0);
+    std::vector<double> up = at, down = at;
+    up[c] += h;
+    down[c] -= h;
+    const std::vector<double> plus = weights_at(up);
+    const std::vector<double> minus = weights_at(down);
+    for (std::size_t j = 0; j < n; ++j) {
+      jacobian[j * n_params + c] = (plus[j] - minus[j]) / (2.0 * h);
+    }
+  }
+  return jacobian;
 }
 
 std::string PolymerDistances::get_node_type() const { return "PolymerDistances"; }
@@ -145,6 +198,9 @@ void PolymerDistances::configure(const std::string& json_text) {
   if (!axis.empty()) set_axis(axis);
   if (config.has("mode")) set_mode(config.get_string("mode"));
   if (config.has("n_k")) set_n_k(config.get_int("n_k"));
+  if (config.has("normalize_weights")) {
+    set_normalize_weights(config.get_bool("normalize_weights"));
+  }
   config.apply_common(*this);
   config.require_all_used();
 }
