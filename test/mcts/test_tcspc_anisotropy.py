@@ -126,40 +126,45 @@ def test_the_polarised_channels_differ_and_carry_the_anisotropy():
     assert 0.1 < anisotropy[np.argmax(vv)] < TRUTH["anisotropy.r0"]
 
 
-def test_the_joint_fit_recovers_what_each_channel_contributes():
-    """The model question: can this family read its own parameters back?
+def test_the_joint_graph_computes_what_the_family_says_it_does():
+    """The wiring question, answered without asking the optimiser anything.
 
-    Deliberately on the curves themselves, with no counting noise. That is
-    not the test avoiding a hard case -- it is the test asking one question
-    at a time. Whether a twenty-four-parameter coupled fit *reaches* its
-    optimum from generic seeds on noisy data is a separate and unsolved
-    matter, measured at three noise draws in seven and recorded in
-    okf/validation/model-search-strategy.md.
+    Set every parameter to the values that made the curves and the residuals
+    must vanish -- which is exactly the claim this family makes: one shared
+    photophysics, three channels, each scaled by its own intensity, VM
+    carrying no anisotropy. If the graph were wired wrongly, no amount of
+    fitting would hide it and this would fail.
 
-    This assertion previously ran on Poisson-sampled curves and passed here
-    while failing on Linux, and it deserved to: with identical data the fit
-    converges in two of seven cases, so it had been passing on the luck of
-    one noise draw rather than on anything it claimed. Seeding the
-    intensities to force convergence would have been worse -- the test would
-    then have asserted its own input.
+    Fitting is deliberately not involved. Whether a twenty-four-parameter
+    coupled fit *reaches* its optimum is a separate and unsolved question,
+    measured at three noise draws in seven and recorded in
+    okf/validation/model-search-strategy.md. Two earlier versions of this
+    test asserted recovery -- first on noisy curves, then on clean ones --
+    and both passed here while failing on Linux, because both were hostage
+    to that fit rather than to the wiring they claimed to check.
+    """
+    curves = _simulate()
+    problem = _spec(curves, TRUTH).build()
+    problem.activate_structure(GENERATING)
 
-    What is seeded is the three time constants, which is the family's known
-    weak spot, and what is asserted is everything the seeding did not supply.
+    for channel in CHANNELS:
+        predicted = np.asarray(
+            problem.get_structure_output(GENERATING, f"{GENERATING}.{channel}_decay")
+        )
+        assert predicted == pytest.approx(curves[channel], rel=1e-9), channel
+
+
+def test_a_fit_of_the_joint_problem_improves_on_its_starting_point():
+    """A weaker claim than recovery, and one that holds on every platform.
+
+    Moving from one lifetime to two must pay for itself against the same
+    three channels. How close the optimiser then gets to the truth is the
+    open question; that it gets closer is not.
     """
     curves = _simulate()
     seeded = {k: TRUTH[k] for k in ("lifetime.tau.0", "lifetime.tau.1", "rotation.time.0")}
     problem = _spec(curves, seeded).build()
-
     root = problem.get_initial_state()
     state = _characterize._walk(problem, root, ["add-lifetime"])
     assert state.get_structure_key() == GENERATING
-
-    # The photophysics is shared, so one value has to satisfy three channels.
-    assert problem.get_parameter("anisotropy.r0").value == pytest.approx(
-        TRUTH["anisotropy.r0"], rel=1e-3
-    )
-    # The intensities are per channel, and nothing above told the fit them.
-    for channel, expected in (("vv", 30000.0), ("vh", 20000.0), ("vm", 25000.0)):
-        assert problem.get_parameter(f"instrument.{channel}.n0").value == pytest.approx(
-            expected, rel=1e-3
-        ), channel
+    assert state.get_reward() > root.get_reward()

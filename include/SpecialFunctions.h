@@ -22,16 +22,23 @@ IMPBFF_BEGIN_NAMESPACE
 
 //! Modified Bessel function \f$I_0(x)\f$, for any real \p x.
 /*!
-    The Abramowitz & Stegun polynomial approximation (Numerical Recipes'
-    `bessi0`), correct to about 1e-7 -- **not** the exact function, and that is
-    the point rather than a shortcut.
+    Boost.Math's exact function, to machine precision. Header-only, so it adds
+    no runtime dependency: the standalone build links `Boost::headers` and
+    nothing else of Boost.
 
-    `std::cyl_bessel_i(0, x)` and `scipy.special.i0` are correct to machine
-    precision, so substituting either would move every fitted worm-like-chain
-    distribution by more than the optimiser's tolerance and quietly invalidate
-    published fits. ChiSurf kept the polynomial for that reason; this is the
-    same nine coefficients in the same order, so the two agree exactly rather
-    than approximately.
+    **This changed on 2026-09-14 and the change is visible in fitted
+    numbers.** It was the Abramowitz & Stegun polynomial (Numerical Recipes'
+    `bessi0`), kept deliberately because ChiSurf used it and parity mattered
+    more than accuracy -- and kept with a transposed digit, 3.5156299 where
+    A&S prints 3.5156229, because the published fits in this stack were made
+    with that. Measured against `scipy.special.i0` before the swap: 9.6e-7
+    maximum relative difference, and 8.5e-7 across a worm-like-chain axis,
+    roughly eighty-five times what the optimiser calls converged.
+
+    So a worm-like-chain distribution computed now differs from one computed
+    before by about a part in a million, and refits are the expected
+    consequence. Anything comparing against numbers produced by the older
+    code should expect that difference rather than treat it as a regression.
 
     \f$I_0\f$ is **even**, which is the property the worm-like chain depends
     on: its argument is negative, and \f$I_0(-x) = I_0(x)\f$ grows where
