@@ -71,6 +71,8 @@ class IMPBFFEXPORT FRETSpectrumNode : public GraphNode {
 
   std::string describe() const;
 
+  std::string get_node_type() const override;
+
  private:
   std::vector<double> spectrum_;
   GraphPort* donor_port_ = nullptr;

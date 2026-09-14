@@ -78,6 +78,8 @@ class IMPBFFEXPORT GaussianDistances : public GraphNode {
 
   void evaluate() override;
 
+  std::string get_node_type() const override;
+
  private:
   std::vector<double> axis_;
   std::vector<double> density_;

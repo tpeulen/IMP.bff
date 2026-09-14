@@ -123,4 +123,6 @@ std::string FRETSpectrumNode::describe() const {
   return out.str();
 }
 
+std::string FRETSpectrumNode::get_node_type() const { return "FRETSpectrumNode"; }
+
 IMPBFF_END_NAMESPACE

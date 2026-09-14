@@ -212,6 +212,9 @@ class IMPBFFEXPORT GraphExpression : public GraphNode {
 
   std::string describe() const;
 
+  std::string get_node_type() const override;
+  void configure(const std::string& json_text) override;
+
  private:
   //! Holds the ptolib evaluator, so its header stays in the implementation.
   /*! It must stay out of this header for two reasons: SWIG parses this file

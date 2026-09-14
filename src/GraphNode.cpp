@@ -9,6 +9,8 @@
 
 #include <IMP/bff/GraphNode.h>
 
+#include <IMP/bff/internal/NodeConfig.h>
+
 #include <algorithm>
 #include <stdexcept>
 #include <sstream>
@@ -453,6 +455,15 @@ std::string GraphNode::describe() const {
   out << ", callback='" << callback_ << "'";
   out << ")";
   return out.str();
+}
+
+std::string GraphNode::get_node_type() const { return "GraphNode"; }
+
+void GraphNode::configure(const std::string& json_text) {
+  // A plain node has no settings of its own, so every key is one this node
+  // has no meaning for. NodeConfig says which, by name.
+  internal::NodeConfig config(get_node_type(), json_text);
+  config.require_all_used();
 }
 
 void GraphNode::fill_input_output_port_lookups() {

@@ -79,4 +79,6 @@ void PhotophysicsLifetimeSpectrumNode::evaluate() {
   set_valid(true);
 }
 
+std::string PhotophysicsLifetimeSpectrumNode::get_node_type() const { return "PhotophysicsLifetimeSpectrumNode"; }
+
 IMPBFF_END_NAMESPACE

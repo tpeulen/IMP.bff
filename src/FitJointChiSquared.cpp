@@ -6,6 +6,7 @@
  */
 
 #include <IMP/bff/FitJointChiSquared.h>
+#include <IMP/bff/internal/NodeConfig.h>
 
 #include <cmath>
 #include <limits>
@@ -139,6 +140,20 @@ std::string FitJointChiSquared::describe() const {
   out << "residuals      : " << wres_.size() << "\n"
       << "chi2           : " << chi2_ << "\n";
   return out.str();
+}
+
+std::string FitJointChiSquared::get_node_type() const {
+  return "FitJointChiSquared";
+}
+
+void FitJointChiSquared::configure(const std::string& json_text) {
+  internal::NodeConfig config(get_node_type(), json_text);
+  if (config.has("residuals_port_key")) {
+    set_residuals_port_key(config.get_string("residuals_port_key"));
+  }
+  // Members are not settings: a member is another node, and a description
+  // adds it by naming the graph edge, not by naming a value here.
+  config.require_all_used();
 }
 
 IMPBFF_END_NAMESPACE

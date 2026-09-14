@@ -102,4 +102,6 @@ void GaussianDistances::evaluate() {
   set_valid(true);
 }
 
+std::string GaussianDistances::get_node_type() const { return "GaussianDistances"; }
+
 IMPBFF_END_NAMESPACE

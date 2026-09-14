@@ -63,6 +63,8 @@ class IMPBFFEXPORT PhotophysicsLifetimeSpectrumNode : public GraphNode {
 
   void evaluate() override;
 
+  std::string get_node_type() const override;
+
  private:
   std::vector<double> spectrum_;
   std::vector<GraphPort*> lifetime_ports_;

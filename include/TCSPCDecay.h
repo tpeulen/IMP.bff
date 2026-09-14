@@ -361,6 +361,9 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
 
   std::string describe() const;
 
+  std::string get_node_type() const override;
+  void configure(const std::string& json_text) override;
+
  private:
   std::vector<double> response_;
   std::vector<double> shifted_;

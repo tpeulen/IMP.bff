@@ -295,6 +295,9 @@ class IMPBFFEXPORT FCSMdfCurve : public GraphNode {
 
   std::string describe() const;
 
+  std::string get_node_type() const override;
+  void configure(const std::string& json_text) override;
+
  private:
   //! Bring the cached quadrature up to date with `n_herm_`.
   void refresh_quadrature();
@@ -582,6 +585,9 @@ class IMPBFFEXPORT FCSSaturationCurve : public GraphNode {
   void evaluate() override;
 
   std::string describe() const;
+
+  std::string get_node_type() const override;
+  void configure(const std::string& json_text) override;
 
  private:
   std::vector<double> tau_;
