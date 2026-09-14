@@ -297,6 +297,14 @@ recovery of the shared photophysics and the per-channel intensities from
 Poisson-sampled curves -- is now restored and passing, which is the right
 order: fix the fit, then let the test say what it wanted to say.
 
+**And the fix does not generalise, which was checked rather than assumed.**
+The FCS two-species case -- where the generating topology reaches -25.6 from
+its declared starts and -12.6 seeded at the truth -- is *not* budget limited:
+it returns -25.57 at every budget from the default to 500000. That one is a
+genuine local minimum, so the two failures that looked alike are different
+problems. The anisotropy family needed iterations; FCS needs to start
+somewhere else, which is what the self-play proposer is for.
+
 ## What follows
 
 1. **Sorting.** TCSPC component labels permute between slots depending on the
