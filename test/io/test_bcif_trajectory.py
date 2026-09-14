@@ -1,4 +1,4 @@
-"""BinaryCIF trajectories: the encoder script and the C++ reader, round-tripped.
+"""BinaryCIF trajectories: the C++ encoder and the C++ reader, round-tripped.
 
 BinaryCIF is this package's trajectory format as of 2026-08-19. It replaces DCD
 and XTC and is smaller than either -- 1.27 bytes per coordinate against DCD's
@@ -8,12 +8,13 @@ runs. The reasoning and what the precision costs are in
 ``okf/validation/bcif_for_trajectories.md``.
 
 Both halves are exercised here against real shipped data, because they are only
-correct *together*: the encoder is in ``scripts/`` and the decoder is
-``ihm_format.c``, which IMP vendors, and neither is covered by the other's
-tests.
+correct *together*: the encoder is ``IMP.bff.write_bcif_trajectory`` (it was
+the Python program ``bin/imp_bff_traj2bcif``, now ``imp_bff traj2bcif``) and
+the decoder is ``ihm_format.c``, which IMP vendors, and neither is covered by
+the other's tests. The XTC reader, which replaced mdtraj on the same road, is
+checked against mdtraj's own ``xdrfile`` here too.
 """
 
-import importlib.util
 import sys
 from pathlib import Path
 
@@ -24,7 +25,6 @@ import IMP.bff
 import IMP.bff as ios
 
 REPO = Path(__file__).resolve().parent.parent.parent
-SCRIPT = REPO / "bin" / "imp_bff_traj2bcif"
 #: A shipped library: small enough to round-trip in a test, real data.
 LIB = REPO / "data" / "rotamer_library" / "A56_C1R_cutoff30.bcif"
 #: The shipped files are lossless. Quantisation is exercised separately,
@@ -32,19 +32,20 @@ LIB = REPO / "data" / "rotamer_library" / "A56_C1R_cutoff30.bcif"
 GRID = 0.001
 
 
+class _Encoder:
+    """The encoder, spelled as the Python program's `write_bcif` was:
+    `(path, xyz, grid)`, a grid of None meaning lossless, the byte count back."""
+
+    @staticmethod
+    def write_bcif(path, xyz, grid_A=None):
+        return IMP.bff.write_bcif_trajectory(
+            str(path), np.ascontiguousarray(xyz, dtype=np.float64),
+            grid_a=-1.0 if grid_A is None else float(grid_A))
+
+
 @pytest.fixture(scope="module")
 def encoder():
-    # An explicit loader: the program lives in `bin/` with no extension, the
-    # way IMP's installed programs do, and `spec_from_file_location` cannot
-    # infer a loader without one.
-    import importlib.machinery
-    spec = importlib.util.spec_from_file_location(
-        "traj_to_bcif", SCRIPT,
-        loader=importlib.machinery.SourceFileLoader("traj_to_bcif", str(SCRIPT)))
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules["traj_to_bcif"] = mod
-    spec.loader.exec_module(mod)
-    return mod
+    return _Encoder()
 
 
 @pytest.fixture(scope="module")
@@ -172,6 +173,94 @@ def test_the_escape_sentinel_is_not_mistaken_for_a_value(encoder, tmp_path):
         str(out), 1, "_rotamer_coord")).reshape(xyz.shape)
     np.testing.assert_allclose(got, np.round(xyz / GRID) * GRID,
                                rtol=0, atol=1e-9)
+
+
+def test_the_encoder_refuses_a_shape_that_is_not_xyz(tmp_path):
+    with pytest.raises(ValueError):
+        IMP.bff.write_bcif_trajectory(str(tmp_path / "bad.bcif"),
+                                      np.zeros((2, 3, 2)))
+
+
+def test_the_program_converts_a_dcd_and_verifies_it(converted, tmp_path, capfd):
+    """`imp_bff traj2bcif src.dcd dst.bcif` -- the program end to end, on a DCD
+    written here from the shipped conformers."""
+    md = pytest.importorskip("mdtraj")
+    _, xyz, _ = converted
+    dcd = tmp_path / "lib.dcd"
+    with md.formats.DCDTrajectoryFile(str(dcd), "w") as f:
+        f.write(xyz.astype(np.float32))
+    out = tmp_path / "lib.bcif"
+    assert IMP.bff.command_line_main(["traj2bcif", str(dcd), str(out)]) == 0
+    assert "verified bit-exact (float32)" in capfd.readouterr().out
+    assert IMP.bff.command_line_main(
+        ["traj2bcif", str(dcd), str(tmp_path / "q.bcif"), "--grid", "0.001"]) == 0
+    assert "verified exact on the 0.001 A grid" in capfd.readouterr().out
+    got = np.asarray(IMP.bff.read_bcif_trajectory(
+        str(out), xyz.shape[1], "_rotamer_coord")).reshape(xyz.shape)
+    np.testing.assert_array_equal(got, xyz.astype(np.float32).astype(np.float64))
+
+
+def test_the_program_wants_a_topology_for_an_xtc(tmp_path, capfd):
+    xtc = tmp_path / "t.xtc"
+    xtc.write_bytes(b"")
+    assert IMP.bff.command_line_main(["traj2bcif", str(xtc), str(tmp_path / "o.bcif")]) == 1
+    assert "--top" in capfd.readouterr().err
+
+
+def _write_xtc(path, xyz_A):
+    md = pytest.importorskip("mdtraj")
+    with md.formats.XTCTrajectoryFile(str(path), "w") as f:
+        f.write((xyz_A / 10.0).astype(np.float32))
+
+
+def test_the_xtc_reader_matches_mdtraj_bit_for_bit(converted, tmp_path):
+    """The compiled reader decodes the xdrfile integer scheme exactly as
+    xdrfile does: float32 nanometres, then x10 -- what the Python programs got
+    from `mdtraj.load(...).xyz * 10`. Real conformers, 112 atoms, so the
+    compressed path (more than nine atoms) and its run-length swaps are what is
+    exercised."""
+    md = pytest.importorskip("mdtraj")
+    _, xyz, _ = converted
+    xtc = tmp_path / "lib.xtc"
+    _write_xtc(xtc, xyz)
+    ref = md.formats.XTCTrajectoryFile(str(xtc)).read()[0].astype(np.float64) * 10.0
+    assert IMP.bff.read_xtc_n_atoms(str(xtc)) == xyz.shape[1]
+    got = np.asarray(IMP.bff.read_xtc(str(xtc))).reshape(ref.shape)
+    np.testing.assert_array_equal(got, ref)
+    # and the quantisation is the file's, not the reader's: 1e-3 nm
+    assert np.abs(got - xyz).max() <= 0.005 + 1e-6
+    part = np.asarray(IMP.bff.read_xtc(str(xtc), 2)).reshape(-1, xyz.shape[1], 3)
+    np.testing.assert_array_equal(part, ref[:2])
+
+
+def test_the_xtc_reader_reads_a_frame_of_few_atoms_uncompressed(tmp_path):
+    """Nine atoms or fewer are stored as plain floats, not the integer scheme."""
+    md = pytest.importorskip("mdtraj")
+    rng = np.random.default_rng(3)
+    xyz = rng.normal(0, 10, (4, 5, 3))
+    xtc = tmp_path / "small.xtc"
+    _write_xtc(xtc, xyz)
+    ref = md.formats.XTCTrajectoryFile(str(xtc)).read()[0].astype(np.float64) * 10.0
+    got = np.asarray(IMP.bff.read_xtc(str(xtc))).reshape(ref.shape)
+    np.testing.assert_array_equal(got, ref)
+
+
+def test_read_trajectory_dispatches_an_xtc(converted, tmp_path):
+    pytest.importorskip("mdtraj")
+    _, xyz, _ = converted
+    xtc = tmp_path / "lib.xtc"
+    _write_xtc(xtc, xyz)
+    got = np.asarray(IMP.bff.read_trajectory(str(xtc), xyz.shape[1], -1))
+    assert got.size == xyz.size
+    with pytest.raises(ValueError):
+        IMP.bff.read_trajectory(str(xtc), xyz.shape[1] + 1, -1)
+
+
+def test_a_file_that_is_not_an_xtc_raises(tmp_path):
+    junk = tmp_path / "junk.xtc"
+    junk.write_bytes(b"\x00" * 64)
+    with pytest.raises(Exception):
+        IMP.bff.read_xtc(str(junk))
 
 
 if __name__ == "__main__":

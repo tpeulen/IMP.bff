@@ -12,9 +12,6 @@ how the torsion-only v8 layout was caught. The default rung stores what a
 conformer actually has and comes back at ~1e-6 A.
 """
 
-import importlib.machinery
-import importlib.util
-import sys
 from pathlib import Path
 
 import numpy as np
@@ -24,7 +21,6 @@ import IMP.bff
 
 REPO = Path(__file__).resolve().parent.parent.parent
 DATA = REPO / "data" / "rotamer_library"
-SCRIPT = REPO / "bin" / "imp_bff_traj2drot"
 
 #: A shipped library small enough to write inside a test, real data.
 STEM, CUTOFF = "A56_C1R", 30
@@ -60,20 +56,6 @@ def ensemble():
     weights = np.loadtxt(DATA / f"{STEM}_cutoff{CUTOFF}_weights.txt",
                          dtype=np.float64).reshape(-1)
     return xyz, weights, names, elements, resnames
-
-
-@pytest.fixture(scope="module")
-def program():
-    # The program lives in `bin/` with no extension, the way IMP's installed
-    # programs do, so the loader has to be spelled out.
-    spec = importlib.util.spec_from_file_location(
-        "traj_to_drot", SCRIPT,
-        loader=importlib.machinery.SourceFileLoader("traj_to_drot",
-                                                    str(SCRIPT)))
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules["traj_to_drot"] = mod
-    spec.loader.exec_module(mod)
-    return mod
 
 
 def _write(path, ensemble, encoding=None):
@@ -296,16 +278,16 @@ def test_rejects_a_file_that_is_not_a_drot(tmp_path):
         IMP.bff.read_probe_rotamer_drot(str(junk))
 
 
-def test_program_converts_a_shipped_library(tmp_path, program, capsys):
-    """`imp_bff_traj2drot lib.bcif lib.drot` -- the builder end to end."""
+def test_program_converts_a_shipped_library(tmp_path, capfd):
+    """`imp_bff traj2drot lib.bcif lib.drot` -- the builder end to end."""
     bcif = DATA / f"{STEM}_cutoff{CUTOFF}.bcif"
     if not bcif.exists():
         pytest.skip(f"{bcif} not present")
     out = tmp_path / "built.drot"
-    program.convert(bcif, out, DATA / f"{STEM}.pdb",
-                    DATA / f"{STEM}_cutoff{CUTOFF}_weights.txt",
-                    None, None, 0.01, True)
-    assert "verified" in capsys.readouterr().out
+    assert IMP.bff.command_line_main([
+        "traj2drot", str(bcif), str(out), "--top", str(DATA / f"{STEM}.pdb"),
+        "--weights", str(DATA / f"{STEM}_cutoff{CUTOFF}_weights.txt")]) == 0
+    assert "verified" in capfd.readouterr().out
     lib, back = _read(out)
     xyz = np.asarray(IMP.bff.read_bcif_trajectory(
         str(bcif), lib.n_atoms, "_rotamer_coord"),
@@ -313,13 +295,34 @@ def test_program_converts_a_shipped_library(tmp_path, program, capsys):
     assert np.abs(back - xyz).max() < LOSSLESS_TOL_A
 
 
-def test_program_clusters_raw_frames(tmp_path, program, ensemble):
-    """The raw-input path: leaders become rotamers, populations the weights."""
-    xyz = ensemble[0]
-    leaders, counts = program.cluster(xyz, 1.5)
+def test_program_clusters_raw_frames(tmp_path, ensemble):
+    """The raw-input path: leaders become rotamers, populations the weights --
+    the two kernels `imp_bff traj2drot --cluster` runs."""
+    xyz = np.ascontiguousarray(ensemble[0])
+    leaders = np.asarray(IMP.bff.cluster_frames_leader(xyz, 1.5), dtype=int)
+    labels = np.asarray(IMP.bff.assign_frames_to_clusters(xyz, list(leaders)),
+                        dtype=int)
+    counts = np.bincount(labels, minlength=leaders.size)
     assert 0 < len(leaders) <= len(xyz)
     assert counts.sum() == len(xyz)
     assert len(counts) == len(leaders)
+
+
+def test_program_reads_an_xtc(tmp_path, ensemble, capfd):
+    """An .xtc goes through the compiled reader (nm -> A), with the atom count
+    checked against the template."""
+    md = pytest.importorskip("mdtraj")
+    xyz, _, names, _, _ = ensemble
+    xtc = tmp_path / "raw.xtc"
+    with md.formats.XTCTrajectoryFile(str(xtc), "w") as f:
+        f.write((xyz / 10.0).astype(np.float32))
+    out = tmp_path / "from_xtc.drot.pto"
+    assert IMP.bff.command_line_main([
+        "traj2drot", str(xtc), str(out), "--top", str(DATA / f"{STEM}.pdb"),
+        "--cluster", "1.5"]) == 0
+    assert "verified" in capfd.readouterr().out
+    lib, _ = _read(out)
+    assert lib.n_atoms == len(names)
 
 
 def test_a_library_without_residue_names_round_trips(tmp_path, ensemble):
