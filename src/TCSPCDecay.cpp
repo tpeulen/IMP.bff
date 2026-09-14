@@ -133,6 +133,8 @@ bool TCSPCDecay::get_basis_is_jacobian() const {
   // contraction, so the curve depends on each of them by a route the basis
   // does not carry.
   if (normalize_amplitudes_ || autoscale_) return false;
+  // A background pattern rescales the model to the counts it leaves over.
+  if (!background_pattern_.empty()) return false;
   // |a| is differentiable away from zero and its derivative is the sign, so
   // the basis is the Jacobian up to a per-species sign -- and only a caller
   // who knows that can use it. The spectrum here is the one the last
@@ -164,6 +166,30 @@ void TCSPCDecay::set_response_range(int start, int stop) {
   response_preparation_.start = start;
   response_preparation_.stop = stop;
   irf_valid_ = false;
+  set_valid(false);
+}
+
+void TCSPCDecay::set_background_pattern(const std::vector<double>& pattern) {
+  background_pattern_ = pattern;
+  set_valid(false);
+}
+
+void TCSPCDecay::set_background_pattern_array(double* in_pattern, int n_pattern) {
+  set_background_pattern(std::vector<double>(in_pattern, in_pattern + n_pattern));
+}
+
+void TCSPCDecay::set_background_times(double t_background, double t_decay) {
+  if (!(t_background > 0.0) || !(t_decay > 0.0)) {
+    throw std::domain_error(
+        "TCSPCDecay::set_background_times: both measurement times must be positive");
+  }
+  t_background_ = t_background;
+  t_decay_ = t_decay;
+  set_valid(false);
+}
+
+void TCSPCDecay::set_shift_background_with_response(bool v) {
+  shift_background_with_response_ = v;
   set_valid(false);
 }
 
@@ -514,6 +540,45 @@ void TCSPCDecay::evaluate() {
     }
   }
 
+  // A measured background pattern, ChiSurf's order: after the scatter term,
+  // before pile-up and the scale. The model is given the fluorescence counts
+  // the background leaves over, and the pattern the counts it was measured to
+  // contribute.
+  if (!background_pattern_.empty()) {
+    if (background_pattern_.size() != curve_.size()) {
+      throw std::domain_error(
+          "TCSPCDecay '" + get_name() +
+          "' adds a background pattern, which must be as long as the response");
+    }
+    if (data_y_.size() != curve_.size()) {
+      throw std::domain_error(
+          "TCSPCDecay '" + get_name() +
+          "' adds a background pattern, which needs data as long as the response");
+    }
+    const double* pattern = background_pattern_.data();
+    if (shift_background_with_response_ && timeshift != 0.0) {
+      background_shifted_.resize(background_pattern_.size());
+      shift_lamp_ad<double>(background_shifted_.data(), background_pattern_.data(),
+                            -timeshift, n_points, 0.0);
+      pattern = background_shifted_.data();
+    }
+    double measured = 0.0, pattern_total = 0.0, model_total = 0.0, recorded = 0.0;
+    for (int i = 0; i < n_points; ++i) {
+      measured += data_y_[static_cast<std::size_t>(i)];
+      pattern_total += pattern[i];
+      recorded += background_pattern_[static_cast<std::size_t>(i)];
+      model_total += curve_[static_cast<std::size_t>(i)];
+    }
+    const double n_background = recorded / t_background_ * t_decay_;
+    const double n_fluorescence = std::max(measured - n_background, 1.0);
+    const double model_scale = model_total != 0.0 ? n_fluorescence / model_total : 0.0;
+    const double pattern_scale = pattern_total != 0.0 ? n_background / pattern_total : 0.0;
+    for (int i = 0; i < n_points; ++i) {
+      curve_[static_cast<std::size_t>(i)] =
+          curve_[static_cast<std::size_t>(i)] * model_scale + pattern[i] * pattern_scale;
+    }
+  }
+
   // Coates pile-up, chisurf's order: after the scatter term, before the
   // (auto)scaling -- the correction rescales the model, so scaling has to
   // come after it. The factors are computed from the data.
@@ -677,6 +742,18 @@ void TCSPCDecay::configure(const std::string& json_text) {
   if (config.has("spectrum_from_port")) {
     set_spectrum_from_port(config.get_bool("spectrum_from_port"));
   }
+  if (config.has("background_times")) {
+    const std::vector<double> times = config.get_doubles("background_times");
+    if (times.size() != 2) {
+      throw std::domain_error(
+          "node type 'TCSPCDecay': setting 'background_times' must be "
+          "[t_background, t_decay]");
+    }
+    set_background_times(times[0], times[1]);
+  }
+  if (config.has("shift_background_with_response")) {
+    set_shift_background_with_response(config.get_bool("shift_background_with_response"));
+  }
   if (config.has("response_range")) {
     const std::vector<int> range = config.get_ints("response_range");
     if (range.size() != 2) {
@@ -717,6 +794,12 @@ void TCSPCDecay::bind_dataset(const std::string& role,
     set_data(values, errors);
     return;
   }
+  if (role == "background_pattern") {
+    // A measured background decay; how much of it the data holds follows
+    // from the two measurement times.
+    set_background_pattern(dataset.get_values());
+    return;
+  }
   if (role == "linearization") {
     // A measured table of each channel's effective width; configuration, not
     // a fitted port, so it arrives the way the response does.
@@ -724,7 +807,7 @@ void TCSPCDecay::bind_dataset(const std::string& role,
     return;
   }
   throw std::domain_error("node type 'TCSPCDecay' has no role '" + role +
-                          "'; it takes 'response', 'data' or 'linearization'");
+                          "'; it takes 'response', 'data', 'linearization' or 'background_pattern'");
 }
 
 IMPBFF_END_NAMESPACE

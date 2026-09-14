@@ -18,6 +18,9 @@
    },
    "linearization": {
     "label": "Lin. table"
+   },
+   "background_pattern": {
+    "label": "Background"
    }
   },
   "scalars": {
@@ -48,6 +51,16 @@
    },
    "response_stop": {
     "label": "IRF stop [ns]"
+   },
+   "t_background": {
+    "label": "t(background) [s]"
+   },
+   "t_decay": {
+    "label": "t(decay) [s]"
+   },
+   "shift_background": {
+    "label": "Shift background with IRF",
+    "kind": "flag"
    }
   }
  },
@@ -56,7 +69,8 @@
   "response"
  ],
  "optional_datasets": [
-  "linearization"
+  "linearization",
+  "background_pattern"
  ],
  "scalars": [
   "period"
@@ -70,7 +84,10 @@
   "fit_start": 0,
   "fit_stop": 1e+18,
   "response_start": 0.0,
-  "response_stop": 1e+18
+  "response_stop": 1e+18,
+  "t_background": 1.0,
+  "t_decay": 1.0,
+  "shift_background": 1
  },
  "parameters": {
   "instrument.scatter": {
@@ -178,12 +195,18 @@
       "response_range": [
        "max(0,floor(response_start/decay_dx))",
        "min(response_size,floor(response_stop/decay_dx))"
-      ]
+      ],
+      "background_times": [
+       "t_background",
+       "t_decay"
+      ],
+      "shift_background_with_response": "shift_background"
      },
      "bind": {
       "response": "response",
       "data": "decay",
-      "linearization": "linearization"
+      "linearization": "linearization",
+      "background_pattern": "background_pattern"
      },
      "inputs": {
       "curve": "convolved",

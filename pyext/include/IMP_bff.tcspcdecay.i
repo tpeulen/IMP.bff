@@ -11,6 +11,7 @@
 %apply(double* IN_ARRAY1, int DIM1) {(double* in_data_y, int n_data_y)};
 %apply(double* IN_ARRAY1, int DIM1) {(double* in_data_ey, int n_data_ey)};
 %apply(double* IN_ARRAY1, int DIM1) {(double* in_table, int n_table)};
+%apply(double* IN_ARRAY1, int DIM1) {(double* in_pattern, int n_pattern)};
 %shared_ptr(IMP::bff::TCSPCDecay);
 %include "IMP/bff/TCSPCDecay.h"
 
