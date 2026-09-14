@@ -244,6 +244,14 @@ if(IMPBFF_WITH_IMP)
   # IMPCompatibility.h takes its IMP branch, and IMP's headers are on the path instead of
   # the shims
   target_compile_definitions(imp_bff PUBLIC IMPBFF_WITH_IMP=1)
+  # the command line's IMP.rmf (dock trajectories, select-pairs --rmf) and
+  # IMP.kinematics (flexfit) paths, only where those modules are linked
+  if("rmf" IN_LIST IMPBFF_IMP_MODULES)
+    target_compile_definitions(imp_bff PUBLIC IMPBFF_WITH_IMP_RMF=1)
+  endif()
+  if("kinematics" IN_LIST IMPBFF_IMP_MODULES)
+    target_compile_definitions(imp_bff PUBLIC IMPBFF_WITH_IMP_KINEMATICS=1)
+  endif()
   target_include_directories(imp_bff
     PUBLIC "$<BUILD_INTERFACE:${IMPBFF_GEN_INCLUDE}>" "${IMP_INCLUDE_DIR}"
            "$<INSTALL_INTERFACE:include>"

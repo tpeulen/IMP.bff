@@ -16,6 +16,6 @@
 # So this change lands with the standalone build, which resolves its own
 # dependencies rather than asking IMP's generator to. Verified out-of-tree
 # before it does.
-required_modules = 'container:core:em:atom:rmf:rotamer'
+required_modules = 'container:core:em:atom:rmf:rotamer:kinematics'
 required_dependencies = 'IMP.em'
 optional_dependencies = ''

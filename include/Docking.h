@@ -20,6 +20,7 @@
 
 #include <IMP/bff/bff_config.h>
 #include <IMP/bff/ProbeNetworkRestraint.h>
+#include <IMP/bff/DockingPrecision.h>
 #include <IMP/bff/VdwRadii.h>
 
 #include <IMP/Pointer.h>
@@ -1326,6 +1327,117 @@ IMPBFFEXPORT double pose_rmsd(const DockingAssembly& assembly,
 IMPBFFEXPORT IMP::algebra::Transformation3D pose_superposition(
         const DockingAssembly& assembly, const std::string& poses,
         const std::string& reference_poses);
+
+#ifndef SWIG
+//! Shuffle the rigid bodies under a hierarchy, avoiding collisions.
+/*!
+    `IMP.pmi.tools.shuffle_configuration`, in C++ and call for call, so that a
+    seeded run draws the same random numbers PMI drew: every rigid body the
+    leaves belong to (the fixed one too) gets
+    `IMP::algebra::get_random_local_transformation` about its own centre, and
+    is re-drawn -- up to \p niterations times -- while any of its members sits
+    within \p cutoff of a leaf of another body. Particles without a rigid body
+    are displaced the same way, without the collision check. Prints the two
+    `shuffling N ...` lines PMI prints.
+
+    \throw ValueException when a body cannot be placed without a collision in
+           \p niterations draws; the bodies shuffled before it stay moved,
+           as they did in PMI
+*/
+IMPBFFEXPORT void shuffle_configuration(IMP::atom::Hierarchy root,
+                                        double max_translation = 300.0,
+                                        double max_rotation = 2.0 * 3.141592653589793,
+                                        bool avoid_collision_rb = true,
+                                        double cutoff = 10.0,
+                                        int niterations = 100);
+
+//! FRET-restrained Monte Carlo docking, as PMI's `ReplicaExchange` macro ran it.
+/*!
+    What `imp_bff dock` has always run -- `IMP.pmi.macros.ReplicaExchange` on one
+    replica with the swap off -- in C++ and without PMI:
+
+    - one `IMP::core::RigidBodyMover` per body that is not
+      #DockingParameters::fixed_body (the only body moves when there is one),
+      under one `IMP::core::SerialMover`, scored by the assembly's restraints;
+    - the bodies shuffled by #shuffle_configuration by
+      #DockingParameters::shuffle_max_translation unless \p initial_poses
+      resumes a run (a failed collision-free placement is not an error, as it
+      was not in the Python program);
+    - #DockingParameters::n_frames frames of
+      #DockingParameters::mc_steps steps per mover at **kT = 1**. One replica's
+      temperature ladder is its minimum temperature, and PMI sets the sampler
+      to it, so #DockingParameters::mc_temperature never reached the walk. That
+      is reproduced, not corrected: the numbers a run of this command produced
+      were produced at kT = 1.
+
+    Files, in PMI's layout under \p output_dir: `initial.0.rmf3` (the start),
+    `rmfs/0.rmf3` (a frame per frame), `pdbs/model.<i>.pdb` for the
+    #DockingParameters::n_best best frames with `pdbs/model.psf`,
+    `best.scores.rex.py`, `stat.0.out` and `stat_replica.0.out` (PMI's stat2
+    format -- without its `STAT2HEADER_ENVIRON` line, which copied the whole
+    process environment, credentials included, into every run directory), and
+    `scores.csv` for the final pose. Prints PMI's `--- frame i score s` lines.
+
+    \return the final score, its pair table, the pose, `rmf_file` (the first
+            `.rmf3` under \p output_dir, as the Python program reported it) and
+            every PDB written
+*/
+IMPBFFEXPORT DockingResult dock_replica_exchange(
+        const std::vector<std::string>& pdb_paths,
+        const std::string& fps_json_path, const std::string& output_dir,
+        const DockingParameters& params = DockingParameters(),
+        const std::string& initial_poses = "");
+
+//! One independent docking start of #dock_from_independent_starts.
+struct IMPBFFEXPORT DockingTrial {
+    int trial;
+    double score;
+    int n_distances;
+    std::string output_dir, best_pdb, score_csv, stat_file;
+    DockingTrial() : trial(0), score(0), n_distances(0) {}
+};
+
+//! What repeated minimisation from random starts says about a docking.
+struct IMPBFFEXPORT DockingSpread {
+    std::vector<DockingTrial> trials;   //!< in trial order
+    int n_trials;                       //!< asked for
+    double score_mean;                  //!< over finite scores; NaN when none
+    double score_std;                   //!< population sd; 0 for fewer than two
+    int best_trial;                     //!< -1 when no score is finite
+    int n_workers;                      //!< processes that actually ran them
+    bool has_uncertainty;               //!< at least two best models superposed
+    DockingPositionUncertainty uncertainty;
+    DockingSpread()
+        : n_trials(0), score_mean(0), score_std(0), best_trial(-1), n_workers(1),
+          has_uncertainty(false) {}
+};
+
+//! Minimise from \p n_trials independent random starts and report the spread.
+/*!
+    `imp_bff dock-errors`. Trial \p i runs #dock_minimize into
+    `output_dir/trial_<iii>` with IMP's random number generator seeded to
+    `i + 1`, so a trial is the same whichever process runs it. Trials run in
+    \p n_workers forked processes (0: one per trial, up to the CPU count; 1:
+    serially); if any worker fails, every trial is re-run serially, as the
+    Python pool fell back.
+
+    The per-run best models are superposed on the chains of
+    #DockingParameters::fixed_body's structure and their per-atom RMSF is
+    written to `uncertainty.pdb` and `uncertainty.csv`
+    (#estimate_position_uncertainty). The Python program meant to and never
+    did: it passed two keyword arguments the C++ function does not take, and
+    swallowed the TypeError.
+
+    Unlike #estimate_docking_errors this keeps the caller's shuffle, seeds each
+    trial, and reports the *population* standard deviation -- what the
+    command printed.
+*/
+IMPBFFEXPORT DockingSpread dock_from_independent_starts(
+        const std::vector<std::string>& pdb_paths,
+        const std::string& fps_json_path, const std::string& output_dir,
+        const DockingParameters& params = DockingParameters(), int n_trials = 10,
+        int n_workers = 0);
+#endif
 
 IMPBFF_END_NAMESPACE
 
