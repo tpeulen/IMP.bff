@@ -396,6 +396,10 @@ def histograms(loaded, n=None) -> dict:
             h = np.asarray(loaded['sample'][(samp, colour, pol)], float)[:n]
             y[(samp, f'{det}_{KIND[det]}')] = h
             mask[(samp, f'{det}_{KIND[det]}')] = np.ones(n)
+        #: REF: the reference dye as a sample of the global analysis (prompt 419)
+        h = np.asarray(loaded['reference'][('rhd110', colour, pol)], float)[:n]
+        y[('REF', f'{det}_{KIND[det]}')] = h
+        mask[('REF', f'{det}_{KIND[det]}')] = np.ones(n)
     return y, mask
 
 
@@ -926,7 +930,7 @@ def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=False, f
     #: THE ANALYTIC JACOBIAN, now that it covers the six scopes (R2 of
     #: okf/prd-real-data-fast.md): 16 ms against 1.78 s per scoring iteration,
     #: gated against forward-mode AD at 6e-16 and sharing the AD path's modes.
-    L.Laplace.analytic = True
+    L.Laplace.analytic = True          # the REF blocks are in it (R1(g)-2: 3.9e-16 against AD, 18 ms against 3.6 s)
     #: START FROM THE MEASURED BACKGROUND.  `start_from_data` fits it by a
     #: non-negative solve on a 33-column basis whose long-lifetime members are
     #: nearly identical, and on this measurement it returned 0.0714 and 0.0000
@@ -941,6 +945,11 @@ def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=False, f
         if nm in m['graph'].offsets:
             a, b = m['graph'].offsets[nm]
             th0[a:b] = m['graph'].index[nm].transform.to_unconstrained(L.tt([med]))
+    if 'spec_ref_eps' in g.offsets:
+        #: the reference dye's spectrum starts where the donor's does -- a
+        #: start, not a prior; `start_from_data` knows only the donor's
+        a, b = g.offsets['spec_ref_eps']; a0, b0 = g.offsets['spec_eps']
+        th0[a:b] = th0[a0:b0]
     m['theta_start'] = th0
     if accelerate:
         #: OFF AGAIN.  The pointwise gate (`fast_forward.gate`) passes at 1e-15,
