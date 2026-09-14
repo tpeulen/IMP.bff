@@ -571,6 +571,7 @@ def plot_e_tau(feat, model=None, tab=None, states=None, ax=None, bins=70,
     """`E*` against the mean donor arrival time, as a two-dimensional histogram,
     with the static line every non-moving molecule must lie on and, if two
     states are named, the line a fast-exchanging molecule lies on instead."""
+    P._inline()          # the prototype's import chain switches the backend to Agg
     import matplotlib.pyplot as plt
     if ax is None:
         _, ax = plt.subplots(figsize=(5.2, 4.2))
@@ -600,6 +601,7 @@ def plot_e_tau(feat, model=None, tab=None, states=None, ax=None, bins=70,
 
 def plot_e_s(feat, ax=None, bins=70, title='', s_range=(-0.05, 1.05)):
     """stoichiometry against `E*`: what the second laser buys, as a picture."""
+    P._inline()          # the prototype's import chain switches the backend to Agg
     import matplotlib.pyplot as plt
     if ax is None:
         _, ax = plt.subplots(figsize=(5.2, 4.2))
