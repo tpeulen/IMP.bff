@@ -44,7 +44,7 @@ r0 = bff.forster_radius(bff.get_probe(donor), bff.get_probe(acceptor))
 print("R0(%s -> %s) = %.1f A" % (donor, acceptor, r0))
 
 # The same dyes, and the same R0, out of a container whose every column name is
-# an MMFDB dictionary item. This is what `imp_bff_labelizer --dyes` reads.
+# an MMFDB dictionary item. This is what `imp_bff labelizer --dyes` reads.
 # Into a scratch directory: an example that writes into the source tree
 # leaves derived files behind that look like inputs the next time.
 work = tempfile.mkdtemp()

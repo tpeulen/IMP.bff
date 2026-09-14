@@ -2,6 +2,38 @@
 
 ## 2026-09-14
 
+- **The command line is one C++ program, `bin/imp_bff.cpp` (T-20260914-02, owner ruling 2026-09-14)**:
+  "the py files in bin should be compiled to a cpp program ... a single binary with subgroups for the
+  respective py files". This supersedes the 2026-09-10 carve-out that kept the IMP/pmi/RMF modelling
+  commands in Python: everything moves, phased (plan `~/.claude/plans/the-py-files-in-cozy-bonbon.md`).
+  IMP builds any `bin/*.cpp` as a program by itself (`setup_cmake.py` globs it; `bin/Files.cmake` and
+  `bin/CMakeLists.txt` are regenerated), so the executable is a `main` of three lines around
+  `command_line_main(argc, argv)`; the CLI11 dispatcher stays in the library so the wheel's console script
+  runs the same code. Groups are named after the old file minus `imp_bff_`, one source each
+  (`src/CommandLine<Group>.cpp`, IMP-bound ones later in `src/imp/`), declared in
+  `include/internal/CommandLineSubs.h`. The module build is a **unity build**, so a group's helpers sit in
+  a named namespace, never an anonymous one. Landed: `probe-pdb2cif` (alias `pdb2cif`), `traj2drot` (now
+  with `--all`), `labelizer`, `fps-distance` -- the last two diffed against the Python programs on
+  1DDB-39 and the shipped FPS cloud: stdout, `--show`, `--json` identical byte for byte, container
+  contents identical (the container bytes differ run to run for Python too -- ptolib is not
+  byte-deterministic, T-20260910-01). `read_points_xyz` (both `.xyz` dialects) joins `FPS.h`. The Python
+  `bin/imp_bff` is now `bin/imp_bff_py`; `imp_bff` forwards its not-yet-compiled commands to it with
+  `posix_spawnp`, words untouched, so users call `imp_bff` from today. Found on the way: the compiled
+  `traj2drot --cluster` kept 3 coordinates per leader instead of a whole frame (fixed); usage errors now
+  exit 2 whatever code CLI11 picks (it said 106); `decays` in the Python program is unreachable and will
+  not be ported. Standalone build: `imp_bff_exe` built and run with no IMP (help, fps-distance,
+  labelizer with `IMP_BFF_DATA`). Not yet: `.xtc` (compiled reader in phase 2, so the Python
+  `imp_bff_traj2drot` stays until then), `fps`, `fps-av`, `fps-export`, `potentials2pto`, `traj2bcif`,
+  and the `imp_bff_py` commands. On Windows the forwarder cannot start an extension-less Python script;
+  that gap closes when `imp_bff_py` is empty.
+- **Two `cmake .` in one build tree destroy each other** (15:06/15:13): IMP's `clean_build_dir` deletes
+  `build_info/*` and generated kernel headers at the start of a configure, so a second configure started
+  meanwhile reports every module disabled (`build_info/disabled` missing) or `Object.h` missing. The build
+  lock covers `cmake .`, not only ninja.
+- **Pre-existing, noticed while diffing**: `imp_bff_fps_av -p 3GUN.pdb -c A -r 132 -d alexa488-long`
+  (the README's own example) writes nothing -- "no accessible voxel ... clearance 2.55 A does not clear
+  2.25 A", which is a contradiction in its own message; residue 44 works. Not touched here.
+
 - **Model families are data, not C++ (T-20260914-01)**: `TCSPCModelSearch` and
   `FCSModelSearch` are deleted. A family is now a JSON document read by
   `ModelSearchSpec` -- canonical registry, one complete objective graph per

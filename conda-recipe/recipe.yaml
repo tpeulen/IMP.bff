@@ -99,7 +99,9 @@ tests:
       # environments; rattler-build's test harness does not run activation
       # scripts, so it is said here too.
       - export IMP_DATA=${CONDA_PREFIX}/share/IMP
+      # the compiled program (bin/imp_bff.cpp) and, through it, the Python half
       - imp_bff --help
+      - imp_bff rotamer --help
       # this build, not the IMP-free core (recipe-core.yaml asserts 'core')
       # the spot-check runs first: it says how deep the surface goes, so a
       # get_build failure here is not hiding a missing-wrap failure behind it

@@ -1,6 +1,7 @@
 """Shared fixtures.
 
-``imp_bff_program`` loads ``bin/imp_bff`` as a module. The command tree lives
+``imp_bff_program`` loads ``bin/imp_bff_py`` (the commands of `imp_bff` not
+compiled yet) as a module. The command tree lives
 there rather than in the package because a click command is a decorated
 function, and a library module carrying one cannot be imported without click.
 Tests that exercise commands therefore load the program, and need an explicit
@@ -16,7 +17,7 @@ from pathlib import Path
 
 import pytest
 
-_PROGRAM = Path(__file__).resolve().parent.parent / "bin" / "imp_bff"
+_PROGRAM = Path(__file__).resolve().parent.parent / "bin" / "imp_bff_py"
 
 # --- the standalone lane -----------------------------------------------------
 # The core builds without IMP (PRD-137). Under that build `import IMP.bff`
@@ -84,6 +85,6 @@ def imp_bff_program():
         except ModuleNotFoundError as e:
             del sys.modules["imp_bff_program"]
             if _STANDALONE and e.name and e.name.startswith("IMP"):
-                pytest.skip("bin/imp_bff imports %s; the standalone lane has no IMP" % e.name)
+                pytest.skip("bin/imp_bff_py imports %s; the standalone lane has no IMP" % e.name)
             raise
     return sys.modules["imp_bff_program"]

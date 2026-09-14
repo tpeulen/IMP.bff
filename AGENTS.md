@@ -58,13 +58,17 @@ The exceptions are exact:
 * **tests, examples and documentation** are Python;
 * **`prototypes/`** is exempt entirely — it is where an idea is tried, not
   where it ships;
-* **programs** live in `bin/`, and a program is Python because a `click`
-  command is;
+* **programs** are C++ too: one executable, `bin/imp_bff.cpp`, whose
+  subcommand groups are the former `bin/` scripts (owner ruling 2026-09-14;
+  grammar in `include/CommandLine.h`, one `src/CommandLine<Group>.cpp` or
+  `src/imp/CommandLine<Group>.cpp` per group). `bin/imp_bff_py` holds the
+  commands not compiled yet and shrinks to nothing;
 * what is genuinely neither — a `%pythoncode` shim restoring a caller's array
   shape, a table of dictionary item names — goes in a `pyext/*.i` file.
 
 The consequence is that **`pyext/src` is meant to end up empty**: kernels and
-value types to C++, programs to `bin/`, the remainder into the `.i` files. See
+value types to C++, programs to subcommands of `bin/imp_bff.cpp`, the remainder
+into the `.i` files. See
 [`okf/log.md`](okf/log.md) for what has moved and what is next, and
 [`pyext/src/README.md`](pyext/src/README.md) for the shape that is left.
 

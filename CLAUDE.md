@@ -19,6 +19,7 @@ in this repo. Key facts:
 - Placement rule for code: photons/curves → tttrlib, coordinates → imp.bff,
   neither → chisurf. When input and consumer disagree, the consumer wins.
 - **Language rule for this repo: what can be C++ must be C++.** Tests, examples
-  and docs are Python; `prototypes/` is exempt; programs go in `bin/`; the rest
+  and docs are Python; `prototypes/` is exempt; programs are subcommand groups of the one
+  C++ executable `bin/imp_bff.cpp`; the rest
   of the Python surface belongs in `pyext/*.i`. `pyext/src` is meant to end up
   empty — see the AGENTS.md section "What language a thing is written in".

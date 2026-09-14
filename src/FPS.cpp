@@ -1117,6 +1117,8 @@ IMPBFF_END_NAMESPACE
 
 #include <fstream>
 #include <sys/stat.h>
+#include <cstdio>
+#include <cstdlib>
 
 IMPBFF_BEGIN_NAMESPACE
 
@@ -1601,6 +1603,58 @@ double AVPairDistanceMeasurement::score_model(double model) const{
         return std::numeric_limits<double>::infinity();
     }
     return 0.5 * chi2_score(model, distance, error_neg, error_pos);
+}
+
+XyzPointCloud read_points_xyz(const std::string& path) {
+    std::ifstream in(path.c_str());
+    if (!in) {
+        IMP_THROW(path << " cannot be read", IOException);
+    }
+    std::vector<std::string> lines;
+    std::string line;
+    while (std::getline(in, line)) lines.push_back(line);
+    if (lines.empty()) {
+        IMP_THROW(path << " is empty", IOException);
+    }
+    XyzPointCloud cloud;
+    std::set<std::string> unique;
+    for (std::size_t i = 2; i < lines.size(); ++i) {
+        std::istringstream tokens(lines[i]);
+        std::vector<std::string> token;
+        std::string t;
+        while (tokens >> t) token.push_back(t);
+        if (token.empty()) continue;
+        // FPS marks its mean position with a trailing "mp" on the label
+        if (token[0].size() >= 2 &&
+            token[0].compare(token[0].size() - 2, 2, "mp") == 0) {
+            cloud.declared_mean.clear();
+            for (std::size_t k = 1; k < 4 && k < token.size(); ++k) {
+                cloud.declared_mean.push_back(std::strtod(token[k].c_str(), nullptr));
+            }
+            continue;
+        }
+        if (token.size() < 4) continue;
+        double xyz[3];
+        for (int k = 0; k < 3; ++k) xyz[k] = std::strtod(token[k + 1].c_str(), nullptr);
+        const double weight = token.size() > 4 ? std::strtod(token[4].c_str(), nullptr) : 1.0;
+        cloud.points.push_back(xyz[0]);
+        cloud.points.push_back(xyz[1]);
+        cloud.points.push_back(xyz[2]);
+        cloud.points.push_back(weight);
+        char key[96];
+        std::string parts[3];
+        for (int k = 0; k < 3; ++k) {
+            std::snprintf(key, sizeof(key), "%.3f", xyz[k]);
+            parts[k] = key;
+            if (parts[k] == "-0.000") parts[k] = "0.000";
+        }
+        unique.insert(parts[0] + " " + parts[1] + " " + parts[2]);
+    }
+    if (cloud.points.empty()) {
+        IMP_THROW(path << " holds no points", IOException);
+    }
+    cloud.n_unique_voxels = static_cast<int>(unique.size());
+    return cloud;
 }
 
 IMPBFF_END_NAMESPACE

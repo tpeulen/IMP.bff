@@ -81,5 +81,5 @@ def test_traj2drot_bundle_reads_back_by_library_name(tmp_path, ensemble):
 
 def test_bad_usage_exits_nonzero(tmp_path, ensemble):
     src = _write_library(tmp_path, ensemble, "src.drot.pto")
-    # src without dst: the sub's own check, exit 1
-    assert IMP.bff.command_line_main(["traj2drot", str(src)]) == 1
+    # src without dst is a usage error: exit 2
+    assert IMP.bff.command_line_main(["traj2drot", str(src)]) == 2
