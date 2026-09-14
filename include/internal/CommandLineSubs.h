@@ -170,6 +170,8 @@ IMPBFFEXPORT void add_fps_subs(CLI::App& app);
 IMPBFFEXPORT void add_fps_export_subs(CLI::App& app);
 //! av-export, openmm, build-system, select-pairs, rotamer r0|predict (IMP layer)
 IMPBFFEXPORT void add_modelling_subs(CLI::App& app);
+//! dye label|build-lib|analyze-tc|reconstruct|sample-*|label-fp|label-fusion (IMP layer)
+IMPBFFEXPORT void add_dye_subs(CLI::App& app);
 #endif
 
 }  // namespace cli

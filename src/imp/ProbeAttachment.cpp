@@ -11,6 +11,7 @@
 #include <IMP/bff/HierarchyFrame.h>
 #include <IMP/bff/internal/Text.h>
 #include <IMP/bff/internal/json.h>
+#include <IMP/bff/internal/PythonRandom.h>
 
 #include <IMP/algebra/Rotation3D.h>
 #include <IMP/atom/Chain.h>
@@ -383,6 +384,108 @@ IMP::algebra::Vector3D get_anchor_cb_position(IMP::atom::Hierarchy hierarchy,
                                             << " has no C-beta, in the "
                                             << "library or in the structure");
     return IMP::core::XYZ(cb[0]).get_coordinates();
+}
+
+ProbeCollisionWalk probe_collision_walk(
+        IMP::atom::Hierarchy protein, IMP::atom::Hierarchy probe,
+        const LinkerGeometry& geometry, const std::string& chain, int residue,
+        int n_steps, int seed, int save_every, double interaction_sphere,
+        double proposal_sigma, double obstacle_radius, double contact_margin) {
+    const IMP::ParticlesTemp site = resolve_probe_site(protein, chain, residue);
+    const IMP::algebra::Vector3D ca = IMP::core::XYZ(site[0]).get_coordinates();
+    const IMP::algebra::Vector3D n = IMP::core::XYZ(site[1]).get_coordinates();
+    const IMP::algebra::Vector3D c = IMP::core::XYZ(site[2]).get_coordinates();
+
+    // Obstacles: protein atoms near the site, the site's own residue and its
+    // two backbone neighbours left out (they are bonded to the probe).
+    std::vector<double> obstacle_xyz;
+    const IMP::atom::Hierarchies atoms =
+            IMP::atom::get_by_type(protein, IMP::atom::ATOM_TYPE);
+    for (std::size_t i = 0; i < atoms.size(); ++i) {
+        IMP::atom::Hierarchy res_p = atoms[i].get_parent();
+        if (!res_p || !IMP::atom::Residue::get_is_setup(res_p)) continue;
+        IMP::atom::Hierarchy chain_p = res_p.get_parent();
+        if (!chain_p || !IMP::atom::Chain::get_is_setup(chain_p)) continue;
+        const std::string cid = IMP::atom::Chain(chain_p).get_id();
+        const int ridx = IMP::atom::Residue(res_p).get_index();
+        if (cid == chain && ridx >= residue - 1 && ridx <= residue + 1) continue;
+        const IMP::algebra::Vector3D v = IMP::core::XYZ(atoms[i]).get_coordinates();
+        const double dx = v[0] - ca[0], dy = v[1] - ca[1], dz = v[2] - ca[2];
+        if (std::sqrt(dx * dx + dy * dy + dz * dz) <= interaction_sphere) {
+            obstacle_xyz.push_back(v[0]);
+            obstacle_xyz.push_back(v[1]);
+            obstacle_xyz.push_back(v[2]);
+        }
+    }
+    const double contact = obstacle_radius + contact_margin;
+    const std::size_t n_obstacles = obstacle_xyz.size() / 3;
+
+    const IMP::atom::Hierarchies tested =
+            IMP::atom::get_by_type(probe, IMP::atom::ATOM_TYPE);
+    const IMP::atom::Hierarchies leaves = IMP::atom::get_leaves(probe);
+
+    const auto n_collisions = [&]() {
+        if (n_obstacles == 0) return 0;
+        int count = 0;
+        for (std::size_t i = 0; i < tested.size(); ++i) {
+            const IMP::algebra::Vector3D v =
+                    IMP::core::XYZ(tested[i]).get_coordinates();
+            for (std::size_t k = 0; k < n_obstacles; ++k) {
+                const double dx = v[0] - obstacle_xyz[3 * k];
+                const double dy = v[1] - obstacle_xyz[3 * k + 1];
+                const double dz = v[2] - obstacle_xyz[3 * k + 2];
+                if (std::sqrt(dx * dx + dy * dy + dz * dz) < contact) {
+                    ++count;
+                    break;
+                }
+            }
+        }
+        return count;
+    };
+    // `apply` turns the reference geometry, so the probe is rebuilt from it
+    // every step rather than drifting through repeated rotations.
+    const auto set_config = [&](const std::vector<double>& config) {
+        apply_coordinates(probe, geometry.apply(config));
+        place_probe_from_coords(probe, ca, n, c);
+    };
+
+    ProbeCollisionWalk out;
+    out.n_steps = n_steps;
+    out.n_atoms = static_cast<int>(leaves.size());
+    const std::size_t n_dof = static_cast<std::size_t>(
+            geometry.get_number_of_torsions() + geometry.get_number_of_angles());
+    std::vector<double> current(n_dof, 0.0);
+    internal::PythonRandom rng(seed);
+
+    set_config(current);
+    int current_clashes = n_collisions();
+    for (int step = 0; step < n_steps; ++step) {
+        std::vector<double> proposal(n_dof);
+        for (std::size_t k = 0; k < n_dof; ++k) {
+            proposal[k] = current[k] + rng.gauss(0.0, proposal_sigma);
+        }
+        set_config(proposal);
+        const int clashes = n_collisions();
+        if (clashes <= current_clashes) {
+            current.swap(proposal);
+            current_clashes = clashes;
+            ++out.n_accepted;
+        } else {
+            set_config(current);
+        }
+        if (save_every > 0 && (step + 1) % save_every == 0) {
+            for (std::size_t i = 0; i < leaves.size(); ++i) {
+                const IMP::algebra::Vector3D v =
+                        IMP::core::XYZ(leaves[i]).get_coordinates();
+                out.frames.push_back(v[0]);
+                out.frames.push_back(v[1]);
+                out.frames.push_back(v[2]);
+            }
+            ++out.n_frames;
+        }
+    }
+    out.n_clashing = current_clashes;
+    return out;
 }
 
 IMPBFF_END_NAMESPACE

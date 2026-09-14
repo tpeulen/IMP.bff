@@ -47,17 +47,21 @@ def test_the_site_comes_from_resolve_probe_site(protein_and_probe):
         ["CA", "N", "C"]
 
 
-def test_dye_sample_rotamer_runs(imp_bff_program, tmp_path):
+@pytest.mark.skipif(IMP.bff.get_build() == "core",
+                    reason="the dye commands are in the IMP connection layer")
+def test_dye_sample_rotamer_runs(tmp_path, capfd):
     """The command was dead: it raised at `attach_probes` before it could get
-    to reading a dict out of a list of values."""
-    from click.testing import CliRunner
+    to reading a dict out of a list of values. It is compiled now
+    (`imp_bff dye sample-rotamer`)."""
     out = tmp_path / "sampled.rmf3"
-    result = CliRunner().invoke(imp_bff_program.dye, [
-        "sample-rotamer",
+    code = IMP.bff.command_line_main([
+        "dye", "sample-rotamer",
         "--protein-pdb", IMP.bff.get_example_path("structure/T4L/3GUN.pdb"),
         "--chain", "A", "--residue", "132", "--dye", "alexa488",
         "--n-samples", "3", "--output-rmf", str(out)])
-    assert result.exit_code == 0, result.output
+    output = capfd.readouterr().out
+    assert code == 0, output
+    assert "Wrote 3 frames" in output
     assert out.is_file()
 
     import RMF
