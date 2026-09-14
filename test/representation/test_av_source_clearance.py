@@ -180,9 +180,9 @@ class Tests(IMP.test.TestCase):
         of exactly half the CB coordinate, write a file whose first line was
         `0`, and exit 0.
         """
-        program = BIN / "imp_bff"
+        program = BIN / "imp_bff_py"
         if not program.exists():
-            self.skipTest("bin/imp_bff not present")
+            self.skipTest("bin/imp_bff_py not present")
         out = self.get_tmp_file_name("av_w45.xyz")
         subprocess.check_call(
             [sys.executable, str(program), "av-export", "-p", PDB, "-c", "A",

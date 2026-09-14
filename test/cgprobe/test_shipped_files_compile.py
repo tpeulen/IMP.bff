@@ -27,6 +27,7 @@ def _python_sources():
                 continue
             if path.suffix == ".py" or (base == "bin" and path.is_file()
                                         and not path.name.startswith(".")
+                                        and path.suffix not in (".cpp", ".h")
                                         and "CMakeLists" not in path.name
                                         and "Files.cmake" not in path.name):
                 out.append(path)

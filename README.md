@@ -163,16 +163,23 @@ set, for `output_objects` and the replica-exchange macro, is fifteen lines and
 is written out in `examples/structure/t4l_pmi.py`.
 
 
-The command tree is one tree. `imp_bff --help` lists every command:
-`flexfit` and `rmsd` fit against distance restraints, `select-pairs` ranks
-labelling pairs before an experiment is done, `openmm` writes a restrained
-OpenMM run and `av-export` writes one volume for a viewer, `decays` runs the automated decay
-analysis, `dye` is explicit-dye labelling and sampling, `rotamer` is
-rotamer-library FRET, and `av-vs-rotamer` regenerates the comparison note. Two of those groups used to live *inside* the package and
-were reachable only as `python -m IMP.bff.cgprobe.cli` and
-`python -m IMP.bff.cli`; a click command is a decorated function, so a library
-module carrying one cannot be imported without click, which is why command
-trees belong in `bin/`.
+The command line is one compiled program, `imp_bff` (`bin/imp_bff.cpp`, the
+dispatcher in `include/CommandLine.h`). Every program that used to be a script
+in `bin/` is a group of it, named after the old file without the `imp_bff_`
+prefix -- `imp_bff labelizer`, `imp_bff fps-distance`, `imp_bff traj2drot`,
+`imp_bff probe-pdb2cif`, and as they are compiled `imp_bff fps ...`,
+`imp_bff fps-av`, `imp_bff fps-export ...`, `imp_bff potentials2pto`,
+`imp_bff traj2bcif`. The modelling commands sit at the top level: `flexfit`
+and `rmsd` fit against distance restraints, `select-pairs` ranks labelling
+pairs before an experiment is done, `openmm` writes a restrained OpenMM run,
+`av-export` writes one volume for a viewer, `dye` is explicit-dye labelling
+and sampling, `rotamer` is rotamer-library FRET, `av-vs-rotamer` regenerates
+the comparison note, `analyze-trajectories`, `simulate` and `build-system`
+drive the probe force field, and `dock`/`dock-errors` dock rigid bodies.
+`imp_bff help` lists them all; `imp_bff <command> --help` explains one. The
+wheel's `imp_bff` console script runs the same dispatcher. Run from a build
+tree, the program reads IMP's data through `IMP_DATA`, which
+`setup_environment.sh` sets.
 
 ## FRET-restrained docking
 
@@ -327,6 +334,15 @@ are weighted by the linker's chain statistics rather than uniformly. Read
 `okf/validation/chain_weighting.md` before turning it on -- the shipped table
 does not cover a dye-length linker, and the code says so.
 
+# imp_bff_py: the commands of imp_bff not compiled yet {#imp_bff_py}
+
+The Python half of `imp_bff` while the port to C++ runs (owner ruling
+2026-09-14). `imp_bff` forwards each command it does not compile yet --
+`flexfit`, `rmsd`, `select-pairs`, `openmm`, `av-export`, `dye`, `rotamer`,
+`av-vs-rotamer`, `analyze-trajectories`, `simulate`, `build-system`, `dock`,
+`dock-errors` -- to this program with the words unchanged, so call `imp_bff`,
+not this. It leaves `bin/` when its last command is compiled.
+
 # imp_bff_traj2bcif: convert a trajectory to BinaryCIF {#imp_bff_traj2bcif}
 
 Converts a DCD or XTC trajectory to a BinaryCIF `_atom_site` coordinate
@@ -433,14 +449,14 @@ quantity — its seed is unconditional — so an FPS number does not transfer.
 An empty volume is a legitimate answer for a buried site, and this program says
 so and exits non-zero rather than writing a file that looks computed.
 
-# imp_bff_fps_distance: the distances between two dye clouds {#imp_bff_fps_distance}
+## imp_bff fps-distance -- the distances between two dye clouds {#imp_bff_fps_distance}
 
 FPS's distance calculator. Two accessible volumes in, and the numbers a FRET
 measurement is compared against out:
 
 ```bash
-imp_bff_fps_distance d55.xyz a86.xyz            # R0 = 52 A
-imp_bff_fps_distance d55.xyz a86.xyz -r 60 --json
+imp_bff fps-distance d55.xyz a86.xyz            # R0 = 52 A
+imp_bff fps-distance d55.xyz a86.xyz -r 60 --json
 ```
 
 ```
@@ -463,7 +479,7 @@ radius that fits, so the line count is the sum of densities and not the volume
 the duplicates are kept and counted, and the unique voxel count is reported
 separately.
 
-# imp_bff_labelizer: score the labelling sites of a structure {#imp_bff_labelizer}
+## imp_bff labelizer -- score the labelling sites of a structure {#imp_bff_labelizer}
 
 Scores every residue of a structure for how good a fluorescent-labelling site
 it is, and optionally every pair of good sites for how informative a FRET
@@ -479,9 +495,9 @@ native residue depth matches MSMS to 0.14 A rms with no bias
 ([`okf/validation/labelizer_ab.md`](okf/validation/labelizer_ab.md)).
 
 ```bash
-imp_bff_labelizer structure.pdb --conservation grades.txt --pairs
-imp_bff_labelizer structure.pdb --donor Alexa488 --acceptor Alexa647 --pairs
-imp_bff_labelizer structure.mmfdb.pto --show
+imp_bff labelizer structure.pdb --conservation grades.txt --pairs
+imp_bff labelizer structure.pdb --donor Alexa488 --acceptor Alexa647 --pairs
+imp_bff labelizer structure.mmfdb.pto --show
 ```
 
 The model, what a score means and the traps worth knowing are in
@@ -528,7 +544,7 @@ had.
 Run `imp_bff_fps_export --help` for the flags, including the three that
 reproduce known FPS defects on demand.
 
-# imp_bff_probe_pdb2cif: convert a probe PDB to mmCIF {#imp_bff_probe_pdb2cif}
+## imp_bff probe-pdb2cif -- convert a probe PDB to mmCIF {#imp_bff_probe_pdb2cif}
 
 Writes the `_atom_site` records for a dye structure, deriving the element from
 the atom name where the PDB does not carry one. The conversion itself is

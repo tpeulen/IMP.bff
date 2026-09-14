@@ -180,7 +180,7 @@ Where to look next
 - `examples/labels/plot_labelizer_score.py` — the per-residue score, end to end.
 - `examples/labels/plot_labelizer_fret_pair.py` — the two-conformation pair
   score on maltose-binding protein, with \f$R_0\f$ from named dyes.
-- `imp_bff_labelizer` — the same from a command line.
+- `imp_bff labelizer` — the same from a command line.
 - `okf/validation/labelizer_ab.md` — what agrees with the reference, and by how
   much.
 - `okf/labelizer-correspondence.md` — which reference function became which

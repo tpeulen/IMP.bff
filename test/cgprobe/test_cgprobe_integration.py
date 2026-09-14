@@ -43,7 +43,7 @@ class TestIntegration(unittest.TestCase):
         # function and lost the click wrapper, so `-m` on it exits 0 having
         # done nothing -- which is how this test failed: a returncode of 0 and
         # no output directory.
-        program = Path(__file__).resolve().parents[2] / "bin" / "imp_bff"
+        program = Path(__file__).resolve().parents[2] / "bin" / "imp_bff_py"
         cmd = [sys.executable, str(program), "simulate"] + args
         # Use a reasonable timeout for integration tests
         return subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=60)

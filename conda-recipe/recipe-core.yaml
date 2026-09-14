@@ -67,6 +67,9 @@ tests:
   - script:
       - python -c "import IMP.bff as b; assert b.get_build() == 'core'"
       - imp_bff_fetch_data --list
+      # the compiled command line (bin/imp_bff.cpp), with no IMP in the process
+      - imp_bff help
+      - imp_bff fps-distance --help
       # the surface a consumer relies on, so a package missing half its
       # classes fails here rather than in chisurf
       - python -c "import IMP.bff as b; [getattr(b, n) for n in ('FitDataset', 'sync_dataset', 'FitChiSquared', 'FitJointChiSquared', 'GraphEvaluation', 'FitMinimizer', 'TCSPCDecay')]"

@@ -21,7 +21,7 @@ operation you call; the Python API remains flat under `IMP.bff`.
 
 | reference module | lines | became | note |
 |---|---|---|---|
-| `labelizer.py` | 466 | `labelizer_score_structure`, `bin/imp_bff_labelizer` | orchestration; the `Labelizer` class does not survive as a class |
+| `labelizer.py` | 466 | `labelizer_score_structure`, `imp_bff labelizer` (src/CommandLineLabelizer.cpp) | orchestration; the `Labelizer` class does not survive as a class |
 | `labeling_parameter.py` | 267 | `LabelizerTable`, `labelizer_load_table`, `labelizer_lookup`, `labelizer_lookup_key`, `labelizer_parameter_scores` | the base class becomes a table plus a dispatch |
 | `labeling_score.py` | 286 | `labelizer_labeling_score`, `LabelizerParameter`, `labelizer_model_paper` | the weighted geometric mean |
 | `cysteine_resemblance.py` | 85 | `labelizer_parameter_scores`, tag `cr` | pure lookup |

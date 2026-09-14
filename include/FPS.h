@@ -381,6 +381,32 @@ public:
 
 IMP_VALUES(AVPairDistanceMeasurement, AVPairDistanceMeasurements);
 
+#ifndef SWIG
+//! A dye cloud read from an `.xyz` file, with what the file says about itself.
+struct IMPBFFEXPORT XyzPointCloud {
+    std::vector<double> points;          //!< flat (x, y, z, w), one row per line
+    std::vector<double> declared_mean;   //!< FPS's `Dmp` line, or empty
+    int n_unique_voxels;                 //!< distinct positions, to 1e-3 A
+    XyzPointCloud() : n_unique_voxels(0) {}
+};
+
+//! Read a dye cloud from an `.xyz`, in either dialect.
+/*! FPS writes `D x y z` with a trailing `Dmp` mean-position line; this module
+    writes `He x y z w` with the weight in the fifth column
+    (#IMP::bff::write_points_xyz). A missing weight is 1.0. The first two lines
+    are the atom count and a comment.
+
+    **An FPS `.xyz` is duplicate-expanded**: its AV3 export writes a voxel once
+    per dye radius that fits, so the line count is the sum of densities and
+    not the volume. That is a *weighting*, so duplicates are kept, and the
+    unique voxel count is reported separately so the two are never confused.
+
+    \throw IOException when the file cannot be read, is empty or holds no
+           points
+*/
+IMPBFFEXPORT XyzPointCloud read_points_xyz(const std::string& path);
+#endif
+
 IMPBFF_END_NAMESPACE
 
 

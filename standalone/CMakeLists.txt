@@ -278,6 +278,22 @@ else()
   set_target_properties(imp_bff PROPERTIES OUTPUT_NAME imp_bff VERSION ${PROJECT_VERSION} SOVERSION 0)
 endif()
 
+# ---- the command line: bin/imp_bff.cpp, the one program (owner ruling
+# 2026-09-14). All of its grammar is in the library (CommandLine.h), so this is
+# a main() and a link. A wheel does not install it -- a scripts-dir executable
+# cannot find the library inside site-packages/IMP/bff without a fragile rpath
+# -- and offers the same dispatcher as the `imp_bff` console script instead.
+include(GNUInstallDirs)
+add_executable(imp_bff_exe "${IMPBFF_ROOT}/bin/imp_bff.cpp")
+target_link_libraries(imp_bff_exe PRIVATE imp_bff)
+set_target_properties(imp_bff_exe PROPERTIES OUTPUT_NAME imp_bff
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+if(APPLE)
+  set_target_properties(imp_bff_exe PROPERTIES INSTALL_RPATH "@loader_path/../${CMAKE_INSTALL_LIBDIR}")
+elseif(UNIX)
+  set_target_properties(imp_bff_exe PROPERTIES INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
+endif()
+
 # ---- install, in three components: python (the module and what it loads),
 # data (what get_data_path() reads), dev (headers, the CMake export).
 include(GNUInstallDirs)
@@ -302,6 +318,7 @@ else()
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT python
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT python)
+  install(TARGETS imp_bff_exe RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT python)
   install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/" DESTINATION include COMPONENT dev)
   install(DIRECTORY "${IMPBFF_GEN_INCLUDE}/" DESTINATION include COMPONENT dev)
   install(DIRECTORY "${IMPBFF_ROOT}/data/" DESTINATION share/IMP/bff/data COMPONENT data)
