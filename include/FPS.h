@@ -405,6 +405,28 @@ struct IMPBFFEXPORT XyzPointCloud {
            points
 */
 IMPBFFEXPORT XyzPointCloud read_points_xyz(const std::string& path);
+
+//! One row of FPS's `Fps/data/linker.txt`: a dye on one linker chemistry.
+/*! The file gives an AV1 radius *and* three AV3 radii per row; both are kept
+    because they are not interchangeable -- an AV3 admits a voxel where the
+    *smallest* radius fits and weights it by how many fit, so it is the larger
+    and softer volume. */
+struct IMPBFFEXPORT FPSLinkerPreset {
+    std::string name;       //!< e.g. `alexa488-long`
+    std::string role;       //!< `D` or `A`
+    double linker_length;   //!< A
+    double linker_width;    //!< A
+    double radius_av1;      //!< A
+    double radii_av3[3];    //!< A
+};
+
+//! FPS's linker presets, verbatim, sorted by name.
+IMPBFFEXPORT std::vector<FPSLinkerPreset> fps_linker_presets();
+
+//! FPS's default AV grid: `max(min(0.2 L, 0.2 W, 0.4 R_i), 0.4)` over the
+//! radii above zero (AVEngine.cs:568), so a preset reproduces its grid.
+IMPBFFEXPORT double fps_default_grid(double linker_length, double linker_width,
+                                     const std::vector<double>& radii);
 #endif
 
 IMPBFF_END_NAMESPACE

@@ -11,7 +11,7 @@ PDB 1R0A) with its DNA primer/template -- shipped here as the original C# FPS
 ``hiv_rt.fps.json``. Eleven labelling positions: eight AV1 sites on the
 protein, three AV3 sites on the DNA.
 
-Everything below is also a command line; see ``imp_bff_fps --help``.
+Everything below is also a command line; see ``imp_bff fps --help``.
 """
 # sphinx_gallery_thumbnail_path = 'img/example_structure_fret_docking.png'
 import json

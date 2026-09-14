@@ -29,9 +29,12 @@
 #include <string>
 #include <vector>
 
+#include <sys/stat.h>
 #ifdef _WIN32
+#  include <direct.h>
 #  include <process.h>
 #else
+#  include <unistd.h>
 #  include <spawn.h>
 #  include <sys/wait.h>
 extern char** environ;
@@ -63,6 +66,61 @@ std::string format(const char* fmt, ...) {
   }
   va_end(args);
   return out;
+}
+
+bool path_is_dir(const std::string& path) {
+  struct stat st;
+  return stat(path.c_str(), &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR;
+}
+
+namespace dispatch {
+std::vector<std::string> split_path(const std::string& path) {
+  std::vector<std::string> parts;
+  std::string part;
+  for (std::size_t i = 0; i <= path.size(); ++i) {
+    if (i == path.size() || path[i] == '/' || path[i] == '\\') {
+      if (part == "..") {
+        if (!parts.empty()) parts.pop_back();
+      } else if (!part.empty() && part != ".") {
+        parts.push_back(part);
+      }
+      part.clear();
+    } else {
+      part += path[i];
+    }
+  }
+  return parts;
+}
+}  // namespace dispatch
+
+std::string path_abs(const std::string& path) {
+  std::string full = path;
+  const bool absolute = !path.empty() && (path[0] == '/' || path[0] == '\\' ||
+                                          (path.size() > 1 && path[1] == ':'));
+  if (!absolute) {
+    char buf[4096];
+#ifdef _WIN32
+    const char* cwd = _getcwd(buf, sizeof(buf));
+#else
+    const char* cwd = getcwd(buf, sizeof(buf));
+#endif
+    full = std::string(cwd ? cwd : ".") + "/" + path;
+  }
+  const std::vector<std::string> parts = dispatch::split_path(full);
+  std::string out;
+  for (std::size_t i = 0; i < parts.size(); ++i) out += "/" + parts[i];
+  return out.empty() ? std::string("/") : out;
+}
+
+std::string path_rel(const std::string& path, const std::string& start) {
+  const std::vector<std::string> a = dispatch::split_path(path_abs(path));
+  const std::vector<std::string> b = dispatch::split_path(path_abs(start));
+  std::size_t common = 0;
+  while (common < a.size() && common < b.size() && a[common] == b[common]) ++common;
+  std::string out;
+  for (std::size_t i = common; i < b.size(); ++i) out += out.empty() ? ".." : "/..";
+  for (std::size_t i = common; i < a.size(); ++i) out += (out.empty() ? "" : "/") + a[i];
+  return out.empty() ? std::string(".") : out;
 }
 
 std::string json_float(double v) {
@@ -113,6 +171,80 @@ std::string json_string(const std::string& s) {
     }
   }
   return out + "\"";
+}
+
+std::string json_dump_python(const nlohmann::json& value, int indent, int depth) {
+  const bool pretty = indent >= 0;
+  const std::string pad = pretty ? std::string(static_cast<std::size_t>(indent * (depth + 1)), ' ')
+                                 : std::string();
+  const std::string close = pretty ? std::string(static_cast<std::size_t>(indent * depth), ' ')
+                                   : std::string();
+  const std::string item_sep = pretty ? ",\n" + pad : std::string(", ");
+  switch (value.type()) {
+    case nlohmann::json::value_t::null:
+      return "null";
+    case nlohmann::json::value_t::boolean:
+      return value.get<bool>() ? "true" : "false";
+    case nlohmann::json::value_t::number_integer:
+      return format("%lld", static_cast<long long>(value.get<long long>()));
+    case nlohmann::json::value_t::number_unsigned:
+      return format("%llu", static_cast<unsigned long long>(value.get<unsigned long long>()));
+    case nlohmann::json::value_t::number_float:
+      return json_float(value.get<double>());
+    case nlohmann::json::value_t::string: {
+      // ensure_ascii: non-ASCII as \uXXXX, astral planes as surrogate pairs
+      const std::string& text = value.get_ref<const std::string&>();
+      std::string out = "\"";
+      for (std::size_t i = 0; i < text.size();) {
+        unsigned char c = static_cast<unsigned char>(text[i]);
+        if (c < 0x80) {
+          out += json_string(std::string(1, static_cast<char>(c))).substr(1, std::string::npos);
+          out.erase(out.size() - 1);
+          ++i;
+          continue;
+        }
+        unsigned long cp = 0;
+        int extra = 0;
+        if ((c & 0xE0) == 0xC0) { cp = c & 0x1F; extra = 1; }
+        else if ((c & 0xF0) == 0xE0) { cp = c & 0x0F; extra = 2; }
+        else { cp = c & 0x07; extra = 3; }
+        ++i;
+        for (int k = 0; k < extra && i < text.size(); ++k, ++i) {
+          cp = (cp << 6) | (static_cast<unsigned char>(text[i]) & 0x3F);
+        }
+        if (cp >= 0x10000) {
+          cp -= 0x10000;
+          out += format("\\u%04lx\\u%04lx", 0xD800 + (cp >> 10), 0xDC00 + (cp & 0x3FF));
+        } else {
+          out += format("\\u%04lx", cp);
+        }
+      }
+      return out + "\"";
+    }
+    case nlohmann::json::value_t::array: {
+      if (value.empty()) return "[]";
+      std::string out = pretty ? "[\n" + pad : std::string("[");
+      for (std::size_t i = 0; i < value.size(); ++i) {
+        if (i) out += item_sep;
+        out += json_dump_python(value[i], indent, depth + 1);
+      }
+      return out + (pretty ? "\n" + close + "]" : std::string("]"));
+    }
+    case nlohmann::json::value_t::object: {
+      if (value.empty()) return "{}";
+      std::string out = pretty ? "{\n" + pad : std::string("{");
+      bool first = true;
+      for (nlohmann::json::const_iterator it = value.begin(); it != value.end(); ++it) {
+        if (!first) out += item_sep;
+        first = false;
+        out += json_dump_python(nlohmann::json(it.key())) + ": " +
+               json_dump_python(it.value(), indent, depth + 1);
+      }
+      return out + (pretty ? "\n" + close + "}" : std::string("}"));
+    }
+    default:
+      return "null";
+  }
 }
 
 OrderedJson& OrderedJson::raw(const std::string& key, const std::string& json_text) {
@@ -240,6 +372,11 @@ std::unique_ptr<CLI::App> build_app(std::shared_ptr<int> rc) {
   add_trajectory_subs(*app);
   add_labelizer_subs(*app);
   add_fps_distance_subs(*app);
+#if IMPBFF_CLI_HAS_IMP_LAYER
+  add_fps_subs(*app);
+  add_fps_av_subs(*app);
+  add_fps_export_subs(*app);
+#endif
 
   for (std::size_t i = 0; i < sizeof(FORWARDED) / sizeof(FORWARDED[0]); ++i) {
     const std::string name = FORWARDED[i][0];
