@@ -756,7 +756,7 @@ def peak_fit_response(h, dt, stop_after_peak=1.0, start_fraction=0.05, pre=8, pu
 def model(loaded=None, n_coef=25, which='h20', verbose=True,
           samples=('D0', 'A0', 'DA'), detectors=None, irf='h20', rebin=False, growth=1.05,
           rl_iterations=500, irf_conv_stop=None, peak_stop=1.0, peak_pulse='gn', rho_grid=None,
-          d0_from=None, maps=None, mask_edges=None, sample_shifts=False):
+          d0_from=None, maps=None, mask_edges=None, sample_shifts=False, irf_by_sample=None):
     """Everything the fit needs: the maps on this axis, the measured responses,
     the twelve histograms, and the graph.
 
@@ -929,6 +929,16 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
     ref = {samp: next(k for k in pairs if k[0] == samp) for samp in samples}
     scale_med = {samp: max(tot[ref[samp]], 1.0) for samp in samples}
     irf_bg_med = {det: max(min(info[det]['background_fraction'], 0.9), 1e-3) for det in dets}
+    #: R1(r): a water measurement per sample where the default does not belong
+    measured_by_sample, irf_by_sample_resp = {}, {}
+    for samp_, which_ in (irf_by_sample or {}).items():
+        if samp_ not in samples or which_ == which:
+            continue
+        irf_s, info_s, _ = responses(d, which=which_, n=n)
+        for det in dets:
+            measured_by_sample[(samp_, det)] = L.tt(irf_s[det])
+            irf_by_sample_resp[(samp_, det)] = irf_s[det]
+            irf_bg_med[f'{det}_{samp_}'] = max(min(info_s[det]['background_fraction'], 0.9), 1e-3)
 
     analytic = (irf_kind == 'analytic')
     if analytic:
@@ -979,7 +989,8 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
                 v.prior = L.LogNormal(bkg_med[k], 0.15 * L.LN10)
     return_bkg_sd = 0.15
     inst = L.InstrumentModel(E, 'analytic') if analytic else \
-        L.InstrumentModel(E, 'measured', {det: L.tt(irf[det]) for det in dets})
+        L.InstrumentModel(E, 'measured', {det: L.tt(irf[det]) for det in dets},
+                          measured_by_sample=measured_by_sample)
     ps = L.PSplineFactor(n_coef, spl=spl)
     g = L.FactorGraph(E, keys, V, L.PoissonCountsFactor({k: y[k] for k in pairs}, mask=masks),
                       inst, spl, ps)
@@ -987,7 +998,7 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
     g.start_y = {k: y[k] * E['win_green'] for k in pairs}
     return dict(L=L, E=E, Ep=E, rel=rel, spl=spl, keys=keys, pairs=pairs, graph=g,
                 y=y, y_full=y_full, t=t_axis, masks=masks, irf=irf, irf_info=info, offset_channels=off,
-                irf_kind=irf_kind, peak_fits=peak_fits,
+                irf_kind=irf_kind, peak_fits=peak_fits, irf_by_sample=irf_by_sample_resp,
                 irf_h20=irf_h20,
                 cal=cal, loaded=d, n=n, n_coef=n_coef,
                 bkg_medians=bkg_med, scale_medians=scale_med, irf_bg_medians=irf_bg_med)
