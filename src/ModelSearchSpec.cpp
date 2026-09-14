@@ -103,6 +103,15 @@ void add_dataset_scalars(const std::string& slot, const FitDataset& dataset,
   scope[slot + "_first"] = first_value;
   scope[slot + "_last"] = last_value;
   scope[slot + "_amplitude"] = amplitude;
+  // The sampling step of an evenly sampled axis -- a TCSPC channel width, read
+  // from the measurement instead of typed in beside it.
+  if (dataset.get_number_of_coordinates() > 0) {
+    const std::vector<double>& sampled = dataset.get_coordinate(0);
+    if (sampled.size() >= 2) {
+      scope[slot + "_dx"] = (sampled.back() - sampled.front()) /
+                            static_cast<double>(sampled.size() - 1);
+    }
+  }
 
   // The characteristic lag of a decaying curve: the sampling position where
   // it is nearest half way down. Without an amplitude there is nothing to be
@@ -537,6 +546,10 @@ struct ModelSearchSpec::Impl {
     bool has_bounds = true;
   };
   std::map<std::string, Override> overrides;
+  //! The live model: built on first request, rebuilt over the same parameter
+  //! ports when what it was built from changes.
+  std::shared_ptr<MultiStructureModelSearchProblem> model;
+  bool dirty = true;
 };
 
 ModelSearchSpec::ModelSearchSpec() : impl_(new Impl) {}
@@ -631,7 +644,12 @@ std::vector<std::string> ModelSearchSpec::get_structure_keys() const {
 
 void ModelSearchSpec::set_dataset(const std::string& name,
                                   const FitDataset& dataset) {
+  impl_->dirty = true;
   impl_->datasets[name] = dataset;
+}
+
+void ModelSearchSpec::unset_dataset(const std::string& name) {
+  if (impl_->datasets.erase(name)) impl_->dirty = true;
 }
 
 const std::vector<double>& ModelSearchSpec::get_dataset_values(
@@ -645,6 +663,11 @@ const std::vector<double>& ModelSearchSpec::get_dataset_values(
 }
 
 void ModelSearchSpec::set_scalar(const std::string& name, double value) {
+  std::map<std::string, double>::const_iterator found = impl_->scalars.find(name);
+  // Supplying what is already there changes nothing, and must not cost the
+  // live model a rebuild.
+  if (found != impl_->scalars.end() && found->second == value) return;
+  impl_->dirty = true;
   impl_->scalars[name] = value;
 }
 
@@ -657,6 +680,7 @@ void ModelSearchSpec::set_parameter(const std::string& canonical_id,
   override_value.lower = lower;
   override_value.upper = upper;
   impl_->overrides[canonical_id] = override_value;
+  impl_->dirty = true;
 }
 
 void ModelSearchSpec::set_parameter_value(const std::string& canonical_id,
@@ -668,6 +692,7 @@ void ModelSearchSpec::set_parameter_value(const std::string& canonical_id,
   override_value.upper = 0.0;
   override_value.has_bounds = false;
   impl_->overrides[canonical_id] = override_value;
+  impl_->dirty = true;
 }
 
 std::vector<std::string> ModelSearchSpec::get_available_names() {
@@ -698,6 +723,77 @@ std::vector<std::string> ModelSearchSpec::get_available_names() {
 
 std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build()
     const {
+  return build_over(std::shared_ptr<MultiStructureModelSearchProblem>());
+}
+
+std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::get_model() {
+  if (impl_->model && !impl_->dirty) return impl_->model;
+  const std::shared_ptr<MultiStructureModelSearchProblem> previous =
+      impl_->model;
+  std::shared_ptr<MultiStructureModelSearchProblem> model = build_over(previous);
+  if (previous) {
+    const std::vector<std::string> ids = model->get_parameter_ids();
+    const std::vector<std::string> old_ids = previous->get_parameter_ids();
+    const std::set<std::string> known(old_ids.begin(), old_ids.end());
+    for (std::size_t i = 0; i < ids.size(); ++i) {
+      if (known.count(ids[i]) && previous->get_parameter_locked(ids[i])) {
+        model->set_parameter_locked(ids[i], true);
+      }
+      if (known.count(ids[i]) && previous->get_parameter_released(ids[i])) {
+        model->set_parameter_released(ids[i], true);
+      }
+    }
+    const std::string active = previous->get_active_structure();
+    const std::vector<std::string> keys = model->get_structure_keys();
+    if (!active.empty() &&
+        std::find(keys.begin(), keys.end(), active) != keys.end()) {
+      model->select_structure(active);
+    } else {
+      model->select_structure(model->get_initial_structure());
+    }
+  } else {
+    // A new model stands where its description starts: the initial topology
+    // at its declared, data-derived seeds.
+    model->activate_structure(model->get_initial_structure());
+  }
+  impl_->model = model;
+  impl_->dirty = false;
+  return model;
+}
+
+bool ModelSearchSpec::get_model_is_current() const {
+  return impl_->model && !impl_->dirty;
+}
+
+double ModelSearchSpec::evaluate(const std::string& expression) const {
+  std::map<std::string, double> scope;
+  SpecJson::const_iterator optional_scalars =
+      impl_->document.find("optional_scalars");
+  if (optional_scalars != impl_->document.end() && optional_scalars->is_object()) {
+    for (SpecJson::const_iterator it = optional_scalars->begin();
+         it != optional_scalars->end(); ++it) {
+      if (it->is_number()) scope[it.key()] = it->get<double>();
+    }
+  }
+  for (std::map<std::string, double>::const_iterator it =
+           impl_->scalars.begin();
+       it != impl_->scalars.end(); ++it) {
+    scope[it->first] = it->second;
+  }
+  for (std::map<std::string, FitDataset>::const_iterator it =
+           impl_->datasets.begin();
+       it != impl_->datasets.end(); ++it) {
+    add_dataset_scalars(it->first, it->second, scope);
+  }
+  return evaluate_rule(SpecJson(expression), "the expression", scope);
+}
+
+std::string ModelSearchSpec::get_description_json() const {
+  return impl_->document.dump();
+}
+
+std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build_over(
+    const std::shared_ptr<MultiStructureModelSearchProblem>& previous) const {
   // Everything the description says it needs has to be here before anything
   // is built. A half-wired graph still evaluates, and fits the wrong thing.
   // Optional scalars are per-fit switches and instrument numbers a caller
@@ -758,8 +854,15 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build()
     if (!entry.is_object()) refuse("parameter '" + id + "' must be an object");
     const std::string where = "parameter '" + id + "'";
     double initial = optional_rule(entry, "initial", 0.0, where, scope);
-    double lower = optional_rule(entry, "lower", 0.0, where, scope);
-    double upper = optional_rule(entry, "upper", 0.0, where, scope);
+    // A bound written as null is no bound: a ratio to a fixed reference has a
+    // floor and no ceiling, and inventing one makes the answer depend on
+    // which component happens to be the reference.
+    const bool no_lower = entry.contains("lower") && entry["lower"].is_null();
+    const bool no_upper = entry.contains("upper") && entry["upper"].is_null();
+    double lower = no_lower ? -std::numeric_limits<double>::infinity()
+                            : optional_rule(entry, "lower", 0.0, where, scope);
+    double upper = no_upper ? std::numeric_limits<double>::infinity()
+                            : optional_rule(entry, "upper", 0.0, where, scope);
     bool free = true;
     SpecJson::const_iterator free_it = entry.find("free");
     if (free_it != entry.end()) {
@@ -789,9 +892,24 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build()
       refuse(where + " has an empty range [" + std::to_string(lower) + ", " +
              std::to_string(upper) + "]");
     }
-    std::shared_ptr<GraphPort> owner = std::make_shared<GraphPort>(
-        initial, false, false, false, true, lower, upper, GRAPH_PORT_FLOAT,
-        name);
+    std::shared_ptr<GraphPort> owner;
+    std::vector<std::string> previous_ids;
+    if (previous) previous_ids = previous->get_parameter_ids();
+    if (previous && std::find(previous_ids.begin(), previous_ids.end(), id) !=
+                        previous_ids.end()) {
+      // The same port, so everything that holds it -- an application's view
+      // of the parameter above all -- keeps holding the live one. Its value
+      // is the user's and stays; only bounds that follow the data move, and
+      // the value is clipped into them rather than re-seeded.
+      owner = previous->get_parameter(id);
+      owner->set_fixed(false);
+      owner->set_bounds(lower, upper);
+      owner->set_is_bounded(true);
+      owner->set_value(std::min(upper, std::max(lower, owner->get_value())));
+    } else {
+      owner = std::make_shared<GraphPort>(initial, false, false, false, true,
+                                          lower, upper, GRAPH_PORT_FLOAT, name);
+    }
     ids.push_back(id);
     owners.push_back(owner);
     owner_by_id[id] = owner;
@@ -832,6 +950,7 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build()
     // name a node the document has not reached yet.
     std::map<std::string, std::shared_ptr<GraphNode> > built;
     std::vector<std::string> node_order;
+    std::set<std::string> used_ids;
     for (SpecJson::const_iterator nit = nodes.begin(); nit != nodes.end();
          ++nit) {
       const std::string node_key = nit.key();
@@ -1009,6 +1128,7 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build()
             node->add_input_port(port_name, port);
           }
           port->set_link(owner->second);
+          used_ids.insert(id);
           continue;
         }
 
@@ -1156,6 +1276,8 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build()
 
     problem->add_structure(key, objective->second, ids, owners, initial_values,
                            fixed_mask, residual_key);
+    problem->set_structure_parameter_uses(
+        key, std::vector<std::string>(used_ids.begin(), used_ids.end()));
 
     // Which node's curve is compared against which measurement. The objective
     // bound to a measurement reads its model from one node, so this is not a

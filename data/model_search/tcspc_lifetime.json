@@ -2,6 +2,49 @@
  "schema": "bff.model_search.v1",
  "family": "tcspc_lifetime",
  "title": "TCSPC: a multi-exponential decay through a measured response",
+ "presentation": {
+  "_comment": "How an application presents this family. Read by applications, ignored by the engine.",
+  "groups": {
+   "lifetimes": "Lifetimes",
+   "instrument": "Instrument"
+  },
+  "datasets": {
+   "decay": {
+    "label": "Decay",
+    "primary": true
+   },
+   "response": {
+    "label": "IRF"
+   },
+   "linearization": {
+    "label": "Lin. table"
+   }
+  },
+  "scalars": {
+   "dt": {
+    "label": "dt [ns]",
+    "default": "decay_dx"
+   },
+   "period": {
+    "label": "Period [ns]",
+    "default": 12.5
+   },
+   "autoscale": {
+    "label": "Autoscale n0",
+    "kind": "flag"
+   },
+   "pile_up": {
+    "label": "Pile-up",
+    "kind": "flag"
+   },
+   "dead_time": {
+    "label": "Dead time [ns]"
+   },
+   "measurement_time": {
+    "label": "Measurement time [s]"
+   }
+  }
+ },
  "datasets": [
   "decay",
   "response"
@@ -37,13 +80,15 @@
      "name": "a{i}",
      "initial": "1/({i}+1)",
      "lower": 0.0,
-     "upper": 1.0
+     "upper": null,
+     "group": "lifetimes"
     },
     "lifetime.tau.{i}": {
      "name": "t{i}",
      "initial": "min(period,max(dt,{i}+1))",
      "lower": "max(dt*0.01,1e-12)",
-     "upper": "period"
+     "upper": "period",
+     "group": "lifetimes"
     }
    }
   },
@@ -52,26 +97,30 @@
    "initial": 0.0,
    "free": false,
    "lower": 0.0,
-   "upper": 1.0
+   "upper": 1.0,
+   "group": "instrument"
   },
   "instrument.background": {
    "name": "background",
    "initial": "decay_min",
    "lower": 0.0,
-   "upper": "decay_max"
+   "upper": "decay_max",
+   "group": "instrument"
   },
   "instrument.n0": {
    "name": "n0",
    "initial": "decay_sum",
    "lower": 0.0,
-   "upper": "100*decay_sum"
+   "upper": "100*decay_sum",
+   "group": "instrument"
   },
   "instrument.timeshift": {
    "name": "timeshift",
    "initial": 0.0,
    "free": false,
    "lower": "-0.5*response_size",
-   "upper": "0.5*response_size"
+   "upper": "0.5*response_size",
+   "group": "instrument"
   }
  },
  "initial_axes": {
@@ -197,7 +246,8 @@
      }
     }
    }
-  ]
+  ],
+  "label": "{n} lifetime(s)"
  },
  "moves": [
   {
