@@ -51,11 +51,6 @@ requirements:
     - python
     - rmf   # libimp_bff links libRMF; the rmf package has no run export
     - pooch >=1.8
-    - pandas
-    - mdtraj
-    - tqdm
-    - click
-    - click-didyoumean
   run_constraints:
     # never beside the IMP module build: same files
     - imp.bff <0.0.0a0

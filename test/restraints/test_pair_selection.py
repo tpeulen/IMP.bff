@@ -212,17 +212,20 @@ def test_select_pairs_runs_end_to_end(tmp_path, capfd):
     assert code == 0, output
     assert out.is_file()
 
-    import pandas as pd
-    table = pd.read_csv(out, sep="\t")
-    assert list(table.columns) == [
+    import csv
+    with open(out, newline="") as handle:
+        reader = csv.DictReader(handle, delimiter="\t")
+        rows = list(reader)
+    assert reader.fieldnames == [
         "rank", "pair", "position_1", "position_2", "forster_radius",
         "expected_rmsd", "gain"]
-    assert len(table) == 4
-    assert list(table["rank"]) == [1, 2, 3, 4]
-    assert table["pair"].is_unique
-    assert (table["expected_rmsd"] > 0.0).all()
-    assert table["expected_rmsd"].iloc[-1] < table["expected_rmsd"].iloc[0]
-    assert table["gain"].iloc[0] > 0.0
+    assert len(rows) == 4
+    assert [int(r["rank"]) for r in rows] == [1, 2, 3, 4]
+    assert len({r["pair"] for r in rows}) == 4
+    rmsd = [float(r["expected_rmsd"]) for r in rows]
+    assert all(v > 0.0 for v in rmsd)
+    assert rmsd[-1] < rmsd[0]
+    assert float(rows[0]["gain"]) > 0.0
 
 
 def test_select_pairs_takes_a_stack_of_pdbs(tmp_path, capfd):

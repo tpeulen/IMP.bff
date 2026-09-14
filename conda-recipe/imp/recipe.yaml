@@ -95,11 +95,6 @@ requirements:
   run:
     - python
     - numpy
-    - pandas
-    - mdtraj
-    - tqdm
-    - click
-    - click-didyoumean
 
 about:
   homepage: https://integrativemodeling.org

@@ -73,11 +73,6 @@ requirements:
     - ${{ pin_compatible('imp', upper_bound='x.x') }}
     # No explicit libboost entry: libboost-devel's run_exports add it
     # automatically, same as imp's own recipe does.
-    - pandas
-    - mdtraj
-    - tqdm
-    - click
-    - click-didyoumean
   run_constraints:
     # never beside the IMP-free core (package `bff`, recipe-core.yaml): both
     # install site-packages/IMP/bff/
