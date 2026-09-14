@@ -141,6 +141,36 @@ simulations cost 13 evaluations, because the tree caches. And there is no case
 here for replacing the search with enumeration; enumeration's value is as an
 oracle for tests like these, not as the strategy.
 
+## Seeding is the binding constraint, and it gets worse with size
+
+The VV/VH/VM anisotropy family (`data/model_search/tcspc_anisotropy.json`,
+24 canonical parameters, six topologies) is the sharpest case measured so far.
+Against data it generated itself, Poisson-sampled:
+
+| starts | picks the generating topology |
+|---|---|
+| one canonical start | 0 of 7 noise draws |
+| two geometric spreads (x3, x6) | **3 of 7** |
+| spread around the vm characteristic decay | 0 of 7 |
+
+Seeded at the truth the generating topology wins outright (-450.7 against
+-458.4 for its nearest rival), and the fitted parameters come back -- every
+channel's intensity within 1%, r0 within 2%. So the *ranking* is right and the
+*model* is right; what fails is reaching the optimum from a generic start. A
+topology that does not converge scores in the tens of thousands and loses to
+one that happens to.
+
+Data-driven starts were tried and are worse than fixed geometric ones here.
+Tuning the spread constant until the seven noise draws pass would be fitting
+the test rather than the problem, so it has not been done.
+
+This is the same finding as the FCS two-component case, at four times the
+parameter count: **a declared start set does not scale to a coupled joint
+fit.** Multistart raised FCS from -915 to -25.6 and anisotropy from 0/7 to
+3/7; neither is a solution, both are evidence that the search needs a way to
+*place* parameters before it compares topologies, not a better guess at where
+they start.
+
 ## What follows
 
 1. **Sorting.** TCSPC component labels permute between slots depending on the

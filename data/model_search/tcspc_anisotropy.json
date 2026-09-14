@@ -23,24 +23,44 @@
   }
  },
  "parameters": {
-  "repeat": {
-   "index": "j",
-   "count": "m_max",
-   "body": {
-    "rotation.amplitude.{j}": {
-     "name": "b{j}",
-     "initial": "1/({j}+1)",
-     "lower": 0.0,
-     "upper": 1.0
-    },
-    "rotation.time.{j}": {
-     "name": "rho{j}",
-     "initial": "min(period,max(dt,{j}+1))",
-     "lower": "max(dt*0.01,1e-12)",
-     "upper": "period"
+  "repeat": [
+   {
+    "index": "i",
+    "count": "n_max",
+    "body": {
+     "lifetime.amplitude.{i}": {
+      "name": "a{i}",
+      "initial": "1/({i}+1)",
+      "lower": 0.0,
+      "upper": 1.0
+     },
+     "lifetime.tau.{i}": {
+      "name": "t{i}",
+      "initial": "min(period,max(dt,{i}+1))",
+      "lower": "max(dt*0.01,1e-12)",
+      "upper": "period"
+     }
+    }
+   },
+   {
+    "index": "j",
+    "count": "m_max",
+    "body": {
+     "rotation.amplitude.{j}": {
+      "name": "b{j}",
+      "initial": "1/({j}+1)",
+      "lower": 0.0,
+      "upper": 1.0
+     },
+     "rotation.time.{j}": {
+      "name": "rho{j}",
+      "initial": "min(period,max(dt,{j}+1))",
+      "lower": "max(dt*0.01,1e-12)",
+      "upper": "period"
+     }
     }
    }
-  },
+  ],
   "anisotropy.r0": {
    "name": "r0",
    "initial": 0.38,
@@ -423,7 +443,45 @@
     }
    }
   },
-  "ess": "vv_size+vh_size+vm_size"
+  "ess": "vv_size+vh_size+vm_size",
+  "starts": [
+   {
+    "repeat": [
+     {
+      "index": "i",
+      "count": "n_max",
+      "body": {
+       "lifetime.tau.{i}": "max(dt*2,period/(2*3**({n}-1-{i})))"
+      }
+     },
+     {
+      "index": "j",
+      "count": "m_max",
+      "body": {
+       "rotation.time.{j}": "max(dt*2,period/(2*3**({m}-1-{j})))"
+      }
+     }
+    ]
+   },
+   {
+    "repeat": [
+     {
+      "index": "i",
+      "count": "n_max",
+      "body": {
+       "lifetime.tau.{i}": "max(dt*2,period/(2*6**({n}-1-{i})))"
+      }
+     },
+     {
+      "index": "j",
+      "count": "m_max",
+      "body": {
+       "rotation.time.{j}": "max(dt*2,period/(2*6**({m}-1-{j})))"
+      }
+     }
+    ]
+   }
+  ]
  },
  "moves": [
   {

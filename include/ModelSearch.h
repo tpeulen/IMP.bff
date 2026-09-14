@@ -344,6 +344,23 @@ class IMPBFFEXPORT MultiStructureModelSearchProblem
   std::vector<double> get_cached_values(const std::string& state_key) const;
   std::vector<int> get_cached_fixed(const std::string& state_key) const;
   void restore_state(const std::string& state_key);
+  //! Evaluate one topology and read what a node in it produced.
+  /*!
+      \param[in] structure_key the topology to make current and evaluate
+      \param[in] node_name the node's full name, which for a described
+      family is `"<structure>.<node>"`
+
+      The curve a topology predicts at the parameters currently in the
+      registry. Fitting runs this graph already; this only makes its output
+      readable, which is what turns a model family into its own data
+      generator -- set the parameters, read the curve, and a fixture or a
+      self-play episode has a measurement no hand-written simulator had to
+      reproduce. A hand-written one is a second opinion about the model, and
+      the first one is right here.
+  */
+  std::vector<double> get_structure_output(const std::string& structure_key,
+                                           const std::string& node_name);
+
   const std::string& get_active_structure() const;
   std::shared_ptr<GraphNode> get_active_objective() const;
   int get_last_fit_status() const;
