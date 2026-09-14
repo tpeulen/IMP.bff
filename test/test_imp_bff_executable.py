@@ -56,7 +56,7 @@ LAYER_GROUPS = {
     "build-system": [],
     "select-pairs": [],
     "rotamer": ["predict", "r0"],
-    "dye": ["label", "build-lib", "analyze-tc", "reconstruct", "sample-rotamer",
+    "dye": ["build-lib", "analyze-tc", "reconstruct", "sample-rotamer",
             "sample-dof-walk", "sample-langevin", "label-fp", "label-fusion"],
     "simulate": [],
     "dock": [],
