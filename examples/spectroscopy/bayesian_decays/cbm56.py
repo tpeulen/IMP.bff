@@ -674,7 +674,8 @@ def peak_fit_response(h, dt, stop_after_peak=1.0, start_fraction=0.05, pre=8, pu
 
 def model(loaded=None, n_coef=25, which='h20', verbose=True,
           samples=('D0', 'A0', 'DA'), detectors=None, irf='h20', rebin=False, growth=1.05,
-          rl_iterations=500, irf_conv_stop=None, peak_stop=1.0, peak_pulse='gn', rho_grid=None):
+          rl_iterations=500, irf_conv_stop=None, peak_stop=1.0, peak_pulse='gn', rho_grid=None,
+          d0_from=None):
     """Everything the fit needs: the maps on this axis, the measured responses,
     the twelve histograms, and the graph.
 
@@ -693,6 +694,18 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
     irf, info, off = responses(d, which=which, n=n)
     irf_h20 = {k: v.copy() for k, v in irf.items()}
     y_np, mask_np = histograms(d, n=n)
+    if d0_from is not None:
+        #: THE REFERENCE DYE AS THE DONOR-ONLY SAMPLE (tpeulen, prompt 418: "try
+        #: Rh110 and see if you can get l1,l2").  A free dye is one lifetime and
+        #: a rotation of a few hundred picoseconds, so what its two polarised
+        #: channels disagree about after that is the detection: g, l1 and l2.
+        #: Its histograms stand in for the D0 sample's under the D0 scope --
+        #: same physics, no distance -- and its decay wraps the period, which
+        #: the periodic convolution carries.
+        for det, (colour, pol) in DETECTORS.items():
+            k = ('D0', f'{det}_{KIND[det]}')
+            if k in y_np:
+                y_np[k] = np.asarray(d['reference'][(d0_from, colour, pol)], float)[:n]
 
     E = dict(E)
     E['pulse_alias'] = {'g2p': 'gp', 'g2s': 'gs', 'r2p': 'rp', 'r2s': 'rs'}
@@ -979,7 +992,15 @@ def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=False, f
     nodes, th_prev = {}, th0
     for lg in lam_nodes:
         gi = g.with_fixed(log10_lam=tr.to_unconstrained(L.tt([float(lg)])), **held)
-        r = L.laplace_at(gi, gi.restrict(gi, th_prev), optimiser='fisher',
+        #: `restrict(parent, theta_of_parent)`: the PARENT graph's theta mapped
+        #: onto the node graph by name. It was `gi.restrict(gi, th_prev)` --
+        #: the node graph as its own parent -- which reads the parent's theta
+        #: with the node graph's offsets and scrambles every variable: a start
+        #: at D/dof 110 became 451,973 on the node graph (2026-09-14, found on
+        #: Rh110). Every fit through here started from that, which is the
+        #: "walk" R3 was written for: runaway shifts, competing modes, fits
+        #: that converged to nonsense.
+        r = L.laplace_at(gi, gi.restrict(g, th_prev), optimiser='fisher',
                          verbose=verbose, hessian='fisher')
         r['graph'] = gi; r['log10_lam'] = float(lg)
         nodes[float(lg)] = r
