@@ -108,7 +108,11 @@ struct IMPBFFEXPORT ProbeTrajectoryDensityOptions {
   ProbeTrajectoryDensityOptions()
       : traj_root("traj_latest"), combine_runs(false), output_dir("analysis/latest"),
         resolution(4.0), voxel_size(1.0), bin_width(0.5), max_frames(0) {}
+  IMP_SHOWABLE_INLINE(ProbeTrajectoryDensityOptions,
+                      out << "ProbeTrajectoryDensityOptions(" << traj_root << ", "
+                          << mobiles.size() << " mobiles)");
 };
+IMP_VALUES(ProbeTrajectoryDensityOptions, ProbeTrajectoryDensityOptionsList);
 
 #if !defined(SWIG) && (!defined(IMPBFF_STANDALONE) || defined(IMPBFF_WITH_IMP_RMF))
 //! Run the whole analysis, writing the files listed at the top of this header.
