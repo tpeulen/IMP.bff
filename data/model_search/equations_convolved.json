@@ -80,6 +80,15 @@
     "label": "Reverse DNL table",
     "kind": "flag"
    }
+  },
+  "reference_modes": [
+   "tcspc_total_photons",
+   "tcspc_peak_photons"
+  ],
+  "axis": {
+   "x": "time (ns)",
+   "y": "counts",
+   "scale_y": "log"
   }
  },
  "datasets": [

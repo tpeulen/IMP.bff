@@ -444,6 +444,14 @@ class IMPBFFEXPORT MultiStructureModelSearchProblem
   std::vector<double> get_structure_output(const std::string& structure_key,
                                            const std::string& node_name);
 
+  //! A named output port of one node of a topology, evaluated now.
+  /*! #get_structure_output reads the port keyed by the node's own name; this
+      reads any other a description declared -- a decay's `spectrum`, say.
+      \throws ModelSearchConfigurationError naming the node or port it lacks. */
+  std::vector<double> get_structure_port(const std::string& structure_key,
+                                         const std::string& node_name,
+                                         const std::string& port_name);
+
   //! Make a topology current without touching any value.
   /*! What an application does when a user picks a topology: the registry
       keeps the numbers the user sees, and only which of them the topology

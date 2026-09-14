@@ -833,6 +833,13 @@ void TCSPCDecay::evaluate() {
     if (v < 0.0) v = 0.0;
   }
 
+  // The spectrum the curve was built from, for a caller that shows or
+  // summarises it (a lifetime distribution, averaged lifetimes) without
+  // rebuilding it in its own words. Published only where a port asks for it.
+  if (const std::shared_ptr<GraphPort> published = get_output_port("spectrum")) {
+    published->set_value_vector(curve_from_port_ ? std::vector<double>()
+                                                 : spectrum_);
+  }
   const std::shared_ptr<GraphPort> out = get_output_port(get_name());
   if (!out) {
     throw std::domain_error(
