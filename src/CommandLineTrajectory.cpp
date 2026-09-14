@@ -350,9 +350,6 @@ std::vector<double> load_trajectory(const std::string& path, const std::string& 
     if (top.empty()) throw SubError(".xtc needs --top (a .gro/.pdb topology)");
     *n_atoms = read_xtc_n_atoms(path);
     read_xtc(path, -1, &view, &n_flat);          // nm -> A inside
-  } else if (suffix == ".trr") {
-    throw SubError(".trr is not read by the compiled program (the Python one went through "
-                   "mdtraj); convert it to .xtc or .dcd first");
   } else {
     throw SubError("unsupported trajectory: " + path);
   }
@@ -431,7 +428,7 @@ void add_trajectory_subs(CLI::App& app) {
         "  imp_bff traj2bcif lib.dcd lib.bcif --grid 0.001\n"
         "  imp_bff traj2bcif --all data/rotamer_library\n"
         "  imp_bff traj2bcif traj.xtc traj.bcif --top conf_ed.gro\n\n"
-        "XTC is read by the compiled reader (nm -> A); .trr is not read.");
+        "DCD and XTC are read (XTC nm -> A).");
     sub->add_option("sources", a->positional, "src (a .dcd or .xtc) and dst (the .bcif to write)");
     sub->add_option("--top", a->top, "topology for an XTC (.gro/.pdb)");
     sub->add_option("--grid", a->grid,
