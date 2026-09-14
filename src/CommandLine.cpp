@@ -410,6 +410,10 @@ int command_line_main(int argc, char** argv) {
     // CLI11 prints the message; the codes it returns are its own (106 for a
     // missing subcommand), and a caller only needs "usage error"
     const int code = app->exit(e);
+    // help and usage go to std::cout/std::cerr; a caller in the same process
+    // (the wheel's console script, a test) reads the descriptor right after
+    std::cout << std::flush;
+    std::cerr << std::flush;
     return code == 0 ? 0 : 2;
   } catch (const cli::SubExit& e) {
     std::cout << std::flush;
