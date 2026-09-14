@@ -35,6 +35,12 @@ TRUTH = {
     "instrument.vv.n0": 30000.0,
     "instrument.vh.n0": 20000.0,
     "instrument.vm.n0": 25000.0,
+    # Pinned so the simulated curves do not depend on a data-derived seed:
+    # the generator is handed flat dummy data, and a background read off that
+    # would not be the background read off the curves it produces.
+    "instrument.vv.background": 0.0,
+    "instrument.vh.background": 0.0,
+    "instrument.vm.background": 0.0,
 }
 GENERATING = "tcspc.l2.r1"
 

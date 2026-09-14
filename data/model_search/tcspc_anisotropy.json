@@ -96,7 +96,7 @@
   },
   "instrument.vv.background": {
    "name": "bg_vv",
-   "initial": 0.0,
+   "initial": "vv_min",
    "lower": 0.0,
    "upper": "vv_max"
   },
@@ -115,7 +115,7 @@
   },
   "instrument.vh.background": {
    "name": "bg_vh",
-   "initial": 0.0,
+   "initial": "vh_min",
    "lower": 0.0,
    "upper": "vh_max"
   },
@@ -134,7 +134,7 @@
   },
   "instrument.vm.background": {
    "name": "bg_vm",
-   "initial": 0.0,
+   "initial": "vm_min",
    "lower": 0.0,
    "upper": "vm_max"
   },
