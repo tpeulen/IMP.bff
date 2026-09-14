@@ -51,8 +51,9 @@ def test_the_component_ceiling_is_one_number(ceiling):
     """Raising it adds topologies and the parameters they need, nothing else."""
     problem = _built(_with_ceiling(ceiling))
     assert len(problem.get_structure_keys()) == ceiling
-    # Two canonical parameters per component, plus the four instrument ones.
-    assert len(problem.get_parameter_ids()) == 2 * ceiling + 4
+    # Two canonical parameters per component, plus the five instrument ones
+    # (scatter, background, n0, timeshift, the response's lamp background).
+    assert len(problem.get_parameter_ids()) == 2 * ceiling + 5
     assert f"lifetime.components.{ceiling}" in problem.get_structure_keys()
 
 

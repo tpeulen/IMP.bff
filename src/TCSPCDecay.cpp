@@ -155,6 +155,18 @@ void TCSPCDecay::set_spectrum_from_port(bool v) {
   set_valid(false);
 }
 
+void TCSPCDecay::set_response_range(int start, int stop) {
+  if (start < 0) {
+    throw std::domain_error(
+        "TCSPCDecay::set_response_range: the window starts before channel 0");
+  }
+  response_preparation_.active = true;
+  response_preparation_.start = start;
+  response_preparation_.stop = stop;
+  irf_valid_ = false;
+  set_valid(false);
+}
+
 void TCSPCDecay::set_curve_from_port(bool v) {
   // The ports are made with the components; a decay-from-a-port model has
   // none, and zero is a count the builder accepts.
@@ -392,12 +404,20 @@ void TCSPCDecay::evaluate() {
   // every Jacobian column on an amplitude or a lifetime, which is most of
   // them -- can keep the copy it already has. A NaN timeshift compares
   // unequal to itself and rebuilds, which is the safe direction.
+  internal::ResponsePreparation preparation = response_preparation_;
+  if (const std::shared_ptr<GraphPort> bg =
+          get_input_port(response_background_port_key())) {
+    preparation.active = true;
+    preparation.background = bg->get_value();
+  }
   const bool irf_is_current =
       irf_valid_ && irf_epoch_ == response_epoch_ &&
-      irf_timeshift_ == timeshift &&
+      irf_timeshift_ == timeshift && irf_preparation_ == preparation &&
       irf_.size() == static_cast<std::size_t>(n_points);
   if (!irf_is_current) {
-  internal::prepare_response(response_, timeshift, shifted_, irf_);
+  internal::prepare_response(response_, preparation, timeshift, cleaned_,
+                             shifted_, irf_);
+  irf_preparation_ = preparation;
   irf_epoch_ = response_epoch_;
   irf_timeshift_ = timeshift;
   irf_valid_ = true;
@@ -656,6 +676,15 @@ void TCSPCDecay::configure(const std::string& json_text) {
   }
   if (config.has("spectrum_from_port")) {
     set_spectrum_from_port(config.get_bool("spectrum_from_port"));
+  }
+  if (config.has("response_range")) {
+    const std::vector<int> range = config.get_ints("response_range");
+    if (range.size() != 2) {
+      throw std::domain_error(
+          "node type 'TCSPCDecay': setting 'response_range' must be "
+          "[start, stop]");
+    }
+    set_response_range(range[0], range[1]);
   }
   if (config.has("curve_from_port")) {
     set_curve_from_port(config.get_bool("curve_from_port"));

@@ -54,6 +54,7 @@
 
 #include <IMP/bff/GraphNode.h>
 #include <IMP/bff/GraphPort.h>
+#include <IMP/bff/internal/ResponseFunction.h>
 
 IMPBFF_BEGIN_NAMESPACE
 
@@ -259,6 +260,16 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
   void set_spectrum_from_port(bool v);
   bool get_spectrum_from_port() const { return spectrum_from_port_; }
 
+  //! Clean the response before use: zero it outside `[start, stop)` channels.
+  /*! Setting a window also clips the response at zero after its background,
+      which is ChiSurf's IRF preparation; see #response_background_port_key. */
+  void set_response_range(int start, int stop);
+
+  //! The key of the optional scalar input carrying the response's background.
+  /*! Present (a description wires it), the constant is subtracted from the
+      response and the result clipped at zero before the window and the shift. */
+  static const char* response_background_port_key() { return "response_background"; }
+
   //! Take the convolved curve from a port and apply only the instrument.
   /*!
       A model that is already a decay -- an equation of time, convolved with
@@ -413,6 +424,9 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
   //! What irf_ was built from: skip rebuilding it when neither has moved.
   unsigned long long irf_epoch_ = 0;
   double irf_timeshift_ = 0.0;
+  internal::ResponsePreparation irf_preparation_;
+  internal::ResponsePreparation response_preparation_;
+  std::vector<double> cleaned_;
   bool irf_valid_ = false;
   std::vector<double> basis_;
   //! The basis species-major, which is how the kernel writes it.

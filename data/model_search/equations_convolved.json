@@ -4,24 +4,63 @@
  "title": "Equations of time convolved with a measured response",
  "presentation": {
   "_comment": "Generic over the equations: the catalogue supplies them; this frame adds the response convolution and the counting instrument. Read by applications, ignored by the engine.",
-  "groups": {"equation": "Parameters", "instrument": "Instrument"},
+  "groups": {
+   "equation": "Parameters",
+   "instrument": "Instrument"
+  },
   "datasets": {
-   "decay": {"label": "Decay", "primary": true},
-   "response": {"label": "IRF"},
-   "linearization": {"label": "Lin. table"}
+   "decay": {
+    "label": "Decay",
+    "primary": true
+   },
+   "response": {
+    "label": "IRF"
+   },
+   "linearization": {
+    "label": "Lin. table"
+   }
   },
   "scalars": {
-   "period": {"label": "Period [ns]", "default": 12.5},
-   "periodic": {"label": "Periodic excitation", "kind": "flag"},
-   "autoscale": {"label": "Autoscale n0", "kind": "flag"},
-   "pile_up": {"label": "Pile-up", "kind": "flag"},
-   "dead_time": {"label": "Dead time [ns]"},
-   "measurement_time": {"label": "Measurement time [s]"}
+   "period": {
+    "label": "Period [ns]",
+    "default": 12.5
+   },
+   "periodic": {
+    "label": "Periodic excitation",
+    "kind": "flag"
+   },
+   "autoscale": {
+    "label": "Autoscale n0",
+    "kind": "flag"
+   },
+   "pile_up": {
+    "label": "Pile-up",
+    "kind": "flag"
+   },
+   "dead_time": {
+    "label": "Dead time [ns]"
+   },
+   "measurement_time": {
+    "label": "Measurement time [s]"
+   },
+   "response_start": {
+    "label": "IRF start [ns]"
+   },
+   "response_stop": {
+    "label": "IRF stop [ns]"
+   }
   }
  },
- "datasets": ["decay", "response"],
- "optional_datasets": ["linearization"],
- "scalars": ["period"],
+ "datasets": [
+  "decay",
+  "response"
+ ],
+ "optional_datasets": [
+  "linearization"
+ ],
+ "scalars": [
+  "period"
+ ],
  "optional_scalars": {
   "periodic": 0,
   "autoscale": 0,
@@ -29,13 +68,50 @@
   "dead_time": 0.0,
   "measurement_time": 1.0,
   "fit_start": 0,
-  "fit_stop": 1e18
+  "fit_stop": 1e+18,
+  "response_start": 0.0,
+  "response_stop": 1e+18
  },
  "parameters": {
-  "instrument.scatter": {"name": "scatter", "group": "instrument", "initial": 0.0, "free": false, "lower": 0.0, "upper": 1.0},
-  "instrument.background": {"name": "background", "group": "instrument", "initial": "decay_min", "lower": 0.0, "upper": "decay_max"},
-  "instrument.n0": {"name": "n0", "group": "instrument", "initial": 1.0, "free": false, "lower": 0.0, "upper": null},
-  "instrument.timeshift": {"name": "timeshift", "group": "instrument", "initial": 0.0, "free": false, "lower": "-0.5*response_size", "upper": "0.5*response_size"}
+  "instrument.scatter": {
+   "name": "scatter",
+   "group": "instrument",
+   "initial": 0.0,
+   "free": false,
+   "lower": 0.0,
+   "upper": 1.0
+  },
+  "instrument.background": {
+   "name": "background",
+   "group": "instrument",
+   "initial": "decay_min",
+   "lower": 0.0,
+   "upper": "decay_max"
+  },
+  "instrument.n0": {
+   "name": "n0",
+   "group": "instrument",
+   "initial": 1.0,
+   "free": false,
+   "lower": 0.0,
+   "upper": null
+  },
+  "instrument.timeshift": {
+   "name": "timeshift",
+   "group": "instrument",
+   "initial": 0.0,
+   "free": false,
+   "lower": "-0.5*response_size",
+   "upper": "0.5*response_size"
+  },
+  "instrument.response_background": {
+   "name": "lamp background",
+   "group": "instrument",
+   "initial": 0.0,
+   "free": false,
+   "lower": 0.0,
+   "upper": "response_max"
+  }
  },
  "structures": {},
  "equations": {
@@ -47,47 +123,98 @@
     "model": {
      "type": "GraphExpression",
      "inputs": {},
-     "outputs": {"@name": "float_vector"}
+     "outputs": {
+      "@name": "float_vector"
+     }
     },
     "convolved": {
      "type": "Convolution",
      "config_rules": {
-      "mode": {"options": ["causal", "periodic"], "index": "periodic"},
-      "period": "period/decay_dx"
+      "mode": {
+       "options": [
+        "causal",
+        "periodic"
+       ],
+       "index": "periodic"
+      },
+      "period": "period/decay_dx",
+      "response_range": [
+       "max(0,floor(response_start/decay_dx))",
+       "min(response_size,floor(response_stop/decay_dx))"
+      ]
      },
-     "bind": {"response": "response"},
-     "inputs": {"curve": "model", "timeshift": "#instrument.timeshift"},
-     "outputs": {"@name": "float_vector"}
+     "bind": {
+      "response": "response"
+     },
+     "inputs": {
+      "curve": "model",
+      "timeshift": "#instrument.timeshift",
+      "response_background": "#instrument.response_background"
+     },
+     "outputs": {
+      "@name": "float_vector"
+     }
     },
     "decay": {
      "type": "TCSPCDecay",
-     "config": {"curve_from_port": true},
+     "config": {
+      "curve_from_port": true
+     },
      "config_rules": {
-      "timing": ["decay_dx", "period"],
-      "scale_range": ["fit_start", "min(decay_size,fit_stop)"],
+      "timing": [
+       "decay_dx",
+       "period"
+      ],
+      "scale_range": [
+       "fit_start",
+       "min(decay_size,fit_stop)"
+      ],
       "autoscale": "autoscale",
       "pile_up": "pile_up",
-      "pile_up_parameters": ["dead_time", "measurement_time"]
+      "pile_up_parameters": [
+       "dead_time",
+       "measurement_time"
+      ],
+      "response_range": [
+       "max(0,floor(response_start/decay_dx))",
+       "min(response_size,floor(response_stop/decay_dx))"
+      ]
      },
-     "bind": {"response": "response", "data": "decay", "linearization": "linearization"},
+     "bind": {
+      "response": "response",
+      "data": "decay",
+      "linearization": "linearization"
+     },
      "inputs": {
       "curve": "convolved",
       "scatter": "#instrument.scatter",
       "background": "#instrument.background",
       "n0": "#instrument.n0",
-      "timeshift": "#instrument.timeshift"
+      "timeshift": "#instrument.timeshift",
+      "response_background": "#instrument.response_background"
      },
-     "outputs": {"@name": "float_vector"}
+     "outputs": {
+      "@name": "float_vector"
+     }
     },
     "objective": {
      "type": "FitChiSquared",
-     "bind": {"data": "decay"},
-     "inputs": {"model": "decay"},
-     "outputs": {"@name": "float", "residuals": "float_vector"}
+     "bind": {
+      "data": "decay"
+     },
+     "inputs": {
+      "model": "decay"
+     },
+     "outputs": {
+      "@name": "float",
+      "residuals": "float_vector"
+     }
     }
    },
    "objective": "objective",
-   "free": ["instrument.background"],
+   "free": [
+    "instrument.background"
+   ],
    "ess": "decay_size",
    "selection": "bic"
   }
