@@ -3,8 +3,9 @@
 *2026-09-08, extended 2026-09-09*
 
 Eleven notebooks that build one model, in the order it was actually built,
-five that show how to point it at an experiment of your own, and three on what a
-single-molecule measurement carries that a pooled decay does not. The end of
+five that show how to point it at an experiment of your own, three on what a
+single-molecule measurement carries that a pooled decay does not, and one that
+reads a real one. The end of
 the road is `../smfret_pie_mfd`, which is the whole thing as a single runnable
 example; this series exists so that nothing in it looks arbitrary.
 
@@ -40,10 +41,15 @@ point into it by section.
 | 16 | `16_the_two_dimensional_diagrams.ipynb` | **photon sorting**: $E^*$ against the mean donor arrival time with its static and dynamic lines, stoichiometry against $E^*$, and how much of the scatter is arithmetic |
 | 17 | `17_exchange_between_states.ipynb` | molecules that interconvert, over five exchange times: where burst sorting recovers both states, and where it returns a confident answer at a distance no molecule ever had |
 | 18 | `18_how_close_is_too_close.ipynb` | the two states brought together until the diagram, the clustering and the sub-ensemble fits each stop separating them, against the pooled analysis on the same photons |
+| 19 | `19_a_real_measurement.ipynb` | **CBM56 variant 3**, measured on a Paris spectrometer: the calibration, the twelve histograms, both instrument responses, the period read off the data, and the background — everything that has to be known before anything is fitted |
 
 Notebooks 0, 1, 2, 4, 6–10 run in a few minutes each; 3 and 5 do several fits
 and take longer. Every one was executed end to end before being committed, and
 carries its outputs.
+
+**Notebook 19 is the first real measurement.** Everything before it is fitted
+to data the model itself produced. It needs `cbm56.py` and the folder
+`data/CBM56/Var3_TAC`.
 
 **Notebooks 16–18 are the single-molecule analysis proper.** 1–15 fit pooled
 histograms, which is what a cuvette gives you; 16–18 sort the photons burst by
@@ -67,6 +73,8 @@ description.
 * `IMP.bff` for notebook 10
 * `numpy`, `scipy`, `torch`, `matplotlib`, `networkx`, and `scikit-learn` for
   the cross-checks in notebooks 8 and 9
+
+`cbm56.py` reads the CBM56 folder and Paris's calibration file.
 
 `single_molecule.py` is the sorting layer: the two per-burst rulers, the static
 and dynamic reference lines taken from the model's own tables, a two-state
