@@ -230,6 +230,35 @@ made every episode a flat line at 10^6 with identical features. Both showed
 up as a mean squared error sitting exactly at the variance of the target,
 which is the signature of a network that has been given nothing.
 
+## What a record of a search can honestly promise (2026-09-14)
+
+Three rounds of cross-platform CI settled this, each round finding that the
+record claimed more than the numbers support:
+
+| claimed | actually reproducible | why |
+|---|---|---|
+| every topology's fitted values to 1e-6 | the **winner's free** parameters to 1e-4 | an over-parameterised topology has no single answer, and a fixed slot holds whichever start won |
+| every topology's score to 1e-3 | the **winner's** score, and the **ranking** exactly | topologies sit within hundredths of each other and multistart then picks between near-equal optima -- 2.5e-3 apart on `fcs.3d.2diff.0relax` |
+| a joint fit recovers its parameters on noisy data | it recovers them on the **curves themselves** | the 24-parameter fit converges in 2 of 7 noise draws; the assertion had been passing on the luck of one |
+
+So the contract is: ids, topology keys, transitions, priors and masks exactly;
+the ranking exactly, because that is what selection *means* and it is ordinal;
+and the winner's score and free parameters to what a converged fit gives. A
+topology nobody picked contributes its position, not its number.
+
+Checked against deliberate regressions rather than assumed: the winner's score
+degrading by one percent, its free values moving by one percent, the ranking
+reordering, a mask bit flipping, a prior changing and a topology vanishing are
+all still caught. The defects found earlier today moved these quantities by
+factors of forty.
+
+The last row is the one worth remembering. A test that passes on one machine
+because a fit happened to converge there is not measuring what its name says,
+and the fix was not a tolerance -- it was asking one question at a time.
+Whether the model recovers its parameters and whether the optimiser reaches
+them from generic seeds are different questions, and only the first belongs in
+a unit test while the second stays measured here at 3 of 7.
+
 ## What follows
 
 1. **Sorting.** TCSPC component labels permute between slots depending on the

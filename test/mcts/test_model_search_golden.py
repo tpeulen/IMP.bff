@@ -49,12 +49,29 @@ def _undetermined(golden: dict) -> set[str]:
     return set(golden["structures"]) - {best}
 
 
+def _free_only(record: dict) -> dict:
+    """Drop the values of parameters a topology holds fixed.
+
+    A fixed slot carries whichever declared start won, not an answer -- an
+    unused third lifetime sat at 12.5 on one platform and 3.0 on another with
+    every fitted parameter identical. The mask itself is still compared, so a
+    parameter changing from fixed to free is still caught.
+    """
+    trimmed = json.loads(json.dumps(record))
+    for state in list(trimmed["structures"].values()) + [trimmed["root"]]:
+        mask = state["fixed"]
+        state["values"] = [
+            value for value, fixed in zip(state["values"], mask) if fixed == 0
+        ]
+    return trimmed
+
+
 @pytest.mark.parametrize("name", sorted(_fixtures.FIXTURES))
 def test_family_matches_its_golden_record(name):
     golden = _golden(name)
     record = _characterize.characterize(_fixtures.FIXTURES[name]())
     differences = _characterize.compare(
-        record, golden, undetermined=_undetermined(golden)
+        _free_only(record), _free_only(golden), undetermined=_undetermined(golden)
     )
     assert not differences, "\n".join(differences)
 
