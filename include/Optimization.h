@@ -187,6 +187,28 @@ class DampedNewton {
   int max_backtrack = 40;       //!< halvings of the gradient step
   int max_line = 12;            //!< halvings of the damped step, before re-damping
   double c1 = 1e-4;             //!< Armijo's sufficient-decrease constant
+  /**
+   * \brief Backtrack along the ray only once the fit is this close to a mode.
+   *
+   * While the last accepted decrement is at or above this value, a rejected
+   * step re-damps at once (one trial per damping, the plain Levenberg-Marquardt
+   * schedule); below it the line search of `max_line` halvings is used. The
+   * default, infinity, is the line search from the first step.
+   *
+   * Why it exists (measured 2026-09-14, the CBM56 global fit in
+   * ucfret/investigation/pinn_pR_anisotropy/s89_cpp, 136 coordinates, 2928
+   * bins): the line search from the first step converged in 44 steps -- to a
+   * mode 53.7 nats below the reference, where a response background went from
+   * 10 % to 35 %: full Newton steps far from the mode can cross into another
+   * basin, which re-damping does not. The plain schedule stayed in the basin but
+   * crawled along a gauge direction of curvature 15 against 7e7 (300 steps, 1.8
+   * nats short). With the switch at 1 nat: the reference mode in 186 steps and
+   * 453 evaluations; at 0.1 nat it crawled again, at 3 nats and above it landed
+   * in a second mode 0.47 nats lower. The value is problem-specific; the default
+   * leaves every existing caller unchanged.
+   */
+  double line_search_below = std::numeric_limits<double>::infinity();
+  double last_decrement = std::numeric_limits<double>::infinity();  //!< of the last accepted step
 
   /**
    * \brief One step. On acceptance `theta` is advanced in place.
@@ -204,6 +226,7 @@ class DampedNewton {
     for (std::size_t i = 0; i < n; ++i)
       diag[i] = std::max(std::fabs(A[i * n + i]), 1e-10);
 
+    const int lines = last_decrement < line_search_below ? max_line : 1;
     for (int attempt = 0; attempt < max_damping; ++attempt) {
       for (std::size_t i = 0; i < n * n; ++i) damped[i] = A[i];
       for (std::size_t i = 0; i < n; ++i) damped[i * n + i] += mu * diag[i];
@@ -211,7 +234,7 @@ class DampedNewton {
       const double gs = dot(grad, s.data(), n);      // predicted improvement
       if (!(gs > 0.0)) { mu *= mu_up; continue; }    // not an ascent direction
       double alpha = 1.0;
-      for (int k = 0; k < max_line; ++k) {
+      for (int k = 0; k < lines; ++k) {
         for (std::size_t i = 0; i < n; ++i) cand[i] = theta[i] + alpha * s[i];
         const double f_new = f(cand.data());
         ++r.n_eval;
@@ -220,6 +243,7 @@ class DampedNewton {
           r.accepted = true; r.f_new = f_new;
           r.decrement = alpha * gs;
           r.alpha = alpha;
+          last_decrement = r.decrement;
           //  a full step means the quadratic model was good; a backtracked one
           //  means it was not, and the damping should not be relaxed for it
           if (alpha == 1.0) mu = std::max(mu / mu_down, mu_min);
@@ -250,6 +274,7 @@ class DampedNewton {
         for (std::size_t i = 0; i < n; ++i) { s[i] = t * grad[i]; theta[i] = cand[i]; }
         r.accepted = true; r.f_new = f_new; r.gradient_fallback = true;
         r.decrement = dot(grad, s.data(), n);
+        last_decrement = r.decrement;
         r.mu = mu;
         return r;
       }
