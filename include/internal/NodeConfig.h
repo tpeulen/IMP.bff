@@ -96,6 +96,18 @@ class NodeConfig {
     return out;
   }
 
+  std::vector<std::string> get_strings(const std::string& key) {
+    const nlohmann::json& value = read(key);
+    if (!value.is_array()) throw wrong_type(key, "an array of strings");
+    std::vector<std::string> out;
+    for (nlohmann::json::const_iterator it = value.begin(); it != value.end();
+         ++it) {
+      if (!it->is_string()) throw wrong_type(key, "an array of strings");
+      out.push_back(it->get<std::string>());
+    }
+    return out;
+  }
+
   std::vector<int> get_ints(const std::string& key) {
     const nlohmann::json& value = read(key);
     if (!value.is_array()) throw wrong_type(key, "an array of integers");

@@ -19,6 +19,7 @@
 #include <IMP/bff/GraphExpression.h>
 #include <IMP/bff/PhotophysicsAnisotropySpectrumNode.h>
 #include <IMP/bff/PhotophysicsLifetimeSpectrumNode.h>
+#include <IMP/bff/PhotophysicsTransferKineticsNode.h>
 #include <IMP/bff/PolymerDistances.h>
 #include <IMP/bff/TCSPCDecay.h>
 
@@ -63,6 +64,8 @@ void install_builtin_types(FactoryMap& factories) {
   factories["PolymerDistances"] = plain<PolymerDistances>;
   factories["PhotophysicsLifetimeSpectrumNode"] =
       plain<PhotophysicsLifetimeSpectrumNode>;
+  factories["PhotophysicsTransferKineticsNode"] =
+      with_ports<PhotophysicsTransferKineticsNode>;
   factories["PhotophysicsAnisotropySpectrumNode"] =
       plain<PhotophysicsAnisotropySpectrumNode>;
   factories["FCSMdfCurve"] = with_ports<FCSMdfCurve>;
