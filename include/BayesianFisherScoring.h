@@ -10,6 +10,7 @@
 
 #include <IMP/bff/IMPCompatibility.h>
 #include <cmath>
+#include <limits>
 #include <cstddef>
 #include <thread>
 #include <vector>
@@ -114,6 +115,69 @@ inline void bayesian_poisson_score(const double* y, const double* m, const doubl
 }
 
 /**
+ * \brief `bayesian_poisson_score` for a Jacobian whose rows come in blocks, each
+ *        non-zero only on its own columns.
+ *
+ * A model of several histograms often has rows that depend on a subset of the
+ * parameters each: a donor-only histogram does not see the distance
+ * distribution, a reference dye not the donor spectrum. Rows
+ * `[k * block_bins, (k + 1) * block_bins)` are then accumulated on
+ * `block_columns[k]` only (sorted, unique), which is where the work is: on the
+ * CBM56 global fit (136 parameters, 6 x 488 bins) half of `J' W J`. The
+ * arithmetic per entry is `bayesian_poisson_score`'s; `grad` and `A` are the same
+ * up to rounding. `parallel_for(n, body)` runs `body(k)` for the blocks; pass a
+ * serial loop, or a pool.
+ */
+template <typename ParallelFor>
+inline void bayesian_poisson_score_blocks(const double* y, const double* m, const double* J, const double* w,
+                                          std::size_t n_bin, std::size_t n_par, BayesianInformationKind kind,
+                                          const std::vector<std::vector<std::size_t>>& block_columns,
+                                          std::size_t block_bins, double* grad, double* A, ParallelFor parallel_for,
+                                          double floor = 1e-12) {
+  const std::size_t nb = block_columns.size();
+  std::vector<std::vector<double>> Asub(nb), gsub(nb);
+  parallel_for(nb, [&](std::size_t k) {
+    const std::vector<std::size_t>& L = block_columns[k];
+    const std::size_t mk = L.size();
+    std::vector<double>& As = Asub[k];
+    std::vector<double>& gs = gsub[k];
+    As.assign(mk * mk, 0.0);
+    gs.assign(mk, 0.0);
+    std::vector<double> row(mk);
+    const std::size_t b1 = std::min(n_bin, (k + 1) * block_bins);
+    for (std::size_t b = k * block_bins; b < b1; ++b) {
+      const double wb = w ? w[b] : 1.0;
+      if (wb == 0.0) continue;
+      const double mb = m[b] > floor ? m[b] : floor;
+      const double u = wb * (y[b] / mb - 1.0);
+      const double Wd = (kind == BAYESIAN_INFORMATION_EXPECTED) ? wb / mb : wb * y[b] / (mb * mb);
+      const double* Jb = &J[b * n_par];
+      for (std::size_t a = 0; a < mk; ++a) row[a] = Jb[L[a]];
+      for (std::size_t a = 0; a < mk; ++a) {
+        if (row[a] == 0.0) continue;
+        gs[a] += row[a] * u;
+        const double wa = Wd * row[a];
+        double* Aa = &As[a * mk];
+        for (std::size_t q = a; q < mk; ++q) Aa[q] += wa * row[q];
+      }
+    }
+  });
+  for (std::size_t p = 0; p < n_par; ++p) grad[p] = 0.0;
+  for (std::size_t i = 0; i < n_par * n_par; ++i) A[i] = 0.0;
+  for (std::size_t k = 0; k < nb; ++k) {
+    const std::vector<std::size_t>& L = block_columns[k];
+    const std::size_t mk = L.size();
+    for (std::size_t a = 0; a < mk; ++a) {
+      grad[L[a]] += gsub[k][a];
+      for (std::size_t q = a; q < mk; ++q) A[L[a] * n_par + L[q]] += Asub[k][a * mk + q];
+    }
+  }
+  //  columns sorted per block: everything landed on or above the diagonal
+  for (std::size_t p = 0; p < n_par; ++p)
+    for (std::size_t q = p + 1; q < n_par; ++q) A[q * n_par + p] = A[p * n_par + q];
+}
+
+/**
  * \brief `s log(1 + exp(x/s))`: a mean that stays positive without a kink.
  *
  * A Poisson mean must be positive -- the likelihood has `log m` in it -- but a
@@ -123,15 +187,27 @@ inline void bayesian_poisson_score(const double* y, const double* m, const doubl
  * data there. Bending instead costs nothing above a few `s` and never reaches
  * zero. Its derivative is `sigmoid(x/s)`, which the chain rule needs and which
  * is why the floor has to be smooth rather than clamped.
+ *
+ * `threshold`: above it (in units of `s`) the value is `x` exactly -- torch's
+ * convention (`BAYESIAN_TORCH_SOFTPLUS_THRESHOLD`); the default never cuts. The two
+ * differ by under `s * 2e-9`.
  */
-inline double bayesian_soft_positive(double x, double s = 0.05) {
+inline double bayesian_soft_positive(double x, double s = 0.05,
+                                     double threshold = std::numeric_limits<double>::infinity()) {
   const double z = x / s;
+  if (z > threshold) return x;
   return s * (z > 0.0 ? z + std::log1p(std::exp(-z)) : std::log1p(std::exp(z)));
 }
 
+//! torch's `softplus` threshold: above `x/s = 20` it returns `x` itself. A model
+//! gated against a torch prototype passes it as `threshold` to both functions.
+constexpr double BAYESIAN_TORCH_SOFTPLUS_THRESHOLD = 20.0;
+
 //! `d bayesian_soft_positive / dx`.
-inline double bayesian_soft_positive_derivative(double x, double s = 0.05) {
+inline double bayesian_soft_positive_derivative(double x, double s = 0.05,
+                                                double threshold = std::numeric_limits<double>::infinity()) {
   const double z = x / s;
+  if (z > threshold) return 1.0;
   return z > 0.0 ? 1.0 / (1.0 + std::exp(-z)) : std::exp(z) / (1.0 + std::exp(z));
 }
 

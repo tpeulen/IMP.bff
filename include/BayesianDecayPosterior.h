@@ -48,6 +48,10 @@
 #include <IMP/bff/IMPCompatibility.h>
 #include <IMP/bff/BayesianDecayModel.h>
 #include <IMP/bff/Optimization.h>
+#include <IMP/bff/BayesianPSpline.h>
+#include <IMP/bff/BayesianFisherScoring.h>
+#include <IMP/bff/BayesianLaplace.h>
+#include <IMP/bff/BayesianDeltaMethod.h>
 #include <chrono>
 #include <cmath>
 #include <limits>
@@ -96,7 +100,7 @@ inline BayesianDecayPrior bayesian_decay_log_prior(const BayesianDecayExperiment
             } else if (fam == "uniform" && tr == "logit") {
                 const double lo = v.lo, hi = v.hi;
                 //: -log(hi - lo) from the prior, log(hi - lo) + logsigmoid(z) + logsigmoid(-z) from the transform
-                lp = -bayesian_softplus(-z) - bayesian_softplus(z);
+                lp = -bayesian_soft_positive(-z, 1.0, BAYESIAN_TORCH_SOFTPLUS_THRESHOLD) - bayesian_soft_positive(z, 1.0, BAYESIAN_TORCH_SOFTPLUS_THRESHOLD);
                 const double s = 1.0 / (1.0 + std::exp(-z));
                 g = 1.0 - 2.0 * s; h = -2.0 * s * (1.0 - s);
                 (void)lo; (void)hi;
@@ -116,31 +120,20 @@ inline BayesianDecayPrior bayesian_decay_log_prior(const BayesianDecayExperiment
     const std::size_t n = Q.shape[0], nz = Q.shape[1];
     const double lam = std::pow(10.0, f.fixed_values.at("log10_lam")[0]);
     const double tilt_sd = ps.tilt_sd, rank = ps.rank;
-    std::vector<double> c(n, 0.0), vt(n);
+    std::vector<double> c(n, 0.0);
     for (std::size_t i = 0; i < n; ++i) for (std::size_t j = 0; j < nz; ++j) c[i] += Q.d[i * nz + j] * th[vc.off + j];
-    double vn = 0.0;
-    for (std::size_t i = 0; i < n; ++i) { vt[i] = double(i) - 0.5 * double(n - 1); vn += vt[i] * vt[i]; }
-    vn = std::sqrt(vn); for (double& t : vt) t /= vn;
-    double rough = 0.0, tilt = 0.0;
-    std::vector<double> DtDc(n, 0.0);
-    for (std::size_t k = 0; k + 2 < n; ++k) {
-        const double d2 = c[k] - 2.0 * c[k + 1] + c[k + 2];
-        rough += d2 * d2; DtDc[k] += d2; DtDc[k + 1] -= 2.0 * d2; DtDc[k + 2] += d2;
-    }
-    for (std::size_t i = 0; i < n; ++i) tilt += vt[i] * c[i];
-    P.lp += 0.5 * rank * std::log(lam) - 0.5 * lam * rough - 0.5 * (tilt / tilt_sd) * (tilt / tilt_sd);
+    //: BayesianPSplinePrior (Eilers & Marx 1996): second differences with precision lambda,
+    //: a weak Gaussian on the tilt, (rank/2) log lambda; its gradient and Hessian in c,
+    //: carried to z through Q
+    const BayesianPSplinePrior<double> prior(n, ps.order, tilt_sd, ps.quad_sd);
+    if (std::size_t(rank) != std::size_t(prior.rank()))
+        throw std::runtime_error("bayesian_decay_log_prior: the manifest's P-spline rank disagrees with the prior's");
+    P.lp += prior.log_prob(c.data(), lam);
     if (derivs) {
-        // gradient in c, then Q'
-        std::vector<double> gc(n);
-        for (std::size_t i = 0; i < n; ++i) gc[i] = -lam * DtDc[i] - vt[i] * tilt / (tilt_sd * tilt_sd);
+        std::vector<double> gc(n), Hc(n * n);
+        prior.gradient(c.data(), lam, gc.data());
+        prior.hessian(c.data(), lam, Hc.data());
         for (std::size_t j = 0; j < nz; ++j) { double s = 0.0; for (std::size_t i = 0; i < n; ++i) s += Q.d[i * nz + j] * gc[i]; P.g[vc.off + j] += s; }
-        // Hessian in c: -(lam D'D + vt vt'/ts^2), then Q' . Q
-        std::vector<double> Hc(n * n, 0.0);
-        for (std::size_t k = 0; k + 2 < n; ++k) {
-            const double w[3] = {1.0, -2.0, 1.0};
-            for (int a = 0; a < 3; ++a) for (int b = 0; b < 3; ++b) Hc[(k + a) * n + k + b] -= lam * w[a] * w[b];
-        }
-        for (std::size_t i = 0; i < n; ++i) for (std::size_t j = 0; j < n; ++j) Hc[i * n + j] -= vt[i] * vt[j] / (tilt_sd * tilt_sd);
         std::vector<double> HQ(n * nz, 0.0);
         for (std::size_t i = 0; i < n; ++i) for (std::size_t j = 0; j < nz; ++j) { double s = 0.0; for (std::size_t k = 0; k < n; ++k) s += Hc[i * n + k] * Q.d[k * nz + j]; HQ[i * nz + j] = s; }
         for (std::size_t a = 0; a < nz; ++a) for (std::size_t b = 0; b < nz; ++b) {
@@ -184,60 +177,25 @@ inline BayesianDecayPoint bayesian_decay_evaluate(const BayesianDecayExperiment&
     const BayesianDecayPrior P = bayesian_decay_log_prior(f, th, true);
     p.logprior = P.lp;
     p.logpost = bayesian_decay_log_likelihood(f, p.lam) + P.lp;
+    //: the likelihood's gradient and Fisher matrix through bayesian_poisson_score_blocks:
+    //: each histogram on its live columns, the histograms on the thread pool
     const BayesianDecayArray& y = f["y"], & mask = f["mask"];
-    const std::size_t nb = p.lam.size();
-    std::vector<double> r(nb), w(nb);
-    for (std::size_t i = 0; i < nb; ++i) {
-        const double mc = std::max(p.lam[i], 1e-12);
-        r[i] = mask.d[i] * (y.d[i] / mc - 1.0); w[i] = mask.d[i] / mc;
-    }
-    p.grad = P.g;
+    p.grad.assign(dim, 0.0);
     p.A.assign(dim * dim, 0.0);
-    //: per histogram on its live columns only, the histograms in parallel (B9)
-    const std::size_t n = f["y"].shape[1], nd = cols.size();
-    std::vector<std::vector<double>> Asub(nd), gsub(nd);
-    internal::bayesian_parallel_for(nd, [&](std::size_t o) {
-        const std::vector<std::size_t>& L = cols[o];
-        const std::size_t m = L.size();
-        std::vector<double>& As = Asub[o]; As.assign(m * m, 0.0);
-        std::vector<double>& gs = gsub[o]; gs.assign(m, 0.0);
-        std::vector<double> row(m);
-        for (std::size_t i = o * n; i < (o + 1) * n; ++i) {
-            if (mask.d[i] == 0.0) continue;
-            const double* Ji = p.J.data() + i * dim;
-            for (std::size_t a = 0; a < m; ++a) row[a] = Ji[L[a]];
-            for (std::size_t a = 0; a < m; ++a) {
-                if (row[a] == 0.0) continue;
-                gs[a] += row[a] * r[i];
-                const double wa = w[i] * row[a];
-                double* Aa = As.data() + a * m;
-                for (std::size_t b = a; b < m; ++b) Aa[b] += wa * row[b];
-            }
-        }
-    });
-    for (std::size_t o = 0; o < nd; ++o) {
-        const std::vector<std::size_t>& L = cols[o];
-        const std::size_t m = L.size();
-        for (std::size_t a = 0; a < m; ++a) {
-            p.grad[L[a]] += gsub[o][a];
-            for (std::size_t b = a; b < m; ++b) {
-                p.A[L[a] * dim + L[b]] += Asub[o][a * m + b];
-            }
-        }
-    }
-    //: L is sorted, so every entry above landed on or above the diagonal
-    for (std::size_t a = 0; a < dim; ++a) for (std::size_t b = 0; b < a; ++b) p.A[a * dim + b] = p.A[b * dim + a];
+    bayesian_poisson_score_blocks(y.d.data(), p.lam.data(), p.J.data(), mask.d.data(), p.lam.size(), dim,
+                                  BAYESIAN_INFORMATION_EXPECTED, cols, f["y"].shape[1], p.grad.data(), p.A.data(),
+                                  [](std::size_t n, const std::function<void(std::size_t)>& body) { internal::bayesian_parallel_for(n, body); });
+    for (std::size_t a = 0; a < dim; ++a) p.grad[a] += P.g[a];
     for (std::size_t k = 0; k < dim * dim; ++k) p.A[k] -= P.H[k];
     return p;
 }
 
 //! the Laplace evidence at a point: log p(y | lambda) = log p(y, theta*) + d/2 log 2 pi - 1/2 log det A
 inline double bayesian_decay_laplace_evidence(const BayesianDecayPoint& p, std::size_t dim, bool* ok = nullptr) {
-    CholeskyFactor ch;
-    const bool good = ch.factor(p.A.data(), dim);
+    double ev = 0.0;
+    const bool good = bayesian_laplace_log_evidence(p.logpost, p.A.data(), dim, &ev);
     if (ok) *ok = good;
-    if (!good) return -std::numeric_limits<double>::infinity();
-    return p.logpost + 0.5 * double(dim) * std::log(2.0 * 3.14159265358979323846) - ch.log_det_half();
+    return good ? ev : -std::numeric_limits<double>::infinity();
 }
 
 // ---------------------------------------------------------------------------
@@ -273,16 +231,12 @@ inline void bayesian_decay_distribution_with_sd(const BayesianDecayExperiment& f
     }
     for (std::size_t j = 0; j < nR; ++j) for (std::size_t b = 0; b < nz; ++b) pBQ[b] += p[j] * BQ[j * nz + b];
     for (std::size_t j = 0; j < nR; ++j) for (std::size_t b = 0; b < nz; ++b) Jp[j * nz + b] = p[j] * (BQ[j * nz + b] - pBQ[b]);
+    //: the delta method through bayesian_delta_variance, on the c block of Sigma
+    std::vector<double> Scc(nz * nz);
+    for (std::size_t a = 0; a < nz; ++a) for (std::size_t b = 0; b < nz; ++b) Scc[a * nz + b] = Sig[(vc.off + a) * dim + vc.off + b];
     sd.assign(nR, 0.0);
-    for (std::size_t j = 0; j < nR; ++j) {
-        double v = 0.0;
-        for (std::size_t a = 0; a < nz; ++a) {
-            double t = 0.0;
-            for (std::size_t b = 0; b < nz; ++b) t += Sig[(vc.off + a) * dim + vc.off + b] * Jp[j * nz + b];
-            v += Jp[j * nz + a] * t;
-        }
-        sd[j] = std::sqrt(std::max(v, 0.0));
-    }
+    bayesian_delta_variance(Jp.data(), Scc.data(), nR, nz, sd.data());
+    for (double& t : sd) t = std::sqrt(t);
     if (mean_rel) {
         //: the mean of R/R0 and its delta-method sd: d mean / d z = rel' J_p
         const std::vector<double>& rel = f["rel"].d;
@@ -290,9 +244,9 @@ inline void bayesian_decay_distribution_with_sd(const BayesianDecayExperiment& f
         double m = 0.0;
         for (std::size_t j = 0; j < nR; ++j) { m += p[j] * rel[j]; for (std::size_t b = 0; b < nz; ++b) jm[b] += rel[j] * Jp[j * nz + b]; }
         double v = 0.0;
-        for (std::size_t a = 0; a < nz; ++a) for (std::size_t b = 0; b < nz; ++b) v += jm[a] * Sig[(vc.off + a) * dim + vc.off + b] * jm[b];
+        bayesian_delta_variance(jm.data(), Scc.data(), 1, nz, &v);
         *mean_rel = m;
-        if (mean_rel_sd) *mean_rel_sd = std::sqrt(std::max(v, 0.0));
+        if (mean_rel_sd) *mean_rel_sd = std::sqrt(v);
     }
 }
 
