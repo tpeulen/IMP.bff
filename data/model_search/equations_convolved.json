@@ -14,7 +14,8 @@
     "primary": true
    },
    "response": {
-    "label": "IRF"
+    "label": "IRF",
+    "required_unless": "generated_response"
    },
    "linearization": {
     "label": "Lin. table"
@@ -61,14 +62,18 @@
    "shift_background": {
     "label": "Shift background with IRF",
     "kind": "flag"
+   },
+   "generated_response": {
+    "label": "Model the IRF (no measured IRF)",
+    "kind": "flag"
    }
   }
  },
  "datasets": [
-  "decay",
-  "response"
+  "decay"
  ],
  "optional_datasets": [
+  "response",
   "linearization",
   "background_pattern"
  ],
@@ -87,7 +92,8 @@
   "response_stop": 1e+18,
   "t_background": 1.0,
   "t_decay": 1.0,
-  "shift_background": 1
+  "shift_background": 1,
+  "generated_response": 0
  },
  "parameters": {
   "instrument.scatter": {
@@ -118,8 +124,8 @@
    "group": "instrument",
    "initial": 0.0,
    "free": false,
-   "lower": "-0.5*response_size",
-   "upper": "0.5*response_size"
+   "lower": "-0.5*decay_size",
+   "upper": "0.5*decay_size"
   },
   "instrument.response_background": {
    "name": "lamp background",
@@ -127,7 +133,31 @@
    "initial": 0.0,
    "free": false,
    "lower": 0.0,
-   "upper": "response_max"
+   "upper": "decay_max"
+  },
+  "instrument.irf_width": {
+   "name": "irf width",
+   "group": "instrument",
+   "initial": 0.1,
+   "free": false,
+   "lower": 0.0001,
+   "upper": "decay_size*decay_dx"
+  },
+  "instrument.irf_shape": {
+   "name": "irf shape",
+   "group": "instrument",
+   "initial": -0.31,
+   "free": false,
+   "lower": -10.0,
+   "upper": 10.0
+  },
+  "instrument.irf_position": {
+   "name": "irf position",
+   "group": "instrument",
+   "initial": "decay_rise_index*decay_dx",
+   "free": false,
+   "lower": 0.0,
+   "upper": "decay_size*decay_dx"
   }
  },
  "structures": {},
@@ -137,6 +167,25 @@
   "moves": "all",
   "structure": {
    "nodes": {
+    "generated_response": {
+     "type": "GeneralizedNormalCurve",
+     "config": {
+      "floor": 1.0
+     },
+     "config_rules": {
+      "n_points": "decay_size",
+      "dt": "decay_dx",
+      "area": "decay_sum"
+     },
+     "inputs": {
+      "loc": "#instrument.irf_position",
+      "scale": "#instrument.irf_width",
+      "shape": "#instrument.irf_shape"
+     },
+     "outputs": {
+      "@name": "float_vector"
+     }
+    },
     "model": {
      "type": "GraphExpression",
      "inputs": {},
@@ -157,8 +206,9 @@
       "period": "period/decay_dx",
       "response_range": [
        "max(0,floor(response_start/decay_dx))",
-       "min(response_size,floor(response_stop/decay_dx))"
-      ]
+       "min(decay_size,floor(response_stop/decay_dx))"
+      ],
+      "response_from_port": "generated_response"
      },
      "bind": {
       "response": "response"
@@ -166,7 +216,8 @@
      "inputs": {
       "curve": "model",
       "timeshift": "#instrument.timeshift",
-      "response_background": "#instrument.response_background"
+      "response_background": "#instrument.response_background",
+      "response": "generated_response"
      },
      "outputs": {
       "@name": "float_vector"
@@ -194,13 +245,14 @@
       ],
       "response_range": [
        "max(0,floor(response_start/decay_dx))",
-       "min(response_size,floor(response_stop/decay_dx))"
+       "min(decay_size,floor(response_stop/decay_dx))"
       ],
       "background_times": [
        "t_background",
        "t_decay"
       ],
-      "shift_background_with_response": "shift_background"
+      "shift_background_with_response": "shift_background",
+      "response_from_port": "generated_response"
      },
      "bind": {
       "response": "response",
@@ -214,7 +266,8 @@
       "background": "#instrument.background",
       "n0": "#instrument.n0",
       "timeshift": "#instrument.timeshift",
-      "response_background": "#instrument.response_background"
+      "response_background": "#instrument.response_background",
+      "response": "generated_response"
      },
      "outputs": {
       "@name": "float_vector"

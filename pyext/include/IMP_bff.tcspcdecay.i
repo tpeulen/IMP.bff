@@ -19,3 +19,7 @@
    feeds TCSPCDecay's instrument stage when the model is already a decay. */
 %shared_ptr(IMP::bff::Convolution);
 %include "IMP/bff/Convolution.h"
+
+/* A generalized-normal peak on an even axis: a response nobody measured. */
+%shared_ptr(IMP::bff::GeneralizedNormalCurve);
+%include "IMP/bff/GeneralizedNormalCurve.h"

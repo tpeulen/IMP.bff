@@ -83,10 +83,24 @@ def test_an_unknown_parameter_is_refused_instead_of_falling_back():
 
 def test_a_description_cannot_be_built_without_its_measurements():
     spec = bff.ModelSearchSpec.from_name("tcspc_lifetime")
-    assert set(spec.get_dataset_names()) == {"decay", "response"}
+    # The IRF is optional since it can be modelled instead of measured
+    # (`generated_response`); the decay itself cannot be done without.
+    assert set(spec.get_dataset_names()) == {"decay"}
     assert set(spec.get_scalar_names()) == {"dt", "period"}
     with pytest.raises((ValueError, RuntimeError)):
         spec.build()
+
+
+def test_without_a_measured_or_modelled_response_the_decay_says_so():
+    """An IRF that is neither loaded nor modelled is refused where it is used."""
+    spec = bff.ModelSearchSpec.from_name("tcspc_lifetime")
+    spec.set_dataset("decay", _fixtures._tcspc_dataset()[0])
+    spec.set_scalar("dt", 0.05)
+    spec.set_scalar("period", 12.5)
+    problem = spec.build()
+    with pytest.raises((ValueError, RuntimeError)) as caught:
+        problem.get_initial_state()
+    assert "response" in str(caught.value)
 
 
 def test_the_instrument_is_supplied_by_the_caller_not_the_description():

@@ -267,6 +267,11 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
       \throws std::domain_error for another name, or while the basis is emitted. */
   void set_convolution_mode(const std::string& mode);
 
+  //! Read the response from the vector input port `response` on every evaluation.
+  /*! For a response that is itself modelled -- a peak with a fitted width --
+      rather than measured and bound. A bound response is ignored meanwhile. */
+  void set_response_from_port(bool v);
+
   //! Whether the spectrum is convolved with the response at all (default true).
   /*! Off, the model is the ideal decay on the channel axis, with the periodic
       tail in the periodic mode; the response still shapes the scatter term. */
@@ -486,6 +491,7 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
   bool autoscale_ = false;
   bool pile_up_ = false;
   bool periodic_ = true;
+  bool response_from_port_ = false;
   bool convolve_ = true;
   std::vector<double> background_pattern_;
   std::vector<double> background_shifted_;

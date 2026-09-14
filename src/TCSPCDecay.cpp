@@ -206,6 +206,11 @@ void TCSPCDecay::set_convolution_mode(const std::string& mode) {
   set_valid(false);
 }
 
+void TCSPCDecay::set_response_from_port(bool v) {
+  response_from_port_ = v;
+  set_valid(false);
+}
+
 void TCSPCDecay::set_convolve(bool v) {
   if (!v && emit_basis_) {
     throw std::domain_error(
@@ -432,6 +437,15 @@ void TCSPCDecay::set_amplitude_threshold(double relative) {
 }
 
 void TCSPCDecay::evaluate() {
+  if (response_from_port_) {
+    const std::shared_ptr<GraphPort> port = get_input_port("response");
+    if (!port) {
+      throw std::domain_error("TCSPCDecay '" + get_name() +
+                              "' reads its response from a port it does not have");
+    }
+    const std::vector<double>& modelled = port->get_values_ref();
+    if (modelled != response_) set_response(modelled);
+  }
   if (response_.empty()) {
     throw std::domain_error("TCSPCDecay '" + get_name() +
                             "' has no response function");
@@ -792,6 +806,9 @@ void TCSPCDecay::configure(const std::string& json_text) {
     set_convolution_mode(config.get_string("convolution_mode"));
   }
   if (config.has("convolve")) set_convolve(config.get_bool("convolve"));
+  if (config.has("response_from_port")) {
+    set_response_from_port(config.get_bool("response_from_port"));
+  }
   if (config.has("background_times")) {
     const std::vector<double> times = config.get_doubles("background_times");
     if (times.size() != 2) {

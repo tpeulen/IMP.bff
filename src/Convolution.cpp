@@ -49,6 +49,11 @@ void Convolution::set_response_range(int start, int stop) {
   set_valid(false);
 }
 
+void Convolution::set_response_from_port(bool v) {
+  response_from_port_ = v;
+  set_valid(false);
+}
+
 void Convolution::set_mode(const std::string& mode) {
   if (mode != "causal" && mode != "periodic" && mode != "centered") {
     throw std::domain_error("Convolution::set_mode: '" + mode +
@@ -70,6 +75,14 @@ void Convolution::set_period(double samples) {
 }
 
 void Convolution::evaluate() {
+  if (response_from_port_) {
+    const std::shared_ptr<GraphPort> port = get_input_port("response");
+    if (!port) {
+      throw std::domain_error("Convolution '" + get_name() +
+                              "' reads its response from a port it does not have");
+    }
+    response_ = port->get_values_ref();
+  }
   if (response_.empty()) {
     throw std::domain_error("Convolution '" + get_name() +
                             "' has no response to convolve with");
@@ -156,6 +169,9 @@ void Convolution::configure(const std::string& json_text) {
           "node type 'Convolution': setting 'response_range' must be [start, stop]");
     }
     set_response_range(range[0], range[1]);
+  }
+  if (config.has("response_from_port")) {
+    set_response_from_port(config.get_bool("response_from_port"));
   }
   if (config.has("mode")) set_mode(config.get_string("mode"));
   if (config.has("period")) set_period(config.get_double("period"));

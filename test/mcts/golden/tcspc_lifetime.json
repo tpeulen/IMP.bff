@@ -61,7 +61,10 @@
   "instrument.background",
   "instrument.n0",
   "instrument.timeshift",
-  "instrument.response_background"
+  "instrument.response_background",
+  "instrument.irf_width",
+  "instrument.irf_shape",
+  "instrument.irf_position"
  ],
  "root": {
   "acceptable": false,
@@ -75,6 +78,9 @@
    1,
    1,
    0,
+   1,
+   1,
+   1,
    1,
    1
   ],
@@ -91,7 +97,10 @@
    0.0,
    13431.989607439964,
    0.0,
-   0.0
+   0.0,
+   0.1,
+   -0.31,
+   0.7000000000000001
   ]
  },
  "structure_keys": [
@@ -113,6 +122,9 @@
     1,
     0,
     1,
+    1,
+    1,
+    1,
     1
    ],
    "path": [
@@ -131,7 +143,10 @@
     0.0,
     20000.000077929457,
     0.0,
-    0.0
+    0.0,
+    0.1,
+    -0.31,
+    0.7000000000000001
    ]
   },
   "lifetime.components.3": {
@@ -146,6 +161,9 @@
     1,
     1,
     0,
+    1,
+    1,
+    1,
     1,
     1
    ],
@@ -166,7 +184,10 @@
     0.0,
     20000.329115628214,
     0.0,
-    0.0
+    0.0,
+    0.1,
+    -0.31,
+    0.7000000000000001
    ]
   }
  }

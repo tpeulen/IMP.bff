@@ -13,6 +13,7 @@
 #include <IMP/bff/FitChiSquared.h>
 #include <IMP/bff/FitJointChiSquared.h>
 #include <IMP/bff/GaussianDistances.h>
+#include <IMP/bff/GeneralizedNormalCurve.h>
 #include <IMP/bff/GraphExpression.h>
 #include <IMP/bff/PhotophysicsAnisotropySpectrumNode.h>
 #include <IMP/bff/PhotophysicsLifetimeSpectrumNode.h>
@@ -50,6 +51,7 @@ void install_builtin_types(FactoryMap& factories) {
   };
   factories["GraphExpression"] = plain<GraphExpression>;
   factories["Convolution"] = plain<Convolution>;
+  factories["GeneralizedNormalCurve"] = plain<GeneralizedNormalCurve>;
   factories["TCSPCDecay"] = plain<TCSPCDecay>;
   factories["FitChiSquared"] = plain<FitChiSquared>;
   factories["FitJointChiSquared"] = plain<FitJointChiSquared>;
