@@ -26,6 +26,20 @@
   `imp_bff_traj2drot` stays until then), `fps`, `fps-av`, `fps-export`, `potentials2pto`, `traj2bcif`,
   and the `imp_bff_py` commands. On Windows the forwarder cannot start an extension-less Python script;
   that gap closes when `imp_bff_py` is empty.
+- **`imp_bff fps ...`, `fps-av`, `fps-export ...` compiled (T-20260914-02)**: the three FPS programs are
+  groups of `bin/imp_bff.cpp` now (`src/imp/CommandLineFps{,Av,Export}.cpp`, in the IMP layer through
+  `ImpLayer.cpp`; a core-only build leaves them out). Diffed against the Python programs on the shipped
+  HIV-RT and T4L examples -- `score` (plus `--clash-radii-source olga`, `--project`), `dock
+  --save-project`, `refine`, `screen --pairs-csv`, `project init|show|convert`, `fps-av` (xyz, pqr, dx,
+  `--json`, `--av1`, the empty-volume and no-atom failures), `fps-export errors|table|screen`: stdout, exit
+  codes and **every written file byte for byte**, `results.json` and the PyMOL scripts included. The one
+  intended difference is the program name in the hints. The help texts are the click docstrings,
+  carried verbatim (filled from the Python AST at port time, not retyped). `results.json` needed
+  Python's `json.dump(indent=1)` spelling -- `OrderedJson`/`json_dump_python` in the dispatcher -- and
+  the flag-over-project precedence needed "was this option typed", which CLI11 answers with
+  `Option::count()`. `FPS.h` gains `fps_linker_presets()`/`fps_default_grid()` (FPS's `linker.txt` and
+  `AVEngine.cs:568`). The fps tests call `command_line_main(["fps", ...])` instead of CliRunner over
+  the script; `fps-av` and `fps-export`, which had no test, have some.
 - **Two `cmake .` in one build tree destroy each other** (15:06/15:13): IMP's `clean_build_dir` deletes
   `build_info/*` and generated kernel headers at the start of a configure, so a second configure started
   meanwhile reports every module disabled (`build_info/disabled` missing) or `Object.h` missing. The build

@@ -29,6 +29,7 @@
 #include <vector>
 
 #include <IMP/bff/internal/CLI11.h>
+#include <IMP/bff/internal/json.h>
 
 //! True when the IMP connection layer (src/imp/) is compiled in.
 /*! The module build always has it; the standalone build only with
@@ -73,6 +74,25 @@ inline std::string path_with_suffix(const std::string& path, const std::string& 
   return path.substr(0, path.size() - old.size()) + s;
 }
 
+//! os.path.abspath: absolute, with `.` and `..` folded, no symlinks resolved.
+IMPBFFEXPORT std::string path_abs(const std::string& path);
+//! os.path.relpath(path, start), both made absolute first.
+IMPBFFEXPORT std::string path_rel(const std::string& path, const std::string& start);
+//! os.path.dirname
+inline std::string path_dirname(const std::string& path) {
+  const std::size_t slash = path.find_last_of("/\\");
+  if (slash == std::string::npos) return std::string();
+  return slash == 0 ? std::string("/") : path.substr(0, slash);
+}
+//! os.path.join(a, b)
+inline std::string path_join(const std::string& a, const std::string& b) {
+  if (a.empty() || (!b.empty() && (b[0] == '/' || b[0] == '\\'))) return b;
+  const char last = a[a.size() - 1];
+  return (last == '/' || last == '\\') ? a + b : a + "/" + b;
+}
+//! os.path.isdir
+IMPBFFEXPORT bool path_is_dir(const std::string& path);
+
 //! Name the running sub, for the error prefix. Groups call it first thing.
 IMPBFFEXPORT void set_current_sub(const std::string& name);
 
@@ -99,6 +119,12 @@ IMPBFFEXPORT std::string format(const char* fmt, ...);
 //! non-finite, strings escaped.
 IMPBFFEXPORT std::string json_float(double v);
 IMPBFFEXPORT std::string json_string(const std::string& s);
+
+//! `json.dumps(value, indent=indent)` for a parsed value; `indent < 0` is
+//! Python's compact form (`", "`, `": "`). Object keys come out in the order
+//! the value holds them, which for nlohmann is sorted.
+IMPBFFEXPORT std::string json_dump_python(const nlohmann::json& value, int indent = -1,
+                                          int depth = 0);
 
 //! A JSON object printed as `json.dumps(obj, indent=2)` prints a dict built in
 //! insertion order -- the programs' `--json` output, key for key.
@@ -134,6 +160,12 @@ IMPBFFEXPORT void add_labelizer_subs(CLI::App& app);
 IMPBFFEXPORT void add_fps_distance_subs(CLI::App& app);
 
 #if IMPBFF_CLI_HAS_IMP_LAYER
+//! fps-av (IMP layer)
+IMPBFFEXPORT void add_fps_av_subs(CLI::App& app);
+//! fps score|dock|refine|screen|convert|project (IMP layer)
+IMPBFFEXPORT void add_fps_subs(CLI::App& app);
+//! fps-export errors|table|screen (IMP layer)
+IMPBFFEXPORT void add_fps_export_subs(CLI::App& app);
 #endif
 
 }  // namespace cli

@@ -166,10 +166,10 @@ is written out in `examples/structure/t4l_pmi.py`.
 The command line is one compiled program, `imp_bff` (`bin/imp_bff.cpp`, the
 dispatcher in `include/CommandLine.h`). Every program that used to be a script
 in `bin/` is a group of it, named after the old file without the `imp_bff_`
-prefix -- `imp_bff labelizer`, `imp_bff fps-distance`, `imp_bff traj2drot`,
-`imp_bff probe-pdb2cif`, and as they are compiled `imp_bff fps ...`,
-`imp_bff fps-av`, `imp_bff fps-export ...`, `imp_bff potentials2pto`,
-`imp_bff traj2bcif`. The modelling commands sit at the top level: `flexfit`
+prefix -- `imp_bff fps ...`, `imp_bff fps-av`, `imp_bff fps-distance`,
+`imp_bff fps-export ...`, `imp_bff labelizer`, `imp_bff traj2drot`,
+`imp_bff probe-pdb2cif`, and as they are compiled `imp_bff potentials2pto`
+and `imp_bff traj2bcif`. The modelling commands sit at the top level: `flexfit`
 and `rmsd` fit against distance restraints, `select-pairs` ranks labelling
 pairs before an experiment is done, `openmm` writes a restrained OpenMM run,
 `av-export` writes one volume for a viewer, `dye` is explicit-dye labelling
@@ -373,7 +373,7 @@ for corpora where dipole directions do not matter. `--cluster A` takes the
 raw-MD path: leader clustering, leaders become rotamers and cluster
 populations become weights. `--all DIR` re-encodes a whole library directory.
 
-# imp_bff_fps: FRET-restrained docking and screening {#imp_bff_fps}
+## imp_bff fps -- FRET-restrained docking and screening {#imp_bff_fps}
 
 The run modes of FPS, the FRET Positioning and Screening toolkit (Kalinin
 *et al.*, *Nat. Methods* **9**, 1218, 2012), on IMP. FPS is a Windows C#
@@ -382,11 +382,11 @@ chi-square, rigid bodies, excluded volume -- is native here, and this program
 is the door onto it.
 
 ```bash
-imp_bff_fps score  -p bodyA.pdb -p bodyB.pdb -j labels.fps.json -c set
-imp_bff_fps dock   -p bodyA.pdb -p bodyB.pdb -j labels.fps.json -c set -o out/
-imp_bff_fps refine -p bodyA.pdb -p bodyB.pdb -j labels.fps.json -c set -o out/
-imp_bff_fps screen -s ./library -j labels.fps.json -o ranked.csv
-imp_bff_fps convert --positions LabelingPositions.txt -p bodyA.pdb -o labels.fps.json
+imp_bff fps score  -p bodyA.pdb -p bodyB.pdb -j labels.fps.json -c set
+imp_bff fps dock   -p bodyA.pdb -p bodyB.pdb -j labels.fps.json -c set -o out/
+imp_bff fps refine -p bodyA.pdb -p bodyB.pdb -j labels.fps.json -c set -o out/
+imp_bff fps screen -s ./library -j labels.fps.json -o ranked.csv
+imp_bff fps convert --positions LabelingPositions.txt -p bodyA.pdb -o labels.fps.json
 ```
 
 `-p` is repeated once per rigid body and the order given is the body order;
@@ -405,8 +405,8 @@ bodies.
 
 ```bash
 E=$IMP/examples/bff/structure/HIV_RT
-imp_bff_fps score -p $E/protein_1R0A.pdb -p $E/dna.pdb -j $E/hiv_rt.fps.json -c resolved
-imp_bff_fps dock  -p $E/protein_1R0A.pdb -p $E/dna.pdb -j $E/hiv_rt.fps.json -c resolved \
+imp_bff fps score -p $E/protein_1R0A.pdb -p $E/dna.pdb -j $E/hiv_rt.fps.json -c resolved
+imp_bff fps dock  -p $E/protein_1R0A.pdb -p $E/dna.pdb -j $E/hiv_rt.fps.json -c resolved \
                   -o dock_out --seed 1
 ```
 
@@ -424,15 +424,15 @@ local minimum: repeat with different `--seed`s and compare before believing a
 pose. See [`okf/prds/prd-121.md`](okf/prds/prd-121.md) for what has been
 measured against FPS itself.
 
-# imp_bff_fps_av: compute one accessible volume {#imp_bff_fps_av}
+## imp_bff fps-av -- compute one accessible volume {#imp_bff_fps_av}
 
 FPS's standalone AV dialog, which FPS itself reaches as `FpsGui -av`. One site,
 one dye, one volume, written where PyMOL or VMD can open it (`.xyz`, `.pqr`,
 `.dx`, `.mrc`).
 
 ```bash
-imp_bff_fps_av -p 3GUN.pdb -c A -r 55 -d alexa488-long -o d55.xyz
-imp_bff_fps_av -p 3GUN.pdb -r 132 -l 20 -w 4.5 --radii 3.5 -o d132.xyz
+imp_bff fps-av -p 3GUN.pdb -c A -r 55 -d alexa488-long -o d55.xyz
+imp_bff fps-av -p 3GUN.pdb -r 132 -l 20 -w 4.5 --radii 3.5 -o d132.xyz
 ```
 
 The dye presets are FPS's own, from its `Fps/data/linker.txt`. Each row carries
@@ -516,18 +516,18 @@ settings. A position that was not scored carries a status and no number, which
 is the thing the reference's output cannot express -- it writes `-1` for
 "excluded" and `0` for "no contribution" into the same column as real scores.
 
-# imp_bff_fps_export: FPS's result files, and the errors that fill them {#imp_bff_fps_export}
+## imp_bff fps-export -- FPS's result files, and the errors that fill them {#imp_bff_fps_export}
 
 The door onto FPS's `SaveForm` -- the dialog every result file is written from
 -- and onto `ErrorEstimation`, the mode that produces a table with more than
 one row in it.
 
 ```
-imp_bff_fps_export errors  ...   perturb the docked model's own distances,
+imp_bff fps-export errors  ...   perturb the docked model's own distances,
                                  re-fit, and report the spread (FPS's
                                  parametric bootstrap)
-imp_bff_fps_export table   ...   write the five export files from a results table
-imp_bff_fps_export screen  ...   rank a library and write FPS's two Filter-mode tables
+imp_bff fps-export table   ...   write the five export files from a results table
+imp_bff fps-export screen  ...   rank a library and write FPS's two Filter-mode tables
 ```
 
 `errors` and `table` each write five files: one PyMOL script per row
@@ -541,7 +541,7 @@ meaningless away from the project beside it. `results.json` replaces it, and
 carries the molecule manifest that FPS's reload-by-position needed and never
 had.
 
-Run `imp_bff_fps_export --help` for the flags, including the three that
+Run `imp_bff fps-export --help` for the flags, including the three that
 reproduce known FPS defects on demand.
 
 ## imp_bff probe-pdb2cif -- convert a probe PDB to mmCIF {#imp_bff_probe_pdb2cif}

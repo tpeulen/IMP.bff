@@ -18,6 +18,9 @@
  */
 
 #include "imp/ProbeAccessibleVolumeDecorator.cpp"
+#include "imp/CommandLineFps.cpp"
+#include "imp/CommandLineFpsAv.cpp"
+#include "imp/CommandLineFpsExport.cpp"
 #include "imp/IMPAlgebraBridge.cpp"
 #include "imp/ProbeAccessibleVolumeMeanDistanceRestraint.cpp"
 #include "imp/ProbeAccessibleVolumeOccupancyMap.cpp"

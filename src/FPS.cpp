@@ -1657,4 +1657,39 @@ XyzPointCloud read_points_xyz(const std::string& path) {
     return cloud;
 }
 
+std::vector<FPSLinkerPreset> fps_linker_presets() {
+    // name, role, L, W, R(AV1), R1..R3(AV3) -- Fps/data/linker.txt
+    static const struct { const char* name; const char* role; double l, w, r1, a, b, c; } rows[] = {
+        {"alexa488-inter", "D", 15.0, 4.5, 3.5, 5.0, 4.5, 1.5},
+        {"alexa488-long", "D", 20.0, 4.5, 3.5, 5.0, 4.5, 1.5},
+        {"alexa488-short", "D", 11.0, 4.5, 3.5, 5.0, 4.5, 1.5},
+        {"cy5-inter", "A", 17.0, 4.5, 3.5, 11.0, 3.0, 1.5},
+        {"cy5-long", "A", 22.0, 4.5, 3.5, 11.0, 3.0, 1.5},
+        {"cy5-short", "A", 14.0, 4.5, 3.5, 11.0, 3.0, 1.5},
+    };
+    std::vector<FPSLinkerPreset> out;
+    for (std::size_t i = 0; i < sizeof(rows) / sizeof(rows[0]); ++i) {
+        FPSLinkerPreset p;
+        p.name = rows[i].name;
+        p.role = rows[i].role;
+        p.linker_length = rows[i].l;
+        p.linker_width = rows[i].w;
+        p.radius_av1 = rows[i].r1;
+        p.radii_av3[0] = rows[i].a;
+        p.radii_av3[1] = rows[i].b;
+        p.radii_av3[2] = rows[i].c;
+        out.push_back(p);
+    }
+    return out;
+}
+
+double fps_default_grid(double linker_length, double linker_width,
+                        const std::vector<double>& radii) {
+    double smallest = (std::min)(0.2 * linker_length, 0.2 * linker_width);
+    for (std::size_t i = 0; i < radii.size(); ++i) {
+        if (radii[i] > 0) smallest = (std::min)(smallest, 0.4 * radii[i]);
+    }
+    return (std::max)(smallest, 0.4);
+}
+
 IMPBFF_END_NAMESPACE

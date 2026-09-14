@@ -140,3 +140,45 @@ def test_the_executable_runs_the_same_dispatcher(tmp_path):
     assert out.returncode == 0, out.stderr
     assert json.loads(out.stdout)["unique_voxels"] == [3187, 3187]
     assert subprocess.run([exe], capture_output=True).returncode == 2
+
+
+# ---- fps-av, fps-export: the IMP-layer groups -------------------------------
+
+T4L = IMP.bff.get_example_path("structure/T4L")
+FPS_JSON = os.path.join(T4L, "fret.fps.json")
+
+needs_imp_layer = pytest.mark.skipif(
+    IMP.bff.get_build() == "core",
+    reason="the IMP connection layer is not compiled into this build")
+
+
+@needs_imp_layer
+def test_fps_av_writes_a_volume_and_reports_it(tmp_path, capfd):
+    out = tmp_path / "d44.xyz"
+    assert run("fps-av", "-p", PDB, "-c", "A", "-r", 44, "-d", "alexa488-long",
+               "-o", out, "--json") == 0
+    report = json.loads(capfd.readouterr().out)
+    assert report["n_voxels"] > 0
+    assert report["radii"] == [5.0, 4.5, 1.5]      # the preset's AV3 column
+    assert report["grid"] == pytest.approx(0.6)     # FPS's own grid rule
+    assert out.is_file()
+
+
+@needs_imp_layer
+def test_fps_av_says_so_when_there_is_no_atom(tmp_path, capfd):
+    assert run("fps-av", "-p", PDB, "-r", 9999, "-o", tmp_path / "x.xyz") == 1
+    assert "has no atom" in capfd.readouterr().err
+
+
+@needs_imp_layer
+def test_fps_av1_needs_a_preset(tmp_path, capfd):
+    assert run("fps-av", "-p", PDB, "-r", 44, "--av1", "-o", tmp_path / "x.xyz") == 2
+    capfd.readouterr()
+
+
+@needs_imp_layer
+def test_fps_export_screen_writes_fps_filter_tables(tmp_path, capfd):
+    assert run("fps-export", "screen", "-s", PDB, "-j", FPS_JSON, "-c", "chi2_C2_33p",
+               "-o", tmp_path) == 0
+    assert "structures: 1" in capfd.readouterr().out
+    assert (tmp_path / "screening_chi2table.txt").is_file()

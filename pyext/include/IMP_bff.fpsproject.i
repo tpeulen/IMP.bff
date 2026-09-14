@@ -7,7 +7,7 @@
  * default that drifts, and FPS's shipped per-mode parameters are the settings
  * behind published numbers.
  *
- * `bin/imp_bff_fps project` picks files and prints tables; it decides nothing
+ * `imp_bff fps project` (src/imp/CommandLineFps.cpp) picks files and prints tables; it decides nothing
  * about what a project *is*.
  *
  * Must be wrapped **after** `IMP_bff.docking.i`: `FPSProject` returns a

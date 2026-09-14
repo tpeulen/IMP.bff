@@ -15,11 +15,8 @@ taken from a file, so the format under test is `OptionsManager.cs::Export` and
 not this module's own writer -- there is no legacy writer, deliberately.
 """
 
-import importlib.machinery
-import importlib.util
 import json
 import os
-import sys
 from pathlib import Path
 
 import pytest
@@ -29,18 +26,24 @@ import IMP.bff
 
 REPO = Path(__file__).resolve().parents[2]
 HIV = REPO / "examples" / "structure" / "HIV_RT"
-BIN = REPO / "bin"
 
 
-def _program(name):
-    path = BIN / name
-    loader = importlib.machinery.SourceFileLoader(name, str(path))
-    spec = importlib.util.spec_from_file_location(name, str(path),
-                                                  loader=loader)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
-    return module
+class _Run:
+    """What a compiled `imp_bff fps ...` call left behind: the exit code and
+    everything it printed, stdout then stderr (CliRunner mixed the two)."""
+
+    def __init__(self, exit_code, output):
+        self.exit_code = exit_code
+        self.output = output
+
+
+def _fps(capfd, words):
+    """Run `imp_bff fps <words>` through the dispatcher the program's `main`
+    calls. C++ writes at the file descriptor, hence capfd."""
+    capfd.readouterr()
+    code = IMP.bff.command_line_main(["fps"] + [str(w) for w in words])
+    captured = capfd.readouterr()
+    return _Run(code, captured.out + captured.err)
 
 
 #: FPS's export of a two-body project, in the exact shape `Export` writes:
@@ -447,12 +450,10 @@ def test_shipped_hiv_rt_project_runs_and_scores_what_the_flags_do():
     assert from_project.n_distances == from_flags.n_distances == 18
 
 
-def test_shipped_legacy_project_fixture_converts_to_the_resolved_set(tmp_path):
+def test_shipped_legacy_project_fixture_converts_to_the_resolved_set(tmp_path, capfd):
     """The fixture's Boolean[] is the `resolved` score set, by position."""
-    program = _program("imp_bff_fps")
-    from click.testing import CliRunner
     out = tmp_path / "converted.fps.json"
-    result = CliRunner().invoke(program.cli, [
+    result = _fps(capfd, [
         "project", "convert", str(HIV / "hiv_rt.project.txt"),
         "-o", str(out)])
     assert result.exit_code == 0, result.output
@@ -478,12 +479,9 @@ def test_positional_selection_is_named_against_the_file_order():
     assert order != keyed          # the trap this function exists for
 
 
-def test_program_init_show_and_score_through_a_project(tmp_path):
-    program = _program("imp_bff_fps")
-    from click.testing import CliRunner
-    runner = CliRunner()
+def test_program_init_show_and_score_through_a_project(tmp_path, capfd):
     out = tmp_path / "run.fps.json"
-    result = runner.invoke(program.cli, [
+    result = _fps(capfd, [
         "project", "init",
         "-p", str(HIV / "protein_1R0A.pdb"), "-p", str(HIV / "dna.pdb"),
         "-j", str(HIV / "hiv_rt.fps.json"), "-c", "resolved",
@@ -492,13 +490,13 @@ def test_program_init_show_and_score_through_a_project(tmp_path):
     assert "positions: 11   distances: 20" in result.output
     assert "score set: resolved (18 distances)" in result.output
 
-    result = runner.invoke(program.cli, ["project", "show", str(out)])
+    result = _fps(capfd, ["project", "show", str(out)])
     assert result.exit_code == 0, result.output
     assert "no problems" in result.output
     assert "Error estimation" in result.output
     assert "score set: resolved" in result.output
 
-    result = runner.invoke(program.cli, [
+    result = _fps(capfd, [
         "score", "--project", str(out), "--no-pairs"])
     assert result.exit_code == 0, result.output
     # moved with the pin above (back off Olga's radii, 2026-09-01)
@@ -506,7 +504,7 @@ def test_program_init_show_and_score_through_a_project(tmp_path):
     assert "volumes: 10   distances: 18" in result.output
 
 
-def test_program_reports_a_broken_project_rather_than_crashing(tmp_path):
+def test_program_reports_a_broken_project_rather_than_crashing(tmp_path, capfd):
     """A stale path is a report, not an exception: a run may re-point it."""
     p = IMP.bff.FPSProject()
     p.structures = ["gone.pdb"]
@@ -517,19 +515,15 @@ def test_program_reports_a_broken_project_rather_than_crashing(tmp_path):
     assert any("gone.pdb" in x for x in problems)
     assert any("missing.fps.json" in x for x in problems)
 
-    program = _program("imp_bff_fps")
-    from click.testing import CliRunner
-    result = CliRunner().invoke(program.cli, ["project", "show", str(out)])
+    result = _fps(capfd, ["project", "show", str(out)])
     assert result.exit_code == 0, result.output
     assert "MISSING" in result.output
 
 
-def test_dock_saves_the_pose_and_the_settings_it_actually_used(tmp_path):
+def test_dock_saves_the_pose_and_the_settings_it_actually_used(tmp_path, capfd):
     """`--save-project` closes the loop: a run can be stored and continued."""
-    program = _program("imp_bff_fps")
-    from click.testing import CliRunner
     saved = tmp_path / "after.fps.json"
-    result = CliRunner().invoke(program.cli, [
+    result = _fps(capfd, [
         "dock", "--project", str(HIV / "hiv_rt.project.fps.json"),
         "-o", str(tmp_path / "dock_out"), "-n", "5", "--shuffle", "0",
         "--seed", "1", "--save-project", str(saved)])
