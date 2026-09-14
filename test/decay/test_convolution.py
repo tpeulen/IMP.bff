@@ -319,3 +319,43 @@ def test_a_background_pattern_takes_its_share_of_the_counts(shift):
     decay.update()
     expected = _classic_background_pattern(curve, pattern, data, 1.3, 4.0, 2.5, shift)
     np.testing.assert_allclose(np.asarray(decay.get_output_port("decay").value), expected, rtol=1e-12)
+
+
+def _spectrum_decay(response, **config):
+    node = _node("TCSPCDecay", "decay", response, timing=[DT, 6.0], **config)
+    node.set_number_of_lifetimes(2) if not config.get("number_of_lifetimes") else None
+    for key, value in {"a0": 0.3, "t0": 0.7, "a1": 0.7, "t1": 3.4, "n0": 1.0}.items():
+        node.get_input_port(key).value = value
+    node.update()
+    return np.asarray(node.get_output_port("decay").value)
+
+
+def test_a_single_excitation_is_tttrlibs_non_periodic_recursion():
+    tttrlib = pytest.importorskip("tttrlib")
+    x, response = _response()
+    got = _spectrum_decay(response, number_of_lifetimes=2, convolution_mode="single")
+    expected = np.zeros(N)
+    tttrlib.fconv(fit=expected, irf=response / response.sum(), x=np.array([0.3, 0.7, 0.7, 3.4]),
+                  start=0, stop=N, dt=DT)
+    np.testing.assert_allclose(got, expected, rtol=1e-12, atol=1e-15)
+    periodic = _spectrum_decay(response, number_of_lifetimes=2)
+    assert periodic.sum() > got.sum()      # earlier pulses add their tails
+
+
+@pytest.mark.parametrize("mode", ["periodic", "single"])
+def test_without_convolution_the_model_is_the_ideal_decay(mode):
+    x, response = _response()
+    got = _spectrum_decay(response, number_of_lifetimes=2, convolution_mode=mode, convolve=False)
+    tail = (lambda tau: 1.0 / (1.0 - np.exp(-6.0 / tau))) if mode == "periodic" else (lambda tau: 1.0)
+    expected = 0.3 * tail(0.7) * np.exp(-x / 0.7) + 0.7 * tail(3.4) * np.exp(-x / 3.4)
+    np.testing.assert_allclose(got, expected, rtol=1e-12)
+
+
+def test_the_basis_is_only_the_periodic_convolutions():
+    decay = bff.TCSPCDecay("decay")
+    decay.set_number_of_lifetimes(1)
+    decay.set_convolution_mode("single")
+    with pytest.raises((ValueError, RuntimeError)):
+        decay.set_emit_basis(True)
+    with pytest.raises((ValueError, RuntimeError)):
+        decay.set_convolution_mode("reflected")

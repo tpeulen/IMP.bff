@@ -260,6 +260,18 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
   void set_spectrum_from_port(bool v);
   bool get_spectrum_from_port() const { return spectrum_from_port_; }
 
+  //! How the lifetime spectrum meets the response: `periodic` (default) or `single`.
+  /*! `periodic` is tttrlib's `fconv_per_cs`: excitation repeated every
+      period, so earlier pulses' unrelaxed decay adds in. `single` is its
+      `fconv`: one excitation, nothing carried over -- ChiSurf's "exp" mode.
+      \throws std::domain_error for another name, or while the basis is emitted. */
+  void set_convolution_mode(const std::string& mode);
+
+  //! Whether the spectrum is convolved with the response at all (default true).
+  /*! Off, the model is the ideal decay on the channel axis, with the periodic
+      tail in the periodic mode; the response still shapes the scatter term. */
+  void set_convolve(bool v);
+
   //! A measured background decay, added in proportion to how long it was measured.
   /*!
       A background recorded on its own -- buffer, a dark sample -- carries
@@ -473,6 +485,8 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
   double n0_ = 1.0;
   bool autoscale_ = false;
   bool pile_up_ = false;
+  bool periodic_ = true;
+  bool convolve_ = true;
   std::vector<double> background_pattern_;
   std::vector<double> background_shifted_;
   double t_background_ = 1.0;
