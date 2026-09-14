@@ -587,5 +587,11 @@
    "delta": -1,
    "prior": 0.25
   }
- ]
+ ],
+ "outputs": {
+  "lifetime_spectrum": {
+   "node": "decay",
+   "port": "spectrum"
+  }
+ }
 }

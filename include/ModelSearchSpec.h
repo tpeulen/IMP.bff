@@ -77,6 +77,18 @@ class IMPBFFEXPORT ModelSearchSpec {
   void set_dataset(const std::string& name, const FitDataset& dataset);
   //! Forget the measurement bound to a slot; the next model is built without it.
   void unset_dataset(const std::string& name);
+  //! Bind a port of something outside this model to a name the description reads.
+  /*! A description input written `$<name>` follows the bound port: another
+      model's published output (MultiStructureModelSearchProblem::get_output_port),
+      evaluated on demand. A mixture is written this way -- it reads the
+      lifetime spectrum of each model it mixes. Rebinding the same port changes
+      nothing; binding another rebuilds the model over the same parameters. */
+  void set_port(const std::string& name, std::shared_ptr<GraphPort> port);
+  //! Forget a bound port.
+  void unset_port(const std::string& name);
+  //! The names the description reads as `$<name>`, as it declares them.
+  std::vector<std::string> get_port_names() const;
+
   //! The values bound to one measurement slot.
   const std::vector<double>& get_dataset_values(const std::string& name) const;
 

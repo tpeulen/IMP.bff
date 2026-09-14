@@ -23,3 +23,6 @@
 /* A generalized-normal peak on an even axis: a response nobody measured. */
 %shared_ptr(IMP::bff::GeneralizedNormalCurve);
 %include "IMP/bff/GeneralizedNormalCurve.h"
+/* Lifetime spectra of several species weighted by fractions: a mixture of models. */
+%shared_ptr(IMP::bff::LifetimeSpectrumMixture);
+%include "IMP/bff/LifetimeSpectrumMixture.h"
