@@ -20,7 +20,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import _fixtures  # noqa: E402
 
 FAMILIES = ["tcspc_fret_gaussian", "tcspc_fret_discrete", "tcspc_fret_worm_like_chain",
-            "tcspc_fret_saw_nu", "tcspc_fret_ising_chain"]
+            "tcspc_fret_saw_nu", "tcspc_fret_ising_chain", "tcspc_pddem"]
 
 
 def _spec(family, data=None):

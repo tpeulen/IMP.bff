@@ -1,0 +1,888 @@
+{
+ "schema": "bff.model_search.v1",
+ "family": "tcspc_pddem",
+ "title": "PDDEM: partial donor-donor energy migration",
+ "presentation": {
+  "_comment": "How an application presents this family. Read by applications, ignored by the engine.",
+  "groups": {
+   "distances": "Distances",
+   "pddem": "PDDEM",
+   "chromophore_a": "Chromophore A",
+   "donor": "Chromophore B",
+   "fret": "FRET",
+   "rotations": "Rotations",
+   "anisotropy": "Anisotropy",
+   "instrument": "Instrument"
+  },
+  "datasets": {
+   "decay": {
+    "label": "Decay",
+    "primary": true
+   },
+   "response": {
+    "label": "IRF",
+    "required_unless": "generated_response"
+   },
+   "linearization": {
+    "label": "Lin. table"
+   },
+   "background_pattern": {
+    "label": "Background"
+   },
+   "linearization_curve": {
+    "label": "DNL measurement"
+   }
+  },
+  "scalars": {
+   "donor_lifetimes": {
+    "label": "Chromophore B lifetimes"
+   },
+   "rda_min": {
+    "label": "Distance axis from [\u00c5]"
+   },
+   "rda_max": {
+    "label": "Distance axis to [\u00c5]"
+   },
+   "rda_resolution": {
+    "label": "Distance axis points"
+   },
+   "rda_linear": {
+    "label": "Linear distance axis",
+    "kind": "flag"
+   },
+   "polarization": {
+    "label": "Polarization (0 VM, 1 VV, 2 VH, 3 VV/VH)"
+   },
+   "rotations": {
+    "label": "Rotational correlation times"
+   },
+   "static_orientation": {
+    "label": "Static isotropic \u03ba\u00b2",
+    "kind": "flag"
+   },
+   "kappa2_bins": {
+    "label": "\u03ba\u00b2 apparent-distance bins (0 exact)"
+   },
+   "max_components": {
+    "label": "Most distance components"
+   },
+   "dt": {
+    "label": "dt [ns]",
+    "default": "decay_dx"
+   },
+   "period": {
+    "label": "Period [ns]",
+    "default": 12.5
+   },
+   "autoscale": {
+    "label": "Autoscale n0",
+    "kind": "flag"
+   },
+   "pile_up": {
+    "label": "Pile-up",
+    "kind": "flag"
+   },
+   "dead_time": {
+    "label": "Dead time [ns]"
+   },
+   "measurement_time": {
+    "label": "Measurement time [s]"
+   },
+   "response_start": {
+    "label": "IRF start [ns]"
+   },
+   "response_stop": {
+    "label": "IRF stop [ns]"
+   },
+   "t_background": {
+    "label": "t(background) [s]"
+   },
+   "t_decay": {
+    "label": "t(decay) [s]"
+   },
+   "shift_background": {
+    "label": "Shift background with IRF",
+    "kind": "flag"
+   },
+   "periodic_excitation": {
+    "label": "Periodic excitation",
+    "kind": "flag"
+   },
+   "convolve": {
+    "label": "Convolve with IRF",
+    "kind": "flag"
+   },
+   "generated_response": {
+    "label": "Model the IRF (no measured IRF)",
+    "kind": "flag"
+   },
+   "lin_window_length": {
+    "label": "DNL window [channels]"
+   },
+   "lin_window": {
+    "label": "DNL window (0 flat, 1 hanning, 2 hamming, 3 bartlett, 4 blackman)"
+   },
+   "reverse_linearization": {
+    "label": "Reverse DNL table",
+    "kind": "flag"
+   },
+   "distance_between_gaussians": {
+    "label": "Distance between two Gaussians",
+    "kind": "flag"
+   },
+   "lifetimes_a": {
+    "label": "Chromophore A lifetimes"
+   },
+   "transfer_mode": {
+    "label": "ChiSurf-regularised transfer kinetics",
+    "kind": "flag"
+   }
+  },
+  "distributions": {
+   "lifetime_spectrum": {
+    "label": "Lifetime",
+    "node": "decay",
+    "port": "spectrum"
+   },
+   "distance_distribution": {
+    "label": "Distance",
+    "node": "distances",
+    "port": "@name"
+   }
+  },
+  "statistics": {
+   "tau_species": {
+    "label": "<tau>x",
+    "of": "lifetime_spectrum",
+    "statistic": "species_averaged_lifetime"
+   },
+   "tau_fluorescence": {
+    "label": "<tau>F",
+    "of": "lifetime_spectrum",
+    "statistic": "fluorescence_averaged_lifetime"
+   }
+  },
+  "reference_modes": [
+   "tcspc_total_photons",
+   "tcspc_peak_photons"
+  ],
+  "axis": {
+   "x": "time (ns)",
+   "y": "counts",
+   "scale_y": "log"
+  }
+ },
+ "datasets": [
+  "decay"
+ ],
+ "scalars": [
+  "dt",
+  "period"
+ ],
+ "optional_scalars": {
+  "donor_lifetimes": 1,
+  "rda_min": 1.0,
+  "rda_max": 130.0,
+  "rda_resolution": 96,
+  "rda_linear": 0,
+  "polarization": 0,
+  "rotations": 1,
+  "static_orientation": 0,
+  "kappa2_bins": 512,
+  "max_components": 3,
+  "autoscale": 0,
+  "pile_up": 0,
+  "dead_time": 0.0,
+  "measurement_time": 1.0,
+  "amplitude_threshold": 0.0,
+  "convolution_stop": 1e+18,
+  "scale_stop": 1e+18,
+  "response_start": 0.0,
+  "response_stop": 1e+18,
+  "t_background": 1.0,
+  "t_decay": 1.0,
+  "shift_background": 1,
+  "periodic_excitation": 1,
+  "convolve": 1,
+  "generated_response": 0,
+  "fit_start": 0,
+  "fit_stop": 1e+18,
+  "lin_window_length": 17,
+  "lin_window": 1,
+  "reverse_linearization": 0,
+  "distance_between_gaussians": 0,
+  "lifetimes_a": 1,
+  "transfer_mode": 0
+ },
+ "optional_datasets": [
+  "response",
+  "linearization",
+  "background_pattern",
+  "linearization_curve"
+ ],
+ "axes": {
+  "d": {
+   "from": "donor_lifetimes",
+   "to": "donor_lifetimes"
+  },
+  "m": {
+   "from": "rotations",
+   "to": "rotations"
+  },
+  "g": {
+   "from": 1,
+   "to": "max_components"
+  },
+  "a": {
+   "from": "lifetimes_a",
+   "to": "lifetimes_a"
+  }
+ },
+ "parameters": {
+  "repeat": [
+   {
+    "index": "i",
+    "count": "d_max",
+    "body": {
+     "donor.amplitude.{i}": {
+      "name": "xD{i}",
+      "initial": "1/({i}+1)",
+      "lower": 0.0,
+      "upper": null,
+      "group": "donor",
+      "free": false
+     },
+     "donor.tau.{i}": {
+      "name": "tD{i}",
+      "initial": "4/({i}+1)",
+      "lower": "max(dt*0.01,1e-12)",
+      "upper": "period",
+      "group": "donor",
+      "free": false
+     }
+    }
+   },
+   {
+    "index": "i",
+    "count": "g_max",
+    "body": {
+     "distance.mean.{i}": {
+      "name": "RDA{i}",
+      "initial": "50+10*{i}",
+      "lower": "rda_min",
+      "upper": "rda_max",
+      "group": "distances"
+     },
+     "distance.sigma.{i}": {
+      "name": "s{i}",
+      "initial": 6.0,
+      "lower": 0.01,
+      "upper": "rda_max",
+      "group": "distances",
+      "free": false
+     },
+     "distance.shape.{i}": {
+      "name": "k{i}",
+      "initial": 0.0,
+      "lower": -10.0,
+      "upper": 10.0,
+      "group": "distances",
+      "free": false
+     },
+     "distance.amplitude.{i}": {
+      "name": "x{i}",
+      "initial": "1/({i}+1)",
+      "lower": 0.0,
+      "upper": null,
+      "group": "distances"
+     }
+    }
+   },
+   {
+    "index": "j",
+    "count": "m_max",
+    "body": {
+     "rotation.amplitude.{j}": {
+      "name": "b{j}",
+      "initial": "1/({j}+1)",
+      "lower": 0.0,
+      "upper": 1.0,
+      "group": "rotations",
+      "free": false
+     },
+     "rotation.time.{j}": {
+      "name": "rho{j}",
+      "initial": "min(period,max(dt,{j}+1))",
+      "lower": "max(dt*0.01,1e-12)",
+      "upper": "period",
+      "group": "rotations",
+      "free": false
+     }
+    }
+   },
+   {
+    "index": "i",
+    "count": "a_max",
+    "body": {
+     "chromophore_a.amplitude.{i}": {
+      "name": "xA{i}",
+      "initial": "1/({i}+1)",
+      "lower": 0.0,
+      "upper": null,
+      "group": "chromophore_a",
+      "free": false
+     },
+     "chromophore_a.tau.{i}": {
+      "name": "tA{i}",
+      "initial": "4/({i}+1)",
+      "lower": "max(dt*0.01,1e-12)",
+      "upper": "period",
+      "group": "chromophore_a",
+      "free": false
+     }
+    }
+   }
+  ],
+  "fret.forster_radius": {
+   "name": "R0",
+   "initial": 52.0,
+   "lower": 1.0,
+   "upper": 1000.0,
+   "group": "fret",
+   "free": false
+  },
+  "fret.tau0": {
+   "name": "tau0",
+   "initial": 4.0,
+   "lower": 0.001,
+   "upper": 1000.0,
+   "group": "fret",
+   "free": false
+  },
+  "fret.kappa2": {
+   "name": "kappa2",
+   "initial": 0.66667,
+   "lower": 0.0,
+   "upper": 4.0,
+   "group": "fret",
+   "free": false
+  },
+  "anisotropy.r0": {
+   "name": "r0",
+   "initial": 0.38,
+   "lower": 0.0,
+   "upper": 0.4,
+   "group": "anisotropy",
+   "free": false
+  },
+  "anisotropy.g": {
+   "name": "g",
+   "initial": 1.0,
+   "free": false,
+   "lower": 0.1,
+   "upper": 10.0,
+   "group": "anisotropy"
+  },
+  "anisotropy.l1": {
+   "name": "l1",
+   "initial": 0.0308,
+   "free": false,
+   "lower": 0.0,
+   "upper": 1.0,
+   "group": "anisotropy"
+  },
+  "anisotropy.l2": {
+   "name": "l2",
+   "initial": 0.0368,
+   "free": false,
+   "lower": 0.0,
+   "upper": 1.0,
+   "group": "anisotropy"
+  },
+  "instrument.scatter": {
+   "name": "scatter",
+   "initial": 0.0,
+   "free": false,
+   "lower": 0.0,
+   "upper": 1.0,
+   "group": "instrument"
+  },
+  "instrument.background": {
+   "name": "background",
+   "initial": "decay_min",
+   "lower": 0.0,
+   "upper": "decay_max",
+   "group": "instrument"
+  },
+  "instrument.n0": {
+   "name": "n0",
+   "initial": "decay_sum",
+   "lower": 0.0,
+   "upper": "100*decay_sum",
+   "group": "instrument"
+  },
+  "instrument.timeshift": {
+   "name": "timeshift",
+   "initial": 0.0,
+   "free": false,
+   "lower": "-0.5*decay_size",
+   "upper": "0.5*decay_size",
+   "group": "instrument"
+  },
+  "instrument.response_background": {
+   "name": "lamp background",
+   "group": "instrument",
+   "initial": 0.0,
+   "free": false,
+   "lower": 0.0,
+   "upper": "decay_max"
+  },
+  "instrument.irf_width": {
+   "name": "irf width",
+   "group": "instrument",
+   "initial": 0.1,
+   "free": false,
+   "lower": 0.0001,
+   "upper": "decay_size*dt"
+  },
+  "instrument.irf_shape": {
+   "name": "irf shape",
+   "group": "instrument",
+   "initial": -0.31,
+   "free": false,
+   "lower": -10.0,
+   "upper": 10.0
+  },
+  "instrument.irf_position": {
+   "name": "irf position",
+   "group": "instrument",
+   "initial": "decay_rise_index*dt",
+   "free": false,
+   "lower": 0.0,
+   "upper": "decay_size*dt"
+  },
+  "pddem.f_ab": {
+   "name": "AtB",
+   "initial": 1.0,
+   "lower": 0.0,
+   "upper": 10.0,
+   "group": "pddem",
+   "free": false
+  },
+  "pddem.f_ba": {
+   "name": "BtA",
+   "initial": 0.0,
+   "lower": 0.0,
+   "upper": 10.0,
+   "group": "pddem",
+   "free": false
+  },
+  "pddem.pure_a": {
+   "name": "pureA",
+   "initial": 0.0,
+   "lower": 0.0,
+   "upper": 1.0,
+   "group": "pddem",
+   "free": false
+  },
+  "pddem.pure_b": {
+   "name": "pureB",
+   "initial": 0.0,
+   "lower": 0.0,
+   "upper": 1.0,
+   "group": "pddem",
+   "free": false
+  },
+  "pddem.excitation_a": {
+   "name": "xA",
+   "initial": 0.98,
+   "lower": 0.0,
+   "upper": 1.0,
+   "group": "pddem",
+   "free": false
+  },
+  "pddem.excitation_b": {
+   "name": "xB",
+   "initial": 0.02,
+   "lower": 0.0,
+   "upper": 1.0,
+   "group": "pddem",
+   "free": false
+  },
+  "pddem.emission_a": {
+   "name": "mA",
+   "initial": 0.02,
+   "lower": 0.0,
+   "upper": 1.0,
+   "group": "pddem",
+   "free": false
+  },
+  "pddem.emission_b": {
+   "name": "mB",
+   "initial": 0.98,
+   "lower": 0.0,
+   "upper": 1.0,
+   "group": "pddem",
+   "free": false
+  }
+ },
+ "initial_axes": {
+  "d": "donor_lifetimes",
+  "m": "rotations",
+  "g": 1,
+  "a": "lifetimes_a"
+ },
+ "template": {
+  "key": "tcspc_pddem.components.{g}",
+  "nodes": {
+   "generated_response": {
+    "type": "GeneralizedNormalCurve",
+    "config": {
+     "floor": 1.0
+    },
+    "config_rules": {
+     "n_points": "decay_size",
+     "dt": "dt",
+     "area": "decay_sum"
+    },
+    "inputs": {
+     "loc": "#instrument.irf_position",
+     "scale": "#instrument.irf_width",
+     "shape": "#instrument.irf_shape"
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "donor": {
+    "type": "PhotophysicsLifetimeSpectrumNode",
+    "config": {
+     "number_of_lifetimes": "{d}",
+     "normalize_amplitudes": true,
+     "absolute_amplitudes": true
+    },
+    "inputs": {
+     "repeat": {
+      "index": "i",
+      "count": "d",
+      "body": {
+       "a{i}": "#donor.amplitude.{i}",
+       "t{i}": "#donor.tau.{i}"
+      }
+     }
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "distances": {
+    "type": "GaussianDistances",
+    "config": {
+     "number_of_components": "{g}"
+    },
+    "config_rules": {
+     "axis_range": [
+      "rda_min",
+      "rda_max",
+      "rda_resolution"
+     ],
+     "axis_scale": {
+      "options": [
+       "log",
+       "linear"
+      ],
+      "index": "rda_linear"
+     },
+     "distance_between_gaussians": "distance_between_gaussians"
+    },
+    "inputs": {
+     "repeat": {
+      "index": "i",
+      "count": "g",
+      "body": {
+       "mean{i}": "#distance.mean.{i}",
+       "sigma{i}": "#distance.sigma.{i}",
+       "shape{i}": "#distance.shape.{i}",
+       "amplitude{i}": "#distance.amplitude.{i}"
+      }
+     }
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "fret": {
+    "type": "FRETSpectrumNode",
+    "config_rules": {
+     "orientation": {
+      "options": [
+       "dynamic",
+       "static_isotropic"
+      ],
+      "index": "static_orientation"
+     },
+     "kappa2_bins": "kappa2_bins"
+    },
+    "inputs": {
+     "donor_lifetime_spectrum": "donor",
+     "distance_distribution": "distances",
+     "forster_radius": "#fret.forster_radius",
+     "tau0": "#fret.tau0",
+     "kappa2": "#fret.kappa2"
+    },
+    "outputs": {
+     "@name": "float_vector",
+     "fret_rates": "float_vector"
+    }
+   },
+   "chromophore_a": {
+    "type": "PhotophysicsLifetimeSpectrumNode",
+    "config": {
+     "number_of_lifetimes": "{a}",
+     "normalize_amplitudes": true,
+     "absolute_amplitudes": true
+    },
+    "inputs": {
+     "repeat": {
+      "index": "i",
+      "count": "a",
+      "body": {
+       "a{i}": "#chromophore_a.amplitude.{i}",
+       "t{i}": "#chromophore_a.tau.{i}"
+      }
+     }
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "transfer": {
+    "type": "PhotophysicsTransferKineticsNode",
+    "config_rules": {
+     "mode": {
+      "options": [
+       "exact",
+       "chisurf"
+      ],
+      "index": "transfer_mode"
+     }
+    },
+    "inputs": {
+     "spectrum_a": "chromophore_a",
+     "spectrum_b": "donor",
+     "rates": "fret.fret_rates",
+     "f_ab": "#pddem.f_ab",
+     "f_ba": "#pddem.f_ba",
+     "pure_a": "#pddem.pure_a",
+     "pure_b": "#pddem.pure_b",
+     "excitation_pulse_A": "#pddem.excitation_a",
+     "excitation_pulse_B": "#pddem.excitation_b",
+     "emission_A_channel": "#pddem.emission_a",
+     "emission_B_channel": "#pddem.emission_b"
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "polarized": {
+    "type": "PhotophysicsAnisotropySpectrumNode",
+    "config": {
+     "number_of_rotations": "{m}"
+    },
+    "config_rules": {
+     "polarization": {
+      "options": [
+       "VM",
+       "VV",
+       "VH",
+       "VV/VH"
+      ],
+      "index": "polarization"
+     }
+    },
+    "inputs": {
+     "lifetime_spectrum": "transfer",
+     "repeat": {
+      "index": "j",
+      "count": "m",
+      "body": {
+       "b{j}": "#rotation.amplitude.{j}",
+       "rho{j}": "#rotation.time.{j}"
+      }
+     },
+     "r0": "#anisotropy.r0",
+     "g": "#anisotropy.g",
+     "l1": "#anisotropy.l1",
+     "l2": "#anisotropy.l2"
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "decay": {
+    "type": "TCSPCDecay",
+    "config": {
+     "number_of_lifetimes": 1,
+     "spectrum_from_port": true
+    },
+    "config_rules": {
+     "timing": [
+      "dt",
+      "period"
+     ],
+     "convolution_range": [
+      "decay_size",
+      "min(decay_size,convolution_stop)"
+     ],
+     "scale_range": [
+      0,
+      "min(decay_size,scale_stop)"
+     ],
+     "autoscale": "autoscale",
+     "pile_up": "pile_up",
+     "pile_up_parameters": [
+      "dead_time",
+      "measurement_time"
+     ],
+     "amplitude_threshold": "amplitude_threshold",
+     "response_range": [
+      "max(0,floor(response_start/dt))",
+      "min(decay_size,floor(response_stop/dt))"
+     ],
+     "background_times": [
+      "t_background",
+      "t_decay"
+     ],
+     "shift_background_with_response": "shift_background",
+     "convolution_mode": {
+      "options": [
+       "single",
+       "periodic"
+      ],
+      "index": "periodic_excitation"
+     },
+     "convolve": "convolve",
+     "response_from_port": "generated_response",
+     "linearization_smoothing": [
+      "lin_window_length",
+      "fit_start",
+      "min(decay_size,fit_stop)",
+      "reverse_linearization"
+     ],
+     "linearization_window": {
+      "options": [
+       "flat",
+       "hanning",
+       "hamming",
+       "bartlett",
+       "blackman"
+      ],
+      "index": "lin_window"
+     }
+    },
+    "bind": {
+     "response": "response",
+     "data": "decay",
+     "linearization": "linearization",
+     "background_pattern": "background_pattern",
+     "linearization_curve": "linearization_curve"
+    },
+    "inputs": {
+     "lifetime_spectrum": "polarized",
+     "scatter": "#instrument.scatter",
+     "background": "#instrument.background",
+     "n0": "#instrument.n0",
+     "timeshift": "#instrument.timeshift",
+     "response_background": "#instrument.response_background",
+     "response": "generated_response"
+    },
+    "outputs": {
+     "@name": "float_vector",
+     "spectrum": "float_vector"
+    }
+   },
+   "objective": {
+    "type": "FitChiSquared",
+    "bind": {
+     "data": "decay"
+    },
+    "inputs": {
+     "model": "decay"
+    },
+    "outputs": {
+     "@name": "float",
+     "residuals": "float_vector"
+    }
+   }
+  },
+  "objective": "objective",
+  "free": [
+   {
+    "each": {
+     "index": "i",
+     "count": "g",
+     "body": "distance.mean.{i}"
+    }
+   },
+   {
+    "each": {
+     "index": "i",
+     "from": 1,
+     "count": "g",
+     "body": "distance.amplitude.{i}"
+    }
+   },
+   "instrument.scatter",
+   "instrument.background",
+   "instrument.n0",
+   "instrument.timeshift"
+  ],
+  "ess": "decay_size",
+  "selection": "bic",
+  "label": "{g} Gaussian distance(s)",
+  "starts": [
+   {
+    "repeat": {
+     "index": "i",
+     "count": "g_max",
+     "body": {
+      "distance.mean.{i}": "rda_min+(rda_max-rda_min)*({i}+1)/({g}+1)"
+     }
+    }
+   }
+  ]
+ },
+ "moves": [
+  {
+   "action": "stop",
+   "prior": 0.25,
+   "terminal": true
+  },
+  {
+   "action": "add-component",
+   "axis": "g",
+   "delta": 1,
+   "prior": 0.5
+  },
+  {
+   "action": "remove-component",
+   "axis": "g",
+   "delta": -1,
+   "prior": 0.25
+  }
+ ],
+ "outputs": {
+  "lifetime_spectrum": {
+   "node": "decay",
+   "port": "spectrum"
+  },
+  "distance_distribution": {
+   "node": "distances",
+   "port": "@name"
+  },
+  "fret_rates": {
+   "node": "fret",
+   "port": "fret_rates"
+  }
+ }
+}
