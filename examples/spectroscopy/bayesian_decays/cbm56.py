@@ -541,6 +541,25 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
     V = L.default_variables(E, keys, n_coef=n_coef, scale_medians=scale_med,
                             irf_shape=False, bkg_medians=bkg_med,
                             irf_bg_medians=irf_bg_med)
+    #: THE BACKGROUND IS MEASURED, SO IT GETS A MEASURED PRIOR.
+    #:
+    #: The prototype gives every background half a decade, which is right when
+    #: the only thing known about it is that it is small. Here it is not: the
+    #: flat parts of each histogram give it directly, and notebook 19 quotes two
+    #: windows separately so that a disagreement between them shows.
+    #:
+    #: Leaving it half a decade wide let the start put 48 counts per channel into
+    #: the donor-only parallel histogram where the data support about 15, and
+    #: that single number was most of the misfit: with the flat component removed
+    #: the two polarisations agree with each other (tails 9.6 and 10.7) and the
+    #: model sits within a factor of 1.7 of the data, and with it the parallel
+    #: channel is five times the perpendicular where the data say 1.2.
+    for v in V:
+        if v.name.startswith('bkg_'):
+            k = tuple(v.name[len('bkg_'):].split('_', 1))
+            if k in bkg_med:
+                v.prior = L.LogNormal(bkg_med[k], 0.15 * L.LN10)
+    return_bkg_sd = 0.15
     inst = L.InstrumentModel(E, 'measured', {det: L.tt(irf[det]) for det in dets})
     ps = L.PSplineFactor(n_coef, spl=spl)
     g = L.FactorGraph(E, keys, V, L.PoissonCountsFactor({k: y[k] for k in pairs}, mask=masks),
@@ -553,7 +572,7 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
                 bkg_medians=bkg_med, scale_medians=scale_med, irf_bg_medians=irf_bg_med)
 
 
-def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=True):
+def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=False):
     """The Laplace posterior of the whole model on the twelve histograms.
 
     **Automatic differentiation, not the analytic Jacobian.** The hand-written
@@ -565,16 +584,72 @@ def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=True):
     import torch
     L = m['L']
     L.Laplace.analytic = False
+    #: START FROM THE MEASURED BACKGROUND.  `start_from_data` fits it by a
+    #: non-negative solve on a 33-column basis whose long-lifetime members are
+    #: nearly identical, and on this measurement it returned 0.0714 and 0.0000
+    #: for two channels that must agree -- 48 counts per channel into a
+    #: histogram whose flat parts say 15.  Notebook 19 measures it directly, so
+    #: the start uses that and the fit refines it under a prior a sixth of a
+    #: decade wide.  Worth 18.6 to 13.0 in the deviance at the start, and the
+    #: difference between a fit that converges and one that does not.
+    th0, _ = L.start_from_data(m['graph'], m['y'], verbose=False, method='mem')
+    for k, med in m['bkg_medians'].items():
+        nm = f'bkg_{k[0]}_{k[1]}'
+        if nm in m['graph'].offsets:
+            a, b = m['graph'].offsets[nm]
+            th0[a:b] = m['graph'].index[nm].transform.to_unconstrained(L.tt([med]))
+    m['theta_start'] = th0
     if accelerate:
-        #: the spectral forward model, which now takes a MEASURED response per
-        #: detector.  Checked against the prototype at 5e-16 on this graph, with
-        #: and without a fitted response background.
+        #: OFF BY DEFAULT, AND THIS IS WHY. The spectral forward model now takes
+        #: a measured response per detector and agrees with the prototype at
+        #: 5e-16, and its basis at 7e-16 -- but the OBJECTIVE built on top of it
+        #: does not: on the same parameters the two log posteriors differ by
+        #: 590,000 nats, and the accelerated fit converges to a deviance per
+        #: degree of freedom of 8841 where the prototype reaches 1.313.
+        #:
+        #: The lesson is the gate, not the arithmetic. Extending the forward
+        #: model and checking the forward model is a check that cannot catch a
+        #: consumer of it, and `FastTorchObjective` is such a consumer. Until it
+        #: is gated against the prototype on a measured response, this stays off.
         import fast_forward as FF
         FF.accelerate(m, m['graph'])
     gen = torch.Generator().manual_seed(int(seed))
-    post = L.fit_sample(m['graph'], m['y'], gen, m['rel'], verbose=verbose, start='mem',
-                        optimiser='fisher', hessian='fisher',
-                        lam_nodes=tuple(float(x) for x in lam_nodes))
+    #: the penalty grid, node by node, from that start -- rather than
+    #: `fit_sample`, which computes its own
+    g = m['graph']
+    tr = g.index['log10_lam'].transform
+    nodes, th_prev = {}, th0
+    for lg in lam_nodes:
+        gi = g.with_fixed(log10_lam=tr.to_unconstrained(L.tt([float(lg)])))
+        r = L.laplace_at(gi, gi.restrict(gi, th_prev), optimiser='fisher',
+                         verbose=verbose, hessian='fisher')
+        r['graph'] = gi; r['log10_lam'] = float(lg)
+        nodes[float(lg)] = r
+        if r.get('converged'):
+            th_prev = th0.clone()
+            th_prev[:] = th0
+            for n_, (a, b) in gi.offsets.items():
+                if n_ in g.offsets:
+                    a0, b0 = g.offsets[n_]
+                    th_prev[a0:b0] = r['theta'][a:b]
+    #: a node that did not converge has no evidence, and mixing over it would
+    #: put a NaN through everything downstream
+    ev = np.array([float(nodes[float(l)].get('evidence', np.nan)) for l in lam_nodes], float)
+    ok = np.isfinite(ev) & np.array([bool(nodes[float(l)].get('converged')) for l in lam_nodes])
+    if not ok.any():
+        raise RuntimeError('no penalty node converged')
+    w = np.zeros_like(ev)
+    w[ok] = np.exp(ev[ok] - ev[ok].max()); w = w / w.sum()
+    best = float(np.asarray(lam_nodes, float)[int(np.argmax(w))])
+    post = dict(nodes[best])
+    post.update(nodes=nodes, lam_nodes=[float(x) for x in lam_nodes], weights=w,
+                ev=ev, best_lam=best)
+    vals, _ = post['graph'].unpack(post['theta'])
+    lam = post['graph'].expected_counts(vals)
+    rows, dev, dof = L.rule0(post['graph'], m['y'], lam)
+    post.update(lam={k: v.detach() for k, v in lam.items()}, rows=rows, dev=dev, dof=dof,
+                p=post['graph'].distribution(vals).detach().numpy(),
+                converged=[bool(nodes[float(l)].get('converged')) for l in lam_nodes])
     return post
 
 
