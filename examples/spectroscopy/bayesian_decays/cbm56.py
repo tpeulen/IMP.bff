@@ -348,6 +348,16 @@ def responses(loaded, which='h20', pad=(15, 150), n=None) -> dict:
 
     The window keeps the pedestal inside it: removing the response's own
     background is the fit's job (`irf_bg_<detector>`), not this function's.
+    It runs from 15 channels before the peak to 150 after (10.8 ns). The raw
+    histogram is the full 512 channels and flat at 80-90 counts per channel
+    outside its pulse (tpeulen, prompt 415: "why is the water meas half the
+    length"), so the window loses nothing but flat channels -- and widening
+    it to the red pulse (`pad=(15, 215)`) was MEASURED to make the fit worse,
+    not better: the donor-only fit that passes at 1.219 under this window
+    reaches 1.367 and does not converge under the wide one, with the
+    perpendicular detector's background fraction walking to 0.44. More flat
+    channels make `irf_bg` less identifiable against the flat column, and the
+    walk takes it. The window stays; the wide one is a parameter.
     """
     n = int(loaded['cal']['n_channels']) if n is None else int(n)
     off = pulse_offset_channels(loaded, which)
@@ -572,9 +582,89 @@ def rl_deconvolve(R, tau, dt, n_iter=500, eps=1e-12, f0=None):
     return f
 
 
+def generalized_normal(t, loc, scale, shape):
+    """chisurf's response shape (`generalized_normal_distribution`, forwarded to
+    IMP.bff `Distributions.h`): Hosking's generalized normal, a Gaussian for
+    shape 0 and a shifted, possibly reversed log-normal otherwise, so that a
+    detector's transit-time asymmetry has one parameter. Unit sum over `t`."""
+    u = (t - loc) / scale
+    if abs(shape) < 1e-12:
+        y = u; jac = np.ones_like(u)
+    else:
+        arg = 1.0 - shape * u
+        ok = arg > 0
+        y = np.where(ok, -np.log(np.where(ok, arg, 1.0)) / shape, np.inf)
+        jac = np.where(ok, 1.0 / np.where(ok, arg, 1.0), 0.0)
+    f = np.where(np.isfinite(y), np.exp(-0.5 * y * y) * jac, 0.0)
+    return f / max(f.sum(), 1e-300)
+
+
+def emg_pulse(t, loc, sigma, tau):
+    """An exponentially modified Gaussian: Gaussian timing jitter of width
+    `sigma` convolved with an exponential transit tail of time `tau` -- the
+    textbook single-photon detector response (Grushka, Anal. Chem. 44, 1733,
+    1972, for the closed form). Unit sum over `t`. Where the skewed Gaussian
+    could not follow a 0.26 ns rise against a 0.7 ns width, this can."""
+    from scipy.special import erfcx
+    tau = max(tau, 1e-6); sigma = max(sigma, 1e-6)
+    z = (sigma / tau - (t - loc) / sigma) / np.sqrt(2.0)
+    #: erfcx keeps the product finite where the plain exp overflows; far in
+    #: the Gaussian's own tail it still overflows harmlessly and is zeroed
+    with np.errstate(over='ignore', invalid='ignore'):
+        f = 0.5 / tau * np.exp(-0.5 * ((t - loc) / sigma) ** 2) * erfcx(z)
+    f = np.where(np.isfinite(f), f, 0.0)
+    return f / max(f.sum(), 1e-300)
+
+
+def peak_fit_response(h, dt, stop_after_peak=1.0, start_fraction=0.05, pre=8, pulse='gn'):
+    """chisurf's way with a contaminated water measurement (tpeulen, prompt
+    414): a skewed Gaussian fitted to the PEAK REGION only -- from where the
+    rise passes `start_fraction` of the peak to `stop_after_peak` ns after it --
+    where scattered laser light dominates and the dirt's fluorescence has not
+    yet had time to matter; the tail is then the fitted shape's own, not the
+    dirt's. Poisson maximum likelihood over (loc, scale, shape, amplitude,
+    flat) by scipy.optimize.minimize (Nelder-Mead from a moment start, then
+    BFGS), reported with the deviance per degree of freedom of the region so
+    that a shape the region rejects is visible."""
+    from scipy.optimize import minimize
+    h = np.asarray(h, float); n = len(h); t = np.arange(n) * dt
+    pk = int(np.argmax(h)); peak = h[pk]
+    a = pk
+    while a > 0 and h[a] > start_fraction * peak:
+        a -= 1
+    a = max(a - pre, 0)
+    b = min(pk + int(round(stop_after_peak / dt)) + 1, n)
+    tw, hw = t[a:b], h[a:b]
+    flat0 = max(float(np.median(h[max(a - 40, 0):a])) if a > 0 else 0.0, 1e-3)
+    def model_(q):
+        loc, lsc, shape, lamp, lflat = q
+        if pulse == 'emg':
+            #: (loc, log sigma, log tau, log amplitude, log flat)
+            return np.exp(lamp) * emg_pulse(tw, loc, np.exp(lsc), np.exp(shape)) + np.exp(lflat)
+        return np.exp(lamp) * generalized_normal(tw, loc, np.exp(lsc), shape) + np.exp(lflat)
+    def nll(q):
+        mu = np.maximum(model_(q), 1e-12)
+        return float((mu - hw * np.log(mu)).sum())
+    fw = max((h > peak / 2).sum() * dt / 2.355, dt)
+    q0 = np.array([pk * dt, np.log(fw), 0.0, np.log(max(hw.sum() - flat0 * len(hw), 1.0)), np.log(flat0)])
+    if pulse == 'emg':
+        q0 = np.array([pk * dt - 0.2, np.log(0.1), np.log(0.4), q0[3], q0[4]])
+    r = minimize(nll, q0, method='Nelder-Mead', options=dict(maxiter=4000, xatol=1e-6, fatol=1e-6))
+    r = minimize(nll, r.x, method='BFGS')
+    loc, lsc, shape, lamp, lflat = r.x
+    mu = np.maximum(model_(r.x), 1e-12)
+    dev = float(2.0 * (mu - hw + hw * np.log(np.maximum(hw, 1e-12) / mu)).sum())
+    dof = max(len(hw) - 5, 1)
+    resp = emg_pulse(t, loc, np.exp(lsc), np.exp(shape)) if pulse == 'emg' else generalized_normal(t, loc, np.exp(lsc), shape)
+    return dict(response=resp, loc=float(loc), scale=float(np.exp(lsc)),
+                shape=float(np.exp(shape) if pulse == 'emg' else shape), pulse=pulse,
+                amplitude=float(np.exp(lamp)), flat=float(np.exp(lflat)), window=(a, b),
+                dev=dev, dof=dof, dpd=dev / dof, peak_channel=pk)
+
+
 def model(loaded=None, n_coef=25, which='h20', verbose=True,
           samples=('D0', 'A0', 'DA'), detectors=None, irf='h20', rebin=False, growth=1.05,
-          rl_iterations=500, irf_conv_stop=None):
+          rl_iterations=500, irf_conv_stop=None, peak_stop=1.0, peak_pulse='gn'):
     """Everything the fit needs: the maps on this axis, the measured responses,
     the twelve histograms, and the graph.
 
@@ -585,6 +675,7 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
     """
     import torch
     irf_kind = irf                 # `irf` is rebound to the responses below
+    peak_fits = {}
     d = loaded or load()
     cal = d['cal']
     E, rel, spl, L = environment(n_coef=n_coef, verbose=verbose)
@@ -689,8 +780,22 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
             info[det] = dict(inf, source=f"Rh110 magic angle, {rl_iterations} Richardson-Lucy iterations at {TAU_RH110_NS} ns",
                              background_fraction=0.01)
         ref_dets = ()          # a measured response now, not a reference-dye one
+    elif irf_kind == 'peakfit':
+        #: chisurf's skewed Gaussian fitted to the water measurement's peak
+        #: region, per detector, on the pulse `responses()` selected for it;
+        #: the fitted shape over the water response's own support is the
+        #: response, its tail the shape's and not the dirt's
+        peak_fits = {}
+        for det in dets:
+            w = np.asarray(irf_h20[det], float)
+            pf = peak_fit_response(w, cal['dt'], stop_after_peak=peak_stop, pulse=peak_pulse)
+            f = np.where(w > 0, pf['response'], 0.0)
+            irf[det] = f * (w.sum() / max(f.sum(), 1e-300))
+            info[det] = dict(info[det], source=f"skewed Gaussian on the water peak (to {peak_stop:g} ns after it)",
+                             background_fraction=0.001, peak_fit=pf)
+            peak_fits[det] = pf
     elif irf_kind not in ('h20', 'analytic'):
-        raise ValueError(f"irf must be 'h20', 'rh110' or 'analytic', not {irf_kind!r}")
+        raise ValueError(f"irf must be 'h20', 'rh110', 'analytic' or 'peakfit', not {irf_kind!r}")
     keys, pairs = [], {}
     for samp in samples:
         for det in dets:
@@ -778,7 +883,7 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
     g.start_y = {k: y[k] * E['win_green'] for k in pairs}
     return dict(L=L, E=E, Ep=E, rel=rel, spl=spl, keys=keys, pairs=pairs, graph=g,
                 y=y, y_full=y_full, t=t_axis, masks=masks, irf=irf, irf_info=info, offset_channels=off,
-                irf_kind=irf_kind,
+                irf_kind=irf_kind, peak_fits=peak_fits,
                 irf_h20=irf_h20,
                 cal=cal, loaded=d, n=n, n_coef=n_coef,
                 bkg_medians=bkg_med, scale_medians=scale_med, irf_bg_medians=irf_bg_med)
