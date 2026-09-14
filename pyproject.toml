@@ -33,7 +33,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest", "scipy", "pandas", "mrcfile"]
+test = ["pytest", "scipy", "mrcfile"]
 # The accelerator, which this package deliberately does not carry itself.
 #
 # `libimp_bff_wgpu` -- a few hundred kilobytes, built here and shipped in the
