@@ -263,70 +263,6 @@ IMP::atom::Hierarchy read_pdb(const std::string& path, IMP::Model* model, IMP::a
   return IMP::atom::read_pdb(path, model, s);
 }
 
-// ---- label -------------------------------------------------------------------
-
-struct LabelArgs {
-  std::string pdb, chain = "A", dye, linker, output;
-  int residue = 0;
-};
-
-void run_label(const LabelArgs& a) {
-  IMP_NEW(IMP::Model, model, ());
-  std::string pdb_path, pdb_name;
-  if (file_exists(a.pdb)) {
-    pdb_path = a.pdb;
-    pdb_name = stem(pdb_path);
-  } else {
-    pdb_name = upper(a.pdb);
-    pdb_path = get_structure_dir(pdb_name + ".pdb");
-    if (!file_exists(pdb_path)) {
-      ensure_dir(get_structure_dir());
-      report_no_download(a.pdb, pdb_path);
-      throw SubExit(1);
-    }
-  }
-  IMP::atom::Hierarchy protein = read_pdb(pdb_path, model, new IMP::atom::NonWaterPDBSelector());
-  const std::pair<std::string, std::string> found = find_probe_structure(a.dye, a.linker);
-  if (found.first.empty()) {
-    std::cout << "Error: No structure found for " << a.dye << " "
-              << (a.linker.empty() ? std::string("None") : a.linker) << "\n";
-    throw SubExit(1);
-  }
-  std::cout << "Using: " << found.first << "\n";
-  IMP::atom::Hierarchy dye_hier;
-  if (found.second == "rmf") {
-    const ProbeRotamerLibrary lib = read_rotamer_library_rmf(found.first);
-    const std::string struct_stem = stem(found.first);
-    const std::string probe_id = struct_stem.substr(0, struct_stem.find('_'));
-    std::string base_pdb = find_probe_structure(probe_id, a.linker).first;
-    if (base_pdb.empty() || !ends_with(base_pdb, ".pdb")) {
-      base_pdb = join(rotamer_library_dir(), struct_stem + ".pdb");
-    }
-    if (file_exists(base_pdb)) {
-      dye_hier = read_pdb(base_pdb, model, new IMP::atom::AllPDBSelector());
-    } else {
-      dye_hier = IMP::atom::read_mol2(get_structure_dir("alexa488_r48.mol2"), model);
-    }
-    apply_coordinates(dye_hier, rotamer(lib, 0));
-  } else if (found.second == "pdb") {
-    dye_hier = read_pdb(found.first, model, new IMP::atom::AllPDBSelector());
-  } else {
-    dye_hier = IMP::atom::read_mol2(found.first, model);
-  }
-  attach_probes(protein, std::vector<ProbeAttachment>(1, ProbeAttachment(dye_hier, a.chain, a.residue)),
-                true);
-  IMP::atom::Hierarchy root = new_node(model, "root");
-  root.add_child(protein);
-  root.add_child(dye_hier);
-  const std::string output = a.output.empty()
-                                 ? format("output/test_systems/%s_%s_%d.pdb", pdb_name.c_str(),
-                                          a.dye.c_str(), a.residue)
-                                 : a.output;
-  make_parent_dir(output);
-  IMP::atom::write_pdb(root, output);
-  std::cout << "Saved to " << output << "\n";
-}
-
 // ---- build-lib ---------------------------------------------------------------
 
 struct BuildLibArgs {
@@ -785,21 +721,6 @@ void add_dye_subs(CLI::App& app) {
   CLI::App* group = app.add_subcommand("dye", R"doc(cgprobe: Coarse-Grained Probe Simulations in IMP.)doc");
   group->require_subcommand(1);
 
-  {
-    std::shared_ptr<dye::LabelArgs> a = std::make_shared<dye::LabelArgs>();
-    CLI::App* sub = group->add_subcommand("label", R"doc(Label a protein with a dye.)doc");
-    sub->add_option("pdb_id_or_path", a->pdb, "a PDB file, or a PDB id already in the structure directory")
-        ->required();
-    sub->add_option("--chain", a->chain, "Chain ID")->capture_default_str();
-    sub->add_option("--residue", a->residue, "Residue number")->required();
-    sub->add_option("--dye", a->dye, "Dye name")->required();
-    sub->add_option("--linker", a->linker, "Linker type");
-    sub->add_option("--output", a->output, "Output PDB path");
-    sub->callback([a] {
-      set_current_sub("dye label");
-      dye::run_label(*a);
-    });
-  }
   {
     std::shared_ptr<dye::BuildLibArgs> a = std::make_shared<dye::BuildLibArgs>();
     CLI::App* sub = group->add_subcommand("build-lib", R"doc(Batch generate rotamer libraries.)doc");

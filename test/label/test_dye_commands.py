@@ -105,26 +105,6 @@ def test_the_timestep_is_chosen_when_it_is_not_given(capfd, tmp_path):
 
 
 @needs_imp_layer
-def test_label_writes_a_labelled_structure(capfd, tmp_path):
-    out = tmp_path / "labelled.pdb"
-    code, output = dye(capfd,
-        "label", PDB, "--chain", "A", "--residue", "132",
-        "--dye", "alexa488", "--output", out)
-    assert code == 0, output
-    assert out.is_file()
-    assert out.stat().st_size > 0
-
-
-@needs_imp_layer
-def test_label_says_when_there_is_no_structure(capfd, tmp_path):
-    code, output = dye(capfd,
-        "label", PDB, "--residue", "132", "--dye", "nosuchdye",
-        "--output", tmp_path / "x.pdb")
-    assert code == 1
-    assert "No structure found for nosuchdye None" in output
-
-
-@needs_imp_layer
 def test_label_fusion_runs(capfd, tmp_path):
     """`sys.exit` in a module that never imported `sys` was a `NameError` on
     the way out, not an exit."""

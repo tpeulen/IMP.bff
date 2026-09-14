@@ -39,13 +39,6 @@ def test_cli_help(capfd):
     assert "label-fusion" in capfd.readouterr().out
 
 
-def test_cli_label_pdb(tmp_path):
-    out_pdb = tmp_path / "test_label.pdb"
-    assert dye("label", get_structure_dir("1DG3.pdb"), "--residue", "481",
-               "--dye", "Alexa488", "--linker", "C1R", "--output", out_pdb) == 0
-    assert out_pdb.exists()
-
-
 def test_cli_analyze_tc(kinetic_lib, capfd):
     if not kinetic_lib:
         pytest.skip("No kinetic library generated")
