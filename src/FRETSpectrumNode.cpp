@@ -112,6 +112,12 @@ void FRETSpectrumNode::evaluate() {
     spectrum_[2 * i + 1] = 1.0 / combined[2 * i + 1];
   }
   spectrum_node_detail::publish(this, spectrum_);
+  // The transfer rates themselves, `(p, k_FRET)` per distance, for a caller
+  // that composes species in rate space -- rates of a mixture add, lifetimes
+  // do not. Published only where a port asks for it.
+  if (const std::shared_ptr<GraphPort> rates = get_output_port("fret_rates")) {
+    rates->set_value_vector(fret_rates);
+  }
   set_valid(true);
 }
 

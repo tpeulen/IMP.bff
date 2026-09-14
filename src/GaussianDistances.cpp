@@ -2,6 +2,8 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 #include <IMP/bff/GaussianDistances.h>
+#include <IMP/bff/internal/DistanceAxis.h>
+#include <IMP/bff/internal/NodeConfig.h>
 #include "internal/SpectrumNodeHelpers.h"
 #include <IMP/bff/Distributions.h>
 #include <algorithm>
@@ -103,5 +105,20 @@ void GaussianDistances::evaluate() {
 }
 
 std::string GaussianDistances::get_node_type() const { return "GaussianDistances"; }
+
+void GaussianDistances::configure(const std::string& json_text) {
+  internal::NodeConfig config(get_node_type(), json_text);
+  const std::vector<double> axis =
+      internal::configured_distance_axis(config, "GaussianDistances '" + get_name() + "'");
+  if (!axis.empty()) set_axis(axis);
+  if (config.has("number_of_components")) {
+    set_number_of_components(config.get_int("number_of_components"));
+  }
+  if (config.has("distance_between_gaussians")) {
+    set_distance_between_gaussians(config.get_bool("distance_between_gaussians"));
+  }
+  config.apply_common(*this);
+  config.require_all_used();
+}
 
 IMPBFF_END_NAMESPACE

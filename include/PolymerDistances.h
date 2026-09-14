@@ -64,6 +64,9 @@ class IMPBFFEXPORT PolymerDistances : public GraphNode {
   void evaluate() override;
 
   std::string get_node_type() const override;
+  //! Settings: `mode`, `n_k`, and the axis as `axis` or `axis_range`
+  //! `[min, max, n]` with `axis_scale`.
+  void configure(const std::string& json_text) override;
 
  private:
   std::string mode_;

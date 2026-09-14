@@ -553,6 +553,7 @@ def get_session():
 %include "IMP_bff.photophysicsanisotropyspectrumnode.i"
 %include "IMP_bff.polymerdistances.i"
 %include "IMP_bff.gaussiandistances.i"
+%include "IMP_bff.discretedistances.i"
 %include "IMP_bff.fretspectrumnode.i"
 
 /*

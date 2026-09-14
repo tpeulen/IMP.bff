@@ -464,6 +464,10 @@ class IMPBFFEXPORT MultiStructureModelSearchProblem
                       const std::string& port_name);
   //! The stable port of a published output. \throws ModelSearchConfigurationError
   std::shared_ptr<GraphPort> get_output_port(const std::string& name) const;
+  //! A published output's values, evaluated now.
+  /*! Reading the port alone reads what it last held; this brings it up to
+      date first. \throws ModelSearchConfigurationError */
+  std::vector<double> get_output(const std::string& name);
   //! The names of the published outputs.
   std::vector<std::string> get_output_names() const;
   //! Keep the published output ports of `previous`, which this model replaces.
