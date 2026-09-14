@@ -160,8 +160,12 @@ IMPBFFEXPORT void add_labelizer_subs(CLI::App& app);
 IMPBFFEXPORT void add_fps_distance_subs(CLI::App& app);
 //! potentials2pto
 IMPBFFEXPORT void add_potentials_subs(CLI::App& app);
+//! rmsd
+IMPBFFEXPORT void add_rmsd_subs(CLI::App& app);
 
 #if IMPBFF_CLI_HAS_IMP_LAYER
+//! analyze-trajectories, av-vs-rotamer (IMP layer)
+IMPBFFEXPORT void add_analysis_subs(CLI::App& app);
 //! fps-av (IMP layer)
 IMPBFFEXPORT void add_fps_av_subs(CLI::App& app);
 //! fps score|dock|refine|screen|convert|project (IMP layer)

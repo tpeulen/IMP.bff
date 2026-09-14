@@ -1079,6 +1079,10 @@ IMP_SWIG_VALUE(IMP::bff, MfdbAttribution, MfdbAttributions);
    does the docking is the connection layer's, in layer.i). */
 %include "IMP_bff.dockingprecision.i"
 
+/* Axes, profiles and histograms read off trajectory frames (the array half of
+   `imp_bff analyze-trajectories`). */
+%include "IMP_bff.trajectoryanalysis.i"
+
 /* The particle picture of a tethered dye: the walk, the photons, the
    equilibrium, as kernels and as an object. */
 %include "IMP_bff.probediffusionsimulation.i"
