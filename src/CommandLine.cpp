@@ -297,15 +297,10 @@ const char* PY_PROGRAM = "imp_bff_py";
 const char* const FORWARDED[][2] = {
     {"flexfit", "Flexible fitting against FRET distances (runs imp_bff_py)."},
     {"rmsd", "RMSDs of an OLGA ol4 table to reference structures (runs imp_bff_py)."},
-    {"select-pairs", "Rank labelling pairs by information gain (runs imp_bff_py)."},
-    {"openmm", "Write OpenMM flat-bottom FRET restraints (runs imp_bff_py)."},
-    {"av-export", "Compute and write one accessible volume (runs imp_bff_py)."},
     {"dye", "Dye labelling, rotamer libraries and sampling (runs imp_bff_py)."},
-    {"rotamer", "Rotamer FRET prediction and Forster radii (runs imp_bff_py)."},
     {"av-vs-rotamer", "Compare AV and rotamer label models (runs imp_bff_py)."},
     {"analyze-trajectories", "Dye density analysis of trajectories (runs imp_bff_py)."},
     {"simulate", "Molecular probe simulation (runs imp_bff_py)."},
-    {"build-system", "Build a probe force-field system (runs imp_bff_py)."},
     {"dock", "Replica-exchange rigid-body docking (runs imp_bff_py)."},
     {"dock-errors", "Docking spread over independent starts (runs imp_bff_py)."},
 };
@@ -377,6 +372,7 @@ std::unique_ptr<CLI::App> build_app(std::shared_ptr<int> rc) {
   add_fps_subs(*app);
   add_fps_av_subs(*app);
   add_fps_export_subs(*app);
+  add_modelling_subs(*app);
 #endif
 
   for (std::size_t i = 0; i < sizeof(FORWARDED) / sizeof(FORWARDED[0]); ++i) {

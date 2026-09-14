@@ -15,9 +15,6 @@ Neither raised, warned or set a flag. The second had been pinned as reference
 data in four of the twelve `prd105_legacy_pins.json` cases.
 """
 import json
-import subprocess
-import sys
-from pathlib import Path
 
 import IMP
 import IMP.atom
@@ -27,7 +24,6 @@ import IMP.test
 import numpy as np
 
 PDB = IMP.bff.get_example_path("structure/T4L/3GUN.pdb")
-BIN = Path(__file__).resolve().parent.parent.parent / "bin"
 
 # FPS's standard linker geometry: every position in its shipped test data uses
 # a linker width of 4.5 A, which is exactly what used to come back empty.
@@ -180,14 +176,12 @@ class Tests(IMP.test.TestCase):
         of exactly half the CB coordinate, write a file whose first line was
         `0`, and exit 0.
         """
-        program = BIN / "imp_bff_py"
-        if not program.exists():
-            self.skipTest("bin/imp_bff_py not present")
         out = self.get_tmp_file_name("av_w45.xyz")
-        subprocess.check_call(
-            [sys.executable, str(program), "av-export", "-p", PDB, "-c", "A",
-             "-r", "132", "-a", "CB", "--linker-width", str(FPS_WIDTH),
-             "-o", out])
+        # the compiled command (src/imp/CommandLineModelling.cpp), through the
+        # dispatcher the executable's main calls
+        self.assertEqual(IMP.bff.command_line_main(
+            ["av-export", "-p", PDB, "-c", "A", "-r", "132", "-a", "CB",
+             "--linker-width", str(FPS_WIDTH), "-o", out]), 0)
         with open(out) as fh:
             self.assertGreater(int(fh.readline().strip()), 0)
 
