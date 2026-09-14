@@ -23,18 +23,31 @@ IMPBFF_BEGIN_NAMESPACE
     The node knows nothing about the curve: an equation of time, a
     simulated trace, any sampled model. It reads the vector input port
     `curve`, shifts the bound response by the scalar input `timeshift`
-    (channels; zero when the port is absent) and normalises it to unit sum --
+    (channels; zero when the port is absent), normalises it to unit sum --
     the same preparation every response-convolving node here uses -- and
-    writes the causal convolution `out[i] = sum_{j<=i} curve[j] * r[i-j]`,
-    truncated to the curve's length, to the output keyed by its own name.
-    The kernel is tttrlib's `convolve_causal_ad`.
+    writes the convolution, as long as the curve, to the output keyed by its
+    own name. How the convolution is cut to that length is the mode:
+
+    - `causal` (default): `out[i] = sum_{j<=i} curve[j] * r[i-j]` -- a
+      response that starts at the curve's start, as a single excitation sees
+      it; what the response carries past the last sample is dropped.
+    - `periodic`: the same, plus what spilled past the end of every earlier
+      excitation, repeated every #set_period samples (fractional periods are
+      interpolated) -- a repetitively excited measurement. The curve's own
+      periodicity is the curve's to carry.
+    - `centered`: the response centred on each sample,
+      `np.convolve(curve, r, "same")` -- a symmetric kernel smoothing a
+      spectrum or an image line, which has no time direction.
+
+    Kernels: tttrlib's `convolve_causal_ad`, `convolve_full_ad` and
+    `fold_periodic_ad`.
 
     What happens to the convolved curve next is another node's business: an
     instrument that scales it, adds background and corrects pile-up, a
     misfit that compares it. Kept apart so the convolution is written once.
 
-    Settings (#configure): `normalize_response` (default true). Datasets
-    (#bind_dataset): `response`.
+    Settings (#configure): `mode`, `period` (samples), `normalize_response`
+    (default true). Datasets (#bind_dataset): `response`.
 */
 class IMPBFFEXPORT Convolution : public GraphNode {
  public:
@@ -48,6 +61,16 @@ class IMPBFFEXPORT Convolution : public GraphNode {
   //! Whether the response is scaled to unit sum before convolving (default true).
   void set_normalize_response(bool v);
   bool get_normalize_response() const { return normalize_response_; }
+
+  //! How the convolution is cut to the curve's length: causal, periodic, centered.
+  /*! \throws std::domain_error for any other name. */
+  void set_mode(const std::string& mode);
+  const std::string& get_mode() const { return mode_; }
+
+  //! The repetition period in samples, used by the periodic mode.
+  /*! \throws std::domain_error unless positive and finite. */
+  void set_period(double samples);
+  double get_period() const { return period_; }
 
   //! The key of the input port carrying the curve.
   static const char* curve_port_key() { return "curve"; }
@@ -65,6 +88,9 @@ class IMPBFFEXPORT Convolution : public GraphNode {
   std::vector<double> prepared_;
   std::vector<double> out_;
   bool normalize_response_ = true;
+  std::string mode_ = "causal";
+  double period_ = 0.0;
+  std::vector<double> full_;
 };
 
 IMPBFF_END_NAMESPACE
