@@ -69,14 +69,16 @@ class IMPBFFEXPORT PolymerDistances : public GraphNode {
   /*! Row-major, `n_axis x n_params`: entry `[j * n_params + c]` is
       d p_j / d theta_c in #get_parameter_names order, of exactly what the
       node outputs (the #set_normalize_weights normalisation included), at the
-      ports' current values. By central differences with the step
-      `relative_step * max(|theta_c|, 1)`: a mode's two to five parameters make
-      that cheap, and with the default 1e-5 the difference to half the step is
-      below 1e-8 on ChiSurf's distance axis (pinned by the tests). Columns
-      whose parameter the weights do not depend on smoothly are 0: the Ising
-      residue count (rounded to an integer) and the linker width without the
-      linker. */
-  std::vector<double> get_weights_jacobian(double relative_step = 1e-5) const;
+      ports' current values. Exact: the kernels are written once for any
+      number type (internal/DistanceKernels.h) and evaluated here on
+      forward-mode dual numbers, so this is the derivative of the arithmetic
+      evaluate() performs -- the Ising chain's parameter-dependent k grid and
+      trapezoid included. At a branch (the worm-like chain's kappa = 0.125,
+      the Ising grid's max/min, a clamp to zero) it is the derivative of the
+      branch taken. The Ising residue count is rounded to an integer and its
+      column is 0; without the linker the linker width is not read and its
+      column is 0. */
+  std::vector<double> get_weights_jacobian() const;
   //! The parameter names of #get_weights_jacobian's columns, in order.
   std::vector<std::string> get_parameter_names() const;
 

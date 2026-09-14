@@ -151,7 +151,7 @@ POLYMERS = [
 
 @pytest.mark.parametrize("normalize", [False, True])
 @pytest.mark.parametrize("mode, values", POLYMERS)
-def test_polymer_weights_jacobian_is_stable_in_its_step(mode, values, normalize):
+def test_polymer_weights_jacobian_is_the_derivative_of_the_output(mode, values, normalize):
     node = bff.PolymerDistances("p")
     node.set_mode(mode)
     node.set_normalize_weights(normalize)
@@ -162,14 +162,29 @@ def test_polymer_weights_jacobian_is_stable_in_its_step(mode, values, normalize)
         assert weights.sum() == pytest.approx(1.0)
     names = list(node.get_parameter_names())
     assert names == list(values)
-    jacobian = np.asarray(node.get_weights_jacobian()).reshape(GRID.size, len(names))
-    half = np.asarray(node.get_weights_jacobian(0.5e-5)).reshape(GRID.size, len(names))
-    scale = max(np.abs(jacobian).max(), 1e-12)
-    assert np.abs(jacobian - half).max() < 1e-6 * scale + 1e-10
+    analytic = np.asarray(node.get_weights_jacobian()).reshape(GRID.size, len(names))
+    # The residue count is an integer and the linker width unread without the
+    # linker: their columns are 0 and are not differenced.
+    skip = {"n_residues"} | ({"sigma_linker"} if mode == "worm_like_chain" else set())
+    varied = [c for c, name in enumerate(names) if name not in skip]
+    for c, name in enumerate(names):
+        if name in skip:
+            assert not analytic[:, c].any()
+    # The best of several steps: truncation falls with the step and roundoff
+    # grows with it, and where they cross depends on the kernel.
+    references = [_richardson(node, "p", values, [names[c] for c in varied], step)
+                  for step in (3e-3, 1e-3, 3e-4, 1e-4)]
+    errors = [_worst(analytic[:, varied], reference) for reference in references]
+    best = int(np.argmin(errors))
+    # The Ising transform integrates an oscillating k sin(kR) phi(k) over 2000
+    # points, and its finite differences bottom out near 1e-7 in roundoff
+    # (smaller steps are worse, larger ones truncate); the other kernels'
+    # references converge to 1e-9 or better.
+    assert errors[best] < (5e-7 if mode == "ising_chain" else 1e-7)
+    planted = analytic[:, varied].copy()
+    j = int(np.argmax(np.abs(planted[:, 0])))
+    planted[j, 0] *= 1.0 + 1e-5
+    assert _worst(planted, references[best]) > 5e-6
     if normalize:
-        np.testing.assert_allclose(jacobian.sum(axis=0), 0.0, atol=1e-8 * scale + 1e-12)
-    if mode == "ising_chain":
-        assert not jacobian[:, 0].any()
-    if mode == "worm_like_chain":
-        assert not jacobian[:, 2].any()
-    assert np.abs(jacobian).max() > 0.0
+        scale = np.abs(analytic).max()
+        np.testing.assert_allclose(analytic.sum(axis=0), 0.0, atol=1e-10 * scale + 1e-14)

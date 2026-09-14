@@ -4,6 +4,7 @@
 #include <IMP/bff/PolymerDistances.h>
 #include <IMP/bff/internal/DistanceAxis.h>
 #include <IMP/bff/internal/NodeConfig.h>
+#include <IMP/bff/internal/DistanceKernels.h>
 #include "internal/SpectrumNodeHelpers.h"
 #include <IMP/bff/PolymerChain.h>
 #include <algorithm>
@@ -162,29 +163,44 @@ std::vector<std::string> PolymerDistances::get_parameter_names() const {
   return {};
 }
 
-std::vector<double> PolymerDistances::get_weights_jacobian(double relative_step) const {
-  if (!(relative_step > 0.0)) {
-    throw std::domain_error("PolymerDistances::get_weights_jacobian: a positive step");
+std::vector<double> PolymerDistances::get_weights_jacobian() const {
+  if (mode_.empty() || axis_.empty()) {
+    throw std::domain_error("PolymerDistances '" + get_name() +
+                            "' needs a mode and a distance axis");
   }
+  using internal::Dual;
   const std::vector<double> at = current_parameters();
   const std::size_t n = axis_.size();
   const std::size_t n_params = at.size();
-  std::vector<double> jacobian(n * n_params, 0.0);
-  const bool ising = mode_ == "ising_chain";
-  for (std::size_t c = 0; c < n_params; ++c) {
-    // The residue count is rounded to an integer: the weights are piecewise
-    // constant in it, and the derivative is 0 almost everywhere. Without the
-    // linker the linker width is not read at all.
-    if ((ising && c == 0) || (mode_ == "worm_like_chain" && c == 2)) continue;
-    const double h = relative_step * std::max(std::fabs(at[c]), 1.0);
-    std::vector<double> up = at, down = at;
-    up[c] += h;
-    down[c] -= h;
-    const std::vector<double> plus = weights_at(up);
-    const std::vector<double> minus = weights_at(down);
-    for (std::size_t j = 0; j < n; ++j) {
-      jacobian[j * n_params + c] = (plus[j] - minus[j]) / (2.0 * h);
+  std::vector<Dual> weights;
+  // The same kernels evaluate() uses, on dual numbers: the derivative of
+  // exactly that arithmetic, branches and normalisations included.
+  if (mode_ == "worm_like_chain" || mode_ == "worm_like_chain_linker") {
+    const Dual chain_length = Dual::variable(at[0], 0);
+    const Dual persistence_length = Dual::variable(at[1], 1);
+    if (!(at[0] > 0.0)) {
+      throw std::domain_error("PolymerDistances '" + get_name() +
+                              "': chain_length is not positive");
     }
+    const Dual kappa = persistence_length / chain_length;
+    weights = mode_ == "worm_like_chain"
+                  ? internal::worm_like_chain_t(axis_, kappa, chain_length, true, false)
+                  : internal::worm_like_chain_linker_t(axis_, kappa, chain_length,
+                                                       Dual::variable(at[2], 2), true);
+  } else if (mode_ == "saw_nu") {
+    weights = internal::saw_nu_t(axis_, Dual::variable(at[0], 0), Dual::variable(at[1], 1),
+                                 1.1615);
+  } else {
+    // The residue count is rounded to an integer: the weights are piecewise
+    // constant in it, and its column is 0.
+    weights = internal::ising_chain_t(axis_, static_cast<int>(std::lround(at[0])),
+                                      Dual::variable(at[1], 1), Dual::variable(at[2], 2),
+                                      Dual::variable(at[3], 3), Dual::variable(at[4], 4), n_k_);
+  }
+  if (normalize_weights_) internal::normalize_sum_t(weights);
+  std::vector<double> jacobian(n * n_params, 0.0);
+  for (std::size_t j = 0; j < n; ++j) {
+    for (std::size_t c = 0; c < n_params; ++c) jacobian[j * n_params + c] = weights[j].d[c];
   }
   return jacobian;
 }

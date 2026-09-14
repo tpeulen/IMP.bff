@@ -84,10 +84,12 @@ class IMPBFFEXPORT GaussianDistances : public GraphNode {
       d p_j / d theta_c with the parameters in #get_parameter_names order
       (`mean0, sigma0, shape0, amplitude0, mean1, ...`). It is the derivative
       of exactly what the node outputs, both normalisations included, at the
-      ports' current values, computed analytically. The node takes `|mean|`
-      and `|amplitude|`, so their columns carry `sign(x)`; the derivative is
-      undefined at 0. A generalized-normal argument clamped below 0 has no
-      derivative there and contributes 0. */
+      ports' current values. Exact: each component runs through the shared
+      kernel (internal/DistanceKernels.h) on forward-mode dual numbers, and
+      the mixture's normalisation is differentiated in closed form. The node
+      takes `|mean|` and `|amplitude|`, so their columns carry `sign(x)`; the
+      derivative is undefined at 0. A generalized-normal argument clamped
+      below 0 does not move with the parameters and contributes 0. */
   std::vector<double> get_weights_jacobian() const;
   //! The parameter names of #get_weights_jacobian's columns, in order.
   std::vector<std::string> get_parameter_names() const;
