@@ -572,7 +572,7 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
                 bkg_medians=bkg_med, scale_medians=scale_med, irf_bg_medians=irf_bg_med)
 
 
-def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=True):
+def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=False, fixed=None):
     """The Laplace posterior of the whole model on the twelve histograms.
 
     **Automatic differentiation, not the analytic Jacobian.** The hand-written
@@ -600,7 +600,15 @@ def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=True):
             th0[a:b] = m['graph'].index[nm].transform.to_unconstrained(L.tt([med]))
     m['theta_start'] = th0
     if accelerate:
-        #: ON, AND GATED THIS TIME AGAINST THE OBJECTIVE.
+        #: OFF AGAIN.  The pointwise gate (`fast_forward.gate`) passes at 1e-15,
+        #: and the WHOLE-FIT gate fails: the same fit -- g held at 0.9328, one
+        #: penalty node -- reaches D/dof 2.279 and converges on the prototype
+        #: path, 13.2 and does not converge on this one (2026-09-14). A gate at
+        #: points in parameter space says nothing about the scoring path, which
+        #: goes through `graph.inst.basis` and the Jacobian rather than through
+        #: `log_posterior`. Stays off until that gate passes too.
+        #:
+        #: What the pointwise gate DID establish, and is kept:
         #:
         #: It was off, because the accelerated log posterior differed from the
         #: prototype's by 590,000 nats and converged to a deviance per degree of
@@ -630,9 +638,17 @@ def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=True):
     #: `fit_sample`, which computes its own
     g = m['graph']
     tr = g.index['log10_lam'].transform
+    #: HOLD A CALIBRATION CONSTANT AT A MEASURED VALUE.  `g` and `r0_d` are two
+    #: handles on the same VV/VH ratio, and with both free no penalty node
+    #: converges on this measurement -- the optimiser walks between them.  The
+    #: reference dye measures `g` directly (Rh110 in water is depolarised within
+    #: a few hundred picoseconds, so VV/VH is the detection ratio and nothing
+    #: else), so pinning it there is using a measurement, not fixing a fit.
+    held = {k: g.index[k].transform.to_unconstrained(L.tt([float(v)]))
+            for k, v in (fixed or {}).items()}
     nodes, th_prev = {}, th0
     for lg in lam_nodes:
-        gi = g.with_fixed(log10_lam=tr.to_unconstrained(L.tt([float(lg)])))
+        gi = g.with_fixed(log10_lam=tr.to_unconstrained(L.tt([float(lg)])), **held)
         r = L.laplace_at(gi, gi.restrict(gi, th_prev), optimiser='fisher',
                          verbose=verbose, hessian='fisher')
         r['graph'] = gi; r['log10_lam'] = float(lg)
@@ -678,7 +694,7 @@ def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=True):
     post = dict(nodes[best])
     post.update(nodes=nodes, lam_nodes=[float(x) for x in lam_nodes], weights=w,
                 ev=ev, best_lam=best, evidence_available=bool(evidence_available),
-                converged_any=converged_any)
+                converged_any=converged_any, fixed=dict(fixed or {}))
     vals, _ = post['graph'].unpack(post['theta'])
     lam = post['graph'].expected_counts(vals)
     rows, dev, dof = L.rule0(post['graph'], m['y'], lam)
@@ -746,7 +762,9 @@ def nuisances(m, post, n_draw=4000, seed=0, exclude=NOT_NUISANCE):
             h = 1e-5 * max(abs(float(z[i])), 1.0)
             zp = z.clone(); zp[i] += h
             dxdz = float((v.transform.to_constrained(zp) - x0)[min(i, x0.numel() - 1)] / h)
-            sd_z = float(Sig[a + i, a + i]) ** 0.5
+            #: a fit that did not converge carries no covariance: the mode is
+            #: reported with no width rather than not at all
+            sd_z = float(Sig[a + i, a + i]) ** 0.5 if Sig is not None else float('nan')
             sd_x = abs(dxdz) * sd_z
             j = min(i, pri_sd.numel() - 1)
             ps = float(pri_sd[j])
