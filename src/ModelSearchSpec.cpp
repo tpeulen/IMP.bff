@@ -1191,6 +1191,18 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build()
     }
   }
 
+  // How much work one candidate's fit may do. MINPACK's 200 * (n + 1) is a
+  // convention for fitting n parameters once; a joint problem whose members
+  // share strongly coupled parameters converges more slowly than that allows,
+  // and a family knows its own difficulty better than the default does.
+  SpecJson::const_iterator budget_it = impl_->document.find("maxfev");
+  if (budget_it != impl_->document.end()) {
+    const double budget =
+        evaluate_rule(*budget_it, "the description 'maxfev'", scope);
+    if (!(budget > 0.0)) refuse("'maxfev' must be positive");
+    problem->set_minimizer_maxfev(static_cast<int>(budget));
+  }
+
   problem->set_initial_structure(
       require_string(impl_->document, "initial_structure", "the description"));
 

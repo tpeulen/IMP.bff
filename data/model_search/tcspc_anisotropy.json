@@ -12,6 +12,7 @@
   "dt",
   "period"
  ],
+ "maxfev": 60000,
  "axes": {
   "n": {
    "from": 1,

@@ -316,6 +316,14 @@ class IMPBFFEXPORT MultiStructureModelSearchProblem
                   const std::string& result_structure, double prior = 1.0,
                   bool terminal = false);
 
+  //! Bound the work each candidate's fit may do.
+  /*! Zero keeps FitMinimizer's own default of `200 * (n + 1)` residual
+      evaluations. A search runs one fit per candidate and may run many, so
+      being able to say how long any one of them is allowed to take is the
+      difference between a slow search and one that does not return. */
+  void set_minimizer_maxfev(int value);
+  int get_minimizer_maxfev() const;
+
   //! Carry a parent's fitted values into the parameters a child also frees.
   /*!
       Off by default, and that default is the important part.

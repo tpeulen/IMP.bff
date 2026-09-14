@@ -259,49 +259,43 @@ Whether the model recovers its parameters and whether the optimiser reaches
 them from generic seeds are different questions, and only the first belongs in
 a unit test while the second stays measured here at 3 of 7.
 
-## The joint anisotropy fit: diagnosed, and mostly fixed (2026-09-14)
+## The joint anisotropy fit: two defects, both fixed (2026-09-14)
 
-Four cross-platform CI rounds on `test_tcspc_anisotropy.py` turned "converges
-in 3 of 7 noise draws" into a specific defect, by way of one wrong diagnosis.
+"Converges in 3 of 7 noise draws" was never a hard optimisation problem. Four
+cross-platform CI rounds and two wrong diagnoses later, it was two defects,
+and with both fixed the family selects the generating topology in **7 of 7**.
 
-**The symptom.** The two-lifetime joint fit returned wildly different answers
-for changes it should absorb: -36.5 on macOS against -61058 on Linux for the
-same data, and -36.5 against -62134 on *one* machine when the simulated
-background moved from 0 to 5 counts.
+**Defect one: a parameter seeded on its own bound.** Every per-channel
+background was seeded at zero, which is also its lower bound, where the
+optimiser can only push inward. If the first step raises the intensity
+instead, the background stays pinned and `n0` absorbs it -- measured at 63719
+against a truth of 30000. A background cannot exceed the smallest thing
+measured, so a `min` statistic now seeds it off the bound. Recovered
+intensities went from 112% out in two of four backgrounds to within 1% in all
+four.
 
-**The wrong diagnosis.** The three per-channel backgrounds measured a
-sensitivity of 2.05e-11 against ~1e-5 for everything else, which looked like
-near-singular columns. It was an artifact of the probe: it stepped by
-`|v| * 1e-4`, those parameters sit at zero, so the step was the 1e-8 floor and
-the small response was the probe's own. Normalised by the step the columns are
-comparable. **A sensitivity measured with a step proportional to the value
-says nothing about a parameter whose value is zero.**
+**Defect two: a budget sized for the wrong problem.** MINPACK's
+`200 * (n + 1)` is a convention for fitting n parameters once. Three channels
+sharing one photophysics converge more slowly than that allows, so the fit
+stopped on the iteration count -- status 5 -- and the candidate rolled back to
+its parent. It was never diverging: given about twenty times the budget it
+reaches the same optimum the easy cases reach, in under a second. A family may
+now declare `maxfev`, and this one declares 60000.
 
-**The real one.** Reading the fitted parameters rather than probing them: with
-a background of 5 counts the fit returned backgrounds of exactly 0.000 --
-never moved -- and `instrument.vv.n0` of 63719 against a truth of 30000, which
-is the intensity absorbing the background it could not fit. Every background
-was *seeded on its own lower bound of zero*, where the optimiser can only push
-it inward, and if the first step raises the intensity instead the background
-stays pinned for good. It is the classic initialised-at-a-bound pathology, and
-the earlier instinct was right even though the measurement behind it was not.
+**Two wrong diagnoses, both worth keeping.** The first blamed near-singular
+Jacobian columns, on a measured sensitivity of 2.05e-11 against ~1e-5. That
+was the probe, not the model: it stepped by `|v| * 1e-4` against parameters
+sitting at zero, so it measured its own 1e-8 floor. *A sensitivity measured
+with a step proportional to the value says nothing about a parameter whose
+value is zero.* The second called it divergence; the fitted parameters said
+otherwise, and reading them rather than probing them is what finally settled
+it.
 
-**The fix.** A background is bounded above by the smallest thing measured, so
-the data's minimum is both a real estimate and off the bound. A `min`
-statistic joins the others, and `tcspc_lifetime` and `tcspc_anisotropy` seed
-their backgrounds from it. Across backgrounds of 0, 5, 20 and 50 counts the
-recovered intensity is now within 1% in every case, against 112% out in two of
-four before.
-
-**What is left.** At low background the two-lifetime fit still fails to
-converge and rolls back to its parent rather than returning a wrong answer --
-better behaviour, and still not a fit. The catastrophic case is gone; the
-family is not yet dependable enough for a test to assert what fitting it
-returns, and none does.
-
-**Worth keeping.** A free parameter seeded exactly on its bound is a defect
-wherever it appears. The shipped families were audited for it and these three
-were the only cases.
+**What this cost in tests.** Four assertions were written and removed over
+four CI rounds, each hostage to the broken fit. The strongest of them --
+recovery of the shared photophysics and the per-channel intensities from
+Poisson-sampled curves -- is now restored and passing, which is the right
+order: fix the fit, then let the test say what it wanted to say.
 
 ## What follows
 

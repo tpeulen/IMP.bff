@@ -160,20 +160,39 @@ def test_the_joint_graph_computes_what_the_family_says_it_does():
         assert predicted == pytest.approx(curves[channel], rel=1e-9), channel
 
 
-# There is deliberately no test here that asserts anything about the *outcome*
-# of fitting this family. Four were written and all four failed on Linux while
-# passing on macOS: recovery from noisy curves, recovery from clean curves,
-# and finally the weakest claim available -- that adding a lifetime improves
-# on its starting point. That one failed with the root at -237.4 and the child
-# at -61058, where the same run here gives the child -36.5.
-#
-# The two-lifetime joint fit is unstable, and not only across platforms:
-# changing the simulated background from 0 to 5 counts, which should be
-# harmless, moves the child from -36.5 to -62134 on this machine. So the fit
-# diverges under perturbations it ought to absorb, and no assertion about what
-# it returns can be honest yet.
-#
-# The wiring is tested above, at truth, without an optimiser. The instability
-# is recorded in okf/validation/model-search-strategy.md as the open problem
-# it is. When it is fixed, the assertion to restore is the strongest of the
-# four, not the weakest.
+def test_the_search_recovers_the_model_from_noisy_channels():
+    """The strongest of the four assertions this file has carried, restored.
+
+    Three were removed over four CI rounds because they were hostage to a fit
+    that did not converge: recovery from noisy curves, recovery from clean
+    ones, and finally the weakest claim available, that adding a lifetime
+    beats not adding it. The cause was two defects rather than a hard
+    optimisation -- backgrounds seeded on their own lower bound, and a
+    minimiser budget sized for fitting one model rather than three coupled
+    ones. With both fixed the family selects the generating topology on seven
+    noise draws of seven, so the first assertion is the one that comes back.
+    """
+    curves = _simulate()
+    rng = np.random.default_rng(29)
+    noisy = {c: rng.poisson(np.maximum(curves[c], 0)).astype(float) for c in CHANNELS}
+    problem = _spec(noisy).build()
+
+    config = bff.ModelSearchConfig()
+    config.set_number_of_simulations(40)
+    config.set_dirichlet_fraction(0.0)
+    config.set_seed(3)
+    search = bff.ModelSearch(problem)
+    search.set_config(config)
+    result = search.run()
+
+    # Two lifetimes and one rotation is what made the curves.
+    assert result.get_best_state().get_structure_key() == GENERATING
+    # The photophysics is shared, so one value satisfies three channels.
+    assert problem.get_parameter("anisotropy.r0").value == pytest.approx(
+        TRUTH["anisotropy.r0"], rel=0.1
+    )
+    # The intensities are per channel, and nothing told the fit them.
+    for channel, expected in (("vv", 30000.0), ("vh", 20000.0), ("vm", 25000.0)):
+        assert problem.get_parameter(f"instrument.{channel}.n0").value == pytest.approx(
+            expected, rel=0.05
+        ), channel

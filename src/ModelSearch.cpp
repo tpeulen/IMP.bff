@@ -719,6 +719,7 @@ struct MultiStructureModelSearchProblem::Impl {
   //! See MultiStructureModelSearchProblem::set_warm_start; off by default so
   //! a candidate's score belongs to the candidate.
   bool warm_start = false;
+  int maxfev = 0;
   std::atomic<bool> cancelled;
   int last_status = 0;
   std::string last_failure;
@@ -1103,6 +1104,14 @@ void MultiStructureModelSearchProblem::add_structure_node(
   selected.graph_nodes.push_back(std::move(node));
 }
 
+void MultiStructureModelSearchProblem::set_minimizer_maxfev(int value) {
+  impl_->maxfev = value;
+}
+
+int MultiStructureModelSearchProblem::get_minimizer_maxfev() const {
+  return impl_->maxfev;
+}
+
 void MultiStructureModelSearchProblem::set_warm_start(bool value) {
   impl_->warm_start = value;
 }
@@ -1270,6 +1279,7 @@ ModelSearchState MultiStructureModelSearchProblem::get_initial_state() {
         }
         FitMinimizer minimizer;
         minimizer.set_parameter_ports(free_ports);
+        if (impl_->maxfev > 0) minimizer.set_maxfev(impl_->maxfev);
         minimizer.set_objective(selected.objective, selected.residual_key);
         impl_->last_status = minimizer.run();
         if (impl_->last_status < 1 || impl_->last_status > 4) {
@@ -1381,6 +1391,7 @@ ModelSearchState MultiStructureModelSearchProblem::evaluate(
         }
         FitMinimizer minimizer;
         minimizer.set_parameter_ports(free_ports);
+        if (impl_->maxfev > 0) minimizer.set_maxfev(impl_->maxfev);
         minimizer.set_objective(target.objective, target.residual_key);
         IMP::Pointer<FitSearchCancelObserver> observer(
             new FitSearchCancelObserver(&impl_->cancelled));
