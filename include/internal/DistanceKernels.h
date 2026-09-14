@@ -9,7 +9,11 @@
 #define IMPBFF_INTERNAL_DISTANCE_KERNELS_H
 
 #include <IMP/bff/bff_config.h>
-#include <IMP/bff/internal/ForwardDual.h>
+#include <IMP/bff/internal/Dual.h>
+#include <IMP/bff/internal/GradVec.h>
+
+#include <boost/math/special_functions/bessel.hpp>
+#include <boost/math/special_functions/digamma.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -17,6 +21,44 @@
 
 IMPBFF_BEGIN_NAMESPACE
 namespace internal {
+
+using tttrlib::ad_value;
+using tttrlib::Dual;
+
+/*  What the kernels need beyond tttrlib's Dual.h: the special functions are
+    bff's (SpecialFunctions.h), so their dual forms live beside them here. */
+
+//! Modified Bessel function I0, even: I0'(x) = I1(x).
+inline double bessel_i0(double x) { return boost::math::cyl_bessel_i(0, std::fabs(x)); }
+template <typename G>
+inline Dual<G> bessel_i0(const Dual<G>& a) {
+  // I1 is odd, so the sign of x carries into the slope.
+  const double i1 = boost::math::cyl_bessel_i(1, std::fabs(a.val));
+  Dual<G> r(bessel_i0(a.val), a.grad);
+  r.grad *= a.val < 0.0 ? -i1 : i1;
+  return r;
+}
+
+//! The gamma function: Gamma'(x) = Gamma(x) psi(x).
+inline double gamma_function(double x) { return std::tgamma(x); }
+template <typename G>
+inline Dual<G> gamma_function(const Dual<G>& a) {
+  const double g = std::tgamma(a.val);
+  Dual<G> r(g, a.grad);
+  r.grad *= g * boost::math::digamma(a.val);
+  return r;
+}
+
+//! `a^b` for a variable exponent: std::pow for double, exp(b log a) on duals.
+inline double power(double a, double b) { return std::pow(a, b); }
+template <typename G>
+inline Dual<G> power(const Dual<G>& a, const Dual<G>& b) { return exp(b * log(a)); }
+template <typename G>
+inline Dual<G> power(double a, const Dual<G>& b) { return exp(b * std::log(a)); }
+
+inline bool is_finite(double v) { return std::isfinite(v); }
+template <typename G>
+inline bool is_finite(const Dual<G>& v) { return std::isfinite(v.val); }
 
 /*  The kernels behind PolymerChain.h and the Gaussian-cloud distance of
     Distributions.h, templated on the number type of their parameters.
@@ -29,7 +71,7 @@ template <typename T>
 inline void normalize_sum_t(std::vector<T>& y) {
   T total(0.0);
   for (const T& v : y) total += v;
-  if (value_of(total) > 0.0) {
+  if (ad_value(total) > 0.0) {
     for (T& v : y) v /= total;
   }
 }
@@ -41,7 +83,7 @@ inline std::vector<T> normal_density_t(const std::vector<X>& x, const L& loc,
   using std::exp;
   using std::sqrt;
   std::vector<T> y(x.size(), T(0.0));
-  if (value_of(scale) == 0.0) return y;
+  if (ad_value(scale) == 0.0) return y;
   const T a = T(1.0) / (T(std::sqrt(2.0 * M_PI)) * scale);
   const T two_s2 = T(2.0) * scale * scale;
   for (std::size_t i = 0; i < x.size(); ++i) {
@@ -67,17 +109,19 @@ inline double generalized_normal_z(double x, double loc, double scale, double sh
   if (t < 0.0) t = tiny;
   return -std::log(t) / shape;
 }
-inline Dual generalized_normal_z(double x, const Dual& loc, const Dual& scale, const Dual& shape) {
-  const Dual t = (Dual(x) - loc) / scale;
-  const Dual u = shape * t;
-  if (std::fabs(u.v) < 1e-3) {
-    return t * (Dual(1.0) + u * (Dual(0.5) + u * (Dual(1.0 / 3.0) + u * Dual(0.25))));
+template <typename G>
+inline Dual<G> generalized_normal_z(double x, const Dual<G>& loc, const Dual<G>& scale,
+                                   const Dual<G>& shape) {
+  const Dual<G> t = (Dual<G>(x) - loc) / scale;
+  const Dual<G> u = shape * t;
+  if (std::fabs(u.val) < 1e-3) {
+    return t * (1.0 + u * (0.5 + u * (1.0 / 3.0 + u * 0.25)));
   }
-  if (1.0 - u.v < 0.0) {
+  if (1.0 - u.val < 0.0) {
     // Clamped: the value does not move with the parameters.
-    return Dual(-std::log(std::nextafter(1.0, 2.0) - 1.0) / shape.v);
+    return Dual<G>(-std::log(std::nextafter(1.0, 2.0) - 1.0) / shape.val);
   }
-  return -log(Dual(1.0) - u) / shape;
+  return -log(1.0 - u) / shape;
 }
 
 //! The generalized normal (a normal for `shape == 0`) at `x`; see Distributions.h.
@@ -85,7 +129,7 @@ template <typename T>
 inline std::vector<T> generalized_normal_density_t(const std::vector<double>& x, const T& loc,
                                                    const T& scale, const T& shape, bool norm) {
   std::vector<T> n(x.size(), T(0.0));
-  if (value_of(scale) == 0.0) return n;
+  if (ad_value(scale) == 0.0) return n;
   // The *standard* normal at z: loc and scale are folded into the transform.
   std::vector<T> z(x.size());
   for (std::size_t i = 0; i < x.size(); ++i) z[i] = generalized_normal_z(x[i], loc, scale, shape);
@@ -99,8 +143,8 @@ template <typename T, typename S>
 inline std::vector<T> distance_between_gaussian_t(const std::vector<double>& distances,
                                                   const S& separation, const T& sigma) {
   std::vector<T> pr(distances.size(), T(0.0));
-  if (value_of(sigma) != 0.0) {
-    if (value_of(separation) > 0.0) {
+  if (ad_value(sigma) != 0.0) {
+    if (ad_value(separation) > 0.0) {
       const std::vector<T> a = normal_density_t(distances, separation, sigma);
       const std::vector<T> b = normal_density_t(distances, -separation, sigma);
       for (std::size_t i = 0; i < distances.size(); ++i) {
@@ -126,10 +170,10 @@ inline std::vector<T> worm_like_chain_t(const std::vector<double>& distances, co
   using std::pow;
   std::vector<T> pr(distances.size(), T(0.0));
   if (distances.empty()) return pr;
-  if (value_of(chain_length) == 0.0) {
+  if (ad_value(chain_length) == 0.0) {
     chain_length = T(*std::max_element(distances.begin(), distances.end()));
   }
-  if (value_of(chain_length) == 0.0) return pr;
+  if (ad_value(chain_length) == 0.0) return pr;
 
   const double a = 14.054;
   const double b = 0.473;
@@ -137,7 +181,7 @@ inline std::vector<T> worm_like_chain_t(const std::vector<double>& distances, co
   // The branch is the paper's: below kappa = 0.125 the correction is linear,
   // above it the fitted form takes over. Written with `exp(0.783*log(x))`
   // rather than `pow(x, 0.783)`, term for term as the paper writes it.
-  const T d = (value_of(kappa) < 0.125)
+  const T d = (ad_value(kappa) < 0.125)
                   ? kappa + T(1.0)
                   : T(1.0) - T(1.0) / (T(0.177) / (kappa - T(0.111)) +
                                        T(6.4) * exp(T(0.783) * log(kappa - T(0.111))));
@@ -148,7 +192,7 @@ inline std::vector<T> worm_like_chain_t(const std::vector<double>& distances, co
   // mask, and on an unsorted axis the two differ. Reproduce the prefix.
   std::size_t limit = distances.size();
   for (std::size_t i = 0; i < distances.size(); ++i) {
-    if (distances[i] >= value_of(chain_length)) { limit = i; break; }
+    if (distances[i] >= ad_value(chain_length)) { limit = i; break; }
   }
 
   for (std::size_t i = 0; i < limit; ++i) {
@@ -183,11 +227,11 @@ inline std::vector<T> worm_like_chain_linker_t(const std::vector<double>& distan
                                                const T& kappa, const T& chain_length,
                                                const T& sigma, bool normalize) {
   std::vector<T> pn(distances.size(), T(0.0));
-  if (value_of(sigma) != 0.0) {
+  if (ad_value(sigma) != 0.0) {
     const std::vector<T> pr =
         worm_like_chain_t(distances, kappa, chain_length, normalize, false);
     for (std::size_t i = 0; i < distances.size(); ++i) {
-      if (value_of(pr[i]) == 0.0) continue;
+      if (ad_value(pr[i]) == 0.0) continue;
       const std::vector<T> broad = distance_between_gaussian_t(distances, distances[i], sigma);
       for (std::size_t j = 0; j < pn.size(); ++j) pn[j] += pr[i] * broad[j];
     }
@@ -201,11 +245,10 @@ template <typename T>
 inline std::vector<T> saw_nu_t(const std::vector<double>& distances, const T& r_rms,
                                const T& nu, double gamma_exp) {
   using std::exp;
-  using std::isfinite;
   using std::pow;
   using std::sqrt;
   std::vector<T> pr(distances.size(), T(0.0));
-  if (!(value_of(nu) > 0.0 && value_of(nu) < 1.0) || value_of(r_rms) <= 0.0) return pr;
+  if (!(ad_value(nu) > 0.0 && ad_value(nu) < 1.0) || ad_value(r_rms) <= 0.0) return pr;
   const T theta = T(gamma_exp - 1.0) / nu;
   const T delta = T(1.0) / (T(1.0) - nu);
   // <r^2> = r0^2 Gamma((5+theta)/delta) / Gamma((3+theta)/delta), which fixes
@@ -213,12 +256,12 @@ inline std::vector<T> saw_nu_t(const std::vector<double>& distances, const T& r_
   const T ratio = gamma_function((T(5.0) + theta) / delta) /
                   gamma_function((T(3.0) + theta) / delta);
   const T r0 = r_rms / sqrt(ratio);
-  const T norm = delta / (pow(r0, T(3.0) + theta) * gamma_function((T(3.0) + theta) / delta));
+  const T norm = delta / (power(r0, T(3.0) + theta) * gamma_function((T(3.0) + theta) / delta));
   for (std::size_t i = 0; i < distances.size(); ++i) {
     const double r = distances[i];
-    const T value = norm * pow(r, T(2.0) + theta) * exp(-pow(T(r) / r0, delta));
+    const T value = norm * power(r, T(2.0) + theta) * exp(-power(T(r) / r0, delta));
     // Non-finite values (an overflow at large r/r0) are squashed to zero.
-    pr[i] = isfinite(value) ? value : T(0.0);
+    pr[i] = is_finite(value) ? value : T(0.0);
   }
   return pr;
 }
@@ -229,7 +272,6 @@ inline std::vector<T> ising_chain_t(const std::vector<double>& distances, int nu
                                     const T& b_structured, const T& b_unstructured,
                                     const T& coupling, const T& field, int n_k) {
   using std::exp;
-  using std::isfinite;
   using std::sin;
   using std::sqrt;
   const std::size_t n_r = distances.size();
@@ -252,10 +294,10 @@ inline std::vector<T> ising_chain_t(const std::vector<double>& distances, int nu
   // variance sets -- the stiffest state is the one still oscillating when the
   // other has died away.
   const double r_max = *std::max_element(distances.begin(), distances.end());
-  const T smallest = value_of(vS) < value_of(vU) ? vS : vU;
+  const T smallest = ad_value(vS) < ad_value(vU) ? vS : vU;
   T scale = sqrt(smallest * T(static_cast<double>(n)));
-  if (value_of(scale) < r_max / n) scale = T(r_max / n);
-  if (value_of(scale) < 1e-6) scale = T(1e-6);
+  if (ad_value(scale) < r_max / n) scale = T(r_max / n);
+  if (ad_value(scale) < 1e-6) scale = T(1e-6);
   const double k_min = 1e-6;
   const T k_max = T(30.0) / scale;
   const T step = (k_max - T(k_min)) / T(static_cast<double>(n_k - 1));
@@ -281,7 +323,7 @@ inline std::vector<T> ising_chain_t(const std::vector<double>& distances, int nu
     phi[j] = v0 + v1;
   }
   const T phi0 = phi[0];
-  if (value_of(phi0) != 0.0) {
+  if (ad_value(phi0) != 0.0) {
     for (int j = 0; j < n_k; ++j) phi[j] /= phi0;
   }
 
@@ -298,14 +340,14 @@ inline std::vector<T> ising_chain_t(const std::vector<double>& distances, int nu
     const T value = T(2.0 * r / M_PI) * integral;
     // A non-finite phi must not poison the normalisation; a negative lobe of
     // the transform is a truncation artefact, not a probability.
-    pr[i] = (isfinite(value) && value_of(value) > 0.0) ? value : T(0.0);
+    pr[i] = (is_finite(value) && ad_value(value) > 0.0) ? value : T(0.0);
   }
 
   T area(0.0);
   for (std::size_t i = 1; i < n_r; ++i) {
     area += T(0.5) * (pr[i] + pr[i - 1]) * T(distances[i] - distances[i - 1]);
   }
-  if (value_of(area) > 0.0) {
+  if (ad_value(area) > 0.0) {
     for (std::size_t i = 0; i < n_r; ++i) pr[i] /= area;
   }
   return pr;

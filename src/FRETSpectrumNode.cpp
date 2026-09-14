@@ -245,38 +245,40 @@ std::vector<double> FRETSpectrumNode::transfer_rates(
 
   // By apparent distance: a pair transfers at the rate of distance
   // r (<k2>/k2)^(1/6) under <k2>, so histogramming apparent distances keeps
-  // each pair's rate to within its bin. Linear bins over the pairs' range;
-  // every bin is kept, so the length of the result does not depend on the
-  // parameters.
+  // each pair's rate to within its bin. That histogram is every distance
+  // times every ratio, which is outer_product_histogram's. Linear bins over
+  // the products' range; every bin is kept, so the length of the result does
+  // not depend on the parameters.
   if (!(k2_mean > 0.0)) {
     throw std::domain_error("FRETSpectrumNode '" + get_name() + "': <kappa^2> is not positive");
   }
-  std::vector<double> apparent;
-  std::vector<double> weight;
-  double lo = std::numeric_limits<double>::infinity(), hi = 0.0;
+  std::vector<double> r(n_distances), p(n_distances), ratio, ratio_mass;
   for (std::size_t i = 0; i < n_distances; ++i) {
-    for (std::size_t k = 0; k < k2.size(); ++k) {
-      const double w = distances[2 * i] * mass[k];
-      if (w == 0.0 || !(k2[k] > 0.0)) continue;
-      const double r = distances[2 * i + 1] * std::pow(k2_mean / k2[k], 1.0 / 6.0);
-      apparent.push_back(r);
-      weight.push_back(w);
-      lo = std::min(lo, r);
-      hi = std::max(hi, r);
-    }
+    p[i] = distances[2 * i];
+    r[i] = distances[2 * i + 1];
+  }
+  for (std::size_t k = 0; k < k2.size(); ++k) {
+    if (!(k2[k] > 0.0) || mass[k] == 0.0) continue;
+    ratio.push_back(std::pow(k2_mean / k2[k], 1.0 / 6.0));
+    ratio_mass.push_back(mass[k]);
   }
   const std::size_t n_bins = static_cast<std::size_t>(kappa2_bins_);
   std::vector<double> rates(2 * n_bins, 0.0);
-  if (apparent.empty()) return rates;
-  if (!(hi > lo)) hi = lo * (1.0 + 1e-12) + 1e-12;
-  const double width = (hi - lo) / static_cast<double>(n_bins);
-  for (std::size_t b = 0; b < n_bins; ++b) {
-    rates[2 * b + 1] = rate(lo + (b + 0.5) * width, k2_mean);
+  if (ratio.empty() || r.empty()) return rates;
+  double lo = *std::min_element(r.begin(), r.end()) *
+              *std::min_element(ratio.begin(), ratio.end());
+  double hi = *std::max_element(r.begin(), r.end()) *
+              *std::max_element(ratio.begin(), ratio.end());
+  if (!(hi > lo)) {
+    lo -= 0.5;
+    hi += 0.5;
   }
-  for (std::size_t p = 0; p < apparent.size(); ++p) {
-    std::size_t b = static_cast<std::size_t>((apparent[p] - lo) / width);
-    if (b >= n_bins) b = n_bins - 1;
-    rates[2 * b] += weight[p];
+  const std::vector<double> hist =
+      outer_product_histogram(r, p, ratio, ratio_mass, kappa2_bins_, lo, hi);
+  const double width = (hi - lo) / static_cast<double>(n_bins);
+  for (std::size_t bin = 0; bin < n_bins; ++bin) {
+    rates[2 * bin] = hist[bin];
+    rates[2 * bin + 1] = rate(lo + (bin + 0.5) * width, k2_mean);
   }
   return rates;
 }

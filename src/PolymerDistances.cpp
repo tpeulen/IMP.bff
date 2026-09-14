@@ -168,7 +168,8 @@ std::vector<double> PolymerDistances::get_weights_jacobian() const {
     throw std::domain_error("PolymerDistances '" + get_name() +
                             "' needs a mode and a distance axis");
   }
-  using internal::Dual;
+  using G = tttrlib::GradVec<5>;
+  using Dual = internal::Dual<G>;
   const std::vector<double> at = current_parameters();
   const std::size_t n = axis_.size();
   const std::size_t n_params = at.size();
@@ -176,8 +177,8 @@ std::vector<double> PolymerDistances::get_weights_jacobian() const {
   // The same kernels evaluate() uses, on dual numbers: the derivative of
   // exactly that arithmetic, branches and normalisations included.
   if (mode_ == "worm_like_chain" || mode_ == "worm_like_chain_linker") {
-    const Dual chain_length = Dual::variable(at[0], 0);
-    const Dual persistence_length = Dual::variable(at[1], 1);
+    const Dual chain_length = Dual::variable(at[0], G::Unit(0));
+    const Dual persistence_length = Dual::variable(at[1], G::Unit(1));
     if (!(at[0] > 0.0)) {
       throw std::domain_error("PolymerDistances '" + get_name() +
                               "': chain_length is not positive");
@@ -186,21 +187,21 @@ std::vector<double> PolymerDistances::get_weights_jacobian() const {
     weights = mode_ == "worm_like_chain"
                   ? internal::worm_like_chain_t(axis_, kappa, chain_length, true, false)
                   : internal::worm_like_chain_linker_t(axis_, kappa, chain_length,
-                                                       Dual::variable(at[2], 2), true);
+                                                       Dual::variable(at[2], G::Unit(2)), true);
   } else if (mode_ == "saw_nu") {
-    weights = internal::saw_nu_t(axis_, Dual::variable(at[0], 0), Dual::variable(at[1], 1),
+    weights = internal::saw_nu_t(axis_, Dual::variable(at[0], G::Unit(0)), Dual::variable(at[1], G::Unit(1)),
                                  1.1615);
   } else {
     // The residue count is rounded to an integer: the weights are piecewise
     // constant in it, and its column is 0.
     weights = internal::ising_chain_t(axis_, static_cast<int>(std::lround(at[0])),
-                                      Dual::variable(at[1], 1), Dual::variable(at[2], 2),
-                                      Dual::variable(at[3], 3), Dual::variable(at[4], 4), n_k_);
+                                      Dual::variable(at[1], G::Unit(1)), Dual::variable(at[2], G::Unit(2)),
+                                      Dual::variable(at[3], G::Unit(3)), Dual::variable(at[4], G::Unit(4)), n_k_);
   }
   if (normalize_weights_) internal::normalize_sum_t(weights);
   std::vector<double> jacobian(n * n_params, 0.0);
   for (std::size_t j = 0; j < n; ++j) {
-    for (std::size_t c = 0; c < n_params; ++c) jacobian[j * n_params + c] = weights[j].d[c];
+    for (std::size_t c = 0; c < n_params; ++c) jacobian[j * n_params + c] = weights[j].grad[static_cast<int>(c)];
   }
   return jacobian;
 }

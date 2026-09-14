@@ -45,6 +45,7 @@ class Tests(IMP.test.TestCase):
     # its own header that it was "kept in step", nothing checked that it was.
     VENDORED = {
         "Dual.h": ("math",),
+        "GradVec.h": ("math",),
         "MlpCore.h": ("math",),
         "LatticeDiffusion.h": ("math",),
         "DecayConvolution.h": ("spectroscopy", "decay"),
