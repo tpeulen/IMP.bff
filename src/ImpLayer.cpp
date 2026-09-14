@@ -23,6 +23,8 @@
 #include "imp/CommandLineFpsExport.cpp"
 #include "imp/CommandLineModelling.cpp"
 #include "imp/CommandLineDye.cpp"
+#include "imp/CommandLineSimulate.cpp"
+#include "imp/ProbeSystemSimulation.cpp"
 #include "imp/IMPAlgebraBridge.cpp"
 #include "imp/ProbeAccessibleVolumeMeanDistanceRestraint.cpp"
 #include "imp/ProbeAccessibleVolumeOccupancyMap.cpp"
