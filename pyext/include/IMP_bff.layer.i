@@ -51,6 +51,12 @@
    the accessible-surface kernels it composes and the residue types it reads. */
 %include "IMP_bff.probepotentialrestraints.i"
 
+/* Where a probe went over a trajectory, and an AV beside a rotamer ensemble
+   of the same site: the kernels of `imp_bff analyze-trajectories` and
+   `imp_bff av-vs-rotamer`. */
+%include "IMP_bff.probetrajectorydensity.i"
+%include "IMP_bff.probemodelcomparison.i"
+
 /* The connection layer's Hierarchy and Particle overloads of core functions,
    last: they return the core's values and take the core's lattice. */
 %include "IMP_bff.hierarchybridge.i"
