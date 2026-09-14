@@ -30,11 +30,6 @@ def dye(imp_bff_program):
     return imp_bff_program.dye
 
 
-@pytest.fixture(scope="module")
-def rotamer(imp_bff_program):
-    return imp_bff_program.rotamer
-
-
 def test_sample_dof_walk_accepts_something(dye, tmp_path):
     """A walk that accepts nothing is not a sampler.
 
@@ -103,10 +98,12 @@ def test_label_fusion_runs(dye, tmp_path):
     assert r.exit_code == 0, r.output
 
 
-def test_rotamer_r0_reports_a_forster_radius(rotamer):
-    r = CliRunner().invoke(rotamer, [
-        "r0", "--donor", "AlexaFluor 488", "--acceptor", "AlexaFluor 594",
-        "--k2", "0.6667"])
-    assert r.exit_code == 0, r.output
-    value = float(r.output.split()[0])
-    assert 40.0 < value < 70.0, r.output
+def test_rotamer_r0_reports_a_forster_radius(capfd):
+    """`rotamer r0` is compiled now (`imp_bff rotamer r0`)."""
+    capfd.readouterr()
+    assert IMP.bff.command_line_main([
+        "rotamer", "r0", "--donor", "AlexaFluor 488", "--acceptor", "AlexaFluor 594",
+        "--k2", "0.6667"]) == 0
+    out = capfd.readouterr().out
+    value = float(out.split()[0])
+    assert 40.0 < value < 70.0, out

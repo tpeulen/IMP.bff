@@ -7,7 +7,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from click.testing import CliRunner
 import IMP.bff as fps
 from IMP.bff import read_fps_rotamer, fps_rotamer_fret
 from IMP.bff import FRETRotamer
@@ -183,18 +182,20 @@ def test_rotamer_fret_from_fps(tmp_path: Path) -> None:
     assert fret.acceptor == "AlexaFluor 568"
 
 
-def test_rotamer_cli_help_and_r0(imp_bff_program) -> None:
-    """Rotamer CLI exposes help and R0 subcommand."""
-    runner = CliRunner()
-    result = runner.invoke(imp_bff_program.rotamer, ["--help"])
-    assert result.exit_code == 0
-    assert "predict" in result.output
-    assert "r0" in result.output
+def test_rotamer_cli_help_and_r0(capfd) -> None:
+    """Rotamer CLI exposes help and R0 subcommand (the compiled `imp_bff
+    rotamer`, src/imp/CommandLineModelling.cpp)."""
+    capfd.readouterr()
+    assert fps.command_line_main(["rotamer", "--help"]) == 0
+    out = capfd.readouterr().out
+    assert "predict" in out
+    assert "r0" in out
 
-    result = runner.invoke(imp_bff_program.rotamer, ["r0", "--donor", "AlexaFluor 488", "--acceptor", "AlexaFluor 594", "--k2", "0.684587"])
-    assert result.exit_code == 0
-    assert float(result.output.split()[0]) == pytest.approx(57.12982, abs=1e-4)
-    assert result.output.split()[1] == "A"        # and it says which unit
+    assert fps.command_line_main(["rotamer", "r0", "--donor", "AlexaFluor 488",
+                                  "--acceptor", "AlexaFluor 594", "--k2", "0.684587"]) == 0
+    words = capfd.readouterr().out.split()
+    assert float(words[0]) == pytest.approx(57.12982, abs=1e-4)
+    assert words[1] == "A"        # and it says which unit
 
 
 def test_load_protein_frames_from_rmf_trajectory(tmp_path: Path) -> None:

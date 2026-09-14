@@ -5,7 +5,8 @@ its tests handed it synthetic matrices, and nothing in the tree turned an
 ensemble into the ``(n_frames, n_pairs)`` efficiencies and the ``(n, n)`` RMSDs
 it takes. The two halves of that gap are covered here --
 ``ProbeNetworkRestraint.get_pair_efficiencies`` and ``pairwise_rmsd`` -- and
-then the whole route end to end through ``imp_bff select-pairs``.
+then the whole route end to end through ``imp_bff select-pairs`` (the compiled
+command, src/imp/CommandLineModelling.cpp).
 """
 
 import numpy as np
@@ -191,16 +192,24 @@ def test_the_two_inputs_feed_the_selector(t4l_restraint):
     assert np.isfinite(decay).all() and (decay > 0.0).all()
 
 
-def test_select_pairs_runs_end_to_end(imp_bff_program, tmp_path):
-    from click.testing import CliRunner
+def _select_pairs(capfd, words):
+    """`imp_bff select-pairs <words>` through the compiled dispatcher: the
+    exit code, and stdout then stderr (C++ writes at the file descriptor)."""
+    capfd.readouterr()
+    code = IMP.bff.command_line_main(["select-pairs"] + [str(w) for w in words])
+    captured = capfd.readouterr()
+    return code, captured.out + captured.err
+
+
+def test_select_pairs_runs_end_to_end(tmp_path, capfd):
     out = tmp_path / "ranking.tsv"
-    result = CliRunner().invoke(imp_bff_program.select_pairs, [
+    code, output = _select_pairs(capfd, [
         "--fps-json", IMP.bff.get_example_path("structure/T4L/fret.fps.json"),
         "--rmf", IMP.bff.get_example_path("structure/T4L/t4l_docking.rmf3"),
         "--score-set", "chi2_C1_33p",
         "--stride", "10", "--max-pairs", "4",
         "--output", str(out)])
-    assert result.exit_code == 0, result.output
+    assert code == 0, output
     assert out.is_file()
 
     import pandas as pd
@@ -216,9 +225,8 @@ def test_select_pairs_runs_end_to_end(imp_bff_program, tmp_path):
     assert table["gain"].iloc[0] > 0.0
 
 
-def test_select_pairs_takes_a_stack_of_pdbs(imp_bff_program, tmp_path):
+def test_select_pairs_takes_a_stack_of_pdbs(tmp_path, capfd):
     """The other way in: one structure per file rather than one per frame."""
-    from click.testing import CliRunner
     source = IMP.bff.get_example_path("structure/T4L/3GUN.pdb")
     rng = np.random.RandomState(3)
     paths = []
@@ -239,39 +247,35 @@ def test_select_pairs_takes_a_stack_of_pdbs(imp_bff_program, tmp_path):
             "--score-set", "chi2_C1_33p", "--max-pairs", "2"]
     for path in paths:
         args += ["--pdb", path]
-    result = CliRunner().invoke(imp_bff_program.select_pairs, args)
-    assert result.exit_code == 0, result.output
-    assert "3 PDB structures" in result.output
+    code, output = _select_pairs(capfd, args)
+    assert code == 0, output
+    assert "3 PDB structures" in output
 
     # a file that is not the same molecule is refused, not silently zipped
     short = tmp_path / "short.pdb"
     short.write_text("\n".join(
         open(paths[0]).read().splitlines()[:200]) + "\nEND\n")
-    refused = CliRunner().invoke(imp_bff_program.select_pairs,
-                                 args + ["--pdb", str(short)])
-    assert refused.exit_code != 0
-    assert "must correspond" in refused.output
+    code, output = _select_pairs(capfd, args + ["--pdb", str(short)])
+    assert code != 0
+    assert "must correspond" in output
 
 
-def test_select_pairs_needs_an_ensemble_and_says_so(imp_bff_program):
-    from click.testing import CliRunner
-    result = CliRunner().invoke(imp_bff_program.select_pairs, [
+def test_select_pairs_needs_an_ensemble_and_says_so(capfd):
+    code, output = _select_pairs(capfd, [
         "--fps-json", IMP.bff.get_example_path("structure/T4L/fret.fps.json"),
         "--rmf", IMP.bff.get_example_path("structure/T4L/t4l_docking.rmf3"),
         "--stride", "1000"])
-    assert result.exit_code != 0
-    assert "ensemble" in result.output
+    assert code != 0
+    assert "ensemble" in output
 
 
-def test_select_pairs_wants_exactly_one_source_of_structures(imp_bff_program):
-    from click.testing import CliRunner
+def test_select_pairs_wants_exactly_one_source_of_structures(capfd):
     fps = IMP.bff.get_example_path("structure/T4L/fret.fps.json")
-    both = CliRunner().invoke(imp_bff_program.select_pairs, [
+    both = _select_pairs(capfd, [
         "--fps-json", fps,
         "--rmf", IMP.bff.get_example_path("structure/T4L/t4l_docking.rmf3"),
         "--pdb", IMP.bff.get_example_path("structure/T4L/3GUN.pdb")])
-    neither = CliRunner().invoke(imp_bff_program.select_pairs,
-                                 ["--fps-json", fps])
-    for result in (both, neither):
-        assert result.exit_code != 0
-        assert "--rmf" in result.output and "--pdb" in result.output
+    neither = _select_pairs(capfd, ["--fps-json", fps])
+    for code, output in (both, neither):
+        assert code == 2
+        assert "--rmf" in output and "--pdb" in output

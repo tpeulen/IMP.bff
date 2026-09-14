@@ -490,40 +490,49 @@ def test_a_well_refuses_bounds_that_are_not_ordered(well):
 # the commands
 # ---------------------------------------------------------------------------
 
-def test_the_openmm_command_writes_a_runnable_script(imp_bff_program, tmp_path):
+def _run(capfd, words):
+    """`imp_bff <words>` through the compiled dispatcher: the exit code, and
+    stdout then stderr (C++ writes at the file descriptor)."""
+    capfd.readouterr()
+    code = IMP.bff.command_line_main([str(w) for w in words])
+    captured = capfd.readouterr()
+    return code, captured.out + captured.err
+
+
+def test_the_openmm_command_writes_a_runnable_script(tmp_path, capfd):
     import ast
-    from click.testing import CliRunner
     script = tmp_path / "fret.py"
     doc = tmp_path / "fret.json"
-    result = CliRunner().invoke(imp_bff_program.openmm_command, [
+    code, output = _run(capfd, [
+        "openmm",
         "--fps-json", IMP.bff.get_example_path("structure/T4L/fret.fps.json"),
         "--pdb", IMP.bff.get_example_path("structure/T4L/3GUN.pdb"),
         "--score-set", "chi2_C1_33p", "--tether-atom", "CA",
         "--output", str(script), "--json", str(doc), "--n-steps", "500"])
-    assert result.exit_code == 0, result.output
+    assert code == 0, output
     assert script.is_file() and doc.is_file()
     ast.parse(script.read_text())
     assert "N_STEPS = 500" in script.read_text()
-    assert "33 FRET wells" in result.output
+    assert "33 FRET wells" in output
 
 
-def test_the_av_export_command_writes_each_format(imp_bff_program, tmp_path):
-    from click.testing import CliRunner
+def test_the_av_export_command_writes_each_format(tmp_path, capfd):
     for ext in ("xyz", "pqr", "dx"):
         out = tmp_path / f"site.{ext}"
-        result = CliRunner().invoke(imp_bff_program.av_export, [
+        code, output = _run(capfd, [
+            "av-export",
             "--pdb", IMP.bff.get_example_path("structure/T4L/3GUN.pdb"),
             "--chain", "A", "--residue", "132", "--output", str(out)])
-        assert result.exit_code == 0, result.output
+        assert code == 0, output
         assert out.is_file() and out.stat().st_size > 0
-        assert "mean position" in result.output
+        assert "mean position" in output
 
 
-def test_av_export_says_so_when_the_site_is_not_there(imp_bff_program, tmp_path):
-    from click.testing import CliRunner
-    result = CliRunner().invoke(imp_bff_program.av_export, [
+def test_av_export_says_so_when_the_site_is_not_there(tmp_path, capfd):
+    code, output = _run(capfd, [
+        "av-export",
         "--pdb", IMP.bff.get_example_path("structure/T4L/3GUN.pdb"),
         "--chain", "Z", "--residue", "9999",
         "--output", str(tmp_path / "nowhere.pqr")])
-    assert result.exit_code != 0
-    assert "no atom" in result.output
+    assert code != 0
+    assert "no atom" in output

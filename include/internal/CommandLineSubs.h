@@ -168,6 +168,8 @@ IMPBFFEXPORT void add_fps_av_subs(CLI::App& app);
 IMPBFFEXPORT void add_fps_subs(CLI::App& app);
 //! fps-export errors|table|screen (IMP layer)
 IMPBFFEXPORT void add_fps_export_subs(CLI::App& app);
+//! av-export, openmm, build-system, select-pairs, rotamer r0|predict (IMP layer)
+IMPBFFEXPORT void add_modelling_subs(CLI::App& app);
 #endif
 
 }  // namespace cli
