@@ -114,8 +114,7 @@ void add_dock_subs(CLI::App& app) {
     sub->add_option("--mc-steps", a->mc_steps, "Monte-Carlo steps per frame.")
         ->capture_default_str();
     sub->add_option("--temperature", a->temperature,
-                    "Monte-Carlo temperature (kT). As in the PMI sampler this command always "
-                    "ran, one replica runs at kT = 1 whatever is given here.")
+                    "Monte-Carlo temperature (kT) of the Metropolis walk.")
         ->capture_default_str();
     sub->add_option("--max-translation", a->max_translation, "Mover amplitude, Angstrom.")
         ->capture_default_str();

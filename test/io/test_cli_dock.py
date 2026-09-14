@@ -62,10 +62,24 @@ def test_dock_stat_files_read_as_pmi_stat2(tmp_path, capfd):
     assert {"Total_Score", "MonteCarlo_Nframe", "rmf_file"} <= set(keys)
     rows = [ast.literal_eval(line) for line in lines[1:]]
     assert [int(r[keys["MonteCarlo_Nframe"]]) for r in rows] == [0, 1, 2]
-    # one replica runs at the ladder's minimum, whatever --temperature said
+    # the default temperature
     assert all(r[keys["MonteCarlo_Temperature"]] == "1.0" for r in rows)
     best = ast.literal_eval((out / "best.scores.rex.py").read_text().split("=")[1])
     assert best == sorted(best) and len(best) == 2
+
+
+def test_dock_runs_at_the_temperature_it_is_given(tmp_path, capfd):
+    """`--temperature` is the Metropolis kT. PMI's one-replica macro dropped it
+    and ran at 1; the compiled command does not."""
+    out = tmp_path / "hot"
+    assert _dock(capfd, out, "--seed", 1, "--temperature", 2.5)[0] == 0
+    lines = (out / "stat.0.out").read_text().splitlines()
+    header = ast.literal_eval(lines[0])
+    keys = {v: k for k, v in header.items() if isinstance(k, int)}
+    rows = [ast.literal_eval(line) for line in lines[1:]]
+    assert all(r[keys["MonteCarlo_Temperature"]] == "2.5" for r in rows)
+    replica = ast.literal_eval((out / "stat_replica.0.out").read_text().splitlines()[1])
+    assert "2.5" in replica.values()
 
 
 def test_a_seed_reproduces_a_dock(tmp_path, capfd):

@@ -57,8 +57,9 @@
     `--fixed-flex-mode flex` crashed.
   * `dock`, `dock-errors`, `flexfit` (`DockingReplicaExchange.cpp`, `FlexibleFitting.h`): PMI's ReplicaExchange
     on one replica rewritten in C++ with PMI's file layout; seeded runs byte-identical (PDBs, CSVs, RMF
-    coordinates). `dependencies.py` now requires `kinematics`. Kept on purpose: dock runs at kT = 1 whatever
-    `--temperature` says (PMI did). Fixed: PMI's stat header no longer dumps the process environment (it
+    coordinates). `dependencies.py` now requires `kinematics`. `--temperature` is honoured (owner, 2026-09-14:
+    "temp is just a setting"); PMI's one-replica macro had dropped it and run at kT = 1, so earlier dock
+    runs were at kT = 1. Fixed: PMI's stat header no longer dumps the process environment (it
     carried an API key), `dock-errors` writes the uncertainty files it meant to, flexfit resume runs.
   * `rmsd` (core), `analyze-trajectories`, `av-vs-rotamer` (`TrajectoryAnalysis.h`, `ProbeTrajectoryDensity.h`,
     `ProbeModelComparison.h`, numpy/LAPACK-compatible arithmetic in `internal/NumpyCompat.h`): identical

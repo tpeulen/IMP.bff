@@ -545,11 +545,11 @@ DockingResult dock_replica_exchange(const std::vector<std::string>& pdb_paths,
     mc->set_scoring_function(all_restraints);
     mc->set_return_best(false);
     mc->set_score_moved(false);
-    mc->set_kt(params.mc_temperature);
     mc->add_mover(serial);
-    // One replica: its temperature ladder is the minimum temperature, 1.0,
-    // and the replica sets the sampler to it. --temperature never reached it.
-    const double replica_temperature = 1.0;
+    // One replica, at the temperature the caller set. (PMI's macro put its one
+    // replica at the ladder minimum, 1.0, so --temperature never reached the
+    // walk there; it does here.)
+    const double replica_temperature = params.mc_temperature;
     mc->set_kt(replica_temperature);
 
     const std::string globaldir = internal::cli::path_join(output_dir, "") + "/";
