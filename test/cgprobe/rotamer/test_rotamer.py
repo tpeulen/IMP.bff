@@ -246,3 +246,26 @@ if __name__ == "__main__":
         print("pytest not installed; skipping", __file__)
         sys.exit(0)
     sys.exit(pytest.main([__file__, "-q", "-p", "no:cacheprovider"]))
+
+
+def test_rotamer_predict_through_the_compiled_command(tmp_path, capfd) -> None:
+    """`imp_bff rotamer predict` on the FRETpredict Hsp90 pair: the static-average
+    efficiency is the pinned 0.538142. The Python command never ran (it passed
+    None into C++ int and string-vector parameters)."""
+    pdb = _fixture_pdb("openHsp90.pdb", tmp_path)
+    prefix = tmp_path / "pred" / "res"
+    prefix.parent.mkdir()
+    capfd.readouterr()
+    assert fps.command_line_main([
+        "rotamer", "predict", "--protein", str(pdb), "--residue", "452", "--residue", "637",
+        "--chain", "A", "--chain", "B", "--donor", "AlexaFluor 594",
+        "--acceptor", "AlexaFluor 568", "--libname-1", "AlexaFluor 594 C1R cutoff30",
+        "--libname-2", "AlexaFluor 568 C1R cutoff30", "--temperature", "293",
+        "--electrostatic", "--fixed-r0", "--r0", "55", "--output-prefix", str(prefix),
+        "--max-frames", "1"]) == 0
+    es = float((tmp_path / "pred" / "res-Es-452-637.dat").read_text().split()[0])
+    assert es == pytest.approx(0.538142, abs=1e-6)
+    assert fps.command_line_main(["rotamer", "predict", "--protein", str(pdb),
+                                  "--residue", "452", "--libname-1", "a",
+                                  "--libname-2", "b"]) == 2
+    capfd.readouterr()

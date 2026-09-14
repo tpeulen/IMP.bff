@@ -1,0 +1,86 @@
+data_atto655
+_cgprobe_template.name atto655
+#
+loop_
+_cgprobe_feature.feature_id
+_cgprobe_feature.feature_type
+_cgprobe_feature.rb
+_cgprobe_feature.md_fixed
+_cgprobe_feature.region_color
+linker dof NO NO orange
+top dof NO NO red
+middle dof NO NO green
+bottom dof NO NO blue
+ring_core dof NO NO '.'
+#
+#
+loop_
+_cgprobe_feature_atom.feature_id
+_cgprobe_feature_atom.atom_name
+_cgprobe_feature_atom.occurrence
+linker C16 1
+linker C17 1
+linker C18 1
+linker C19 1
+linker O2 1
+linker O3 2
+linker O3 5
+top C28 1
+top C27 1
+top C26 1
+top C3 1
+middle C7 1
+middle C8 1
+middle O1 1
+middle C9 1
+middle C10 1
+middle C11 1
+middle XX9 1
+bottom S1 1
+bottom O3 1
+bottom O4 1
+bottom O5 1
+ring_core C28 1
+ring_core C27 1
+#
+#
+loop_
+_cgprobe_improper.center_atom
+_cgprobe_improper.type
+C28 ring
+C27 ring
+C26 ring
+C3 ring
+N1 ring
+C29 ring
+C4 ring
+C5 ring
+C6 ring
+C25 ring
+N2 ring
+C7 ring
+C8 ring
+O1 ring
+C9 ring
+C10 ring
+C11 ring
+C12 ring
+C13 ring
+C14 ring
+C15 ring
+N3 ring
+C26 pi
+C3 pi
+N1 pi
+C5 pi
+C6 pi
+C7 pi
+C8 pi
+C10 pi
+C11 pi
+C13 pi
+N3 pi
+C19 pi
+S1 flat
+S1 orient
+#
