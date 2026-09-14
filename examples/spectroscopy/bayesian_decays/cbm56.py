@@ -945,10 +945,10 @@ def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=False, f
         if nm in m['graph'].offsets:
             a, b = m['graph'].offsets[nm]
             th0[a:b] = m['graph'].index[nm].transform.to_unconstrained(L.tt([med]))
-    if 'spec_ref_eps' in g.offsets:
+    if 'spec_ref_eps' in m['graph'].offsets:
         #: the reference dye's spectrum starts where the donor's does -- a
         #: start, not a prior; `start_from_data` knows only the donor's
-        a, b = g.offsets['spec_ref_eps']; a0, b0 = g.offsets['spec_eps']
+        a, b = m['graph'].offsets['spec_ref_eps']; a0, b0 = m['graph'].offsets['spec_eps']
         th0[a:b] = th0[a0:b0]
     m['theta_start'] = th0
     if accelerate:
@@ -1064,17 +1064,51 @@ def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=False, f
     return post
 
 
+def poisson_reference_by_histogram(post, n_draw=150, seed=0):
+    """The measured deviance reference, overall AND per histogram, from the
+    same draws (A0 of the plan, 2026-09-14): Poisson data at the fitted means,
+    their deviance against those means.  `pie_mfd.poisson_reference` sums the
+    histograms inside each draw; this keeps them apart, so a z per histogram
+    says which one carries the misfit.  The overall numbers equal
+    `poisson_reference(post, n_draw, seed)` (same generator, same order)."""
+    rng = np.random.default_rng(seed)
+    lam = {k: np.asarray(v) for k, v in post['lam'].items()}
+    sel = {k: post['rows'][k]['sel'] for k in lam}
+    per = {k: [] for k in lam}; tot = []
+    for _ in range(n_draw):
+        t_all = 0.0
+        for k, l in lam.items():
+            mu = l[sel[k]]
+            yk = rng.poisson(mu)
+            with np.errstate(divide='ignore', invalid='ignore'):
+                t = np.where(yk > 0, yk * np.log(np.maximum(yk, 1e-300) / mu), 0.0)
+            dk = 2.0 * float((t - (yk - mu)).sum())
+            per[k].append(dk / post['rows'][k]['dof']); t_all += dk
+        tot.append(t_all / post['dof'])
+    tot = np.array(tot)
+    return (float(tot.mean()), float(tot.std())), \
+        {k: (float(np.mean(v)), float(np.std(v))) for k, v in per.items()}
+
+
 def rule0(m, post):
     """Rule 0 per histogram: the Poisson deviance per degree of freedom and a
     runs test on the weighted residuals, with the deviance compared against a
-    reference MEASURED by drawing Poisson data at the fitted means."""
-    from bd import P
-    rows = [dict(channel=f'{k[0]} {k[1]}', counts=float(m['y'][k].sum()),
-                 dpd=r['dpd'], runs_p=r['runs_p']) for k, r in post['rows'].items()]
-    ref = P.poisson_reference(post, n_draw=150, seed=0)
+    reference MEASURED by drawing Poisson data at the fitted means -- overall
+    and for each histogram, with the share of the total excess it carries."""
+    ref, ref_k = poisson_reference_by_histogram(post, n_draw=150, seed=0)
+    excess = {k: r['dev'] - ref_k[k][0] * r['dof'] for k, r in post['rows'].items()}
+    ex_tot = sum(max(e, 0.0) for e in excess.values()) or 1.0
+    rows = []
+    for k, r in post['rows'].items():
+        mu, sd = ref_k[k]
+        rows.append(dict(channel=f'{k[0]} {k[1]}', key=k, counts=float(m['y'][k].sum()),
+                         dpd=r['dpd'], runs_p=r['runs_p'], ref=mu, ref_sd=sd,
+                         z=float((r['dpd'] - mu) / max(sd, 1e-12)),
+                         share=float(max(excess[k], 0.0) / ex_tot)))
     dpd = post['dev'] / post['dof']
-    rows.append(dict(channel='all', counts=float(sum(float(m['y'][k].sum()) for k in m['pairs'])),
-                     dpd=dpd, runs_p=float('nan')))
+    rows.append(dict(channel='all', key=None, counts=float(sum(float(m['y'][k].sum()) for k in m['pairs'])),
+                     dpd=dpd, runs_p=float('nan'), ref=ref[0], ref_sd=ref[1],
+                     z=float((dpd - ref[0]) / max(ref[1], 1e-12)), share=1.0))
     return rows, ref, float((dpd - ref[0]) / max(ref[1], 1e-12))
 
 
