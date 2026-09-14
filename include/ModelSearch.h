@@ -444,7 +444,55 @@ class IMPBFFEXPORT MultiStructureModelSearchProblem
   std::vector<double> get_structure_output(const std::string& structure_key,
                                            const std::string& node_name);
 
+  //! Make a topology current without touching any value.
+  /*! What an application does when a user picks a topology: the registry
+      keeps the numbers the user sees, and only which of them the topology
+      frees changes. #activate_structure is the search's operation -- it
+      writes the declared seeds -- and is the wrong one under a user. */
+  void select_structure(const std::string& key);
+
+  //! The canonical ids a topology's graph reads, in registry order.
+  /*! What an application shows for that topology: a lifetime row the
+      topology has no component for is not part of it. Locks and releases do
+      not change the answer. Undeclared, it is the ids the topology frees. */
+  std::vector<std::string> get_structure_parameter_ids(
+      const std::string& key) const;
+  //! Declare which canonical parameters a topology's graph reads.
+  /*! \throws ModelSearchConfigurationError for an unknown id, or when the
+      topology frees a parameter its graph does not read. */
+  void set_structure_parameter_uses(
+      const std::string& key, const std::vector<std::string>& canonical_ids);
+
+  //! Hold one parameter at its current value in every fit and every search.
+  /*! A user who fixes a parameter means it for whichever topology is
+      current, and for whichever one a search reaches. A locked parameter is
+      never freed, no seed or start overwrites it, and it does not count
+      towards the complexity a selection criterion charges. Changing a lock
+      discards cached search states, which were scored under the old one. */
+  void set_parameter_locked(const std::string& canonical_id, bool locked);
+  bool get_parameter_locked(const std::string& canonical_id) const;
+  //! Fit one parameter wherever a topology reads it, though the description
+  //! holds it.
+  /*! The other half of a user's say: an instrument time shift a family
+      leaves alone by default is still the user's to fit. A released
+      parameter keeps the user's value rather than a seed, is charged for
+      where it is fitted, and has no effect on a topology whose graph does
+      not read it. Locking and releasing exclude each other. Changing a
+      release discards cached search states. */
+  void set_parameter_released(const std::string& canonical_id, bool released);
+  bool get_parameter_released(const std::string& canonical_id) const;
+
+  //! Fit the current topology from the values the registry holds.
+  /*! The ordinary fit, on the same graph the search uses: the parameters
+      the active topology frees and no lock holds are refined in place.
+      Scores the result when the topology declares a selection criterion,
+      so #get_last_reduced_chi2 and #get_last_chi2_p_value describe it.
+      \return the minimiser's status (1-4 converged). */
+  int fit_active_structure();
+
   const std::string& get_active_structure() const;
+  //! The topology a search starts from, and a new model stands at.
+  const std::string& get_initial_structure() const;
   std::shared_ptr<GraphNode> get_active_objective() const;
   int get_last_fit_status() const;
   const std::string& get_last_failure() const;

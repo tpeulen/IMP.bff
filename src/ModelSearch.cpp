@@ -696,6 +696,10 @@ struct MultiStructureRecord {
   //! reported as describing the data.
   double acceptance = 0.0;
   bool has_acceptance = false;
+  //! Per registry index: 1 when this topology's graph reads the parameter.
+  /*! Empty means undeclared, and then only what the topology frees counts
+      as used -- a release cannot free a port no node reads. */
+  std::vector<int> uses;
   //! measurement name -> the node whose curve is compared against it.
   std::map<std::string, std::string> curves;
   std::vector<std::string> curve_order;
@@ -720,6 +724,11 @@ struct MultiStructureModelSearchProblem::Impl {
   //! a candidate's score belongs to the candidate.
   bool warm_start = false;
   int maxfev = 0;
+  //! Canonical ids a user holds; see set_parameter_locked.
+  std::set<std::string> locked;
+  //! Canonical ids a user frees where a topology reads them; see
+  //! set_parameter_released.
+  std::set<std::string> released;
   std::atomic<bool> cancelled;
   int last_status = 0;
   std::string last_failure;
@@ -845,10 +854,39 @@ struct MultiStructureModelSearchProblem::Impl {
     for (std::size_t i = 0; i < parameter_order.size(); ++i) {
       const std::shared_ptr<GraphPort>& port =
           parameters.find(parameter_order[i])->second;
+      if (locked.count(parameter_order[i])) {
+        // Held by the user: neither freed nor re-seeded.
+        port->set_fixed(true);
+        continue;
+      }
       port->set_fixed(false);
-      port->set_value(seeds[i]);
-      port->set_fixed(target.fixed[i] != 0);
+      if (!released.count(parameter_order[i])) port->set_value(seeds[i]);
+      port->set_fixed(!is_free(target, i));
     }
+  }
+
+  bool uses(const MultiStructureRecord& record, std::size_t i) const {
+    return record.uses.empty() ? record.fixed[i] == 0 : record.uses[i] != 0;
+  }
+
+  //! Whether a topology fits one parameter, after the user has had a say.
+  bool is_free(const MultiStructureRecord& record, std::size_t i) const {
+    const std::string& id = parameter_order[i];
+    if (locked.count(id)) return false;
+    if (released.count(id) && uses(record, i)) return true;
+    return record.fixed[i] == 0;
+  }
+
+  //! How many parameters the user's locks and releases add to a topology.
+  double user_complexity_change(const MultiStructureRecord& record) const {
+    double change = 0.0;
+    for (std::size_t i = 0; i < parameter_order.size(); ++i) {
+      const bool declared = record.fixed[i] == 0;
+      const bool actual = is_free(record, i);
+      if (declared && !actual) change -= 1.0;
+      if (!declared && actual) change += 1.0;
+    }
+    return change;
   }
 
   std::vector<std::shared_ptr<GraphPort> > apply_transition(
@@ -859,12 +897,17 @@ struct MultiStructureModelSearchProblem::Impl {
     for (std::size_t i = 0; i < parameter_order.size(); ++i) {
       const std::shared_ptr<GraphPort>& port =
           parameters.find(parameter_order[i])->second;
-      const bool was_free = parent.fixed[i] == 0;
-      const bool is_free = target.fixed[i] == 0;
+      if (locked.count(parameter_order[i])) {
+        port->set_fixed(true);
+        continue;
+      }
+      const bool was_free = this->is_free(parent, i);
+      const bool is_free = this->is_free(target, i);
       port->set_fixed(false);
       // Without warm starting every structure begins from its declared
       // seeds, so its score does not depend on the route that reached it.
-      if (!warm_start || !is_free || !was_free) {
+      if ((!warm_start || !is_free || !was_free) &&
+          !released.count(parameter_order[i])) {
         port->set_value(seeds[i]);
       }
       port->set_fixed(!is_free);
@@ -923,16 +966,18 @@ struct MultiStructureModelSearchProblem::Impl {
             "declare a selection criterion or a score output, because "
             "ranking by misfit alone always prefers the richer model");
       }
+      // A locked parameter is not estimated, so it is not paid for.
+      const double complexity = std::max(
+          0.0, selected.complexity + user_complexity_change(selected));
       const double penalty =
           selected.criterion == MODEL_SELECTION_AIC
-              ? selected.complexity
-              : 0.5 * selected.complexity *
-                    std::log(selected.effective_sample_size);
+              ? complexity
+              : 0.5 * complexity * std::log(selected.effective_sample_size);
       reward = -0.5 * chi2 - penalty;
       // Goodness of fit is a different question from model choice, and a
       // model can win its family while describing the data badly.
       const double dof =
-          selected.effective_sample_size - selected.complexity - 1.0;
+          selected.effective_sample_size - complexity - 1.0;
       last_reduced_chi2 = dof > 0.0 ? chi2 / dof
                                     : std::numeric_limits<double>::infinity();
       last_chi2_p_value = chi2_p_value(chi2, dof);
@@ -1553,6 +1598,152 @@ void MultiStructureModelSearchProblem::activate_structure(
   impl_->select_and_update(key);
 }
 
+void MultiStructureModelSearchProblem::select_structure(
+    const std::string& key) {
+  const MultiStructureRecord& selected = impl_->structure(key);
+  for (std::size_t i = 0; i < impl_->parameter_order.size(); ++i) {
+    const std::shared_ptr<GraphPort>& port =
+        impl_->parameters.find(impl_->parameter_order[i])->second;
+    port->set_fixed(!impl_->is_free(selected, i));
+  }
+  impl_->select_and_update(key);
+}
+
+std::vector<std::string>
+MultiStructureModelSearchProblem::get_structure_parameter_ids(
+    const std::string& key) const {
+  const MultiStructureRecord& selected = impl_->structure(key);
+  std::vector<std::string> ids;
+  for (std::size_t i = 0; i < impl_->parameter_order.size(); ++i) {
+    if (impl_->uses(selected, i)) ids.push_back(impl_->parameter_order[i]);
+  }
+  return ids;
+}
+
+void MultiStructureModelSearchProblem::set_structure_parameter_uses(
+    const std::string& key, const std::vector<std::string>& canonical_ids) {
+  MultiStructureRecord& selected = impl_->structure(key);
+  const std::set<std::string> wanted(canonical_ids.begin(),
+                                     canonical_ids.end());
+  for (std::set<std::string>::const_iterator it = wanted.begin();
+       it != wanted.end(); ++it) {
+    if (!impl_->parameters.count(*it)) {
+      throw ModelSearchConfigurationError("topology '" + key +
+                                          "' uses unknown parameter '" + *it +
+                                          "'");
+    }
+  }
+  selected.uses.assign(impl_->parameter_order.size(), 0);
+  for (std::size_t i = 0; i < impl_->parameter_order.size(); ++i) {
+    const bool used = wanted.count(impl_->parameter_order[i]) != 0;
+    if (!used && selected.fixed[i] == 0) {
+      throw ModelSearchConfigurationError(
+          "topology '" + key + "' frees '" + impl_->parameter_order[i] +
+          "' but its graph does not read it");
+    }
+    selected.uses[i] = used ? 1 : 0;
+  }
+}
+
+void MultiStructureModelSearchProblem::set_parameter_locked(
+    const std::string& canonical_id, bool locked) {
+  if (!impl_->parameters.count(canonical_id)) {
+    throw ModelSearchConfigurationError("unknown canonical parameter '" +
+                                        canonical_id + "'");
+  }
+  const bool was = impl_->locked.count(canonical_id) != 0;
+  if (was == locked) return;
+  if (locked) {
+    impl_->locked.insert(canonical_id);
+    impl_->released.erase(canonical_id);
+  } else {
+    impl_->locked.erase(canonical_id);
+  }
+  // Every cached state was fitted and scored under the previous lock.
+  impl_->snapshots.clear();
+  impl_->snapshot_structures.clear();
+  if (!impl_->active_structure.empty()) {
+    select_structure(impl_->active_structure);
+  }
+}
+
+void MultiStructureModelSearchProblem::set_parameter_released(
+    const std::string& canonical_id, bool released) {
+  if (!impl_->parameters.count(canonical_id)) {
+    throw ModelSearchConfigurationError("unknown canonical parameter '" +
+                                        canonical_id + "'");
+  }
+  const bool was = impl_->released.count(canonical_id) != 0;
+  if (was == released) return;
+  if (released) {
+    impl_->released.insert(canonical_id);
+    impl_->locked.erase(canonical_id);
+  } else {
+    impl_->released.erase(canonical_id);
+  }
+  impl_->snapshots.clear();
+  impl_->snapshot_structures.clear();
+  if (!impl_->active_structure.empty()) {
+    select_structure(impl_->active_structure);
+  }
+}
+
+bool MultiStructureModelSearchProblem::get_parameter_released(
+    const std::string& canonical_id) const {
+  if (!impl_->parameters.count(canonical_id)) {
+    throw ModelSearchConfigurationError("unknown canonical parameter '" +
+                                        canonical_id + "'");
+  }
+  return impl_->released.count(canonical_id) != 0;
+}
+
+bool MultiStructureModelSearchProblem::get_parameter_locked(
+    const std::string& canonical_id) const {
+  if (!impl_->parameters.count(canonical_id)) {
+    throw ModelSearchConfigurationError("unknown canonical parameter '" +
+                                        canonical_id + "'");
+  }
+  return impl_->locked.count(canonical_id) != 0;
+}
+
+int MultiStructureModelSearchProblem::fit_active_structure() {
+  impl_->validate_registry();
+  if (impl_->active_structure.empty()) {
+    throw ModelSearchConfigurationError(
+        "no topology is selected; select one before fitting");
+  }
+  const std::string key = impl_->active_structure;
+  MultiStructureRecord& selected = impl_->structure(key);
+  select_structure(key);
+  std::vector<std::shared_ptr<GraphPort> > free_ports;
+  for (std::size_t i = 0; i < impl_->parameter_order.size(); ++i) {
+    const std::shared_ptr<GraphPort>& port =
+        impl_->parameters.find(impl_->parameter_order[i])->second;
+    if (!port->get_fixed()) free_ports.push_back(port);
+  }
+  impl_->last_failure.clear();
+  impl_->last_status = 1;
+  if (!free_ports.empty()) {
+    if (selected.residual_key.empty()) {
+      throw ModelSearchConfigurationError(
+          "topology '" + key + "' has free parameters but no residual output");
+    }
+    for (std::size_t p = 0; p < free_ports.size(); ++p) {
+      impl_->keep_inside(free_ports[p]);
+    }
+    FitMinimizer minimizer;
+    minimizer.set_parameter_ports(free_ports);
+    if (impl_->maxfev > 0) minimizer.set_maxfev(impl_->maxfev);
+    minimizer.set_objective(selected.objective, selected.residual_key);
+    impl_->last_status = minimizer.run();
+  }
+  selected.objective->update();
+  if (selected.use_bic && selected.score_output.empty()) {
+    impl_->score_current(selected);
+  }
+  return impl_->last_status;
+}
+
 void MultiStructureModelSearchProblem::set_structure_curve(
     const std::string& structure_key, const std::string& dataset_name,
     const std::string& node_name) {
@@ -1614,6 +1805,11 @@ std::vector<double> MultiStructureModelSearchProblem::get_structure_output(
 const std::string& MultiStructureModelSearchProblem::get_active_structure()
     const {
   return impl_->active_structure;
+}
+
+const std::string& MultiStructureModelSearchProblem::get_initial_structure()
+    const {
+  return impl_->initial_structure;
 }
 
 std::shared_ptr<GraphNode>

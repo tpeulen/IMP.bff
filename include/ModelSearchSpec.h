@@ -75,6 +75,8 @@ class IMPBFFEXPORT ModelSearchSpec {
 
   //! Bind one measurement to a slot the description names.
   void set_dataset(const std::string& name, const FitDataset& dataset);
+  //! Forget the measurement bound to a slot; the next model is built without it.
+  void unset_dataset(const std::string& name);
   //! The values bound to one measurement slot.
   const std::vector<double>& get_dataset_values(const std::string& name) const;
 
@@ -102,7 +104,40 @@ class IMPBFFEXPORT ModelSearchSpec {
       nothing: a partially wired graph would fit, and fit the wrong thing. */
   std::shared_ptr<MultiStructureModelSearchProblem> build() const;
 
+  //! The live model this description and its data describe.
+  /*! #build makes a new, independent problem every time, which is what a
+      comparison or a benchmark wants. An application showing a model wants
+      the opposite: one model that stays the same object while the user
+      works on it. This builds it on first request, standing at the initial
+      topology and its declared seeds. After a measurement, scalar or
+      override changes, the next request rebuilds the graphs **over the same
+      parameter ports**: values the user has are kept (clipped into bounds
+      re-derived from the new data), locks and the selected topology carry
+      over, and anything holding a port keeps holding the live parameter.
+      Cached search states do not carry over; they were fitted to other data.
+      \throws std::domain_error as #build does. */
+  std::shared_ptr<MultiStructureModelSearchProblem> get_model();
+  //! Whether #get_model would return the model without rebuilding it.
+  bool get_model_is_current() const;
+
+  //! Evaluate an expression over what is bound, as a description's rules are.
+  /*! Scalars, optional-scalar defaults and the named statistics of every
+      bound measurement (`decay_sum`, `decay_dx`, ...). For an application
+      filling in a value a description suggests from the data.
+      \throws std::domain_error when the expression names something unbound. */
+  double evaluate(const std::string& expression) const;
+
+  //! The description as read, with its templates expanded.
+  /*! Everything an application needs to present the model -- labels,
+      groups, which measurement is the fit's own -- is data in the file, and
+      this hands it over as data rather than as an API that would have to
+      grow a getter per presentational key. */
+  std::string get_description_json() const;
+
  private:
+  std::shared_ptr<MultiStructureModelSearchProblem> build_over(
+      const std::shared_ptr<MultiStructureModelSearchProblem>& previous) const;
+
   struct Impl;
   std::unique_ptr<Impl> impl_;
 };
