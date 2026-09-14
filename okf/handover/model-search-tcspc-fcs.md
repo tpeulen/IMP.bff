@@ -1,107 +1,139 @@
 # Handover: BFF-native model search for TCSPC and FCS
 
-Date: 2026-09-12
+Date: 2026-09-14 (supersedes the 2026-09-12 revision)
 Branch: `independent-core`
-Status: safe verified stopping point; native core and first TCSPC/FCS factories build and pass focused tests. ChiSurf migration is deferred.
+Status: model families are declared in data; both shipped families are ported
+and the C++ factories are deleted. ChiSurf migration is still deferred.
 
 ## Owner decisions
 
 - ChiSurf is the application/car; BFF is the engine.
-- Parameters, links, model topology, objectives, fitting decisions, diagnostics and MCTS live in BFF.
-- Required model-search scope is TCSPC and FCS, including future global composition.
-- No numerical fallback is allowed. If BFF cannot represent a model/objective completely, return unsupported and do nothing.
+- Parameters, links, model topology, objectives, fitting decisions,
+  diagnostics and model search live in BFF.
+- Required model-search scope is TCSPC and FCS, including future global
+  composition.
+- No numerical fallback. If BFF cannot represent a model/objective
+  completely, return unsupported and do nothing.
 - No duplicated Python evaluator, optimizer, reward or topology declaration.
-- Candidate graphs do not exchange parameter values. Every topology links to one BFF-owned canonical parameter registry.
+- Candidate graphs do not exchange parameter values. Every topology links to
+  one BFF-owned canonical parameter registry.
+- **A model family is data.** What can be C++ must be C++, and a family is
+  not a numerical kernel: it is a registry, some graphs, and the moves
+  between them. Kernels stay in C++; families are read.
 
-## Implemented in BFF
+## The shape of it
 
-### Generic search
+**Declaration happens once, at build. Evaluation happens N times, in C++.**
+That is what makes a description safe against the no-fallback rule: a
+description is read once and compiled into a complete native graph, so the
+search itself crosses no language boundary.
 
 `include/ModelSearch.h`, `src/ModelSearch.cpp`
+- `ModelSearch`: native PUCT traversal, lazy expansion, deterministic seed,
+  Dirichlet exploration, cycle/collapse handling, cancellation.
+- `ModelSearchProblem`: model-independent C++ problem boundary, no director.
+- `TabularModelSearchProblem`: callback-free finite reference problem.
+- `FittingModelSearchProblem`: one graph, groups fixed and freed.
+- `MultiStructureModelSearchProblem`: one canonical registry shared across
+  complete structure-specific objective graphs. **Every family description
+  builds one of these.**
 
-- `ModelSearch`: native PUCT traversal, lazy expansion, deterministic seed, Dirichlet exploration, cycle/collapse handling, cancellation and result bookkeeping.
-- `ModelSearchProblem`: model-independent C++ problem boundary with no SWIG director.
-- `TabularModelSearchProblem`: callback-free finite reference/test problem.
-- `FittingModelSearchProblem`: optimized one-graph fitting search with declarative masks/seeds, native `FitMinimizer`, cached snapshots and rollback.
-- `MultiStructureModelSearchProblem`: one canonical parameter registry shared across complete structure-specific objective graphs. It validates exact owner identity, rejects linked followers/vector ports/duplicate IDs/conflicting owners, owns upstream graph nodes, caches canonical snapshots, runs native minimizers and activates the winning topology.
-- Initial structures are optimized before root scoring. This matters for a one-topology problem whose only child is terminal.
+`include/GraphNodeRegistry.h`, `src/GraphNodeRegistry.cpp`
+- Type name to constructor, twelve types, installed on first use. The only
+  such map in the library, deliberately.
+- `GraphNode::get_node_type()` and `GraphNode::configure(json_text)`: each
+  node reads its own settings beside its own setters, so no loader knows what
+  a kernel can be told. `GraphNode::bind_dataset(role, dataset)` is the same
+  idea for measurements.
+- Unknown type names list what is registered; unconsumed settings are refused
+  by name. A misspelling must fail where it is read.
 
-Public names were cleaned before release: `ModelSearch*`, `FittingModelSearchProblem`, `MultiStructureModelSearchProblem`; no `FitModelSearch*` aliases remain.
+`include/ModelSearchSpec.h`, `src/ModelSearchSpec.cpp`
+- `from_name` / `from_file` / `from_json`, then `set_dataset`, `set_scalar`,
+  `set_parameter`, then `build()`.
+- Seeds and bounds that depend on the data are arithmetic over named
+  statistics of the bound measurement, evaluated by `GraphExpression` -- the
+  evaluator the models themselves use. `config` is literal, `config_rules` is
+  arithmetic, and giving a setting both ways is refused.
+- Complexity is counted from the structure's free list, never declared.
 
-### TCSPC factory
-
-`include/TCSPCModelSearch.h`, `src/TCSPCModelSearch.cpp`
-
-- `TCSPCLifetimeSearchFactory` creates canonical lifetime/instrument owner ports.
-- Builds complete `TCSPCDecay -> FitChiSquared` graphs for each requested component count.
-- Topologies link directly to the same owners; native BIC scoring and add/remove/stop actions.
-- `TCSPCLifetimeSearchSpace` retains the problem and graph objects and exposes topology/parameter inspection.
-- Current scope is plain multi-exponential TCSPC over a supplied response. FRET, anisotropy, parsed decay, PDDEM, distributed acceptor, mixture, structure and MaxEnt are not implemented here.
-
-### FCS factory
-
-`include/FCSModelSearch.h`, `src/FCSModelSearch.cpp`
-
-- `FCSModelSearchFactory.create_analytical` returns a ready `MultiStructureModelSearchProblem`.
-- Complete native graphs cover 2D/3D analytical Gaussian diffusion, one/two diffusion components, and zero/one relaxation term.
-- Canonical IDs cover N, baseline, structure parameter, diffusion times/fraction and relaxation amplitude/time.
-- Native weighted/Poisson objective selection, fit range/mask validation, BIC metadata and topology actions.
-- FCS seeds use the last-lag baseline and half-amplitude crossing; this materially improves root convergence.
-- MDF and saturation/kinetics nodes exist elsewhere in BFF but are not yet registered as search topologies.
-
-### Build integration
-
-- `src/Files.cmake`: includes `ModelSearch.cpp`, `TCSPCModelSearch.cpp`, `FCSModelSearch.cpp`.
-- `pyext/include/IMP_bff.core.i`: generic ModelSearch API.
-- `pyext/include/IMP_bff.tcspcdecay.i`: TCSPC factory.
-- `pyext/include/IMP_bff.fcs.i`: FCS factory/config.
+`data/model_search/tcspc_lifetime.json`, `data/model_search/fcs_analytical.json`
+- The two shipped families. `ModelSearchSpec::get_available_names()` lists
+  them, which is most of a capability query already.
 
 ## Verification evidence
 
 Environment: `/Users/tpeulen/mambaforge/envs/arm64`
 Build tree: `/Users/tpeulen/dev/imp/cmake-build-arm64`
 
-Final build completed successfully:
-
 ```sh
 ninja -C /Users/tpeulen/dev/imp/cmake-build-arm64 IMP.bff-python -j4
-```
-
-Final focused/API gate:
-
-```sh
 /Users/tpeulen/mambaforge/envs/arm64/bin/python -m pytest -q \
-  test/mcts/test_model_search.py \
-  test/mcts/test_tcspc_model_search.py \
-  test/mcts/test_fcs_model_search.py \
-  test/test_public_api_names.py \
-  test/test_base_header.py
+  test/mcts/ test/graph/ test/session/ test/portnode/ test/minimizer/ \
+  test/dataset/ test/test_public_api_names.py test/test_base_header.py \
+  test/test_api_taxonomy.py
 ```
 
-Result: **85 passed**. `git diff --check` is clean.
+647 passed, 2 xfailed. Do not launch concurrent Ninja builds against the same
+IMP build tree.
 
-Tests cover deterministic/lazy search, cancellation, failed-candidate rollback, same-graph and multi-graph fitting, canonical owner validation, graph lifetime retention, joint objective/shared link handling, TCSPC component topology, FCS topology family, exact native fitting and invalid configurations.
+**`test/mcts/golden/` is the contract.** It records what each family does
+observably -- ids, topologies, transitions, fitted values, masks, rewards --
+and was taken from the C++ factories before they were deleted. The ported
+descriptions reproduce it exactly. Regenerate with
+`test/mcts/generate_golden.py` only for a reviewed behaviour change, and read
+the diff.
 
-## Current limits and next BFF work
+## Read this before planning the next step
 
-1. Add FCS MDF and full kinetics/saturation topologies using existing native nodes. Define which modes are comparable under one selection score.
-2. Extend TCSPC factory with instrument nuisance topology as native structure choices where scientifically valid.
-3. Add BFF FRET/anisotropy topology factories only if they remain in the required TCSPC scope; donor/reference links must use canonical owners.
-4. Implement a BFF joint problem factory that composes TCSPC and FCS member factories over one canonical registry. It must support local/shared parameters, member masks/ranges/noise models, count each shared parameter/prior once and expose joint plus per-member diagnostics.
-5. Add structured BFF capability/refusal records so ChiSurf asks BFF what a model can search instead of declaring topology.
-6. Add versioned search-result/session serialization for `.cs.pto` and history: schema, canonical IDs, chosen topology, seed/budget, termination, score terms and validation status.
-7. Broaden numerical fixtures and compare MCTS with ordinary fit/multistart at equal evaluation/time budgets.
+`okf/validation/model-search-strategy.md`. Handover item 7 has been answered
+and it changes the priorities below. In short: searching is worth a great
+deal, but **a candidate currently has no score of its own** -- warm starting
+makes a topology inherit whichever basin its route landed in, measured at
+2528.9 in reward between two orderings of two commuting moves. Model
+selection over these families does not yet mean what it appears to.
 
-Do not implement dozens of ChiSurf parameter-group declarations. The registered-model census found that the prior one-static-graph approach could only describe current topology and could not add components or switch equations. The multi-structure canonical registry is the required foundation.
+## Next BFF work, in order
+
+1. **Give a candidate a score of its own.** Either a declared canonical
+   initialisation per structure, independent of path, or multistart per
+   candidate. Everything below is built on comparing candidates, so this
+   comes first.
+2. Fix the analytical FCS two-component seeding (`td2 = 4*td1`, `a1 = 0.5`),
+   which currently makes the generating topology score worst of its family,
+   and add a fixture whose answer is not the root.
+3. Re-run `test/mcts/bench_search_strategy.py` once 1 and 2 land, and decide
+   the search strategy on evidence. Do not assume the tree search.
+4. FCS MDF and kinetics/saturation topologies. `FCSMdfCurve` and
+   `FCSSaturationCurve` are registered node types that already accept their
+   settings from a description, so these are new files, not new C++.
+5. A joint TCSPC+FCS family. `FitJointChiSquared` is a registered type and
+   `MultiStructureModelSearchProblem` already takes a joint objective, so the
+   mechanism exists. **Do not eagerly materialise a cross-product justified
+   by tree search** -- nothing measured supports that.
+6. Structured capability/refusal records. `get_available_names()` plus a
+   description's declared datasets and scalars is most of the answer.
+7. Versioned search-result serialization for `.cs.pto` and history.
+
+`GraphSession` still writes chinet's JSONL, which carries no node type and so
+reloads every node as a behaviourless `GraphNode`. Rewriting it onto the
+registry is the remaining piece of the one-format goal; its only external
+caller is `../chisurf/chisurf/core/project/project.py:225`, and the `.csp`
+format it serves is already ruled to need no compatibility.
 
 ## Deferred ChiSurf migration
 
-Tracked at:
+Tracked at `../chisurf/.omx/plans/chisurf-changes-after-bff-tcspc-fcs-mcts.md`.
+The ChiSurf MCTS tree is now committed on the `mcts-native-baseline` branch,
+so the deletions that plan schedules are revertible. Its bridge still targets
+the older generic `FittingModelSearchProblem` rather than these descriptions.
 
-`../chisurf/.omx/plans/chisurf-changes-after-bff-tcspc-fcs-mcts.md`
-
-The ChiSurf working tree contains transitional native bridge/dispatcher/GUI work created before the ownership boundary was finalized. Treat Python topology/group declarations as temporary fixtures. Once the BFF factories and capability API cover the required cases, replace them with thin request/result routing and delete the legacy Python MCTS environment/tree/reward code.
+Three ChiSurf tests fail against current BFF and did so before any of this
+work: they assert a child state scores better than the root, which stopped
+being true when initial structures began being optimized before root scoring.
 
 ## Resume point
 
-Start with the BFF joint factory or FCS MDF topology. Read this file and the shared agent board, claim a new BFF ticket, inspect the dirty tree before editing, and rerun the 85-test command above before and after the next change. Do not launch concurrent Ninja builds against the same IMP build tree.
+Start at item 1. Read this file, `okf/validation/model-search-strategy.md` and
+the shared agent board, claim a ticket, inspect the dirty tree before editing,
+and run the gate above before and after.

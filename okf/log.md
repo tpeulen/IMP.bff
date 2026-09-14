@@ -1,5 +1,40 @@
 # Update Log
 
+## 2026-09-14
+
+- **Model families are data, not C++ (T-20260914-01)**: `TCSPCModelSearch` and
+  `FCSModelSearch` are deleted. A family is now a JSON document read by
+  `ModelSearchSpec` -- canonical registry, one complete objective graph per
+  topology, which parameters each frees, and the moves between them --
+  building the same `MultiStructureModelSearchProblem` the factories built.
+  Underneath it, `GraphNodeRegistry` maps a type name onto a constructor
+  (twelve types, the only such map) and `GraphNode::configure(json_text)` lets
+  each node read its own settings beside its own setters, so no loader learns
+  what a kernel can do. Seeds and bounds that depend on the measurement are
+  arithmetic over named statistics of it, evaluated by `GraphExpression` --
+  the evaluator the models already use, so no second language appeared.
+  Complexity is counted from the free list rather than declared; the old
+  hand-computed constant could disagree with the mask beside it. Golden
+  records taken before the port (`test/mcts/golden/`) are unchanged and their
+  test passes untouched: same ids, topologies, actions, fitted values, masks
+  and rewards across all eleven topologies. Net 692 lines of C++ removed.
+  Retired: `TCSPCLifetimeSearchFactory`, `TCSPCLifetimeSearchSpace`,
+  `FCSModelSearchFactory`, `FCSModelSearchConfig`.
+
+- **Handover item 7 answered, against its own premise (T-20260914-01)**:
+  MCTS, exhaustive enumeration and a single fit were compared at equal
+  budgets. Searching is worth a great deal (+701 and +1853 in reward over
+  fitting the initial topology), but the comparison between *strategies* is
+  not meaningful, because a candidate has no score of its own: warm starting
+  carries the parent's fitted values across, so the same topology scores
+  -2640.9 or -112.0 depending only on the order of two commuting moves. A
+  second defect fell out of the same fixture -- on a genuine two-species FCS
+  curve the generating topology scores worst of the eight, because the
+  two-component seeding misses the basin. Both are pinned as strict xfail.
+  Evidence and consequences: [validation/model-search-strategy.md](validation/model-search-strategy.md).
+  Nothing measured justifies building the joint factory's combinatorics
+  around a tree search.
+
 ## 2026-09-12
 
 - **Fail-fast CI mode (T-20260912-13):**
