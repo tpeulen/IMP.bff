@@ -1,6 +1,7 @@
-"""PRD-142 step 2: whether a fitted count model describes its histograms.
+"""Whether a fitted count model describes its histograms (PRD-142 step 2, merged
+into `FitStatistics.h` by PRD-143).
 
-`BayesianGoodnessOfFit.h` gives, per histogram and overall, the Poisson deviance
+`poisson_goodness_of_fit` gives, per histogram and overall, the Poisson deviance
 per degree of freedom against a reference measured by drawing Poisson data at
 the fitted means, and the runs test on the residual signs. Checked:
 
@@ -19,7 +20,7 @@ import pytest
 from bayesian_cxx import run_driver
 
 DRIVER = r"""
-#include <IMP/bff/BayesianGoodnessOfFit.h>
+#include <IMP/bff/FitStatistics.h>
 #include <cstdio>
 #include <iostream>
 using namespace IMP::bff;
@@ -31,7 +32,8 @@ int main(int argc, char** argv) {
   for (std::size_t s = 0; s < n_seq; ++s) {
     std::size_t len; std::cin >> len; std::vector<double> x(len);
     for (double& v : x) std::cin >> v;
-    std::printf("%s%.17g", s ? ", " : "", bayesian_runs_test_p(x));
+    double mean = 0; for (double t : x) mean += t; if (!x.empty()) mean /= double(x.size());
+    std::printf("%s%.17g", s ? ", " : "", runs_test(x.data(), x.size(), mean).p_value);
   }
   std::printf("], ");
   // three histograms of a decay, 400 bins, counts from ~1e4 down to ~5
@@ -42,7 +44,7 @@ int main(int argc, char** argv) {
   std::vector<double> y(nh * n);
   for (std::size_t j = 0; j < y.size(); ++j) y[j] = double(std::poisson_distribution<long long>(m[j])(rng));
   auto report = [&](const char* name, const std::vector<double>& model) {
-    const BayesianGoodnessOfFit G = bayesian_goodness_of_fit(y, model, mask, nh, 6.0);
+    const PoissonGoodnessOfFit G = poisson_goodness_of_fit(y, model, mask, nh, 6.0);
     double zmax = 0.0, pmin = 1.0;
     for (auto& h : G.histograms) { zmax = std::max(zmax, std::fabs(h.z)); pmin = std::min(pmin, h.runs_p); }
     std::printf("\"%s\": {\"z\": %.6g, \"z_max\": %.6g, \"runs_p_min\": %.6g, \"dpd\": %.6g, \"ref\": %.6g}", name, G.z, zmax, pmin, G.deviance_per_dof, G.reference_mean);

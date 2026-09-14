@@ -11,6 +11,9 @@
 
 #include <IMP/bff/IMPCompatibility.h>
 #include <cmath>
+#include <random>
+#include <cstdint>
+#include <algorithm>
 #include <cstddef>
 #include <vector>
 
@@ -109,6 +112,110 @@ inline RunsTest runs_test(const double* x, std::size_t n, double cutoff = 0.0,
   r.z = diff / std::sqrt(var);
   r.p_value = std::erfc(std::fabs(r.z) / std::sqrt(2.0));
   return r;
+}
+
+//! One histogram's goodness of fit (`poisson_goodness_of_fit`).
+struct PoissonHistogramFit {
+  double deviance = 0.0;         //!< `poisson_deviance` over the selected bins
+  double dof = 0.0;              //!< selected bins minus the histogram's share of the parameters
+  double deviance_per_dof = 0.0;
+  double runs_p = 1.0;           //!< `runs_test` on the residual signs, cutoff at their mean
+  double reference_mean = 0.0;   //!< deviance per dof of Poisson data drawn at the fitted means
+  double reference_sd = 0.0;
+  double z = 0.0;                //!< (deviance_per_dof - reference_mean) / reference_sd
+  std::vector<double> weighted_residuals;   //!< (y - m) / sqrt(m) on the selected bins
+};
+
+//! Several histograms, each and together.
+struct PoissonGoodnessOfFit {
+  std::vector<PoissonHistogramFit> histograms;
+  double deviance = 0.0, dof = 0.0, deviance_per_dof = 0.0, reference_mean = 0.0, reference_sd = 0.0, z = 0.0;
+};
+
+/**
+ * \brief Deviance per degree of freedom against a reference measured from the
+ *        model, and the runs test, for `n_hist` histograms.
+ *
+ * `y`, `m`, `mask` are `n_hist x n_bins` row-major; bins with `mask > 0` count.
+ * Degrees of freedom: per histogram its selected bins minus `n_params / n_hist`,
+ * overall all selected bins minus `n_params`.
+ *
+ * **Why a measured reference and not 1.** The Poisson deviance per bin is not one
+ * at low counts, and a histogram's share of the parameters is a convention. So
+ * `n_draws` Poisson data sets are drawn at the fitted means and scored against
+ * them: `z` says how many sd of THAT the data sit above what the model would give
+ * if it were true. The generator is `std::mt19937_64(seed)`.
+ *
+ * The runs test is `runs_test` on the signs of the weighted residuals with the
+ * cutoff at their mean -- `statsmodels runstest_1samp(cutoff='mean',
+ * correction=False)` on the signs, as a residual-structure test is usually run.
+ */
+inline PoissonGoodnessOfFit poisson_goodness_of_fit(const std::vector<double>& y, const std::vector<double>& m,
+                                                    const std::vector<double>& mask, std::size_t n_hist,
+                                                    double n_params, int n_draws = 150, std::uint64_t seed = 0) {
+  const std::size_t n = n_hist ? y.size() / n_hist : 0;
+  PoissonGoodnessOfFit G;
+  G.histograms.resize(n_hist);
+  std::vector<std::vector<std::size_t>> sel(n_hist);
+  double nsel_all = 0.0;
+  for (std::size_t k = 0; k < n_hist; ++k) {
+    PoissonHistogramFit& h = G.histograms[k];
+    std::vector<double> ys, ms, signs;
+    for (std::size_t i = 0; i < n; ++i) {
+      if (!(mask[k * n + i] > 0.0)) continue;
+      sel[k].push_back(i);
+      const double l = std::max(m[k * n + i], 1e-12), yy = y[k * n + i];
+      ys.push_back(yy); ms.push_back(l);
+      const double w = (yy - l) / std::sqrt(l);
+      h.weighted_residuals.push_back(w);
+      signs.push_back(w > 0.0 ? 1.0 : (w < 0.0 ? -1.0 : 0.0));
+    }
+    h.deviance = poisson_deviance(ys.data(), ms.data(), ys.size());
+    h.dof = std::max(double(sel[k].size()) - n_params / double(std::max<std::size_t>(n_hist, 1)), 1.0);
+    h.deviance_per_dof = h.deviance / h.dof;
+    double mean_sign = 0.0;
+    for (double t : signs) mean_sign += t;
+    if (!signs.empty()) mean_sign /= double(signs.size());
+    h.runs_p = runs_test(signs.data(), signs.size(), mean_sign).p_value;
+    G.deviance += h.deviance;
+    nsel_all += double(sel[k].size());
+  }
+  G.dof = std::max(nsel_all - n_params, 1.0);
+  G.deviance_per_dof = G.deviance / G.dof;
+  std::mt19937_64 rng(seed);
+  std::vector<std::vector<double>> per(n_hist);
+  std::vector<double> tot, yd, md;
+  for (int d = 0; d < n_draws; ++d) {
+    double all = 0.0;
+    for (std::size_t k = 0; k < n_hist; ++k) {
+      yd.clear(); md.clear();
+      for (std::size_t i : sel[k]) {
+        const double mu = std::max(m[k * n + i], 1e-12);
+        yd.push_back(double(std::poisson_distribution<long long>(mu)(rng)));
+        md.push_back(mu);
+      }
+      const double dk = poisson_deviance(yd.data(), md.data(), yd.size());
+      per[k].push_back(dk / G.histograms[k].dof);
+      all += dk;
+    }
+    tot.push_back(all / G.dof);
+  }
+  auto moments = [](const std::vector<double>& v, double& mean, double& sd) {
+    mean = 0.0; sd = 0.0;
+    if (v.empty()) return;
+    for (double t : v) mean += t;
+    mean /= double(v.size());
+    for (double t : v) sd += (t - mean) * (t - mean);
+    sd = std::sqrt(sd / double(v.size()));
+  };
+  for (std::size_t k = 0; k < n_hist; ++k) {
+    PoissonHistogramFit& h = G.histograms[k];
+    moments(per[k], h.reference_mean, h.reference_sd);
+    h.z = (h.deviance_per_dof - h.reference_mean) / std::max(h.reference_sd, 1e-12);
+  }
+  moments(tot, G.reference_mean, G.reference_sd);
+  G.z = (G.deviance_per_dof - G.reference_mean) / std::max(G.reference_sd, 1e-12);
+  return G;
 }
 
 //! @}
