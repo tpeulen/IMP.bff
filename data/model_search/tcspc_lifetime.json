@@ -61,6 +61,14 @@
    "shift_background": {
     "label": "Shift background with IRF",
     "kind": "flag"
+   },
+   "periodic_excitation": {
+    "label": "Periodic excitation",
+    "kind": "flag"
+   },
+   "convolve": {
+    "label": "Convolve with IRF",
+    "kind": "flag"
    }
   }
  },
@@ -84,7 +92,9 @@
   "response_stop": 1e+18,
   "t_background": 1.0,
   "t_decay": 1.0,
-  "shift_background": 1
+  "shift_background": 1,
+  "periodic_excitation": 1,
+  "convolve": 1
  },
  "optional_datasets": [
   "linearization",
@@ -197,7 +207,15 @@
       "t_background",
       "t_decay"
      ],
-     "shift_background_with_response": "shift_background"
+     "shift_background_with_response": "shift_background",
+     "convolution_mode": {
+      "options": [
+       "single",
+       "periodic"
+      ],
+      "index": "periodic_excitation"
+     },
+     "convolve": "convolve"
     },
     "bind": {
      "response": "response",

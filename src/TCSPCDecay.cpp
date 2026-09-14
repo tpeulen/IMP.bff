@@ -193,6 +193,28 @@ void TCSPCDecay::set_shift_background_with_response(bool v) {
   set_valid(false);
 }
 
+void TCSPCDecay::set_convolution_mode(const std::string& mode) {
+  if (mode != "periodic" && mode != "single") {
+    throw std::domain_error("TCSPCDecay::set_convolution_mode: '" + mode +
+                            "' is not a mode; the modes are periodic and single");
+  }
+  if (mode != "periodic" && emit_basis_) {
+    throw std::domain_error(
+        "TCSPCDecay::set_convolution_mode: the basis is the periodic one");
+  }
+  periodic_ = mode == "periodic";
+  set_valid(false);
+}
+
+void TCSPCDecay::set_convolve(bool v) {
+  if (!v && emit_basis_) {
+    throw std::domain_error(
+        "TCSPCDecay::set_convolve: the basis is the convolved one");
+  }
+  convolve_ = v;
+  set_valid(false);
+}
+
 void TCSPCDecay::set_curve_from_port(bool v) {
   // The ports are made with the components; a decay-from-a-port model has
   // none, and zero is a count the builder accepts.
@@ -382,6 +404,10 @@ void TCSPCDecay::build_spectrum() {
 
 void TCSPCDecay::set_emit_basis(bool on) {
   if (on == emit_basis_) return;
+  if (on && (!periodic_ || !convolve_)) {
+    throw std::domain_error(
+        "TCSPCDecay::set_emit_basis: the basis is the periodic convolution's");
+  }
   if (on && curve_from_port_) {
     throw std::domain_error(
         "TCSPCDecay::set_emit_basis: a curve from a port has no species to "
@@ -472,9 +498,29 @@ void TCSPCDecay::evaluate() {
     int stop = stop_ < 0 ? last : std::min(stop_, last);
     convolution_stop = std::max(0, convolution_stop);
     stop = std::max(0, stop);
-    fconv_per_cs_ad<double>(curve_.data(), spectrum_.data(), irf.data(),
-                            n_active_, stop, n_points, period_,
-                            convolution_stop, dt_);
+    if (!convolve_) {
+      // No response to convolve with: the ideal decay on the channel axis,
+      // ChiSurf's `decay_without_irf`. Under periodic excitation the unrelaxed
+      // decay of the earlier pulses adds the geometric tail
+      // 1 / (1 - exp(-period / tau)) -- the factor the periodic kernel applies.
+      for (int s = 0; s < n_active_; ++s) {
+        const double tau = spectrum_[static_cast<std::size_t>(2 * s + 1)];
+        double amplitude = spectrum_[static_cast<std::size_t>(2 * s)];
+        if (periodic_ && tau > 0.0) amplitude /= (1.0 - std::exp(-period_ / tau));
+        for (int i = 0; i < n_points; ++i) {
+          curve_[static_cast<std::size_t>(i)] += amplitude * std::exp(-(i * dt_) / tau);
+        }
+      }
+    } else if (periodic_) {
+      fconv_per_cs_ad<double>(curve_.data(), spectrum_.data(), irf.data(),
+                              n_active_, stop, n_points, period_,
+                              convolution_stop, dt_);
+    } else {
+      // A single excitation: tttrlib's non-periodic recursion, whose stop is
+      // one past the last channel.
+      fconv_ad<double>(curve_.data(), spectrum_.data(), irf.data(), n_active_,
+                       0, std::min(convolution_stop + 1, n_points), dt_);
+    }
 
     // The basis: each species reconvolved on its own, with unit amplitude, in
     // the order the input spectrum gave them.
@@ -742,6 +788,10 @@ void TCSPCDecay::configure(const std::string& json_text) {
   if (config.has("spectrum_from_port")) {
     set_spectrum_from_port(config.get_bool("spectrum_from_port"));
   }
+  if (config.has("convolution_mode")) {
+    set_convolution_mode(config.get_string("convolution_mode"));
+  }
+  if (config.has("convolve")) set_convolve(config.get_bool("convolve"));
   if (config.has("background_times")) {
     const std::vector<double> times = config.get_doubles("background_times");
     if (times.size() != 2) {
