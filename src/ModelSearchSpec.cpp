@@ -103,6 +103,8 @@ void add_dataset_scalars(const std::string& slot, const FitDataset& dataset,
   scope[slot + "_first"] = first_value;
   scope[slot + "_last"] = last_value;
   scope[slot + "_amplitude"] = amplitude;
+  scope[slot + "_coordinates"] =
+      static_cast<double>(dataset.get_number_of_coordinates());
   // The sampling step of an evenly sampled axis -- a TCSPC channel width, read
   // from the measurement instead of typed in beside it.
   if (dataset.get_number_of_coordinates() > 0) {
@@ -529,6 +531,151 @@ void expand_template(SpecJson& document) {
   }
 }
 
+//! Expand a catalogue of equations into ordinary structures and parameters.
+/*!
+    The frame -- the description's `equations` block -- says which measurement
+    the equations are fitted to and what one structure looks like around its
+    expression. Nothing here knows what an equation is *of*: a variable that
+    names a coordinate of the measurement is an axis, and every other variable
+    is a parameter, shared by name across the catalogue. So a correlation curve
+    and an image-correlation carpet are the same case with a different number
+    of coordinates.
+*/
+void expand_equations(SpecJson& document, const SpecJson& equations,
+                      const std::map<std::string, FitDataset>& datasets) {
+  // A copy: the document gains parameters, structures and actions below, and
+  // an ordered map that grows moves what a reference into it pointed at.
+  const SpecJson frame = require_object(document, "equations", "the description");
+  const std::string slot = frame.contains("dataset")
+                               ? frame["dataset"].get<std::string>()
+                               : std::string("curve");
+  const std::string node_key = frame.contains("expression_node")
+                                   ? frame["expression_node"].get<std::string>()
+                                   : std::string("model");
+  const SpecJson& body = require_object(frame, "structure", "'equations'");
+  if (!equations.is_object() || equations.empty()) {
+    refuse("a catalogue of equations must name at least one equation");
+  }
+  std::map<std::string, FitDataset>::const_iterator data = datasets.find(slot);
+  if (data == datasets.end()) {
+    refuse("the equations are fitted to the measurement '" + slot +
+           "', which nothing bound");
+  }
+  std::set<std::string> coordinates;
+  for (int k = 0; k < data->second.get_number_of_coordinates(); ++k) {
+    coordinates.insert(data->second.get_coordinate_name(k));
+  }
+
+  SpecJson parameters = SpecJson::object();
+  SpecJson structures = SpecJson::object();
+  std::vector<std::string> keys;
+  for (SpecJson::const_iterator it = equations.begin(); it != equations.end();
+       ++it) {
+    const std::string key = it.key();
+    const std::string where = "equation '" + key + "'";
+    if (!it->is_object()) refuse(where + " must be an object");
+    const std::string text = require_string(*it, "equation", where);
+    GraphExpression probe("probe");
+    try {
+      probe.set_expression(text);
+    } catch (const std::exception& error) {
+      refuse(where + ": '" + text + "' does not compile (" + error.what() + ")");
+    }
+    const std::vector<std::string> variables = probe.get_variable_names();
+
+    SpecJson initial = SpecJson::object();
+    if (it->contains("initial")) initial = (*it)["initial"];
+    SpecJson bounds = SpecJson::object();
+    if (it->contains("bounds")) bounds = (*it)["bounds"];
+    std::set<std::string> held;
+    if (it->contains("fixed")) {
+      for (SpecJson::const_iterator f = (*it)["fixed"].begin();
+           f != (*it)["fixed"].end(); ++f) {
+        held.insert(f->get<std::string>());
+      }
+    }
+    SpecJson groups = SpecJson::object();
+    if (it->contains("groups")) groups = (*it)["groups"];
+
+    SpecJson structure = body;
+    SpecJson& nodes = structure["nodes"];
+    if (!nodes.contains(node_key)) {
+      refuse("the equations frame has no expression node '" + node_key + "'");
+    }
+    SpecJson& node = nodes[node_key];
+    node["config"]["expression"] = text;
+    SpecJson free = SpecJson::array();
+    bool has_axis = false;
+    for (std::size_t v = 0; v < variables.size(); ++v) {
+      const std::string& name = variables[v];
+      if (coordinates.count(name)) {
+        if (initial.contains(name)) {
+          refuse(where + ": '" + name + "' is a coordinate of '" + slot +
+                 "' and cannot also be given a starting value");
+        }
+        node["inputs"][name] = "@" + slot + "." + name;
+        has_axis = true;
+        continue;
+      }
+      node["inputs"][name] = "#" + name;
+      if (!parameters.contains(name)) {
+        SpecJson entry = SpecJson::object();
+        entry["name"] = name;
+        entry["initial"] = initial.contains(name) ? initial[name] : SpecJson(1.0);
+        if (bounds.contains(name)) {
+          entry["lower"] = bounds[name][0];
+          entry["upper"] = bounds[name][1];
+        } else {
+          entry["lower"] = nullptr;
+          entry["upper"] = nullptr;
+        }
+        if (groups.contains(name)) entry["group"] = groups[name];
+        parameters[name] = entry;
+      }
+      if (!held.count(name)) free.push_back(name);
+    }
+    if (!has_axis) {
+      std::ostringstream offered;
+      for (std::set<std::string>::const_iterator k = coordinates.begin();
+           k != coordinates.end(); ++k) {
+        offered << (k == coordinates.begin() ? " " : ", ") << *k;
+      }
+      refuse(where + " uses none of the coordinates of '" + slot +
+             "'; it has" + (coordinates.empty() ? std::string(" none") : offered.str()));
+    }
+    structure["free"] = free;
+    structure["label"] = it->contains("label") ? (*it)["label"] : SpecJson(key);
+    structures[key] = structure;
+    keys.push_back(key);
+  }
+
+  document["parameters"] = parameters;
+  document["structures"] = structures;
+  if (!document.contains("initial_structure")) {
+    document["initial_structure"] = keys.front();
+  }
+  if (frame.contains("moves") && frame["moves"] == "all") {
+    SpecJson actions = SpecJson::array();
+    for (std::size_t i = 0; i < keys.size(); ++i) {
+      SpecJson stop = SpecJson::object();
+      stop["from"] = keys[i];
+      stop["action"] = "stop";
+      stop["to"] = keys[i];
+      stop["terminal"] = true;
+      actions.push_back(stop);
+      for (std::size_t j = 0; j < keys.size(); ++j) {
+        if (i == j) continue;
+        SpecJson use = SpecJson::object();
+        use["from"] = keys[i];
+        use["action"] = "use:" + keys[j];
+        use["to"] = keys[j];
+        actions.push_back(use);
+      }
+    }
+    document["actions"] = actions;
+  }
+}
+
 }  // namespace
 
 struct ModelSearchSpec::Impl {
@@ -550,6 +697,14 @@ struct ModelSearchSpec::Impl {
   //! ports when what it was built from changes.
   std::shared_ptr<MultiStructureModelSearchProblem> model;
   bool dirty = true;
+  //! A catalogue of equations to expand into structures; see set_equations.
+  SpecJson equations;
+  //! The document after expanding what depends on bound data.
+  SpecJson expanded() const {
+    SpecJson result = document;
+    if (!equations.is_null()) expand_equations(result, equations, datasets);
+    return result;
+  }
 };
 
 ModelSearchSpec::ModelSearchSpec() : impl_(new Impl) {}
@@ -624,7 +779,16 @@ std::vector<std::string> ModelSearchSpec::get_scalar_names() const {
 
 std::vector<std::string> ModelSearchSpec::get_parameter_ids() const {
   std::vector<std::string> ids;
-  const SpecJson& parameters = impl_->document["parameters"];
+  // Expanded when a catalogue and its measurement allow it, so a caller
+  // sees the structures a catalogue will build before building it.
+  SpecJson document = impl_->document;
+  if (!impl_->equations.is_null()) {
+    try {
+      document = impl_->expanded();
+    } catch (const std::exception&) {
+    }
+  }
+  const SpecJson& parameters = document["parameters"];
   for (SpecJson::const_iterator it = parameters.begin();
        it != parameters.end(); ++it) {
     ids.push_back(it.key());
@@ -634,7 +798,16 @@ std::vector<std::string> ModelSearchSpec::get_parameter_ids() const {
 
 std::vector<std::string> ModelSearchSpec::get_structure_keys() const {
   std::vector<std::string> keys;
-  const SpecJson& structures = impl_->document["structures"];
+  // Expanded when a catalogue and its measurement allow it, so a caller
+  // sees the structures a catalogue will build before building it.
+  SpecJson document = impl_->document;
+  if (!impl_->equations.is_null()) {
+    try {
+      document = impl_->expanded();
+    } catch (const std::exception&) {
+    }
+  }
+  const SpecJson& structures = document["structures"];
   for (SpecJson::const_iterator it = structures.begin();
        it != structures.end(); ++it) {
     keys.push_back(it.key());
@@ -788,12 +961,40 @@ double ModelSearchSpec::evaluate(const std::string& expression) const {
   return evaluate_rule(SpecJson(expression), "the expression", scope);
 }
 
+void ModelSearchSpec::set_equations(const std::string& catalogue_json) {
+  if (!impl_->document.contains("equations")) {
+    refuse("family '" + impl_->family +
+           "' takes no catalogue of equations; its structures are declared");
+  }
+  SpecJson catalogue;
+  try {
+    catalogue = SpecJson::parse(catalogue_json);
+  } catch (const std::exception& error) {
+    refuse(std::string("the catalogue of equations is not valid JSON: ") +
+           error.what());
+  }
+  if (!catalogue.is_object() || catalogue.empty()) {
+    refuse("a catalogue of equations must name at least one equation");
+  }
+  impl_->equations = catalogue;
+  impl_->dirty = true;
+}
+
 std::string ModelSearchSpec::get_description_json() const {
+  // With a catalogue and its measurement bound, the structures exist only
+  // after expansion; without the measurement, the frame is what there is.
+  if (!impl_->equations.is_null()) {
+    try {
+      return impl_->expanded().dump();
+    } catch (const std::exception&) {
+    }
+  }
   return impl_->document.dump();
 }
 
 std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build_over(
     const std::shared_ptr<MultiStructureModelSearchProblem>& previous) const {
+  const SpecJson document = impl_->expanded();
   // Everything the description says it needs has to be here before anything
   // is built. A half-wired graph still evaluates, and fits the wrong thing.
   // Optional scalars are per-fit switches and instrument numbers a caller
@@ -801,8 +1002,8 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build_over(
   // default and a caller overrides it. A required scalar still has none.
   std::map<std::string, double> scope;
   SpecJson::const_iterator optional_scalars =
-      impl_->document.find("optional_scalars");
-  if (optional_scalars != impl_->document.end()) {
+      document.find("optional_scalars");
+  if (optional_scalars != document.end()) {
     if (!optional_scalars->is_object()) {
       refuse("'optional_scalars' must map a name to its default");
     }
@@ -841,7 +1042,7 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build_over(
       std::make_shared<MultiStructureModelSearchProblem>();
 
   // --- the canonical registry, in document order -------------------------
-  const SpecJson& parameters = impl_->document["parameters"];
+  const SpecJson& parameters = document["parameters"];
   std::vector<std::string> ids;
   std::vector<std::shared_ptr<GraphPort> > owners;
   std::map<std::string, std::shared_ptr<GraphPort> > owner_by_id;
@@ -936,7 +1137,7 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build_over(
   }
 
   // --- every structure: a complete graph over that one registry ----------
-  const SpecJson& structures = impl_->document["structures"];
+  const SpecJson& structures = document["structures"];
   for (SpecJson::const_iterator sit = structures.begin();
        sit != structures.end(); ++sit) {
     const std::string key = sit.key();
@@ -1015,7 +1216,7 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build_over(
           if (data == impl_->datasets.end()) {
             // An optional measurement nobody supplied -- a linearisation
             // table on an instrument without one -- leaves that stage off.
-            if (is_optional_dataset(impl_->document, slot)) continue;
+            if (is_optional_dataset(document, slot)) continue;
             refuse(node_where + " binds '" + bit.key() + "' to '" + slot +
                    "', which nothing supplied");
           }
@@ -1157,8 +1358,25 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build_over(
           } else if (field == "mask") {
             values = data->second.get_mask();
           } else {
-            refuse(input_where + " reads '" + field +
-                   "'; a measurement offers values, axis or mask");
+            // Any coordinate the measurement names: a curve's lag, a carpet's
+            // two spatial lags and its lag time -- as many as the data has.
+            bool found_coordinate = false;
+            for (int k = 0; k < data->second.get_number_of_coordinates(); ++k) {
+              if (data->second.get_coordinate_name(k) == field) {
+                values = data->second.get_coordinate(k);
+                found_coordinate = true;
+                break;
+              }
+            }
+            if (!found_coordinate) {
+              std::ostringstream offered;
+              offered << "values, axis, mask";
+              for (int k = 0; k < data->second.get_number_of_coordinates(); ++k) {
+                offered << ", " << data->second.get_coordinate_name(k);
+              }
+              refuse(input_where + " reads '" + field +
+                     "'; the measurement '" + slot + "' offers " + offered.str());
+            }
           }
           if (values.empty()) {
             refuse(input_where + " reads '" + slot + "." + field +
@@ -1392,8 +1610,8 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build_over(
   // convention for fitting n parameters once; a joint problem whose members
   // share strongly coupled parameters converges more slowly than that allows,
   // and a family knows its own difficulty better than the default does.
-  SpecJson::const_iterator budget_it = impl_->document.find("maxfev");
-  if (budget_it != impl_->document.end()) {
+  SpecJson::const_iterator budget_it = document.find("maxfev");
+  if (budget_it != document.end()) {
     const double budget =
         evaluate_rule(*budget_it, "the description 'maxfev'", scope);
     if (!(budget > 0.0)) refuse("'maxfev' must be positive");
@@ -1401,10 +1619,10 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build_over(
   }
 
   problem->set_initial_structure(
-      require_string(impl_->document, "initial_structure", "the description"));
+      require_string(document, "initial_structure", "the description"));
 
-  SpecJson::const_iterator actions = impl_->document.find("actions");
-  if (actions != impl_->document.end()) {
+  SpecJson::const_iterator actions = document.find("actions");
+  if (actions != document.end()) {
     if (!actions->is_array()) refuse("'actions' must be an array");
     for (SpecJson::const_iterator ait = actions->begin();
          ait != actions->end(); ++ait) {
