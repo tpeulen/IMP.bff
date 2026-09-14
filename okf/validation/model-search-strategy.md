@@ -193,8 +193,26 @@ Measured on the two-species FCS curve, learning the five parameters
 | `fcs.diffusion_time.2` | 0.027 | 1.149 against 0.8 |
 | `fcs.diffusion_fraction.1` | 0.054 | 0.55 against 0.4 |
 
-Predicting the mean of these targets scores 0.083, which is the bar; the
-amplitude and the plateau are read off the curve to about a percent.
+Predicting the mean of these targets scores 0.083, which is the bar.
+
+Those absolute numbers flatter it, though, and the comparison that matters is
+against the start the proposal *replaces* -- because the declared seeds are
+themselves computed from the curve:
+
+| parameter | declared seed | proposed | truth |
+|---|---|---|---|
+| `fcs.N` | 2.063 (3% out) | 1.955 (2% out) | 2.0 |
+| `fcs.baseline` | 1.012 (1% out) | 0.988 (1% out) | 1.0 |
+| `fcs.diffusion_time.1` | 0.312 (**290% out**) | 0.130 (62% out) | 0.08 |
+| `fcs.diffusion_time.2` | 1.247 (56% out) | 1.097 (37% out) | 0.8 |
+| `fcs.diffusion_fraction.1` | 0.500 (25% out) | 0.547 (37% out) | 0.4 |
+
+So the amplitude and the plateau were already right and the network adds
+nothing there; its contribution is concentrated on the diffusion times, where
+one characteristic lag had been standing in for both species. That is the
+right place for it -- those are the parameters whose basin the search keeps
+missing -- and a 4.7-fold improvement on the faster one is still not enough
+to move the selection.
 
 **It does not yet change the selection.** Adding the proposal as a declared
 start leaves the generating topology at -25.6 and third of eight: the
