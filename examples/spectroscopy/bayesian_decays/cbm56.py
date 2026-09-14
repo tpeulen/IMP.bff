@@ -39,7 +39,9 @@ from pathlib import Path
 import numpy as np
 
 __all__ = ['data_dir', 'read_calibration', 'load', 'experiment', 'pulse_windows',
+           'reference_dye', 'g_from_reference', 'apply_calibration_priors',
            'period_from_data', 'background', 'count_rates', 'pulse_positions',
+           'DETECTORS', 'responses', 'pulse_offset_channels', 'histograms',
            'CAL', 'SAMPLES', 'PAIRS', 'POLARISATIONS']
 
 #: the three burst cuts, and what each is
@@ -305,3 +307,513 @@ def experiment():
               f'laser period {cal["period"]:.3f} ns; g green {cal["g_green"]:.4f}, '
               f'red {cal["g_red"]:.4f}; l1 {cal["l1"]:.4f}, l2 {cal["l2"]:.4f}',
     ).validate()
+
+
+# --------------------------------------------------------------------------
+# what the model needs: the four detectors, their responses, the data
+# --------------------------------------------------------------------------
+
+#: the four physical detectors, and which half of which file each is
+DETECTORS = {'gp': ('green', 'parallel'), 'gs': ('green', 'perpendicular'),
+             'rp': ('red', 'parallel'), 'rs': ('red', 'perpendicular')}
+#: the model's polarisation code for each
+KIND = {'gp': 'vv', 'gs': 'vh', 'rp': 'vv', 'rs': 'vh'}
+
+
+def pulse_offset_channels(loaded, which='h20') -> int:
+    """How far the red pulse is behind the green one, in channels, measured in
+    the RED detectors -- the only ones that see both.
+
+    Not taken from the calibration file's fit windows: those are where Alex
+    chose to fit, which is near the pulses but not at them.
+    """
+    out = []
+    for pol in POLARISATIONS:
+        h = loaded['irf'][(which, 'red', pol)]
+        out.append(int(np.argmax(h[255:])) + 255 - int(np.argmax(h[:255])))
+    return int(round(float(np.mean(out))))
+
+
+def responses(loaded, which='h20', pad=(15, 150), n=None) -> dict:
+    """The instrument response of each detector, at the GREEN pulse's position.
+
+    Which pulse each response is taken from is not a detail. The green
+    detectors see only the green pulse, so there is no choice. **The red
+    detectors see both, and the green-pulse one is far the worse measured** --
+    about 2,250 counts at its peak against a pedestal of 710 per channel, where
+    the red-pulse response peaks two orders of magnitude higher. A detector's
+    response does not depend on which laser fired, so the red detectors' shape
+    is taken from their red pulse and moved back to where the green pulse sits
+    in them. That is a choice and it is made here, in the open.
+
+    The window keeps the pedestal inside it: removing the response's own
+    background is the fit's job (`irf_bg_<detector>`), not this function's.
+    """
+    n = int(loaded['cal']['n_channels']) if n is None else int(n)
+    off = pulse_offset_channels(loaded, which)
+    out, info = {}, {}
+    for det, (colour, pol) in DETECTORS.items():
+        h = np.asarray(loaded['irf'][(which, colour, pol)], float)
+        if colour == 'green':
+            peak = int(np.argmax(h[:255])); source = 'the green pulse'
+        else:
+            peak = int(np.argmax(h[255:])) + 255; source = 'the red pulse, moved back'
+        a, b = max(peak - pad[0], 0), min(peak + pad[1], len(h))
+        seg = np.zeros(len(h)); seg[a:b] = h[a:b]
+        if colour == 'red':
+            seg = np.roll(seg, -off)
+        r = seg[:n].copy()
+        out[det] = r
+        flat = float(np.median(h[200:251])) if colour == 'green' else float(np.median(h[430:481]))
+        info[det] = dict(peak_channel=peak, source=source, counts=float(r.sum()),
+                         peak=float(r.max()), flat_per_channel=flat,
+                         background_fraction=float(min(flat * (b - a) / max(r.sum(), 1), 0.95)))
+    return out, info, off
+
+
+def histograms(loaded, n=None) -> dict:
+    """The twelve measured histograms keyed the way the model keys them, and
+    the mask that excludes the channels beyond the laser period.
+
+    Those channels are structurally empty -- the electronics never reach them --
+    so a model that predicts a background there would be fitted against a zero
+    that means nothing.
+    """
+    n = int(loaded['cal']['n_channels']) if n is None else int(n)
+    y, mask = {}, {}
+    for det, (colour, pol) in DETECTORS.items():
+        for samp in ('D0', 'A0', 'DA'):
+            h = np.asarray(loaded['sample'][(samp, colour, pol)], float)[:n]
+            y[(samp, f'{det}_{KIND[det]}')] = h
+            mask[(samp, f'{det}_{KIND[det]}')] = np.ones(n)
+    return y, mask
+
+
+# --------------------------------------------------------------------------
+# the model's environment, on this spectrometer's time axis
+# --------------------------------------------------------------------------
+
+def environment(n_coef=25, n=488, cache=True, verbose=True):
+    """The transfer maps, built on THIS instrument's axis rather than the
+    prototype's.
+
+    The maps are functions of the time axis, and the prototype's is a 50 ns
+    period at 32 ps because that is the instrument it was written against.
+    CBM56 is 31.25 ns at 64 ps. Both are arguments to the builder, so this is a
+    parameter change and a cache, not a redesign -- but it is a change that
+    could go wrong silently, so `check_axis` compares the two.
+
+    **The axis is the measured one.** 488 channels of exactly 64 ps is 31.232 ns
+    against the calibration file's 31.24922561, so the period is 0.055 % short.
+    The alternative -- an exact period and channels of 64.035 ps -- puts the same
+    error into every lifetime instead. Keeping the TAC calibration exact is the
+    better of the two, because the calibration is what a lifetime is measured
+    in, and 0.055 % of a wrap-around is smaller than 0.055 % of a lifetime.
+    """
+    import os, time, torch
+    import sys as _sys
+    from bd import P
+    L = P.load_prototype(threads=4)
+    d = P.prototype_dir()
+    if str(d) not in _sys.path:
+        _sys.path.insert(0, str(d))
+    import s80_analytic_stage2 as A, s79_fret_stage2 as S
+    import s83_relative_distance as R3, s86_sensitised as S6, s87_amortized_nn as M
+
+    cal = CAL or _cal()
+    dt = cal['dt']
+    rel, edges = R3.grid(M.N_REL)
+    S.TAU_REF = L.TAU_0
+    S.R_GRID = S.R0_FOERSTER * rel
+    ck = d / 'ckpt' / 'homog'
+    ck.mkdir(parents=True, exist_ok=True)
+    f = ck / f'cbm56_env_{n}_{M.N_REL}.pt'
+    if cache and f.exists():
+        E = torch.load(f, weights_only=False)
+        if verbose:
+            print(f'  maps loaded from {f.name}')
+    else:
+        t0 = time.time()
+        E = A.build(n=n, period=n * dt, rebin=False, acceptor_grid=True)
+        if verbose:
+            print(f'  transfer maps on the CBM56 axis in {time.time() - t0:.0f} s')
+        if cache:
+            torch.save(E, f)
+    f2 = ck / f'cbm56_rho_{n}_{len(M.RHO_GRID)}.pt'
+    if cache and f2.exists():
+        E['S_rho'] = torch.load(f2, weights_only=False)
+    else:
+        t0 = time.time()
+        b = E['basis']; keep = b.B; b.B = E['B_full']
+        try:
+            E['S_rho'] = S.rot_maps(E['dec'], b, E['T'], E['tau_c'], M.RHO_GRID)
+        finally:
+            b.B = keep
+        if verbose:
+            print(f'  rotational maps in {time.time() - t0:.0f} s')
+        if cache:
+            torch.save(E['S_rho'], f2)
+    E['rho'] = M.RHO_GRID
+    f3 = ck / f'cbm56_rhoa_{n}_{len(M.RHO_A_GRID)}.pt'
+    if cache and f3.exists():
+        d3 = torch.load(f3, weights_only=False)
+    else:
+        t0 = time.time()
+        b = E['basis']; keep = b.B; b.B = E['B_full']
+        try:
+            sag, adr = [], []
+            for v in M.RHO_A_GRID:
+                _, sr = S.sens_maps_grid(E['dec'], b, E['T'], E['tau_c'], S.R_GRID,
+                                         S.R0_FOERSTER, S.TAU_A_GRID, rho_a=float(v))
+                _, ar = S.direct_maps(E['dec'], b, S.TAU_A_GRID, rho_a=float(v))
+                sag.append(sr); adr.append(ar)
+        finally:
+            b.B = keep
+        d3 = dict(S_Ag_rot_r=torch.stack(sag), A_dir_rot_r=torch.stack(adr))
+        if verbose:
+            print(f'  acceptor rotational maps in {time.time() - t0:.0f} s')
+        if cache:
+            torch.save(d3, f3)
+    E.update(d3)
+    E['rho_a'] = M.RHO_A_GRID
+    E['rel'], E['edges'] = rel, edges
+    E['homogeneous'] = True; E['tau_0'] = float(L.TAU_0)
+    #: a nominal response, only so that anything asking for a width default has
+    #: one; the responses actually used are measured
+    E['instrument'] = ('CBM56 water', 0.15, 0.0, 0.0)
+    spl = S6.pspline_basis(M.N_REL, n_coef=n_coef)
+    return E, np.asarray(rel), spl, L
+
+
+# --------------------------------------------------------------------------
+# the model, assembled
+# --------------------------------------------------------------------------
+
+def model(loaded=None, n_coef=25, which='h20', verbose=True,
+          samples=('D0', 'A0', 'DA'), detectors=None):
+    """Everything the fit needs: the maps on this axis, the measured responses,
+    the twelve histograms, and the graph.
+
+    The geometry is the one `experiment.py` calls interleaved: each histogram
+    holds both pulse windows, so every (sample, detector) appears twice among
+    the physics channels -- once for each pulse -- and the data live on the
+    green-pulse key with the red-pulse partner summed into the same mean.
+    """
+    import torch
+    d = loaded or load()
+    cal = d['cal']
+    E, rel, spl, L = environment(n_coef=n_coef, verbose=verbose)
+    n = int(E['n'])
+    irf, info, off = responses(d, which=which, n=n)
+    y_np, mask_np = histograms(d, n=n)
+
+    E = dict(E)
+    E['pulse_alias'] = {'g2p': 'gp', 'g2s': 'gs', 'r2p': 'rp', 'r2s': 'rs'}
+    E['pulse_offset'] = {a: off * cal['dt'] for a in E['pulse_alias']}
+    E['pie_full'] = True
+    win_g = np.zeros(n); win_g[:off] = 1.0
+    E['win_green'] = L.tt(win_g); E['win_red'] = L.tt(1.0 - win_g)
+
+    dets = tuple(DETECTORS) if detectors is None else tuple(detectors)
+    keys, pairs = [], {}
+    for samp in samples:
+        for det in dets:
+            k = (samp, f'{det}_{KIND[det]}')
+            kp = (samp, f'{det[0]}2{det[1:]}_{KIND[det]}')
+            keys += [k, kp]; pairs[k] = kp
+    E['pie_pairs'] = pairs
+
+    y_np = {k: v for k, v in y_np.items() if k in pairs}
+    mask_np = {k: v for k, v in mask_np.items() if k in pairs}
+    y = {k: L.tt(v) for k, v in y_np.items()}
+    masks = {k: L.tt(mask_np[k]) for k in y_np}
+    #: the background of each histogram as a FRACTION of its counts, from the
+    #: flat parts of the decay -- a starting point for a node, not a constant
+    bkg_med, tot = {}, {}
+    for k, v in y_np.items():
+        b = background(v, cal)
+        tot[k] = float(v.sum())
+        bkg_med[k] = max(b['per_channel'] * n / max(tot[k], 1.0), 1e-6)
+    ref = {samp: next(k for k in pairs if k[0] == samp) for samp in samples}
+    scale_med = {samp: max(tot[ref[samp]], 1.0) for samp in samples}
+    irf_bg_med = {det: max(min(info[det]['background_fraction'], 0.9), 1e-3) for det in dets}
+
+    V = L.default_variables(E, keys, n_coef=n_coef, scale_medians=scale_med,
+                            irf_shape=False, bkg_medians=bkg_med,
+                            irf_bg_medians=irf_bg_med)
+    inst = L.InstrumentModel(E, 'measured', {det: L.tt(irf[det]) for det in dets})
+    ps = L.PSplineFactor(n_coef, spl=spl)
+    g = L.FactorGraph(E, keys, V, L.PoissonCountsFactor({k: y[k] for k in pairs}, mask=masks),
+                      inst, spl, ps)
+    g.rel = rel
+    g.start_y = {k: y[k] * E['win_green'] for k in pairs}
+    return dict(L=L, E=E, rel=rel, spl=spl, keys=keys, pairs=pairs, graph=g,
+                y=y, masks=masks, irf=irf, irf_info=info, offset_channels=off,
+                cal=cal, loaded=d, n=n, n_coef=n_coef,
+                bkg_medians=bkg_med, scale_medians=scale_med, irf_bg_medians=irf_bg_med)
+
+
+def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True):
+    """The Laplace posterior of the whole model on the twelve histograms.
+
+    **Automatic differentiation, not the analytic Jacobian.** The hand-written
+    amplitude Jacobian covers three scopes and this measurement has six -- every
+    sample is seen under both pulses -- and the prototype raises rather than
+    quietly returning the wrong derivative. That is the right behaviour and it
+    is why this fit is minutes rather than seconds.
+    """
+    import torch
+    L = m['L']
+    L.Laplace.analytic = False
+    gen = torch.Generator().manual_seed(int(seed))
+    post = L.fit_sample(m['graph'], m['y'], gen, m['rel'], verbose=verbose, start='mem',
+                        optimiser='fisher', hessian='fisher',
+                        lam_nodes=tuple(float(x) for x in lam_nodes))
+    return post
+
+
+def rule0(m, post):
+    """Rule 0 per histogram: the Poisson deviance per degree of freedom and a
+    runs test on the weighted residuals, with the deviance compared against a
+    reference MEASURED by drawing Poisson data at the fitted means."""
+    from bd import P
+    rows = [dict(channel=f'{k[0]} {k[1]}', counts=float(m['y'][k].sum()),
+                 dpd=r['dpd'], runs_p=r['runs_p']) for k, r in post['rows'].items()]
+    ref = P.poisson_reference(post, n_draw=150, seed=0)
+    dpd = post['dev'] / post['dof']
+    rows.append(dict(channel='all', counts=float(sum(float(m['y'][k].sum()) for k in m['pairs'])),
+                     dpd=dpd, runs_p=float('nan')))
+    return rows, ref, float((dpd - ref[0]) / max(ref[1], 1e-12))
+
+
+# --------------------------------------------------------------------------
+# every nuisance, against its prior
+# --------------------------------------------------------------------------
+
+#: the three that are not nuisances: the distance distribution's coefficients,
+#: the lifetime spectrum, and the roughness weight that is integrated out
+NOT_NUISANCE = ('c', 'spec_eps', 'log10_lam')
+
+
+def nuisances(m, post, n_draw=4000, seed=0, exclude=NOT_NUISANCE):
+    """Each nuisance's posterior beside its prior, in the units it is quoted in.
+
+    The Laplace approximation gives the posterior covariance in the coordinate
+    the fit works in; what a reader wants is the constrained value -- a g factor,
+    a fraction, a shift in nanoseconds -- so the posterior sd is carried through
+    the transform by the delta method and the prior is characterised by drawing
+    from it.
+
+    **The column to read is the last one.** `1 - (posterior sd / prior sd)^2` is
+    the fraction of the prior's variance the data removed. Near one the number
+    is a measurement; near zero it is the prior, whatever the fit prints, and on
+    a real sample there is no truth to notice the difference.
+    """
+    import torch
+    L = m['L']
+    g = post['graph']
+    Sig = post['Sigma']; th = post['theta']
+    gen = torch.Generator().manual_seed(int(seed))
+    rows = []
+    for v in g.free:
+        if v.name in exclude:
+            continue
+        a, b = g.offsets[v.name]
+        #: the prior in the constrained coordinate, by drawing from it
+        draws = torch.stack([v.transform.to_constrained(v.sample_z(gen).reshape(-1))
+                             for _ in range(n_draw)])
+        pri_mu = draws.mean(0); pri_sd = draws.std(0)
+        z = th[a:b].detach().clone()
+        x0 = v.transform.to_constrained(z)
+        for i in range(v.size):
+            #: the delta method through this variable's own transform
+            h = 1e-5 * max(abs(float(z[i])), 1.0)
+            zp = z.clone(); zp[i] += h
+            dxdz = float((v.transform.to_constrained(zp) - x0)[min(i, x0.numel() - 1)] / h)
+            sd_z = float(Sig[a + i, a + i]) ** 0.5
+            sd_x = abs(dxdz) * sd_z
+            j = min(i, pri_sd.numel() - 1)
+            ps = float(pri_sd[j])
+            rows.append(dict(
+                name=v.name if v.size == 1 else f'{v.name}[{i}]',
+                group=v.group, doc=v.doc,
+                posterior=float(x0[min(i, x0.numel() - 1)]), posterior_sd=sd_x,
+                prior=float(pri_mu[j]), prior_sd=ps,
+                learned=float(max(0.0, 1.0 - (sd_x / ps) ** 2)) if ps > 0 else float('nan')))
+    return rows
+
+
+def plot_nuisances(rows, groups=('phys', 'cal', 'inst'), ax=None, max_per_group=None):
+    """Every nuisance drawn against its prior: the prior interval in grey, the
+    posterior on top of it, each normalised to its own prior so that a g factor
+    and a background fraction can sit on one axis.
+
+    A bar that fills its grey band is a parameter the measurement did not
+    determine. A bar much narrower than the band, and displaced from it, is one
+    the measurement moved.
+    """
+    import matplotlib.pyplot as plt
+    sel = [r for r in rows if r['group'] in groups and r['prior_sd'] > 0]
+    sel.sort(key=lambda r: (groups.index(r['group']), -r['learned']))
+    if max_per_group:
+        keep, seen = [], {}
+        for r in sel:
+            seen[r['group']] = seen.get(r['group'], 0) + 1
+            if seen[r['group']] <= max_per_group:
+                keep.append(r)
+        sel = keep
+    n = len(sel)
+    if ax is None:
+        _, ax = plt.subplots(figsize=(8.0, max(3.0, 0.24 * n)))
+    colour = {'phys': 'C0', 'cal': 'C2', 'inst': 'C1'}
+    for i, r in enumerate(sel):
+        z = (r['posterior'] - r['prior']) / r['prior_sd']
+        w = r['posterior_sd'] / r['prior_sd']
+        ax.barh(i, 4.0, left=-2.0, height=0.75, color='0.88', zorder=1)
+        ax.barh(i, 4.0 * w, left=z - 2.0 * w, height=0.5,
+                color=colour.get(r['group'], 'C4'), zorder=2)
+        ax.plot([z], [i], '|', color='k', ms=6, zorder=3)
+    ax.axvline(0.0, color='0.4', lw=0.8)
+    ax.set_yticks(range(n))
+    ax.set_yticklabels([f'{r["name"]}  ({r["learned"]:.2f})' for r in sel], fontsize=7)
+    ax.set_xlabel('posterior, in prior standard deviations from the prior mean'
+                  '  (grey: the prior, +-2 sd)')
+    ax.set_xlim(-3.2, 3.2); ax.invert_yaxis()
+    handles = [plt.Rectangle((0, 0), 1, 1, color=colour[k]) for k in colour if any(r['group'] == k for r in sel)]
+    labels = [{'phys': 'physics', 'cal': 'calibration', 'inst': 'instrument'}[k]
+              for k in colour if any(r['group'] == k for r in sel)]
+    ax.legend(handles, labels, fontsize=7, loc='lower right')
+    return ax
+
+
+# --------------------------------------------------------------------------
+# the reference dye
+# --------------------------------------------------------------------------
+
+def g_from_reference(loaded, which='rhd110', windows=((10, 40), (40, 90), (90, 150), (150, 220))):
+    """The `g` factor measured from the reference dye -- and the convention
+    question it settles.
+
+    Rhodamine 110 in water rotates in a fraction of a nanosecond, so a few
+    hundred picoseconds after the pulse its emission is depolarised and the two
+    polarised channels differ only by their detection efficiencies. In the
+    model's convention the perpendicular channel is DIVIDED by `g`, so for a
+    depolarised emitter `g = VV / VH`. That is what this measures, after
+    subtracting each channel's own background.
+
+    **Paris quotes the reciprocal.** The measurement is 0.93 to 0.96 in every
+    window of both repeats and both colours, while the calibration file states
+    1.0720 and 1.1056 -- whose reciprocals are 0.9328 and 0.9045. All eight
+    measurements sit at the reciprocal (tpeulen, 2026-09-14: "Paris may have
+    some funky inverse g factor"), and that also settles which half of each file
+    is which: the first is the parallel channel, as the water measurement's
+    twofold excess already said.
+
+    The red detectors come out four to five per cent above their reciprocal,
+    which is the direction a residual anisotropy pushes `VV/VH`, so the two
+    disagreements that looked contradictory are one convention and one small
+    physical effect.
+    """
+    cal = loaded['cal']
+    out = {}
+    for colour, stated in (('green', cal['g_green']), ('red', cal['g_red'])):
+        p = np.asarray(loaded['reference'][(which, colour, 'parallel')], float)
+        sper = np.asarray(loaded['reference'][(which, colour, 'perpendicular')], float)
+        pk = int(np.argmax(p[:255]))
+        bp, bs = float(np.median(p[430:481])), float(np.median(sper[430:481]))
+        ratios = [float((p[pk + a:pk + b] - bp).sum() / max((sper[pk + a:pk + b] - bs).sum(), 1.0))
+                  for a, b in windows]
+        mu = float(np.mean(ratios))
+        out[colour] = dict(peak_channel=pk, ratios=ratios, measured=mu,
+                           stated=float(stated), reciprocal=float(1.0 / stated),
+                           matches='the reciprocal' if abs(mu - 1.0 / stated) < abs(mu - stated)
+                                   else 'the stated value',
+                           windows=[(pk + a, pk + b) for a, b in windows])
+    return out
+
+
+def reference_dye(loaded, which='rhd110', pad=(15, 220), n=None) -> dict:
+    """The reference dye's decay, per detector, as a RESPONSE.
+
+    A response measured on water is scattered laser light and nothing else,
+    which is what makes it the right shape -- and on this instrument it is also
+    weak, seventy per cent pedestal in the red detectors. A reference dye is
+    bright instead, and the model can use it directly: if the response is a
+    dye's decay `R = IRF * exp(-t/tau_ref)` rather than the instrument's own,
+    then
+
+        IRF * e_i = R + (1/tau_ref - 1/tau_i) (R * e_i)
+
+    exactly, with no deconvolution anywhere (Zuker, Szabo, Bramall, Krajcarski &
+    Selinger, Rev. Sci. Instrum. 56, 14, 1985). `basis_from_irf` implements it
+    and `irf_tauref_<detector>` is the node that carries the dye's lifetime, so
+    using this needs no new mathematics -- only the decay and a prior on it.
+
+    Rhodamine 110 is about 4 ns in water, which is long; the method wants a
+    reference much shorter than the lifetimes being measured, so this is offered
+    and its cost has to be measured rather than assumed.
+    """
+    n = int(loaded['cal']['n_channels']) if n is None else int(n)
+    out, info = {}, {}
+    for det, (colour, pol) in DETECTORS.items():
+        h = np.asarray(loaded['reference'][(which, colour, pol)], float)
+        peak = int(np.argmax(h[:255]))
+        a, b = max(peak - pad[0], 0), min(peak + pad[1], len(h))
+        seg = np.zeros(len(h)); seg[a:b] = h[a:b]
+        out[det] = seg[:n].copy()
+        flat = float(np.median(h[430:481]))
+        info[det] = dict(peak_channel=peak, counts=float(seg.sum()), peak=float(seg.max()),
+                         flat_per_channel=flat,
+                         background_fraction=float(min(flat * (b - a) / max(seg.sum(), 1), 0.95)))
+    return out, info
+
+
+def apply_calibration_priors(m, g_sd=0.02, l_sd=0.005, verbose=True):
+    """Replace the prototype's simulated calibration priors with THIS
+    spectrometer's.
+
+    The model's defaults are the simulation's -- `g` 1.15, `l1` 0.03, `l2` 0.02 --
+    and this instrument is 1.0720, 0.0175 and 0.0526. **`l2` is 3.3 of the
+    default prior's standard deviations away**, and it controls how much
+    parallel light enters the perpendicular channel, so leaving it there pulls
+    the anisotropy and with it everything the perpendicular histograms say.
+
+    The widths are the point of judgement. `g` and the polarisation mixing are
+    calibrations somebody measured, not guesses, so they are given narrow priors
+    -- but not fixed, because a calibration measured on another day is a prior
+    and not a fact.
+    """
+    L = m['L']; cal = m['cal']
+    #: THE RECIPROCAL. Paris quotes a g the model would call 1/g, which
+    #: `g_from_reference` settles against the reference dye: the measured VV/VH
+    #: of a depolarised emitter is 0.93 to 0.96, and the file says 1.07 and
+    #: 1.11. Using the file's number as written would have divided the
+    #: perpendicular channel by 1.07 where it should be divided by 0.93 -- a
+    #: 15 % error in the anisotropy, in the wrong direction, on every
+    #: perpendicular histogram.
+    want = {'g': (1.0 / cal['g_green'], g_sd), 'g_r': (1.0 / cal['g_red'], g_sd),
+            'l1': (cal['l1'], l_sd), 'l2': (cal['l2'], l_sd),
+            'QY_D': (cal['qy_donor'], 0.10), 'QY_A': (cal['qy_acceptor'], 0.10),
+            'EX_AG': (cal['direct_excitation'], 0.30),
+            'C_RD': (cal['crosstalk'], 0.20)}
+    changed = []
+    for v in m['graph'].V:
+        if v.name not in want:
+            continue
+        mu, sd = want[v.name]
+        old = v.prior
+        if isinstance(old, L.Gaussian):
+            v.prior = L.Gaussian(mu, sd)
+        elif isinstance(old, L.LogNormal):
+            v.prior = L.LogNormal(mu, sd)
+        else:
+            continue
+        changed.append((v.name, mu, sd))
+    if verbose:
+        print(f'{"parameter":<8}{"prior median":>14}{"prior sd":>11}   from')
+        for n_, mu, sd in changed:
+            src = ('the calibration file, INVERTED' if n_ in ('g', 'g_r')
+                   else 'the calibration file' if n_ in ('l1', 'l2')
+                   else "Alex's single-molecule fit")
+            print(f'{n_:<8}{mu:>14.4f}{sd:>11.4f}   {src}')
+    return changed
