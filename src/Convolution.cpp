@@ -10,6 +10,8 @@
 #include <IMP/bff/internal/NodeConfig.h>
 #include <IMP/bff/internal/ResponseFunction.h>
 
+#include <algorithm>
+#include <cmath>
 #include <sstream>
 #include <stdexcept>
 
@@ -33,6 +35,26 @@ void Convolution::set_response_array(double* in_response, int n_response) {
 
 void Convolution::set_normalize_response(bool v) {
   normalize_response_ = v;
+  set_valid(false);
+}
+
+void Convolution::set_mode(const std::string& mode) {
+  if (mode != "causal" && mode != "periodic" && mode != "centered") {
+    throw std::domain_error("Convolution::set_mode: '" + mode +
+                            "' is not a mode; the modes are causal, "
+                            "periodic and centered");
+  }
+  mode_ = mode;
+  set_valid(false);
+}
+
+void Convolution::set_period(double samples) {
+  if (!(samples > 0.0) || !std::isfinite(samples)) {
+    throw std::domain_error(
+        "Convolution::set_period: a repetition period is a positive number "
+        "of samples");
+  }
+  period_ = samples;
   set_valid(false);
 }
 
@@ -65,9 +87,27 @@ void Convolution::evaluate() {
   } else {
     prepared_ = response_;
   }
+  const int n = static_cast<int>(curve.size());
   out_.resize(curve.size());
-  convolve_causal_ad<double>(out_.data(), curve.data(), prepared_.data(),
-                             static_cast<int>(curve.size()));
+  if (mode_ == "causal") {
+    convolve_causal_ad<double>(out_.data(), curve.data(), prepared_.data(), n);
+  } else {
+    full_.resize(static_cast<std::size_t>(2 * n - 1));
+    convolve_full_ad<double>(full_.data(), curve.data(), n, prepared_.data(), n);
+    if (mode_ == "periodic") {
+      if (!(period_ > 0.0)) {
+        throw std::domain_error("Convolution '" + get_name() +
+                                "' is periodic but has no period");
+      }
+      fold_periodic_ad<double>(out_.data(), n, full_.data(), 2 * n - 1,
+                               period_);
+    } else {
+      // numpy's "same": the middle n of the full convolution.
+      const int offset = (n - 1) / 2;
+      std::copy(full_.begin() + offset, full_.begin() + offset + n,
+                out_.begin());
+    }
+  }
 
   const std::shared_ptr<GraphPort> out = get_output_port(get_name());
   if (!out) {
@@ -85,6 +125,8 @@ std::string Convolution::get_node_type() const { return "Convolution"; }
 
 void Convolution::configure(const std::string& json_text) {
   internal::NodeConfig config(get_node_type(), json_text);
+  if (config.has("mode")) set_mode(config.get_string("mode"));
+  if (config.has("period")) set_period(config.get_double("period"));
   if (config.has("normalize_response")) {
     set_normalize_response(config.get_bool("normalize_response"));
   }

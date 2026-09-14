@@ -166,3 +166,79 @@ def test_an_autoscaled_scale_is_published_to_the_models_parameter():
     assert model.get_parameter("instrument.n0").value == pytest.approx(400.0, rel=1e-9)
     assert model.get_parameter("instrument.n0").fixed
     np.testing.assert_allclose(curve, y, rtol=1e-9)
+
+
+def _mode_node(response, curve, **config):
+    node = _node("Convolution", "conv", response, **config)
+    _vector_input(node, "curve", curve)
+    node.update()
+    return np.asarray(node.get_output_port("conv").value)
+
+
+def _fold(full, n, period):
+    """What periodic excitation adds: the spill of every earlier pulse, interpolated."""
+    out = np.array(full[:n], dtype=float)
+    for i in range(n):
+        k = 1
+        while i + k * period <= full.size - 1:
+            position = i + k * period
+            j = int(np.floor(position))
+            f = position - j
+            out[i] += (1 - f) * full[j] + (f * full[j + 1] if j + 1 < full.size else 0.0)
+            k += 1
+    return out
+
+
+def test_the_centered_mode_is_numpys_same():
+    x, _ = _response()
+    kernel = np.exp(-0.5 * ((x - x.mean()) / 0.2) ** 2)
+    curve = np.sin(x) ** 2
+    expected = np.convolve(curve, kernel / kernel.sum(), "same")
+    np.testing.assert_allclose(_mode_node(kernel, curve, mode="centered"), expected, rtol=1e-12, atol=1e-15)
+
+
+@pytest.mark.parametrize("period", [64.0, 51.37])
+def test_the_periodic_mode_folds_the_spill_of_earlier_pulses(period):
+    x, response = _response(center=4.5, width=0.4)   # a late, broad response spills far
+    curve = np.exp(-x / 2.0)
+    unit = response / response.sum()
+    expected = _fold(np.convolve(curve, unit, "full"), N, period)
+    got = _mode_node(response, curve, mode="periodic", period=period)
+    np.testing.assert_allclose(got, expected, rtol=1e-12, atol=1e-15)
+    causal = _mode_node(response, curve)
+    assert np.all(got >= causal - 1e-15)
+    assert got.sum() > causal.sum()
+
+
+def test_a_mode_that_is_not_one_is_refused_and_a_period_is_required():
+    _, response = _response()
+    with pytest.raises((ValueError, RuntimeError)):
+        _node("Convolution", "conv", response, mode="reflect")
+    node = _node("Convolution", "conv", response, mode="periodic")
+    _vector_input(node, "curve", np.ones(N))
+    with pytest.raises((ValueError, RuntimeError)):
+        node.update()
+
+
+def test_a_frame_switches_the_convolution_to_periodic_by_a_flag():
+    x, response = _response(center=4.5, width=0.4)
+    spec = _convolved_spec(np.full(N, 50.0), response, x)
+    spec.set_scalar("period", 5.0)            # 100 channels at dt = 0.05
+    causal = spec.get_model()
+    causal.select_structure("one")
+    causal.get_parameter("instrument.background").value = 0.0
+    node = causal.get_structure_curve_node("one", "decay")
+    before = np.array(causal.get_structure_output("one", node))
+
+    spec.set_scalar("periodic", 1.0)
+    periodic = spec.get_model()
+    periodic.select_structure("one")
+    after = np.array(periodic.get_structure_output("one", node))
+    a1, tau1 = periodic.get_parameter("a1").value, periodic.get_parameter("tau1").value
+    full = np.convolve(a1 * np.exp(-x / tau1), response / response.sum(), "full")
+    np.testing.assert_allclose(after, _fold(full, N, 5.0 / DT), rtol=1e-12)
+    assert after.sum() > before.sum()
+
+    spec.set_scalar("periodic", 2.0)
+    with pytest.raises((ValueError, RuntimeError)):
+        spec.get_model()

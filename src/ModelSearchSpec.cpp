@@ -1199,7 +1199,26 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build_over(
           if (settings.contains(rit.key())) {
             refuse(rule_where + " is given both literally and as a rule");
           }
-          if (rit->is_array()) {
+          if (rit->is_object()) {
+            // A choice among named settings, picked by a rule: a numeric
+            // switch the caller sets selects a node's named mode.
+            if (!rit->contains("options") || !(*rit)["options"].is_array() ||
+                (*rit)["options"].empty() || !rit->contains("index")) {
+              refuse(rule_where +
+                     " as an object must give 'options' and an 'index' rule");
+            }
+            const SpecJson& options = (*rit)["options"];
+            const double index =
+                evaluate_rule((*rit)["index"], rule_where + " index", scope);
+            const double picked = std::floor(index + 0.5);
+            if (picked < 0.0 || picked >= static_cast<double>(options.size())) {
+              std::ostringstream m;
+              m << rule_where << " index " << index << " picks none of the "
+                << options.size() << " options";
+              refuse(m.str());
+            }
+            settings[rit.key()] = options[static_cast<std::size_t>(picked)];
+          } else if (rit->is_array()) {
             SpecJson values = SpecJson::array();
             for (SpecJson::const_iterator eit = rit->begin();
                  eit != rit->end(); ++eit) {
