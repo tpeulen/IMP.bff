@@ -22,6 +22,7 @@
 // `src/standalone/GraphExpression.cpp`). Only the header-only pieces are used;
 // nothing here links tttrlib.
 #include <IMP/bff/internal/DecayConvolution.h>
+#include <IMP/bff/internal/ResponseFunction.h>
 
 #include <algorithm>
 #include <cmath>
@@ -97,6 +98,13 @@ void TCSPCDecay::set_number_of_lifetimes(int n) {
     add_input_port(spectrum_port_key(), spectrum);
     spectrum_port_ = spectrum.get();
 
+    // The convolved curve, for a model that is already a decay. Fit
+    // transport as well, so it does not sanitise either.
+    std::shared_ptr<GraphPort> curve(new GraphPort(std::vector<double>(1, 0.0)));
+    curve->set_sanitize(false);
+    add_input_port(curve_port_key(), curve);
+    curve_port_ = curve.get();
+
     add_scalar_port("scatter", 0.0, &scatter_port_);
     add_scalar_port("background", 0.0, &background_port_);
     add_scalar_port("n0", 1.0, &n0_port_);
@@ -144,6 +152,19 @@ void TCSPCDecay::set_spectrum_from_port(bool v) {
         "call set_number_of_lifetimes() first, which is what builds them");
   }
   spectrum_from_port_ = v;
+  set_valid(false);
+}
+
+void TCSPCDecay::set_curve_from_port(bool v) {
+  // The ports are made with the components; a decay-from-a-port model has
+  // none, and zero is a count the builder accepts.
+  if (v && curve_port_ == nullptr) set_number_of_lifetimes(0);
+  if (v && emit_basis_) {
+    throw std::domain_error(
+        "TCSPCDecay::set_curve_from_port: a curve from a port has no species "
+        "to emit a basis for");
+  }
+  curve_from_port_ = v;
   set_valid(false);
 }
 
@@ -323,6 +344,11 @@ void TCSPCDecay::build_spectrum() {
 
 void TCSPCDecay::set_emit_basis(bool on) {
   if (on == emit_basis_) return;
+  if (on && curve_from_port_) {
+    throw std::domain_error(
+        "TCSPCDecay::set_emit_basis: a curve from a port has no species to "
+        "emit a basis for");
+  }
   emit_basis_ = on;
   if (on && !get_output_port(basis_port_key())) {
     add_output_port(basis_port_key(), std::make_shared<GraphPort>(
@@ -349,11 +375,11 @@ void TCSPCDecay::evaluate() {
   // Only when the pairs come from the scalar ports: reading them from the
   // spectrum port is how a node with *no* `a`/`t` ports drives this one, and
   // `build_spectrum` sets the count from what actually arrived.
-  if (!spectrum_from_port_ && n_lifetimes_ <= 0) {
+  if (!curve_from_port_ && !spectrum_from_port_ && n_lifetimes_ <= 0) {
     throw std::domain_error("TCSPCDecay '" + get_name() +
                             "' has no lifetime components");
   }
-  build_spectrum();
+  if (!curve_from_port_) build_spectrum();
 
   const int n_points = static_cast<int>(response_.size());
 
@@ -371,109 +397,94 @@ void TCSPCDecay::evaluate() {
       irf_timeshift_ == timeshift &&
       irf_.size() == static_cast<std::size_t>(n_points);
   if (!irf_is_current) {
-  const double* response = response_.data();
-  if (timeshift != 0.0) {
-    // Sign: ChiSurf's `shift_array(v, s)` is tttrlib's `shift_lamp(v, -s)`.
-    // The two index in opposite directions *and* interpolate toward opposite
-    // neighbours, and the two flips cancel exactly -- verified across
-    // integer and fractional shifts of both signs. At `s == 0` they do
-    // differ (`shift_lamp` drops the last sample), which is why this branch
-    // exists rather than an unconditional call.
-    shift_lamp_ad<double>(shifted_.data(), response_.data(), -timeshift,
-                          n_points, 0.0);
-    response = shifted_.data();
-  }
-
-  // Into a member buffer rather than a local: this runs once per objective
-  // evaluation, and a local is a heap allocation plus a full copy each time.
-  // The sum is taken from the source and folded into the copy, so the
-  // response is walked twice rather than three times -- same arithmetic, in
-  // the same order, which is what keeps the curve bit-identical.
-  irf_.resize(static_cast<std::size_t>(n_points));
-  double total = 0.0;
-  for (int i = 0; i < n_points; ++i) total += response[i];
-  if (total > 0.0) {
-    for (int i = 0; i < n_points; ++i) {
-      irf_[static_cast<std::size_t>(i)] = response[i] / total;
-    }
-  } else {
-    std::copy(response, response + n_points, irf_.begin());
-  }
+  internal::prepare_response(response_, timeshift, shifted_, irf_);
   irf_epoch_ = response_epoch_;
   irf_timeshift_ = timeshift;
   irf_valid_ = true;
   }
   const std::vector<double>& irf = irf_;
 
-  curve_.assign(static_cast<std::size_t>(n_points), 0.0);
-
-  // tttrlib's periodic reconvolution. Its stop arguments are *inclusive*
-  // indices, so the last valid one is `n_points - 1`; passing a length reads
-  // and writes one element past both buffers.
-  const int last = n_points - 1;
-  int convolution_stop =
-      convolution_stop_ < 0 ? last : std::min(convolution_stop_, last);
-  int stop = stop_ < 0 ? last : std::min(stop_, last);
-  convolution_stop = std::max(0, convolution_stop);
-  stop = std::max(0, stop);
-  fconv_per_cs_ad<double>(curve_.data(), spectrum_.data(), irf.data(),
-                          n_active_, stop, n_points, period_,
-                          convolution_stop, dt_);
-
-  // The basis: each species reconvolved on its own, with unit amplitude, in
-  // the order the input spectrum gave them.
-  //
-  // This is NOT the same work as the summed call above, though it recurses
-  // over the same species and this comment claimed it was until it was
-  // measured: 7.5x the curve at K = 33 over 1 563 channels. Each call here
-  // passes `numexp = 1`, which is below FCONV_AD_BLOCK_MIN, so it takes the
-  // serial recursion while the summed call takes the 8-way blocked body --
-  // the basis loses the blocking entirely. Closing that needs a kernel that
-  // writes K columns instead of accumulating them, which belongs in
-  // tttrlib's DecayConvolution.h (this file's copy is vendored and pinned
-  // byte-identical by test/test_vendored_headers.py), not here.
-  if (emit_basis_) {
-    const std::size_t n_species = static_cast<std::size_t>(n_active_);
-    const std::size_t n_bins = static_cast<std::size_t>(n_points);
-    // Species-major first: the kernel writes each column into its own
-    // contiguous run, so there is no separate column buffer and no copy out
-    // of one. Writing the port's bins x species layout directly would put
-    // consecutive writes `n_species` doubles apart -- a different cache line
-    // every time, and at 33 species over 1563 channels that is 51k of them
-    // against a buffer far larger than L1.
-    basis_columns_.assign(n_bins * n_species, 0.0);
-    double single[2];
-    for (std::size_t s = 0; s < n_species; ++s) {
-      single[0] = 1.0;
-      single[1] = spectrum_[2 * s + 1];
-      fconv_per_cs_ad<double>(basis_columns_.data() + s * n_bins, single,
-                              irf.data(), 1, stop, n_points, period_,
-                              convolution_stop, dt_);
+  if (curve_from_port_) {
+    const std::vector<double>& given = curve_port_->get_values_ref();
+    if (given.size() != static_cast<std::size_t>(n_points)) {
+      std::ostringstream m;
+      m << "TCSPCDecay '" << get_name() << "' takes its curve from a port, "
+        << "which holds " << given.size() << " values against a response of "
+        << n_points;
+      throw std::domain_error(m.str());
     }
-    // Then one blocked transpose into the contract the port promises. Tiled
-    // because the naive loop is strided on whichever side it does not walk,
-    // which is the cost this is here to avoid.
-    basis_.assign(n_bins * n_species, 0.0);
-    const std::size_t tile = 32;
-    for (std::size_t b0 = 0; b0 < n_bins; b0 += tile) {
-      const std::size_t b1 = std::min(b0 + tile, n_bins);
-      for (std::size_t s0 = 0; s0 < n_species; s0 += tile) {
-        const std::size_t s1 = std::min(s0 + tile, n_species);
-        for (std::size_t b = b0; b < b1; ++b) {
-          for (std::size_t s = s0; s < s1; ++s) {
-            basis_[b * n_species + s] = basis_columns_[s * n_bins + b];
+    curve_.assign(given.begin(), given.end());
+  } else {
+    curve_.assign(static_cast<std::size_t>(n_points), 0.0);
+
+    // tttrlib's periodic reconvolution. Its stop arguments are *inclusive*
+    // indices, so the last valid one is `n_points - 1`; passing a length reads
+    // and writes one element past both buffers.
+    const int last = n_points - 1;
+    int convolution_stop =
+        convolution_stop_ < 0 ? last : std::min(convolution_stop_, last);
+    int stop = stop_ < 0 ? last : std::min(stop_, last);
+    convolution_stop = std::max(0, convolution_stop);
+    stop = std::max(0, stop);
+    fconv_per_cs_ad<double>(curve_.data(), spectrum_.data(), irf.data(),
+                            n_active_, stop, n_points, period_,
+                            convolution_stop, dt_);
+
+    // The basis: each species reconvolved on its own, with unit amplitude, in
+    // the order the input spectrum gave them.
+    //
+    // This is NOT the same work as the summed call above, though it recurses
+    // over the same species and this comment claimed it was until it was
+    // measured: 7.5x the curve at K = 33 over 1 563 channels. Each call here
+    // passes `numexp = 1`, which is below FCONV_AD_BLOCK_MIN, so it takes the
+    // serial recursion while the summed call takes the 8-way blocked body --
+    // the basis loses the blocking entirely. Closing that needs a kernel that
+    // writes K columns instead of accumulating them, which belongs in
+    // tttrlib's DecayConvolution.h (this file's copy is vendored and pinned
+    // byte-identical by test/test_vendored_headers.py), not here.
+    if (emit_basis_) {
+      const std::size_t n_species = static_cast<std::size_t>(n_active_);
+      const std::size_t n_bins = static_cast<std::size_t>(n_points);
+      // Species-major first: the kernel writes each column into its own
+      // contiguous run, so there is no separate column buffer and no copy out
+      // of one. Writing the port's bins x species layout directly would put
+      // consecutive writes `n_species` doubles apart -- a different cache line
+      // every time, and at 33 species over 1563 channels that is 51k of them
+      // against a buffer far larger than L1.
+      basis_columns_.assign(n_bins * n_species, 0.0);
+      double single[2];
+      for (std::size_t s = 0; s < n_species; ++s) {
+        single[0] = 1.0;
+        single[1] = spectrum_[2 * s + 1];
+        fconv_per_cs_ad<double>(basis_columns_.data() + s * n_bins, single,
+                                irf.data(), 1, stop, n_points, period_,
+                                convolution_stop, dt_);
+      }
+      // Then one blocked transpose into the contract the port promises. Tiled
+      // because the naive loop is strided on whichever side it does not walk,
+      // which is the cost this is here to avoid.
+      basis_.assign(n_bins * n_species, 0.0);
+      const std::size_t tile = 32;
+      for (std::size_t b0 = 0; b0 < n_bins; b0 += tile) {
+        const std::size_t b1 = std::min(b0 + tile, n_bins);
+        for (std::size_t s0 = 0; s0 < n_species; s0 += tile) {
+          const std::size_t s1 = std::min(s0 + tile, n_species);
+          for (std::size_t b = b0; b < b1; ++b) {
+            for (std::size_t s = s0; s < s1; ++s) {
+              basis_[b * n_species + s] = basis_columns_[s * n_bins + b];
+            }
           }
         }
       }
+      const std::shared_ptr<GraphPort> bp = get_output_port(basis_port_key());
+      if (!bp) {
+        throw std::domain_error(
+            "TCSPCDecay '" + get_name() +
+            "' emits the basis but has no '" + basis_port_key() + "' port");
+      }
+      bp->set_sanitize(false);
+      bp->set_value_vector(basis_);
     }
-    const std::shared_ptr<GraphPort> bp = get_output_port(basis_port_key());
-    if (!bp) {
-      throw std::domain_error(
-          "TCSPCDecay '" + get_name() +
-          "' emits the basis but has no '" + basis_port_key() + "' port");
-    }
-    bp->set_sanitize(false);
-    bp->set_value_vector(basis_);
   }
 
   const double scatter = scatter_port_->get_value();
@@ -520,8 +531,17 @@ void TCSPCDecay::evaluate() {
     n0_ = rescale_factor(curve_, data_y_, data_ey_, background, begin, end);
     // Published, because a fit that autoscales still has to report the
     // amplitude it settled on -- the port is the only place a caller can
-    // read it from without evaluating the model a second time.
-    n0_port_->set_value(n0_);
+    // read it from without evaluating the model a second time. A port that
+    // follows another publishes to what it follows: writing the follower
+    // would leave the parameter a caller reads at its old value. The owner
+    // is normally held fixed (the scale is not fitted), and a fixed port
+    // ignores writes, so the hold is lifted for the write and restored.
+    GraphPort* published = n0_port_;
+    while (published->get_link()) published = published->get_link().get();
+    const bool held = published->get_fixed();
+    published->set_fixed(false);
+    published->set_value(n0_);
+    published->set_fixed(held);
   } else {
     n0_ = n0_port_->get_value();
   }
@@ -636,6 +656,9 @@ void TCSPCDecay::configure(const std::string& json_text) {
   }
   if (config.has("spectrum_from_port")) {
     set_spectrum_from_port(config.get_bool("spectrum_from_port"));
+  }
+  if (config.has("curve_from_port")) {
+    set_curve_from_port(config.get_bool("curve_from_port"));
   }
   config.apply_common(*this);
   config.require_all_used();

@@ -566,7 +566,12 @@ void expand_equations(SpecJson& document, const SpecJson& equations,
     coordinates.insert(data->second.get_coordinate_name(k));
   }
 
-  SpecJson parameters = SpecJson::object();
+  // What the frame declares itself -- an instrument around the equation --
+  // is kept, and an equation variable may not reuse one of its ids.
+  SpecJson parameters = document.contains("parameters") && document["parameters"].is_object()
+                            ? document["parameters"]
+                            : SpecJson::object();
+  const SpecJson frame_parameters = parameters;
   SpecJson structures = SpecJson::object();
   std::vector<std::string> keys;
   for (SpecJson::const_iterator it = equations.begin(); it != equations.end();
@@ -604,7 +609,11 @@ void expand_equations(SpecJson& document, const SpecJson& equations,
     }
     SpecJson& node = nodes[node_key];
     node["config"]["expression"] = text;
-    SpecJson free = SpecJson::array();
+    // The frame's own free parameters (an instrument's background, say)
+    // come first; the equation's are added after them.
+    SpecJson free = body.contains("free") && body["free"].is_array()
+                        ? body["free"]
+                        : SpecJson::array();
     bool has_axis = false;
     for (std::size_t v = 0; v < variables.size(); ++v) {
       const std::string& name = variables[v];
@@ -616,6 +625,10 @@ void expand_equations(SpecJson& document, const SpecJson& equations,
         node["inputs"][name] = "@" + slot + "." + name;
         has_axis = true;
         continue;
+      }
+      if (frame_parameters.contains(name)) {
+        refuse(where + ": '" + name +
+               "' names a parameter the frame declares itself");
       }
       node["inputs"][name] = "#" + name;
       if (!parameters.contains(name)) {

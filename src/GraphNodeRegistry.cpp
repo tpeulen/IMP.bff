@@ -7,6 +7,7 @@
 
 #include <IMP/bff/GraphNodeRegistry.h>
 
+#include <IMP/bff/Convolution.h>
 #include <IMP/bff/FCS.h>
 #include <IMP/bff/FRETSpectrumNode.h>
 #include <IMP/bff/FitChiSquared.h>
@@ -48,6 +49,7 @@ void install_builtin_types(FactoryMap& factories) {
     return std::make_shared<GraphNode>(name);
   };
   factories["GraphExpression"] = plain<GraphExpression>;
+  factories["Convolution"] = plain<Convolution>;
   factories["TCSPCDecay"] = plain<TCSPCDecay>;
   factories["FitChiSquared"] = plain<FitChiSquared>;
   factories["FitJointChiSquared"] = plain<FitJointChiSquared>;

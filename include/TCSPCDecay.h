@@ -259,6 +259,24 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
   void set_spectrum_from_port(bool v);
   bool get_spectrum_from_port() const { return spectrum_from_port_; }
 
+  //! Take the convolved curve from a port and apply only the instrument.
+  /*!
+      A model that is already a decay -- an equation of time, convolved with
+      the response by a `Convolution` node -- has no lifetime spectrum to
+      reconvolve, but it still meets the same instrument as a lifetime fit:
+      the scatter fraction of the response, pile-up, the scale (fixed or
+      fitted to the data), the constant background, the linearisation table
+      and the non-negativity clamp. This mode reads the curve from the input
+      port #curve_port_key and runs exactly that stage, so there is one
+      implementation of the instrument whichever model feeds it. The curve
+      must be as long as the response; the basis is not emitted.
+  */
+  void set_curve_from_port(bool v);
+  bool get_curve_from_port() const { return curve_from_port_; }
+
+  //! The key of the input port carrying an already convolved curve.
+  static const char* curve_port_key() { return "curve"; }
+
   //! The key of the input port carrying an interleaved lifetime spectrum.
   static const char* spectrum_port_key() { return "lifetime_spectrum"; }
 
@@ -382,6 +400,8 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
   //! The lifetime ports, in the order the spectrum interleaves them.
   std::vector<GraphPort*> lifetime_ports_;
   GraphPort* spectrum_port_ = nullptr;
+  GraphPort* curve_port_ = nullptr;
+  bool curve_from_port_ = false;
   bool emit_basis_ = false;
   //! Did the last build_spectrum see a negative amplitude *before* `fabs`?
   /*! The sign is gone from `spectrum_` by the time anyone can ask -- the
