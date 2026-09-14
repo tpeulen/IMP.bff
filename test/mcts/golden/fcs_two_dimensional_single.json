@@ -1,0 +1,52 @@
+{
+ "actions": {
+  "fcs.2d.1diff.0relax": [
+   {
+    "action": "fit-and-stop",
+    "prior": 0.2,
+    "terminal": true,
+    "to": "fcs.2d.1diff.0relax"
+   }
+  ]
+ },
+ "initial_structure": "fcs.2d.1diff.0relax",
+ "parameter_ids": [
+  "fcs.N",
+  "fcs.baseline",
+  "fcs.structure_parameter",
+  "fcs.diffusion_time.1",
+  "fcs.diffusion_fraction.1",
+  "fcs.diffusion_time.2",
+  "fcs.relaxation_amplitude.1",
+  "fcs.relaxation_time.1"
+ ],
+ "root": {
+  "acceptable": false,
+  "fixed": [
+   0,
+   0,
+   1,
+   0,
+   1,
+   1,
+   1,
+   1
+  ],
+  "reward": -6.968900384802686,
+  "structure": "fcs.2d.1diff.0relax",
+  "values": [
+   3.1979974234327635,
+   0.9698574661154424,
+   3.5,
+   0.42033043712408424,
+   0.5,
+   1.6171296396766073,
+   0.1,
+   0.02021412049595759
+  ]
+ },
+ "structure_keys": [
+  "fcs.2d.1diff.0relax"
+ ],
+ "structures": {}
+}
