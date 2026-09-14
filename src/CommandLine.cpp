@@ -297,7 +297,6 @@ const char* PY_PROGRAM = "imp_bff_py";
 const char* const FORWARDED[][2] = {
     {"flexfit", "Flexible fitting against FRET distances (runs imp_bff_py)."},
     {"rmsd", "RMSDs of an OLGA ol4 table to reference structures (runs imp_bff_py)."},
-    {"dye", "Dye labelling, rotamer libraries and sampling (runs imp_bff_py)."},
     {"av-vs-rotamer", "Compare AV and rotamer label models (runs imp_bff_py)."},
     {"analyze-trajectories", "Dye density analysis of trajectories (runs imp_bff_py)."},
     {"simulate", "Molecular probe simulation (runs imp_bff_py)."},
@@ -373,6 +372,7 @@ std::unique_ptr<CLI::App> build_app(std::shared_ptr<int> rc) {
   add_fps_av_subs(*app);
   add_fps_export_subs(*app);
   add_modelling_subs(*app);
+  add_dye_subs(*app);
 #endif
 
   for (std::size_t i = 0; i < sizeof(FORWARDED) / sizeof(FORWARDED[0]); ++i) {

@@ -23,6 +23,7 @@
 #include <IMP/bff/bff_config.h>
 #include <IMP/bff/ProbeLibrary.h>
 #include <IMP/bff/StripMask.h>
+#include <IMP/bff/Linker.h>
 
 #include <IMP/algebra/Transformation3D.h>
 #include <IMP/atom/Atom.h>
@@ -311,6 +312,65 @@ IMPBFFEXPORT std::vector<ProbeAttachment> attach_probes(
 IMPBFFEXPORT IMP::algebra::Vector3D get_anchor_cb_position(
         IMP::atom::Hierarchy hierarchy, std::string chain_id, int resnum,
         std::string rl_path = "", double prob_threshold = 0.01);
+
+#ifndef SWIG
+//! What a collision-gated walk over a linker's degrees of freedom did.
+struct IMPBFFEXPORT ProbeCollisionWalk {
+    //! The probe's leaf coordinates at every saved step, flat, three per atom.
+    std::vector<double> frames;
+    int n_frames, n_atoms;
+    int n_steps, n_accepted;
+    //! Probe atoms still inside a protein atom's contact radius at the end.
+    int n_clashing;
+    ProbeCollisionWalk()
+        : n_frames(0), n_atoms(0), n_steps(0), n_accepted(0), n_clashing(0) {}
+    IMP_SHOWABLE_INLINE(ProbeCollisionWalk,
+                        out << "ProbeCollisionWalk(" << n_accepted << "/"
+                            << n_steps << " accepted)");
+};
+IMP_VALUES(ProbeCollisionWalk, ProbeCollisionWalks);
+
+//! A collision-gated Metropolis walk over a linker's torsions and angles.
+/*!
+    Not dynamics: no forces, friction or temperature. Every degree of freedom
+    of \p geometry is perturbed by a Gaussian of width \p proposal_sigma, the
+    probe is rebuilt from the geometry (so it never drifts through repeated
+    rotations) and placed on the site's backbone frame, and the proposal is
+    accepted when it **does not increase** the number of probe atoms inside a
+    protein atom's contact radius. A count rather than a yes/no, because a
+    placed probe may start inside the protein, and a walk that accepts only
+    clash-free proposals could never leave a clashing start.
+
+    The obstacles are the protein's atoms within \p interaction_sphere of the
+    site's CA, **except** residues `residue - 1 .. residue + 1` of \p chain:
+    the probe is bonded into that backbone, so its first atoms sit a bond
+    length from them, and counting bonds as clashes rejected every proposal.
+
+    The draws are CPython's (`random.seed(seed)`, `random.gauss`), so a run
+    repeats the one the Python program `imp_bff dye sample-dof-walk` made.
+
+    \param[in] protein the structure; not moved
+    \param[in] probe the probe's atoms, in the order \p geometry indexes
+    \param[in] geometry from #IMP::bff::linker_geometry_from_mol2 on the same
+               MOL2 the probe was read from
+    \param[in] chain,residue the site
+    \param[in] n_steps proposals to make
+    \param[in] seed the random seed
+    \param[in] save_every keep the probe's coordinates after every this many
+               steps
+    \param[in] interaction_sphere obstacle cut-off around the site's CA, A
+    \param[in] proposal_sigma the proposal width, radians
+    \param[in] obstacle_radius,contact_margin a probe atom clashes when it is
+               closer than their sum to an obstacle, A
+    \throw ValueException when the site has no backbone frame
+*/
+IMPBFFEXPORT ProbeCollisionWalk probe_collision_walk(
+        IMP::atom::Hierarchy protein, IMP::atom::Hierarchy probe,
+        const LinkerGeometry& geometry, const std::string& chain, int residue,
+        int n_steps = 1000, int seed = 42, int save_every = 10,
+        double interaction_sphere = 35.0, double proposal_sigma = 0.1,
+        double obstacle_radius = 1.0, double contact_margin = 1.2 * 0.8);
+#endif  // SWIG
 
 IMPBFF_END_NAMESPACE
 
