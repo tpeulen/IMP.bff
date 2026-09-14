@@ -12,9 +12,9 @@
 # This example runs the whole path: trajectory in, library out, library used.
 # On the command line the first half is one program:
 #
-#     imp_bff_traj2drot lib.bcif lib.drot.pto --top lib.pdb --weights lib_w.txt
-#     imp_bff_traj2drot raw.dcd  lib.drot.pto --top lib.pdb --cluster 1.0
-#     imp_bff_traj2drot --all data/rotamer_library
+#     imp_bff traj2drot lib.bcif lib.drot.pto --top lib.pdb --weights lib_w.txt
+#     imp_bff traj2drot raw.dcd  lib.drot.pto --top lib.pdb --cluster 1.0
+#     imp_bff traj2drot --all data/rotamer_library
 #
 # with `--cluster` taking the raw-MD path: leader-clustering (the algorithm
 # FRETpredict's own libraries were built with), leaders become the rotamers

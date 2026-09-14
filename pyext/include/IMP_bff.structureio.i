@@ -22,6 +22,13 @@ IMP_SWIG_VALUE(IMP::bff, AtomReference, AtomReferences);
 };
 %feature("kwargs") IMP::bff::write_points_mrc;
 
+// The BinaryCIF trajectory writer takes `(n_frames, n_atoms, 3)` straight
+// from numpy, and names its grid (`grid_a=0.001`) rather than placing it.
+%apply(double* IN_ARRAY3, int DIM1, int DIM2, int DIM3) {
+    (double* in_xyz, int n_frames, int n_atoms, int n_dim)
+};
+%feature("kwargs") IMP::bff::write_bcif_trajectory;
+
 %include "IMP/bff/TrajectoryIO.h"
 %include "IMP/bff/StructureIO.h"
 

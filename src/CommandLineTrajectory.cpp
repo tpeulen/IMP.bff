@@ -1,9 +1,10 @@
 /** \file CommandLineTrajectory.cpp
- *  \brief `imp_bff probe-pdb2cif`, `imp_bff traj2drot`: structure and
- *         trajectory conversions.
+ *  \brief `imp_bff probe-pdb2cif`, `imp_bff traj2bcif`, `imp_bff traj2drot`:
+ *         structure and trajectory conversions.
  *
- *  Ports of `bin/imp_bff_probe_pdb2cif` and `bin/imp_bff_traj2drot`. The
- *  work was already the library's; what lives here is the grammar, the file
+ *  Ports of `bin/imp_bff_probe_pdb2cif`, `bin/imp_bff_traj2bcif` and
+ *  `bin/imp_bff_traj2drot`. The work is the library's (the BinaryCIF writer
+ *  and the XTC reader are in TrajectoryIO.h); what lives here is the grammar, the file
  *  discovery the scripts did (`<stem>.pdb` and `<stem>_weights.txt` beside a
  *  library) and the round-trip self-check.
  *
@@ -13,6 +14,7 @@
 #include <IMP/bff/internal/CommandLineSubs.h>
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -121,14 +123,24 @@ std::vector<double> library_coords(const ProbeRotamerLibrary& lib) {
   return out;
 }
 
-//! `n_frames * n_atoms * 3` coordinates from a .bcif, .dcd or .drot trajectory.
-std::vector<double> read_frames(const std::string& src, int n_atoms, int* n_frames) {
+//! `n_frames * n_atoms * 3` coordinates from a .bcif, .dcd, .xtc or .drot
+//! trajectory, in Angstrom.
+std::vector<double> read_frames(const std::string& src, int n_atoms, int* n_frames,
+                                const std::string& top = std::string()) {
   std::vector<double> xyz;
   if (ends_with(src, ".xtc")) {
-    throw SubError(src + ": reading an .xtc is not compiled yet; convert it "
-                         "to .dcd first");
-  }
-  if (ends_with(src, ".drot") || ends_with(src, ".drot.pto")) {
+    // XTC stores nanometres; read_xtc hands back Angstrom
+    const int in_file = read_xtc_n_atoms(src);
+    if (in_file != n_atoms) {
+      throw SubError(basename_of(src) + format(": %d atoms per frame, but ", in_file) +
+                     basename_of(top) + format(" has %d", n_atoms));
+    }
+    double* view = nullptr;
+    int n_flat = 0;
+    read_xtc(src, -1, &view, &n_flat);
+    xyz.assign(view, view + n_flat);
+    std::free(view);
+  } else if (ends_with(src, ".drot") || ends_with(src, ".drot.pto")) {
     const ProbeRotamerLibrary lib = read_probe_rotamer_drot(src);
     xyz = library_coords(lib);
   } else {
@@ -205,7 +217,7 @@ void convert(const std::string& src, const std::string& dst, std::string top,
       throw SubError(basename_of(src) + ": no --top given and no template PDB beside it");
     }
     parse_template(top, names, elements, resnames);
-    xyz = read_frames(src, static_cast<int>(names.size()), &n_frames);
+    xyz = read_frames(src, static_cast<int>(names.size()), &n_frames, top);
   }
   const int n_atoms = static_cast<int>(names.size());
 
@@ -232,7 +244,7 @@ void convert(const std::string& src, const std::string& dst, std::string top,
 
   std::string line = basename_of(dst) + ": " + format("%d rotamers, %d atoms, %ld bytes ",
                                                       n_frames, n_atoms, file_size(dst)) +
-                     (compact ? format("(%g A grid)", grid_a) : std::string("(lossless)"));
+                     (compact ? "(" + json_float(grid_a) + " A grid)" : std::string("(lossless)"));
   if (verify) {
     const ProbeRotamerLibrary lib = read_probe_rotamer_drot(dst);
     const std::vector<double> back = library_coords(lib);
@@ -314,9 +326,142 @@ void bundle(const std::vector<std::string>& sources, const std::string& out) {
             << "\n";
 }
 
+// ---- traj2bcif ------------------------------------------------------------
+
+//! pathlib's `suffix.lower()`.
+std::string lower_suffix(const std::string& path) {
+  std::string s = path_suffix(path);
+  for (std::size_t i = 0; i < s.size(); ++i) {
+    s[i] = static_cast<char>(std::tolower(static_cast<unsigned char>(s[i])));
+  }
+  return s;
+}
+
+//! What `traj2bcif` reads: coordinates in Angstrom from a DCD or an XTC.
+std::vector<double> load_trajectory(const std::string& path, const std::string& top,
+                                    int* n_frames, int* n_atoms) {
+  double* view = nullptr;
+  int n_flat = 0;
+  const std::string suffix = lower_suffix(path);
+  if (suffix == ".dcd") {
+    *n_atoms = read_dcd_header(path).n_atoms;
+    read_dcd(path, -1, &view, &n_flat);          // already A
+  } else if (suffix == ".xtc") {
+    if (top.empty()) throw SubError(".xtc needs --top (a .gro/.pdb topology)");
+    *n_atoms = read_xtc_n_atoms(path);
+    read_xtc(path, -1, &view, &n_flat);          // nm -> A inside
+  } else if (suffix == ".trr") {
+    throw SubError(".trr is not read by the compiled program (the Python one went through "
+                   "mdtraj); convert it to .xtc or .dcd first");
+  } else {
+    throw SubError("unsupported trajectory: " + path);
+  }
+  std::vector<double> xyz(view, view + n_flat);
+  std::free(view);
+  const std::size_t per_frame = 3 * static_cast<std::size_t>(*n_atoms);
+  *n_frames = per_frame ? static_cast<int>(xyz.size() / per_frame) : 0;
+  return xyz;
+}
+
+//! One DCD/XTC to one `.bcif`, round-trip checked by default.
+void convert_bcif(const std::string& src, const std::string& dst, const std::string& top,
+                  double grid_a, bool verify) {
+  int n_frames = 0, n_atoms = 0;
+  std::vector<double> xyz = load_trajectory(src, top, &n_frames, &n_atoms);
+  const long n_bytes = write_bcif_trajectory(dst, data_of(xyz), n_frames, n_atoms, 3, grid_a);
+  const double before = static_cast<double>(file_size(src));
+  const double coords = static_cast<double>(xyz.size());
+  std::string line = basename_of(src) +
+                     format(": %d x %d x 3  %6.2f MB -> %6.2f MB  (%.2f B/coord, %.0f %%)",
+                            n_frames, n_atoms, before / 1e6, n_bytes / 1e6, n_bytes / coords,
+                            n_bytes / before * 100);
+  if (verify) {
+    double* view = nullptr;
+    int n_back = 0;
+    read_bcif_trajectory(dst, n_atoms, "_rotamer_coord", &view, &n_back);
+    std::vector<double> back(view, view + n_back);
+    std::free(view);
+    if (back.size() != xyz.size()) {
+      throw SubError(basename_of(src) + format(": shape (%lu,) != (%lu,)",
+                                               (unsigned long)back.size(),
+                                               (unsigned long)xyz.size()));
+    }
+    double err = 0.0;
+    for (std::size_t i = 0; i < xyz.size(); ++i) {
+      const double want = grid_a <= 0.0
+                              ? static_cast<double>(static_cast<float>(xyz[i]))
+                              : std::nearbyint(xyz[i] / grid_a) * grid_a;
+      err = (std::max)(err, std::fabs(back[i] - want));
+    }
+    if (err > 1e-9) {
+      throw SubError(basename_of(src) + format(": round trip differs by %.3e A", err));
+    }
+    line += grid_a <= 0.0 ? std::string("  verified bit-exact (float32)")
+                          : "  verified exact on the " + json_float(grid_a) + " A grid";
+  }
+  std::cout << line << "\n";
+}
+
+struct Traj2BcifArgs {
+  std::vector<std::string> positional;
+  std::string top, all;
+  double grid = -1.0;
+  bool no_verify = false;
+};
+
 }  // namespace trajectory
 
 void add_trajectory_subs(CLI::App& app) {
+  // ---- traj2bcif ------------------------------------------------------------
+  {
+    std::shared_ptr<trajectory::Traj2BcifArgs> a = std::make_shared<trajectory::Traj2BcifArgs>();
+    CLI::App* sub =
+        app.add_subcommand("traj2bcif", "Convert a trajectory (DCD or XTC) to BinaryCIF.");
+    sub->footer(
+        "BinaryCIF is this package's trajectory format. The shipped rotamer libraries are\n"
+        "stored with it losslessly: float32 in, float32 out, 4.01 bytes per coordinate\n"
+        "against DCD's 4.31 -- 7 % smaller. What the format buys is that the C++ side reads\n"
+        "the libraries directly, through the ihm C parser IMP already vendors.\n\n"
+        "Quantising is an option, not the default. Fixed-point at 0.001 A halves the files,\n"
+        "but it moves transition-dipole directions enough to shift the FRETpredict reference\n"
+        "values past their tolerance -- and 0.001, 0.005 and 0.01 A all cost exactly 2 bytes\n"
+        "per coordinate, so a coarser grid buys nothing and loses accuracy.\n\n"
+        "Usage:\n"
+        "  imp_bff traj2bcif lib.dcd lib.bcif            # lossless, the default\n"
+        "  imp_bff traj2bcif lib.dcd lib.bcif --grid 0.001\n"
+        "  imp_bff traj2bcif --all data/rotamer_library\n"
+        "  imp_bff traj2bcif traj.xtc traj.bcif --top conf_ed.gro\n\n"
+        "XTC is read by the compiled reader (nm -> A); .trr is not read.");
+    sub->add_option("sources", a->positional, "src (a .dcd or .xtc) and dst (the .bcif to write)");
+    sub->add_option("--top", a->top, "topology for an XTC (.gro/.pdb)");
+    sub->add_option("--grid", a->grid,
+                    "quantise to this grid in A. Omit for lossless float32, which is the default "
+                    "and is already smaller than DCD. Note that 0.001, 0.005 and 0.01 all cost "
+                    "exactly 2 bytes per coordinate for these libraries -- the size is set by the "
+                    "integer type, not the grid, so a coarser grid buys nothing.");
+    sub->add_option("--all", a->all, "convert every .dcd in DIR next to its source");
+    sub->add_flag("--no-verify", a->no_verify, "skip the round-trip check");
+    sub->callback([a] {
+      set_current_sub("traj2bcif");
+      const bool verify = !a->no_verify;
+      if (a->positional.size() > 2) {
+        throw CLI::ValidationError("unrecognized arguments: " + a->positional[2]);
+      }
+      if (!a->all.empty()) {
+        const std::vector<std::string> dcds = directory_entries(a->all, ".dcd");
+        for (std::size_t i = 0; i < dcds.size(); ++i) {
+          trajectory::convert_bcif(dcds[i], path_with_suffix(dcds[i], ".bcif"), "", a->grid,
+                                   verify);
+        }
+        return;
+      }
+      if (a->positional.size() < 2) {
+        throw CLI::ValidationError("give src and dst, or --all DIR");
+      }
+      trajectory::convert_bcif(a->positional[0], a->positional[1], a->top, a->grid, verify);
+    });
+  }
+
   // ---- probe-pdb2cif -------------------------------------------------------
   {
     struct Args {
@@ -343,7 +488,7 @@ void add_trajectory_subs(CLI::App& app) {
     CLI::App* sub = app.add_subcommand(
         "traj2drot", "Convert a trajectory to a .drot.pto rotamer library, or bundle libraries.");
     sub->add_option("sources", a->positional,
-                    "a .bcif, .dcd or .drot trajectory and the library to write "
+                    "a .bcif, .dcd, .xtc or .drot trajectory and the library to write "
                     "(conventionally <stem>.drot.pto); with --bundle, the source containers");
     sub->add_option("--top", a->top,
                     "template PDB: atom names, elements, residue names. A .drot.pto source carries its own; otherwise defaults to "
@@ -372,7 +517,7 @@ void add_trajectory_subs(CLI::App& app) {
       }
       if (!a->all.empty()) {
         if (trajectory::convert_all(a->all, a->grid, a->grid_deg, verify) != 0) {
-          throw SubError("some libraries failed");
+          throw SubExit(1);  // each failure was already reported
         }
         return;
       }
