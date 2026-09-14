@@ -756,7 +756,7 @@ def peak_fit_response(h, dt, stop_after_peak=1.0, start_fraction=0.05, pre=8, pu
 def model(loaded=None, n_coef=25, which='h20', verbose=True,
           samples=('D0', 'A0', 'DA'), detectors=None, irf='h20', rebin=False, growth=1.05,
           rl_iterations=500, irf_conv_stop=None, peak_stop=1.0, peak_pulse='gn', rho_grid=None,
-          d0_from=None, maps=None, mask_edges=None):
+          d0_from=None, maps=None, mask_edges=None, sample_shifts=False):
     """Everything the fit needs: the maps on this axis, the measured responses,
     the twelve histograms, and the graph.
 
@@ -949,7 +949,7 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
         w0 = float(np.mean(list(width0.values())))
         E['instrument'] = ('skewed Gaussian, priors from the water response', w0, 0.0, 0.0)
     V = L.default_variables(E, keys, n_coef=n_coef, scale_medians=scale_med,
-                            irf_shape=analytic, bkg_medians=bkg_med, ref_dets=ref_dets,
+                            irf_shape=analytic, bkg_medians=bkg_med, ref_dets=ref_dets, sample_shifts=sample_shifts,
                             irf_bg_medians=(None if analytic else irf_bg_med))
     for v in V:
         if v.name.startswith('irf_tauref_'):
