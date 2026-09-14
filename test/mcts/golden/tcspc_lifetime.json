@@ -1,0 +1,166 @@
+{
+ "actions": {
+  "lifetime.components.1": [
+   {
+    "action": "stop",
+    "prior": 0.25,
+    "terminal": true,
+    "to": "lifetime.components.1"
+   },
+   {
+    "action": "add-component",
+    "prior": 0.5,
+    "terminal": false,
+    "to": "lifetime.components.2"
+   }
+  ],
+  "lifetime.components.2": [
+   {
+    "action": "stop",
+    "prior": 0.25,
+    "terminal": true,
+    "to": "lifetime.components.2"
+   },
+   {
+    "action": "add-component",
+    "prior": 0.5,
+    "terminal": false,
+    "to": "lifetime.components.3"
+   },
+   {
+    "action": "remove-component",
+    "prior": 0.25,
+    "terminal": false,
+    "to": "lifetime.components.1"
+   }
+  ],
+  "lifetime.components.3": [
+   {
+    "action": "stop",
+    "prior": 0.25,
+    "terminal": true,
+    "to": "lifetime.components.3"
+   },
+   {
+    "action": "remove-component",
+    "prior": 0.25,
+    "terminal": false,
+    "to": "lifetime.components.2"
+   }
+  ]
+ },
+ "initial_structure": "lifetime.components.1",
+ "parameter_ids": [
+  "lifetime.amplitude.0",
+  "lifetime.tau.0",
+  "lifetime.amplitude.1",
+  "lifetime.tau.1",
+  "lifetime.amplitude.2",
+  "lifetime.tau.2",
+  "instrument.scatter",
+  "instrument.background",
+  "instrument.n0",
+  "instrument.timeshift"
+ ],
+ "root": {
+  "acceptable": false,
+  "fixed": [
+   1,
+   0,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   0,
+   1
+  ],
+  "reward": -711.823240483351,
+  "structure": "lifetime.components.1",
+  "values": [
+   1.0,
+   2.610205573187637,
+   1.0,
+   2.0,
+   1.0,
+   3.0,
+   0.0,
+   0.0,
+   13432.009549620816,
+   0.0
+  ]
+ },
+ "structure_keys": [
+  "lifetime.components.1",
+  "lifetime.components.2",
+  "lifetime.components.3"
+ ],
+ "structures": {
+  "lifetime.components.2": {
+   "acceptable": false,
+   "fixed": [
+    1,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    1
+   ],
+   "path": [
+    "add-component"
+   ],
+   "reward": -10.514990744068783,
+   "structure": "lifetime.components.2",
+   "values": [
+    0.5,
+    3.800000101469533,
+    0.9285713978067328,
+    0.7000001044183838,
+    0.5,
+    3.0,
+    0.0,
+    0.0,
+    19999.998510594753,
+    0.0
+   ]
+  },
+  "lifetime.components.3": {
+   "acceptable": false,
+   "fixed": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1
+   ],
+   "path": [
+    "add-component",
+    "add-component"
+   ],
+   "reward": -15.772487472149079,
+   "structure": "lifetime.components.3",
+   "values": [
+    0.3333333333333333,
+    3.828304860003842,
+    0.9822870866121931,
+    0.699943675575041,
+    0.19569453418939797,
+    3.7509294483575557,
+    0.0,
+    0.0,
+    20000.12468297496,
+    0.0
+   ]
+  }
+ }
+}

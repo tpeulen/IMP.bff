@@ -1,0 +1,389 @@
+{
+ "actions": {
+  "fcs.2d.1diff.0relax": [
+   {
+    "action": "fit-and-stop",
+    "prior": 0.2,
+    "terminal": true,
+    "to": "fcs.2d.1diff.0relax"
+   },
+   {
+    "action": "use-3d-diffusion",
+    "prior": 1.0,
+    "terminal": false,
+    "to": "fcs.3d.1diff.0relax"
+   },
+   {
+    "action": "add-diffusion-component",
+    "prior": 1.0,
+    "terminal": false,
+    "to": "fcs.2d.2diff.0relax"
+   },
+   {
+    "action": "add-relaxation",
+    "prior": 1.0,
+    "terminal": false,
+    "to": "fcs.2d.1diff.1relax"
+   }
+  ],
+  "fcs.2d.1diff.1relax": [
+   {
+    "action": "fit-and-stop",
+    "prior": 0.2,
+    "terminal": true,
+    "to": "fcs.2d.1diff.1relax"
+   },
+   {
+    "action": "use-3d-diffusion",
+    "prior": 1.0,
+    "terminal": false,
+    "to": "fcs.3d.1diff.1relax"
+   },
+   {
+    "action": "add-diffusion-component",
+    "prior": 1.0,
+    "terminal": false,
+    "to": "fcs.2d.2diff.1relax"
+   }
+  ],
+  "fcs.2d.2diff.0relax": [
+   {
+    "action": "fit-and-stop",
+    "prior": 0.2,
+    "terminal": true,
+    "to": "fcs.2d.2diff.0relax"
+   },
+   {
+    "action": "use-3d-diffusion",
+    "prior": 1.0,
+    "terminal": false,
+    "to": "fcs.3d.2diff.0relax"
+   },
+   {
+    "action": "add-relaxation",
+    "prior": 1.0,
+    "terminal": false,
+    "to": "fcs.2d.2diff.1relax"
+   }
+  ],
+  "fcs.2d.2diff.1relax": [
+   {
+    "action": "fit-and-stop",
+    "prior": 0.2,
+    "terminal": true,
+    "to": "fcs.2d.2diff.1relax"
+   },
+   {
+    "action": "use-3d-diffusion",
+    "prior": 1.0,
+    "terminal": false,
+    "to": "fcs.3d.2diff.1relax"
+   }
+  ],
+  "fcs.3d.1diff.0relax": [
+   {
+    "action": "fit-and-stop",
+    "prior": 0.2,
+    "terminal": true,
+    "to": "fcs.3d.1diff.0relax"
+   },
+   {
+    "action": "add-diffusion-component",
+    "prior": 1.0,
+    "terminal": false,
+    "to": "fcs.3d.2diff.0relax"
+   },
+   {
+    "action": "add-relaxation",
+    "prior": 1.0,
+    "terminal": false,
+    "to": "fcs.3d.1diff.1relax"
+   }
+  ],
+  "fcs.3d.1diff.1relax": [
+   {
+    "action": "fit-and-stop",
+    "prior": 0.2,
+    "terminal": true,
+    "to": "fcs.3d.1diff.1relax"
+   },
+   {
+    "action": "add-diffusion-component",
+    "prior": 1.0,
+    "terminal": false,
+    "to": "fcs.3d.2diff.1relax"
+   }
+  ],
+  "fcs.3d.2diff.0relax": [
+   {
+    "action": "fit-and-stop",
+    "prior": 0.2,
+    "terminal": true,
+    "to": "fcs.3d.2diff.0relax"
+   },
+   {
+    "action": "add-relaxation",
+    "prior": 1.0,
+    "terminal": false,
+    "to": "fcs.3d.2diff.1relax"
+   }
+  ],
+  "fcs.3d.2diff.1relax": [
+   {
+    "action": "fit-and-stop",
+    "prior": 0.2,
+    "terminal": true,
+    "to": "fcs.3d.2diff.1relax"
+   }
+  ]
+ },
+ "initial_structure": "fcs.2d.1diff.0relax",
+ "parameter_ids": [
+  "fcs.N",
+  "fcs.baseline",
+  "fcs.structure_parameter",
+  "fcs.diffusion_time.1",
+  "fcs.diffusion_fraction.1",
+  "fcs.diffusion_time.2",
+  "fcs.relaxation_amplitude.1",
+  "fcs.relaxation_time.1"
+ ],
+ "root": {
+  "acceptable": false,
+  "fixed": [
+   0,
+   0,
+   1,
+   0,
+   1,
+   1,
+   1,
+   1
+  ],
+  "reward": -6.587127555850094,
+  "structure": "fcs.2d.1diff.0relax",
+  "values": [
+   2.4965030053233583,
+   0.9995900600578977,
+   3.5,
+   0.7007727731443988,
+   0.5,
+   2.710926294401062,
+   0.1,
+   0.033886578680013275
+  ]
+ },
+ "structure_keys": [
+  "fcs.2d.1diff.0relax",
+  "fcs.2d.1diff.1relax",
+  "fcs.2d.2diff.0relax",
+  "fcs.2d.2diff.1relax",
+  "fcs.3d.1diff.0relax",
+  "fcs.3d.1diff.1relax",
+  "fcs.3d.2diff.0relax",
+  "fcs.3d.2diff.1relax"
+ ],
+ "structures": {
+  "fcs.2d.1diff.1relax": {
+   "acceptable": false,
+   "fixed": [
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0
+   ],
+   "path": [
+    "add-relaxation"
+   ],
+   "reward": -10.95691924367113,
+   "structure": "fcs.2d.1diff.1relax",
+   "values": [
+    2.500055719002159,
+    1.0000060608472694,
+    3.5,
+    0.6999401058759299,
+    0.5,
+    2.710926294401062,
+    0.00035490774070556785,
+    0.03386180225206727
+   ]
+  },
+  "fcs.2d.2diff.0relax": {
+   "acceptable": false,
+   "fixed": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    1
+   ],
+   "path": [
+    "add-diffusion-component"
+   ],
+   "reward": -10.956933200729303,
+   "structure": "fcs.2d.2diff.0relax",
+   "values": [
+    2.500055719002159,
+    1.0000140533428237,
+    3.5,
+    0.6991629497586923,
+    0.998289843734035,
+    2.7107760480770136,
+    0.1,
+    0.033886578680013275
+   ]
+  },
+  "fcs.2d.2diff.1relax": {
+   "acceptable": false,
+   "fixed": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "path": [
+    "add-diffusion-component",
+    "add-relaxation"
+   ],
+   "reward": -15.338521615729197,
+   "structure": "fcs.2d.2diff.1relax",
+   "values": [
+    2.5000002078509276,
+    1.000001478290713,
+    3.5,
+    0.7001066393296237,
+    0.9999567338073221,
+    2.7462476737137873,
+    0.00037904210815581374,
+    0.03386180225206727
+   ]
+  },
+  "fcs.3d.1diff.0relax": {
+   "acceptable": false,
+   "fixed": [
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1
+   ],
+   "path": [
+    "use-3d-diffusion"
+   ],
+   "reward": -8.849439334996594,
+   "structure": "fcs.3d.1diff.0relax",
+   "values": [
+    2.5277002723153252,
+    1.0045572580441586,
+    6.77899488458745,
+    0.6935563234843353,
+    0.5,
+    2.710926294401062,
+    0.1,
+    0.033886578680013275
+   ]
+  },
+  "fcs.3d.1diff.1relax": {
+   "acceptable": false,
+   "fixed": [
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0
+   ],
+   "path": [
+    "use-3d-diffusion",
+    "add-relaxation"
+   ],
+   "reward": -13.148575559992462,
+   "structure": "fcs.3d.1diff.1relax",
+   "values": [
+    2.510436304282404,
+    1.001650240528562,
+    10.589324289714167,
+    0.700162150480855,
+    0.5,
+    2.710926294401062,
+    0.00029931727711202116,
+    0.033806291100836015
+   ]
+  },
+  "fcs.3d.2diff.0relax": {
+   "acceptable": false,
+   "fixed": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1
+   ],
+   "path": [
+    "use-3d-diffusion",
+    "add-diffusion-component"
+   ],
+   "reward": -13.247620459705045,
+   "structure": "fcs.3d.2diff.0relax",
+   "values": [
+    2.5019430981440216,
+    1.0002438175504835,
+    30.635024783161654,
+    0.7066014440236809,
+    0.9995039484841025,
+    2.7067237340371317,
+    0.1,
+    0.033886578680013275
+   ]
+  },
+  "fcs.3d.2diff.1relax": {
+   "acceptable": false,
+   "fixed": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "path": [
+    "use-3d-diffusion",
+    "add-diffusion-component",
+    "add-relaxation"
+   ],
+   "reward": -17.53013690617478,
+   "structure": "fcs.3d.2diff.1relax",
+   "values": [
+    2.5003887859095464,
+    1.0000587360448066,
+    50.17875088297154,
+    0.698885394002536,
+    0.9977768871229897,
+    1.4265255643418637,
+    0.0003201928171991386,
+    0.03386180225206727
+   ]
+  }
+ }
+}

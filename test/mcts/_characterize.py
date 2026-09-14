@@ -1,0 +1,143 @@
+"""Observable behaviour of a model-search problem, as a comparable record.
+
+The record exists so that *how* a model family is declared can change while
+what it does stays fixed.  It therefore holds nothing a factory declared --
+no initial-value lists, no complexity constants, no effective sample sizes --
+only what a caller can see through the problem's own API: which parameters
+exist, which topologies exist, how the search may move between them, and what
+each topology fits to.  A declaration that reproduces this record is
+behaviourally the same declaration, whatever language it is written in.
+
+Traversal is canonical rather than incidental.  Every structure is reached by
+the shortest action path from the initial structure, and the problem is
+restored to its root snapshot before each path is walked, so the record does
+not depend on the order structures happen to be visited in.
+"""
+
+from __future__ import annotations
+
+import collections
+
+import IMP.bff as bff
+
+
+def _actions(problem, structure_key):
+    """The actions declared out of one structure, by structure key alone."""
+    state = bff.ModelSearchState(structure_key, structure_key, 0.0, False)
+    return list(problem.get_actions(state))
+
+
+def action_graph(problem) -> dict:
+    """Every declared transition, keyed by the structure it leaves."""
+    return {
+        key: [
+            {
+                "action": action.get_key(),
+                "to": action.get_predicted_state_key(),
+                "prior": action.get_prior(),
+                "terminal": bool(action.get_terminal()),
+            }
+            for action in _actions(problem, key)
+        ]
+        for key in sorted(problem.get_structure_keys())
+    }
+
+
+def _shortest_paths(graph: dict, start: str) -> dict[str, list[str]]:
+    """Shortest action path from ``start`` to every reachable structure."""
+    paths = {start: []}
+    queue = collections.deque([start])
+    while queue:
+        current = queue.popleft()
+        for edge in graph.get(current, []):
+            target = edge["to"]
+            if target in paths or target == current:
+                continue
+            paths[target] = paths[current] + [edge["action"]]
+            queue.append(target)
+    return paths
+
+
+def _walk(problem, root, path: list[str]):
+    """Restore the root, then follow one action path, returning the state."""
+    problem.restore_state(root.get_key())
+    state = root
+    for action_key in path:
+        action = next(
+            candidate
+            for candidate in problem.get_actions(state)
+            if candidate.get_key() == action_key
+        )
+        state = problem.evaluate(state, action)
+    return state
+
+
+def _fitted(problem, state) -> dict:
+    """What one evaluated state holds: its score and canonical registry."""
+    key = state.get_key()
+    return {
+        "structure": state.get_structure_key(),
+        "reward": state.get_reward(),
+        "acceptable": bool(state.get_acceptable()),
+        "values": [float(v) for v in problem.get_cached_values(key)],
+        "fixed": [int(f) for f in problem.get_cached_fixed(key)],
+    }
+
+
+def characterize(problem) -> dict:
+    """One comparable record of everything the problem does observably."""
+    root = problem.get_initial_state()
+    graph = action_graph(problem)
+    record = {
+        "parameter_ids": list(problem.get_parameter_ids()),
+        "structure_keys": sorted(problem.get_structure_keys()),
+        "initial_structure": root.get_structure_key(),
+        "actions": graph,
+        "root": _fitted(problem, root),
+        "structures": {},
+    }
+    for structure, path in sorted(_shortest_paths(graph, root.get_structure_key()).items()):
+        if not path:
+            continue
+        state = _walk(problem, root, path)
+        record["structures"][structure] = {"path": path, **_fitted(problem, state)}
+    return record
+
+
+def compare(record: dict, golden: dict, *, tolerance: float = 1.0e-6) -> list[str]:
+    """Differences between two records; an empty list means they agree.
+
+    Floats are compared with a relative tolerance because a record is meant to
+    survive a rebuild, not to pin a particular machine's last bit.
+    """
+    problems: list[str] = []
+
+    def near(a, b) -> bool:
+        return abs(a - b) <= tolerance * max(1.0, abs(a), abs(b))
+
+    def walk(left, right, where: str) -> None:
+        if isinstance(left, dict) and isinstance(right, dict):
+            for key in sorted(set(left) | set(right)):
+                if key not in left:
+                    problems.append(f"{where}.{key}: missing, golden has {right[key]!r}")
+                elif key not in right:
+                    problems.append(f"{where}.{key}: unexpected, {left[key]!r}")
+                else:
+                    walk(left[key], right[key], f"{where}.{key}")
+        elif isinstance(left, list) and isinstance(right, list):
+            if len(left) != len(right):
+                problems.append(f"{where}: length {len(left)} != golden {len(right)}")
+                return
+            for index, (a, b) in enumerate(zip(left, right)):
+                walk(a, b, f"{where}[{index}]")
+        elif isinstance(left, bool) or isinstance(right, bool):
+            if left != right:
+                problems.append(f"{where}: {left!r} != golden {right!r}")
+        elif isinstance(left, (int, float)) and isinstance(right, (int, float)):
+            if not near(float(left), float(right)):
+                problems.append(f"{where}: {left!r} != golden {right!r}")
+        elif left != right:
+            problems.append(f"{where}: {left!r} != golden {right!r}")
+
+    walk(record, golden, "record")
+    return problems
