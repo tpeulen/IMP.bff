@@ -489,8 +489,92 @@ def environment(n_coef=25, n=488, cache=True, verbose=True):
 # the model, assembled
 # --------------------------------------------------------------------------
 
+#: Rhodamine 110 in water: 4.00 ns (Magde, Rojas & Seybold, Photochem. Photobiol.
+#: 75, 327, 2002), the prior median of `irf_tauref_<detector>` when the reference
+#: dye's decay is the response
+TAU_RH110_NS = 4.00
+
+
+def pulse_bins(E, peak_channels, offset, growth=1.05):
+    """THE ADAPTIVE BINNING, restarted at each pulse (tpeulen, 2026-09-14:
+    "where is the adaptive binning?").
+
+    The prototype's `widening_bins` (s80) keeps full resolution across a
+    response's rise and peak and widens the bins geometrically through the
+    tail, so that each bin holds a comparable number of photons -- adding
+    adjacent channels of a Poisson histogram is exactly another Poisson
+    histogram, so this costs nothing statistically and only decides where
+    resolution is spent. It knows ONE peak, and `cbm56.environment` therefore
+    built this axis with `rebin=False`: an interleaved histogram has two rises,
+    and bins that have widened to twenty channels by the red pulse would smear
+    its edge. S15 solved that for the simulated PIE experiment by running the
+    scheme once per pulse window and concatenating; this does the same on the
+    measured axis. The maps stay projected at full resolution; only the counts
+    and the basis are rebinned (`basis_from_irf` applies `E['R']`).
+    """
+    import torch
+    import s80_analytic_stage2 as A
+    n, dt = int(E['n']), float(E['dt'])
+    pk = float(np.median(list(peak_channels)))
+    e1 = A.widening_bins(offset, dt, pk * dt + 0.4, growth, t_rise=max(pk * dt - 0.35, 0.0))
+    e2 = A.widening_bins(n - offset, dt, pk * dt + 0.4, growth, t_rise=max(pk * dt - 0.35, 0.0))
+    edges = list(e1) + [offset + e for e in e2[1:]]
+    edges = sorted(set(int(e) for e in edges if 0 <= e <= n))
+    if edges[0] != 0:
+        edges = [0] + edges
+    if edges[-1] != n:
+        edges.append(n)
+    Rm = torch.zeros(len(edges) - 1, n, dtype=torch.float64)
+    for i in range(len(edges) - 1):
+        Rm[i, edges[i]:edges[i + 1]] = 1.0
+    return dict(R=Rm, edges=np.array(edges),
+                tc=np.array([(edges[i] + edges[i + 1] - 1) / 2 * dt for i in range(len(edges) - 1)]),
+                wid=np.array([(edges[i + 1] - edges[i]) * dt for i in range(len(edges) - 1)]),
+                win_green=np.array([1.0 if edges[i] < offset else 0.0 for i in range(len(edges) - 1)]))
+
+
+def rl_deconvolve(R, tau, dt, n_iter=500, eps=1e-12, f0=None):
+    """The instrument response from a reference dye's decay by Richardson-Lucy
+    deconvolution with a single-exponential kernel of lifetime `tau`
+    (Richardson, J. Opt. Soc. Am. 62, 55, 1972; Lucy, Astron. J. 79, 745,
+    1974) -- the 'decon' route of tpeulen's prompt 409; tttrlib carries the
+    same algorithm for images (`richardson_lucy_2d`), not for a 1-D decay.
+
+    WHY NOT THE DELTA-FUNCTION IDENTITY.  The model carries Zuker's exact
+    method (`basis_from_irf(..., tau_ref)`), and on this axis it fails for a
+    4 ns reference: the discrete periodic columns do not satisfy the
+    continuous identity, the corrected columns of every lifetime shorter than
+    about 0.94 tau_ref have NEGATIVE sums, and the unit-sum normalisation turns
+    them into 1e297 (measured 2026-09-14; the identity's own check reaches
+    only 3e-2 even for a 0.09 ns reference here). Richardson-Lucy's
+    multiplicative updates keep the estimate non-negative.
+
+    Measured on this axis with an analytic response convolved with 4.0 ns:
+    the width is recovered exactly by 200 iterations, the shape to 14 % of the
+    peak at 200 and 5 % at 1000; a Poisson draw at the Rh110 count level
+    (1.2e6) changes neither. The result is then a MEASURED response like any
+    other: its background and shift stay nuisances of the fit.
+    """
+    R = np.asarray(R, float); N = len(R); j = np.arange(N)
+    k = np.exp(-j * dt / tau); k /= k.sum()
+    K = np.fft.rfft(k); Kc = np.conj(K)
+    conv = lambda x, F: np.fft.irfft(np.fft.rfft(x) * F, N)
+    #: STARTED AT THE WATER RESPONSE when one is given -- "the experimental
+    #: irf will only serve as prior" (prompt 409).  From a flat start the
+    #: iteration is nowhere near converged for a 4 ns kernel at any count this
+    #: measurement can afford (measured: a cliff and no rising edge at 200
+    #: iterations); from the measured response it refines what the water
+    #: measurement got wrong and keeps what it got right.
+    f = np.full(N, R.sum() / N) if f0 is None else np.maximum(np.asarray(f0, float), 0.0) * (R.sum() / max(np.sum(f0), 1e-300))
+    for _ in range(int(n_iter)):
+        est = conv(f, K)
+        f = f * conv(R / np.maximum(est, eps), Kc)
+    return f
+
+
 def model(loaded=None, n_coef=25, which='h20', verbose=True,
-          samples=('D0', 'A0', 'DA'), detectors=None):
+          samples=('D0', 'A0', 'DA'), detectors=None, irf='h20', rebin=True, growth=1.05,
+          rl_iterations=500):
     """Everything the fit needs: the maps on this axis, the measured responses,
     the twelve histograms, and the graph.
 
@@ -500,21 +584,101 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
     green-pulse key with the red-pulse partner summed into the same mean.
     """
     import torch
+    irf_kind = irf                 # `irf` is rebound to the responses below
     d = loaded or load()
     cal = d['cal']
     E, rel, spl, L = environment(n_coef=n_coef, verbose=verbose)
     n = int(E['n'])
     irf, info, off = responses(d, which=which, n=n)
+    irf_h20 = {k: v.copy() for k, v in irf.items()}
     y_np, mask_np = histograms(d, n=n)
 
     E = dict(E)
     E['pulse_alias'] = {'g2p': 'gp', 'g2s': 'gs', 'r2p': 'rp', 'r2s': 'rs'}
     E['pulse_offset'] = {a: off * cal['dt'] for a in E['pulse_alias']}
     E['pie_full'] = True
-    win_g = np.zeros(n); win_g[:off] = 1.0
+    if rebin:
+        rb = pulse_bins(E, [info[det]['peak_channel'] for det in DETECTORS if det[0] == 'g'], off, growth)
+        E['R'] = rb['R']; E['tc'] = rb['tc']; E['wid'] = rb['wid']; E['n_bin'] = len(rb['tc'])
+        win_g = rb['win_green']
+        t_axis = rb['tc']
+    else:
+        E['R'] = None; E['n_bin'] = n
+        win_g = np.zeros(n); win_g[:off] = 1.0
+        t_axis = np.arange(n) * cal['dt']
     E['win_green'] = L.tt(win_g); E['win_red'] = L.tt(1.0 - win_g)
 
     dets = tuple(DETECTORS) if detectors is None else tuple(detectors)
+    #: WHAT THE RESPONSE IS (tpeulen, 2026-09-14: "there seem to be issues with
+    #: the IRF. for the donor, use Rh110 as additional information for the IRF,
+    #: eg, either by decon (see tttrlib) or by a skewed gaussian, the
+    #: experimental irf will only serve as prior").  The water measurement has a
+    #: tail at 1e-3 of its peak out to 8 ns that no background correction
+    #: removes, and a tail in the response is a long lifetime to a fit.
+    #:
+    #:   'h20'       the water measurement, background a nuisance (the default)
+    #:   'rh110'     the reference dye's own decay as the response, its lifetime
+    #:               a nuisance -- the delta-function convolution method, exact,
+    #:               no deconvolution (Zuker et al. 1985; basis_from_irf)
+    #:   'analytic'  a skewed Gaussian with free position, width and skew; the
+    #:               water measurement sets only their priors
+    ref_dets = ()
+    if irf_kind == 'rh110':
+        #: the reference dye's decay, its own flat background removed, then the
+        #: 4.00 ns exponential deconvolved out of it -- what is left is the
+        #: response, and it goes into the model exactly as the water one does
+        #: AT THE MAGIC ANGLE, because a free dye is not a single exponential in
+        #: a polarised channel: its rotational depolarisation (a few hundred
+        #: picoseconds for Rh110 in water) puts a rise into VH and a drop into
+        #: VV, and Rh110's two channels here rise in 0.58 and 0.90 ns where the
+        #: water response takes 0.70 -- deconvolving either alone by the 4 ns
+        #: exponential returned a one-channel spike. (1 - 3 l2) VV +
+        #: (2 - 3 l1) g VH is the isotropic decay, IRF * exp(-t/tau), and the
+        #: one response shape it yields serves both green detectors; their own
+        #: shift and background stay per-detector nuisances. That the two
+        #: detectors' water responses differ by ten per cent in width is a
+        #: cost of this choice, stated here rather than hidden.
+        #: THE WHOLE PERIOD, NOT A WINDOW.  A 4 ns dye at 32 MHz has not decayed
+        #: when the next pulse comes (e^-7.8 of its peak wraps round), and the
+        #: red pulse does not excite it, so its histogram is one periodic decay
+        #: from end to end: 5,700 counts per channel at 13-16 ns, 875 at
+        #: 19-27 ns, 295 at 28-31 ns. `reference_dye` cuts it at +14 ns for the
+        #: delta-function route, and that cliff is what Richardson-Lucy turned
+        #: into a one-channel spike (measured: the windowed analytic case
+        #: recovers the response to 62 % of its peak, the full period to 5 %).
+        #: The background is what sits just BEFORE the pulse, where the
+        #: wrapped tail is 4e-4 of the peak.
+        _, info_ref = reference_dye(d, which='rhd110', n=n)
+        g_ref = 1.0 / cal['g_green']; l1, l2 = cal['l1'], cal['l2']
+        by_colour = {}
+        for colour in sorted({DETECTORS[det][0] for det in dets}):
+            vv_det = next(k for k, v in DETECTORS.items() if v == (colour, 'parallel'))
+            vh_det = next(k for k, v in DETECTORS.items() if v == (colour, 'perpendicular'))
+            vv = np.asarray(d['reference'][('rhd110', colour, 'parallel')], float)[:n]
+            vh = np.asarray(d['reference'][('rhd110', colour, 'perpendicular')], float)[:n]
+            pv, ph = int(np.argmax(vv)), int(np.argmax(vh))
+            vv = np.maximum(vv - np.median(vv[:max(pv - 15, 1)]), 0.0)
+            vh = np.maximum(vh - np.median(vh[:max(ph - 15, 1)]), 0.0)
+            #: the two channels' pulses sit at different channels; align the
+            #: perpendicular one to the parallel one before combining
+            vh = np.roll(vh, pv - ph)
+            ma = (1.0 - 3.0 * l2) * vv + (2.0 - 3.0 * l1) * g_ref * vh
+            #: the water response, its flat background removed, is the start;
+            #: it sits where the response is, so no window is imposed on the
+            #: result beyond the water response's own support
+            w0 = np.asarray(irf_h20[vv_det], float)
+            w0 = np.where(w0 > 0, np.maximum(w0 - info[vv_det]['flat_per_channel'], 0.0), 0.0)
+            f = rl_deconvolve(ma, TAU_RH110_NS, cal['dt'], n_iter=rl_iterations, f0=w0)
+            f = np.where(w0 > 0, f, 0.0)
+            by_colour[colour] = (f * (ma.sum() / max(f.sum(), 1e-300)), info_ref[vv_det])
+        for det in dets:
+            f, inf = by_colour[DETECTORS[det][0]]
+            irf[det] = f.copy()
+            info[det] = dict(inf, source=f"Rh110 magic angle, {rl_iterations} Richardson-Lucy iterations at {TAU_RH110_NS} ns",
+                             background_fraction=0.01)
+        ref_dets = ()          # a measured response now, not a reference-dye one
+    elif irf_kind not in ('h20', 'analytic'):
+        raise ValueError(f"irf must be 'h20', 'rh110' or 'analytic', not {irf_kind!r}")
     keys, pairs = [], {}
     for samp in samples:
         for det in dets:
@@ -525,8 +689,15 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
 
     y_np = {k: v for k, v in y_np.items() if k in pairs}
     mask_np = {k: v for k, v in mask_np.items() if k in pairs}
-    y = {k: L.tt(v) for k, v in y_np.items()}
-    masks = {k: L.tt(mask_np[k]) for k in y_np}
+    y_full = {k: L.tt(v) for k, v in y_np.items()}
+    if rebin:
+        #: the counts in the widening bins; a bin is masked only if every
+        #: channel in it is
+        y = {k: E['R'] @ y_full[k] for k in y_np}
+        masks = {k: ((E['R'] @ L.tt(mask_np[k])) > 0).to(torch.float64) for k in y_np}
+    else:
+        y = y_full
+        masks = {k: L.tt(mask_np[k]) for k in y_np}
     #: the background of each histogram as a FRACTION of its counts, from the
     #: flat parts of the decay -- a starting point for a node, not a constant
     bkg_med, tot = {}, {}
@@ -538,9 +709,35 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
     scale_med = {samp: max(tot[ref[samp]], 1.0) for samp in samples}
     irf_bg_med = {det: max(min(info[det]['background_fraction'], 0.9), 1e-3) for det in dets}
 
+    analytic = (irf_kind == 'analytic')
+    if analytic:
+        #: the water response's peak and width set the priors of the skewed
+        #: Gaussian; `analytic_irf` centres it at 0.10 T + shift
+        E.setdefault('T', E['period'])
+        shift0, width0 = {}, {}
+        for det in dets:
+            r = np.asarray(irf_h20[det], float); pk = int(np.argmax(r)); half = r[pk] / 2.0
+            lo = pk
+            while lo > 0 and r[lo] > half:
+                lo -= 1
+            hi = pk
+            while hi < len(r) - 1 and r[hi] > half:
+                hi += 1
+            width0[det] = max((hi - lo) * cal['dt'] / 2.355, 0.5 * cal['dt'])
+            shift0[det] = pk * cal['dt'] - 0.10 * E['T']
+        w0 = float(np.mean(list(width0.values())))
+        E['instrument'] = ('skewed Gaussian, priors from the water response', w0, 0.0, 0.0)
     V = L.default_variables(E, keys, n_coef=n_coef, scale_medians=scale_med,
-                            irf_shape=False, bkg_medians=bkg_med,
-                            irf_bg_medians=irf_bg_med)
+                            irf_shape=analytic, bkg_medians=bkg_med, ref_dets=ref_dets,
+                            irf_bg_medians=(None if analytic else irf_bg_med))
+    for v in V:
+        if v.name.startswith('irf_tauref_'):
+            #: the dye's lifetime is known to a few per cent; the node is there
+            #: so that the fit can say whether it agrees
+            v.prior = L.LogNormal(TAU_RH110_NS, 0.05 * L.LN10)
+        if analytic and v.name.startswith('irf_shift_'):
+            det = v.name[len('irf_shift_'):]
+            v.prior = L.Gaussian(shift0[det], 0.05)
     #: THE BACKGROUND IS MEASURED, SO IT GETS A MEASURED PRIOR.
     #:
     #: The prototype gives every background half a decade, which is right when
@@ -560,14 +757,17 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
             if k in bkg_med:
                 v.prior = L.LogNormal(bkg_med[k], 0.15 * L.LN10)
     return_bkg_sd = 0.15
-    inst = L.InstrumentModel(E, 'measured', {det: L.tt(irf[det]) for det in dets})
+    inst = L.InstrumentModel(E, 'analytic') if analytic else \
+        L.InstrumentModel(E, 'measured', {det: L.tt(irf[det]) for det in dets})
     ps = L.PSplineFactor(n_coef, spl=spl)
     g = L.FactorGraph(E, keys, V, L.PoissonCountsFactor({k: y[k] for k in pairs}, mask=masks),
                       inst, spl, ps)
     g.rel = rel
     g.start_y = {k: y[k] * E['win_green'] for k in pairs}
     return dict(L=L, E=E, Ep=E, rel=rel, spl=spl, keys=keys, pairs=pairs, graph=g,
-                y=y, masks=masks, irf=irf, irf_info=info, offset_channels=off,
+                y=y, y_full=y_full, t=t_axis, masks=masks, irf=irf, irf_info=info, offset_channels=off,
+                irf_kind=irf_kind,
+                irf_h20=irf_h20,
                 cal=cal, loaded=d, n=n, n_coef=n_coef,
                 bkg_medians=bkg_med, scale_medians=scale_med, irf_bg_medians=irf_bg_med)
 
@@ -583,7 +783,10 @@ def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=False, f
     """
     import torch
     L = m['L']
-    L.Laplace.analytic = False
+    #: THE ANALYTIC JACOBIAN, now that it covers the six scopes (R2 of
+    #: okf/prd-real-data-fast.md): 16 ms against 1.78 s per scoring iteration,
+    #: gated against forward-mode AD at 6e-16 and sharing the AD path's modes.
+    L.Laplace.analytic = True
     #: START FROM THE MEASURED BACKGROUND.  `start_from_data` fits it by a
     #: non-negative solve on a 33-column basis whose long-lifetime members are
     #: nearly identical, and on this measurement it returned 0.0714 and 0.0000
