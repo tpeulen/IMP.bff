@@ -290,6 +290,73 @@ void crosstalk_apply_mixing(const std::vector<double>& matrix, int n_sources,
   *n_out_view = static_cast<int>(out.size());
 }
 
+void crosstalk_apply_mixing_jacobian(const std::vector<double>& matrix,
+                                     int n_sources, int n_detectors,
+                                     const std::vector<double>& sources,
+                                     double** out_view, int* n_out_view) {
+  flat_matrix(matrix, n_sources, n_detectors, "crosstalk_apply_mixing_jacobian");
+  if (n_sources == 0 ||
+      sources.size() % static_cast<std::size_t>(n_sources) != 0) {
+    throw std::invalid_argument(
+        "crosstalk_apply_mixing_jacobian: sources size is not a multiple of "
+        "n_sources");
+  }
+  const std::size_t ns = static_cast<std::size_t>(n_sources);
+  const std::size_t nd = static_cast<std::size_t>(n_detectors);
+  const std::size_t n_items = sources.size() / ns;
+  const std::size_t n_rows = nd * n_items;
+  const std::size_t n_cols = ns * nd + ns * n_items;
+  double* buf = static_cast<double*>(std::calloc(n_rows * n_cols > 0 ? n_rows * n_cols : 1,
+                                                 sizeof(double)));
+  if (buf == nullptr) throw std::bad_alloc();
+  for (std::size_t d = 0; d < nd; ++d) {
+    for (std::size_t item = 0; item < n_items; ++item) {
+      const std::size_t row = (d * n_items + item) * n_cols;
+      for (std::size_t i = 0; i < ns; ++i) {
+        // d out[d, item] / d M[i, d] = sources[i, item]
+        buf[row + i * nd + d] = sources[i * n_items + item];
+        // d out[d, item] / d sources[i, item] = M[i, d]
+        buf[row + ns * nd + i * n_items + item] = matrix[i * nd + d];
+      }
+    }
+  }
+  *out_view = buf;
+  *n_out_view = static_cast<int>(n_rows * n_cols);
+}
+
+std::vector<std::string> crosstalk_apply_mixing_parameter_names(
+    int n_sources, int n_detectors, int n_items) {
+  std::vector<std::string> names;
+  for (int i = 0; i < n_sources; ++i) {
+    for (int j = 0; j < n_detectors; ++j) {
+      names.push_back("M[" + std::to_string(i) + "," + std::to_string(j) + "]");
+    }
+  }
+  for (int i = 0; i < n_sources; ++i) {
+    for (int item = 0; item < n_items; ++item) {
+      names.push_back("sources[" + std::to_string(i) + "," + std::to_string(item) + "]");
+    }
+  }
+  return names;
+}
+
+void crosstalk_row_shares(const std::vector<double>& matrix, int n_rows,
+                          int n_columns, double** out_view, int* n_out_view) {
+  flat_matrix(matrix, n_rows, n_columns, "crosstalk_row_shares");
+  const std::size_t nr = static_cast<std::size_t>(n_rows);
+  const std::size_t nc = static_cast<std::size_t>(n_columns);
+  double* buf = static_cast<double*>(std::calloc(nr * nc > 0 ? nr * nc : 1, sizeof(double)));
+  if (buf == nullptr) throw std::bad_alloc();
+  for (std::size_t i = 0; i < nr; ++i) {
+    double total = 0.0;
+    for (std::size_t j = 0; j < nc; ++j) total += matrix[i * nc + j];
+    if (total == 0.0) continue;
+    for (std::size_t j = 0; j < nc; ++j) buf[i * nc + j] = matrix[i * nc + j] / total;
+  }
+  *out_view = buf;
+  *n_out_view = static_cast<int>(nr * nc);
+}
+
 void crosstalk_invert_mixing(const std::vector<double>& matrix, int n_sources,
                              int n_detectors,
                              const std::vector<double>& measured, bool nonneg,

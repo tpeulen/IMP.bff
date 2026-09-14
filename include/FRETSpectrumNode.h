@@ -54,6 +54,13 @@ IMPBFF_BEGIN_NAMESPACE
  * | `tau0` | the donor lifetime $R_0$ was determined at |
  * | `kappa2` | the orientation factor |
  *
+ * \par R0 and tau0 are a pair
+ * The transfer rate uses the node's own `tau0` -- the donor lifetime at which
+ * `forster_radius` was determined -- for every donor component, never each
+ * component's lifetime: R0^6 scales with the donor quantum yield and Q_D/tau_D
+ * is the radiative rate, so one (R0, tau0) pair fixes k_FRET at a distance.
+ * Pass the two together. PhotophysicsTransferKinetics.h takes these rates.
+ *
  * \par Orientation
  * `kappa2` is one orientation factor for every molecule -- dipoles that
  * reorient fast against the donor's lifetime (`orientation: "dynamic"`, the

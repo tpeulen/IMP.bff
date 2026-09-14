@@ -139,6 +139,44 @@ IMPBFFEXPORT void crosstalk_apply_mixing(
         const std::vector<double>& sources, double** out_view,
         int* n_out_view);
 
+//! The derivative of #crosstalk_apply_mixing by its matrix and its sources.
+/**
+    Forward mixing is bilinear, ``out[d, item] = sum_i sources[i, item] *
+    M[i, d]``, so its derivative is exact and cheap: by a matrix entry it is
+    the source it multiplies, by a source it is the matrix entry.
+
+    Row-major, ``(n_detectors * n_items) x (n_sources * n_detectors +
+    n_sources * n_items)``: rows are the outputs in #crosstalk_apply_mixing's
+    order, columns first the matrix entries ``M[i, j]`` row-major, then the
+    sources ``sources[i, item]`` row-major. #crosstalk_apply_mixing_parameter_names
+    names the columns.
+
+    \param[in] matrix,n_sources,n_detectors,sources as #crosstalk_apply_mixing
+    \param[out] out_view,n_out_view the Jacobian (a managed view)
+ */
+IMPBFFEXPORT void crosstalk_apply_mixing_jacobian(
+        const std::vector<double>& matrix, int n_sources, int n_detectors,
+        const std::vector<double>& sources, double** out_view,
+        int* n_out_view);
+
+//! The column names of #crosstalk_apply_mixing_jacobian: `M[i,j]`, then `sources[i,item]`.
+IMPBFFEXPORT std::vector<std::string> crosstalk_apply_mixing_parameter_names(
+        int n_sources, int n_detectors, int n_items);
+
+//! Each row's entries as shares of the row's sum.
+/**
+    For an emission matrix, the fraction of a chromophore's detected light
+    that lands in each channel -- the leakage-style ratios (`alpha`) a
+    two-channel analysis reports. A derived quantity of the matrix, not an
+    input to it; a row summing to zero gives zeros.
+
+    \param[in] matrix,n_rows,n_columns the matrix, row-major
+    \param[out] out_view,n_out_view ``n_rows * n_columns`` shares (a managed view)
+ */
+IMPBFFEXPORT void crosstalk_row_shares(const std::vector<double>& matrix,
+                                       int n_rows, int n_columns,
+                                       double** out_view, int* n_out_view);
+
 //! Inverse mixing: recover source signals from measured detector signals.
 /**
     The inverse of `crosstalk_apply_mixing`: given the detector signals,
