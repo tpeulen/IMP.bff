@@ -23,6 +23,7 @@
 #if __has_include("pocketfft/pocketfft_hdronly.h")
 
 #include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/BayesianFisherScoring.h>
 #include <algorithm>
 #include <cmath>
 #include <complex>
@@ -42,21 +43,6 @@ struct BayesianDecayAxis {
   double dt = 0.0;            //!< channel width, ns
   std::size_t n_period = 0;   //!< channels per excitation period (the periodic kernel's length)
 };
-
-/**
- * \brief `log(1 + exp(x))`, and `x` itself above 20.
- *
- * The threshold is torch's `softplus` default, kept so that a model written in
- * torch and this one agree to rounding, which is what their gates compare. Its
- * derivative switches at the same point (`bayesian_softplus_derivative`).
- */
-inline double bayesian_softplus(double x) { return x > 20.0 ? x : std::log1p(std::exp(x)); }
-//! d softplus / dx with the same threshold: 1 above 20, the logistic below.
-inline double bayesian_softplus_derivative(double x) { return x > 20.0 ? 1.0 : 1.0 / (1.0 + std::exp(-x)); }
-//! `soft * softplus(x / soft)` with torch's threshold: equal to `x` above a few `soft`, never below
-//! zero, smooth. `bayesian_soft_positive` (BayesianFisherScoring.h) is the same floor without the
-//! threshold; they differ by under `soft * 2e-9` where `x / soft > 20`.
-inline double bayesian_soft_positive_thresholded(double x, double soft) { return soft * bayesian_softplus(x / soft); }
 
 //! Real FFT of length n (unscaled), bins 0..n/2 -- numpy's `rfft`.
 inline void bayesian_rfft(const double* x, std::size_t n, std::complex<double>* X) {
@@ -188,8 +174,8 @@ inline BayesianResponseBasis bayesian_response_basis(const BayesianPeriodicKerne
   for (std::size_t i = 0; i < n; ++i) {
     if (!(measured[i] > 0.0)) continue;
     const double x = (measured[i] - level) / sc;
-    u[i] = bayesian_soft_positive_thresholded(x, opt.soft) * sc;
-    if (tangents) du_b[i] = bayesian_softplus_derivative(x / opt.soft) * (-sum / n_sup);
+    u[i] = bayesian_soft_positive(x, opt.soft, BAYESIAN_TORCH_SOFTPLUS_THRESHOLD) * sc;
+    if (tangents) du_b[i] = bayesian_soft_positive_derivative(x, opt.soft, BAYESIAN_TORCH_SOFTPLUS_THRESHOLD) * (-sum / n_sup);
   }
   // 2. the shift, clamped; tangents in b (through the ramp) and in the shift
   std::vector<cd> U(n / 2 + 1), T(n / 2 + 1), ramp(n / 2 + 1);

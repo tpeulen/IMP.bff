@@ -46,6 +46,8 @@
 
 #include <IMP/bff/IMPCompatibility.h>
 #include <IMP/bff/BayesianMeasuredResponse.h>
+#include <IMP/bff/BayesianTransforms.h>
+#include <IMP/bff/BayesianFisherScoring.h>
 #include <IMP/bff/internal/json.h>
 #include <algorithm>
 #include <atomic>
@@ -327,25 +329,25 @@ inline void bayesian_softmax_inplace(std::vector<double>& x) {
 }
 
 inline BayesianDecayValues bayesian_decay_unpack(const BayesianDecayExperiment& f, const std::vector<double>& theta) {
+    //: through BayesianTransforms.h; the sum-to-zero basis is the experiment's own
+    //: (`Q_<name>`), since theta is defined on it
     BayesianDecayValues out;
     for (const BayesianDecayVariable& var : f.variables) {
         const std::string& name = var.name, & tr = var.transform;
-        const std::size_t off = var.offset, size = var.size;
-        std::vector<double> z(theta.begin() + long(off), theta.begin() + long(off + size));
-        if (tr == "identity") out[name] = z;
-        else if (tr == "log") { for (double& t : z) t = std::exp(t); out[name] = z; }
-        else if (tr == "logit") {
-            const double lo = var.lo, hi = var.hi;
-            for (double& t : z) t = lo + (hi - lo) / (1.0 + std::exp(-t));
-            out[name] = z;
-        } else if (tr == "alr") { z.push_back(0.0); bayesian_softmax_inplace(z); out[name] = z; }
+        const double* z = theta.data() + var.offset;
+        std::vector<double> x;
+        if (tr == "identity") { x.resize(var.size); BayesianIdentityTransform<double>().to_constrained(z, var.size, x.data()); }
+        else if (tr == "log") { x.resize(var.size); BayesianLogTransform<double>().to_constrained(z, var.size, x.data()); }
+        else if (tr == "logit") { x.resize(var.size); BayesianLogitTransform<double>(var.lo, var.hi).to_constrained(z, var.size, x.data()); }
+        else if (tr == "alr") { x.resize(var.size + 1); BayesianALRTransform<double>(var.size + 1).to_constrained(z, var.size, x.data()); }
         else if (tr == "sum_to_zero") {
-            const BayesianDecayArray& Q = f["Q_" + name];                    // (n, n-1)
-            const std::size_t nc = Q.shape[0], nz = Q.shape[1];
-            std::vector<double> c(nc, 0.0);
-            for (std::size_t i = 0; i < nc; ++i) for (std::size_t j = 0; j < nz; ++j) c[i] += Q.d[i * nz + j] * z[j];
-            out[name] = c;
+            BayesianSumToZeroTransform<double> t;
+            t.n = var.size + 1;
+            t.Q = f["Q_" + name].d;
+            x.resize(t.n);
+            t.to_constrained(z, var.size, x.data());
         } else { throw std::runtime_error("bayesian_decay_unpack: transform " + tr + " of " + name); }
+        out[name] = std::move(x);
     }
     for (const auto& kv : f.fixed_values)
         if (!out.count(kv.first)) out[kv.first] = kv.second;
@@ -1011,8 +1013,8 @@ inline std::vector<double> bayesian_decay_expected_counts(const BayesianDecayExp
     for (auto& oc : out_cols) { std::sort(oc.begin(), oc.end()); oc.erase(std::unique(oc.begin(), oc.end()), oc.end()); }
     for (std::size_t o = 0; o < nd; ++o) for (std::size_t i = 0; i < n; ++i) {
         const std::size_t j = o * n + i;
-        lam[j] = bayesian_soft_positive_thresholded(raw[j], soft);
-        if (J) { const double sg = 1.0 / (1.0 + std::exp(-raw[j] / soft)); for (std::size_t c : out_cols[o]) (*J)[j * dim + c] *= sg; }
+        lam[j] = bayesian_soft_positive(raw[j], soft, BAYESIAN_TORCH_SOFTPLUS_THRESHOLD);
+        if (J) { const double sg = bayesian_soft_positive_derivative(raw[j], soft); for (std::size_t c : out_cols[o]) (*J)[j * dim + c] *= sg; }
     }
     if (cols) *cols = out_cols;
     return lam;
