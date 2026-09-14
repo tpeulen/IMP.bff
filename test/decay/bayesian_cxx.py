@@ -30,9 +30,9 @@ def _thirdparty():
     return None
 
 
-def run_driver(source, args=(), timeout=600):
-    """Compile `source` (a C++ translation unit) with -O2 and run it; its stdout
-    must be one JSON object, which is returned."""
+def run_driver(source, args=(), timeout=600, stdin=None):
+    """Compile `source` (a C++ translation unit) with -O2 and run it, feeding it
+    `stdin` if given; its stdout must be one JSON object, which is returned."""
     cxx = os.environ.get("CXX") or shutil.which("c++") or shutil.which("clang++") or shutil.which("g++")
     third = _thirdparty()
     if not cxx:
@@ -52,7 +52,7 @@ def run_driver(source, args=(), timeout=600):
                "-I", os.path.join(ROOT, "standalone", "include"), "-I", third, "-o", exe, src, "-lpthread"]
         r = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         assert r.returncode == 0, "\n".join(l for l in r.stderr.splitlines() if "error" in l)[-4000:]
-        r = subprocess.run([exe, *map(str, args)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=timeout)
+        r = subprocess.run([exe, *map(str, args)], input=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=timeout)
         assert r.returncode == 0, r.stderr[-4000:]
         return json.loads(r.stdout)
     finally:
