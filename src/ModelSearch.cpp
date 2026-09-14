@@ -809,6 +809,37 @@ struct MultiStructureModelSearchProblem::Impl {
     select_and_update(structure_key);
   }
 
+  //! Move a free port strictly inside its bounds before it is fitted.
+  /*!
+      The minimiser works in chisurf's transformed coordinate, and a start
+      exactly on a bound is that transform's degenerate point: for a two-sided
+      bound `lower + (upper - lower)/2 * (sin(xi) + 1)` it is `xi = -pi/2`,
+      where the derivative is zero, and for a narrow box the finite-difference
+      step lands in that flat spot and Levenberg-Marquardt stops without
+      moving anything. Measured on a ChiSurf lifetime fit: a free scatter
+      fraction starting at 0 in [0, 1] froze every parameter of the fit.
+
+      Ordinary fitting starts wherever the user put a parameter and keeps
+      leastsqbound's behaviour. Here the engine chooses the start, so an edge
+      start is the engine's defect. The nudge is a millionth of the range and
+      is applied only to ports about to be fitted, immediately before the
+      fit -- a structure activated at declared values is left exactly there,
+      and the optimiser remains free to return to the bound.
+  */
+  static void keep_inside(const std::shared_ptr<GraphPort>& port) {
+    if (!port->get_is_bounded()) return;
+    const double lower = port->get_lower_bound();
+    const double upper = port->get_upper_bound();
+    if (!(std::isfinite(lower) && std::isfinite(upper) && upper > lower)) return;
+    const double margin = 1.0e-6 * (upper - lower);
+    const double value = port->get_value();
+    if (value <= lower) {
+      port->set_value(lower + margin);
+    } else if (value >= upper) {
+      port->set_value(upper - margin);
+    }
+  }
+
   void apply_initial(const MultiStructureRecord& target,
                      const std::vector<double>& seeds) {
     for (std::size_t i = 0; i < parameter_order.size(); ++i) {
@@ -1277,6 +1308,9 @@ ModelSearchState MultiStructureModelSearchProblem::get_initial_state() {
           throw ModelSearchConfigurationError(
               "initial structure with free parameters requires residuals");
         }
+        for (std::size_t p = 0; p < free_ports.size(); ++p) {
+          impl_->keep_inside(free_ports[p]);
+        }
         FitMinimizer minimizer;
         minimizer.set_parameter_ports(free_ports);
         if (impl_->maxfev > 0) minimizer.set_maxfev(impl_->maxfev);
@@ -1388,6 +1422,9 @@ ModelSearchState MultiStructureModelSearchProblem::evaluate(
         if (target.residual_key.empty()) {
           throw ModelSearchConfigurationError(
               "a structure with free parameters requires a residual output");
+        }
+        for (std::size_t p = 0; p < free_ports.size(); ++p) {
+          impl_->keep_inside(free_ports[p]);
         }
         FitMinimizer minimizer;
         minimizer.set_parameter_ports(free_ports);
