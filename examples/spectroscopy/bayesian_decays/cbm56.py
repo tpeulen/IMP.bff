@@ -548,6 +548,44 @@ def environment(n_coef=25, n=488, cache=True, verbose=True, rho_grid=None, maps=
 #: dye's decay is the response
 TAU_RH110_NS = 4.00
 
+#: THE REFERENCE DYES' PRIORS, declared and cited (tpeulen, 2026-09-14: "for
+#: reference dyes, like Rh110, you could/should define a prior").  A field is a
+#: (value, sd, unit, source) tuple or None; None means no citable value is to
+#: hand and the model's generic prior stands -- deliberately, rather than a
+#: number that looks like a measurement.  `apply_reference_priors` applies it.
+REFERENCE_DYES = {
+    'rhd110': dict(
+        name='Rhodamine 110 in water',
+        tau=(4.00, 0.05, 'log10 decades', 'Magde, Rojas & Seybold, Photochem. Photobiol. 75, 327 (2002)'),
+        rho=None,          # rotational correlation time: no citable value supplied
+        r0=None,           # fundamental anisotropy: no citable value supplied
+    ),
+}
+
+
+def apply_reference_priors(m, dye='rhd110', verbose=True):
+    """Set the REF sample's priors from `REFERENCE_DYES[dye]`: the lifetime
+    (`log10_tau_ref`, Gaussian in log10 ns), and -- where the table carries a
+    value -- the fundamental anisotropy (`r0_ref`, a Gaussian on its bounded
+    value is not available, so a narrowed uniform window of +-2 sd) and the
+    rotational time (a LogisticNormal bump on `w_rho_ref`)."""
+    L = m['L']; d = REFERENCE_DYES[dye]; done = []
+    for v in m['graph'].V:
+        if v.name == 'log10_tau_ref' and d.get('tau'):
+            mu, sd = d['tau'][0], d['tau'][1]
+            v.prior = L.Gaussian(math.log10(mu), sd); done.append(('log10_tau_ref', f'{mu} ns +- {sd} decades', d['tau'][3]))
+        if v.name == 'r0_ref' and d.get('r0'):
+            mu, sd = d['r0'][0], d['r0'][1]
+            lo, hi = max(0.0, mu - 2 * sd), min(0.4, mu + 2 * sd)
+            v.transform = L.Logit(lo, hi); v.prior = L.Uniform(lo, hi); done.append(('r0_ref', f'[{lo:.3f}, {hi:.3f}]', d['r0'][3]))
+    if verbose:
+        for n_, what, src in done:
+            print(f'  reference prior {n_}: {what}  ({src})')
+        for f_ in ('rho', 'r0'):
+            if not d.get(f_):
+                print(f'  reference prior {f_}: none declared -- the generic prior stands')
+    return done
+
 
 def pulse_bins(E, peak_channels, offset, growth=1.05):
     """THE ADAPTIVE BINNING, restarted at each pulse (tpeulen, 2026-09-14:
