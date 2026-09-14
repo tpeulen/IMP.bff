@@ -37,6 +37,13 @@
 #ifndef IMPBFF_BAYESIANDECAYMODEL_H
 #define IMPBFF_BAYESIANDECAYMODEL_H
 
+//! The FFT is pocketfft, reached through tttrlib (`"pocketfft/pocketfft_hdronly.h"`
+//! with tttrlib's `thirdparty/` on the include path, as tttrlib's own sources
+//! include it). Where it is not on the path -- the IMP module build today -- this
+//! header declares nothing, so that `IMP/bff.h`, which includes every public header,
+//! still compiles.
+#if __has_include("pocketfft/pocketfft_hdronly.h")
+
 #include <IMP/bff/IMPCompatibility.h>
 #include <IMP/bff/BayesianMeasuredResponse.h>
 #include <IMP/bff/internal/json.h>
@@ -1004,7 +1011,7 @@ inline std::vector<double> bayesian_decay_expected_counts(const BayesianDecayExp
     for (auto& oc : out_cols) { std::sort(oc.begin(), oc.end()); oc.erase(std::unique(oc.begin(), oc.end()), oc.end()); }
     for (std::size_t o = 0; o < nd; ++o) for (std::size_t i = 0; i < n; ++i) {
         const std::size_t j = o * n + i;
-        lam[j] = bayesian_soft_positive(raw[j], soft);
+        lam[j] = bayesian_soft_positive_thresholded(raw[j], soft);
         if (J) { const double sg = 1.0 / (1.0 + std::exp(-raw[j] / soft)); for (std::size_t c : out_cols[o]) (*J)[j * dim + c] *= sg; }
     }
     if (cols) *cols = out_cols;
@@ -1014,5 +1021,7 @@ inline std::vector<double> bayesian_decay_expected_counts(const BayesianDecayExp
 //! @}
 
 IMPBFF_END_NAMESPACE
+
+#endif  // __has_include("pocketfft/pocketfft_hdronly.h")
 
 #endif /* IMPBFF_BAYESIANDECAYMODEL_H */
