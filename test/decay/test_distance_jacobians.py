@@ -36,6 +36,38 @@ def _numeric(node, name, values, names, step=1e-6):
     return np.column_stack(columns)
 
 
+def _richardson(node, name, values, names, step=1e-3):
+    """Central differences at h and h/2, extrapolated: error O(h^4).
+
+    Tight enough to see a derivative wrong by a part in 1e5, which plain
+    central differences at a safe step cannot.
+    """
+    def central(h_rel):
+        columns = []
+        for key in names:
+            h = h_rel * max(abs(values[key]), 1.0)
+            up, down = dict(values), dict(values)
+            up[key] += h
+            down[key] -= h
+            columns.append((_weights(node, name, up) - _weights(node, name, down)) / (2 * h))
+        return np.column_stack(columns)
+    extrapolated = (4.0 * central(step / 2) - central(step)) / 3.0
+    _weights(node, name, values)
+    return extrapolated
+
+
+def _worst(analytic, reference):
+    """The largest error relative to the entry.
+
+    Floored at 1e-5 of the column's largest entry: where a derivative crosses
+    zero the reference's own roundoff (~1e-15 absolute) would otherwise read
+    as a relative error, while an error of a part in 1e5 anywhere that matters
+    still stands out.
+    """
+    floor = 1e-5 * np.max(np.abs(reference), axis=0) + 1e-300
+    return float(np.max(np.abs(analytic - reference) / (np.abs(reference) + floor)))
+
+
 def _gaussian(two_cloud):
     node = bff.GaussianDistances("g")
     node.set_number_of_components(2)
@@ -56,7 +88,13 @@ def test_gaussian_weights_jacobian_is_the_derivative_of_the_output(two_cloud, sh
     weights = _weights(node, "g", values)
     assert weights.sum() == pytest.approx(1.0)
     analytic = np.asarray(node.get_weights_jacobian()).reshape(GRID.size, len(names))
-    np.testing.assert_allclose(analytic, _numeric(node, "g", values, names), rtol=1e-4, atol=1e-8)
+    reference = _richardson(node, "g", values, names)
+    assert _worst(analytic, reference) < 1e-7
+    # The check sees an error of a part in 1e5 in a single entry.
+    planted = analytic.copy()
+    j = int(np.argmax(np.abs(planted[:, 0])))
+    planted[j, 0] *= 1.0 + 1e-5
+    assert _worst(planted, reference) > 5e-6
     # The weights sum to one whatever the parameters: every column sums to zero.
     np.testing.assert_allclose(analytic.sum(axis=0), 0.0, atol=1e-12)
 
@@ -68,7 +106,7 @@ def test_a_negative_mean_or_amplitude_carries_its_sign():
     _weights(node, "g", values)
     names = list(node.get_parameter_names())
     analytic = np.asarray(node.get_weights_jacobian()).reshape(GRID.size, len(names))
-    np.testing.assert_allclose(analytic, _numeric(node, "g", values, names), rtol=1e-4, atol=1e-8)
+    assert _worst(analytic, _richardson(node, "g", values, names)) < 1e-7
 
 
 def test_a_small_shape_takes_the_series_without_a_jump():
@@ -87,7 +125,7 @@ def test_a_small_shape_takes_the_series_without_a_jump():
     _weights(node, "g", values)
     names = list(node.get_parameter_names())
     analytic = np.asarray(node.get_weights_jacobian()).reshape(GRID.size, 8)
-    np.testing.assert_allclose(analytic, _numeric(node, "g", values, names), rtol=1e-4, atol=1e-8)
+    assert _worst(analytic, _richardson(node, "g", values, names)) < 1e-7
 
 
 def test_discrete_weights_jacobian():
@@ -99,7 +137,7 @@ def test_discrete_weights_jacobian():
     _weights(node, "d", values)
     names = list(node.get_parameter_names())
     analytic = np.asarray(node.get_weights_jacobian()).reshape(3, len(names))
-    np.testing.assert_allclose(analytic, _numeric(node, "d", values, names), rtol=1e-6, atol=1e-10)
+    assert _worst(analytic, _richardson(node, "d", values, names)) < 1e-7
 
 
 POLYMERS = [
