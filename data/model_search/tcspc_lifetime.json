@@ -44,7 +44,7 @@
   },
   "instrument.background": {
    "name": "background",
-   "initial": 0.0,
+   "initial": "decay_min",
    "lower": 0.0,
    "upper": "decay_max"
   },

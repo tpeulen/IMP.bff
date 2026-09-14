@@ -79,12 +79,15 @@ void add_dataset_scalars(const std::string& slot, const FitDataset& dataset,
   }
 
   double maximum = 1.0;
+  double minimum = std::numeric_limits<double>::infinity();
   double total = 0.0;
   for (std::size_t i = 0; i < n; ++i) {
     maximum = std::max(maximum, values[i]);
+    minimum = std::min(minimum, values[i]);
     total += values[i];
   }
   total = std::max(maximum, total);
+  if (!std::isfinite(minimum)) minimum = 0.0;
 
   const double first_value = n ? values[first] : 0.0;
   const double last_value = (last > 0 && last <= n) ? values[last - 1] : 0.0;
@@ -92,6 +95,10 @@ void add_dataset_scalars(const std::string& slot, const FitDataset& dataset,
 
   scope[slot + "_size"] = static_cast<double>(n);
   scope[slot + "_max"] = maximum;
+  // An additive background cannot exceed the smallest thing measured, so the
+  // minimum is the largest value it can plausibly take -- and, unlike zero,
+  // it is off the parameter's own lower bound.
+  scope[slot + "_min"] = minimum;
   scope[slot + "_sum"] = total;
   scope[slot + "_first"] = first_value;
   scope[slot + "_last"] = last_value;

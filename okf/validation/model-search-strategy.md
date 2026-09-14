@@ -259,45 +259,49 @@ Whether the model recovers its parameters and whether the optimiser reaches
 them from generic seeds are different questions, and only the first belongs in
 a unit test while the second stays measured here at 3 of 7.
 
-## The joint anisotropy fit is unstable, not merely hard (2026-09-14)
+## The joint anisotropy fit: diagnosed, and mostly fixed (2026-09-14)
 
 Four cross-platform CI rounds on `test_tcspc_anisotropy.py` turned "converges
-in 3 of 7 noise draws" into something sharper. The two-lifetime joint fit
-does not merely miss its optimum; it **diverges under perturbations it should
-absorb**:
+in 3 of 7 noise draws" into a specific defect, by way of one wrong diagnosis.
 
-| change | child (`tcspc.l2.r1`) reward |
-|---|---|
-| simulated background 0 counts (macOS) | **-36.5** |
-| same, on Linux | **-61058** |
-| background 5 counts (macOS) | **-62134** |
-| background 20 counts (macOS) | **-66215** |
+**The symptom.** The two-lifetime joint fit returned wildly different answers
+for changes it should absorb: -36.5 on macOS against -61058 on Linux for the
+same data, and -36.5 against -62134 on *one* machine when the simulated
+background moved from 0 to 5 counts.
 
-The root (`tcspc.l1.r1`) is stable at -237.4 on both platforms, so this is the
-two-lifetime fit specifically, not the family or the data.
+**The wrong diagnosis.** The three per-channel backgrounds measured a
+sensitivity of 2.05e-11 against ~1e-5 for everything else, which looked like
+near-singular columns. It was an artifact of the probe: it stepped by
+`|v| * 1e-4`, those parameters sit at zero, so the step was the 1e-8 floor and
+the small response was the probe's own. Normalised by the step the columns are
+comparable. **A sensitivity measured with a step proportional to the value
+says nothing about a parameter whose value is zero.**
 
-A first diagnosis blamed the three per-channel background parameters, whose
-measured sensitivity was 2.05e-11 against ~1e-5 for everything else. That was
-**wrong, and wrong for an instructive reason**: the probe used a relative step,
-`|v| * 1e-4`, and those parameters sit at zero, so the step was the 1e-8 floor
-and the tiny response was the probe's rather than the model's. Normalising by
-the step gives a column-magnitude spread of ~9e4 whatever the background is.
-A sensitivity measured with a step proportional to the value says nothing
-about a parameter whose value is zero.
+**The real one.** Reading the fitted parameters rather than probing them: with
+a background of 5 counts the fit returned backgrounds of exactly 0.000 --
+never moved -- and `instrument.vv.n0` of 63719 against a truth of 30000, which
+is the intensity absorbing the background it could not fit. Every background
+was *seeded on its own lower bound of zero*, where the optimiser can only push
+it inward, and if the first step raises the intensity instead the background
+stays pinned for good. It is the classic initialised-at-a-bound pathology, and
+the earlier instinct was right even though the measurement behind it was not.
 
-What this costs: no test may assert the *outcome* of fitting this family.
-Four were written and all four failed on Linux while passing here --
-recovery from noisy curves, recovery from clean curves, and the weakest claim
-available, that adding a lifetime beats not adding it. The wiring is tested
-instead, at truth and without an optimiser, which is the claim the family
-actually makes.
+**The fix.** A background is bounded above by the smallest thing measured, so
+the data's minimum is both a real estimate and off the bound. A `min`
+statistic joins the others, and `tcspc_lifetime` and `tcspc_anisotropy` seed
+their backgrounds from it. Across backgrounds of 0, 5, 20 and 50 counts the
+recovered intensity is now within 1% in every case, against 112% out in two of
+four before.
 
-What it is worth: this is a much better-specified problem than "seeding is
-hard". A fit that returns -36 or -62134 depending on a five-count background
-is not a fit that needs better starting points; something in the
-twenty-four-parameter joint problem is losing conditioning, and *that* is the
-thing to find. It is also the clearest evidence yet for why the self-play
-proposer targets parameter placement rather than action choice.
+**What is left.** At low background the two-lifetime fit still fails to
+converge and rolls back to its parent rather than returning a wrong answer --
+better behaviour, and still not a fit. The catastrophic case is gone; the
+family is not yet dependable enough for a test to assert what fitting it
+returns, and none does.
+
+**Worth keeping.** A free parameter seeded exactly on its bound is a defect
+wherever it appears. The shipped families were audited for it and these three
+were the only cases.
 
 ## What follows
 
