@@ -1,2 +1,16 @@
 *.bat text eol=crlf
 *.sh text eol=lf
+
+# thirdparty/ptolib/VENDORING.json pins a sha256 per vendored file, taken
+# from the LF checkout scripts/vendor.sh produced. Without this, a Windows
+# checkout's default core.autocrlf=true rewrites every text file in the
+# vendored tree to CRLF, so the same commit reads back with a different hash
+# on Windows CI than on Linux/macOS -- content is byte-identical in the repo
+# (verified: 0 CR bytes in the committed CMakeLists.txt blob), only the
+# checkout differs. Force LF here so the manifest holds on every platform.
+# The brotli dictionary is real binary data, not text with mixed content --
+# excluded explicitly (a later, more specific rule wins) so it is never run
+# through line-ending normalization.
+thirdparty/ptolib/** text eol=lf
+thirdparty/ptolib/thirdparty/brotli/common/dictionary.bin binary
+thirdparty/ptolib/thirdparty/brotli/common/dictionary.bin.br binary
