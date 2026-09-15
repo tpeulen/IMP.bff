@@ -173,7 +173,9 @@ struct BayesianDecayExperiment {
  * The block: `response_sigma` (ns), optional `response_position` (ns; default 0.10
  * of the window), `log10_tau_lo`, optional `log10_tau_hi` (default three windows),
  * `per_decade`, the (R0, tau_ref) pair `R0` and `tau_ref`, and the grids `rel`
- * (R/R0), `rho` (ns), `tau_a` (ns), `rho_a` (ns). Written: `tau_c`, `E_base`
+ * (R/R0), `rho` (ns), `tau_a` (ns), `rho_a` (ns), and optionally `acceptor_maps`
+ * (`faithful`, the default: the prototype's construction; `exact`: periodic, PRD-143
+ * A4.3). Written: `tau_c`, `E_base`
  * (`K x Kint`, the interior identity), `E_S_R`, `E_S_rho`, `E_S_Ag`, `E_S_Ag_rot_r`,
  * `E_A_dir`, `E_A_dir_rot_r` -- in the shapes ucfret's emitter writes them. An
  * experiment that carries both the block and any of those arrays is refused: two
@@ -208,7 +210,11 @@ inline void bayesian_decay_build_transfer_tensors(const nlohmann::json& t, Bayes
   put("E_base", {K, nt}, std::move(base));
   put("E_S_R", {rel.size(), K, nt}, bayesian_transfer_rate_maps(tb, P, k_fret));
   put("E_S_rho", {rho.size(), K, nt}, bayesian_transfer_rate_maps(tb, P, k_rot));
-  BayesianAcceptorMaps am = bayesian_transfer_acceptor_maps(tb, P, k_fret, tau_a, rho_a);
+  std::string how = t.count("acceptor_maps") ? t["acceptor_maps"].get<std::string>() : std::string("faithful");
+  if (how != "faithful" && how != "exact") throw std::runtime_error("transfer.acceptor_maps must be 'faithful' or 'exact', not " + how);
+  BayesianAcceptorMaps am = bayesian_transfer_acceptor_maps(tb, P, k_fret, tau_a, rho_a,
+                                                            how == "exact" ? BayesianAcceptorConstruction::exact
+                                                                           : BayesianAcceptorConstruction::faithful);
   put("E_S_Ag", {rel.size(), tau_a.size(), K, nt}, std::move(am.sensitised));
   put("E_S_Ag_rot_r", {rho_a.size(), rel.size(), tau_a.size(), K, nt}, std::move(am.sensitised_rot));
   put("E_A_dir", {tau_a.size(), K}, std::move(am.direct));

@@ -78,8 +78,12 @@ inline void bayesian_irfft(const std::complex<double>* X, std::size_t n, double*
  */
 class BayesianPeriodicKernel {
  public:
-  BayesianPeriodicKernel(const BayesianDecayAxis& axis, const std::vector<double>& tau)
-      : axis_(axis), tau_(tau), fft_(tau.size(), std::vector<std::complex<double>>(axis.n_period / 2 + 1)) {
+  //! `order[c]`: 0 for `exp(-t/tau)` (the default), 1 for `t exp(-t/tau)` -- the
+  //! degenerate component of a transfer decay; empty means all 0.
+  BayesianPeriodicKernel(const BayesianDecayAxis& axis, const std::vector<double>& tau,
+                         const std::vector<int>& order = std::vector<int>())
+      : axis_(axis), tau_(tau), order_(order.empty() ? std::vector<int>(tau.size(), 0) : order),
+        fft_(tau.size(), std::vector<std::complex<double>>(axis.n_period / 2 + 1)) {
     const std::size_t np = axis.n_period;
     std::vector<double> k(np);
     for (std::size_t c = 0; c < tau.size(); ++c) {
@@ -91,14 +95,17 @@ class BayesianPeriodicKernel {
   const std::vector<double>& tau() const { return tau_; }
   const std::vector<std::complex<double>>& fft(std::size_t column) const { return fft_[column]; }
   //! The kernel of grid lifetime `column` over one period, into `out` (n_period values):
-  //! tttrlib's `periodic_decay_kernel` (vendored as internal/PeriodicDecayKernel.h), order 0.
+  //! tttrlib's `periodic_decay_kernel` (vendored as internal/PeriodicDecayKernel.h), at the
+  //! column's order.
   void kernel(std::size_t column, double* out) const {
-    periodic_decay_kernel(out, int(axis_.n_period), axis_.dt, tau_[column], 0);
+    periodic_decay_kernel(out, int(axis_.n_period), axis_.dt, tau_[column], order_[column]);
   }
+  const std::vector<int>& order() const { return order_; }
 
  private:
   BayesianDecayAxis axis_;
   std::vector<double> tau_;
+  std::vector<int> order_;
   std::vector<std::vector<std::complex<double>>> fft_;
 };
 
