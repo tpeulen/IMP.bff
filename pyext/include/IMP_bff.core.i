@@ -583,6 +583,7 @@ def get_session():
  */
 %include "IMP_bff.photophysicscrosstalkmatrix.i"
 %include "IMP_bff.photophysicstransferkinetics.i"
+%include "IMP_bff.fretacceptordensity.i"
 
 /*
  * ChiSurf's bounded Levenberg-Marquardt, over the same GraphPort/GraphNode graph

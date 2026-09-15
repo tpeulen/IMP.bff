@@ -3,6 +3,7 @@
  "equations_convolved",
  "fcs_analytical",
  "tcspc_anisotropy",
+ "tcspc_fret_acceptor_density",
  "tcspc_fret_discrete",
  "tcspc_fret_gaussian",
  "tcspc_fret_ising_chain",

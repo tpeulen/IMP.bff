@@ -9,6 +9,7 @@
 
 #include <IMP/bff/Convolution.h>
 #include <IMP/bff/FCS.h>
+#include <IMP/bff/AcceptorDensityDecay.h>
 #include <IMP/bff/DiscreteDistances.h>
 #include <IMP/bff/FRETSpectrumNode.h>
 #include <IMP/bff/FitChiSquared.h>
@@ -61,6 +62,7 @@ void install_builtin_types(FactoryMap& factories) {
   factories["FitJointChiSquared"] = plain<FitJointChiSquared>;
   factories["GaussianDistances"] = plain<GaussianDistances>;
   factories["DiscreteDistances"] = plain<DiscreteDistances>;
+  factories["AcceptorDensityDecay"] = plain<AcceptorDensityDecay>;
   factories["PolymerDistances"] = plain<PolymerDistances>;
   factories["PhotophysicsLifetimeSpectrumNode"] =
       plain<PhotophysicsLifetimeSpectrumNode>;

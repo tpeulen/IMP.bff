@@ -1,0 +1,512 @@
+{
+ "schema": "bff.model_search.v1",
+ "family": "tcspc_fret_acceptor_density",
+ "title": "FRET: acceptor density (1, 2 or 3 dimensions)",
+ "presentation": {
+  "_comment": "How an application presents this family. Read by applications, ignored by the engine.",
+  "groups": {
+   "acceptors": "Acceptors",
+   "donor": "Donor",
+   "fret": "FRET",
+   "instrument": "Instrument"
+  },
+  "datasets": {
+   "decay": {
+    "label": "Decay",
+    "primary": true
+   },
+   "response": {
+    "label": "IRF",
+    "required_unless": "generated_response"
+   },
+   "linearization": {
+    "label": "Lin. table"
+   },
+   "background_pattern": {
+    "label": "Background"
+   },
+   "linearization_curve": {
+    "label": "DNL measurement"
+   }
+  },
+  "scalars": {
+   "dt": {
+    "label": "dt [ns]",
+    "default": "decay_dx"
+   },
+   "period": {
+    "label": "Period [ns]",
+    "default": 12.5
+   },
+   "autoscale": {
+    "label": "Autoscale n0",
+    "kind": "flag"
+   },
+   "pile_up": {
+    "label": "Pile-up",
+    "kind": "flag"
+   },
+   "dead_time": {
+    "label": "Dead time [ns]"
+   },
+   "measurement_time": {
+    "label": "Measurement time [s]"
+   },
+   "response_start": {
+    "label": "IRF start [ns]"
+   },
+   "response_stop": {
+    "label": "IRF stop [ns]"
+   },
+   "t_background": {
+    "label": "t(background) [s]"
+   },
+   "t_decay": {
+    "label": "t(decay) [s]"
+   },
+   "shift_background": {
+    "label": "Shift background with IRF",
+    "kind": "flag"
+   },
+   "periodic_excitation": {
+    "label": "Periodic excitation",
+    "kind": "flag"
+   },
+   "convolve": {
+    "label": "Convolve with IRF",
+    "kind": "flag"
+   },
+   "generated_response": {
+    "label": "Model the IRF (no measured IRF)",
+    "kind": "flag"
+   },
+   "lin_window_length": {
+    "label": "DNL window [channels]"
+   },
+   "lin_window": {
+    "label": "DNL window (0 flat, 1 hanning, 2 hamming, 3 bartlett, 4 blackman)"
+   },
+   "reverse_linearization": {
+    "label": "Reverse DNL table",
+    "kind": "flag"
+   },
+   "donor_lifetimes": {
+    "label": "Donor lifetimes"
+   },
+   "dimension": {
+    "label": "Starting dimensionality (1, 2, 3)"
+   }
+  },
+  "distributions": {
+   "donor_lifetime_spectrum": {
+    "label": "Donor lifetime",
+    "node": "donor",
+    "port": "@name"
+   }
+  },
+  "statistics": {
+   "tau_donor_species": {
+    "label": "<tau>x donor",
+    "of": "donor_lifetime_spectrum",
+    "statistic": "species_averaged_lifetime"
+   }
+  },
+  "reference_modes": [
+   "tcspc_total_photons",
+   "tcspc_peak_photons"
+  ],
+  "axis": {
+   "x": "time (ns)",
+   "y": "counts",
+   "scale_y": "log"
+  },
+  "values": {
+   "fret_efficiency": {
+    "label": "E",
+    "node": "quenched",
+    "port": "efficiency"
+   },
+   "acceptor_density": {
+    "label": "density [\u00c5^-d]",
+    "node": "quenched",
+    "port": "acceptor_density"
+   }
+  }
+ },
+ "datasets": [
+  "decay"
+ ],
+ "scalars": [
+  "dt",
+  "period"
+ ],
+ "optional_scalars": {
+  "autoscale": 0,
+  "pile_up": 0,
+  "dead_time": 0.0,
+  "measurement_time": 1.0,
+  "amplitude_threshold": 0.0,
+  "convolution_stop": 1e+18,
+  "scale_stop": 1e+18,
+  "response_start": 0.0,
+  "response_stop": 1e+18,
+  "t_background": 1.0,
+  "t_decay": 1.0,
+  "shift_background": 1,
+  "periodic_excitation": 1,
+  "convolve": 1,
+  "generated_response": 0,
+  "fit_start": 0,
+  "fit_stop": 1e+18,
+  "lin_window_length": 17,
+  "lin_window": 1,
+  "reverse_linearization": 0,
+  "donor_lifetimes": 1,
+  "dimension": 2,
+  "folded_periods": 8
+ },
+ "optional_datasets": [
+  "response",
+  "linearization",
+  "background_pattern",
+  "linearization_curve"
+ ],
+ "axes": {
+  "n": {
+   "from": "donor_lifetimes",
+   "to": "donor_lifetimes"
+  },
+  "dim": {
+   "from": 1,
+   "to": 3
+  }
+ },
+ "parameters": {
+  "repeat": {
+   "index": "i",
+   "count": "n_max",
+   "body": {
+    "donor.amplitude.{i}": {
+     "name": "xD{i}",
+     "initial": "1/({i}+1)",
+     "lower": 0.0,
+     "upper": null,
+     "group": "donor"
+    },
+    "donor.tau.{i}": {
+     "name": "tD{i}",
+     "initial": "4/({i}+1)",
+     "lower": "max(dt*0.01,1e-12)",
+     "upper": "period",
+     "group": "donor"
+    }
+   }
+  },
+  "acceptor.c_over_c0": {
+   "name": "C/C0",
+   "initial": 1.0,
+   "lower": 0.0,
+   "upper": 100.0,
+   "group": "acceptors"
+  },
+  "fret.forster_radius": {
+   "name": "R0",
+   "initial": 52.0,
+   "lower": 1.0,
+   "upper": 1000.0,
+   "group": "fret",
+   "free": false
+  },
+  "fret.tau0": {
+   "name": "tau0",
+   "initial": 4.0,
+   "lower": 0.001,
+   "upper": 1000.0,
+   "group": "fret",
+   "free": false
+  },
+  "instrument.scatter": {
+   "name": "scatter",
+   "initial": 0.0,
+   "free": false,
+   "lower": 0.0,
+   "upper": 1.0,
+   "group": "instrument"
+  },
+  "instrument.background": {
+   "name": "background",
+   "initial": "decay_min",
+   "lower": 0.0,
+   "upper": "decay_max",
+   "group": "instrument"
+  },
+  "instrument.n0": {
+   "name": "n0",
+   "initial": "decay_sum",
+   "lower": 0.0,
+   "upper": "100*decay_sum",
+   "group": "instrument"
+  },
+  "instrument.timeshift": {
+   "name": "timeshift",
+   "initial": 0.0,
+   "free": false,
+   "lower": "-0.5*decay_size",
+   "upper": "0.5*decay_size",
+   "group": "instrument"
+  },
+  "instrument.response_background": {
+   "name": "lamp background",
+   "group": "instrument",
+   "initial": 0.0,
+   "free": false,
+   "lower": 0.0,
+   "upper": "decay_max"
+  },
+  "instrument.irf_width": {
+   "name": "irf width",
+   "group": "instrument",
+   "initial": 0.1,
+   "free": false,
+   "lower": 0.0001,
+   "upper": "decay_size*dt"
+  },
+  "instrument.irf_shape": {
+   "name": "irf shape",
+   "group": "instrument",
+   "initial": -0.31,
+   "free": false,
+   "lower": -10.0,
+   "upper": 10.0
+  },
+  "instrument.irf_position": {
+   "name": "irf position",
+   "group": "instrument",
+   "initial": "decay_rise_index*dt",
+   "free": false,
+   "lower": 0.0,
+   "upper": "decay_size*dt"
+  }
+ },
+ "initial_axes": {
+  "n": "donor_lifetimes",
+  "dim": "dimension"
+ },
+ "template": {
+  "key": "tcspc_fret_acceptor_density.dimensions.{dim}",
+  "label": "{dim}-dimensional acceptors",
+  "nodes": {
+   "generated_response": {
+    "type": "GeneralizedNormalCurve",
+    "config": {
+     "floor": 1.0
+    },
+    "config_rules": {
+     "n_points": "decay_size",
+     "dt": "dt",
+     "area": "decay_sum"
+    },
+    "inputs": {
+     "loc": "#instrument.irf_position",
+     "scale": "#instrument.irf_width",
+     "shape": "#instrument.irf_shape"
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "donor": {
+    "type": "PhotophysicsLifetimeSpectrumNode",
+    "config": {
+     "number_of_lifetimes": "{n}",
+     "normalize_amplitudes": true,
+     "absolute_amplitudes": true
+    },
+    "inputs": {
+     "repeat": {
+      "index": "i",
+      "count": "n",
+      "body": {
+       "a{i}": "#donor.amplitude.{i}",
+       "t{i}": "#donor.tau.{i}"
+      }
+     }
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "quenched": {
+    "type": "AcceptorDensityDecay",
+    "config": {
+     "dimension": "{dim}"
+    },
+    "config_rules": {
+     "n_points": "decay_size",
+     "dt": "dt",
+     "period": "periodic_excitation*period",
+     "folded_periods": "folded_periods"
+    },
+    "inputs": {
+     "lifetime_spectrum": "donor",
+     "c_over_c0": "#acceptor.c_over_c0",
+     "tau0": "#fret.tau0",
+     "forster_radius": "#fret.forster_radius"
+    },
+    "outputs": {
+     "@name": "float_vector",
+     "efficiency": "float",
+     "acceptor_density": "float"
+    }
+   },
+   "convolved": {
+    "type": "Convolution",
+    "config_rules": {
+     "response_range": [
+      "max(0,floor(response_start/dt))",
+      "min(decay_size,floor(response_stop/dt))"
+     ],
+     "response_from_port": "generated_response"
+    },
+    "bind": {
+     "response": "response"
+    },
+    "inputs": {
+     "curve": "quenched",
+     "timeshift": "#instrument.timeshift",
+     "response_background": "#instrument.response_background",
+     "response": "generated_response"
+    },
+    "outputs": {
+     "@name": "float_vector"
+    },
+    "config": {
+     "mode": "causal"
+    }
+   },
+   "decay": {
+    "type": "TCSPCDecay",
+    "config": {
+     "curve_from_port": true
+    },
+    "config_rules": {
+     "timing": [
+      "dt",
+      "period"
+     ],
+     "scale_range": [
+      "fit_start",
+      "min(decay_size,fit_stop)"
+     ],
+     "autoscale": "autoscale",
+     "pile_up": "pile_up",
+     "pile_up_parameters": [
+      "dead_time",
+      "measurement_time"
+     ],
+     "response_range": [
+      "max(0,floor(response_start/dt))",
+      "min(decay_size,floor(response_stop/dt))"
+     ],
+     "background_times": [
+      "t_background",
+      "t_decay"
+     ],
+     "shift_background_with_response": "shift_background",
+     "response_from_port": "generated_response",
+     "linearization_smoothing": [
+      "lin_window_length",
+      "fit_start",
+      "min(decay_size,fit_stop)",
+      "reverse_linearization"
+     ],
+     "linearization_window": {
+      "options": [
+       "flat",
+       "hanning",
+       "hamming",
+       "bartlett",
+       "blackman"
+      ],
+      "index": "lin_window"
+     }
+    },
+    "bind": {
+     "response": "response",
+     "data": "decay",
+     "linearization": "linearization",
+     "background_pattern": "background_pattern",
+     "linearization_curve": "linearization_curve"
+    },
+    "inputs": {
+     "curve": "convolved",
+     "scatter": "#instrument.scatter",
+     "background": "#instrument.background",
+     "n0": "#instrument.n0",
+     "timeshift": "#instrument.timeshift",
+     "response_background": "#instrument.response_background",
+     "response": "generated_response"
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "objective": {
+    "type": "FitChiSquared",
+    "bind": {
+     "data": "decay"
+    },
+    "inputs": {
+     "model": "decay"
+    },
+    "outputs": {
+     "@name": "float",
+     "residuals": "float_vector"
+    }
+   }
+  },
+  "objective": "objective",
+  "free": [
+   {
+    "each": {
+     "index": "i",
+     "count": "n",
+     "body": "donor.tau.{i}"
+    }
+   },
+   {
+    "each": {
+     "index": "i",
+     "from": 1,
+     "count": "n",
+     "body": "donor.amplitude.{i}"
+    }
+   },
+   "acceptor.c_over_c0",
+   "instrument.background",
+   "instrument.n0",
+   "instrument.timeshift"
+  ],
+  "ess": "decay_size",
+  "selection": "bic"
+ },
+ "moves": [
+  {
+   "action": "stop",
+   "prior": 0.25,
+   "terminal": true
+  },
+  {
+   "action": "raise-dimension",
+   "axis": "dim",
+   "delta": 1,
+   "prior": 0.375
+  },
+  {
+   "action": "lower-dimension",
+   "axis": "dim",
+   "delta": -1,
+   "prior": 0.375
+  }
+ ]
+}
