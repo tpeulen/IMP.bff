@@ -8,7 +8,8 @@
  *
  * PRD-143 #18, written 2026-09-15 (ucfret prompt 448), replacing ucfret's Python
  * builders (`s80_analytic_stage2.build`, `s79_fret_stage2`, `s53_phase1_pseudolik.Basis`)
- * step by step. Step 18a: the basis. 18b: the ridge projection onto it.
+ * step by step. Step 18a: the basis. 18b: the ridge projection onto it. 18c: the
+ * donor quenching and rotational maps.
  */
 
 #ifndef IMPBFF_BAYESIANTRANSFERTENSORS_H
@@ -121,6 +122,51 @@ inline ::tttrlib::RidgeProjector bayesian_transfer_projector(const BayesianRespo
   if (!p.factor(basis.B.data(), basis.n, basis.K, relative, true))
     throw std::runtime_error("bayesian_transfer_projector: B^T B + lambda I is not positive definite");
   return p;
+}
+
+/**
+ * \brief Maps of an added decay rate: what each basis lifetime becomes when a
+ *        second channel drains the same excited state.
+ *
+ * For grid point `j` with added rate `k_j` (1/ns), every basis lifetime `tau_c`
+ * shortens to `tau_s = 1 / (1/tau_c + k_j)`. Its column is built the way the basis
+ * builds its own (the exact periodic kernel at `tau_s`, unit sum) and scaled by
+ * `tau_s / tau_c` -- the light a unit of `tau_c` emits once the added channel
+ * takes its share -- then projected onto the basis. The result is
+ * `n_rates x K x n_tau`, row-major: `S[j, :, c]` are the basis coefficients of
+ * lifetime column `c` under rate `j`.
+ *
+ * Two uses, and the rate is the caller's:
+ * - **donor quenching by FRET**: `k = (1/tau_ref) (R0/R)^6`. `R0` and `tau_ref`
+ *   are a pair -- `R0` is determined at the donor lifetime `tau_ref`, so one
+ *   `tau_ref` quenches every component alike (the homogeneous approximation; see
+ *   `FRETSpectrumNode.h`, `PhotophysicsTransferKinetics.h`);
+ * - **rotational depolarisation**: `k = 1/rho`, the anisotropy decay's share of a
+ *   polarised channel.
+ */
+inline std::vector<double> bayesian_transfer_rate_maps(const BayesianTransferBasis& tb,
+                                                       const ::tttrlib::RidgeProjector& projector,
+                                                       const std::vector<double>& rates) {
+  const BayesianResponseBasis& B = tb.basis;
+  const std::size_t n = B.n, K = B.K;
+  const std::vector<double>& tau = tb.kernel->tau();
+  const std::size_t nt = tau.size();
+  BayesianResponseOptions opt;
+  opt.remove_background = false;
+  std::vector<double> S(rates.size() * K * nt), y(n), x(K), tau_s(nt);
+  for (std::size_t j = 0; j < rates.size(); ++j) {
+    for (std::size_t c = 0; c < nt; ++c) tau_s[c] = 1.0 / (1.0 / tau[c] + rates[j]);
+    const BayesianPeriodicKernel kernel_s(tb.kernel->axis(), tau_s);
+    const BayesianResponseBasis cols = bayesian_response_basis(kernel_s, tb.response, 0.0, 0.0, false, opt);
+    for (std::size_t c = 0; c < nt; ++c) {
+      const double area = tau_s[c] / tau[c];
+      for (std::size_t i = 0; i < n; ++i) y[i] = cols.B[i * K + 1 + c] * area;
+      if (!projector.project(y.data(), x.data()))
+        throw std::runtime_error("bayesian_transfer_rate_maps: projection failed");
+      for (std::size_t k = 0; k < K; ++k) S[(j * K + k) * nt + c] = x[k];
+    }
+  }
+  return S;
 }
 
 //! @}
