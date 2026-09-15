@@ -8,19 +8,21 @@
  *
  * PRD-143 #18, written 2026-09-15 (ucfret prompt 448), replacing ucfret's Python
  * builders (`s80_analytic_stage2.build`, `s79_fret_stage2`, `s53_phase1_pseudolik.Basis`)
- * step by step. Step 18a: the basis.
+ * step by step. Step 18a: the basis. 18b: the ridge projection onto it.
  */
 
 #ifndef IMPBFF_BAYESIANTRANSFERTENSORS_H
 #define IMPBFF_BAYESIANTRANSFERTENSORS_H
 
 #include <IMP/bff/BayesianMeasuredResponse.h>
+#include <IMP/bff/internal/DampedNewton.h>
 
 #if __has_include("pocketfft/pocketfft_hdronly.h")
 
 #include <cmath>
 #include <cstddef>
 #include <memory>
+#include <stdexcept>
 #include <vector>
 
 IMPBFF_BEGIN_NAMESPACE
@@ -99,6 +101,26 @@ inline BayesianTransferBasis bayesian_transfer_basis(const BayesianTransferBasis
   opt.remove_background = false;
   out.basis = bayesian_response_basis(*out.kernel, out.response, 0.0, 0.0, false, opt);
   return out;
+}
+
+//! The ridge strength of the map projection, relative to the mean diagonal of `B^T B`.
+constexpr double BAYESIAN_TRANSFER_RIDGE = 1e-8;
+
+/**
+ * \brief The projection of a decay onto the transfer basis: ridge least squares,
+ *        factored once for all targets (tttrlib's `RidgeProjector`).
+ *
+ * A map's coefficients are signed and unconstrained; the ridge keeps them bounded
+ * where neighbouring lifetime columns are nearly collinear -- a plain least squares
+ * gives large cancelling coefficients, harmless until a rotational map multiplies
+ * them. `lambda = BAYESIAN_TRANSFER_RIDGE * trace(B^T B) / K`, as ucfret's `s79._ridge`.
+ */
+inline ::tttrlib::RidgeProjector bayesian_transfer_projector(const BayesianResponseBasis& basis,
+                                                             double relative = BAYESIAN_TRANSFER_RIDGE) {
+  ::tttrlib::RidgeProjector p;
+  if (!p.factor(basis.B.data(), basis.n, basis.K, relative, true))
+    throw std::runtime_error("bayesian_transfer_projector: B^T B + lambda I is not positive definite");
+  return p;
 }
 
 //! @}
