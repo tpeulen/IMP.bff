@@ -60,6 +60,8 @@ def chain_sets():
     sets["shifted"] = ar1(4, 800, 0.5, shift=0.5)
     sets["scaled"] = ar1(3, 900, 0.3, scale=0.8)
     sets["short"] = rng.normal(size=(2, 9))
+    # 5 draws: the split chains hold 2, where Geyer's loop must not run (it once read past the array)
+    sets["five"] = rng.normal(size=(4, 5))
     sets["ties"] = (rng.normal(size=(4, 500)) > 0.3).astype(float) + np.round(rng.normal(size=(4, 500)), 1)
     return sets
 
@@ -78,7 +80,7 @@ def reference(x):
                 ess_mean=float(array_stats.ess(x, method="mean")), mcse_mean=float(array_stats.mcse(x, method="mean")))
 
 
-@pytest.mark.parametrize("name", ["iid", "ar1_0.95", "shifted", "scaled", "short", "ties"])
+@pytest.mark.parametrize("name", ["iid", "ar1_0.95", "shifted", "scaled", "short", "five", "ties"])
 def test_equals_arviz(result, name):
     sets, out = result
     i = list(sets).index(name)
