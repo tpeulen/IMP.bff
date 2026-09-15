@@ -47,6 +47,7 @@
 #include <IMP/bff/IMPCompatibility.h>
 #include <IMP/bff/BayesianMeasuredResponse.h>
 #include <IMP/bff/BayesianTransferTensors.h>
+#include <IMP/bff/BayesianPSpline.h>
 #include <IMP/bff/BayesianTransforms.h>
 #include <IMP/bff/BayesianFisherScoring.h>
 #include <IMP/bff/PhotophysicsPolarisation.h>
@@ -228,7 +229,9 @@ inline void bayesian_decay_build_transfer_tensors(const nlohmann::json& t, Bayes
  * little-endian, one file each) and carries the tables: `axis`, `soft`,
  * `ref_spec_sd`, `keys`, `data_keys`, `scopes`, `parts`, `responses`, `variables`,
  * `fixed_values`, `pspline`, `spec_smooth`, `dim`, and optionally `transfer`, from
- * which the transfer tensors are built (`bayesian_decay_build_transfer_tensors`). ucfret's
+ * which the transfer tensors are built (`bayesian_decay_build_transfer_tensors`); a
+ * `pspline.basis_degree` builds the spline matrix `spl` on the `rel` grid
+ * (`bayesian_pspline_basis`). ucfret's
  * `s89_cpp/emit_cbm56_fixture.py` writes this format. Returns the parsed manifest
  * too, for a caller that stores more in it.
  */
@@ -300,6 +303,15 @@ inline nlohmann::json bayesian_decay_experiment_load(const std::string& dir, Bay
     ex.arrays.emplace(it.key(), std::move(arr));
   }
   if (m.count("transfer")) bayesian_decay_build_transfer_tensors(m["transfer"], ex);
+  //: the B-spline basis of p(R/R0) built here when the manifest gives its degree instead of the matrix
+  if (ps.count("basis_degree")) {
+    if (ex.arrays.count("spl")) throw std::runtime_error("pspline.basis_degree and array spl both given");
+    BayesianDecayArray spl;
+    const std::size_t n_points = ex["rel"].size();
+    spl.shape = {n_points, ex.pspline.n};
+    spl.d = bayesian_pspline_basis(n_points, ex.pspline.n, ps["basis_degree"].get<int>());
+    ex.arrays.emplace("spl", std::move(spl));
+  }
   ex.kernel_ptr = std::make_shared<BayesianPeriodicKernel>(ex.axis(), ex["tau_c"].d);
   return m;
 }
