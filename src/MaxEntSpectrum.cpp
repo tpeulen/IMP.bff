@@ -148,7 +148,7 @@ void MaxEntSpectrum::evaluate() {
   for (double& v : design) v *= scale;
 
   // The weighted normal equations over the active channels, scaled as
-  // tttrlib's MEM TCSPC analysis scales them (chi-square per point).
+  // the classic MEM TCSPC analysis scaled them (chi-square per point).
   std::vector<double> weighted, target;
   weighted.reserve(n * columns);
   for (std::size_t i = 0; i < n; ++i) {
@@ -185,7 +185,7 @@ void MaxEntSpectrum::evaluate() {
   const int k = static_cast<int>(columns);
   std::vector<double> H, g0;
   double constant = 0.0;
-  tttrlib::build_normal_equations(weighted, target, {}, m, k, H, g0, constant);
+  internal::build_normal_equations(weighted, target, {}, m, k, H, g0, constant);
   for (double& v : H) v /= m;
   for (double& v : g0) v /= m;
   constant /= m;
@@ -208,14 +208,14 @@ void MaxEntSpectrum::evaluate() {
   }
 
   double nu = std::pow(10.0, scalar_in("log10_nu"));
-  tttrlib::MaxEntResult result;
+  internal::MaxEntResult result;
   if (target_chisq_ > 0.0) {
-    const tttrlib::MemTargetChisqResult searched = tttrlib::run_mem_target_chisq(
+    const internal::MemTargetChisqResult searched = internal::run_mem_target_chisq(
         H, g0, prior, constant, target_chisq_, nu, std::max(max_iter_, 1000), 1e-2, tol_, kMinProb);
     result = searched.result;
     nu = searched.nu;
   } else {
-    result = tttrlib::run_mem(H, g0, prior, constant, nu, max_iter_, tol_, kMinProb);
+    result = internal::run_mem(H, g0, prior, constant, nu, max_iter_, tol_, kMinProb);
   }
   if (!result.success || result.p.size() != columns) {
     throw std::domain_error(where + ": the maximum-entropy solve failed");

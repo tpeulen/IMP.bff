@@ -30,3 +30,5 @@
 %include "IMP/bff/SpectrumGrid.h"
 %shared_ptr(IMP::bff::MaxEntSpectrum);
 %include "IMP/bff/MaxEntSpectrum.h"
+/* Maximum entropy on a linear problem: the engine under MaxEntSpectrum, for any design. */
+%include "IMP/bff/MaxEnt.h"

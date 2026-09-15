@@ -23,7 +23,8 @@ IMPBFF_BEGIN_NAMESPACE
     computed here: the columns are a TCSPCDecay's basis (its convolution, its
     response preparation), a distance grid's transfer rates are
     FRETSpectrumNode's, and the entropy-regularised quadratic programme is
-    tttrlib's Skilling-Bryan engine (vendored as internal/MaxEntQp.h). What this
+    the Skilling-Bryan engine (internal/MaxEntQp.h, also behind
+    maxent_solve). What this
     node does is assemble the programme and turn its answer back into a
     spectrum.
 

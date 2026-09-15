@@ -189,3 +189,63 @@ def test_an_empty_fit_window_is_an_empty_distribution_not_an_error():
     problem.activate_structure(key)
     assert not np.any(_port(problem, key, "maxent", "amplitudes"))
     assert np.all(np.isfinite(_curve(problem, key)))
+
+
+def test_an_unregularised_periodic_fret_fit_reaches_the_chi_square_floor():
+    """At nu = 1e-6 a periodic FRET decay stalled at a reduced chi-square of
+    2.73 against a reachable 1.163 (and a distance off by 0.3 A): the bounded
+    QP inside the MEM loop never released an amplitude it had clamped, and
+    near the positivity floor the entropy curvature kept it there. The decay is
+    simulated independently of the engine -- exponentials on a fine grid,
+    convolved by numpy, folded over the laser period."""
+    n, dt, sub, period = 256, 0.05, 20, 12.8
+    tau0, r0, r_true, x_donly = 4.0, 50.0, 45.0, 0.1
+    tau_da = 1.0 / (1.0 / tau0 + (1.0 / tau0) * (r0 / r_true) ** 6)
+    fine = np.arange(n * sub) * (dt / sub)
+    irf_fine = np.exp(-0.5 * ((fine - 1.0) / 0.12) ** 2)
+    irf_fine /= irf_fine.sum()
+    long = np.arange(30 * n * sub) * (dt / sub)
+    full = np.convolve((1 - x_donly) * np.exp(-long / tau_da) + x_donly * np.exp(-long / tau0), irf_fine)
+    folded = np.zeros(n * sub)
+    np.add.at(folded, np.arange(full.size) % (n * sub), full)
+    model = folded.reshape(n, sub).sum(1)
+    y = np.random.default_rng(2).poisson(model / model.sum() * 2e6).astype(float)
+    irf = irf_fine.reshape(n, sub).sum(1) * 1e5
+
+    def fit(log10_nu):
+        data = bff.FitDataset()
+        data.set_values_array(np.ascontiguousarray(y))
+        data.set_noise_family(bff.FIT_NOISE_FAMILY_POISSON)
+        mask = np.zeros(n)
+        mask[25:] = 1.0
+        data.set_mask_array(np.ascontiguousarray(mask))
+        response = bff.FitDataset()
+        response.set_values_array(np.ascontiguousarray(irf))
+        spec = bff.ModelSearchSpec.from_name("tcspc_maxent_fret")
+        spec.set_dataset("decay", data)
+        spec.set_dataset("response", response)
+        spec.set_scalar("dt", dt)
+        spec.set_scalar("period", period)
+        spec.set_scalar("max_iterations", 500)
+        spec.set_port("maxent_prior", bff.GraphPort([0.0]))
+        problem = spec.build()
+        key = problem.get_structure_keys()[0]
+        problem.activate_structure(key)
+        for name, value in (("maxent.log10_nu", log10_nu), ("maxent.grid_from", 30.0), ("maxent.grid_to", 70.0),
+                            ("maxent.grid_bins", 81.0), ("fret.tau0", tau0), ("fret.forster_radius", r0),
+                            ("fret.kappa2", 2.0 / 3.0), ("fret.x_donly", x_donly), ("donor.tau.0", tau0),
+                            ("donor.amplitude.0", 1.0), ("instrument.background", 0.0),
+                            ("instrument.response_background", 0.0), ("instrument.scatter", 0.0),
+                            ("instrument.timeshift", 0.0)):
+            port = problem.get_parameter(name)
+            held = port.fixed
+            port.fixed = False
+            port.value = value
+            port.fixed = held
+        distribution = _port(problem, key, "maxent", "distribution")
+        p, r = distribution[0::2], distribution[1::2]
+        return float(_port(problem, key, "maxent", "chisq")[0]), float((p * r).sum() / p.sum())
+
+    chisq, mean = fit(-6.0)
+    assert chisq < 1.17
+    assert abs(mean - r_true) < 0.1
