@@ -25,6 +25,7 @@
 #include <IMP/bff/IMPCompatibility.h>
 #include <IMP/bff/BayesianFisherScoring.h>
 #include <IMP/bff/internal/ResponseFunction.h>
+#include <IMP/bff/internal/PeriodicDecayKernel.h>
 #include <algorithm>
 #include <cmath>
 #include <complex>
@@ -89,14 +90,10 @@ class BayesianPeriodicKernel {
   const BayesianDecayAxis& axis() const { return axis_; }
   const std::vector<double>& tau() const { return tau_; }
   const std::vector<std::complex<double>>& fft(std::size_t column) const { return fft_[column]; }
-  //! The kernel of grid lifetime `column` over one period, into `out` (n_period values).
+  //! The kernel of grid lifetime `column` over one period, into `out` (n_period values):
+  //! tttrlib's `periodic_decay_kernel` (vendored as internal/PeriodicDecayKernel.h), order 0.
   void kernel(std::size_t column, double* out) const {
-    const std::size_t np = axis_.n_period;
-    const double dt = axis_.dt, t = tau_[column];
-    const double one_q = -std::expm1(-dt / t), s = t / dt;
-    const double wrap = 1.0 / (-std::expm1(-double(np) * dt / t));
-    for (std::size_t k = 1; k < np; ++k) out[k] = s * one_q * one_q * std::exp(-(double(k) - 1.0) * dt / t) * wrap;
-    out[0] = (1.0 - s * one_q) + s * one_q * one_q * std::exp(-(double(np) - 1.0) * dt / t) * wrap;
+    periodic_decay_kernel(out, int(axis_.n_period), axis_.dt, tau_[column], 0);
   }
 
  private:
