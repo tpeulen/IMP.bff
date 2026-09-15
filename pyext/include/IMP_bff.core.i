@@ -185,6 +185,11 @@ std::string bff_python_error_text() {
     });
   }
 }
+/* The registry: what bff can do, by name, as data (PRD-147 A2). The C++ side is tttrlib's
+   RegistryCore.h mechanism; the Python accessors are tttrlib's registry_access.py, vendored and
+   embedded unchanged, so IMP.bff.registry()/describe()/resolve() are tttrlib's functions. */
+%include "IMP/bff/Registry.h"
+%pythoncode "registry_access.py"
 %include "IMP/bff/GraphNodeRegistry.h"
 %pythoncode %{
 def register_node_type(type_name, factory=None):
