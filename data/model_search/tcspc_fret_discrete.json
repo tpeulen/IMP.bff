@@ -169,7 +169,9 @@
   },
   "reference_modes": [
    "tcspc_total_photons",
-   "tcspc_peak_photons"
+   "tcspc_peak_photons",
+   "tcspc_anisotropy_rt",
+   "tcspc_donor_reference"
   ],
   "axis": {
    "x": "time (ns)",
@@ -184,6 +186,12 @@
     1,
     2
    ]
+  },
+  "meta_parameters": {
+   "_comment": "Calibration a reader records on the data starts these parameters.",
+   "g_factor": "anisotropy.g",
+   "l1": "anisotropy.l1",
+   "l2": "anisotropy.l2"
   }
  },
  "datasets": [

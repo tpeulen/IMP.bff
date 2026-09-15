@@ -157,7 +157,31 @@ void MaxEntSpectrum::evaluate() {
     target.push_back((data_[i] - additive[i]) / sigma_[i]);
   }
   const int m = static_cast<int>(target.size());
-  if (m == 0) throw std::domain_error(where + ": no active channel");
+  if (m == 0) {
+    // Nothing to invert against (a fit window not set yet): no distribution,
+    // and the decay is the instrument alone -- a state, not an error.
+    amplitudes_.assign(columns, 0.0);
+    std::vector<double> out(spectrum);
+    for (std::size_t s = 0; s < species; ++s) out[2 * s] = 0.0;
+    const std::shared_ptr<GraphPort> spectrum_out = get_output_port(get_name());
+    if (!spectrum_out) throw std::domain_error(where + " writes to the output keyed by its own name");
+    spectrum_out->set_sanitize(false);
+    spectrum_out->set_value_vector(out);
+    if (const std::shared_ptr<GraphPort> port = get_output_port("amplitudes")) port->set_value_vector(amplitudes_);
+    if (const std::shared_ptr<GraphPort> port = get_output_port("distribution")) {
+      std::vector<double> pairs(2 * columns, 0.0);
+      for (std::size_t c = 0; c < columns && 2 * c + 1 < grid.size(); ++c) pairs[2 * c + 1] = grid[2 * c + 1];
+      port->set_value_vector(pairs);
+    }
+    for (const char* key : {"chisq", "chisq_pearson", "entropy", "converged"}) {
+      if (const std::shared_ptr<GraphPort> port = get_output_port(key)) port->set_value(0.0);
+    }
+    if (const std::shared_ptr<GraphPort> port = get_output_port("nu")) {
+      port->set_value(std::pow(10.0, scalar_in("log10_nu")));
+    }
+    set_valid(true);
+    return;
+  }
   const int k = static_cast<int>(columns);
   std::vector<double> H, g0;
   double constant = 0.0;
