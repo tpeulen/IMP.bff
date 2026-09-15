@@ -177,13 +177,13 @@ inline BayesianDecayPoint bayesian_decay_evaluate(const BayesianDecayExperiment&
     const BayesianDecayPrior P = bayesian_decay_log_prior(f, th, true);
     p.logprior = P.lp;
     p.logpost = bayesian_decay_log_likelihood(f, p.lam) + P.lp;
-    //: the likelihood's gradient and Fisher matrix through bayesian_poisson_score_blocks:
+    //: the likelihood's gradient and Fisher matrix through tttrlib::poisson_score_blocks:
     //: each histogram on its live columns, the histograms on the thread pool
     const BayesianDecayArray& y = f["y"], & mask = f["mask"];
     p.grad.assign(dim, 0.0);
     p.A.assign(dim * dim, 0.0);
-    bayesian_poisson_score_blocks(y.d.data(), p.lam.data(), p.J.data(), mask.d.data(), p.lam.size(), dim,
-                                  BAYESIAN_INFORMATION_EXPECTED, cols, f["y"].shape[1], p.grad.data(), p.A.data(),
+    ::tttrlib::poisson_score_blocks(y.d.data(), p.lam.data(), p.J.data(), mask.d.data(), p.lam.size(), dim,
+                                  ::tttrlib::POISSON_INFORMATION_EXPECTED, cols, f["y"].shape[1], p.grad.data(), p.A.data(),
                                   [](std::size_t n, const std::function<void(std::size_t)>& body) { internal::bayesian_parallel_for(n, body); });
     for (std::size_t a = 0; a < dim; ++a) p.grad[a] += P.g[a];
     for (std::size_t k = 0; k < dim * dim; ++k) p.A[k] -= P.H[k];
