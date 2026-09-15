@@ -17,11 +17,13 @@
 #include <IMP/bff/GaussianDistances.h>
 #include <IMP/bff/GeneralizedNormalCurve.h>
 #include <IMP/bff/LifetimeSpectrumMixture.h>
+#include <IMP/bff/MaxEntSpectrum.h>
 #include <IMP/bff/GraphExpression.h>
 #include <IMP/bff/PhotophysicsAnisotropySpectrumNode.h>
 #include <IMP/bff/PhotophysicsLifetimeSpectrumNode.h>
 #include <IMP/bff/PhotophysicsTransferKineticsNode.h>
 #include <IMP/bff/PolymerDistances.h>
+#include <IMP/bff/SpectrumGrid.h>
 #include <IMP/bff/TabulatedDistances.h>
 #include <IMP/bff/TCSPCDecay.h>
 
@@ -66,6 +68,8 @@ void install_builtin_types(FactoryMap& factories) {
   factories["AcceptorDensityDecay"] = plain<AcceptorDensityDecay>;
   factories["PolymerDistances"] = plain<PolymerDistances>;
   factories["TabulatedDistances"] = plain<TabulatedDistances>;
+  factories["SpectrumGrid"] = plain<SpectrumGrid>;
+  factories["MaxEntSpectrum"] = plain<MaxEntSpectrum>;
   factories["PhotophysicsLifetimeSpectrumNode"] =
       plain<PhotophysicsLifetimeSpectrumNode>;
   factories["PhotophysicsTransferKineticsNode"] =

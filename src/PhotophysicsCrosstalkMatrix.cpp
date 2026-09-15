@@ -6,6 +6,7 @@
  *  Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 #include <IMP/bff/PhotophysicsCrosstalkMatrix.h>
+#include <IMP/bff/internal/CrosstalkMixing.h>
 #include <IMP/bff/internal/DampedNewton.h>
 
 #include <algorithm>
@@ -289,19 +290,15 @@ void crosstalk_apply_mixing(const std::vector<double>& matrix, int n_sources,
         "n_sources");
   }
   const std::size_t n_items = sources.size() / n_sources;
-  const Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic,
-                                       Eigen::RowMajor>>
-      s(sources.data(), n_sources, static_cast<int>(n_items));
-  Eigen::MatrixXd out = m.transpose() * s;
-
-  double* buf = static_cast<double*>(
-      std::malloc(sizeof(double) * out.size()));
+  // The product itself is internal/CrosstalkMixing.h's, the one place it is
+  // written (shared with the Bayesian decay model's emission).
+  const std::size_t n_out = static_cast<std::size_t>(n_detectors) * n_items;
+  double* buf = static_cast<double*>(std::malloc(sizeof(double) * std::max<std::size_t>(n_out, 1)));
   if (buf == nullptr) throw std::bad_alloc();
-  Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic,
-                           Eigen::RowMajor>>(buf, out.rows(), out.cols()) =
-      out;
+  internal::crosstalk_mix(m.data(), static_cast<std::size_t>(n_sources),
+                          static_cast<std::size_t>(n_detectors), sources.data(), n_items, buf);
   *out_view = buf;
-  *n_out_view = static_cast<int>(out.size());
+  *n_out_view = static_cast<int>(n_out);
 }
 
 void crosstalk_apply_mixing_jacobian(const std::vector<double>& matrix,

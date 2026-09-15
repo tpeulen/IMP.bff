@@ -666,6 +666,13 @@ void TCSPCDecay::evaluate() {
   irf_valid_ = true;
   }
   const std::vector<double>& irf = irf_;
+  // The response as the convolution uses it (shifted, background taken off,
+  // unit sum), for a node that builds on this one's basis: a MaxEnt inversion
+  // subtracts the scatter it carries.
+  if (const std::shared_ptr<GraphPort> prepared = get_output_port("prepared_response")) {
+    prepared->set_sanitize(false);
+    prepared->set_value_vector(irf);
+  }
 
   if (curve_from_port_) {
     const std::vector<double>& given = curve_port_->get_values_ref();
@@ -1096,6 +1103,8 @@ void TCSPCDecay::configure(const std::string& json_text) {
   if (config.has("curve_from_port")) {
     set_curve_from_port(config.get_bool("curve_from_port"));
   }
+  // Last: the basis is only defined once the convolution mode is known.
+  if (config.has("emit_basis")) set_emit_basis(config.get_bool("emit_basis"));
   config.apply_common(*this);
   config.require_all_used();
 }
