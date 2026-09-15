@@ -76,7 +76,10 @@ def test_the_solution_is_the_bounded_minimiser_of_the_documented_objective(nu):
     free = p > 1e-9
     assert np.abs(g[free]).max() / scale < 1e-9
     if (~free).any():
-        assert g[~free].min() > 0.0, "a clamped amplitude wants to move up"
+        # Relative to the same scale as the free check: a coordinate whose true
+        # optimum is the floor has a gradient that is zero to rounding there
+        # (3.8e-17 of the scale at nu = 1 on macOS, a hair below zero on Linux).
+        assert g[~free].min() > -1e-9 * scale, "a clamped amplitude wants to move up"
     assert _bounded_min(Q, dQ, p.copy(), 1e-12).fun >= Q(p) - 1e-9 * abs(Q(p))
     assert Q(p) <= _bounded_min(Q, dQ, m.copy(), 1e-12).fun + 1e-9 * abs(Q(p))
 
