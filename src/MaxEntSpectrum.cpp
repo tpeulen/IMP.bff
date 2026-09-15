@@ -165,7 +165,23 @@ void MaxEntSpectrum::evaluate() {
   for (double& v : H) v /= m;
   for (double& v : g0) v /= m;
   constant /= m;
-  const std::vector<double> prior(columns, 1.0 / static_cast<double>(columns));
+  // The prior: uniform, or the `prior` input where one is given (one weight per
+  // column, floored at the positivity bound, normalised).
+  std::vector<double> prior(columns, 1.0 / static_cast<double>(columns));
+  if (const std::shared_ptr<GraphPort> given = get_input_port("prior")) {
+    const std::vector<double>& weights = given->get_values_ref();
+    if (weights.size() == columns) {
+      double total = 0.0;
+      for (std::size_t c = 0; c < columns; ++c) {
+        prior[c] = weights[c] > 0.0 ? weights[c] : kMinProb;
+        total += prior[c];
+      }
+      for (double& v : prior) v /= total;
+    } else if (!(weights.size() <= 1)) {
+      throw std::domain_error(where + ": the prior has " + std::to_string(weights.size()) +
+                              " weights for " + std::to_string(columns) + " grid points");
+    }
+  }
 
   double nu = std::pow(10.0, scalar_in("log10_nu"));
   tttrlib::MaxEntResult result;
@@ -200,6 +216,11 @@ void MaxEntSpectrum::evaluate() {
   spectrum_out->set_sanitize(false);
   spectrum_out->set_value_vector(out);
 
+  if (const std::shared_ptr<GraphPort> port = get_output_port("amplitudes")) {
+    std::vector<double> counts(amplitudes_);
+    for (double& v : counts) v *= scale;
+    port->set_value_vector(counts);
+  }
   if (const std::shared_ptr<GraphPort> port = get_output_port("distribution")) {
     std::vector<double> pairs(2 * columns);
     for (std::size_t c = 0; c < columns; ++c) {

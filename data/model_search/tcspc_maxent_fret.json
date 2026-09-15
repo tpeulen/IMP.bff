@@ -430,11 +430,13 @@
      "response": "basis.prepared_response",
      "scatter": "#instrument.scatter",
      "background": "#instrument.background",
-     "log10_nu": "#maxent.log10_nu"
+     "log10_nu": "#maxent.log10_nu",
+     "prior": "$maxent_prior"
     },
     "outputs": {
      "@name": "float_vector",
      "distribution": "float_vector",
+     "amplitudes": "float_vector",
      "chisq": "float",
      "chisq_pearson": "float",
      "entropy": "float",
@@ -528,6 +530,14 @@
   "fluorescence_total": {
    "node": "decay",
    "port": "fluorescence_total"
+  }
+ },
+ "ports": {
+  "maxent_prior": {
+   "label": "Prior weights over the grid (one value: uniform)",
+   "default": [
+    0.0
+   ]
   }
  }
 }

@@ -48,6 +48,9 @@ def _problem(family, y, **values):
     spec.set_scalar("period", PERIOD)
     for name, value in values.pop("scalars", {}).items():
         spec.set_scalar(name, value)
+    prior_values = np.atleast_1d(values.pop("prior", [0.0])).astype(float)
+    prior = bff.GraphPort([0.0])
+    spec.set_port("maxent_prior", prior)
     problem = spec.build()
     key = problem.get_structure_keys()[0]
     problem.activate_structure(key)
@@ -57,6 +60,9 @@ def _problem(family, y, **values):
         port.fixed = False
         port.value = value
         port.fixed = held
+    # The prior after the grid it weighs: a port the caller holds and rewrites.
+    prior.set_value_vector(list(prior_values))
+    problem.__dict__["_prior_port"] = prior
     return problem, key
 
 
@@ -147,3 +153,18 @@ def test_a_grouping_is_named():
     node = bff.MaxEntSpectrum("maxent")
     with pytest.raises(ValueError):
         node.set_grouping("distance")
+
+
+def test_a_prior_pulls_the_distribution_towards_it():
+    """The entropy is measured against the prior: a rising prior moves weight to long lifetimes."""
+    y = _decay_from([0.5, 1.0, 0.5, 4.0], 2e5, 5.0, seed=6)
+    shares = []
+    for prior in ([0.0], np.linspace(1.0, 10.0, 20)):
+        problem, key = _problem("tcspc_maxent_lifetime", y, prior=prior, instrument__background=5.0,
+                                maxent__log10_nu=1.0, maxent__grid_bins=20)
+        distribution = _port(problem, key, "maxent", "distribution")
+        p, tau = distribution[0::2], distribution[1::2]
+        shares.append(p[tau > 3.0].sum() / p.sum())
+        counts = _port(problem, key, "maxent", "amplitudes")
+        np.testing.assert_allclose(counts / counts.sum(), p / p.sum(), rtol=1e-12)
+    assert shares[1] > shares[0] + 0.02

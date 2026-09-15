@@ -36,7 +36,9 @@ IMPBFF_BEGIN_NAMESPACE
     Inputs: `basis` (a TCSPCDecay's, bins x species row-major), `spectrum`
     (the spectrum that basis was built over), `grid` (the grid, `(1, x)`
     pairs, for the distribution's axis), `response` (TCSPCDecay's
-    `prepared_response`), scalars `scatter`, `background`, `log10_nu`. Bound:
+    `prepared_response`), scalars `scatter`, `background`, `log10_nu`, and
+    optionally `prior` (one weight per grid point; uniform when absent or a
+    single value). Bound:
     `data` (its mask is the fit window, its variance at the data the weights).
 
     Settings (#configure): `grouping` -- "lifetime" (one amplitude per
@@ -49,7 +51,8 @@ IMPBFF_BEGIN_NAMESPACE
 
     Outputs: keyed by the node's name, the spectrum the amplitudes make (for a
     TCSPCDecay with n0 = 1 and the same scatter and background); where
-    present, `distribution` (`(p, x)` pairs over the grid), `chisq` (the
+    present, `distribution` (`(p, x)` pairs over the grid, p fractions),
+    `amplitudes` (the same in counts per unit basis column), `chisq` (the
     reduced chi-square the programme minimised), `chisq_pearson` (the same
     solution weighted by the model instead of the data: never optimised
     against, so it can disagree), `entropy`, `nu` (the one used) and
