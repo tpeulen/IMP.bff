@@ -272,8 +272,10 @@ def test_a_polarized_family_is_the_lifetime_family_times_rotations():
     for polarization in (0.0, 1.0, 2.0):
         spec.set_scalar("polarization", polarization)
         model = spec.get_model()
-        model.select_structure(key)
-        magic.append(np.array(model.get_structure_output(key, node)))
+        # Magic angle carries no anisotropy, so it has no rotation to fit.
+        here = "lifetime.components.2.rotations.0" if polarization == 0.0 else key
+        model.select_structure(here)
+        magic.append(np.array(model.get_structure_output(here, model.get_structure_curve_node(here, "decay"))))
     vm, vv, vh = magic
     # Parallel and perpendicular differ, and neither is the magic-angle decay.
     assert not np.allclose(vv, vh) and not np.allclose(vv, vm)
