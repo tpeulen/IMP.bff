@@ -114,6 +114,7 @@ IMPBFF_BEGIN_NAMESPACE
 class GraphPort;
 class GraphNode;
 class InferenceFactorGraph;
+class SamplerKernel;
 
 //! Raised for a misconfigured sampler (no objective, fixed ports, a
 //! degenerate ensemble, an unknown algorithm...).
@@ -201,6 +202,15 @@ class IMPBFFEXPORT MCMCSampler {
   */
   void set_objective_function(
       std::function<double(const std::vector<double>&)> objective);
+#ifndef SWIG
+  //! A plain log-posterior with its gradient, for samplers that need one (`nuts`).
+  /*!
+      f(x, grad) returns the log-posterior and writes its gradient. Replaces the node objective and
+      the value-only function when set; a sampler that needs a gradient refuses a sampler without it.
+  */
+  void set_objective_function_with_gradient(
+      std::function<double(const std::vector<double>&, std::vector<double>&)> objective);
+#endif
   //! Whether an objective (node or function) has been set.
   bool has_objective() const;
 
@@ -424,23 +434,8 @@ class IMPBFFEXPORT MCMCSampler {
     double get(const std::string& name, double fallback) const;
   };
 
-  //! Everything the blocked sampler keeps per block.
-  struct BlockState {
-    std::vector<int> indices;             // positions in the parameter vector
-    std::vector<double> factor;           // flat lower-triangular Cholesky
-    double log_scale = 0.0;
-    DualAveragingStepSize adapter;          // SamplerWarmup.h, per-block log scale
-    long accepted = 0;                     // recorded-phase counters
-    long proposed = 0;
-    //! Seeded from the caller's curvature: warm-up adapts the scale only,
-    //! never replaces the shape (chisurf's from_curvature flag).
-    bool from_curvature = false;
-  };
-
   //! The explicit partition set through set_blocks (empty when derived).
   std::vector<std::vector<int> > explicit_blocks_;
-  //! The DE jitter widths, seeded from the starting values.
-  std::vector<double> de_noise_;
 
   // ------------------------------------------------------------- internals
   //! Validate the configuration; throw MCMCSamplerConfigurationError.
@@ -451,9 +446,6 @@ class IMPBFFEXPORT MCMCSampler {
   void initialize_ensemble();
   //! chisurf's _ensemble_walker_start: a spread, bounded walker cloud.
   std::vector<std::vector<double> > spread_walkers(int n) const;
-  //! chisurf's walkers_independent: refuse a degenerate ensemble.
-  bool walkers_independent(
-      const std::vector<std::vector<double> >& coords) const;
   //! Evaluate the log-posterior parts of one parameter vector.
   Parts evaluate(const std::vector<double>& x);
   //! The log-prior alone: box, then the parsed priors (chisurf lnprior).
@@ -463,25 +455,12 @@ class IMPBFFEXPORT MCMCSampler {
   //! Parse {"kind": ..., name: number, ...} off a port's prior string.
   static PriorSpec parse_prior(const std::string& json);
 
-  //! One ensemble step of the stretch move (EnsembleSampler._step).
-  void stretch_step();
-  //! One ensemble slice sweep: both halves, every walker, always accepted.
-  void slice_step();
-  //! Slice-sample one walker along \p direction from \p x; returns the new point.
-  std::vector<double> slice_along(const std::vector<double>& x,
-                                  const std::vector<double>& direction,
-                                  double log_p_x, int* expansions,
-                                  int* contractions, bool* truncated);
-  //! One DE generation (sample_differential_evolution._generation).
-  void de_generation(long generation_index);
-  //! One blocked sweep (walk_mcmc_blocked._sweep).
-  void blocked_sweep(bool adapt);
-  //! Rebuild the block partition (factor graph, explicit, or single).
-  void rebuild_blocks();
+  //! The block partition: explicit, from the factor graph, or one block over everything.
+  std::vector<std::vector<int> > block_partition() const;
   //! Record the current ensemble into the chain.
   void record_state();
-  //! Seed the block covariances and adapters (the warm-up's start).
-  void seed_blocks();
+  //! Read the registry entry of the current algorithm into the cached fields below.
+  void read_sampler_entry();
 
   // ------------------------------------------------------------- the model
   std::vector<std::shared_ptr<GraphPort> > parameters_;
@@ -489,6 +468,7 @@ class IMPBFFEXPORT MCMCSampler {
   std::shared_ptr<GraphPort> output_port_;
   bool output_is_log_likelihood_ = false;
   std::function<double(const std::vector<double>&)> objective_function_;
+  std::function<double(const std::vector<double>&, std::vector<double>&)> objective_gradient_function_;
   InferenceFactorGraph* factor_graph_ = nullptr;  //!< borrowed
 
   unsigned int ndim_ = 0;
@@ -505,10 +485,6 @@ class IMPBFFEXPORT MCMCSampler {
   double stretch_scale_ = 2.0;
   //! The slice sampler's direction scale, tuned during warm-up.
   double slice_mu_ = 1.0;
-  //! How many stepping-out expansions the cap cut short. Should stay 0.
-  long slice_truncations_ = 0;
-  long slice_expansions_ = 0;
-  long slice_contractions_ = 0;
   //! Cap on stepping-out expansions per side. Generous on purpose.
   int slice_max_steps_ = 10000;
   bool slice_tuning_ = true;
@@ -527,13 +503,19 @@ class IMPBFFEXPORT MCMCSampler {
 
   // ------------------------------------------------------- the run state
   mutable std::mt19937_64 rng_;
-  std::vector<std::vector<double> > walkers_;   //!< rows: walkers/chains
-  std::vector<Parts> walker_parts_;            //!< their log-posteriors
+  //! The kernel doing the moves (SamplerKernels.h / NutsKernel.h), built from the registry.
+  std::shared_ptr<SamplerKernel> kernel_;
+  //! From the algorithm's registry entry (category `sampler`): how its population is counted
+  //! ("walkers", "chains" or "single"), how acceptance is reported ("walker_fractions" or
+  //! "proposals"), whether the ports are restored after a run, its default warm-up rule, and the
+  //! option names its params_schema declares.
+  std::string population_ = "walkers", acceptance_mode_ = "walker_fractions";
+  bool restores_parameters_ = false;
+  std::string warmup_rule_ = "fixed";
+  int warmup_value_ = 0, warmup_divisor_ = 1, warmup_min_ = 0, warmup_max_ = 0;
+  std::vector<std::string> option_names_;
   std::vector<long> accepted_;                  //!< per walker, recorded
-  std::vector<long> substep_accepted_;          //!< per walker, this substep
   std::vector<double> acceptance_fractions_;    //!< cached at record time
-  std::vector<BlockState> blocks_;
-  long de_accepted_ = 0, de_proposed_ = 0;      //!< recorded-phase DE
   std::vector<std::vector<double> > chain_;     //!< flat, per record
   std::vector<double> log_prob_, ln_prior_, chi2_;
   unsigned int iteration_ = 0;

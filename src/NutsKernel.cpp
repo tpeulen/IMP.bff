@@ -41,7 +41,10 @@ const char* const kNutsEntry = R"JSON({
   "uses_covariance_seed": true,
   "uses_blocks": false,
   "aliases": [],
+  "population": "single",
+  "default_walkers": {"rule": "fixed", "value": 1},
   "default_warmup": {"rule": "fixed", "value": 1000},
+  "acceptance_rate": "proposals",
   "statistics": {
     "accept_stat": "mean Metropolis acceptance over the trajectory (what warm-up targets)",
     "step_size": "leapfrog step used by the transition",

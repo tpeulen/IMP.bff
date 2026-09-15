@@ -58,6 +58,9 @@ struct SamplingTarget {
   std::function<double(const std::vector<double>& x)> log_density;
   //! log density and its gradient into grad (resized by the callee or pre-sized to dim); optional
   std::function<double(const std::vector<double>& x, std::vector<double>& grad)> log_density_gradient;
+  //! optional: the log density and auxiliary values ("blobs", as emcee's) a kernel keeps per walker --
+  //! MCMCSampler's log prior and chi^2, say; used instead of log_density when set
+  std::function<double(const std::vector<double>& x, std::vector<double>& blobs)> log_density_blobs;
   //! optional box; empty = unbounded; a point outside has log density -inf (never clipped)
   std::vector<double> lower, upper;
   std::vector<std::string> names;
@@ -138,6 +141,14 @@ class SamplerKernel {
   virtual std::vector<std::string> stat_names() const = 0;
   //! the last transition's statistics, walker x stat, row-major
   virtual void stats(std::vector<double>& out) const = 0;
+  //! the blobs of each walker's current state (empty when the target has none)
+  virtual const std::vector<std::vector<double>>& blobs() const {
+    static const std::vector<std::vector<double>> none;
+    return none;
+  }
+  //! Metropolis-type counts since the end of warm-up (a slice move counts as proposed and accepted)
+  virtual long accepted() const { return 0; }
+  virtual long proposed() const { return 0; }
   //! log-density evaluations so far
   virtual long evaluations() const = 0;
   //! a fresh kernel with the same settings and no state
