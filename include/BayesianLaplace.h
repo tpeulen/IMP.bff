@@ -10,6 +10,7 @@
 #define IMPBFF_BAYESIANLAPLACE_H
 
 #include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/Optimization.h>
 #include <cmath>
 #include <cstddef>
 #include <limits>
@@ -30,23 +31,7 @@ IMPBFF_BEGIN_NAMESPACE
  * logarithm is large.
  */
 inline bool bayesian_log_det_spd(const double* A, std::size_t n, double* out) {
-  std::vector<double> L(n * n, 0.0);
-  double s_log = 0.0;
-  for (std::size_t i = 0; i < n; ++i) {
-    for (std::size_t j = 0; j <= i; ++j) {
-      double s = A[i * n + j];
-      for (std::size_t k = 0; k < j; ++k) s -= L[i * n + k] * L[j * n + k];
-      if (i == j) {
-        if (!(s > 0.0) || !std::isfinite(s)) return false;
-        L[i * n + j] = std::sqrt(s);
-        s_log += std::log(L[i * n + j]);
-      } else {
-        L[i * n + j] = s / L[j * n + j];
-      }
-    }
-  }
-  *out = 2.0 * s_log;
-  return true;
+  return log_det_spd(A, n, out);   // tttrlib's, through Optimization.h: the one Cholesky
 }
 
 /**
