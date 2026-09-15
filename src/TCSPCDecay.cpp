@@ -718,8 +718,20 @@ void TCSPCDecay::evaluate() {
   internal::TCSPCInstrumentSettings settings;
   internal::TCSPCInstrumentParameters<double> parameters;
   parameters.scale = 1.0;  // the scale is applied below, where autoscaling decides it
-  parameters.scatter = scatter_port_->get_value();
-  parameters.background = background_port_->get_value();
+  // In counts (ChiSurf's units) the scatter is converted to the stage's
+  // fraction at this evaluation's total, so a held count stays that count as
+  // the decay changes; the background is added in counts after the scale.
+  const bool counts = instrument_units_counts_;
+  const double background_counts = counts ? background_port_->get_value() : 0.0;
+  const double scatter_counts = counts ? scatter_port_->get_value() : 0.0;
+  const double unit_total = internal::tcspc_instrument_total(curve_.data(), n);
+  if (counts) {
+    parameters.scatter =
+        internal::tcspc_instrument_fractions_from_absolute(1.0, scatter_counts, 0.0, unit_total, n).scatter;
+  } else {
+    parameters.scatter = scatter_port_->get_value();
+    parameters.background = background_port_->get_value();
+  }
   settings.response = irf.data();
   flat_.assign(n, n > 0 ? 1.0 / static_cast<double>(n) : 0.0);
   settings.flat = flat_.data();
@@ -759,7 +771,16 @@ void TCSPCDecay::evaluate() {
     } else {
       const double n_background = recorded / t_background_ * t_decay_;
       const double n_fluorescence = std::max(measured - n_background, 1.0);
-      parameters.pattern = n_background / n_fluorescence;
+      if (counts) {
+        // ChiSurf rescaled the model (scatter included) to the n_fl counts the
+        // pattern leaves and added the pattern as n_bg counts, both before n0.
+        const double model_total = unit_total + scatter_counts;
+        parameters.scale = model_total != 0.0 ? n_fluorescence / model_total : 0.0;
+        const double scaled_total = parameters.scale * unit_total;
+        parameters.pattern = scaled_total != 0.0 ? n_background / scaled_total : 0.0;
+      } else {
+        parameters.pattern = n_background / n_fluorescence;
+      }
     }
   }
 
@@ -802,8 +823,9 @@ void TCSPCDecay::evaluate() {
     end = std::min(end, static_cast<int>(data_y_.size()));
     if (end < begin) end = begin;
     // Every part of the stage is proportional to the scale, background
-    // included, so the scale is the least-squares factor of the unit curve.
-    n0_ = rescale_factor(curve_, data_y_, data_ey_, 0.0, begin, end);
+    // included, so the scale is the least-squares factor of the unit curve;
+    // a background in counts is not, and is taken off the data first.
+    n0_ = rescale_factor(curve_, data_y_, data_ey_, background_counts, begin, end);
     // Published, because a fit that autoscales still has to report the
     // amplitude it settled on. A port that follows another publishes to what
     // it follows; the owner is normally held, and a fixed port ignores
@@ -817,7 +839,7 @@ void TCSPCDecay::evaluate() {
   } else {
     n0_ = n0_port_->get_value();
   }
-  for (double& v : curve_) v *= n0_;
+  for (double& v : curve_) v = v * n0_ + background_counts;
 
   // DNL: the measured channel-width table multiplies the finished curve.
   if (!lin_table_.empty()) {
@@ -918,6 +940,9 @@ void TCSPCDecay::configure(const std::string& json_text) {
     set_absolute_amplitudes(config.get_bool("absolute_amplitudes"));
   }
   if (config.has("autoscale")) set_autoscale(config.get_bool("autoscale"));
+  if (config.has("instrument_units")) {
+    set_instrument_units(config.get_string("instrument_units"));
+  }
   if (config.has("pile_up")) set_pile_up(config.get_bool("pile_up"));
   if (config.has("pile_up_parameters")) {
     const std::vector<double> p = config.get_doubles("pile_up_parameters");
@@ -1031,6 +1056,15 @@ void TCSPCDecay::bind_dataset(const std::string& role,
   }
   throw std::domain_error("node type 'TCSPCDecay' has no role '" + role +
                           "'; it takes 'response', 'data', 'linearization', 'linearization_curve' or 'background_pattern'");
+}
+
+void TCSPCDecay::set_instrument_units(const std::string& units) {
+  if (units != "counts" && units != "fractions") {
+    throw std::domain_error("TCSPCDecay '" + get_name() + "': instrument units are 'counts' or 'fractions', not '" +
+                            units + "'");
+  }
+  instrument_units_counts_ = units == "counts";
+  set_valid(false);
 }
 
 std::vector<double> tcspc_fractions_from_absolute(double n0, double scatter_absolute,

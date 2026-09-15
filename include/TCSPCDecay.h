@@ -65,8 +65,8 @@ IMPBFF_BEGIN_NAMESPACE
  * | port | what it is |
  * |---|---|
  * | `a0`, `t0`, `a1`, `t1`, ... | amplitude and lifetime of each component |
- * | `scatter` | scattered light as a fraction of the fluorescence total `sum(F)`, on the response's shape |
- * | `background` | uncorrelated background as a fraction of `sum(F)`, flat, added after pile-up |
+ * | `scatter` | scattered light as a fraction of the fluorescence total `sum(F)`, on the response's shape; in counts (#set_instrument_units) ChiSurf's multiple of the unit-sum response |
+ * | `background` | uncorrelated background as a fraction of `sum(F)`, flat, added after pile-up; in counts, counts per channel |
  * | `n0` | counts per unit of the convolved decay `F`; **written** by the node when autoscaling |
  * | `pattern` (optional) | the background pattern's fraction of `sum(F)`; derived from the data when absent |
  *
@@ -135,6 +135,18 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
 
   //! Whether `n0` is computed from the data rather than read from its port.
   void set_autoscale(bool v) { autoscale_ = v; }
+
+  //! What the `scatter` and `background` ports mean: "fractions" or "counts".
+  /*! "fractions" (default) is the stage's own parameterisation: fractions of
+      the fluorescence total. "counts" is ChiSurf's: `scatter` multiplies the
+      unit-sum response before the scale, `background` is counts per channel
+      added after it (and taken off the data before autoscaling). A count is
+      converted to the stage's fraction at every evaluation, so it keeps its
+      meaning while the decay changes. With a data-derived background pattern,
+      counts also keep ChiSurf's rescaling of the model to the fluorescence
+      counts the pattern leaves, so `n0` means what it meant there. */
+  void set_instrument_units(const std::string& units);
+  std::string get_instrument_units() const { return instrument_units_counts_ ? "counts" : "fractions"; }
   bool get_autoscale() const { return autoscale_; }
 
   //! Coates pile-up on the model curve, chisurf's order: after the scatter
@@ -534,6 +546,7 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
   void rebuild_linearization();
   bool response_from_port_ = false;
   bool convolve_ = true;
+  bool instrument_units_counts_ = false;
   std::vector<double> background_pattern_;
   double t_background_ = 1.0;
   double t_decay_ = 1.0;

@@ -96,13 +96,13 @@
    "upper": "100*vv_sum"
   },
   "instrument.vv.background": {
-   "name": "bg_vv fraction",
-   "initial": "vv_min*vv_size/max(vv_sum-vv_min*vv_size,1)",
+   "name": "bg_vv",
+   "initial": "vv_min",
    "lower": 0.0,
-   "upper": 100.0
+   "upper": "vv_max"
   },
   "instrument.vv.scatter": {
-   "name": "sc_vv fraction",
+   "name": "sc_vv",
    "initial": 0.0,
    "free": false,
    "lower": 0.0,
@@ -115,13 +115,13 @@
    "upper": "100*vh_sum"
   },
   "instrument.vh.background": {
-   "name": "bg_vh fraction",
-   "initial": "vh_min*vh_size/max(vh_sum-vh_min*vh_size,1)",
+   "name": "bg_vh",
+   "initial": "vh_min",
    "lower": 0.0,
-   "upper": 100.0
+   "upper": "vh_max"
   },
   "instrument.vh.scatter": {
-   "name": "sc_vh fraction",
+   "name": "sc_vh",
    "initial": 0.0,
    "free": false,
    "lower": 0.0,
@@ -134,13 +134,13 @@
    "upper": "100*vm_sum"
   },
   "instrument.vm.background": {
-   "name": "bg_vm fraction",
-   "initial": "vm_min*vm_size/max(vm_sum-vm_min*vm_size,1)",
+   "name": "bg_vm",
+   "initial": "vm_min",
    "lower": 0.0,
-   "upper": 100.0
+   "upper": "vm_max"
   },
   "instrument.vm.scatter": {
-   "name": "sc_vm fraction",
+   "name": "sc_vm",
    "initial": 0.0,
    "free": false,
    "lower": 0.0,
@@ -234,6 +234,7 @@
    "vv_decay": {
     "type": "TCSPCDecay",
     "config": {
+     "instrument_units": "counts",
      "number_of_lifetimes": "{n}",
      "spectrum_from_port": true,
      "memoize": true
@@ -283,6 +284,7 @@
    "vh_decay": {
     "type": "TCSPCDecay",
     "config": {
+     "instrument_units": "counts",
      "number_of_lifetimes": "{n}",
      "spectrum_from_port": true,
      "memoize": true
@@ -332,6 +334,7 @@
    "vm_decay": {
     "type": "TCSPCDecay",
     "config": {
+     "instrument_units": "counts",
      "number_of_lifetimes": "{n}",
      "spectrum_from_port": true,
      "memoize": true

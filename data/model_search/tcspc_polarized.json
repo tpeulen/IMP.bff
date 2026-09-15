@@ -248,7 +248,7 @@
    "group": "anisotropy"
   },
   "instrument.scatter": {
-   "name": "scatter fraction",
+   "name": "scatter",
    "initial": 0.0,
    "free": false,
    "lower": 0.0,
@@ -256,10 +256,10 @@
    "group": "instrument"
   },
   "instrument.background": {
-   "name": "background fraction",
-   "initial": "decay_min*decay_size/max(decay_sum-decay_min*decay_size,1)",
+   "name": "background",
+   "initial": "decay_min",
    "lower": 0.0,
-   "upper": 100.0,
+   "upper": "decay_max",
    "group": "instrument"
   },
   "instrument.n0": {
@@ -394,6 +394,7 @@
    "decay": {
     "type": "TCSPCDecay",
     "config": {
+     "instrument_units": "counts",
      "number_of_lifetimes": "{n}",
      "spectrum_from_port": true
     },

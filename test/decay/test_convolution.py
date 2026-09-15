@@ -141,9 +141,8 @@ def test_decay_equations_meet_the_response_and_the_instrument_through_the_frame(
     model.select_structure("two")
     convolved = np.convolve(2000.0 * np.exp(-x / 2.0) + 3000.0 * np.exp(-x / 0.4),
                             response / response.sum(), "full")[:N]
-    # 3 counts per channel, as a fraction of the fluorescence total (n0 = 1).
-    truth = {"a1": 2000.0, "tau1": 2.0, "a2": 3000.0, "tau2": 0.4,
-             "instrument.background": 3.0 * N / convolved.sum()}
+    # The descriptions take ChiSurf's counts: 3 counts per channel.
+    truth = {"a1": 2000.0, "tau1": 2.0, "a2": 3000.0, "tau2": 0.4, "instrument.background": 3.0}
     for name, value in truth.items():
         port = model.get_parameter(name)
         port.fixed = False
@@ -171,8 +170,7 @@ def test_an_autoscaled_scale_is_published_to_the_models_parameter():
     spec.set_scalar("autoscale", 1.0)
     model = spec.get_model()
     model.select_structure("one")
-    unit = np.convolve(np.exp(-x / 1.5), response / response.sum(), "full")[:N]
-    for name, value in {"a1": 1.0, "tau1": 1.5, "instrument.background": 5.0 * N / (400.0 * unit.sum())}.items():
+    for name, value in {"a1": 1.0, "tau1": 1.5, "instrument.background": 5.0}.items():
         model.get_parameter(name).value = value
     node = model.get_structure_curve_node("one", "decay")
     curve = np.array(model.get_structure_output("one", node))
