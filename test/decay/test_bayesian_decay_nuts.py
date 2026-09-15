@@ -1,4 +1,5 @@
-"""PRD-146 step 2: NUTS on the Bayesian decay posterior (`BayesianDecaySampling.h`).
+"""PRD-146 step 2: NUTS on the Bayesian decay posterior (`BayesianDecaySampling.h`; since PRD-147 step 5 through
+run_sampler with NutsKernel and summarize_chains).
 
 On the synthetic experiment with data drawn from the model:
 
@@ -49,23 +50,27 @@ int main(int, char** argv) {
   // the mode and its Laplace covariance
   const BayesianDecayFit F = bayesian_decay_fit_node(ex, E, truth, 1.0, 400);
   const std::vector<double> Sig = bayesian_decay_covariance(F.pt, dim);
+  const SamplingTarget target = bayesian_decay_sampling_target(ex, E);
+  NutsOptions nopt; nopt.inverse_metric = Sig;
   auto run = [&](std::uint64_t seed, int warm, int draws) {
     std::vector<std::vector<std::vector<double>>> per_coord(dim, std::vector<std::vector<double>>(4));
     std::normal_distribution<double> N(0.0, 1.0);
     std::mt19937_64 r2(seed);
+    std::vector<std::vector<std::vector<double>>> starts;
     for (int c = 0; c < 4; ++c) {
       std::vector<double> start = F.theta;
       for (std::size_t i = 0; i < dim; ++i) start[i] += 0.5 * std::sqrt(Sig[i * dim + i]) * N(r2);
-      BayesianDecayNutsOptions o; o.warmup = warm; o.draws = draws; o.seed = seed * 10 + c;
-      const BayesianDecayChain ch = bayesian_decay_nuts_chain(ex, E, start, Sig, o);
-      for (std::size_t i = 0; i < dim; ++i) for (int k = 0; k < draws; ++k) per_coord[i][c].push_back(ch.theta[k][i]);
+      starts.push_back({start});
     }
+    SamplerOptions so; so.warmup = warm; so.draws = draws; so.seed = seed * 10;
+    const SampleResult r = run_sampler(target, NutsKernel(nopt), starts, so);
+    for (std::size_t i = 0; i < dim; ++i) per_coord[i] = r.independent_chains([i](const std::vector<double>& x) { return x[i]; });
     return per_coord;
   };
   const auto A = run(1, 300, 400), B = run(2, 300, 400), C = run(3, 0, 5);
   double worst_z = 0, worst_rhat = 0, min_ess = 1e300, ctl_rhat = 0, ctl_ess = 1e300;
   for (std::size_t i = 0; i < dim; ++i) {
-    const BayesianConvergence a = bayesian_convergence(A[i]), b = bayesian_convergence(B[i]), c = bayesian_convergence(C[i]);
+    const ChainSummary a = summarize_chains(A[i]), b = summarize_chains(B[i]), c = summarize_chains(C[i]);
     worst_z = std::max(worst_z, std::fabs(a.mean - b.mean) / std::sqrt(a.mcse * a.mcse + b.mcse * b.mcse));
     worst_rhat = std::max({worst_rhat, a.rhat, b.rhat});
     min_ess = std::min({min_ess, a.ess_bulk, b.ess_bulk});

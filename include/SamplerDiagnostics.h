@@ -295,6 +295,31 @@ inline double mcse_mean(const McmcChains& x) {
   return std::sqrt(s2) / std::sqrt(ess_mean(x));
 }
 
+//! The convergence analysis of one scalar summary over independent chains of equal length.
+struct ChainSummary {
+  double mean = 0.0, sd = 0.0, mcse = 0.0, rhat = 0.0, ess_bulk = 0.0, ess_tail = 0.0;
+  double tau = 0.0;  //!< integrated autocorrelation time per chain: draws * chains / ess_mean
+};
+
+//! Mean, sd, MCSE of the mean, rank R-hat, bulk and tail ESS and tau of \p chains (one row per chain).
+inline ChainSummary summarize_chains(const McmcChains& chains) {
+  mcmc_detail::check(chains);
+  ChainSummary c;
+  std::size_t N = 0;
+  for (const auto& ch : chains)
+    for (double v : ch) { c.mean += v; ++N; }
+  c.mean /= double(N);
+  for (const auto& ch : chains)
+    for (double v : ch) c.sd += (v - c.mean) * (v - c.mean);
+  c.sd = std::sqrt(c.sd / double(N - 1));
+  c.rhat = rhat_rank(chains);
+  c.ess_bulk = ess_bulk(chains);
+  c.ess_tail = ess_tail(chains);
+  c.mcse = mcse_mean(chains);
+  c.tau = double(N) / ess_mean(chains);
+  return c;
+}
+
 IMPBFF_END_NAMESPACE
 
 #endif  // IMPBFF_SAMPLERDIAGNOSTICS_H
