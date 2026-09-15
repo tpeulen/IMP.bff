@@ -106,12 +106,103 @@ namespace IMP { namespace bff { class FitDataset; } }
 %include "IMP/bff/GraphNode.h"
 %template(MapStringPort) std::map<std::string, std::shared_ptr<IMP::bff::GraphPort> >;
 
-/* Node types by name. The registry's std::function factory is not something
-   Python needs to supply -- a node type is a numerical kernel, and those are
-   C++ -- so only the lookup side crosses. */
+/* Node types by name. The std::function factory does not cross; a Python
+   callable does, through register_python_type below. Kernels a fit spends
+   its time in are C++; what is not a hot loop (a report, a structure's
+   distance table, a solver that is itself compiled elsewhere) may be a
+   Python GraphNode subclass that a description names like any other type.
+
+   Lifetime: the director keeps only a weak pointer to its Python proxy (see
+   T-20260901-13 above), and a description's graph holds the node for as long
+   as the spec lives. So the factory hands C++ a shared_ptr whose deleter owns
+   a strong reference to the proxy: the proxy lives exactly as long as the
+   graph does. ports keep following the proxy's own control block, which the
+   same deleter keeps alive. Graph evaluation is single-threaded; a Python
+   node runs on the thread that evaluates, which holds the GIL. */
 %ignore IMP::bff::GraphNodeRegistry::register_type;
 %ignore IMP::bff::GraphNodeRegistry::Factory;
+%{
+namespace {
+std::string bff_python_error_text() {
+  PyObject* type = nullptr, *value = nullptr, *trace = nullptr;
+  PyErr_Fetch(&type, &value, &trace);
+  PyErr_NormalizeException(&type, &value, &trace);
+  std::string text = "unknown Python error";
+  if (value) {
+    PyObject* str = PyObject_Str(value);
+    if (str) {
+      const char* c = PyUnicode_AsUTF8(str);
+      if (c) text = c;
+      Py_DECREF(str);
+    }
+    PyErr_Clear();
+  }
+  if (type) {
+    const char* tname = ((PyTypeObject*)type)->tp_name;
+    if (tname) text = std::string(tname) + ": " + text;
+  }
+  Py_XDECREF(type);
+  Py_XDECREF(value);
+  Py_XDECREF(trace);
+  return text;
+}
+}  // namespace
+%}
+%extend IMP::bff::GraphNodeRegistry {
+  //! Install a node type built by a Python callable `factory(name) -> GraphNode`.
+  static void register_python_type(const std::string& type, PyObject* factory) {
+    if (!PyCallable_Check(factory)) {
+      throw std::domain_error("graph node type '" + type + "' needs a callable factory");
+    }
+    Py_INCREF(factory);  // the registry lives for the process
+    IMP::bff::GraphNodeRegistry::register_type(type, [type, factory](const std::string& name) {
+      PyObject* made = PyObject_CallFunction(factory, "s", name.c_str());
+      if (!made) {
+        throw std::domain_error("graph node type '" + type + "': the factory raised " + bff_python_error_text());
+      }
+      void* argp = nullptr;
+      int newmem = 0;
+      int res = SWIG_ConvertPtrAndOwn(made, &argp, SWIGTYPE_p_std__shared_ptrT_IMP__bff__GraphNode_t, 0, &newmem);
+      if (!SWIG_IsOK(res) || !argp) {
+        Py_DECREF(made);
+        throw std::domain_error("graph node type '" + type + "': the factory must return an IMP.bff.GraphNode");
+      }
+      std::shared_ptr<IMP::bff::GraphNode> owned = *static_cast<std::shared_ptr<IMP::bff::GraphNode>*>(argp);
+      if (newmem & SWIG_CAST_NEW_MEMORY) delete static_cast<std::shared_ptr<IMP::bff::GraphNode>*>(argp);
+      if (!owned) {
+        Py_DECREF(made);
+        throw std::domain_error("graph node type '" + type + "': the factory returned an empty node");
+      }
+      IMP::bff::GraphNode* raw = owned.get();
+      return std::shared_ptr<IMP::bff::GraphNode>(raw, [owned, made](IMP::bff::GraphNode*) mutable {
+        owned.reset();
+        if (Py_IsInitialized()) {
+          PyGILState_STATE state = PyGILState_Ensure();
+          Py_DECREF(made);
+          PyGILState_Release(state);
+        }
+      });
+    });
+  }
+}
 %include "IMP/bff/GraphNodeRegistry.h"
+%pythoncode %{
+def register_node_type(type_name, factory=None):
+    """Let descriptions name a Python GraphNode subclass as a node `type`.
+
+    `factory(name)` returns a node; a GraphNode subclass whose constructor
+    takes the name serves as its own factory. Usable as a class decorator:
+    `@IMP.bff.register_node_type("MyReport")`. The node's get_node_type()
+    answers `type_name` unless the class says otherwise, so a description's
+    configure errors name the type the description used.
+    """
+    def install(made):
+        if isinstance(made, type) and issubclass(made, GraphNode) and "get_node_type" not in made.__dict__:
+            made.get_node_type = lambda self, _t=type_name: _t
+        GraphNodeRegistry.register_python_type(type_name, made)
+        return made
+    return install if factory is None else install(factory)
+%}
 
 /* The chinet surface on top of the accessors: scalar-or-array values that
    follow the port's vectorness flag, dict priors, tuple bounds with NaN
