@@ -396,7 +396,7 @@ inline BayesianAcceptorMaps bayesian_transfer_acceptor_maps(const BayesianTransf
                                                             const std::vector<double>& fret_rates,
                                                             const std::vector<double>& tau_a,
                                                             const std::vector<double>& rho_a,
-                                                            BayesianAcceptorConstruction how = BayesianAcceptorConstruction::faithful) {
+                                                            BayesianAcceptorConstruction how = BayesianAcceptorConstruction::exact) {
   if (how == BayesianAcceptorConstruction::exact)
     return bayesian_transfer_acceptor_maps_exact(tb, projector, fret_rates, tau_a, rho_a);
   const BayesianResponseBasis& B = tb.basis;

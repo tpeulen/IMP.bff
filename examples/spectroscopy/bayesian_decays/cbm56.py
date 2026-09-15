@@ -460,15 +460,19 @@ def environment(n_coef=25, n=488, cache=True, verbose=True, rho_grid=None, maps=
     if maps == 'exact':
         #: the ridge by QR (PRD-143 A3, 2026-09-15): the normal equations carried 3e-7 of
         #: error in the map coefficients; the cache tag changes with it
-        S53.KERNEL, S.MAP_TARGET, S.MAP_SOLVER = 'exact', 'periodic', 'ridgeqr'
+        #: and the acceptor maps periodic too (PRD-143 A4.3: 4 % / 41 % / 1.7 % off before)
+        S53.KERNEL, S.MAP_TARGET, S.MAP_SOLVER, S.ACCEPTOR_MAPS = 'exact', 'periodic', 'ridgeqr', 'exact'
+    elif maps == 'exact_sampled_acceptor':
+        #: the QR ridge with the prototype's sampled acceptor maps (2026-09-15, between A3 and A4.3)
+        S53.KERNEL, S.MAP_TARGET, S.MAP_SOLVER, S.ACCEPTOR_MAPS = 'exact', 'periodic', 'ridgeqr', 'sampled'
     elif maps == 'exact_normal_equations':
         #: the maps as built before 2026-09-15 (the v17 record was fitted on these)
-        S53.KERNEL, S.MAP_TARGET, S.MAP_SOLVER = 'exact', 'periodic', 'ridge'
+        S53.KERNEL, S.MAP_TARGET, S.MAP_SOLVER, S.ACCEPTOR_MAPS = 'exact', 'periodic', 'ridge', 'sampled'
     elif maps == 'legacy':
-        S53.KERNEL, S.MAP_TARGET, S.MAP_SOLVER = 'trapezoid', 'sampled', 'nnls'
+        S53.KERNEL, S.MAP_TARGET, S.MAP_SOLVER, S.ACCEPTOR_MAPS = 'trapezoid', 'sampled', 'nnls', 'sampled'
     else:
-        raise ValueError(f"maps must be 'exact', 'exact_normal_equations' or 'legacy', not {maps!r}")
-    mtag = '' if maps == 'legacy' else f'_{S53.KERNEL}_{S.MAP_TARGET}_{S.MAP_SOLVER}'
+        raise ValueError(f"maps must be 'exact', 'exact_sampled_acceptor', 'exact_normal_equations' or 'legacy', not {maps!r}")
+    mtag = '' if maps == 'legacy' else f'_{S53.KERNEL}_{S.MAP_TARGET}_{S.MAP_SOLVER}' + ('_accexact' if S.ACCEPTOR_MAPS == 'exact' else '')
     cal = CAL or _cal()
     dt = cal['dt']
     rel, edges = R3.grid(M.N_REL)
