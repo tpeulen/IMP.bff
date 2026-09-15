@@ -17,13 +17,13 @@
 
 #include <IMP/bff/BayesianMeasuredResponse.h>
 #include <IMP/bff/internal/DampedNewton.h>
-#include <IMP/bff/internal/DecayConvolution.h>
 #include <IMP/bff/internal/BayesianParallel.h>
 
 #if __has_include("pocketfft/pocketfft_hdronly.h")
 
 #include <cmath>
 #include <cstddef>
+#include <complex>
 #include <memory>
 #include <stdexcept>
 #include <vector>
@@ -176,13 +176,44 @@ inline std::vector<double> bayesian_transfer_rate_maps(const BayesianTransferBas
 }
 
 namespace internal {
-//! `dt (sum_{j<=i} x[j] h[i-j] - h[i] x[0] / 2)`, clamped at zero: the causal
-//! convolution with the trapezoid's half weight on the first sample -- ucfret's
-//! `SpectrumDecoder._conv` (an FFT padded to >= 2n, so without wrap-around).
-inline void bayesian_trapezoid_convolution(const double* x, const double* h, std::size_t n, double dt, double* out) {
-  convolve_causal_ad<double, double>(out, x, h, int(n));
-  for (std::size_t i = 0; i < n; ++i) out[i] = std::max(dt * (out[i] - 0.5 * h[i] * x[0]), 0.0);
-}
+/**
+ * \brief `dt (sum_{j<=i} x[j] h[i-j] - h[i] x[0] / 2)`, clamped at zero, for one
+ *        response `h` and many `x`: the causal convolution with the trapezoid's
+ *        half weight on the first sample -- ucfret's `SpectrumDecoder._conv`.
+ *
+ * By FFT as `_conv` does it: `x` and `h` zero-padded to `L >= 2n` (a power of two),
+ * so the full convolution (length `2n - 1`) does not wrap and its first `n` values
+ * are the causal sum. `h`'s transform is kept, so each `x` costs one forward and
+ * one inverse FFT of length `L` instead of `n^2 / 2` products. Equal to the direct
+ * causal sum to round-off (PRD-143 A4.2: 1e-13 of the peak on every CBM56 acceptor
+ * map, test `test_bayesian_transfer_basis.py`) and several times faster.
+ */
+class BayesianTrapezoidConvolver {
+ public:
+  BayesianTrapezoidConvolver(const double* h, std::size_t n, double dt) : n_(n), dt_(dt), h_(h, h + n) {
+    L_ = 1;
+    while (L_ < 2 * n) L_ *= 2;
+    std::vector<double> hp(L_, 0.0);
+    std::copy(h, h + n, hp.begin());
+    H_.resize(L_ / 2 + 1);
+    bayesian_rfft(hp.data(), L_, H_.data());
+  }
+  void operator()(const double* x, double* out) const {
+    std::vector<double> xp(L_, 0.0), y(L_);
+    std::copy(x, x + n_, xp.begin());
+    std::vector<std::complex<double>> X(L_ / 2 + 1);
+    bayesian_rfft(xp.data(), L_, X.data());
+    for (std::size_t k = 0; k < X.size(); ++k) X[k] *= H_[k];
+    bayesian_irfft(X.data(), L_, y.data());
+    for (std::size_t i = 0; i < n_; ++i) out[i] = std::max(dt_ * (y[i] - 0.5 * h_[i] * x[0]), 0.0);
+  }
+
+ private:
+  std::size_t n_, L_ = 1;
+  double dt_;
+  std::vector<double> h_;
+  std::vector<std::complex<double>> H_;
+};
 //! What a channel collects of an exponential against its value at the channel start:
 //! `tau (1 - exp(-dt/tau)) / dt`.
 inline double bayesian_bin_factor(double tau, double dt) { return tau * -std::expm1(-dt / tau) / dt; }
@@ -193,7 +224,7 @@ inline double bayesian_bin_factor(double tau, double dt) { return tau * -std::ex
  *
  * Built as ucfret's `s79_fret_stage2.sens_maps_grid` and `direct_maps` build them
  * (PRD-143 #18d, a faithful port): point-sampled exponentials times the bin factor,
- * convolved by `internal::bayesian_trapezoid_convolution` -- NOT the exact periodic
+ * convolved by `internal::BayesianTrapezoidConvolver` -- NOT the exact periodic
  * kernel the basis and the donor maps use. That inconsistency is the prototype's and
  * is kept here so that the port can be gated; an exact construction is a separate,
  * named decision (PRD-143 #18f).
@@ -239,11 +270,14 @@ inline BayesianAcceptorMaps bayesian_transfer_acceptor_maps(const BayesianTransf
     if (!projector.project(y.data(), x)) throw std::runtime_error("bayesian_transfer_acceptor_maps: projection failed");
   };
   std::vector<std::vector<double>> kern(na, std::vector<double>(n)), fall(nh, std::vector<double>(n));
+  std::vector<internal::BayesianTrapezoidConvolver> by_kern;
   for (std::size_t l = 0; l < na; ++l) {
     double s = 0.0;
     for (std::size_t i = 0; i < n; ++i) { kern[l][i] = std::exp(-double(i) * dt / tau_a[l]); s += kern[l][i]; }
     for (double& v : kern[l]) v /= s;
+    by_kern.emplace_back(kern[l].data(), n, dt);
   }
+  const internal::BayesianTrapezoidConvolver by_response(h, n, dt);
   for (std::size_t r = 0; r < nh; ++r)
     for (std::size_t i = 0; i < n; ++i) fall[r][i] = std::exp(-double(i) * dt / rho_a[r]);
   internal::bayesian_parallel_for(nr, [&](std::size_t j) {
@@ -252,8 +286,8 @@ inline BayesianAcceptorMaps bayesian_transfer_acceptor_maps(const BayesianTransf
       const double tq = 1.0 / (1.0 / tau[c] + fret_rates[j]), eff = fret_rates[j] * tq, bf = internal::bayesian_bin_factor(tq, dt);
       for (std::size_t i = 0; i < n; ++i) d[i] = std::exp(-double(i) * dt / tq) * bf;
       for (std::size_t l = 0; l < na; ++l) {
-        internal::bayesian_trapezoid_convolution(d.data(), kern[l].data(), n, dt, acc.data());
-        internal::bayesian_trapezoid_convolution(acc.data(), h, n, dt, col.data());
+        by_kern[l](d.data(), acc.data());
+        by_response(acc.data(), col.data());
         double tot = 0.0;
         for (double v : col) tot += v;
         const double scale = tot > 1e-300 ? eff / tot : 0.0;
@@ -262,9 +296,9 @@ inline BayesianAcceptorMaps bayesian_transfer_acceptor_maps(const BayesianTransf
         for (std::size_t k = 0; k < K; ++k) out.sensitised[((j * na + l) * K + k) * nt + c] = x[k];
         for (std::size_t r = 0; r < nh; ++r) {
           for (std::size_t i = 0; i < n; ++i) w[i] = d[i] * fall[r][i];
-          internal::bayesian_trapezoid_convolution(w.data(), kern[l].data(), n, dt, acc.data());
+          by_kern[l](w.data(), acc.data());
           for (std::size_t i = 0; i < n; ++i) acc[i] *= fall[r][i];
-          internal::bayesian_trapezoid_convolution(acc.data(), h, n, dt, col.data());
+          by_response(acc.data(), col.data());
           for (double& v : col) v *= scale;
           project(col, x.data());
           for (std::size_t k = 0; k < K; ++k) out.sensitised_rot[(((r * nr + j) * na + l) * K + k) * nt + c] = x[k];
@@ -276,7 +310,7 @@ inline BayesianAcceptorMaps bayesian_transfer_acceptor_maps(const BayesianTransf
   for (std::size_t l = 0; l < na; ++l) {
     const double bf = internal::bayesian_bin_factor(tau_a[l], dt);
     for (std::size_t i = 0; i < n; ++i) d[i] = std::exp(-double(i) * dt / tau_a[l]) * bf;
-    internal::bayesian_trapezoid_convolution(d.data(), h, n, dt, col.data());
+    by_response(d.data(), col.data());
     project(col, x.data());
     double area = 0.0;
     for (std::size_t i = 0; i < n; ++i) for (std::size_t k = 0; k < K; ++k) area += B.B[i * K + k] * x[k];
@@ -284,7 +318,7 @@ inline BayesianAcceptorMaps bayesian_transfer_acceptor_maps(const BayesianTransf
     for (std::size_t k = 0; k < K; ++k) out.direct[l * K + k] = x[k] / area;
     for (std::size_t r = 0; r < nh; ++r) {
       for (std::size_t i = 0; i < n; ++i) w[i] = d[i] * fall[r][i];
-      internal::bayesian_trapezoid_convolution(w.data(), h, n, dt, col.data());
+      by_response(w.data(), col.data());
       project(col, x.data());
       for (std::size_t k = 0; k < K; ++k) out.direct_rot[(r * na + l) * K + k] = x[k] / area;
     }

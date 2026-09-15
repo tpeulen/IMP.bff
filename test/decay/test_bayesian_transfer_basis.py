@@ -23,6 +23,8 @@ check fail:
   1 / (1 + k tau) -- a map that forgot that scaling would carry all of it.
   Against the Python maps (CBM56, 128 distances, 11 rotational times) the decays
   agree to 4.8e-12 of their peaks: ucfret `transfer_gate.cpp`;
+* A4.2: the acceptor maps' convolution by FFT equals the direct causal sum with the
+  trapezoid's half weight to round-off (dropping the half weight must not);
 * 18d: the sensitised acceptor light totals the transfer efficiency k/(1/tau + k),
   and is zero without transfer; the directly excited acceptor is one unit, and
   its rotational partner carries tau_s/tau_a of it (a partner normalised to one
@@ -42,6 +44,7 @@ from bayesian_cxx import run_driver
 
 DRIVER = r"""
 #include <IMP/bff/BayesianTransferTensors.h>
+#include <IMP/bff/internal/DecayConvolution.h>
 #include <cstdio>
 using namespace IMP::bff;
 
@@ -140,7 +143,22 @@ int main() {
     partner = std::max(partner, std::fabs(p / (ts / ta[l]) - 1.0));
     partner_ctl = std::max(partner_ctl, std::fabs(p - 1.0));
   }
-  std::printf("{\"acc_sens_efficiency\": %.6e, \"acc_sens_no_transfer\": %.6e, \"acc_direct_unit\": %.6e,"
+  // A4.2: the FFT convolver is the direct causal sum with the trapezoid's half weight
+  double conv_fft = 0.0, conv_ctl = 0.0;
+  {
+    std::vector<double> x(n), direct(n), fast(n);
+    for (std::size_t i = 0; i < n; ++i) x[i] = std::exp(-double(i) * 0.064 / 2.5) * (1.0 + 0.3 * std::sin(0.05 * double(i)));
+    convolve_causal_ad<double, double>(direct.data(), x.data(), tb.response.data(), int(n));
+    double pk = 0.0;
+    for (std::size_t i = 0; i < n; ++i) { direct[i] = std::max(0.064 * (direct[i] - 0.5 * tb.response[i] * x[0]), 0.0); pk = std::max(pk, direct[i]); }
+    internal::BayesianTrapezoidConvolver conv(tb.response.data(), n, 0.064);
+    conv(x.data(), fast.data());
+    for (std::size_t i = 0; i < n; ++i) conv_fft = std::max(conv_fft, std::fabs(fast[i] - direct[i]) / pk);
+    // control: without the half weight on the first sample
+    for (std::size_t i = 0; i < n; ++i) conv_ctl = std::max(conv_ctl, std::fabs(fast[i] + 0.064 * 0.5 * tb.response[i] * x[0] - direct[i]) / pk);
+  }
+  std::printf("{\"conv_fft_vs_direct\": %.6e, \"conv_without_half_weight\": %.6e, ", conv_fft, conv_ctl);
+  std::printf("\"acc_sens_efficiency\": %.6e, \"acc_sens_no_transfer\": %.6e, \"acc_direct_unit\": %.6e,"
               " \"acc_partner_area\": %.6e, \"acc_partner_if_unit\": %.6e, ", sens_eff, sens_zero, direct_one, partner, partner_ctl);
   std::printf("\"map_identity\": %.6e, \"map_area\": %.6e, \"map_area_if_unscaled\": %.6e, ", identity, area, area_ctl);
   std::printf("\"recon\": %.6e, \"recon_bound\": %.6e, \"recon_ridge_x1e4\": %.6e, \"lambda\": %.6e, ",
@@ -206,3 +224,8 @@ def test_direct_acceptor_is_one_unit_and_its_partner_the_shorter_lifetime(result
     # bin factors and the trapezoid make the partner's area approximate
     assert result["acc_partner_area"] < 1e-2, result
     assert result["acc_partner_if_unit"] > 0.5, result
+
+
+def test_fft_convolution_is_the_direct_causal_sum(result):
+    assert result["conv_fft_vs_direct"] < 1e-13, result
+    assert result["conv_without_half_weight"] > 1e-3, result
