@@ -6,6 +6,7 @@
  *  Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 #include <IMP/bff/PhotophysicsCrosstalkMatrix.h>
+#include <IMP/bff/internal/DampedNewton.h>
 
 #include <algorithm>
 #include <cmath>
@@ -246,10 +247,20 @@ Eigen::MatrixXd invert_block(const Eigen::MatrixXd& a,
     return out;
   }
   if (ridge > 0.0) {
-    // Tikhonov closed form: x = (A^T A + lambda I)^-1 A^T y
-    Eigen::MatrixXd gram = a.transpose() * a;
-    gram.diagonal().array() += ridge;
-    out = gram.partialPivLu().solve(a.transpose() * y);
+    // Tikhonov, x = (A^T A + lambda I)^-1 A^T y: the one ridge solve
+    // (tttrlib's RidgeProjector, vendored), factored once for every item.
+    const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> a_rows = a;
+    tttrlib::RidgeProjector projector;
+    if (!projector.factor(a_rows.data(), static_cast<std::size_t>(a.rows()),
+                          static_cast<std::size_t>(n_src), ridge, false)) {
+      throw std::runtime_error("crosstalk_invert_mixing: the ridge system is not positive definite");
+    }
+    for (int item = 0; item < n_items; ++item) {
+      const Eigen::VectorXd target = y.col(item);
+      if (!projector.project(target.data(), out.col(item).data())) {
+        throw std::runtime_error("crosstalk_invert_mixing: the ridge solve failed");
+      }
+    }
     return out;
   }
   // minimum-norm least squares: the pseudo-inverse path a numpy caller
