@@ -10,6 +10,7 @@
 #define IMPBFF_BAYESIANPSPLINE_H
 
 #include <IMP/bff/IMPCompatibility.h>
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <stdexcept>
@@ -19,6 +20,54 @@ IMPBFF_BEGIN_NAMESPACE
 
 //! \name Bayesian P-splines
 //! @{
+
+/**
+ * \brief The B-spline basis a P-spline puts under a function on `n_points`
+ *        equally spaced points of [0, 1]: `n_points x n_coef`, row-major.
+ *
+ * Degree `degree`, `n_coef - degree` equal intervals, knots extended `degree`
+ * intervals past both ends -- the P-spline construction (Eilers & Marx 1996), not
+ * the clamped one used for interpolation: every basis function that touches the
+ * domain has its full shape, so a difference penalty acts on coefficients that all
+ * mean the same thing. Evaluated by the Cox-de Boor recursion (de Boor, *A
+ * Practical Guide to Splines*, 1978, ch. X). The points are clipped to
+ * `[0, 1 - 1e-12]` so the last one falls inside the final interval, as
+ * `scipy.interpolate.BSpline.design_matrix` needs; ucfret's `s86.pspline_basis`
+ * builds the same matrix that way (gated equal on the CBM56 grid).
+ */
+inline std::vector<double> bayesian_pspline_basis(std::size_t n_points, std::size_t n_coef, int degree = 3) {
+  if (n_coef <= std::size_t(degree)) throw std::invalid_argument("bayesian_pspline_basis: n_coef must exceed the degree");
+  const std::size_t n_int = n_coef - std::size_t(degree);
+  const double h = 1.0 / double(n_int);
+  const std::size_t n_knots = n_int + 2 * std::size_t(degree) + 1;
+  std::vector<double> knot(n_knots);
+  for (std::size_t i = 0; i < n_knots; ++i) knot[i] = (double(i) - double(degree)) * h;
+  std::vector<double> out(n_points * n_coef, 0.0), N(std::size_t(degree) + 1);
+  for (std::size_t r = 0; r < n_points; ++r) {
+    double x = n_points > 1 ? double(r) / double(n_points - 1) : 0.0;
+    x = std::min(std::max(x, knot[std::size_t(degree)]), knot[n_knots - std::size_t(degree) - 1] - 1e-12);
+    // the knot span: knot[mu] <= x < knot[mu + 1], mu in [degree, degree + n_int)
+    std::size_t mu = std::size_t(degree) + std::min(n_int - 1, std::size_t(std::floor((x - knot[std::size_t(degree)]) / h)));
+    while (mu > std::size_t(degree) && x < knot[mu]) --mu;
+    while (mu + 1 < std::size_t(degree) + n_int && x >= knot[mu + 1]) ++mu;
+    // Cox-de Boor, the triangular scheme: N[j] = B_{mu - degree + j, k}(x)
+    N.assign(std::size_t(degree) + 1, 0.0);
+    N[std::size_t(degree)] = 1.0;
+    for (int k = 1; k <= degree; ++k) {
+      for (int j = degree - k; j <= degree; ++j) {
+        const std::size_t i = mu - std::size_t(degree) + std::size_t(j);   // basis function index
+        const double left = (j > degree - k) ? (x - knot[i]) / (knot[i + std::size_t(k)] - knot[i]) * N[std::size_t(j)] : 0.0;
+        const double right = (j < degree) ? (knot[i + std::size_t(k) + 1] - x) / (knot[i + std::size_t(k) + 1] - knot[i + 1]) * N[std::size_t(j) + 1] : 0.0;
+        N[std::size_t(j)] = left + right;
+      }
+    }
+    for (int j = 0; j <= degree; ++j) {
+      const std::size_t i = mu - std::size_t(degree) + std::size_t(j);
+      if (i < n_coef) out[r * n_coef + i] = N[std::size_t(j)];
+    }
+  }
+  return out;
+}
 
 /**
  * \brief `p(c | lambda)`: a Gaussian (or Student-t) on the d-th differences of
