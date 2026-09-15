@@ -10,6 +10,7 @@
 #define IMPBFF_FITSTATISTICS_H
 
 #include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/internal/PoissonScore.h>
 #include <cmath>
 #include <random>
 #include <cstdint>
@@ -22,43 +23,10 @@ IMPBFF_BEGIN_NAMESPACE
 //! \name Fit statistics
 //! @{
 
-/**
- * \brief Poisson deviance, `2 sum [ m - y + y log(y/m) ]`.
- *
- * **Why not chi-square.** For counting data the natural goodness-of-fit
- * statistic is the likelihood-ratio one, and dividing by an estimated variance
- * is a Gaussian approximation that fails where it matters -- in the tail,
- * where the counts are few and the long lifetimes live. Weighting by the
- * OBSERVED counts (`sigma = sqrt(y)`, Neyman) biases the fit low there;
- * weighting by the model (Pearson) does not, but is not the likelihood. The
- * deviance is the likelihood ratio against a model that fits every bin
- * exactly, so it needs no weights at all, and it is what "chi-square" should
- * mean for photon counting.
- *
- * A bin with `y = 0` contributes `2m`, which is the limit of `y log(y/m)` as
- * `y -> 0` and not a special case to be skipped.
- */
-inline double poisson_deviance(const double* y, const double* m, std::size_t n) {
-  double d = 0.0;
-  for (std::size_t i = 0; i < n; ++i) {
-    const double mi = (m[i] > 1e-300) ? m[i] : 1e-300;
-    d += 2.0 * (mi - y[i]);
-    if (y[i] > 0.0) d += 2.0 * y[i] * std::log(y[i] / mi);
-  }
-  return d;
-}
-
-//! Signed square roots of the per-bin deviance -- residuals whose sum of
-//! squares IS the deviance, unlike `(y - m)/sqrt(y)`.
-inline void deviance_residuals(const double* y, const double* m, std::size_t n, double* r) {
-  for (std::size_t i = 0; i < n; ++i) {
-    const double mi = (m[i] > 1e-300) ? m[i] : 1e-300;
-    double d = 2.0 * (mi - y[i]);
-    if (y[i] > 0.0) d += 2.0 * y[i] * std::log(y[i] / mi);
-    if (d < 0.0) d = 0.0;
-    r[i] = (y[i] >= mi ? 1.0 : -1.0) * std::sqrt(d);
-  }
-}
+//! The Poisson deviance `2 sum [m - y + y log(y/m)]` and its signed-root residuals are
+//! tttrlib's (`internal/PoissonScore.h`), moved there 2026-09-15 (PRD-143 A4.1).
+using ::tttrlib::poisson_deviance;
+using ::tttrlib::deviance_residuals;
 
 //! The outcome of a Wald-Wolfowitz runs test.
 struct RunsTest {
