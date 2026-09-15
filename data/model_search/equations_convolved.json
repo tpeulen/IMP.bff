@@ -123,7 +123,7 @@
  },
  "parameters": {
   "instrument.scatter": {
-   "name": "scatter fraction",
+   "name": "scatter",
    "group": "instrument",
    "initial": 0.0,
    "free": false,
@@ -131,11 +131,11 @@
    "upper": 1.0
   },
   "instrument.background": {
-   "name": "background fraction",
+   "name": "background",
    "group": "instrument",
-   "initial": "decay_min*decay_size/max(decay_sum-decay_min*decay_size,1)",
+   "initial": "decay_min",
    "lower": 0.0,
-   "upper": 100.0
+   "upper": "decay_max"
   },
   "instrument.n0": {
    "name": "n0",
@@ -252,6 +252,7 @@
     "decay": {
      "type": "TCSPCDecay",
      "config": {
+      "instrument_units": "counts",
       "curve_from_port": true
      },
      "config_rules": {

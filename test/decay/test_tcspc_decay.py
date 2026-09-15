@@ -273,6 +273,62 @@ class NodeBehaviourTests(unittest.TestCase):
             node.set_timing(DT, 0.0)
 
 
+class CountsTests(unittest.TestCase):
+    """`instrument_units: counts`: ChiSurf's scatter and background, as ChiSurf
+    users know them, on the fraction stage underneath."""
+
+    def _counts_reference(self, irf, pairs, scatter, background, n0):
+        unit = reference_curve(irf, pairs)
+        response_shape = np.asarray(irf, dtype=float) / np.sum(irf)
+        return np.maximum((unit + scatter * response_shape) * n0 + background, 0.0)
+
+    @unittest.skipUnless(tttrlib is not None, "tttrlib not importable")
+    def test_counts_are_chisurfs_scatter_and_background(self):
+        irf = response()
+        node = build(2, irf)
+        node.set_instrument_units("counts")
+        for pairs in ([(0.7, 0.5), (0.3, 4.0)], [(0.2, 1.0), (0.8, 2.5)]):
+            set_spectrum(node, pairs)
+            node.get_input_port("scatter").value = 0.05
+            node.get_input_port("background").value = 3.0
+            node.get_input_port("n0").value = 2000.0
+            # The same counts whatever the decay: a held count keeps its meaning.
+            np.testing.assert_allclose(
+                curve_of(node), self._counts_reference(irf, pairs, 0.05, 3.0, 2000.0),
+                rtol=1e-10, atol=1e-9)
+
+    @unittest.skipUnless(tttrlib is not None, "tttrlib not importable")
+    def test_counts_autoscale_takes_the_background_off_first(self):
+        pairs = [(1.0, 3.5)]
+        irf = response()
+        unit = reference_curve(irf, pairs)
+        y = np.random.default_rng(4).poisson(unit * 3000.0 + 2.0).astype(float)
+        ey = np.sqrt(np.maximum(y, 1.0))
+        node = build(1, irf)
+        node.set_instrument_units("counts")
+        set_spectrum(node, pairs)
+        node.set_data_arrays(np.ascontiguousarray(y), np.ascontiguousarray(ey))
+        node.set_autoscale(True)
+        node.set_scale_range(0, len(y))
+        node.get_input_port("background").value = 2.0
+        got = curve_of(node)
+
+        from chisurf.core.fluorescence.tcspc import rescale_w_bg
+        want_n0 = rescale_w_bg(model_decay=unit, experimental_decay=y,
+                               experimental_weights=1.0 / ey, experimental_background=2.0,
+                               start=0, stop=len(y))
+        self.assertAlmostEqual(node.get_n0() / want_n0, 1.0, places=10)
+        np.testing.assert_allclose(got, np.maximum(unit * want_n0 + 2.0, 0.0), rtol=1e-10)
+
+    def test_the_units_are_named(self):
+        node = build(1)
+        self.assertEqual(node.get_instrument_units(), "fractions")
+        node.configure('{"instrument_units": "counts"}')
+        self.assertEqual(node.get_instrument_units(), "counts")
+        with self.assertRaises(ValueError):
+            node.set_instrument_units("photons")
+
+
 class AutoscaleTests(unittest.TestCase):
     """`n0` from the data rather than from the optimiser."""
 
