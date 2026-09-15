@@ -117,11 +117,14 @@ constexpr double BAYESIAN_TRANSFER_RIDGE = 1e-8;
  * where neighbouring lifetime columns are nearly collinear -- a plain least squares
  * gives large cancelling coefficients, harmless until a rotational map multiplies
  * them. `lambda = BAYESIAN_TRANSFER_RIDGE * trace(B^T B) / K`, as ucfret's `s79._ridge`.
+ * Solved by Householder QR of `[B; sqrt(lambda) I]` (PRD-143 A3): on the CBM56 basis the
+ * normal equations carry 3e-7 of error in the coefficients, QR 4e-13 (50-digit reference).
  */
 inline ::tttrlib::RidgeProjector bayesian_transfer_projector(const BayesianResponseBasis& basis,
-                                                             double relative = BAYESIAN_TRANSFER_RIDGE) {
+                                                             double relative = BAYESIAN_TRANSFER_RIDGE,
+                                                             ::tttrlib::RidgeSolver solver = ::tttrlib::RidgeSolver::qr) {
   ::tttrlib::RidgeProjector p;
-  if (!p.factor(basis.B.data(), basis.n, basis.K, relative, true))
+  if (!p.factor(basis.B.data(), basis.n, basis.K, relative, true, solver))
     throw std::runtime_error("bayesian_transfer_projector: B^T B + lambda I is not positive definite");
   return p;
 }
