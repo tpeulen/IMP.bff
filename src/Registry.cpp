@@ -23,25 +23,25 @@ IMPBFF_BEGIN_NAMESPACE
 namespace {
 
 //! Key order is part of the surface (a schema's properties render in declared order).
-using json = nlohmann::basic_json<nlohmann::ordered_map>;
+using RegistryJson = nlohmann::basic_json<nlohmann::ordered_map>;
 
 //! Function-local, so a static initialiser in any translation unit registers into a constructed table.
-::tttrlib::AlgorithmTable<json>& table() {
-  static ::tttrlib::AlgorithmTable<json> t;
+::tttrlib::AlgorithmTable<RegistryJson>& table() {
+  static ::tttrlib::AlgorithmTable<RegistryJson> t;
   return t;
 }
 
 //! The shipped model-search families, one entry each, from the family files themselves.
-json model_search_entries() {
-  json out = json::object();
+RegistryJson model_search_entries() {
+  RegistryJson out = RegistryJson::object();
   for (const std::string& name : ModelSearchSpec::get_available_names()) {
-    json e = json::object();
+    RegistryJson e = RegistryJson::object();
     std::string title, family = name;
     // The family file declares its own `family` and `title`; read them rather than restate them.
     std::ifstream in(get_data_path("model_search/" + name + ".json").c_str());
     std::ostringstream text;
     if (in) text << in.rdbuf();
-    const json doc = json::parse(text.str(), nullptr, false);
+    const RegistryJson doc = RegistryJson::parse(text.str(), nullptr, false);
     if (doc.is_object()) {
       if (doc.contains("family") && doc["family"].is_string()) family = doc["family"].get<std::string>();
       if (doc.contains("title") && doc["title"].is_string()) title = doc["title"].get<std::string>();
@@ -53,22 +53,22 @@ json model_search_entries() {
     e["label"] = title.empty() ? family : title;
     e["summary"] = title;
     e["description"] = "";
-    e["params_schema"] = json::object();
+    e["params_schema"] = RegistryJson::object();
     e["capability"] = "model_search";
     e["provider"] = "imp.bff";
-    e["api"] = json::array({"ModelSearchSpec.from_name"});
+    e["api"] = RegistryJson::array({"ModelSearchSpec.from_name"});
     e["family"] = family;
     out[name] = e;
   }
   return out;
 }
 
-json build() {
-  json root = table().categories();
-  json ms = model_search_entries();
+RegistryJson build() {
+  RegistryJson root = table().categories();
+  RegistryJson ms = model_search_entries();
   if (!ms.empty()) root["model_search"] = ms;
   // categories() orders capabilities alphabetically; keep that for the assembled one too
-  json sorted = json::object();
+  RegistryJson sorted = RegistryJson::object();
   std::vector<std::string> keys;
   for (auto it = root.begin(); it != root.end(); ++it) keys.push_back(it.key());
   std::sort(keys.begin(), keys.end());
@@ -77,7 +77,7 @@ json build() {
 }
 
 std::string with_provider(const std::string& entry_json) {
-  json e = json::parse(entry_json, nullptr, false);
+  RegistryJson e = RegistryJson::parse(entry_json, nullptr, false);
   if (e.is_discarded() || !e.is_object()) return entry_json;
   if (!e.contains("provider")) e["provider"] = "imp.bff";
   return e.dump();
@@ -98,13 +98,13 @@ bool register_algorithm_json(const std::string& capability, const std::string& k
 std::string registry_json() { return build().dump(2); }
 
 std::string registry_category_json(const std::string& category) {
-  const json root = build();
+  const RegistryJson root = build();
   if (!root.contains(category)) return "{}";
   return root[category].dump(2);
 }
 
 std::vector<std::string> registry_categories() {
-  const json root = build();
+  const RegistryJson root = build();
   std::vector<std::string> out;
   for (auto it = root.begin(); it != root.end(); ++it) out.push_back(it.key());
   return out;
