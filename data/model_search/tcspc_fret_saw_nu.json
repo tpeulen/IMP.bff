@@ -674,7 +674,7 @@
    "fret.x_donly",
    "instrument.scatter",
    "instrument.background",
-   "instrument.n0",
+   {"parameter": "instrument.n0", "when": "1-autoscale"},
    "instrument.timeshift"
   ],
   "ess": "decay_size",

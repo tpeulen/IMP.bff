@@ -1592,7 +1592,19 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build_over(
     std::set<std::string> freed;
     for (SpecJson::const_iterator fit = free_it->begin();
          fit != free_it->end(); ++fit) {
-      const std::string id = fit->get<std::string>();
+      // An entry may be conditional on the description's settings: a photon
+      // count that autoscale solves for in closed form is not a coordinate
+      // the optimiser can move, and handing it over makes the covariance
+      // singular.
+      std::string id;
+      if (fit->is_object()) {
+        id = require_string(*fit, "parameter", where + " free entry");
+        SpecJson::const_iterator when = fit->find("when");
+        if (when == fit->end()) refuse(where + " free entry '" + id + "' needs a 'when'");
+        if (evaluate_rule(*when, where + " free '" + id + "' when", scope) == 0.0) continue;
+      } else {
+        id = fit->get<std::string>();
+      }
       if (!owner_by_id.count(id)) {
         refuse(where + " frees '" + id + "', which is not a parameter");
       }

@@ -306,3 +306,24 @@ def test_two_parameters_of_one_model_may_not_follow_each_other():
     model.get_parameter("lifetime.tau.1").set_link(model.get_parameter("lifetime.tau.0"))
     with pytest.raises((ValueError, RuntimeError)):
         model.get_initial_state()
+
+
+@pytest.mark.parametrize("family", ["tcspc_lifetime", "tcspc_fret_discrete", "tcspc_fret_gaussian",
+                                    "tcspc_pddem", "tcspc_polarized"])
+def test_autoscale_takes_the_photon_count_away_from_the_optimiser(family):
+    """Autoscale solves n0 in closed form: a free n0 would be a dead coordinate."""
+    data, irf, dt, period = _fixtures._tcspc_dataset()
+    response = bff.FitDataset()
+    response.set_values_array(np.ascontiguousarray(irf))
+    spec = bff.ModelSearchSpec.from_name(family)
+    spec.set_dataset("decay", data)
+    spec.set_dataset("response", response)
+    spec.set_scalar("dt", dt)
+    spec.set_scalar("period", period)
+    assert not spec.get_model().get_parameter("instrument.n0").fixed
+
+    spec.set_scalar("autoscale", 1.0)
+    assert spec.get_model().get_parameter("instrument.n0").fixed
+
+    spec.set_scalar("autoscale", 0.0)
+    assert not spec.get_model().get_parameter("instrument.n0").fixed
