@@ -178,8 +178,8 @@
    "to": "max_components"
   },
   "m": {
-   "from": 1,
-   "to": 2
+   "from": "min(1,polarization)",
+   "to": "2*min(1,polarization)"
   }
  },
  "parameters": {
@@ -321,7 +321,7 @@
  },
  "initial_axes": {
   "n": 1,
-  "m": 1
+  "m": "min(1,polarization)"
  },
  "template": {
   "key": "lifetime.components.{n}.rotations.{m}",
@@ -529,7 +529,13 @@
      "body": "rotation.time.{j}"
     }
    },
-   "anisotropy.r0",
+   {
+    "each": {
+     "index": "k",
+     "count": "m",
+     "body": "anisotropy.r0"
+    }
+   },
    "instrument.scatter",
    "instrument.background",
    "instrument.n0",
