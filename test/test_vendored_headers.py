@@ -50,6 +50,7 @@ class Tests(IMP.test.TestCase):
         "LatticeDiffusion.h": ("math",),
         "DecayConvolution.h": ("spectroscopy", "decay"),
         "PeriodicDecayKernel.h": ("spectroscopy", "decay"),
+        "AdamUpdate.h": ("math",),
     }
 
     def _paths(self, name="MlpCore.h"):
