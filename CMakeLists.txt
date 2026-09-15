@@ -79,6 +79,14 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 
   SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
+  # `%pythoncode "registry_access.py"` in pyext/include/IMP_bff.core.i (PRD-147
+  # A2) needs its file on swig's own search path -- only *.i files get staged
+  # into the build tree's swig/ directory, so a same-directory .py companion
+  # is otherwise invisible to swig even though the .i file that includes it
+  # is right next to it in the source tree. IMP_SWIG_PATH is ModuleSwig.cmake's
+  # extension point for exactly this (imp/tools/build/cmake_templates/ModuleSwig.cmake).
+  SET(IMP_SWIG_PATH "${CMAKE_SOURCE_DIR}/pyext/include")
+
   imp_build_module(${CMAKE_SOURCE_DIR} bff)
 
 else()

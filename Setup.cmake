@@ -25,3 +25,21 @@ if(MSVC)
       ${CMAKE_SOURCE_DIR}/modules/bff/standalone/thirdparty/ihm/ihm_format.c
       ${CMAKE_SOURCE_DIR}/modules/bff/standalone/thirdparty/ihm/cmp.c)
 endif()
+
+# `%pythoncode "registry_access.py"` in pyext/include/IMP_bff.core.i (PRD-147
+# A2) needs its file on swig's own search path -- ModuleSwig.cmake (IMP's
+# generated per-module swig-wrapper step, checked in here as
+# pyext/CMakeLists.txt) only stages *.i files into the build tree's swig/
+# directory, so a same-directory .py companion is otherwise invisible to
+# swig even though the .i file including it sits right next to it in the
+# source tree. IMP_SWIG_PATH is that template's extension point
+# (imp/tools/build/cmake_templates/ModuleSwig.cmake, line "list(APPEND
+# swig_path ${IMP_SWIG_PATH})"). In the full ../imp source-tree build (as
+# opposed to this repo's own standalone build), the top-level CMakeLists.txt
+# add_subdirectory()s modules/bff and modules/bff/pyext as SIBLING calls, not
+# nested -- so a plain `set()` here (in modules/bff's own scope, via
+# ModuleBuild.cmake's include()) never reaches pyext/CMakeLists.txt's scope.
+# A CACHE variable is visible everywhere regardless of that call graph.
+list(APPEND IMP_SWIG_PATH ${CMAKE_SOURCE_DIR}/modules/bff/pyext/include)
+list(REMOVE_DUPLICATES IMP_SWIG_PATH)
+set(IMP_SWIG_PATH "${IMP_SWIG_PATH}" CACHE INTERNAL "Extra swig -I search paths" FORCE)
