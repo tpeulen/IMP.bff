@@ -46,6 +46,7 @@
 
 #include <IMP/bff/IMPCompatibility.h>
 #include <IMP/bff/BayesianMeasuredResponse.h>
+#include <IMP/bff/BayesianTransferTensors.h>
 #include <IMP/bff/BayesianTransforms.h>
 #include <IMP/bff/BayesianFisherScoring.h>
 #include <IMP/bff/PhotophysicsPolarisation.h>
@@ -166,12 +167,62 @@ struct BayesianDecayExperiment {
 };
 
 /**
+ * \brief Build the transfer tensors an experiment's model reads, from its manifest's
+ *        `transfer` block, instead of reading them as arrays (PRD-143 #18e).
+ *
+ * The block: `response_sigma` (ns), optional `response_position` (ns; default 0.10
+ * of the window), `log10_tau_lo`, optional `log10_tau_hi` (default three windows),
+ * `per_decade`, the (R0, tau_ref) pair `R0` and `tau_ref`, and the grids `rel`
+ * (R/R0), `rho` (ns), `tau_a` (ns), `rho_a` (ns). Written: `tau_c`, `E_base`
+ * (`K x Kint`, the interior identity), `E_S_R`, `E_S_rho`, `E_S_Ag`, `E_S_Ag_rot_r`,
+ * `E_A_dir`, `E_A_dir_rot_r` -- in the shapes ucfret's emitter writes them. An
+ * experiment that carries both the block and any of those arrays is refused: two
+ * sources for one tensor is how a fixture ends up gating the wrong one.
+ */
+inline void bayesian_decay_build_transfer_tensors(const nlohmann::json& t, BayesianDecayExperiment& ex) {
+  for (const char* name : {"tau_c", "E_base", "E_S_R", "E_S_rho", "E_S_Ag", "E_S_Ag_rot_r", "E_A_dir", "E_A_dir_rot_r"})
+    if (ex.arrays.count(name)) throw std::runtime_error(std::string("transfer block and array ") + name + " both given");
+  BayesianTransferBasisSpec spec;
+  spec.axis = ex.axis();
+  spec.response_sigma = t["response_sigma"].get<double>();
+  if (t.count("response_position")) spec.response_position = t["response_position"].get<double>();
+  spec.log10_tau_lo = t["log10_tau_lo"].get<double>();
+  if (t.count("log10_tau_hi")) spec.log10_tau_hi = t["log10_tau_hi"].get<double>();
+  spec.per_decade = t["per_decade"].get<int>();
+  const double R0 = t["R0"].get<double>(), tau_ref = t["tau_ref"].get<double>();
+  const auto rel = t["rel"].get<std::vector<double>>(), rho = t["rho"].get<std::vector<double>>();
+  const auto tau_a = t["tau_a"].get<std::vector<double>>(), rho_a = t["rho_a"].get<std::vector<double>>();
+  const BayesianTransferBasis tb = bayesian_transfer_basis(spec);
+  const ::tttrlib::RidgeProjector P = bayesian_transfer_projector(tb.basis);
+  const std::size_t K = tb.basis.K, nt = tb.kernel->tau().size();
+  std::vector<double> k_fret(rel.size()), k_rot(rho.size());
+  for (std::size_t j = 0; j < rel.size(); ++j) k_fret[j] = std::pow(1.0 / rel[j], 6) / tau_ref;   // (1/tau_ref)(R0/R)^6
+  for (std::size_t j = 0; j < rho.size(); ++j) k_rot[j] = 1.0 / rho[j];
+  (void)R0;   // R enters only as R/R0; R0 is recorded with tau_ref as the pair the rates assume
+  auto put = [&](const char* name, std::vector<std::size_t> shape, std::vector<double> d) {
+    BayesianDecayArray a; a.shape = std::move(shape); a.d = std::move(d); ex.arrays.emplace(name, std::move(a));
+  };
+  put("tau_c", {nt}, tb.kernel->tau());
+  std::vector<double> base(K * nt, 0.0);
+  for (std::size_t i = 0; i < nt; ++i) base[(i + 1) * nt + i] = 1.0;
+  put("E_base", {K, nt}, std::move(base));
+  put("E_S_R", {rel.size(), K, nt}, bayesian_transfer_rate_maps(tb, P, k_fret));
+  put("E_S_rho", {rho.size(), K, nt}, bayesian_transfer_rate_maps(tb, P, k_rot));
+  BayesianAcceptorMaps am = bayesian_transfer_acceptor_maps(tb, P, k_fret, tau_a, rho_a);
+  put("E_S_Ag", {rel.size(), tau_a.size(), K, nt}, std::move(am.sensitised));
+  put("E_S_Ag_rot_r", {rho_a.size(), rel.size(), tau_a.size(), K, nt}, std::move(am.sensitised_rot));
+  put("E_A_dir", {tau_a.size(), K}, std::move(am.direct));
+  put("E_A_dir_rot_r", {rho_a.size(), tau_a.size(), K}, std::move(am.direct_rot));
+}
+
+/**
  * \brief Read an experiment from `dir/manifest.json` and its raw arrays.
  *
  * The manifest names every array (`arrays: {name: {shape, dtype, file}}`, float64,
  * little-endian, one file each) and carries the tables: `axis`, `soft`,
  * `ref_spec_sd`, `keys`, `data_keys`, `scopes`, `parts`, `responses`, `variables`,
- * `fixed_values`, `pspline`, `spec_smooth`, `dim`. ucfret's
+ * `fixed_values`, `pspline`, `spec_smooth`, `dim`, and optionally `transfer`, from
+ * which the transfer tensors are built (`bayesian_decay_build_transfer_tensors`). ucfret's
  * `s89_cpp/emit_cbm56_fixture.py` writes this format. Returns the parsed manifest
  * too, for a caller that stores more in it.
  */
@@ -242,6 +293,7 @@ inline nlohmann::json bayesian_decay_experiment_load(const std::string& dir, Bay
     if (!in) throw std::runtime_error("short read of array " + it.key());
     ex.arrays.emplace(it.key(), std::move(arr));
   }
+  if (m.count("transfer")) bayesian_decay_build_transfer_tensors(m["transfer"], ex);
   ex.kernel_ptr = std::make_shared<BayesianPeriodicKernel>(ex.axis(), ex["tau_c"].d);
   return m;
 }
