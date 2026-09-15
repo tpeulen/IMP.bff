@@ -32,17 +32,6 @@ void AcceptorDensityDecay::evaluate() {
   const std::shared_ptr<GraphPort> out = get_output_port(get_name());
   if (!out) throw std::domain_error(where + " writes to the output keyed by its own name");
   out->set_value_vector(decay);
-  // What the density means, published where a port asks for it: the transfer
-  // efficiency it implies, and the absolute density for the node's R0.
-  if (const std::shared_ptr<GraphPort> e = get_output_port("efficiency")) {
-    e->set_value(acceptor_transfer_efficiency(std::fabs(density->get_value()), dimension_));
-  }
-  if (const std::shared_ptr<GraphPort> rho = get_output_port("acceptor_density")) {
-    const std::shared_ptr<GraphPort> r0 = get_input_port("forster_radius");
-    if (!r0) throw std::domain_error(where + " publishes acceptor_density and needs forster_radius");
-    rho->set_value(std::fabs(density->get_value()) *
-                   acceptor_characteristic_density(r0->get_value(), dimension_));
-  }
   set_valid(true);
 }
 

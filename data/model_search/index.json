@@ -8,6 +8,7 @@
  "tcspc_fret_gaussian",
  "tcspc_fret_ising_chain",
  "tcspc_fret_saw_nu",
+ "tcspc_fret_tabulated",
  "tcspc_fret_worm_like_chain",
  "tcspc_lifetime",
  "tcspc_mixture",

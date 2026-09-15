@@ -188,3 +188,41 @@ def test_polymer_weights_jacobian_is_the_derivative_of_the_output(mode, values, 
     if normalize:
         scale = np.abs(analytic).max()
         np.testing.assert_allclose(analytic.sum(axis=0), 0.0, atol=1e-10 * scale + 1e-14)
+
+
+def _tabulated(threshold=0.0):
+    node = bff.TabulatedDistances("t")
+    node.configure('{"number_of_distributions": 2, "threshold": %r}' % threshold)
+    node.add_output_port("t", bff.GraphPort([0.0], False, True))
+    node.add_input_port("axis", bff.GraphPort(list(GRID)))
+    node.add_input_port("distribution0", bff.GraphPort(list(np.exp(-0.5 * ((GRID - 45) / 5) ** 2))))
+    node.add_input_port("distribution1", bff.GraphPort(list(3.0 * np.exp(-0.5 * ((GRID - 70) / 9) ** 2))))
+    node.add_input_port("fraction0", bff.GraphPort(0.6))
+    node.add_input_port("fraction1", bff.GraphPort(0.4))
+    return node
+
+
+def test_tabulated_distributions_mix_as_shares_of_the_ensemble():
+    node = _tabulated()
+    node.update()
+    out = np.asarray(node.get_output_port("t").value)
+    q0 = np.exp(-0.5 * ((GRID - 45) / 5) ** 2)
+    q1 = np.exp(-0.5 * ((GRID - 70) / 9) ** 2)
+    expected = 0.6 * q0 / q0.sum() + 0.4 * q1 / q1.sum()
+    np.testing.assert_allclose(out[0::2], expected / expected.sum(), rtol=1e-12)
+    np.testing.assert_allclose(out[1::2], GRID)
+
+
+@pytest.mark.parametrize("threshold", [0.0, 1e-3])
+def test_tabulated_weights_jacobian(threshold):
+    node = _tabulated(threshold)
+    values = {"fraction0": 0.6, "fraction1": -0.4}
+    _weights(node, "t", values)
+    names = list(node.get_parameter_names())
+    assert names == ["fraction0", "fraction1"]
+    analytic = np.asarray(node.get_weights_jacobian()).reshape(GRID.size, 2)
+    reference = _richardson(node, "t", values, names)
+    assert _worst(analytic, reference) < 1e-7
+    planted = analytic.copy()
+    planted.flat[int(np.argmax(np.abs(planted)))] *= 1 + 1e-5
+    assert _worst(planted, reference) > 5e-6
