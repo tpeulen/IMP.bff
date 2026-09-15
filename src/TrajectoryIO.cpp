@@ -22,6 +22,11 @@
 #include <cstring>
 #include <fstream>
 #include <fcntl.h>
+#ifdef _WIN32
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -54,7 +59,11 @@ void on_row(ihm_reader *, int, void *data, ihm_error **) {
 
 //! Parse \p path, filling \p c. Throws on any reader error.
 void parse(const std::string& path, const std::string& category, Collector& c) {
+#ifdef _WIN32
+    int fd = _open(path.c_str(), O_RDONLY);
+#else
     int fd = ::open(path.c_str(), O_RDONLY);
+#endif
     if (fd < 0) {
         IMP_THROW("cannot open BinaryCIF trajectory " << path, IMP::IOException);
     }
@@ -72,6 +81,15 @@ void parse(const std::string& path, const std::string& category, Collector& c) {
     std::string message;
     if (!ok) message = err && err->msg ? err->msg : "unknown error";
     ihm_reader_free(reader);
+    // ihm_file_new_from_fd passes no free_func, so freeing the reader never
+    // closes fd -- harmless on POSIX (unlinking an open file is fine there),
+    // but a leaked Windows handle blocks the caller's own next delete or
+    // reopen of this same path.
+#ifdef _WIN32
+    _close(fd);
+#else
+    close(fd);
+#endif
     if (!ok) {
         IMP_THROW("reading " << path << ": " << message, IMP::IOException);
     }

@@ -327,9 +327,16 @@ class Tests(unittest.TestCase):
 
         # A PathMap is its own lattice (IMP.bff.DensityGrid), not an
         # IMP.em.DensityMap any more; the IMP.em door is an explicit copy.
-        # write OBSTACLES to map
-        with tempfile.NamedTemporaryFile(suffix=".mrc") as temp_file:
-            IMP.em.write_map(av1_map.create_density_map(), temp_file.name)
+        # write OBSTACLES to map. delete=False: a NamedTemporaryFile still
+        # open holds an exclusive Windows handle that IMP.em.write_map's own
+        # open of the same path cannot share, so the handle must be closed
+        # (exiting the `with`) before writing through a second one.
+        with tempfile.NamedTemporaryFile(suffix=".mrc", delete=False) as temp_file:
+            temp_path = temp_file.name
+        try:
+            IMP.em.write_map(av1_map.create_density_map(), temp_path)
+        finally:
+            os.unlink(temp_path)
 
         pm_features = [
             IMP.bff.PM_TILE_PENALTY,             # Penality of visiting a tile
@@ -345,8 +352,13 @@ class Tests(unittest.TestCase):
         erw = IMP.em.MRCReaderWriter()
         
         for feature in pm_features:
-            with tempfile.NamedTemporaryFile(suffix=".mrc") as temp_file:
+            # delete=False: the handle must be closed (exiting the `with`)
+            # before write_map_feature/read_map open the same path through
+            # IMP's own I/O -- a still-open Windows handle is exclusive and
+            # a second open of the same path fails.
+            with tempfile.NamedTemporaryFile(suffix=".mrc", delete=False) as temp_file:
                 fn = temp_file.name
+            try:
                 # Relative to this file, not the working directory: the
                 # suite is run from the repository root as often as from
                 # here, and a reference that resolves only in one of them
@@ -357,12 +369,15 @@ class Tests(unittest.TestCase):
                 if create_references:
                     fn = fn_ref
                 IMP.bff.write_map_feature(av1_map, fn, feature, bounds)
-                
+
                 em_map_ref = IMP.em.DensityMap()
                 em_map_ref = IMP.em.read_map(fn_ref, erw)
 
                 em_map = IMP.em.DensityMap()
                 em_map = IMP.em.read_map(fn, erw)
+            finally:
+                if fn != fn_ref:
+                    os.unlink(fn)
 
     def test_av_random_points(self):
         n_samples = 10

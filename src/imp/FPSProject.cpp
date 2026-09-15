@@ -27,7 +27,7 @@ using IMP::bff::internal::file_exists;
 using IMP::bff::internal::trimmed;
 
 std::string directory_of(const std::string& path) {
-    const std::size_t at = path.find_last_of('/');
+    const std::size_t at = path.find_last_of("/\\");
     return at == std::string::npos ? std::string() : path.substr(0, at);
 }
 

@@ -39,15 +39,26 @@ namespace {
     `/Users/me/dye.mol2` came back as `/var/Users/me/dye.mol2`, and the reader
     said the file did not exist. It did.
 */
+//! `p` is absolute: a leading POSIX `/` or `\`, or a Windows drive letter
+//! ("C:..."), recognized unconditionally so a foreign path is never mistaken
+//! for relative and mangled onto a local one.
+bool is_absolute_path(const std::string& p) {
+    if (p.empty()) return false;
+    if (p[0] == '/' || p[0] == '\\') return true;
+    return p.size() > 1 && std::isalpha(static_cast<unsigned char>(p[0])) &&
+           p[1] == ':';
+}
+
 std::string relative_path(const std::string& path, const std::string& base) {
-    if (path.empty() || path[0] != '/' || base.empty() || base[0] != '/') {
+    if (path.empty() || !is_absolute_path(path) || base.empty() ||
+        !is_absolute_path(base)) {
         return path;   // nothing to relate; keep what the caller gave
     }
     const auto split = [](const std::string& s) {
         std::vector<std::string> out;
         std::size_t i = 0;
         while (i < s.size()) {
-            const std::size_t j = s.find('/', i);
+            const std::size_t j = s.find_first_of("/\\", i);
             const std::string part =
                     s.substr(i, j == std::string::npos ? j : j - i);
             if (!part.empty() && part != ".") out.push_back(part);
