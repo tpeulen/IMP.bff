@@ -16,7 +16,13 @@ check fail:
   periodic kernel, computed here in the time domain (no FFT), clamped and
   renormalised;
 * 18b: a decay built from known coefficients is reproduced by its ridge
-  projection within the ridge's bias bound, sqrt(lambda) |c| / 2 in data space (the algorithm itself is tested in tttrlib's `test_damped_newton.cpp`).
+  projection within the ridge's bias bound, sqrt(lambda) |c| / 2 in data space;
+* 18c: a map of rate 0 is the identity (each lifetime column maps onto itself,
+  within the ridge's bias bound),
+  and a quenched column carries the light the donor keeps, tau_s / tau =
+  1 / (1 + k tau) -- a map that forgot that scaling would carry all of it.
+  Against the Python maps (CBM56, 128 distances, 11 rotational times) the decays
+  agree to 4.8e-12 of their peaks: ucfret `transfer_gate.cpp`. (the algorithm itself is tested in tttrlib's `test_damped_newton.cpp`).
 
 The C++ basis also equals the Python prototype's (`s53_phase1_pseudolik.Basis`,
 cached CBM56 environment) to 1.2e-13 of each column's peak: ucfret
@@ -85,7 +91,28 @@ int main() {
     r4 += (v - y[i]) * (v - y[i]);
   }
   const double bound = 0.5 * std::sqrt(P.lambda() * c2);
-  std::printf("{\"recon\": %.6e, \"recon_bound\": %.6e, \"recon_ridge_x1e4\": %.6e, \"lambda\": %.6e, ",
+  // 18c: maps of an added rate. Rate 0 is the identity; the light a column keeps is tau_s / tau
+  const std::vector<double> rates = {0.0, 0.25, 4.0};
+  const std::vector<double> S = bayesian_transfer_rate_maps(tb, P, rates);
+  const std::size_t nt = tau.size();
+  double identity = 0.0, area = 0.0, area_ctl = 0.0;
+  for (std::size_t j = 0; j < rates.size(); ++j)
+    for (std::size_t c = 0; c < nt; ++c) {
+      double tot = 0.0, dev = 0.0;
+      for (std::size_t i = 0; i < n; ++i) {
+        double v = 0.0;
+        for (std::size_t k = 0; k < K; ++k) v += tb.basis.B[i * K + k] * S[(j * K + k) * nt + c];
+        tot += v;
+        if (j == 0) dev += (v - tb.basis.B[i * K + 1 + c]) * (v - tb.basis.B[i * K + 1 + c]);
+      }
+      const double keep = 1.0 / (1.0 + rates[j] * tau[c]);
+      // a unit coefficient: the ridge leaves at most sqrt(lambda)/2 in data space (2-norm)
+      if (j == 0) identity = std::max(identity, std::sqrt(dev) / (0.5 * std::sqrt(P.lambda())));
+      area = std::max(area, std::fabs(tot - keep));
+      area_ctl = std::max(area_ctl, std::fabs(tot - 1.0));
+    }
+  std::printf("{\"map_identity\": %.6e, \"map_area\": %.6e, \"map_area_if_unscaled\": %.6e, ", identity, area, area_ctl);
+  std::printf("\"recon\": %.6e, \"recon_bound\": %.6e, \"recon_ridge_x1e4\": %.6e, \"lambda\": %.6e, ",
               std::sqrt(r2), bound, std::sqrt(r4), P.lambda());
   std::printf("\"n_tau\": %zu, \"tau_first\": %.15g, \"tau_last\": %.15g, \"K\": %zu, \"response\": %.6e, \"floor\": %.6e,"
               " \"column_sum\": %.6e, \"convolution\": %.6e}\n",
@@ -125,3 +152,14 @@ def test_the_projection_reproduces_a_decay_in_the_span(result):
     assert result["recon"] <= result["recon_bound"], result
     # the check can tell: 1e4 times the ridge leaves more than the default's bound
     assert result["recon_ridge_x1e4"] > result["recon_bound"], result
+
+
+def test_a_rate_map_of_zero_is_the_identity(result):
+    # in units of the ridge's bias bound for a unit coefficient
+    assert result["map_identity"] <= 1.0, result
+
+
+def test_a_rate_map_keeps_the_light_the_donor_keeps(result):
+    assert result["map_area"] < 1e-6, result
+    # the check can tell: the unscaled columns would all carry one unit
+    assert result["map_area_if_unscaled"] > 0.1, result
