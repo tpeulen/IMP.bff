@@ -50,6 +50,7 @@
 #include <boost/random/uniform_real.hpp>
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstdarg>
 #include <cstdio>
@@ -86,11 +87,24 @@ void fail(const std::string& message) { IMP_THROW(message, IMP::ValueException);
 
 // ---- paths, as os.path spells them ----------------------------------------
 
+//! A path separator on any platform this may read a path from -- a project
+//! written on Windows and read here, or vice versa, still has one meaning.
+bool is_sep(char c) { return c == '/' || c == '\\'; }
+
+//! `p` starts with a drive letter, e.g. "C:". Recognized unconditionally,
+//! not only under `_WIN32`: a foreign absolute path must never be treated as
+//! relative and glued onto a local one, which produces a path that opens
+//! nothing and reads like garbage (`/D:\a\...\C:\Users\...`).
+bool has_drive(const std::string& p) {
+  return p.size() > 1 && std::isalpha(static_cast<unsigned char>(p[0])) &&
+         p[1] == ':';
+}
+
 std::vector<std::string> split_parts(const std::string& path) {
   std::vector<std::string> parts;
   std::string part;
   for (std::size_t i = 0; i <= path.size(); ++i) {
-    if (i == path.size() || path[i] == '/') {
+    if (i == path.size() || is_sep(path[i])) {
       if (part == "..") {
         if (!parts.empty()) parts.pop_back();
       } else if (!part.empty() && part != ".") {
@@ -114,24 +128,36 @@ std::string cwd() {
   return c ? std::string(c) : std::string(".");
 }
 
-bool is_abs(const std::string& p) { return !p.empty() && p[0] == '/'; }
+bool is_abs(const std::string& p) {
+  if (p.empty()) return false;
+  if (is_sep(p[0])) return true;
+  return has_drive(p);
+}
 
 //! os.path.abspath
 std::string abspath(const std::string& path) {
   const std::string full = is_abs(path) ? path : cwd() + "/" + path;
   const std::vector<std::string> parts = split_parts(full);
+  if (parts.empty()) return std::string("/");
   std::string out;
-  for (std::size_t i = 0; i < parts.size(); ++i) out += "/" + parts[i];
+  std::size_t i = 0;
+  // A drive letter leads the path directly ("C:/..."), never after a slash
+  // ("/C:/..." is not a path anything on Windows will open).
+  if (has_drive(parts[0])) {
+    out = parts[0];
+    i = 1;
+  }
+  for (; i < parts.size(); ++i) out += "/" + parts[i];
   return out.empty() ? std::string("/") : out;
 }
 
 std::string join(const std::string& a, const std::string& b) {
   if (a.empty() || is_abs(b)) return b;
-  return a[a.size() - 1] == '/' ? a + b : a + "/" + b;
+  return is_sep(a[a.size() - 1]) ? a + b : a + "/" + b;
 }
 
 std::string dirname(const std::string& path) {
-  const std::size_t slash = path.find_last_of('/');
+  const std::size_t slash = path.find_last_of("/\\");
   if (slash == std::string::npos) return std::string();
   return slash == 0 ? std::string("/") : path.substr(0, slash);
 }
@@ -147,8 +173,11 @@ std::string resolve(const std::string& path) {
       return tail.empty() ? std::string(buf) : join(std::string(buf), tail);
     }
 #endif
-    if (head == "/" || head.empty()) return rest;
-    const std::size_t slash = head.find_last_of('/');
+    // A drive root ("C:") is Windows' "/": realpath does not exist there, so
+    // this is where the walk stops and abspath's answer is the final one.
+    if (head.empty() || head == "/" || has_drive(head)) return rest;
+    const std::size_t slash = head.find_last_of("/\\");
+    if (slash == std::string::npos) return rest;
     const std::string leaf = head.substr(slash + 1);
     tail = tail.empty() ? leaf : leaf + "/" + tail;
     head = slash == 0 ? std::string("/") : head.substr(0, slash);

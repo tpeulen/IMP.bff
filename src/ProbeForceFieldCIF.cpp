@@ -22,6 +22,8 @@
 #include <fcntl.h>
 #ifdef _WIN32
 #include <io.h>
+#else
+#include <unistd.h>
 #endif
 #include <map>
 #include <string>
@@ -399,9 +401,25 @@ ProbeForceFieldSystem read_forcefield_cif(const std::string& path) {
         const std::string message = err && err->msg ? err->msg : "parse failed";
         if (err) ihm_error_free(err);
         ihm_reader_free(reader);
+        // ihm_file_new_from_fd (called above) passes no free_func, so
+        // ihm_reader_free -> ihm_file_free never closes fd -- harmless on a
+        // POSIX system, which tolerates unlinking a file with an fd still
+        // open on it, but a leaked Windows handle blocks the caller's own
+        // next delete or reopen of the same path with "used by another
+        // process". Close it explicitly on every path out of this function.
+#ifdef _WIN32
+        _close(fd);
+#else
+        close(fd);
+#endif
         IMP_THROW("reading " << path << ": " << message, IOException);
     }
     ihm_reader_free(reader);
+#ifdef _WIN32
+    _close(fd);
+#else
+    close(fd);
+#endif
 
     // Compact site numbers resolve only once every site row has been seen: a
     // term may name a number whose `_ff_site` row comes later in the file.
