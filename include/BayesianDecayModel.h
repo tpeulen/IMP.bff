@@ -53,6 +53,7 @@
 #include <IMP/bff/PhotophysicsPolarisation.h>
 #include <IMP/bff/internal/json.h>
 #include <IMP/bff/internal/BayesianParallel.h>
+#include <IMP/bff/internal/CrosstalkMixing.h>
 #include <IMP/bff/internal/TCSPCInstrument.h>
 #include <algorithm>
 #include <atomic>
@@ -538,7 +539,14 @@ inline std::vector<double> bayesian_decay_amplitudes(const BayesianDecayExperime
             for (std::size_t i = 0; i < Kint; ++i) rot[k] += Srho[k * Kint + i] * S.don[1 + i];
         mix_polarised(S.don.data(), rot.data(), K, r0, sign, 1.0, pol_d.data());
         mix_polarised(S.acc.data(), S.accr.data(), K, r0_a, sign, 1.0, pol_a.data());
-        for (std::size_t k = 0; k < K; ++k) mix[k] = Gc * (CD * pol_d[k] + CA * pol_a[k]) / gf;
+        //: the emission: the detector's column of the crosstalk matrix, (donor, acceptor) =
+        //: (G C_D, G C_A), applied through internal/CrosstalkMixing.h, then g once
+        const double column[2] = {Gc * CD, Gc * CA};
+        std::vector<double> sources(2 * K);
+        std::copy(pol_d.begin(), pol_d.end(), sources.begin());
+        std::copy(pol_a.begin(), pol_a.end(), sources.begin() + std::ptrdiff_t(K));
+        internal::crosstalk_mix(column, 2, 1, sources.data(), K, mix.data());
+        for (std::size_t k = 0; k < K; ++k) mix[k] /= gf;
         // the instrument stage (internal/TCSPCInstrument.h) in the basis's amplitude space:
         // every column sums to one, so the response and the flat background are unit
         // vectors -- the same stage TCSPCDecay applies in channel space
@@ -830,7 +838,14 @@ inline std::vector<double> bayesian_decay_amplitude_jacobian(const BayesianDecay
             for (std::size_t i = 0; i < Kint; ++i) rot_dn[k] += Srho[k * Kint + i] * B.don[1 + i];
         mix_polarised(B.don.data(), rot_dn.data(), K, r0, sign, 1.0, pol_d.data());
         mix_polarised(B.acc.data(), B.accr.data(), K, r0_a, sign, 1.0, pol_a.data());
-        for (std::size_t k = 0; k < K; ++k) mix[k] = Gc * (CD * pol_d[k] + CA * pol_a[k]) / gf;
+        {   //: the emission, as in bayesian_decay_amplitudes (internal/CrosstalkMixing.h)
+            const double column[2] = {Gc * CD, Gc * CA};
+            std::vector<double> sources(2 * K);
+            std::copy(pol_d.begin(), pol_d.end(), sources.begin());
+            std::copy(pol_a.begin(), pol_a.end(), sources.begin() + std::ptrdiff_t(K));
+            internal::crosstalk_mix(column, 2, 1, sources.data(), K, mix.data());
+            for (std::size_t k = 0; k < K; ++k) mix[k] /= gf;
+        }
         std::vector<double> Jk(K * dim, 0.0);
         if (has_don) {
             for (std::size_t k = 0; k < K; ++k) for (std::size_t c = 0; c < dim; ++c) {
