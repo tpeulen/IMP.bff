@@ -218,6 +218,21 @@ IMPBFFEXPORT std::vector<double> transfer_kinetics_spectrum(
     const std::string& channel, const std::string& chromophore_a = "A",
     const std::string& chromophore_b = "B", int mode = TRANSFER_EXACT, double eps = 1e-9);
 
+#ifndef SWIG
+namespace internal {
+//! #transfer_kinetics_spectrum, and with \p kinds non-null the exact form: a
+//! degeneracy in #TRANSFER_EXACT mode is one `t e^{-kt}` component flagged 1 in
+//! \p kinds (one entry per component) instead of two split exponentials.
+IMPBFFEXPORT std::vector<double> transfer_kinetics_spectrum_kinds(
+    const std::vector<double>& spectrum_a, const std::vector<double>& spectrum_b,
+    const std::vector<double>& rates, double f_ab, double f_ba,
+    const std::vector<double>& populations, const PhotophysicsCrosstalkMatrix& excitation,
+    const PhotophysicsCrosstalkMatrix& emission, const std::string& pulse,
+    const std::string& channel, const std::string& chromophore_a,
+    const std::string& chromophore_b, int mode, double eps, std::vector<double>* kinds);
+}  // namespace internal
+#endif  // SWIG
+
 //! Initial populations `(pi_A, pi_B, pi_AB)` from pure fractions, as ChiSurf's PDDEM.
 /*! `pi_A = pA (1 - pB) / (1 - pA pB)`, `pi_B` likewise, `pi_AB = 1 - pi_A - pi_B`. */
 IMPBFFEXPORT std::vector<double> transfer_populations_from_pure_fractions(double pure_a,

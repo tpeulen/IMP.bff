@@ -672,3 +672,54 @@ class SpectrumPortTests(unittest.TestCase):
         node = bff.TCSPCDecay("decay")
         with self.assertRaises(ValueError):
             node.set_spectrum_from_port(True)
+
+
+class TExponentialComponentTests(unittest.TestCase):
+    """`spectrum_kinds`: a component `a t e^{-t/tau}`, as a transfer kinetics
+    at a degeneracy gives, convolved through the same kernel as the rest."""
+
+    def _piped(self, spectrum, kinds=None, convolve=True):
+        irf = response()
+        node = build(len(spectrum) // 2, irf)
+        node.set_spectrum_from_port(True)
+        node.set_convolve(convolve)
+        node.get_input_port("lifetime_spectrum").set_values_array(np.ascontiguousarray(spectrum, dtype=float))
+        if kinds is not None:
+            node.add_input_port("spectrum_kinds", bff.GraphPort([0.0]))
+            node.get_input_port("spectrum_kinds").set_values_array(np.ascontiguousarray(kinds, dtype=float))
+        return node
+
+    def test_a_t_exponential_is_the_limit_of_split_exponentials(self):
+        tau, a, h_rel = 2.5, 3.0, 1e-4
+        k = 1.0 / tau
+        h = h_rel * k
+        exact = curve_of(self._piped([0.7, 0.9, a, tau], [0.0, 1.0]))
+        # a t e^{-kt} ~ a (e^{-(k-h)t} - e^{-(k+h)t}) / (2h), error O(h^2)
+        split = curve_of(self._piped([0.7, 0.9, a / (2 * h), 1.0 / (k - h), -a / (2 * h), 1.0 / (k + h)]))
+        np.testing.assert_allclose(exact, split, rtol=1e-6, atol=1e-6 * exact.max())
+
+    def test_without_kinds_nothing_changes(self):
+        spectrum = [0.7, 0.9, 0.3, 2.5]
+        plain = curve_of(self._piped(spectrum))
+        zeros = curve_of(self._piped(spectrum, [0.0, 0.0]))
+        np.testing.assert_array_equal(plain, zeros)
+
+    def test_unconvolved_t_exponential_is_the_periodic_sum(self):
+        tau, a = 2.5, 3.0
+        got = curve_of(self._piped([a, tau], [1.0], convolve=False))
+        t = np.arange(N) * DT
+        want = sum(a * (t + n * PERIOD) * np.exp(-(t + n * PERIOD) / tau) for n in range(200))
+        np.testing.assert_allclose(got, want, rtol=1e-12, atol=1e-14)
+
+    def test_kinds_must_match_the_spectrum(self):
+        node = self._piped([0.7, 0.9, 0.3, 2.5], [1.0])
+        with self.assertRaises(ValueError):
+            curve_of(node)
+
+    def test_the_basis_column_of_a_t_exponential_is_its_curve(self):
+        spectrum, kinds = [0.7, 0.9, 3.0, 2.5], [0.0, 1.0]
+        node = self._piped(spectrum, kinds)
+        node.set_emit_basis(True)
+        curve = curve_of(node)
+        basis = np.asarray(node.get_output_port("basis").value, dtype=float).reshape(N, 2)
+        np.testing.assert_allclose(basis @ np.array([0.7, 3.0]), curve, rtol=1e-12, atol=1e-12 * curve.max())

@@ -78,11 +78,16 @@ void PhotophysicsTransferKineticsNode::evaluate() {
   const std::vector<std::string> chromophores{"A", "B"};
   const PhotophysicsCrosstalkMatrix excitation(pulses_, chromophores, excitation_values);
   const PhotophysicsCrosstalkMatrix emission(chromophores, channels_, emission_values);
-  const std::vector<double> spectrum = transfer_kinetics_spectrum(
+  // A `kinds` output asks for the exact spectrum: a degeneracy as one
+  // t e^{-kt} component, flagged, for a TCSPCDecay's `spectrum_kinds`.
+  const std::shared_ptr<GraphPort> kinds_out = get_output_port("kinds");
+  std::vector<double> kinds;
+  const std::vector<double> spectrum = internal::transfer_kinetics_spectrum_kinds(
       values("spectrum_a"), values("spectrum_b"), values("rates"), value("f_ab"),
       value("f_ba"),
       transfer_populations_from_pure_fractions(value("pure_a"), value("pure_b")), excitation,
-      emission, pulse_, channel_, "A", "B", mode_, eps_);
+      emission, pulse_, channel_, "A", "B", mode_, eps_, kinds_out ? &kinds : nullptr);
+  if (kinds_out) kinds_out->set_value_vector(kinds);
   const std::shared_ptr<GraphPort> out = get_output_port(get_name());
   if (!out) {
     throw std::domain_error(where + " writes to the output keyed by its own name, "

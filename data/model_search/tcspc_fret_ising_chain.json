@@ -172,6 +172,15 @@
    "x": "time (ns)",
    "y": "counts",
    "scale_y": "log"
+  },
+  "group_position": {
+   "_comment": "A fit added as part of a group takes this scalar from its place in the group, as ChiSurf's classic polarised fits did: one fit alone is magic angle, a group alternates VV, VH by position.",
+   "scalar": "polarization",
+   "single": 0,
+   "alternate": [
+    1,
+    2
+   ]
   }
  },
  "datasets": [

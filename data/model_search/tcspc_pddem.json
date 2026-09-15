@@ -170,6 +170,33 @@
    "x": "time (ns)",
    "y": "counts",
    "scale_y": "log"
+  },
+  "reports": {
+   "alpha_a": {
+    "label": "αA→B",
+    "function": "chisurf.core.fluorescence.fret.pddem:emission_share",
+    "arguments": {
+     "own": "#pddem.emission_a",
+     "other": "#pddem.emission_b"
+    }
+   },
+   "alpha_b": {
+    "label": "αB→A",
+    "function": "chisurf.core.fluorescence.fret.pddem:emission_share",
+    "arguments": {
+     "own": "#pddem.emission_b",
+     "other": "#pddem.emission_a"
+    }
+   }
+  },
+  "group_position": {
+   "_comment": "A fit added as part of a group takes this scalar from its place in the group, as ChiSurf's classic polarised fits did: one fit alone is magic angle, a group alternates VV, VH by position.",
+   "scalar": "polarization",
+   "single": 0,
+   "alternate": [
+    1,
+    2
+   ]
   }
  },
  "datasets": [
@@ -681,7 +708,8 @@
      "emission_B_channel": "#pddem.emission_b"
     },
     "outputs": {
-     "@name": "float_vector"
+     "@name": "float_vector",
+     "kinds": "float_vector"
     }
    },
    "polarized": {
@@ -702,6 +730,7 @@
     },
     "inputs": {
      "lifetime_spectrum": "transfer",
+     "spectrum_kinds": "transfer.kinds",
      "repeat": {
       "index": "j",
       "count": "m",
@@ -716,7 +745,8 @@
      "l2": "#anisotropy.l2"
     },
     "outputs": {
-     "@name": "float_vector"
+     "@name": "float_vector",
+     "kinds": "float_vector"
     }
    },
    "decay": {
@@ -790,6 +820,7 @@
     },
     "inputs": {
      "lifetime_spectrum": "polarized",
+     "spectrum_kinds": "polarized.kinds",
      "scatter": "#instrument.scatter",
      "background": "#instrument.background",
      "n0": "#instrument.n0",

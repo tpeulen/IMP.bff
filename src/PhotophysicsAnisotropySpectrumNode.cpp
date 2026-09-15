@@ -119,6 +119,33 @@ void PhotophysicsAnisotropySpectrumNode::build_rotation_spectrum() {
   }
 }
 
+namespace {
+
+//! The component kinds the spectrum arrived with (`spectrum_kinds`, optional),
+//! one per component: zeros when absent.
+std::vector<double> incoming_kinds(GraphNode* node, std::size_t n) {
+  std::vector<double> kinds(n, 0.0);
+  if (const std::shared_ptr<GraphPort> in = node->get_input_port("spectrum_kinds")) {
+    const std::vector<double>& given = in->get_values_ref();
+    const bool any = std::any_of(given.begin(), given.end(), [](double v) { return v != 0.0; });
+    if (given.size() == n) {
+      kinds.assign(given.begin(), given.end());
+    } else if (any) {
+      throw std::domain_error("PhotophysicsAnisotropySpectrumNode '" + node->get_name() + "': " +
+                              std::to_string(given.size()) + " component kinds for " +
+                              std::to_string(n) + " components");
+    }
+  }
+  return kinds;
+}
+
+//! Publish the kinds of the output spectrum, when a `kinds` output was asked for.
+void publish_kinds(GraphNode* node, const std::vector<double>& kinds) {
+  if (const std::shared_ptr<GraphPort> out = node->get_output_port("kinds")) out->set_value_vector(kinds);
+}
+
+}  // namespace
+
 void PhotophysicsAnisotropySpectrumNode::evaluate() {
   if (spectrum_port_ == nullptr) {
     throw std::domain_error("PhotophysicsAnisotropySpectrumNode '" + get_name() +
@@ -147,6 +174,7 @@ void PhotophysicsAnisotropySpectrumNode::evaluate() {
     spectrum_ = incoming;
     rotation_.clear();
     spectrum_node_detail::publish(this, spectrum_);
+    publish_kinds(this, incoming_kinds(this, incoming.size() / 2));
     set_valid(true);
     return;
   }
@@ -190,6 +218,19 @@ void PhotophysicsAnisotropySpectrumNode::evaluate() {
     interleaved_scale_amplitudes(vh, 1.0 - l2, &spectrum_);
   }
   spectrum_node_detail::publish(this, spectrum_);
+  if (get_output_port("kinds")) {
+    // The layout above, kind by kind: a channel is the incoming components
+    // followed by the product (rotation-major, so the incoming kinds repeat
+    // once per rotation; a rotation does not change t e^{-t/tau} into
+    // anything else); VV and VH have that layout, and the channel is their union.
+    const std::vector<double> k = incoming_kinds(this, incoming.size() / 2);
+    std::vector<double> one(k);
+    for (int r = 0; r < n_rotations_; ++r) one.insert(one.end(), k.begin(), k.end());
+    std::vector<double> kinds;
+    const int unions = polarization_ == VV_VH ? 2 : 1;
+    for (int u = 0; u < 2 * unions; ++u) kinds.insert(kinds.end(), one.begin(), one.end());
+    publish_kinds(this, kinds);
+  }
   set_valid(true);
 }
 

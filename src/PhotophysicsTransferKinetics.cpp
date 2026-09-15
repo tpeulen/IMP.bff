@@ -71,6 +71,21 @@ std::vector<double> transfer_kinetics_spectrum(
     const PhotophysicsCrosstalkMatrix& emission, const std::string& pulse,
     const std::string& channel, const std::string& chromophore_a,
     const std::string& chromophore_b, int mode, double eps) {
+  return internal::transfer_kinetics_spectrum_kinds(spectrum_a, spectrum_b, rates, f_ab, f_ba,
+                                                    populations, excitation, emission, pulse,
+                                                    channel, chromophore_a, chromophore_b, mode,
+                                                    eps, nullptr);
+}
+
+namespace internal {
+
+std::vector<double> transfer_kinetics_spectrum_kinds(
+    const std::vector<double>& spectrum_a, const std::vector<double>& spectrum_b,
+    const std::vector<double>& rates, double f_ab, double f_ba,
+    const std::vector<double>& populations, const PhotophysicsCrosstalkMatrix& excitation,
+    const PhotophysicsCrosstalkMatrix& emission, const std::string& pulse,
+    const std::string& channel, const std::string& chromophore_a,
+    const std::string& chromophore_b, int mode, double eps, std::vector<double>* kinds) {
   if (spectrum_a.size() % 2 || spectrum_b.size() % 2 || rates.size() % 2) {
     throw std::domain_error(
         "transfer_kinetics_spectrum: spectra and rates are interleaved pairs");
@@ -89,9 +104,11 @@ std::vector<double> transfer_kinetics_spectrum(
   const std::size_t n_rates = rates.size() / 2;
   std::vector<double> out;
   out.reserve(2 * n_rates * (2 * n_a * n_b + n_a + n_b));
-  const auto push = [&out](double amplitude, double rate) {
+  if (kinds) kinds->clear();
+  const auto push = [&out, kinds](double amplitude, double rate, double kind = 0.0) {
     out.push_back(amplitude);
     out.push_back(rate != 0.0 ? 1.0 / rate : 0.0);
+    if (kinds) kinds->push_back(kind);
   };
   for (std::size_t r = 0; r < n_rates; ++r) {
     const double w = rates[2 * r];
@@ -112,7 +129,11 @@ std::vector<double> transfer_kinetics_spectrum(
         internal::transfer_pair_components_t(tau_a, tau_b, k * f_ab, k * f_ba, p_a, p_b,
                                              m_a, m_b, mode, eps, parts);
         const double weight = w * populations[2] * c_a * c_b;
-        if (parts[1].kind == TRANSFER_T_EXPONENTIAL) {
+        if (parts[1].kind == TRANSFER_T_EXPONENTIAL && kinds) {
+          // The exact form, for a consumer that convolves t e^{-kt} itself.
+          push(weight * parts[0].amplitude, parts[0].rate);
+          push(weight * parts[1].amplitude, parts[1].rate, 1.0);
+        } else if (parts[1].kind == TRANSFER_T_EXPONENTIAL) {
           // A sum of exponentials cannot hold t e^{-kt}: split it by eps |k|,
           // c t e^{-kt} ~ c (e^{-(k - h)t} - e^{-(k + h)t}) / (2h).
           const double rate = parts[0].rate;
@@ -129,13 +150,17 @@ std::vector<double> transfer_kinetics_spectrum(
     for (std::size_t i = 0; i < n_a; ++i) {
       out.push_back(w * m_a * p_a * populations[0] * spectrum_a[2 * i]);
       out.push_back(spectrum_a[2 * i + 1]);
+      if (kinds) kinds->push_back(0.0);
     }
     for (std::size_t j = 0; j < n_b; ++j) {
       out.push_back(w * m_b * p_b * populations[1] * spectrum_b[2 * j]);
       out.push_back(spectrum_b[2 * j + 1]);
+      if (kinds) kinds->push_back(0.0);
     }
   }
   return out;
 }
+
+}  // namespace internal
 
 IMPBFF_END_NAMESPACE
