@@ -5,8 +5,8 @@
  * `PhotophysicsLifetimeSpectrum` is the experiment-neutral answer: (amplitude, rate)
  * pairs, with nothing an instrument adds. This is the other half -- what a
  * TCSPC setup makes of such a spectrum: convolved with a measured response,
- * shifted against it, scaled to the data, plus scatter and a constant
- * background. As a `GraphNode`, so a whole fit is one C++ graph:
+ * shifted against it, scaled to the data, plus scatter and background. As a
+ * `GraphNode`, so a whole fit is one C++ graph:
  * `TCSPCDecay -> FitChiSquared -> FitMinimizer`, exactly the arrangement
  * `GraphExpression` gives a parse model.
  *
@@ -23,7 +23,7 @@
  *
  * \par What is a port and what is data
  * A port is something an optimiser writes: the amplitudes and lifetimes,
- * the scatter fraction, the constant background, the amplitude `n0` and the
+ * the scatter and background fractions, the amplitude `n0` and the
  * timeshift. Everything else is measured or configured and is set once --
  * the response function, the data (needed only for autoscaling), the
  * channel width, the excitation period and the windows. The split is the
@@ -65,9 +65,17 @@ IMPBFF_BEGIN_NAMESPACE
  * | port | what it is |
  * |---|---|
  * | `a0`, `t0`, `a1`, `t1`, ... | amplitude and lifetime of each component |
- * | `scatter` | fraction of the (normalised) response added to the curve |
- * | `background` | constant offset, added after scaling |
- * | `n0` | the curve's amplitude; **written** by the node when autoscaling |
+ * | `scatter` | scattered light as a fraction of the fluorescence total `sum(F)`, on the response's shape |
+ * | `background` | uncorrelated background as a fraction of `sum(F)`, flat, added after pile-up |
+ * | `n0` | counts per unit of the convolved decay `F`; **written** by the node when autoscaling |
+ * | `pattern` (optional) | the background pattern's fraction of `sum(F)`; derived from the data when absent |
+ *
+ * The instrument stage is internal/TCSPCInstrument.h, shared with the
+ * Bayesian decay model: expected counts are
+ * `n0 [pileup(F + scatter S r + pattern S q) + background S / n]` times the DNL
+ * table, with `S = sum(F)` and `r`, `q` the unit-sum response and pattern. An
+ * output named `fluorescence_total` receives `S` where one exists, for a caller
+ * that reports absolute scatter or background counts.
  * | `timeshift` | shift of the response against the data, in samples |
  *
  * The curve is written to the output port keyed by the node's own name,
@@ -304,11 +312,11 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
       A background recorded on its own -- buffer, a dark sample -- carries
       its own shape, which a constant does not. ChiSurf's treatment, in its
       order, after the scatter term and before pile-up and scaling: the
-      pattern is shifted with the response's timeshift (unless told not to);
-      the counts it contributes to the measurement are
-      `n_bg = sum(pattern) / t_background * t_decay`; the model is rescaled to
-      the remaining `n_fl = max(sum(data) - n_bg, 1)` counts, and the pattern,
-      rescaled to `n_bg`, is added. It needs the data (#set_data). Empty
+      pattern is shifted with the response's timeshift (unless told not to)
+      and enters with unit sum at a fraction of the fluorescence total -- the
+      `pattern` port where one is given, otherwise ChiSurf's data-derived
+      `n_bg / n_fl`, with `n_bg = sum(pattern) / t_background * t_decay` and
+      `n_fl = max(sum(data) - n_bg, 1)`. It needs the data (#set_data). Empty
       turns it off.
   */
   void set_background_pattern(const std::vector<double>& pattern);
@@ -337,8 +345,8 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
       A model that is already a decay -- an equation of time, convolved with
       the response by a `Convolution` node -- has no lifetime spectrum to
       reconvolve, but it still meets the same instrument as a lifetime fit:
-      the scatter fraction of the response, pile-up, the scale (fixed or
-      fitted to the data), the constant background, the linearisation table
+      scatter, the background pattern, pile-up, the background, the scale
+      (fixed or fitted to the data), the linearisation table
       and the non-negativity clamp. This mode reads the curve from the input
       port #curve_port_key and runs exactly that stage, so there is one
       implementation of the instrument whichever model feeds it. The curve
@@ -491,6 +499,10 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
   std::vector<double> cleaned_;
   bool irf_valid_ = false;
   std::vector<double> basis_;
+  //! Instrument-stage buffers, kept between evaluations.
+  std::vector<double> flat_;
+  std::vector<double> pattern_shape_;
+  std::vector<double> instrument_background_;
   //! The basis species-major, which is how the kernel writes it.
   /*! The port's contract is bins x species, and producing that directly
       means every write of a species' column lands `n_species` doubles from
@@ -523,7 +535,6 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
   bool response_from_port_ = false;
   bool convolve_ = true;
   std::vector<double> background_pattern_;
-  std::vector<double> background_shifted_;
   double t_background_ = 1.0;
   double t_decay_ = 1.0;
   bool shift_background_with_response_ = true;
@@ -543,6 +554,18 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
   void add_scalar_port(const std::string& key, double value, GraphPort** slot);
   void build_spectrum();
 };
+
+//! ChiSurf's absolute scatter and constant background as the instrument's fractions.
+/*! `[scale, scatter, pattern, background]` for `n0`, a scatter of
+    `scatter_absolute` times the unit-sum response and `background_absolute`
+    counts per channel, at a curve whose fluorescence total is
+    `fluorescence_total` over `n_channels` (a TCSPCDecay publishes it on its
+    `fluorescence_total` output). internal/TCSPCInstrument.h's conversion; exact
+    at that curve only. */
+IMPBFFEXPORT std::vector<double> tcspc_fractions_from_absolute(double n0, double scatter_absolute,
+                                                              double background_absolute,
+                                                              double fluorescence_total,
+                                                              int n_channels);
 
 IMPBFF_END_NAMESPACE
 

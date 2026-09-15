@@ -100,8 +100,11 @@ def reference_curve(irf, pairs, timeshift=0.0, scatter=0.0, background=0.0,
     last = len(irf) - 1
     tttrlib.fconv_per_cs(decay, irf_y, spectrum, period,
                          min(len(irf), last), min(len(irf), last), dt)
-    decay = decay + scatter * irf_y
-    decay = decay * n0 + background
+    # The instrument stage (internal/TCSPCInstrument.h): scatter and background
+    # are fractions of the fluorescence total, n0 the counts per unit decay.
+    total = decay.sum()
+    decay = decay + scatter * total * irf_y
+    decay = n0 * (decay + background * total / len(decay))
     return np.maximum(decay, 0)
 
 
@@ -283,6 +286,9 @@ class AutoscaleTests(unittest.TestCase):
 
     @unittest.skipUnless(tttrlib is not None, "tttrlib not importable")
     def test_the_scale_is_chisurfs_weighted_least_squares(self):
+        """Every part of the instrument stage scales with n0, the background
+        fraction included, so n0 is ChiSurf's weighted least-squares factor of
+        the whole unit curve, with nothing subtracted first."""
         pairs = [(1.0, 3.5)]
         irf, y, ey = self._data(pairs)
         node = build(1, irf)
@@ -291,18 +297,17 @@ class AutoscaleTests(unittest.TestCase):
                              np.ascontiguousarray(ey))
         node.set_autoscale(True)
         node.set_scale_range(0, len(y))
-        node.get_input_port("background").value = 2.0
+        node.get_input_port("background").value = 0.02
         got = curve_of(node)
 
         from chisurf.core.fluorescence.tcspc import rescale_w_bg
-        unscaled = reference_curve(irf, pairs)
+        unit = reference_curve(irf, pairs, background=0.02)
         want_n0 = rescale_w_bg(
-            model_decay=unscaled, experimental_decay=y,
-            experimental_weights=1.0 / ey, experimental_background=2.0,
+            model_decay=unit, experimental_decay=y,
+            experimental_weights=1.0 / ey, experimental_background=0.0,
             start=0, stop=len(y))
         self.assertAlmostEqual(node.get_n0() / want_n0, 1.0, places=10)
-        np.testing.assert_allclose(got, np.maximum(unscaled * want_n0 + 2.0,
-                                                   0.0), rtol=1e-10)
+        np.testing.assert_allclose(got, np.maximum(unit * want_n0, 0.0), rtol=1e-10)
 
     def test_the_autoscaled_amplitude_is_published_on_its_port(self):
         """A fit that autoscales still has to report the amplitude it

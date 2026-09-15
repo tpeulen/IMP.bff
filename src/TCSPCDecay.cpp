@@ -12,6 +12,7 @@
  */
 
 #include <IMP/bff/TCSPCDecay.h>
+#include <IMP/bff/internal/TCSPCInstrument.h>
 #include <cstdlib>
 #include <IMP/bff/internal/NodeConfig.h>
 
@@ -707,17 +708,26 @@ void TCSPCDecay::evaluate() {
     }
   }
 
-  const double scatter = scatter_port_->get_value();
-  if (scatter != 0.0) {
-    for (int i = 0; i < n_points; ++i) {
-      curve_[static_cast<std::size_t>(i)] += scatter * irf[static_cast<std::size_t>(i)];
-    }
-  }
+  // The instrument: one implementation, internal/TCSPCInstrument.h, shared
+  // with the Bayesian decay model. Scatter, the background pattern and the
+  // constant background are fractions of the fluorescence total sum(F);
+  // n0 is the counts per unit of F. ChiSurf's order: the components, Coates
+  // pile-up on them, the background after pile-up, the scale, then the DNL
+  // table on the finished curve.
+  const std::size_t n = static_cast<std::size_t>(n_points);
+  internal::TCSPCInstrumentSettings settings;
+  internal::TCSPCInstrumentParameters<double> parameters;
+  parameters.scale = 1.0;  // the scale is applied below, where autoscaling decides it
+  parameters.scatter = scatter_port_->get_value();
+  parameters.background = background_port_->get_value();
+  settings.response = irf.data();
+  flat_.assign(n, n > 0 ? 1.0 / static_cast<double>(n) : 0.0);
+  settings.flat = flat_.data();
 
-  // A measured background pattern, ChiSurf's order: after the scatter term,
-  // before pile-up and the scale. The model is given the fluorescence counts
-  // the background leaves over, and the pattern the counts it was measured to
-  // contribute.
+  // A measured background pattern: its shape (shifted with the response when
+  // asked, unit sum) and its fraction -- given on the `pattern` port, or, as
+  // ChiSurf derives it, the counts the measurement times assign it over the
+  // fluorescence counts the data leave.
   if (!background_pattern_.empty()) {
     if (background_pattern_.size() != curve_.size()) {
       throw std::domain_error(
@@ -729,33 +739,30 @@ void TCSPCDecay::evaluate() {
           "TCSPCDecay '" + get_name() +
           "' adds a background pattern, which needs data as long as the response");
     }
-    const double* pattern = background_pattern_.data();
+    pattern_shape_.assign(background_pattern_.begin(), background_pattern_.end());
     if (shift_background_with_response_ && timeshift != 0.0) {
-      background_shifted_.resize(background_pattern_.size());
-      shift_lamp_ad<double>(background_shifted_.data(), background_pattern_.data(),
-                            -timeshift, n_points, 0.0);
-      pattern = background_shifted_.data();
+      shift_lamp_ad<double>(pattern_shape_.data(), background_pattern_.data(), -timeshift,
+                            n_points, 0.0);
     }
-    double measured = 0.0, pattern_total = 0.0, model_total = 0.0, recorded = 0.0;
-    for (int i = 0; i < n_points; ++i) {
-      measured += data_y_[static_cast<std::size_t>(i)];
-      pattern_total += pattern[i];
-      recorded += background_pattern_[static_cast<std::size_t>(i)];
-      model_total += curve_[static_cast<std::size_t>(i)];
+    double measured = 0.0, pattern_total = 0.0, recorded = 0.0;
+    for (std::size_t i = 0; i < n; ++i) {
+      measured += data_y_[i];
+      pattern_total += pattern_shape_[i];
+      recorded += background_pattern_[i];
     }
-    const double n_background = recorded / t_background_ * t_decay_;
-    const double n_fluorescence = std::max(measured - n_background, 1.0);
-    const double model_scale = model_total != 0.0 ? n_fluorescence / model_total : 0.0;
-    const double pattern_scale = pattern_total != 0.0 ? n_background / pattern_total : 0.0;
-    for (int i = 0; i < n_points; ++i) {
-      curve_[static_cast<std::size_t>(i)] =
-          curve_[static_cast<std::size_t>(i)] * model_scale + pattern[i] * pattern_scale;
+    if (pattern_total > 0.0) {
+      for (double& v : pattern_shape_) v /= pattern_total;
+      settings.pattern = pattern_shape_.data();
+    }
+    if (const std::shared_ptr<GraphPort> given = get_input_port("pattern")) {
+      parameters.pattern = given->get_value();
+    } else {
+      const double n_background = recorded / t_background_ * t_decay_;
+      const double n_fluorescence = std::max(measured - n_background, 1.0);
+      parameters.pattern = n_background / n_fluorescence;
     }
   }
 
-  // Coates pile-up, chisurf's order: after the scatter term, before the
-  // (auto)scaling -- the correction rescales the model, so scaling has to
-  // come after it. The factors are computed from the data.
   if (pile_up_) {
     if (data_y_.size() != response_.size()) {
       throw std::domain_error(
@@ -767,16 +774,23 @@ void TCSPCDecay::evaluate() {
                               "' corrects pile-up, which needs a period");
     }
     // Lifetimes and the period are in ns, so the repetition rate in MHz is
-    // 1000 / period -- exactly the inverse of how chisurf builds the
-    // period from `convolve.rep_rate`.
-    const double rep_rate_mhz = 1000.0 / period_;
-    add_pile_up_to_model_ad<double>(
-        curve_.data(), n_points, data_y_.data(),
-        static_cast<int>(data_y_.size()), rep_rate_mhz,
-        pile_up_dead_time_ns_, pile_up_measurement_time_s_, 0, -1);
+    // 1000 / period -- the inverse of how chisurf builds the period.
+    settings.pile_up_data = data_y_.data();
+    settings.pile_up_n_data = static_cast<int>(data_y_.size());
+    settings.repetition_rate_mhz = 1000.0 / period_;
+    settings.dead_time_ns = pile_up_dead_time_ns_;
+    settings.measurement_time_s = pile_up_measurement_time_s_;
   }
 
-  const double background = background_port_->get_value();
+  instrument_background_.assign(n, 0.0);
+  const double fluorescence_total = internal::tcspc_instrument_components(
+      curve_.data(), n, settings, parameters, instrument_background_.data());
+  internal::tcspc_instrument_detection(curve_.data(), n, settings,
+                                       instrument_background_.data());
+  if (const std::shared_ptr<GraphPort> total = get_output_port("fluorescence_total")) {
+    total->set_value(fluorescence_total);
+  }
+
   if (autoscale_) {
     if (data_y_.size() != response_.size()) {
       throw std::domain_error(
@@ -787,14 +801,13 @@ void TCSPCDecay::evaluate() {
     int end = scale_stop_ < 0 ? n_points : std::min(scale_stop_, n_points);
     end = std::min(end, static_cast<int>(data_y_.size()));
     if (end < begin) end = begin;
-    n0_ = rescale_factor(curve_, data_y_, data_ey_, background, begin, end);
+    // Every part of the stage is proportional to the scale, background
+    // included, so the scale is the least-squares factor of the unit curve.
+    n0_ = rescale_factor(curve_, data_y_, data_ey_, 0.0, begin, end);
     // Published, because a fit that autoscales still has to report the
-    // amplitude it settled on -- the port is the only place a caller can
-    // read it from without evaluating the model a second time. A port that
-    // follows another publishes to what it follows: writing the follower
-    // would leave the parameter a caller reads at its old value. The owner
-    // is normally held fixed (the scale is not fitted), and a fixed port
-    // ignores writes, so the hold is lifted for the write and restored.
+    // amplitude it settled on. A port that follows another publishes to what
+    // it follows; the owner is normally held, and a fixed port ignores
+    // writes, so the hold is lifted for the write and restored.
     GraphPort* published = n0_port_;
     while (published->get_link()) published = published->get_link().get();
     const bool held = published->get_fixed();
@@ -804,11 +817,9 @@ void TCSPCDecay::evaluate() {
   } else {
     n0_ = n0_port_->get_value();
   }
-  for (double& v : curve_) v = v * n0_ + background;
+  for (double& v : curve_) v *= n0_;
 
-  // DNL: the measured channel-width table multiplies the finished curve --
-  // chisurf's order, after the scaling and the constant background, before
-  // the non-negativity clamp.
+  // DNL: the measured channel-width table multiplies the finished curve.
   if (!lin_table_.empty()) {
     if (lin_table_.size() != curve_.size()) {
       throw std::domain_error(
@@ -1020,6 +1031,16 @@ void TCSPCDecay::bind_dataset(const std::string& role,
   }
   throw std::domain_error("node type 'TCSPCDecay' has no role '" + role +
                           "'; it takes 'response', 'data', 'linearization', 'linearization_curve' or 'background_pattern'");
+}
+
+std::vector<double> tcspc_fractions_from_absolute(double n0, double scatter_absolute,
+                                                  double background_absolute,
+                                                  double fluorescence_total, int n_channels) {
+  const internal::TCSPCInstrumentParameters<double> p =
+      internal::tcspc_instrument_fractions_from_absolute(
+          n0, scatter_absolute, background_absolute, fluorescence_total,
+          static_cast<std::size_t>(std::max(n_channels, 0)));
+  return {p.scale, p.scatter, p.pattern, p.background};
 }
 
 IMPBFF_END_NAMESPACE

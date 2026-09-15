@@ -29,6 +29,9 @@ def _decay(amplitudes, lifetimes, n=64, emit=True):
     # the curve goes to the port keyed by the node's own name
     d.add_output_port("decay", IMP.bff.GraphPort([0.0]))
     d.set_emit_basis(emit)
+    # A period, so the periodic kernel is finite (0 made every column inf,
+    # which compared equal to itself and hid it).
+    d.set_timing(0.1, 100.0)
     # a narrow response, one bin wide, so the convolution is easy to reason about
     irf = np.zeros(n)
     irf[2] = 1.0
