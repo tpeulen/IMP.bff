@@ -6,6 +6,7 @@
  */
 
 #include <IMP/bff/ModelSearchSelfPlay.h>
+#include <IMP/bff/internal/AdamUpdate.h>
 
 #include <IMP/bff/NeuralNet.h>
 // The vendored kernels are placed in this module's namespace, as
@@ -298,7 +299,10 @@ std::string ModelSearchSelfPlay::train(const std::vector<int>& hidden,
 
   std::vector<double> flat;
   internal::mlpcore::flatten(model.layers, flat);
-  std::vector<double> m(flat.size(), 0.0), v(flat.size(), 0.0);
+  // Adam, the one implementation (tttrlib's AdamUpdate.h, vendored): state
+  // reset once, one step per epoch -- its step count is the epoch.
+  tttrlib::AdamState adam;
+  adam.reset(flat.size());
   std::vector<double> prediction, dparams, dX, dV, residual;
   const int rows = impl_->episodes;
   for (int epoch = 1; epoch <= epochs; ++epoch) {
@@ -311,14 +315,7 @@ std::string ModelSearchSelfPlay::train(const std::vector<int>& hidden,
     }
     internal::mlpcore::model_backward(model, impl_->features.data(), rows, nullptr,
                              residual.data(), nullptr, nullptr, dparams, dX, dV);
-    const double b1 = 0.9, b2 = 0.999, eps = 1e-8;
-    const double c1 = 1.0 - std::pow(b1, epoch);
-    const double c2 = 1.0 - std::pow(b2, epoch);
-    for (std::size_t k = 0; k < flat.size(); ++k) {
-      m[k] = b1 * m[k] + (1.0 - b1) * dparams[k];
-      v[k] = b2 * v[k] + (1.0 - b2) * dparams[k] * dparams[k];
-      flat[k] -= learning_rate * (m[k] / c1) / (std::sqrt(v[k] / c2) + eps);
-    }
+    tttrlib::adam_update(flat.data(), dparams.data(), flat.size(), adam, learning_rate);
     internal::mlpcore::unflatten(model.layers, flat.data(), flat.size());
   }
 
