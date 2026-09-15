@@ -49,8 +49,14 @@ def test_every_graph_node_type_is_registered_and_nothing_else():
 
 
 def test_a_node_type_registered_at_run_time_appears_in_the_registry():
-    name = "RegistryTestRuntimeNode"
-    bff.register_node_type(name, lambda n: bff.GraphNode(n))
+    name = "test.RegistryRuntimeNode"
+
+    @bff.register_node_type(name)
+    class RuntimeNode(bff.GraphNode):
+        def evaluate(self):
+            pass
+
+    assert bff.GraphNodeRegistry.create(name).get_node_type() == name   # keeps test_node_registry's invariant
     e = bff.describe(name)
     assert e["capability"] == "graph_node" and e["provider"] == "runtime"
     test_every_graph_node_type_is_registered_and_nothing_else()

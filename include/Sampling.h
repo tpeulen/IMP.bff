@@ -175,6 +175,8 @@ struct SampleResult {
   std::vector<std::vector<std::vector<double>>> draws;
   std::vector<std::vector<double>> log_density;                    //!< [row][draw]
   std::vector<std::vector<std::vector<double>>> stats;             //!< [row][draw][stat]
+  //! each statistic summed over warm-up, [row][stat] (warm-up divergences, say)
+  std::vector<std::vector<double>> warmup_stat_sums;
   //! rows with different groups are independent; walkers of one ensemble share a group
   std::vector<int> independent_group;
   long evaluations = 0;
@@ -231,6 +233,7 @@ inline SampleResult run_sampler(const SamplingTarget& target, const SamplerKerne
     std::vector<std::vector<std::vector<double>>> draws;
     std::vector<std::vector<double>> lp;
     std::vector<std::vector<std::vector<double>>> stats;
+    std::vector<std::vector<double>> warmup_sums;
     long evaluations = 0;
     std::string error;
   };
@@ -247,10 +250,16 @@ inline SampleResult run_sampler(const SamplingTarget& target, const SamplerKerne
       out.draws.assign(W, {});
       out.lp.assign(W, {});
       out.stats.assign(W, {});
-      k->begin_warmup(opt.warmup);
-      for (int i = 0; i < opt.warmup; ++i) k->transition(rng);
-      k->end_warmup();
+      out.warmup_sums.assign(W, std::vector<double>(S, 0.0));
       std::vector<double> st;
+      k->begin_warmup(opt.warmup);
+      for (int i = 0; i < opt.warmup; ++i) {
+        k->transition(rng);
+        k->stats(st);
+        for (std::size_t w = 0; w < W; ++w)
+          for (std::size_t j = 0; j < S && (w + 1) * S <= st.size(); ++j) out.warmup_sums[w][j] += st[w * S + j];
+      }
+      k->end_warmup();
       for (int i = 0; i < opt.draws * opt.thin; ++i) {
         k->transition(rng);
         if ((i + 1) % opt.thin) continue;
@@ -300,6 +309,7 @@ inline SampleResult run_sampler(const SamplingTarget& target, const SamplerKerne
       res.draws.push_back(std::move(groups[g].draws[w]));
       res.log_density.push_back(std::move(groups[g].lp[w]));
       res.stats.push_back(std::move(groups[g].stats[w]));
+      res.warmup_stat_sums.push_back(std::move(groups[g].warmup_sums[w]));
       res.independent_group.push_back(static_cast<int>(g));
     }
     res.evaluations += groups[g].evaluations;
