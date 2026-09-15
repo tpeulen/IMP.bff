@@ -1,48 +1,30 @@
-// SPDX-License-Identifier: BSD-3-Clause
-/*!
- * \file MaxEntQp.h
- * \brief Shared engine: a bounded quadratic program and the Skilling-Bryan
- * maximum-entropy iteration built on it -- the numerical core every
- * maximum-entropy inversion in this library uses.
+/**
+ *  \file IMP/bff/internal/MaxEntQp.h
+ *  \brief The maximum-entropy engine: a bounded quadratic program and the
+ *  Skilling-Bryan iteration built on it.
  *
- * Two callers needed exactly this (a bound-constrained QP solved by an
- * active-set sweep, wrapped in an outer Newton-like MEM loop that trades off
- * chi^2 against Shannon entropy relative to a prior) and had it twice, with
- * one of the two copies wrong: `MaxEntTcspc.cpp` (modules/spectroscopy/decay)
- * ported the real Skilling & Bryan (1984) algorithm from chisurf's
- * `maxent_decay.core.solver`; `MaxEnt.cpp` (modules/spectroscopy/corrections)
- * was a separate, simpler projected-gradient implementation of what its own
- * header called "Shannon entropy" but whose sign is backwards -- its entropy
- * term is *larger*, not smaller, the further a solution moves from the prior
- * (measured: S=-3 at the uniform prior, S=+13 for a spiky, far-from-prior
- * solution, the wrong direction for a term that is supposed to *penalise*
- * moving away from the prior). Both callers now share this one engine, which
- * is the one that was actually verified: `test_maxent_tcspc.py::TestTcspcMem*`
- * recovers a known lifetime/distance from simulated Poisson data through it.
+ *  Copyright 2007-2026 IMP Inventors. All rights reserved.
  *
- * The objective this solves, given a quadratic chi^2 form:
+ *  Every maximum-entropy solve in the stack runs here: MaxEntSpectrum (TCSPC
+ *  lifetime and distance distributions) and the public maxent_solve /
+ *  maxent_invert (FCS, DEER, 2D FLC and ucfret's inversions). It started as
+ *  tttrlib's engine, ported from ChiSurf's Skilling & Bryan (1984) solver, and
+ *  moved here with maximum entropy itself; tttrlib no longer carries it.
  *
- *   Q(p) = 1/2 p^T H p - g0^T p + const - 1/2 nu * S(p)
+ *  The objective, given a quadratic chi^2 form:
  *
- * with the Skilling-Bryan entropy relative to a prior m:
+ *    Q(p) = 1/2 p^T H p - g0^T p + const - 1/2 nu * S(p)
  *
- *   S(p) = sum_i [ (p_i - m_i) - p_i * log(p_i / m_i) ]
+ *  with the Skilling-Bryan entropy relative to a prior m,
  *
- * which is maximised (S=0) exactly at p=m and decreases (more negative) the
- * further p moves from the prior in either direction -- so `-1/2 nu * S(p)`
- * in Q *penalises* moving away from the prior, which is what a maximum-entropy
- * regulariser is for. Each outer MEM iterate linearises and re-solves a bound-
- * constrained QP `min 1/2 x^T C x + d^T x, x >= lb` by an active-set method.
+ *    S(p) = sum_i [ (p_i - m_i) - p_i * log(p_i / m_i) ],
+ *
+ *  maximal (zero) at p = m. Each outer iterate linearises the entropy and
+ *  solves the bound-constrained QP `min 1/2 x^T C x + d^T x, x >= lb` by an
+ *  active-set method.
  */
-#ifndef TTTRLIB_MAXENTQP_H
-#define TTTRLIB_MAXENTQP_H
-
-// Validation: A/B-TESTED 2026-08-17 -- vs scipy L-BFGS-B on the same objectives (run_mem: KKT to 1e-9 and Q not
-//   lowerable; quadpr_bound: equal whenever the sweep's answer is a KKT point,
-//   feasible and never below the true minimum otherwise -- the non-KKT caveat this
-//   header states). No valid external MEM reference (ChiSurf mem.py is
-//   value/gradient-inconsistent). test/python/misc/test_math_ab_probabilistic.py.
-//   Register: okf/testing/math-kernel-validation.md
+#ifndef IMPBFF_INTERNAL_MAXENTQP_H
+#define IMPBFF_INTERNAL_MAXENTQP_H
 
 #include <algorithm>
 #include <cmath>
@@ -50,9 +32,13 @@
 #include <numeric>
 #include <vector>
 
-#include "Mat.h"
+#include <IMP/bff/bff_config.h>
+#include <IMP/bff/internal/Mat.h>
 
-namespace tttrlib {
+IMPBFF_BEGIN_INTERNAL_NAMESPACE
+
+using tttrlib::mat_lstsq_minnorm;
+using tttrlib::mat_solve;
 
 /*! Result of a maximum-entropy quadratic-program fit. */
 struct MaxEntResult {
@@ -99,15 +85,18 @@ struct MaxEntResult {
 /*!
  * \brief Bounded quadratic program: min 1/2 x^T C x + d^T x, x >= lower_bound.
  *
- * Active-set method: repeatedly solves the free block via `mat_solve`
- * (falling back to `mat_lstsq_minnorm` for a near-singular free block),
- * clamps any variable that would violate the bound, and repeats until no new
- * variable is clamped (or 50 sweeps). This is a simple sweep, not a proof of
- * KKT optimality -- it never *releases* a variable once clamped, and does not
- * check dual feasibility on the active set. That is adequate for what every
- * current caller uses it for (a single MEM Newton step, itself iterated to
- * convergence by the outer loop in `run_mem`) but it is not a general-purpose,
- * KKT-correct bounded QP solver; do not reach for it as one.
+ * Active-set method: solves the free block via `mat_solve` (falling back to
+ * `mat_lstsq_minnorm` for a near-singular free block) with the clamped
+ * coordinates held at the bound, clamps any free variable that would violate
+ * it, and once none does, releases the clamped coordinate whose gradient most
+ * wants it off the bound, until every clamped gradient is non-negative (the
+ * KKT conditions) or the sweep budget runs out.
+ *
+ * The release matters inside the MEM loop. Without it a coordinate clamped on
+ * one sweep stayed at the bound for that QP, and near the positivity floor the
+ * entropy curvature nu/(2p) keeps it there on the next: measured on a periodic
+ * FRET decay at nu = 1e-6, the reduced chi-square stalled at 2.73 against a
+ * reachable 1.163, and where it stalled depended on the column scale.
  *
  * \param C symmetric n x n matrix, row-major (need not be pre-symmetrised --
  *          this symmetrises its own copy).
@@ -258,19 +247,6 @@ void build_normal_equations(
 );
 
 
-// ---------------------------------------------------------------------------
-// The engine, header-only (2026-09-02).
-//
-// The bodies moved here from MaxEntQp.cpp so a consumer holding only the
-// header -- imp.bff, which vendors tttrlib headers byte-identically
-// (DecayConvolution.h, ExpressionEngine.h) rather than linking -- runs THIS
-// Skilling-Bryan engine and not a second one of its own. Everything the
-// engine needs is itself header-only (Mat.h's mat_solve/mat_lstsq_minnorm);
-// the anonymous-namespace helpers get per-TU copies, exactly as
-// ExpressionEngine.h's do.
-// ---------------------------------------------------------------------------
-
-
 namespace {
 
 constexpr double LOG_FLOOR = -1e300;
@@ -365,44 +341,56 @@ inline std::vector<double> quadpr_bound(
             C[static_cast<size_t>(j) * n + i] = s;
         }
     double lb = lower_bound;
-    std::vector<double> x(n, 0.0);
+    std::vector<double> x(n, lb);
     std::vector<char> active(n, 0);
 
-    for (int sweep = 0; sweep < 50; ++sweep) {
-        // Gather free indices
+    const int max_sweeps = 50 + 4 * n;
+    for (int sweep = 0; sweep < max_sweeps; ++sweep) {
         std::vector<int> free_idx;
         for (int i = 0; i < n; ++i) if (!active[i]) free_idx.push_back(i);
         int nf = static_cast<int>(free_idx.size());
+        for (int i = 0; i < n; ++i) x[i] = lb;
         if (nf > 0) {
             std::vector<double> Cff(static_cast<size_t>(nf) * nf);
             std::vector<double> df(nf);
             for (int a = 0; a < nf; ++a) {
-                df[a] = d_in[free_idx[a]];
+                // The clamped coordinates sit at the bound, not at zero.
+                double held = 0.0;
+                for (int i = 0; i < n; ++i)
+                    if (active[i]) held += C[static_cast<size_t>(free_idx[a]) * n + i] * lb;
+                df[a] = -(d_in[free_idx[a]] + held);
                 for (int b = 0; b < nf; ++b)
                     Cff[static_cast<size_t>(a) * nf + b] =
                         C[static_cast<size_t>(free_idx[a]) * n + free_idx[b]];
             }
-            for (int a = 0; a < nf; ++a) df[a] = -df[a];
             // mat_solve eliminates in place, so the fallback needs the system
-            // as it was: copy first, or least squares gets handed a half-
-            // triangularised matrix and a partly updated right-hand side.
+            // as it was.
             std::vector<double> Cff_tmp(Cff), df_tmp(df);
             if (!mat_solve(Cff, df, nf)) {
-                // Near-singular free block: fall back to min-norm least squares
-                // (matches numpy's np.linalg.lstsq fallback in chisurf).
                 mat_lstsq_minnorm(Cff_tmp, df_tmp, nf, nf);
                 df = std::move(df_tmp);
             }
             for (int a = 0; a < nf; ++a) x[free_idx[a]] = df[a];
         }
-        // Enforce bound on active set
-        for (int i = 0; i < n; ++i) if (active[i]) x[i] = lb;
 
         bool any_new = false;
         for (int i = 0; i < n; ++i) {
             if (x[i] < lb && !active[i]) { active[i] = 1; any_new = true; }
         }
-        if (!any_new) break;
+        if (any_new) continue;
+
+        // Every free coordinate is feasible: release the clamped one whose
+        // gradient is most negative, if any is.
+        int release = -1;
+        double most = 0.0;
+        for (int i = 0; i < n; ++i) {
+            if (!active[i]) continue;
+            double g = d_in[i];
+            for (int j = 0; j < n; ++j) g += C[static_cast<size_t>(i) * n + j] * x[j];
+            if (g < most) { most = g; release = i; }
+        }
+        if (release < 0) break;
+        active[release] = 0;
     }
     for (int i = 0; i < n; ++i) if (x[i] < lb) x[i] = lb;
     return x;
@@ -664,6 +652,6 @@ inline void build_normal_equations(
 }
 
 
-} // namespace tttrlib
+IMPBFF_END_INTERNAL_NAMESPACE
 
-#endif // TTTRLIB_MAXENTQP_H
+#endif // IMPBFF_INTERNAL_MAXENTQP_H
