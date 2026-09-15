@@ -1,4 +1,4 @@
-"""PRD-145 step 1: the MCMC convergence diagnostics (`internal/McmcDiagnostics.h`, tttrlib's)
+"""PRD-145 step 1: the MCMC convergence diagnostics (`SamplerDiagnostics.h`; moved from tttrlib by PRD-147)
 against arviz.
 
 Rank-normalised split R-hat, bulk ESS, tail ESS (5 %/95 %), ESS of the mean and MCSE of the mean,
@@ -22,7 +22,7 @@ arviz_stats = pytest.importorskip("arviz_stats")
 from arviz_stats.base import array_stats  # noqa: E402
 
 DRIVER = r"""
-#include <IMP/bff/internal/McmcDiagnostics.h>
+#include <IMP/bff/SamplerDiagnostics.h>
 #include <cstdio>
 #include <iostream>
 #include <string>
@@ -32,10 +32,10 @@ int main() {
   std::printf("[");
   for (int k = 0; k < sets; ++k) {
     std::size_t m, n; std::cin >> m >> n;
-    tttrlib::McmcChains x(m, std::vector<double>(n));
+    IMP::bff::McmcChains x(m, std::vector<double>(n));
     for (auto& c : x) for (double& v : c) std::cin >> v;
     std::printf("%s{\"rhat\": %.17g, \"ess_bulk\": %.17g, \"ess_tail\": %.17g, \"ess_mean\": %.17g, \"mcse_mean\": %.17g}",
-                k ? "," : "", tttrlib::rhat_rank(x), tttrlib::ess_bulk(x), tttrlib::ess_tail(x, 0.05), tttrlib::ess_mean(x), tttrlib::mcse_mean(x));
+                k ? "," : "", IMP::bff::rhat_rank(x), IMP::bff::ess_bulk(x), IMP::bff::ess_tail(x, 0.05), IMP::bff::ess_mean(x), IMP::bff::mcse_mean(x));
   }
   std::printf("]\n");
   return 0;
