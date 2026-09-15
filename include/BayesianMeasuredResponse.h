@@ -127,6 +127,9 @@ struct BayesianResponseOptions {
   double soft = 0.05;                   //!< the soft floor of the background removal, in units of `1e-4 * max`
   bool clamp = true;                    //!< clamp the shifted response at zero (the forward model)
   bool clamp_in_tangent = true;         //!< mask the tangents where the clamp bites; false only to test that it matters
+  //! false for a response that carries no background (an analytic one): step 1 is
+  //! skipped, so the soft floor does not touch its tails, and d B / d b is zero
+  bool remove_background = true;
 };
 
 /**
@@ -165,7 +168,7 @@ inline BayesianResponseBasis bayesian_response_basis(const BayesianPeriodicKerne
 
   // 1. the background through internal/ResponseFunction.h (mode fraction_of_support), and d/d b
   internal::ResponsePreparation prep;
-  prep.active = true;
+  prep.active = opt.remove_background;
   prep.background_mode = internal::ResponseBackground::fraction_of_support;
   prep.background = background_fraction;
   prep.soft = opt.soft;
