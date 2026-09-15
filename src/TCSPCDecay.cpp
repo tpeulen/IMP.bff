@@ -417,6 +417,49 @@ void TCSPCDecay::set_data_arrays(double* in_data_y, int n_data_y,
            std::vector<double>(in_data_ey, in_data_ey + n_data_ey));
 }
 
+namespace {
+
+//! Add the convolved `a t e^{-t/tau}` components of \p x (interleaved, `m` of
+//! them) to \p curve. `t e^{-kt} = -d/dk e^{-kt}`, so each is minus the rate
+//! derivative of the very kernel the plain components go through, taken in one
+//! forward-mode pass: no second convolution to keep consistent, and under
+//! periodic excitation the earlier pulses' `(t + nT) e^{-k(t + nT)}` come with it.
+void add_t_exponential_components(double* curve, const std::vector<double>& x, const double* irf,
+                                  int n_points, bool convolve, bool periodic, double period,
+                                  int stop, int convolution_stop, double dt) {
+  const int m = static_cast<int>(x.size() / 2);
+  if (m == 0) return;
+  if (!convolve) {
+    for (int c = 0; c < m; ++c) {
+      const double a = x[2 * c], tau = x[2 * c + 1];
+      if (!(tau > 0.0)) continue;
+      const double q = periodic ? std::exp(-period / tau) : 0.0;
+      const double tail = periodic ? period * q / ((1.0 - q) * (1.0 - q)) : 0.0;
+      const double head = 1.0 / (1.0 - q);
+      for (int i = 0; i < n_points; ++i) {
+        const double t = i * dt;
+        curve[i] += a * std::exp(-t / tau) * (t * head + tail);
+      }
+    }
+    return;
+  }
+  typedef tttrlib::Dual<double> D;
+  std::vector<D> seeded(x.size()), fit(static_cast<std::size_t>(n_points), D(0.0));
+  for (int c = 0; c < m; ++c) {
+    const double tau = x[2 * c + 1];
+    seeded[2 * c] = D(x[2 * c]);
+    seeded[2 * c + 1] = D(tau, -tau * tau);  // d tau / d k, with k = 1 / tau
+  }
+  if (periodic) {
+    fconv_per_cs_ad<D>(fit.data(), seeded.data(), irf, m, stop, n_points, period, convolution_stop, dt);
+  } else {
+    fconv_ad<D>(fit.data(), seeded.data(), irf, m, 0, std::min(convolution_stop + 1, n_points), dt);
+  }
+  for (int i = 0; i < n_points; ++i) curve[i] -= fit[static_cast<std::size_t>(i)].grad;
+}
+
+}  // namespace
+
 void TCSPCDecay::build_spectrum() {
   if (spectrum_from_port_) {
     // Whatever the upstream node wrote, in the interleaved layout. An odd
@@ -433,7 +476,23 @@ void TCSPCDecay::build_spectrum() {
     }
     spectrum_ = incoming;
     n_lifetimes_ = static_cast<int>(incoming.size() / 2);
+    // Which components are `t e^{-t/tau}` rather than `e^{-t/tau}`: an
+    // optional parallel vector, as a transfer kinetics at a degeneracy gives.
+    kinds_.clear();
+    if (const std::shared_ptr<GraphPort> kinds = get_input_port(spectrum_kinds_port_key())) {
+      const std::vector<double>& given = kinds->get_values_ref();
+      const bool any = std::any_of(given.begin(), given.end(), [](double v) { return v != 0.0; });
+      if (given.size() == static_cast<std::size_t>(n_lifetimes_)) {
+        if (any) kinds_.assign(given.begin(), given.end());
+      } else if (any) {
+        std::ostringstream m;
+        m << "TCSPCDecay '" << get_name() << "': " << given.size()
+          << " component kinds for a spectrum of " << n_lifetimes_ << " components";
+        throw std::domain_error(m.str());
+      }
+    }
   } else {
+    kinds_.clear();
     spectrum_.resize(static_cast<std::size_t>(2 * n_lifetimes_));
     for (int i = 0; i < n_lifetimes_; ++i) {
       spectrum_[static_cast<std::size_t>(2 * i)] =
@@ -499,6 +558,7 @@ void TCSPCDecay::build_spectrum() {
         spectrum_[2 * kept] = amplitude;
         spectrum_[2 * kept + 1] =
             spectrum_[static_cast<std::size_t>(2 * i + 1)];
+        if (!kinds_.empty()) kinds_[kept] = kinds_[static_cast<std::size_t>(i)];
         ++kept;
       }
     }
@@ -515,9 +575,11 @@ void TCSPCDecay::build_spectrum() {
       }
       spectrum_[0] = spectrum_[2 * best];
       spectrum_[1] = spectrum_[2 * best + 1];
+      if (!kinds_.empty()) kinds_[0] = kinds_[best];
       kept = 1;
     }
     spectrum_.resize(2 * kept);
+    if (!kinds_.empty()) kinds_.resize(kept);
   }
   n_active_ = static_cast<int>(spectrum_.size() / 2);
 }
@@ -627,28 +689,47 @@ void TCSPCDecay::evaluate() {
     int stop = stop_ < 0 ? last : std::min(stop_, last);
     convolution_stop = std::max(0, convolution_stop);
     stop = std::max(0, stop);
+    // With `t e^{-t/tau}` components the spectrum splits by kind; without, the
+    // plain spectrum is the whole of it and nothing below changes.
+    const std::vector<double>* plain = &spectrum_;
+    int n_plain = n_active_;
+    if (!kinds_.empty()) {
+      plain_spectrum_.clear();
+      t_spectrum_.clear();
+      for (int c = 0; c < n_active_; ++c) {
+        std::vector<double>& to = kinds_[static_cast<std::size_t>(c)] != 0.0 ? t_spectrum_ : plain_spectrum_;
+        to.push_back(spectrum_[static_cast<std::size_t>(2 * c)]);
+        to.push_back(spectrum_[static_cast<std::size_t>(2 * c + 1)]);
+      }
+      plain = &plain_spectrum_;
+      n_plain = static_cast<int>(plain_spectrum_.size() / 2);
+    }
     if (!convolve_) {
       // No response to convolve with: the ideal decay on the channel axis,
       // ChiSurf's `decay_without_irf`. Under periodic excitation the unrelaxed
       // decay of the earlier pulses adds the geometric tail
       // 1 / (1 - exp(-period / tau)) -- the factor the periodic kernel applies.
-      for (int s = 0; s < n_active_; ++s) {
-        const double tau = spectrum_[static_cast<std::size_t>(2 * s + 1)];
-        double amplitude = spectrum_[static_cast<std::size_t>(2 * s)];
+      for (int s = 0; s < n_plain; ++s) {
+        const double tau = (*plain)[static_cast<std::size_t>(2 * s + 1)];
+        double amplitude = (*plain)[static_cast<std::size_t>(2 * s)];
         if (periodic_ && tau > 0.0) amplitude /= (1.0 - std::exp(-period_ / tau));
         for (int i = 0; i < n_points; ++i) {
           curve_[static_cast<std::size_t>(i)] += amplitude * std::exp(-(i * dt_) / tau);
         }
       }
     } else if (periodic_) {
-      fconv_per_cs_ad<double>(curve_.data(), spectrum_.data(), irf.data(),
-                              n_active_, stop, n_points, period_,
+      fconv_per_cs_ad<double>(curve_.data(), plain->data(), irf.data(),
+                              n_plain, stop, n_points, period_,
                               convolution_stop, dt_);
     } else {
       // A single excitation: tttrlib's non-periodic recursion, whose stop is
       // one past the last channel.
-      fconv_ad<double>(curve_.data(), spectrum_.data(), irf.data(), n_active_,
+      fconv_ad<double>(curve_.data(), plain->data(), irf.data(), n_plain,
                        0, std::min(convolution_stop + 1, n_points), dt_);
+    }
+    if (!kinds_.empty()) {
+      add_t_exponential_components(curve_.data(), t_spectrum_, irf.data(), n_points, convolve_,
+                                   periodic_, period_, stop, convolution_stop, dt_);
     }
 
     // The basis: each species reconvolved on its own, with unit amplitude, in
@@ -677,9 +758,15 @@ void TCSPCDecay::evaluate() {
       for (std::size_t s = 0; s < n_species; ++s) {
         single[0] = 1.0;
         single[1] = spectrum_[2 * s + 1];
-        fconv_per_cs_ad<double>(basis_columns_.data() + s * n_bins, single,
-                                irf.data(), 1, stop, n_points, period_,
-                                convolution_stop, dt_);
+        if (!kinds_.empty() && kinds_[s] != 0.0) {
+          add_t_exponential_components(basis_columns_.data() + s * n_bins,
+                                       std::vector<double>(single, single + 2), irf.data(),
+                                       n_points, true, true, period_, stop, convolution_stop, dt_);
+        } else {
+          fconv_per_cs_ad<double>(basis_columns_.data() + s * n_bins, single,
+                                  irf.data(), 1, stop, n_points, period_,
+                                  convolution_stop, dt_);
+        }
       }
       // Then one blocked transpose into the contract the port promises. Tiled
       // because the naive loop is strided on whichever side it does not walk,

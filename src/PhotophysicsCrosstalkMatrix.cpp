@@ -249,10 +249,13 @@ Eigen::MatrixXd invert_block(const Eigen::MatrixXd& a,
   if (ridge > 0.0) {
     // Tikhonov, x = (A^T A + lambda I)^-1 A^T y: the one ridge solve
     // (tttrlib's RidgeProjector, vendored), factored once for every item.
+    // Householder QR of [A; sqrt(lambda) I] rather than the normal equations:
+    // detectors with similar spectra make A ill-conditioned, and forming A^T A
+    // squares that.
     const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> a_rows = a;
     tttrlib::RidgeProjector projector;
     if (!projector.factor(a_rows.data(), static_cast<std::size_t>(a.rows()),
-                          static_cast<std::size_t>(n_src), ridge, false)) {
+                          static_cast<std::size_t>(n_src), ridge, false, tttrlib::RidgeSolver::qr)) {
       throw std::runtime_error("crosstalk_invert_mixing: the ridge system is not positive definite");
     }
     for (int item = 0; item < n_items; ++item) {

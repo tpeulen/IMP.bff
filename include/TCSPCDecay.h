@@ -372,6 +372,10 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
 
   //! The key of the input port carrying an interleaved lifetime spectrum.
   static const char* spectrum_port_key() { return "lifetime_spectrum"; }
+  //! Optional input beside the spectrum: one kind per component, 0 for
+  //! `a e^{-t/tau}` and non-zero for `a t e^{-t/tau}` (a transfer kinetics at a
+  //! degeneracy). Absent, or all zero, and every component is exponential.
+  static const char* spectrum_kinds_port_key() { return "spectrum_kinds"; }
 
   //! The key of the optional output port carrying the reconvolved basis.
   static const char* basis_port_key() { return "basis"; }
@@ -489,6 +493,11 @@ class IMPBFFEXPORT TCSPCDecay : public GraphNode {
   std::vector<double> data_ey_;
   std::vector<double> lin_table_;
   std::vector<double> spectrum_;
+  //! Component kinds parallel to spectrum_ (empty: every one exponential),
+  //! and the two parts the spectrum splits into when they are not.
+  std::vector<double> kinds_;
+  std::vector<double> plain_spectrum_;
+  std::vector<double> t_spectrum_;
   std::vector<double> curve_;
   //! The lifetime ports, in the order the spectrum interleaves them.
   std::vector<GraphPort*> lifetime_ports_;

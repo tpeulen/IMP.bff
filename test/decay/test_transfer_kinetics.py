@@ -147,3 +147,55 @@ def test_the_components_jacobian_is_the_derivative_of_the_components(case):
     planted = jac.copy()
     planted.flat[int(np.argmax(np.abs(planted)))] *= 1 + 1e-5
     assert np.max(np.abs(planted - reference) / (np.abs(reference) + floor)) > 5e-6
+
+
+def _transfer_node(kinds):
+    node = bff.PhotophysicsTransferKineticsNode("transfer")
+    node.build_ports()
+    node.add_output_port("transfer", bff.GraphPort([0.0], False, True))
+    if kinds:
+        node.add_output_port("kinds", bff.GraphPort([0.0], False, True))
+    for key, value in (("spectrum_a", [1.0, 4.0]), ("spectrum_b", [1.0, 1.0]), ("rates", [1.0, 0.75])):
+        node.get_input_port(key).set_values_array(np.asarray(value, dtype=float))
+    for key, value in (("f_ab", 1.0), ("f_ba", 0.0), ("pure_a", 0.0), ("pure_b", 0.0),
+                       ("excitation_pulse_A", 1.0), ("excitation_pulse_B", 0.0),
+                       ("emission_A_channel", 0.0), ("emission_B_channel", 1.0)):
+        node.get_input_port(key).value = value
+    node.update()
+    return node
+
+
+def test_at_a_degeneracy_the_decay_convolves_the_exact_t_exponential():
+    """1/tauA + k = 1/tauB: the node flags the t e^{-kt} term, TCSPCDecay
+    convolves it, and the unconvolved periodic curve is the matrix exponential
+    summed over the pulses -- no split exponentials, no eps."""
+    node = _transfer_node(kinds=True)
+    spectrum = np.asarray(node.get_output_port("transfer").value, dtype=float)
+    kinds = np.asarray(node.get_output_port("kinds").value, dtype=float)
+    assert kinds.size == spectrum.size // 2 and kinds.sum() == 1.0
+
+    dt, period, n = 0.04, 12.5, 400
+    decay = bff.TCSPCDecay("decay")
+    decay.set_number_of_lifetimes(1)
+    decay.add_output_port("decay", bff.GraphPort([0.0], False, True))
+    decay.set_response_array(np.r_[1.0, np.zeros(n - 1)])
+    decay.set_timing(dt, period)
+    decay.set_convolution_range(n, n)
+    decay.set_convolve(False)
+    decay.set_spectrum_from_port(True)
+    decay.get_input_port("lifetime_spectrum").set_values_array(spectrum)
+    decay.add_input_port("spectrum_kinds", bff.GraphPort([0.0]))
+    decay.get_input_port("spectrum_kinds").set_values_array(kinds)
+    decay.update()
+    got = np.asarray(decay.get_output_port("decay").value, dtype=float)
+
+    t = np.arange(n) * dt
+    want = sum(_reference(4.0, 1.0, 0.75, 0.0, np.array([1.0, 0.0]), np.array([0.0, 1.0]), time=t + j * period)
+               for j in range(40))
+    np.testing.assert_allclose(got, want, rtol=1e-10, atol=1e-13)
+
+
+def test_without_a_kinds_output_the_degeneracy_is_split_as_before():
+    spectrum = np.asarray(_transfer_node(kinds=False).get_output_port("transfer").value, dtype=float)
+    exact = np.asarray(_transfer_node(kinds=True).get_output_port("transfer").value, dtype=float)
+    assert spectrum.size == exact.size
