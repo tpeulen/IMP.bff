@@ -22,7 +22,12 @@ check fail:
   and a quenched column carries the light the donor keeps, tau_s / tau =
   1 / (1 + k tau) -- a map that forgot that scaling would carry all of it.
   Against the Python maps (CBM56, 128 distances, 11 rotational times) the decays
-  agree to 4.8e-12 of their peaks: ucfret `transfer_gate.cpp`. (the algorithm itself is tested in tttrlib's `test_damped_newton.cpp`).
+  agree to 4.8e-12 of their peaks: ucfret `transfer_gate.cpp`;
+* 18d: the sensitised acceptor light totals the transfer efficiency k/(1/tau + k),
+  and is zero without transfer; the directly excited acceptor is one unit, and
+  its rotational partner carries tau_s/tau_a of it (a partner normalised to one
+  unit would not). Against the Python maps: decays 3.1e-10 of their peaks, the
+  floor numpy's own LU vs Cholesky reaches on those cancelling maps. (the algorithm itself is tested in tttrlib's `test_damped_newton.cpp`).
 
 The C++ basis also equals the Python prototype's (`s53_phase1_pseudolik.Basis`,
 cached CBM56 environment) to 1.2e-13 of each column's peak: ucfret
@@ -111,7 +116,33 @@ int main() {
       area = std::max(area, std::fabs(tot - keep));
       area_ctl = std::max(area_ctl, std::fabs(tot - 1.0));
     }
-  std::printf("{\"map_identity\": %.6e, \"map_area\": %.6e, \"map_area_if_unscaled\": %.6e, ", identity, area, area_ctl);
+  // 18d: the acceptor maps. Sensitised light totals the transfer efficiency; no transfer, no light;
+  // the direct decay is one unit and its rotational partner carries tau_s / tau_a of it
+  const std::vector<double> ta = {2.0, 5.0}, rh = {0.5};
+  const BayesianAcceptorMaps am = bayesian_transfer_acceptor_maps(tb, P, rates, ta, rh);
+  auto total = [&](const double* coef, std::size_t stride, std::size_t col) {
+    double t = 0.0;
+    for (std::size_t i = 0; i < n; ++i) for (std::size_t k = 0; k < K; ++k) t += tb.basis.B[i * K + k] * coef[k * stride + col];
+    return t;
+  };
+  double sens_eff = 0.0, sens_zero = 0.0, direct_one = 0.0, partner = 0.0, partner_ctl = 0.0;
+  for (std::size_t j = 0; j < rates.size(); ++j)
+    for (std::size_t l = 0; l < ta.size(); ++l)
+      for (std::size_t c = 0; c < nt; ++c) {
+        const double tot = total(am.sensitised.data() + (j * ta.size() + l) * K * nt, nt, c);
+        const double eff = rates[j] / (1.0 / tau[c] + rates[j]);
+        if (j == 0) sens_zero = std::max(sens_zero, std::fabs(tot));
+        else sens_eff = std::max(sens_eff, std::fabs(tot - eff));
+      }
+  for (std::size_t l = 0; l < ta.size(); ++l) {
+    direct_one = std::max(direct_one, std::fabs(total(am.direct.data() + l * K, 1, 0) - 1.0));
+    const double p = total(am.direct_rot.data() + l * K, 1, 0), ts = 1.0 / (1.0 / ta[l] + 1.0 / rh[0]);
+    partner = std::max(partner, std::fabs(p / (ts / ta[l]) - 1.0));
+    partner_ctl = std::max(partner_ctl, std::fabs(p - 1.0));
+  }
+  std::printf("{\"acc_sens_efficiency\": %.6e, \"acc_sens_no_transfer\": %.6e, \"acc_direct_unit\": %.6e,"
+              " \"acc_partner_area\": %.6e, \"acc_partner_if_unit\": %.6e, ", sens_eff, sens_zero, direct_one, partner, partner_ctl);
+  std::printf("\"map_identity\": %.6e, \"map_area\": %.6e, \"map_area_if_unscaled\": %.6e, ", identity, area, area_ctl);
   std::printf("\"recon\": %.6e, \"recon_bound\": %.6e, \"recon_ridge_x1e4\": %.6e, \"lambda\": %.6e, ",
               std::sqrt(r2), bound, std::sqrt(r4), P.lambda());
   std::printf("\"n_tau\": %zu, \"tau_first\": %.15g, \"tau_last\": %.15g, \"K\": %zu, \"response\": %.6e, \"floor\": %.6e,"
@@ -163,3 +194,15 @@ def test_a_rate_map_keeps_the_light_the_donor_keeps(result):
     assert result["map_area"] < 1e-6, result
     # the check can tell: the unscaled columns would all carry one unit
     assert result["map_area_if_unscaled"] > 0.1, result
+
+
+def test_sensitised_light_is_the_transfer_efficiency(result):
+    assert result["acc_sens_efficiency"] < 1e-6, result
+    assert result["acc_sens_no_transfer"] == 0.0, result
+
+
+def test_direct_acceptor_is_one_unit_and_its_partner_the_shorter_lifetime(result):
+    assert result["acc_direct_unit"] < 1e-9, result
+    # bin factors and the trapezoid make the partner's area approximate
+    assert result["acc_partner_area"] < 1e-2, result
+    assert result["acc_partner_if_unit"] > 0.5, result
