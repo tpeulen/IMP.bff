@@ -51,6 +51,7 @@
 #include <IMP/bff/PhotophysicsPolarisation.h>
 #include <IMP/bff/internal/json.h>
 #include <IMP/bff/internal/ThreadPool.h>
+#include <IMP/bff/internal/TCSPCInstrument.h>
 #include <algorithm>
 #include <atomic>
 #include <cmath>
@@ -259,6 +260,20 @@ inline nlohmann::json bayesian_decay_experiment_load(const std::string& dir, Bay
 //! \name The model of the counts
 //! @{
 
+//! The instrument stage's shapes in the basis's amplitude space: the response is
+//! column 0, the flat background column K-1, both of unit sum by construction.
+inline const internal::TCSPCInstrumentSettings& bayesian_decay_instrument_settings(std::size_t K) {
+    static thread_local std::vector<double> e0, eK;
+    static thread_local internal::TCSPCInstrumentSettings s;
+    if (e0.size() != K) {
+        e0.assign(K, 0.0); eK.assign(K, 0.0);
+        e0[0] = 1.0; eK[K - 1] = 1.0;
+        s = internal::TCSPCInstrumentSettings();
+        s.response = e0.data(); s.flat = eK.data();
+    }
+    return s;
+}
+
 // ---------------------------------------------------------------------------
 // the parameters: theta -> constrained values by name
 // ---------------------------------------------------------------------------
@@ -463,13 +478,16 @@ inline std::vector<double> bayesian_decay_amplitudes(const BayesianDecayExperime
         mix_polarised(S.don.data(), rot.data(), K, r0, sign, 1.0, pol_d.data());
         mix_polarised(S.acc.data(), S.accr.data(), K, r0_a, sign, 1.0, pol_a.data());
         for (std::size_t k = 0; k < K; ++k) mix[k] = Gc * (CD * pol_d[k] + CA * pol_a[k]) / gf;
-        // instrument: scale, scatter into column 0, background into the last
+        // the instrument stage (internal/TCSPCInstrument.h) in the basis's amplitude space:
+        // every column sums to one, so the response and the flat background are unit
+        // vectors -- the same stage TCSPCDecay applies in channel space
         const std::string samp = pt.sample, chan = pt.channel;
-        const double sc_ = std::exp(bayesian_decay_scalar(v, "log_scale_" + samp));
-        double tot = 0.0;
-        for (std::size_t k = 0; k < K; ++k) { mix[k] *= sc_; tot += mix[k]; }
-        mix[0] += bayesian_decay_scalar(v, "scat_" + chan) * tot;
-        mix[K - 1] += bayesian_decay_scalar(v, "bkg_" + chan) * tot;
+        const internal::TCSPCInstrumentSettings ins = bayesian_decay_instrument_settings(K);
+        internal::TCSPCInstrumentParameters<double> ip;
+        ip.scale = std::exp(bayesian_decay_scalar(v, "log_scale_" + samp));
+        ip.scatter = bayesian_decay_scalar(v, "scat_" + chan);
+        ip.background = bayesian_decay_scalar(v, "bkg_" + chan);
+        internal::tcspc_instrument_components(mix.data(), K, ins, ip, mix.data());
         for (std::size_t k = 0; k < K; ++k) out[ic * K + k] = mix[k];
     }
     return out;
@@ -790,26 +808,21 @@ inline std::vector<double> bayesian_decay_amplitude_jacobian(const BayesianDecay
             if (v_ca.present) Jk[M(k, v_ca.off)] += Gc / gf * pol_a[k] * bayesian_decay_dxdz(v_ca, CA);
             if (v_gc.present) Jk[M(k, v_gc.off)] += mix[k] / Gc * bayesian_decay_dxdz(v_gc, Gc);
         }
-        // instrument: a2 = s a + scat tot e0 + bkg tot e1, tot = s sum(a)
+        // the instrument stage's derivatives (internal/TCSPCInstrument.h), in amplitude space
         const std::string samp = pt.sample, chan = pt.channel;
-        const double sc_ = std::exp(bayesian_decay_scalar(v, "log_scale_" + samp)), scat = bayesian_decay_scalar(v, "scat_" + chan), bkg = bayesian_decay_scalar(v, "bkg_" + chan);
-        double tot = 0.0; for (std::size_t k = 0; k < K; ++k) tot += sc_ * mix[k];
-        for (std::size_t c = 0; c < dim; ++c) {
-            double colsum = 0.0; for (std::size_t k = 0; k < K; ++k) colsum += Jk[M(k, c)];
-            for (std::size_t k = 0; k < K; ++k) {
-                double t = sc_ * Jk[M(k, c)];
-                if (k == 0) t += sc_ * scat * colsum;
-                if (k == K - 1) t += sc_ * bkg * colsum;
-                J[(ic * K + k) * dim + c] = t;
-            }
-        }
+        const internal::TCSPCInstrumentSettings ins = bayesian_decay_instrument_settings(K);
+        internal::TCSPCInstrumentParameters<double> ip;
+        ip.scale = std::exp(bayesian_decay_scalar(v, "log_scale_" + samp));
+        ip.scatter = bayesian_decay_scalar(v, "scat_" + chan);
+        ip.background = bayesian_decay_scalar(v, "bkg_" + chan);
+        std::vector<double> dpar(K * 4);
+        internal::tcspc_instrument_components_jacobian(mix.data(), K, ins, ip, Jk.data(), dim, J.data() + ic * K * dim, dpar.data());
         const BayesianDecayVariableInfo v_ls = VI("log_scale_" + samp), v_sc = VI("scat_" + chan), v_bk = VI("bkg_" + chan);
         for (std::size_t k = 0; k < K; ++k) {
-            double a2k = sc_ * mix[k] + (k == 0 ? scat * tot : 0.0) + (k == K - 1 ? bkg * tot : 0.0);
-            if (v_ls.present) J[(ic * K + k) * dim + v_ls.off] += a2k;
+            if (v_ls.present) J[(ic * K + k) * dim + v_ls.off] += ip.scale * dpar[k * 4 + 0];   // d scale / d log_scale = scale
+            if (v_sc.present) J[(ic * K + k) * dim + v_sc.off] += dpar[k * 4 + 1] * bayesian_decay_dxdz(v_sc, ip.scatter);
+            if (v_bk.present) J[(ic * K + k) * dim + v_bk.off] += dpar[k * 4 + 3] * bayesian_decay_dxdz(v_bk, ip.background);
         }
-        if (v_sc.present) J[(ic * K + 0) * dim + v_sc.off] += tot * bayesian_decay_dxdz(v_sc, scat);
-        if (v_bk.present) J[(ic * K + K - 1) * dim + v_bk.off] += tot * bayesian_decay_dxdz(v_bk, bkg);
     });
     return J;
 }
