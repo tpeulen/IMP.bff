@@ -149,7 +149,6 @@
   "instrument.timeshift": {
    "name": "timeshift",
    "initial": 0.0,
-   "free": false,
    "lower": "-0.5*response_size",
    "upper": "0.5*response_size"
   }

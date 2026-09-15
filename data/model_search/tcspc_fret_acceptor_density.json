@@ -3,6 +3,10 @@
  "family": "tcspc_fret_acceptor_density",
  "title": "FRET: acceptor density (1, 2 or 3 dimensions)",
  "presentation": {
+  "meta_scalars": {
+   "_comment": "Instrument settings a reader records on the data set these scalars until the user does: the excitation period of the laser that recorded the decay.",
+   "excitation_period_ns": "period"
+  },
   "_comment": "How an application presents this family. Read by applications, ignored by the engine.",
   "groups": {
    "acceptors": "Acceptors",
@@ -257,7 +261,6 @@
   "instrument.timeshift": {
    "name": "timeshift",
    "initial": 0.0,
-   "free": false,
    "lower": "-0.5*decay_size",
    "upper": "0.5*decay_size",
    "group": "instrument"

@@ -3,6 +3,10 @@
  "family": "tcspc_maxent_fret",
  "title": "FRET: MaxEnt distances",
  "presentation": {
+  "meta_scalars": {
+   "_comment": "Instrument settings a reader records on the data set these scalars until the user does: the excitation period of the laser that recorded the decay.",
+   "excitation_period_ns": "period"
+  },
   "_comment": "A donor-acceptor distance distribution recovered by maximum entropy: each grid distance quenches the donor through FRETSpectrumNode, and its decay is the instrument's basis. Read by applications, ignored by the engine.",
   "groups": {
    "donor": "Donor",

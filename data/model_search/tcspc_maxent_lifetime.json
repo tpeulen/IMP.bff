@@ -3,6 +3,10 @@
  "family": "tcspc_maxent_lifetime",
  "title": "Lifetime: MaxEnt",
  "presentation": {
+  "meta_scalars": {
+   "_comment": "Instrument settings a reader records on the data set these scalars until the user does: the excitation period of the laser that recorded the decay.",
+   "excitation_period_ns": "period"
+  },
   "_comment": "A lifetime distribution recovered by maximum entropy over a fixed grid: the grid's decays are the instrument's own basis. Read by applications, ignored by the engine.",
   "groups": {
    "maxent": "Maximum entropy",

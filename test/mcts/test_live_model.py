@@ -162,19 +162,19 @@ def test_a_topology_shows_the_rows_its_graph_reads():
 def test_a_release_fits_what_the_description_holds_and_keeps_the_users_value():
     model = _spec().get_model()
     model.select_structure("lifetime.components.2")
-    assert model.get_parameter("instrument.timeshift").fixed
-    model.set_parameter_released("instrument.timeshift", True)
-    assert not model.get_parameter("instrument.timeshift").fixed
-    model.get_parameter("instrument.timeshift").value = 0.3
+    assert model.get_parameter("instrument.response_background").fixed
+    model.set_parameter_released("instrument.response_background", True)
+    assert not model.get_parameter("instrument.response_background").fixed
+    model.get_parameter("instrument.response_background").value = 0.3
     model.activate_structure("lifetime.components.2")
-    assert model.get_parameter("instrument.timeshift").value == pytest.approx(0.3)
+    assert model.get_parameter("instrument.response_background").value == pytest.approx(0.3)
     model.fit_active_structure()
-    # The generating decay has no shift, and the fit finds that.
-    assert model.get_parameter("instrument.timeshift").value == pytest.approx(0.0, abs=1e-3)
+    # The generating response has no background, and the fit finds that.
+    assert model.get_parameter("instrument.response_background").value == pytest.approx(0.0, abs=1e-3)
 
-    model.set_parameter_locked("instrument.timeshift", True)
-    assert not model.get_parameter_released("instrument.timeshift")
-    assert model.get_parameter("instrument.timeshift").fixed
+    model.set_parameter_locked("instrument.response_background", True)
+    assert not model.get_parameter_released("instrument.response_background")
+    assert model.get_parameter("instrument.response_background").fixed
 
 
 def test_what_to_show_is_data_in_the_description():
