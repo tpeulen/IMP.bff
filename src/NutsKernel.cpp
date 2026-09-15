@@ -31,6 +31,7 @@ const char* const kNutsEntry = R"JSON({
       "step_size": {"type": "number", "title": "Initial step size", "description": "start value; refined by the initial search and adapted during warm-up", "default": 1.0, "exclusiveMinimum": 0.0, "advanced": true},
       "find_step_size": {"type": "boolean", "title": "Initial step-size search", "description": "Stan's doubling/halving search before warm-up", "default": true, "advanced": true},
       "adapt_step_size": {"type": "boolean", "title": "Adapt the step size", "description": "dual averaging during warm-up; off keeps step_size fixed (Stan's adapt engaged = 0)", "default": true, "advanced": true},
+      "adapt_metric": {"type": "string", "title": "Metric adaptation", "description": "estimate the inverse metric during warm-up in Stan's windowed schedule: none, diag (diag_e) or dense (dense_e); starts from inverse_metric", "enum": ["none", "diag", "dense"], "default": "none"},
       "max_delta_h": {"type": "number", "title": "Divergence threshold", "description": "energy error that counts as a divergence", "default": 1000.0, "exclusiveMinimum": 0.0, "advanced": true},
       "inverse_metric": {"type": "array", "title": "Inverse metric", "description": "dim x dim covariance, row-major; empty for the identity", "items": {"type": "number"}, "default": [], "advanced": true}
     }
@@ -70,6 +71,7 @@ std::unique_ptr<SamplerKernel> make_nuts(const std::string& options_json) {
   if (o.contains("step_size")) opt.step_size = o["step_size"].get<double>();
   if (o.contains("find_step_size")) opt.find_step_size = o["find_step_size"].get<bool>();
   if (o.contains("adapt_step_size")) opt.adapt_step_size = o["adapt_step_size"].get<bool>();
+  if (o.contains("adapt_metric")) opt.adapt_metric = o["adapt_metric"].get<std::string>();
   if (o.contains("max_delta_h")) opt.max_delta_h = o["max_delta_h"].get<double>();
   if (o.contains("inverse_metric")) opt.inverse_metric = o["inverse_metric"].get<std::vector<double>>();
   return std::unique_ptr<SamplerKernel>(new NutsKernel(opt));

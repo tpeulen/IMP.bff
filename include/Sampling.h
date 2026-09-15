@@ -153,6 +153,8 @@ class SamplerKernel {
   virtual long evaluations() const = 0;
   //! a fresh kernel with the same settings and no state
   virtual std::unique_ptr<SamplerKernel> clone() const = 0;
+  //! what warm-up tuned, as a JSON object (step size, metric, scale ...); "{}" when nothing
+  virtual std::string tuning_json() const { return "{}"; }
 };
 
 //! How run_sampler runs.
@@ -177,6 +179,8 @@ struct SampleResult {
   std::vector<std::vector<std::vector<double>>> stats;             //!< [row][draw][stat]
   //! each statistic summed over warm-up, [row][stat] (warm-up divergences, say)
   std::vector<std::vector<double>> warmup_stat_sums;
+  //! per independent group, the kernel's tuning_json() after the run
+  std::vector<std::string> tuning;
   //! rows with different groups are independent; walkers of one ensemble share a group
   std::vector<int> independent_group;
   long evaluations = 0;
@@ -234,6 +238,7 @@ inline SampleResult run_sampler(const SamplingTarget& target, const SamplerKerne
     std::vector<std::vector<double>> lp;
     std::vector<std::vector<std::vector<double>>> stats;
     std::vector<std::vector<double>> warmup_sums;
+    std::string tuning;
     long evaluations = 0;
     std::string error;
   };
@@ -272,6 +277,7 @@ inline SampleResult run_sampler(const SamplingTarget& target, const SamplerKerne
         if (g == 0 && opt.observer) opt.observer((i + 1) / opt.thin, opt.draws);
       }
       out.evaluations = k->evaluations();
+      out.tuning = k->tuning_json();
     } catch (const std::exception& e) {
       groups[g].error = e.what();
     }
@@ -313,6 +319,7 @@ inline SampleResult run_sampler(const SamplingTarget& target, const SamplerKerne
       res.independent_group.push_back(static_cast<int>(g));
     }
     res.evaluations += groups[g].evaluations;
+    res.tuning.push_back(groups[g].tuning);
   }
   res.seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
   return res;

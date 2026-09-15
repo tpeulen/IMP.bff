@@ -34,6 +34,7 @@
 #include <IMP/bff/SamplerWarmup.h>
 
 #include <cmath>
+#include <cstdio>
 #include <limits>
 #include <memory>
 #include <random>
@@ -50,6 +51,8 @@ struct NutsOptions {
   double step_size = 1.0;        //!< start value; Stan's heuristic refines it at initialize when find_step_size
   bool find_step_size = true;    //!< run Stan's initial step-size search at initialize
   bool adapt_step_size = true;   //!< dual averaging during warm-up (Stan's adapt engaged); false keeps step_size
+  //! metric adaptation during warm-up, in the windowed schedule: "none", "diag" (Stan's diag_e) or "dense" (dense_e)
+  std::string adapt_metric = "none";
   std::vector<double> inverse_metric;  //!< dim x dim covariance, row-major; empty = identity
 };
 
@@ -85,12 +88,23 @@ class NutsKernel : public SamplerKernel {
 
   void begin_warmup(int n_warmup) override {
     adapting_ = n_warmup > 0 && opt_.adapt_step_size;
-    if (adapting_) adapt_.restart(eps_);
+    // Stan (hmc_nuts_*_adapt): mu = log(10 * the step size given), set before the initial search
+    if (adapting_) adapt_.restart(opt_.step_size);
+    metric_adapting_ = n_warmup > 0 && opt_.adapt_metric != "none";
+    if (metric_adapting_) {
+      windows_ = warmup_windows(n_warmup);
+      warmup_total_ = n_warmup;
+      warmup_counter_ = 0;
+      estimator_.reset(n_, opt_.adapt_metric == "dense");
+    }
   }
   void end_warmup() override {
     if (adapting_) eps_ = adapt_.final_step(eps_);
     adapting_ = false;
+    metric_adapting_ = false;
   }
+  //! the inverse metric in use (dim x dim, row-major)
+  const std::vector<double>& inverse_metric() const { return S_; }
 
   void transition(std::mt19937_64& rng) override {
     std::vector<double> p(n_);
@@ -151,6 +165,7 @@ class NutsKernel : public SamplerKernel {
     walkers_[0] = q_;
     lps_[0] = lp_;
     if (adapting_) eps_ = adapt_.learn(accept_stat_);
+    if (metric_adapting_) learn_metric(rng);
   }
 
   const std::vector<std::vector<double>>& walkers() const override { return walkers_; }
@@ -165,9 +180,36 @@ class NutsKernel : public SamplerKernel {
   std::unique_ptr<SamplerKernel> clone() const override {
     return std::unique_ptr<SamplerKernel>(new NutsKernel(opt_));
   }
+  std::string tuning_json() const override {
+    auto num = [](double v) { char b[32]; std::snprintf(b, sizeof(b), "%.17g", v); return std::string(b); };
+    std::string m = "[";
+    for (std::size_t k = 0; k < S_.size(); ++k) m += (k ? "," : "") + num(S_[k]);
+    return "{\"step_size\": " + num(eps_) + ", \"inverse_metric\": " + m + "]}";
+  }
 
  private:
   struct State { std::vector<double> q, p, grad; double lp; };
+
+  //! Stan's covar_adaptation / var_adaptation driven as adapt_dense_e_nuts / adapt_diag_e_nuts drive them.
+  void learn_metric(std::mt19937_64& rng) {
+    const int i = warmup_counter_++;
+    if (i >= windows_.init_buffer && i < warmup_total_ - windows_.term_buffer) estimator_.add(q_);
+    if (!windows_.closes(i + 1)) return;
+    const std::vector<double> est = estimator_.regularised();
+    std::vector<double> cov(n_ * n_, 0.0);
+    if (estimator_.dense()) {
+      cov = est;
+    } else {
+      for (std::size_t a = 0; a < n_; ++a) cov[a * n_ + a] = est[a];
+    }
+    for (double v : cov)
+      if (!std::isfinite(v))
+        throw SamplerConfigurationError("nuts: numerical overflow in metric adaptation (extreme values on the unconstrained space)");
+    set_metric(cov);
+    init_step_size(rng);
+    if (adapting_) adapt_.restart(eps_);   // mu = log(10 * the new step size), counters restarted
+    estimator_.restart();
+  }
 
   void set_metric(const std::vector<double>& cov) {
     S_.assign(n_ * n_, 0.0);
@@ -312,6 +354,10 @@ class NutsKernel : public SamplerKernel {
 
   NutsOptions opt_;
   DualAveragingStepSize adapt_;
+  bool metric_adapting_ = false;
+  WarmupWindows windows_;
+  int warmup_total_ = 0, warmup_counter_ = 0;
+  CovarianceEstimator estimator_;
   std::size_t n_ = 0;
   std::function<double(const std::vector<double>&, std::vector<double>&)> f_;
   std::vector<double> S_, L_;
