@@ -127,6 +127,8 @@ struct BayesianResponseBasis {
   std::size_t n = 0, K = 0;
   std::vector<double> response;        //!< the prepared response (column 0), n
   std::vector<double> B, dB_background, dB_shift;
+  //! `d B / d tail_fraction` and `d B / d tail_log10_tau` (PRD-144), when `tail_tangents`
+  std::vector<double> dB_tail_fraction, dB_tail_log10_tau;
 };
 
 //! What `bayesian_response_basis` does besides the defaults.
@@ -137,6 +139,11 @@ struct BayesianResponseOptions {
   //! false for a response that carries no background (an analytic one): step 1 is
   //! skipped, so the soft floor does not touch its tails, and d B / d b is zero
   bool remove_background = true;
+  //! PRD-144: the fluorescence response `(1 - a) u + a u (*) k(tau)` in the lifetime columns
+  //! (the scatter column keeps `u`): `a = tail_fraction`, `tau = 10^tail_log10_tau` ns
+  double tail_fraction = 0.0;
+  double tail_log10_tau = -1.0;
+  bool tail_tangents = false;           //!< also fill dB_tail_fraction and dB_tail_log10_tau (needs `tangents`)
 };
 
 /**
@@ -219,27 +226,54 @@ inline BayesianResponseBasis bayesian_response_basis(const BayesianPeriodicKerne
   };
   to_period(y, Y);
   if (tangents) { to_period(dy_b, Db); to_period(dy_s, Ds); }
+  //: PRD-144, the response tail: in the lifetime columns the response is (1 - a) u + a u (*) k(tau),
+  //: i.e. its transform times M = (1 - a) + a KT. d/da multiplies by KT - 1; d/d log10 tau by
+  //: a ln10 (KT1 - KT), since d k0 / d ln tau = k1 - k0 for the bin-integrated periodic kernels.
+  const bool tail = opt.tail_fraction != 0.0 || (tangents && opt.tail_tangents);
+  const bool tail_t = tangents && opt.tail_tangents;
+  std::vector<cd> Da(tail_t ? h : 0), Dt(tail_t ? h : 0);
+  if (tail) {
+    const double a = opt.tail_fraction, tau = std::pow(10.0, opt.tail_log10_tau), ln10 = std::log(10.0);
+    std::vector<double> k0(np), k1(np);
+    periodic_decay_kernel(k0.data(), int(np), ax.dt, tau, 0);
+    periodic_decay_kernel(k1.data(), int(np), ax.dt, tau, 1);
+    std::vector<cd> KT(h), KT1(h);
+    bayesian_rfft(k0.data(), np, KT.data());
+    bayesian_rfft(k1.data(), np, KT1.data());
+    for (std::size_t k = 0; k < h; ++k) {
+      const cd M = (1.0 - a) + a * KT[k];
+      if (tail_t) { Da[k] = Y[k] * (KT[k] - 1.0); Dt[k] = Y[k] * (a * ln10) * (KT1[k] - KT[k]); }
+      Y[k] *= M;
+      if (tangents) { Db[k] *= M; Ds[k] *= M; }
+    }
+  }
+  if (tail_t) { out.dB_tail_fraction.assign(n * K, 0.0); out.dB_tail_log10_tau.assign(n * K, 0.0); }
   for (std::size_t c = 0; c < nt; ++c) {
     const std::vector<cd>& KF = kernel.fft(c);
     for (std::size_t k = 0; k < h; ++k) tmp[k] = KF[k] * Y[k];
     bayesian_irfft(tmp.data(), np, col.data());
     //: clamp at zero, then unit sum with the tangents masked by the clamp -- through
     //: internal/ResponseFunction.h's normalize_unit_sum
-    std::vector<double> cc(n), d_b(tangents ? n : 0), d_s(tangents ? n : 0);
+    std::vector<double> cc(n), d_b(tangents ? n : 0), d_s(tangents ? n : 0), d_a(tail_t ? n : 0), d_t(tail_t ? n : 0);
     for (std::size_t i = 0; i < n; ++i) cc[i] = std::max(col[i], 0.0);
     if (tangents) {
-      for (int which = 0; which < 2; ++which) {
-        const std::vector<cd>& D = which == 0 ? Db : Ds;
-        std::vector<double>& d = which == 0 ? d_b : d_s;
+      const int n_which = tail_t ? 4 : 2;
+      for (int which = 0; which < n_which; ++which) {
+        const std::vector<cd>& D = which == 0 ? Db : which == 1 ? Ds : which == 2 ? Da : Dt;
+        std::vector<double>& d = which == 0 ? d_b : which == 1 ? d_s : which == 2 ? d_a : d_t;
         for (std::size_t k = 0; k < h; ++k) tmp[k] = KF[k] * D[k];
         bayesian_irfft(tmp.data(), np, dcol.data());
         for (std::size_t i = 0; i < n; ++i) d[i] = (col[i] >= 0.0) ? dcol[i] : 0.0;
       }
     }
-    internal::normalize_unit_sum(cc.data(), n, tangents ? std::vector<double*>{d_b.data(), d_s.data()} : std::vector<double*>{});
+    std::vector<double*> tg;
+    if (tangents) { tg.push_back(d_b.data()); tg.push_back(d_s.data()); }
+    if (tail_t) { tg.push_back(d_a.data()); tg.push_back(d_t.data()); }
+    internal::normalize_unit_sum(cc.data(), n, tg);
     for (std::size_t i = 0; i < n; ++i) {
       out.B[i * K + 1 + c] = cc[i];
       if (tangents) { out.dB_background[i * K + 1 + c] = d_b[i]; out.dB_shift[i * K + 1 + c] = d_s[i]; }
+      if (tail_t) { out.dB_tail_fraction[i * K + 1 + c] = d_a[i]; out.dB_tail_log10_tau[i * K + 1 + c] = d_t[i]; }
     }
   }
   return out;

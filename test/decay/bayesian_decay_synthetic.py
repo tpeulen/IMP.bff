@@ -19,7 +19,7 @@ DT = 0.1
 SAMPLES, DETS = ("D0", "DA", "REF"), (("gp", 0), ("gs", 1))
 
 
-def write(directory, seed=0, pile_up=False, linearization=False, free_lambda=False):
+def write(directory, seed=0, pile_up=False, linearization=False, free_lambda=False, tail=False):
     rng = np.random.default_rng(seed)
     K = KINT + 2
     arrays = {}
@@ -68,6 +68,10 @@ def write(directory, seed=0, pile_up=False, linearization=False, free_lambda=Fal
     for d, _ in DETS:
         var(f"irf_shift_{d}", 1, "identity", "gaussian", 0.0, 0.1)
         var(f"irf_bg_{d}", 1, "log", "lognormal", 0.03, 1.0)
+        if tail:
+            # PRD-144: a fluorescence-response tail per detector
+            var(f"tail_fraction_{d}", 1, "logit", "uniform", 0.0, 0.3, 0.0, 0.3)
+            var(f"tail_log10_tau_{d}", 1, "logit", "uniform", -1.7, 0.7, -1.7, 0.7)
     for s in ("D0", "DA"):
         for d, _ in DETS:
             var(f"t_shift_{s}_{d}", 1, "identity", "gaussian", 0.0, 0.1)
@@ -84,7 +88,8 @@ def write(directory, seed=0, pile_up=False, linearization=False, free_lambda=Fal
             var(f"bkg_{ch}", 1, "log", "lognormal", 0.01, 1.0)
             ri = len(responses)
             responses.append(dict(sample=s, det=d, bg_var=f"irf_bg_{d}", shift_var=f"irf_shift_{d}",
-                                  offset_var=(f"t_shift_{s}_{d}" if s != "REF" else None)))
+                                  offset_var=(f"t_shift_{s}_{d}" if s != "REF" else None),
+                                  **(dict(tail_fraction_var=f"tail_fraction_{d}", tail_log10_tau_var=f"tail_log10_tau_{d}") if tail else {})))
             t = np.arange(NBIN) - 6.0
             resp = np.zeros(NBIN)
             resp[2:20] = 1e4 * np.exp(-0.5 * t[2:20] ** 2 / 2.0) + 20.0
