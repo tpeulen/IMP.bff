@@ -143,6 +143,8 @@ struct BayesianDecayPSpline {
 struct BayesianDecayExperiment {
   std::size_t n_bins = 0, dim = 0;
   double dt = 0.0, period = 0.0, soft = 0.05, ref_spec_sd = 0.05, spec_smooth_logdet = 0.0;
+  //! manifest `response_floor`: "hard" (default) or "none" (diagnosis only; PRD-148)
+  BayesianResponseFloor response_floor = BayesianResponseFloor::hard;
   std::vector<std::string> keys, data_keys;
   std::vector<BayesianDecayScope> scopes;
   std::vector<BayesianDecayPart> parts;
@@ -249,6 +251,12 @@ inline nlohmann::json bayesian_decay_experiment_load(const std::string& dir, Bay
   ex.dt = m["axis"]["dt"].get<double>();
   ex.period = m["axis"]["period"].get<double>();
   ex.soft = m["soft"].get<double>();
+  if (m.contains("response_floor")) {
+    const std::string rf = m["response_floor"].get<std::string>();
+    if (rf == "hard") ex.response_floor = BayesianResponseFloor::hard;
+    else if (rf == "none") ex.response_floor = BayesianResponseFloor::none;
+    else throw std::runtime_error("bayesian_decay_experiment_load: response_floor must be hard or none, not " + rf);
+  }
   ex.ref_spec_sd = m["ref_spec_sd"].get<double>();
   ex.dim = m["dim"].get<std::size_t>();
   ex.keys = m["keys"].get<std::vector<std::string>>();
@@ -973,6 +981,7 @@ inline BayesianDecayResponseTangents bayesian_decay_response_basis(const Bayesia
     BayesianResponseOptions opt;
     opt.soft = soft;
     opt.clamp_in_tangent = clamp_in_tangent;
+    opt.floor = f.response_floor;
     if (!ta_n.empty()) {
         opt.tail_fraction = bayesian_decay_constrained_scalar(f, v, ta_n);
         opt.tail_log10_tau = bayesian_decay_constrained_scalar(f, v, tt_n);
