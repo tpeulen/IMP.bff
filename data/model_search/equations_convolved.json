@@ -123,7 +123,7 @@
  },
  "parameters": {
   "instrument.scatter": {
-   "name": "scatter",
+   "name": "scatter fraction",
    "group": "instrument",
    "initial": 0.0,
    "free": false,
@@ -131,11 +131,11 @@
    "upper": 1.0
   },
   "instrument.background": {
-   "name": "background",
+   "name": "background fraction",
    "group": "instrument",
-   "initial": "decay_min",
+   "initial": "decay_min*decay_size/max(decay_sum-decay_min*decay_size,1)",
    "lower": 0.0,
-   "upper": "decay_max"
+   "upper": 100.0
   },
   "instrument.n0": {
    "name": "n0",
@@ -313,7 +313,8 @@
       "response": "generated_response"
      },
      "outputs": {
-      "@name": "float_vector"
+      "@name": "float_vector",
+      "fluorescence_total": "float"
      }
     },
     "objective": {
@@ -336,6 +337,12 @@
    ],
    "ess": "decay_size",
    "selection": "bic"
+  }
+ },
+ "outputs": {
+  "fluorescence_total": {
+   "node": "decay",
+   "port": "fluorescence_total"
   }
  }
 }

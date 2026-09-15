@@ -96,13 +96,13 @@
    "upper": "100*vv_sum"
   },
   "instrument.vv.background": {
-   "name": "bg_vv",
-   "initial": "vv_min",
+   "name": "bg_vv fraction",
+   "initial": "vv_min*vv_size/max(vv_sum-vv_min*vv_size,1)",
    "lower": 0.0,
-   "upper": "vv_max"
+   "upper": 100.0
   },
   "instrument.vv.scatter": {
-   "name": "sc_vv",
+   "name": "sc_vv fraction",
    "initial": 0.0,
    "free": false,
    "lower": 0.0,
@@ -115,13 +115,13 @@
    "upper": "100*vh_sum"
   },
   "instrument.vh.background": {
-   "name": "bg_vh",
-   "initial": "vh_min",
+   "name": "bg_vh fraction",
+   "initial": "vh_min*vh_size/max(vh_sum-vh_min*vh_size,1)",
    "lower": 0.0,
-   "upper": "vh_max"
+   "upper": 100.0
   },
   "instrument.vh.scatter": {
-   "name": "sc_vh",
+   "name": "sc_vh fraction",
    "initial": 0.0,
    "free": false,
    "lower": 0.0,
@@ -134,13 +134,13 @@
    "upper": "100*vm_sum"
   },
   "instrument.vm.background": {
-   "name": "bg_vm",
-   "initial": "vm_min",
+   "name": "bg_vm fraction",
+   "initial": "vm_min*vm_size/max(vm_sum-vm_min*vm_size,1)",
    "lower": 0.0,
-   "upper": "vm_max"
+   "upper": 100.0
   },
   "instrument.vm.scatter": {
-   "name": "sc_vm",
+   "name": "sc_vm fraction",
    "initial": 0.0,
    "free": false,
    "lower": 0.0,
@@ -263,7 +263,8 @@
      "timeshift": "#instrument.timeshift"
     },
     "outputs": {
-     "@name": "float_vector"
+     "@name": "float_vector",
+     "fluorescence_total": "float"
     }
    },
    "vv_chi2": {
@@ -311,7 +312,8 @@
      "timeshift": "#instrument.timeshift"
     },
     "outputs": {
-     "@name": "float_vector"
+     "@name": "float_vector",
+     "fluorescence_total": "float"
     }
    },
    "vh_chi2": {
@@ -359,7 +361,8 @@
      "timeshift": "#instrument.timeshift"
     },
     "outputs": {
-     "@name": "float_vector"
+     "@name": "float_vector",
+     "fluorescence_total": "float"
     }
    },
    "vm_chi2": {

@@ -63,13 +63,20 @@ def test_the_node_shifts_the_response_as_the_instrument_does():
     conv.update()
     shifted = np.asarray(conv.get_output_port("conv").value)
 
+    # Scatter is a fraction of the fluorescence total, so it needs a curve;
+    # what it adds, per unit of that total, is the prepared response.
+    curve = np.full(N, 2.0)
     decay = _node("TCSPCDecay", "decay", response, curve_from_port=True, timing=[DT, 12.5])
-    _vector_input(decay, "curve", np.zeros(N))
-    decay.get_input_port("scatter").value = 1.0
+    _vector_input(decay, "curve", curve)
     decay.get_input_port("n0").value = 1.0
     decay.get_input_port("timeshift").value = 2.37
+    decay.get_input_port("scatter").value = 1.0
     decay.update()
-    np.testing.assert_allclose(np.asarray(decay.get_output_port("decay").value), shifted, rtol=1e-13, atol=1e-15)
+    with_scatter = np.asarray(decay.get_output_port("decay").value).copy()
+    decay.get_input_port("scatter").value = 0.0
+    decay.update()
+    without = np.asarray(decay.get_output_port("decay").value)
+    np.testing.assert_allclose((with_scatter - without) / curve.sum(), shifted, rtol=1e-12, atol=1e-15)
     assert not np.allclose(shifted, response / response.sum())
 
 
@@ -82,7 +89,9 @@ def test_the_instrument_runs_on_a_curve_from_a_port():
     decay.get_input_port("n0").value = 3.0
     decay.get_input_port("background").value = 0.5
     decay.update()
-    expected = np.maximum(3.0 * (curve + 0.2 * response / response.sum()) + 0.5, 0.0)
+    # The instrument stage: scatter and background as fractions of sum(curve).
+    total = curve.sum()
+    expected = np.maximum(3.0 * (curve + 0.2 * total * response / response.sum() + 0.5 * total / N), 0.0)
     np.testing.assert_allclose(np.asarray(decay.get_output_port("decay").value), expected, rtol=1e-13)
 
 
@@ -130,15 +139,18 @@ def test_decay_equations_meet_the_response_and_the_instrument_through_the_frame(
     assert "instrument.timeshift" in model.get_structure_parameter_ids("one")
 
     model.select_structure("two")
-    truth = {"a1": 2000.0, "tau1": 2.0, "a2": 3000.0, "tau2": 0.4, "instrument.background": 3.0}
+    convolved = np.convolve(2000.0 * np.exp(-x / 2.0) + 3000.0 * np.exp(-x / 0.4),
+                            response / response.sum(), "full")[:N]
+    # 3 counts per channel, as a fraction of the fluorescence total (n0 = 1).
+    truth = {"a1": 2000.0, "tau1": 2.0, "a2": 3000.0, "tau2": 0.4,
+             "instrument.background": 3.0 * N / convolved.sum()}
     for name, value in truth.items():
         port = model.get_parameter(name)
         port.fixed = False
         port.value = value
     node = model.get_structure_curve_node("two", "decay")
     clean = np.array(model.get_structure_output("two", node))
-    expected = np.convolve(2000.0 * np.exp(-x / 2.0) + 3000.0 * np.exp(-x / 0.4),
-                           response / response.sum(), "full")[:N] + 3.0
+    expected = convolved + 3.0
     np.testing.assert_allclose(clean, expected, rtol=1e-12)
 
     fitted = _convolved_spec(clean, response, x).get_model()
@@ -159,7 +171,8 @@ def test_an_autoscaled_scale_is_published_to_the_models_parameter():
     spec.set_scalar("autoscale", 1.0)
     model = spec.get_model()
     model.select_structure("one")
-    for name, value in {"a1": 1.0, "tau1": 1.5, "instrument.background": 5.0}.items():
+    unit = np.convolve(np.exp(-x / 1.5), response / response.sum(), "full")[:N]
+    for name, value in {"a1": 1.0, "tau1": 1.5, "instrument.background": 5.0 * N / (400.0 * unit.sum())}.items():
         model.get_parameter(name).value = value
     node = model.get_structure_curve_node("one", "decay")
     curve = np.array(model.get_structure_output("one", node))
@@ -273,14 +286,18 @@ def test_both_nodes_prepare_the_response_the_same_way(kind):
     else:
         node = _node(kind, "decay", response, curve_from_port=True, timing=[DT, 12.5],
                      response_range=[10, 90])
-        _vector_input(node, "curve", np.zeros(N))
+        # Scatter is a fraction of the fluorescence total: a flat curve of
+        # total 1 makes the scatter term the prepared response itself.
+        _vector_input(node, "curve", np.full(N, 1.0 / N))
         node.get_input_port("scatter").value = 1.0
         node.get_input_port("timeshift").value = -1.4
         key = "decay"
     node.add_input_port("response_background", bff.GraphPort(7.5))
     node.update()
-    np.testing.assert_allclose(np.asarray(node.get_output_port(key).value),
-                               _prepared(response, 7.5, 10, 90, -1.4), rtol=1e-12, atol=1e-15)
+    got = np.asarray(node.get_output_port(key).value)
+    if kind == "TCSPCDecay":
+        got = got - 1.0 / N
+    np.testing.assert_allclose(got, _prepared(response, 7.5, 10, 90, -1.4), rtol=1e-12, atol=1e-15)
 
 
 def _classic_background_pattern(curve, pattern, data, timeshift, t_background, t_decay, shift=True):
@@ -315,7 +332,10 @@ def test_a_background_pattern_takes_its_share_of_the_counts(shift):
     decay.bind_dataset("background_pattern", background)
     _vector_input(decay, "curve", curve)
     decay.get_input_port("timeshift").value = 1.3
-    decay.get_input_port("n0").value = 1.0
+    # The pattern is a fraction n_bg / n_fl of the fluorescence total; ChiSurf's
+    # rescaling of the model to n_fl counts is the scale n0 = n_fl / sum(curve).
+    n_bg = pattern.sum() / 4.0 * 2.5
+    decay.get_input_port("n0").value = max(data.sum() - n_bg, 1.0) / curve.sum()
     decay.update()
     expected = _classic_background_pattern(curve, pattern, data, 1.3, 4.0, 2.5, shift)
     np.testing.assert_allclose(np.asarray(decay.get_output_port("decay").value), expected, rtol=1e-12)

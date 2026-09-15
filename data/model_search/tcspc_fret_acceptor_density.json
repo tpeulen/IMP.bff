@@ -130,7 +130,7 @@
     }
    },
    "acceptor_density": {
-    "label": "density [\u00c5^-d]",
+    "label": "density [Å^-d]",
     "function": "chisurf.core.fluorescence.fret.acceptor_density:absolute_density",
     "arguments": {
      "c_over_c0": "#acceptor.c_over_c0",
@@ -233,7 +233,7 @@
    "free": false
   },
   "instrument.scatter": {
-   "name": "scatter",
+   "name": "scatter fraction",
    "initial": 0.0,
    "free": false,
    "lower": 0.0,
@@ -241,10 +241,10 @@
    "group": "instrument"
   },
   "instrument.background": {
-   "name": "background",
-   "initial": "decay_min",
+   "name": "background fraction",
+   "initial": "decay_min*decay_size/max(decay_sum-decay_min*decay_size,1)",
    "lower": 0.0,
-   "upper": "decay_max",
+   "upper": 100.0,
    "group": "instrument"
   },
   "instrument.n0": {
@@ -452,7 +452,8 @@
      "response": "generated_response"
     },
     "outputs": {
-     "@name": "float_vector"
+     "@name": "float_vector",
+     "fluorescence_total": "float"
     }
    },
    "objective": {
@@ -512,5 +513,11 @@
    "delta": -1,
    "prior": 0.375
   }
- ]
+ ],
+ "outputs": {
+  "fluorescence_total": {
+   "node": "decay",
+   "port": "fluorescence_total"
+  }
+ }
 }

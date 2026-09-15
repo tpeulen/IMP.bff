@@ -36,10 +36,10 @@
     "label": "Donor lifetimes"
    },
    "rda_min": {
-    "label": "Distance axis from [\u00c5]"
+    "label": "Distance axis from [Å]"
    },
    "rda_max": {
-    "label": "Distance axis to [\u00c5]"
+    "label": "Distance axis to [Å]"
    },
    "rda_resolution": {
     "label": "Distance axis points"
@@ -55,11 +55,11 @@
     "label": "Rotational correlation times"
    },
    "static_orientation": {
-    "label": "Static isotropic \u03ba\u00b2",
+    "label": "Static isotropic κ²",
     "kind": "flag"
    },
    "kappa2_bins": {
-    "label": "\u03ba\u00b2 apparent-distance bins (0 exact)"
+    "label": "κ² apparent-distance bins (0 exact)"
    },
    "dt": {
     "label": "dt [ns]",
@@ -366,7 +366,7 @@
    "group": "anisotropy"
   },
   "instrument.scatter": {
-   "name": "scatter",
+   "name": "scatter fraction",
    "initial": 0.0,
    "free": false,
    "lower": 0.0,
@@ -374,10 +374,10 @@
    "group": "instrument"
   },
   "instrument.background": {
-   "name": "background",
-   "initial": "decay_min",
+   "name": "background fraction",
+   "initial": "decay_min*decay_size/max(decay_sum-decay_min*decay_size,1)",
    "lower": 0.0,
-   "upper": "decay_max",
+   "upper": 100.0,
    "group": "instrument"
   },
   "instrument.n0": {
@@ -646,7 +646,8 @@
     },
     "outputs": {
      "@name": "float_vector",
-     "spectrum": "float_vector"
+     "spectrum": "float_vector",
+     "fluorescence_total": "float"
     }
    },
    "objective": {
@@ -696,6 +697,10 @@
   "fret_rates": {
    "node": "fret",
    "port": "fret_rates"
+  },
+  "fluorescence_total": {
+   "node": "decay",
+   "port": "fluorescence_total"
   }
  }
 }

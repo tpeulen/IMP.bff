@@ -95,7 +95,7 @@ def test_the_search_finds_how_many_distances_made_the_data():
     truth.select_structure("tcspc_fret_discrete.components.2")
     for canonical, value in (("distance.mean.0", 40.0), ("distance.amplitude.0", 0.5),
                              ("distance.mean.1", 60.0), ("distance.amplitude.1", 0.5),
-                             ("instrument.n0", 60000.0), ("instrument.background", 1.0)):
+                             ("instrument.n0", 60000.0), ("instrument.background", 0.001)):
         _set(truth, canonical, value)
     data = bff.FitDataset()
     data.set_values_array(np.ascontiguousarray(_curve(truth)))
