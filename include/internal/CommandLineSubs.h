@@ -21,6 +21,7 @@
 
 #include <IMP/bff/bff_config.h>
 
+#include <cctype>
 #include <cstddef>
 #include <fstream>
 #include <sstream>
@@ -84,9 +85,17 @@ inline std::string path_dirname(const std::string& path) {
   if (slash == std::string::npos) return std::string();
   return slash == 0 ? std::string("/") : path.substr(0, slash);
 }
+//! `p` starts with a Windows drive letter, e.g. "C:...". Recognized here too,
+//! not only via a leading `/` or `\`: an absolute `b` glued onto `a` instead
+//! of replacing it produces a path that opens nothing
+//! ("D:\a\...\/C:\Users\...").
+inline bool path_has_drive(const std::string& p) {
+  return p.size() > 1 && std::isalpha(static_cast<unsigned char>(p[0])) && p[1] == ':';
+}
 //! os.path.join(a, b)
 inline std::string path_join(const std::string& a, const std::string& b) {
-  if (a.empty() || (!b.empty() && (b[0] == '/' || b[0] == '\\'))) return b;
+  if (a.empty() || (!b.empty() && (b[0] == '/' || b[0] == '\\' || path_has_drive(b))))
+    return b;
   const char last = a[a.size() - 1];
   return (last == '/' || last == '\\') ? a + b : a + "/" + b;
 }

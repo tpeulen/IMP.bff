@@ -18,6 +18,7 @@
 #include <IMP/bff/internal/CommandLineSubs.h>
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstdarg>
 #include <cstdlib>
@@ -86,6 +87,14 @@ std::vector<std::string> split_path(const std::string& path) {
   }
   return parts;
 }
+
+//! `p` is a Windows drive letter, e.g. "C:" -- the first split_path() part of
+//! a drive-letter absolute path, which must lead the reconstruction with no
+//! separator before it ("D:/a/..."), not after one ("/D:/a/...", which is
+//! not a path anything on Windows opens).
+bool part_is_drive(const std::string& p) {
+  return p.size() == 2 && std::isalpha(static_cast<unsigned char>(p[0])) && p[1] == ':';
+}
 }  // namespace dispatch
 
 std::string path_abs(const std::string& path) {
@@ -102,8 +111,14 @@ std::string path_abs(const std::string& path) {
     full = std::string(cwd ? cwd : ".") + "/" + path;
   }
   const std::vector<std::string> parts = dispatch::split_path(full);
+  if (parts.empty()) return std::string("/");
   std::string out;
-  for (std::size_t i = 0; i < parts.size(); ++i) out += "/" + parts[i];
+  std::size_t i = 0;
+  if (dispatch::part_is_drive(parts[0])) {
+    out = parts[0];
+    i = 1;
+  }
+  for (; i < parts.size(); ++i) out += "/" + parts[i];
   return out.empty() ? std::string("/") : out;
 }
 
