@@ -54,7 +54,7 @@ class Tests(IMP.test.TestCase):
         "DampedNewton.h": ("math",),
         "PoissonScore.h": ("math",),
         "McmcDiagnostics.h": ("math",),
-        "MaxEntQp.h": ("math",),
+        "NoUTurnSampler.h": ("math",),
         "Mat.h": ("math",),
     }
 
@@ -75,7 +75,7 @@ class Tests(IMP.test.TestCase):
             # The contract that makes the copy possible: nothing but the standard
             # library, and no dependency on the rest of either repository -- a
             # header another vendored copy includes is vendored beside it
-            # (MaxEntQp.h's Mat.h).
+            # (PeriodicDecayKernel.h's DecayConvolution.h).
             for forbidden in ("Mat.h", "nlohmann", "Registry.h", "SimPcgRandom", "Eigen", "IMP/"):
                 if forbidden in self.VENDORED:
                     continue

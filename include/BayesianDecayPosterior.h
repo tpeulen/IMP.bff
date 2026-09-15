@@ -231,6 +231,35 @@ inline BayesianDecayPoint bayesian_decay_evaluate(const BayesianDecayExperiment&
     return p;
 }
 
+//! The log posterior and its gradient, without the information matrix `bayesian_decay_evaluate`
+//! also accumulates: what a gradient-based sampler needs per leapfrog step (PRD-146).
+//! `grad = sum_b w_b (y_b/m_b - 1) dm_b/dtheta + d log prior/dtheta`, with the same floor on m.
+inline double bayesian_decay_log_posterior_and_gradient(const BayesianDecayExperiment& f, const BayesianDecayTensors& e,
+                                                        const std::vector<double>& th, std::vector<double>& grad) {
+    const std::size_t dim = f.dim;
+    const BayesianDecayValues v = bayesian_decay_unpack(f, th);
+    const std::vector<double> a2 = bayesian_decay_amplitudes(f, e, v);
+    const std::vector<double> Ja = bayesian_decay_amplitude_jacobian(f, e, v);
+    std::vector<double> J;
+    const std::vector<double> lam = bayesian_decay_expected_counts(f, e, v, &J, &Ja, &a2);
+    const BayesianDecayPrior P = bayesian_decay_log_prior(f, th, true);
+    const BayesianDecayArray& y = f["y"], & mask = f["mask"];
+    grad.assign(dim, 0.0);
+    double ll = 0.0;
+    for (std::size_t b = 0; b < lam.size(); ++b) {
+        const double w = mask.d[b];
+        if (w == 0.0) continue;
+        const double m = std::max(lam[b], 1e-12);
+        ll += w * (y.d[b] * std::log(m) - m);
+        const double u = w * (y.d[b] / m - 1.0);
+        if (u == 0.0) continue;
+        const double* row = &J[b * dim];
+        for (std::size_t c = 0; c < dim; ++c) grad[c] += u * row[c];
+    }
+    for (std::size_t c = 0; c < dim; ++c) grad[c] += P.g[c];
+    return ll + P.lp;
+}
+
 //! the Laplace evidence at a point: log p(y | lambda) = log p(y, theta*) + d/2 log 2 pi - 1/2 log det A
 inline double bayesian_decay_laplace_evidence(const BayesianDecayPoint& p, std::size_t dim, bool* ok = nullptr) {
     double ev = 0.0;
