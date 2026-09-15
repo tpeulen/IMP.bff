@@ -131,40 +131,6 @@ std::vector<int> sample_without_replacement(const std::vector<int>& population,
   return pool;
 }
 
-//! chisurf's _adaptation_windows: Stan's init/doubling/term schedule.
-void adaptation_windows(int n_adapt, int& init_buffer, int& term_buffer,
-                        std::vector<int>& window_ends) {
-  init_buffer = 75;
-  term_buffer = 50;
-  int base_window = 25;
-  window_ends.clear();
-  n_adapt = int(n_adapt);
-  if (n_adapt < 20) {
-    init_buffer = n_adapt;
-    term_buffer = 0;
-    return;
-  }
-  if (init_buffer + base_window + term_buffer > n_adapt) {
-    init_buffer = int(std::lround(0.15 * n_adapt));
-    term_buffer = int(std::lround(0.10 * n_adapt));
-    base_window = n_adapt - init_buffer - term_buffer;
-    if (base_window < 2) {
-      init_buffer = n_adapt;
-      term_buffer = 0;
-      return;
-    }
-  }
-  int start = init_buffer, window = base_window;
-  const int last = n_adapt - term_buffer;
-  while (start + window <= last) {
-    int end = start + window;
-    if (end + 2 * window > last) end = last;
-    window_ends.push_back(end);
-    start = end;
-    window *= 2;
-  }
-}
-
 //! Eigenvalues of a symmetric matrix by cyclic Jacobi rotations.
 void symmetric_eigenvalues(Matrix a, std::vector<double>& values) {
   const std::size_t n = a.size();
@@ -967,30 +933,12 @@ void MCMCSampler::seed_blocks() {
                                          0.44 / std::sqrt(static_cast<double>(k)));
     const double log_scale =
         std::log(2.38 / std::sqrt(static_cast<double>(std::max<std::size_t>(1, k))));
-    block.adapter.target = target;
-    block.adapter.restart(log_scale);
+    block.adapter.set_target(target);
+    block.adapter.restart_log(log_scale);
     block.log_scale = log_scale;
     block.accepted = 0;
     block.proposed = 0;
   }
-}
-
-void MCMCSampler::DualAveraging::restart(double log_eps) {
-  mu = log_eps;
-  log_eps = log_eps;
-  log_eps_bar = log_eps;
-  h_bar = 0.0;
-  counter = 0;
-}
-
-double MCMCSampler::DualAveraging::update(double alpha) {
-  ++counter;
-  const double eta = 1.0 / (static_cast<double>(counter) + t0);
-  h_bar = (1.0 - eta) * h_bar + eta * (target - alpha);
-  log_eps = mu - std::sqrt(static_cast<double>(counter)) / gamma * h_bar;
-  const double weight = std::pow(static_cast<double>(counter), -kappa);
-  log_eps_bar = weight * log_eps + (1.0 - weight) * log_eps_bar;
-  return log_eps;
 }
 
 void MCMCSampler::initialize_ensemble() {
@@ -1382,7 +1330,7 @@ void MCMCSampler::blocked_sweep(bool adapt) {
         ++block.accepted;
       }
     }
-    if (adapt) block.log_scale = block.adapter.update(alpha);
+    if (adapt) block.log_scale = block.adapter.learn_log(alpha);
   }
   walkers_[0] = current;
   walker_parts_[0] = parts;
@@ -1427,21 +1375,18 @@ void MCMCSampler::run(int n_steps, int thin) {
       if (n_adapt < 0)
         n_adapt = std::min(500, std::max(100, (n_samples * thin_) / 20));
       if (n_adapt > 0) {
-        int init_buffer = 0, term_buffer = 0;
-        std::vector<int> window_ends;
-        sampler_detail::adaptation_windows(n_adapt, init_buffer, term_buffer,
-                                           window_ends);
+        // the one windowed schedule (SamplerWarmup.h)
+        const WarmupWindows windows = warmup_windows(n_adapt);
         // chisurf's growing windows: every estimate uses all draws since
         // the end of the initial buffer, never a sliding one.
         std::vector<std::vector<double> > warmup(
             static_cast<std::size_t>(n_adapt),
             std::vector<double>(ndim_, 0.0));
-        const std::size_t window_start = static_cast<std::size_t>(init_buffer);
+        const std::size_t window_start = static_cast<std::size_t>(windows.init_buffer);
         for (int i = 0; i < n_adapt; ++i) {
           blocked_sweep(true);
           warmup[static_cast<std::size_t>(i)] = walkers_[0];
-          const bool is_end = std::find(window_ends.begin(), window_ends.end(),
-                                        i + 1) != window_ends.end();
+          const bool is_end = windows.closes(i + 1);
           if (is_end) {
             std::vector<const double*> visited;
             for (std::size_t d = window_start;
@@ -1481,12 +1426,12 @@ void MCMCSampler::run(int n_steps, int thin) {
               block.factor = sampler_detail::flatten_factor(
                   sampler_detail::cholesky_or_diagonal(empirical));
               block.log_scale = 0.0;
-              block.adapter.restart(0.0);
+              block.adapter.restart_log(0.0);
             }
           }
         }
         for (std::size_t b = 0; b < blocks_.size(); ++b)
-          blocks_[b].log_scale = blocks_[b].adapter.averaged();
+          blocks_[b].log_scale = blocks_[b].adapter.final_log();
         for (std::size_t b = 0; b < blocks_.size(); ++b) {
           blocks_[b].accepted = 0;
           blocks_[b].proposed = 0;

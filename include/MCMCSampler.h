@@ -98,6 +98,7 @@
 #ifndef IMPBFF_MCMCSAMPLER_H
 #define IMPBFF_MCMCSAMPLER_H
 
+#include <IMP/bff/SamplerWarmup.h>
 #include <IMP/bff/bff_config.h>
 
 #include <functional>
@@ -423,28 +424,12 @@ class IMPBFFEXPORT MCMCSampler {
     double get(const std::string& name, double fallback) const;
   };
 
-  //! Nesterov dual averaging of a log step size (_DualAveraging).
-  struct DualAveraging {
-    double target = 0.234;
-    double gamma = 0.05;
-    double t0 = 10.0;
-    double kappa = 0.75;
-    double mu = 0.0;
-    double log_eps = 0.0;
-    double log_eps_bar = 0.0;
-    double h_bar = 0.0;
-    int counter = 0;
-    void restart(double log_eps);
-    double update(double alpha);
-    double averaged() const { return log_eps_bar; }
-  };
-
   //! Everything the blocked sampler keeps per block.
   struct BlockState {
     std::vector<int> indices;             // positions in the parameter vector
     std::vector<double> factor;           // flat lower-triangular Cholesky
     double log_scale = 0.0;
-    DualAveraging adapter;
+    DualAveragingStepSize adapter;          // SamplerWarmup.h, per-block log scale
     long accepted = 0;                     // recorded-phase counters
     long proposed = 0;
     //! Seeded from the caller's curvature: warm-up adapts the scale only,
