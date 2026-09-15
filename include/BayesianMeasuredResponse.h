@@ -131,10 +131,17 @@ struct BayesianResponseBasis {
   std::vector<double> dB_tail_fraction, dB_tail_log10_tau;
 };
 
+//! How the shifted response and the kernel columns are kept non-negative (PRD-148).
+enum class BayesianResponseFloor {
+  hard,  //!< clamp at zero (the forward model gated against the torch prototype)
+  none   //!< no floor; for diagnosis only (PRD-148 step 1: NUTS diverges without it as well)
+};
+
 //! What `bayesian_response_basis` does besides the defaults.
 struct BayesianResponseOptions {
   double soft = 0.05;                   //!< the soft floor of the background removal, in units of `1e-4 * max`
-  bool clamp = true;                    //!< clamp the shifted response at zero (the forward model)
+  bool clamp = true;                    //!< floor the shifted response (false: no floor there; the columns keep `floor`)
+  BayesianResponseFloor floor = BayesianResponseFloor::hard;  //!< which floor (PRD-148)
   bool clamp_in_tangent = true;         //!< mask the tangents where the clamp bites; false only to test that it matters
   //! false for a response that carries no background (an analytic one): step 1 is
   //! skipped, so the soft floor does not touch its tails, and d B / d b is zero
@@ -197,16 +204,17 @@ inline BayesianResponseBasis bayesian_response_basis(const BayesianPeriodicKerne
   for (std::size_t k = 0; k <= n / 2; ++k) T[k] = U[k] * ramp[k];
   std::vector<double> y(n), dy_b(tangents ? n : 0), dy_s(tangents ? n : 0);
   bayesian_irfft(T.data(), n, y.data());
+  const BayesianResponseFloor fmode = opt.clamp ? opt.floor : BayesianResponseFloor::none;
   if (tangents) {
     bayesian_rfft(du_b.data(), n, T.data());
     for (std::size_t k = 0; k <= n / 2; ++k) T[k] *= ramp[k];
     bayesian_irfft(T.data(), n, dy_b.data());
     for (std::size_t k = 0; k <= n / 2; ++k) T[k] = U[k] * ramp[k] * cd(0.0, -two_pi * double(k) / double(n));
     bayesian_irfft(T.data(), n, dy_s.data());
-    if (opt.clamp && opt.clamp_in_tangent)
+    if (fmode == BayesianResponseFloor::hard && opt.clamp_in_tangent)
       for (std::size_t i = 0; i < n; ++i) if (!(y[i] >= 0.0)) { dy_b[i] = 0.0; dy_s[i] = 0.0; }
   }
-  if (opt.clamp) for (double& t : y) t = std::max(t, 0.0);
+  if (fmode == BayesianResponseFloor::hard) for (double& t : y) t = std::max(t, 0.0);
   // 3. unit sum, through internal/ResponseFunction.h
   internal::normalize_unit_sum(y.data(), n, tangents ? std::vector<double*>{dy_b.data(), dy_s.data()} : std::vector<double*>{}, 0.0);
   out.response = y;
@@ -255,7 +263,8 @@ inline BayesianResponseBasis bayesian_response_basis(const BayesianPeriodicKerne
     //: clamp at zero, then unit sum with the tangents masked by the clamp -- through
     //: internal/ResponseFunction.h's normalize_unit_sum
     std::vector<double> cc(n), d_b(tangents ? n : 0), d_s(tangents ? n : 0), d_a(tail_t ? n : 0), d_t(tail_t ? n : 0);
-    for (std::size_t i = 0; i < n; ++i) cc[i] = std::max(col[i], 0.0);
+    const bool col_floor = opt.floor == BayesianResponseFloor::hard;
+    for (std::size_t i = 0; i < n; ++i) cc[i] = col_floor ? std::max(col[i], 0.0) : col[i];
     if (tangents) {
       const int n_which = tail_t ? 4 : 2;
       for (int which = 0; which < n_which; ++which) {
@@ -263,7 +272,7 @@ inline BayesianResponseBasis bayesian_response_basis(const BayesianPeriodicKerne
         std::vector<double>& d = which == 0 ? d_b : which == 1 ? d_s : which == 2 ? d_a : d_t;
         for (std::size_t k = 0; k < h; ++k) tmp[k] = KF[k] * D[k];
         bayesian_irfft(tmp.data(), np, dcol.data());
-        for (std::size_t i = 0; i < n; ++i) d[i] = (col[i] >= 0.0) ? dcol[i] : 0.0;
+        for (std::size_t i = 0; i < n; ++i) d[i] = (!col_floor || col[i] >= 0.0) ? dcol[i] : 0.0;
       }
     }
     std::vector<double*> tg;
