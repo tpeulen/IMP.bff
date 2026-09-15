@@ -336,6 +336,78 @@ inline BayesianDecayFit bayesian_decay_fit_node(const BayesianDecayExperiment& f
 }
 
 /**
+ * \brief The exact Hessian of minus the log posterior, by central differences of the
+ *        analytic gradient, symmetrised: `H_ij = (g_i(theta + h e_j) - g_i(theta - h e_j)) / 2h`.
+ *
+ * **Why it is needed.** Fisher scoring's matrix `J' diag(w/m) J - prior` drops the term
+ * `sum_b w_b (y_b/m_b - 1) d2m_b/dtheta2`. At a mode that fits it is small per bin but not
+ * in total, and on CBM56 it is where the Laplace evidence differed: 11.7 nats, all of it that
+ * term (observed vs expected information: 0.04), concentrated in weakly identified,
+ * nonlinearly parameterised blocks -- the donor spectrum (5.3), the acceptor weights (2.4),
+ * the rotational weights, the spline -- with the exact curvature up to 5.6x Fisher's there
+ * (PRD-143 A4.9). The Laplace approximation is defined by the exact Hessian.
+ *
+ * `h = rel * max(1, |theta_j|)`; `2 dim` gradient evaluations, run serially over coordinates
+ * (each evaluation already uses the pool).
+ */
+inline std::vector<double> bayesian_decay_hessian(const BayesianDecayExperiment& f, const BayesianDecayTensors& env,
+                                                  const std::vector<double>& theta, double rel = 1e-5) {
+    const std::size_t dim = f.dim;
+    std::vector<double> H(dim * dim, 0.0);
+    for (std::size_t j = 0; j < dim; ++j) {
+        const double h = rel * std::max(1.0, std::fabs(theta[j]));
+        std::vector<double> tp = theta, tm = theta;
+        tp[j] += h; tm[j] -= h;
+        const BayesianDecayPoint gp = bayesian_decay_evaluate(f, env, tp), gm = bayesian_decay_evaluate(f, env, tm);
+        for (std::size_t i = 0; i < dim; ++i) H[i * dim + j] = -(gp.grad[i] - gm.grad[i]) / (2.0 * h);   // grad is of +log posterior
+    }
+    for (std::size_t i = 0; i < dim; ++i)
+        for (std::size_t j = i + 1; j < dim; ++j) {
+            const double v = 0.5 * (H[i * dim + j] + H[j * dim + i]);
+            H[i * dim + j] = H[j * dim + i] = v;
+        }
+    return H;
+}
+
+/**
+ * \brief Polish a mode with the exact Hessian: damped Newton steps (`DampedNewton`, which
+ *        adds to the diagonal until the matrix is positive definite) on `bayesian_decay_hessian`.
+ *
+ * A scoring fit stops where its Fisher decrement is small. On a posterior with ripples that
+ * is not always a point where the exact curvature is negative definite, and the exact-Hessian
+ * evidence is only defined at such a point (on the CBM56 lambda grid one node's exact Hessian
+ * was indefinite after scoring). Stops at decrement `tol` (g' H^-1 g) or `max_iter` steps.
+ */
+inline BayesianDecayFit bayesian_decay_polish_exact(const BayesianDecayExperiment& f, const BayesianDecayTensors& env,
+                                                    BayesianDecayFit fit, int max_iter = 20, double tol = 1e-8) {
+    const std::size_t dim = f.dim;
+    std::vector<double> th = fit.theta;
+    auto objective = [&](const double* t) { return -bayesian_decay_log_posterior(f, env, std::vector<double>(t, t + dim)); };
+    DampedNewton<decltype(objective)> stepper;
+    BayesianDecayPoint pt = fit.pt;
+    int it = 0;
+    for (; it < max_iter; ++it) {
+        const std::vector<double> H = bayesian_decay_hessian(f, env, th);
+        const OptimizationStepResult r = stepper.step(H.data(), pt.grad.data(), dim, -pt.logpost, th.data(), objective);
+        if (!r.accepted) break;
+        pt = bayesian_decay_evaluate(f, env, th);
+        fit.dec = r.decrement;
+        if (r.decrement < tol) { ++it; break; }
+    }
+    fit.theta = th; fit.pt = std::move(pt); fit.iterations += it;
+    return fit;
+}
+
+//! The Laplace evidence at a mode with the exact Hessian (`bayesian_decay_hessian`) instead of
+//! the Fisher information: `log p(y, theta*) + dim/2 log 2 pi - 1/2 log det H`.
+inline double bayesian_decay_laplace_evidence_exact(const BayesianDecayExperiment& f, const BayesianDecayTensors& env,
+                                                    const BayesianDecayPoint& mode, bool* ok = nullptr) {
+    BayesianDecayPoint q = mode;
+    q.A = bayesian_decay_hessian(f, env, mode.theta);
+    return bayesian_decay_laplace_evidence(q, f.dim, ok);
+}
+
+/**
  * \brief A declared start: where a fit begins and how it walks from there.
  *
  * `adam_steps > 0` runs that many Adam steps (tttrlib `adam_update`, Kingma & Ba 2015,
@@ -439,13 +511,19 @@ struct BayesianDecayLambdaGrid {
  * prior on log10 lambda), so the grid integrates lambda out; the mixture's sd includes
  * the spread between nodes (`BayesianEvidenceMixture`).
  *
+ * Evidence from the Fisher information by default. `exact_evidence` polishes each node with
+ * the exact Hessian and uses it -- the Laplace approximation's definition -- but on CBM56 that
+ * evidence jumps by ~2 nats between neighbouring nodes and is undefined (indefinite) at one,
+ * after the polish too: the posterior is not locally Gaussian there, and neither matrix gives
+ * reliable weights; sampling does (PRD-143 A4.9/A4.10).
+ *
  * The node nearest `theta_centre`'s lambda is fitted from `theta_centre`, the others from
  * their inner neighbour's end, outwards. `f` is copied; its `fixed_values["log10_lam"]`
  * is set per node, and `env` (the tensors) does not depend on it.
  */
 inline BayesianDecayLambdaGrid bayesian_decay_fit_lambda_grid(const BayesianDecayExperiment& f, const BayesianDecayTensors& env,
                                                              const std::vector<double>& log10_nodes, const std::vector<double>& theta_centre,
-                                                             double log10_centre, int max_iter = 1000) {
+                                                             double log10_centre, int max_iter = 1000, bool exact_evidence = false) {
     BayesianDecayLambdaGrid G;
     std::vector<double> nodes = log10_nodes;
     std::sort(nodes.begin(), nodes.end());
@@ -459,6 +537,12 @@ inline BayesianDecayLambdaGrid bayesian_decay_fit_lambda_grid(const BayesianDeca
         BayesianDecayLambdaNode& N = G.nodes[i];
         N.log10_lam = nodes[i];
         N.fit = bayesian_decay_fit_node(g, env, start, 1.0, max_iter);
+        //: the node's evidence with the exact Hessian (bayesian_decay_hessian): Fisher's drops the
+        //: second-derivative term, 11.7 nats on CBM56, and the weights are differences of these
+        if (exact_evidence) {
+            N.fit = bayesian_decay_polish_exact(g, env, N.fit);
+            N.fit.evidence = bayesian_decay_laplace_evidence_exact(g, env, N.fit.pt);
+        }
         const std::vector<double> Sig = bayesian_decay_covariance(N.fit.pt, g.dim);
         bayesian_decay_distribution_with_sd(g, env, N.fit.theta, Sig, N.p, N.p_sd, &N.mean_rel, &N.mean_rel_sd);
     };
