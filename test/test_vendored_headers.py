@@ -53,6 +53,8 @@ class Tests(IMP.test.TestCase):
         "AdamUpdate.h": ("math",),
         "DampedNewton.h": ("math",),
         "PoissonScore.h": ("math",),
+        "MaxEntQp.h": ("math",),
+        "Mat.h": ("math",),
     }
 
     def _paths(self, name="MlpCore.h"):
@@ -70,8 +72,12 @@ class Tests(IMP.test.TestCase):
             with open(ours) as fh:
                 text = fh.read()
             # The contract that makes the copy possible: nothing but the standard
-            # library, and no dependency on the rest of either repository.
+            # library, and no dependency on the rest of either repository -- a
+            # header another vendored copy includes is vendored beside it
+            # (MaxEntQp.h's Mat.h).
             for forbidden in ("Mat.h", "nlohmann", "Registry.h", "SimPcgRandom", "Eigen", "IMP/"):
+                if forbidden in self.VENDORED:
+                    continue
                 self.assertNotIn('#include "' + forbidden, text, name)
                 self.assertNotIn("#include <" + forbidden, text, name)
             guard = ("TTTRLIB_FSCONV_H" if name == "DecayConvolution.h"

@@ -26,3 +26,7 @@
 /* Lifetime spectra of several species weighted by fractions: a mixture of models. */
 %shared_ptr(IMP::bff::LifetimeSpectrumMixture);
 %include "IMP/bff/LifetimeSpectrumMixture.h"
+%shared_ptr(IMP::bff::SpectrumGrid);
+%include "IMP/bff/SpectrumGrid.h"
+%shared_ptr(IMP::bff::MaxEntSpectrum);
+%include "IMP/bff/MaxEntSpectrum.h"

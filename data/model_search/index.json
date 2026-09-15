@@ -11,6 +11,8 @@
  "tcspc_fret_tabulated",
  "tcspc_fret_worm_like_chain",
  "tcspc_lifetime",
+ "tcspc_maxent_fret",
+ "tcspc_maxent_lifetime",
  "tcspc_mixture",
  "tcspc_pddem",
  "tcspc_polarized"

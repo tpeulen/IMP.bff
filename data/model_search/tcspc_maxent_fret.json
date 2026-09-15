@@ -1,0 +1,533 @@
+{
+ "schema": "bff.model_search.v1",
+ "family": "tcspc_maxent_fret",
+ "title": "FRET: MaxEnt distances",
+ "presentation": {
+  "_comment": "A donor-acceptor distance distribution recovered by maximum entropy: each grid distance quenches the donor through FRETSpectrumNode, and its decay is the instrument's basis. Read by applications, ignored by the engine.",
+  "groups": {
+   "donor": "Donor",
+   "fret": "FRET",
+   "maxent": "Maximum entropy",
+   "instrument": "Instrument"
+  },
+  "datasets": {
+   "decay": {
+    "label": "Decay",
+    "primary": true
+   },
+   "response": {
+    "label": "IRF",
+    "required_unless": "generated_response"
+   }
+  },
+  "scalars": {
+   "dt": {
+    "label": "dt [ns]",
+    "default": "decay_dx"
+   },
+   "period": {
+    "label": "Period [ns]",
+    "default": 12.5
+   },
+   "response_start": {
+    "label": "IRF start [ns]"
+   },
+   "response_stop": {
+    "label": "IRF stop [ns]"
+   },
+   "periodic_excitation": {
+    "label": "Periodic excitation",
+    "kind": "flag"
+   },
+   "generated_response": {
+    "label": "Model the IRF (no measured IRF)",
+    "kind": "flag"
+   },
+   "target_chisq": {
+    "label": "Target reduced chi2 (<= 0: log10(nu) as given)"
+   },
+   "max_iterations": {
+    "label": "MEM iterations"
+   },
+   "donor_lifetimes": {
+    "label": "Donor lifetimes"
+   }
+  },
+  "distributions": {
+   "maxent_distribution": {
+    "label": "Distance distribution",
+    "node": "maxent",
+    "port": "distribution"
+   },
+   "lifetime_spectrum": {
+    "label": "Lifetime",
+    "node": "decay",
+    "port": "spectrum"
+   }
+  },
+  "statistics": {
+   "tau_species": {
+    "label": "<tau>x",
+    "of": "lifetime_spectrum",
+    "statistic": "species_averaged_lifetime"
+   },
+   "tau_fluorescence": {
+    "label": "<tau>F",
+    "of": "lifetime_spectrum",
+    "statistic": "fluorescence_averaged_lifetime"
+   }
+  },
+  "reference_modes": [
+   "tcspc_total_photons",
+   "tcspc_peak_photons"
+  ],
+  "axis": {
+   "x": "time (ns)",
+   "y": "counts",
+   "scale_y": "log"
+  },
+  "values": {
+   "chisq_pearson": {
+    "label": "chi2r (model weights)",
+    "node": "maxent",
+    "port": "chisq_pearson"
+   },
+   "entropy": {
+    "label": "S",
+    "node": "maxent",
+    "port": "entropy"
+   },
+   "nu": {
+    "label": "nu used",
+    "node": "maxent",
+    "port": "nu"
+   },
+   "converged": {
+    "label": "MEM converged",
+    "node": "maxent",
+    "port": "converged"
+   }
+  },
+  "regularization": {
+   "_comment": "An L-curve sweeps this parameter and reads the misfit and the entropy.",
+   "parameter": "maxent.log10_nu",
+   "misfit": {
+    "node": "maxent",
+    "port": "chisq"
+   },
+   "solution": {
+    "node": "maxent",
+    "port": "entropy"
+   }
+  }
+ },
+ "datasets": [
+  "decay"
+ ],
+ "scalars": [
+  "dt",
+  "period"
+ ],
+ "optional_scalars": {
+  "convolution_stop": 1e+18,
+  "response_start": 0.0,
+  "response_stop": 1e+18,
+  "periodic_excitation": 1,
+  "generated_response": 0,
+  "fit_start": 0,
+  "fit_stop": 1e+18,
+  "target_chisq": -1.0,
+  "max_iterations": 200,
+  "donor_lifetimes": 1
+ },
+ "optional_datasets": [
+  "response"
+ ],
+ "parameters": {
+  "repeat": [
+   {
+    "index": "i",
+    "count": "d_max",
+    "body": {
+     "donor.amplitude.{i}": {
+      "name": "xD{i}",
+      "initial": "1/({i}+1)",
+      "lower": 0.0,
+      "upper": null,
+      "group": "donor",
+      "free": false
+     },
+     "donor.tau.{i}": {
+      "name": "tD{i}",
+      "initial": "4/({i}+1)",
+      "lower": "max(dt*0.01,1e-12)",
+      "upper": "period",
+      "group": "donor",
+      "free": false
+     }
+    }
+   }
+  ],
+  "maxent.log10_nu": {
+   "name": "log10(nu)",
+   "initial": -3.0,
+   "lower": -8.0,
+   "upper": 3.0,
+   "free": false,
+   "group": "maxent"
+  },
+  "maxent.grid_from": {
+   "name": "grid from [Å]",
+   "initial": 5.0,
+   "lower": 1e-06,
+   "upper": 1000000.0,
+   "free": false,
+   "group": "maxent"
+  },
+  "maxent.grid_to": {
+   "name": "grid to [Å]",
+   "initial": 156.0,
+   "lower": 1e-06,
+   "upper": 1000000.0,
+   "free": false,
+   "group": "maxent"
+  },
+  "maxent.grid_bins": {
+   "name": "grid points",
+   "initial": 96,
+   "lower": 2,
+   "upper": 10000,
+   "free": false,
+   "group": "maxent"
+  },
+  "fret.forster_radius": {
+   "name": "R0",
+   "initial": 52.0,
+   "lower": 1.0,
+   "upper": 1000.0,
+   "group": "fret",
+   "free": false
+  },
+  "fret.tau0": {
+   "name": "tau0",
+   "initial": 4.0,
+   "lower": 0.001,
+   "upper": 1000.0,
+   "group": "fret",
+   "free": false
+  },
+  "fret.kappa2": {
+   "name": "kappa2",
+   "initial": 0.66667,
+   "lower": 0.0,
+   "upper": 4.0,
+   "group": "fret",
+   "free": false
+  },
+  "fret.x_donly": {
+   "name": "xDOnly",
+   "initial": 0.0,
+   "lower": 0.0,
+   "upper": 1.0,
+   "group": "fret"
+  },
+  "instrument.scatter": {
+   "name": "scatter",
+   "initial": 0.0,
+   "free": false,
+   "lower": 0.0,
+   "upper": 1.0,
+   "group": "instrument"
+  },
+  "instrument.background": {
+   "name": "background",
+   "initial": "decay_min",
+   "lower": 0.0,
+   "upper": "decay_max",
+   "group": "instrument",
+   "free": true
+  },
+  "instrument.timeshift": {
+   "name": "timeshift",
+   "initial": 0.0,
+   "free": false,
+   "lower": "-0.5*decay_size",
+   "upper": "0.5*decay_size",
+   "group": "instrument"
+  },
+  "instrument.response_background": {
+   "name": "lamp background",
+   "group": "instrument",
+   "initial": 0.0,
+   "free": false,
+   "lower": 0.0,
+   "upper": "decay_max"
+  },
+  "instrument.irf_width": {
+   "name": "irf width",
+   "group": "instrument",
+   "initial": 0.1,
+   "free": false,
+   "lower": 0.0001,
+   "upper": "decay_size*dt"
+  },
+  "instrument.irf_shape": {
+   "name": "irf shape",
+   "group": "instrument",
+   "initial": -0.31,
+   "free": false,
+   "lower": -10.0,
+   "upper": 10.0
+  },
+  "instrument.irf_position": {
+   "name": "irf position",
+   "group": "instrument",
+   "initial": "decay_rise_index*dt",
+   "free": false,
+   "lower": 0.0,
+   "upper": "decay_size*dt"
+  }
+ },
+ "axes": {
+  "d": {
+   "from": "donor_lifetimes",
+   "to": "donor_lifetimes"
+  }
+ },
+ "initial_axes": {
+  "d": "donor_lifetimes"
+ },
+ "template": {
+  "key": "tcspc_maxent_fret.donor.{d}",
+  "label": "{d} donor lifetime(s)",
+  "nodes": {
+   "generated_response": {
+    "type": "GeneralizedNormalCurve",
+    "config": {
+     "floor": 1.0
+    },
+    "config_rules": {
+     "n_points": "decay_size",
+     "dt": "dt",
+     "area": "decay_sum"
+    },
+    "inputs": {
+     "loc": "#instrument.irf_position",
+     "scale": "#instrument.irf_width",
+     "shape": "#instrument.irf_shape"
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "donor": {
+    "type": "PhotophysicsLifetimeSpectrumNode",
+    "config": {
+     "number_of_lifetimes": "{d}",
+     "normalize_amplitudes": true,
+     "absolute_amplitudes": true
+    },
+    "inputs": {
+     "repeat": {
+      "index": "i",
+      "count": "d",
+      "body": {
+       "a{i}": "#donor.amplitude.{i}",
+       "t{i}": "#donor.tau.{i}"
+      }
+     }
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "grid": {
+    "type": "SpectrumGrid",
+    "inputs": {
+     "from": "#maxent.grid_from",
+     "to": "#maxent.grid_to",
+     "bins": "#maxent.grid_bins"
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "fret": {
+    "type": "FRETSpectrumNode",
+    "inputs": {
+     "donor_lifetime_spectrum": "donor",
+     "distance_distribution": "grid",
+     "x_donly": "#fret.x_donly",
+     "forster_radius": "#fret.forster_radius",
+     "tau0": "#fret.tau0",
+     "kappa2": "#fret.kappa2"
+    },
+    "outputs": {
+     "@name": "float_vector"
+    },
+    "config": {
+     "orientation": "dynamic"
+    }
+   },
+   "basis": {
+    "type": "TCSPCDecay",
+    "config": {
+     "instrument_units": "counts",
+     "number_of_lifetimes": 1,
+     "spectrum_from_port": true,
+     "normalize_amplitudes": false,
+     "absolute_amplitudes": false,
+     "convolution_mode": "periodic",
+     "emit_basis": true
+    },
+    "config_rules": {
+     "timing": [
+      "dt",
+      "period"
+     ],
+     "convolution_range": [
+      "decay_size",
+      "min(decay_size,convolution_stop)"
+     ],
+     "response_range": [
+      "max(0,floor(response_start/dt))",
+      "min(decay_size,floor(response_stop/dt))"
+     ],
+     "response_from_port": "generated_response"
+    },
+    "bind": {
+     "response": "response"
+    },
+    "inputs": {
+     "lifetime_spectrum": "fret",
+     "timeshift": "#instrument.timeshift",
+     "response_background": "#instrument.response_background",
+     "response": "generated_response"
+    },
+    "outputs": {
+     "@name": "float_vector",
+     "basis": "float_vector",
+     "prepared_response": "float_vector"
+    }
+   },
+   "maxent": {
+    "type": "MaxEntSpectrum",
+    "config": {
+     "grouping": "fret",
+     "donor_components": "{d}"
+    },
+    "config_rules": {
+     "target_chisq": "target_chisq",
+     "max_iter": "max_iterations"
+    },
+    "bind": {
+     "data": "decay"
+    },
+    "inputs": {
+     "basis": "basis.basis",
+     "spectrum": "fret",
+     "grid": "grid",
+     "response": "basis.prepared_response",
+     "scatter": "#instrument.scatter",
+     "background": "#instrument.background",
+     "log10_nu": "#maxent.log10_nu"
+    },
+    "outputs": {
+     "@name": "float_vector",
+     "distribution": "float_vector",
+     "chisq": "float",
+     "chisq_pearson": "float",
+     "entropy": "float",
+     "nu": "float",
+     "converged": "float"
+    }
+   },
+   "decay": {
+    "type": "TCSPCDecay",
+    "config": {
+     "instrument_units": "counts",
+     "number_of_lifetimes": 1,
+     "spectrum_from_port": true,
+     "normalize_amplitudes": false,
+     "absolute_amplitudes": false,
+     "convolution_mode": "periodic"
+    },
+    "config_rules": {
+     "timing": [
+      "dt",
+      "period"
+     ],
+     "convolution_range": [
+      "decay_size",
+      "min(decay_size,convolution_stop)"
+     ],
+     "response_range": [
+      "max(0,floor(response_start/dt))",
+      "min(decay_size,floor(response_stop/dt))"
+     ],
+     "response_from_port": "generated_response"
+    },
+    "bind": {
+     "response": "response",
+     "data": "decay"
+    },
+    "inputs": {
+     "lifetime_spectrum": "maxent",
+     "scatter": "#instrument.scatter",
+     "background": "#instrument.background",
+     "timeshift": "#instrument.timeshift",
+     "response_background": "#instrument.response_background",
+     "response": "generated_response"
+    },
+    "outputs": {
+     "@name": "float_vector",
+     "spectrum": "float_vector",
+     "fluorescence_total": "float"
+    }
+   },
+   "objective": {
+    "type": "FitChiSquared",
+    "bind": {
+     "data": "decay"
+    },
+    "inputs": {
+     "model": "decay"
+    },
+    "outputs": {
+     "@name": "float",
+     "residuals": "float_vector"
+    }
+   }
+  },
+  "objective": "objective",
+  "free": [
+   "fret.x_donly",
+   "instrument.background",
+   "instrument.scatter",
+   "instrument.timeshift"
+  ],
+  "ess": "decay_size",
+  "selection": "bic"
+ },
+ "moves": [
+  {
+   "action": "stop",
+   "prior": 1.0,
+   "terminal": true
+  }
+ ],
+ "outputs": {
+  "lifetime_spectrum": {
+   "node": "decay",
+   "port": "spectrum"
+  },
+  "maxent_distribution": {
+   "node": "maxent",
+   "port": "distribution"
+  },
+  "fluorescence_total": {
+   "node": "decay",
+   "port": "fluorescence_total"
+  }
+ }
+}
