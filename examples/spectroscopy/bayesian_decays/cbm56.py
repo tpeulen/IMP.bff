@@ -458,11 +458,16 @@ def environment(n_coef=25, n=488, cache=True, verbose=True, rho_grid=None, maps=
     import s53_phase1_pseudolik as S53
     maps = MAPS if maps is None else maps
     if maps == 'exact':
+        #: the ridge by QR (PRD-143 A3, 2026-09-15): the normal equations carried 3e-7 of
+        #: error in the map coefficients; the cache tag changes with it
+        S53.KERNEL, S.MAP_TARGET, S.MAP_SOLVER = 'exact', 'periodic', 'ridgeqr'
+    elif maps == 'exact_normal_equations':
+        #: the maps as built before 2026-09-15 (the v17 record was fitted on these)
         S53.KERNEL, S.MAP_TARGET, S.MAP_SOLVER = 'exact', 'periodic', 'ridge'
     elif maps == 'legacy':
         S53.KERNEL, S.MAP_TARGET, S.MAP_SOLVER = 'trapezoid', 'sampled', 'nnls'
     else:
-        raise ValueError(f"maps must be 'exact' or 'legacy', not {maps!r}")
+        raise ValueError(f"maps must be 'exact', 'exact_normal_equations' or 'legacy', not {maps!r}")
     mtag = '' if maps == 'legacy' else f'_{S53.KERNEL}_{S.MAP_TARGET}_{S.MAP_SOLVER}'
     cal = CAL or _cal()
     dt = cal['dt']
