@@ -52,11 +52,15 @@
 #include <IMP/bff/BayesianFisherScoring.h>
 #include <IMP/bff/BayesianLaplace.h>
 #include <IMP/bff/BayesianDeltaMethod.h>
+#include <IMP/bff/internal/AdamUpdate.h>
+#include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <cmath>
 #include <limits>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <vector>
 
 IMPBFF_BEGIN_NAMESPACE
@@ -329,6 +333,149 @@ inline BayesianDecayFit bayesian_decay_fit_node(const BayesianDecayExperiment& f
     R.theta = std::move(th); R.pt = std::move(pt);
     R.t_fit = secs_(t0);
     return R;
+}
+
+/**
+ * \brief A declared start: where a fit begins and how it walks from there.
+ *
+ * `adam_steps > 0` runs that many Adam steps (tttrlib `adam_update`, Kingma & Ba 2015,
+ * on minus the log posterior with the full gradient, step size `adam_lr`) before the
+ * scoring fit. On CBM56 every start without such a phase -- three line-search schedules
+ * and ten Fisher-scaled perturbations of the data start -- ends in the posterior's
+ * second mode, 0.48 nats below the first; 150 Adam steps reach the first (PRD-143 A4.7).
+ */
+struct BayesianDecayStart {
+    std::string name;
+    std::vector<double> theta;
+    double line_search_below = 1.0;
+    int adam_steps = 0;
+    double adam_lr = 0.02;
+};
+
+//! The declared starts from one data-derived start: the start itself, and three Adam
+//! phases (150 steps at 0.02 and 0.05, 50 at 0.1) -- each depends only on the model and
+//! the data, as MCTS's declared starts do (`ModelSearch.h`, `add_structure_start`).
+inline std::vector<BayesianDecayStart> bayesian_decay_declared_starts(const std::vector<double>& data_start) {
+    return {{"data start", data_start, 1.0, 0, 0.0},
+            {"data start + Adam 150 x 0.02", data_start, 1.0, 150, 0.02},
+            {"data start + Adam 150 x 0.05", data_start, 1.0, 150, 0.05},
+            {"data start + Adam 50 x 0.1", data_start, 1.0, 50, 0.1}};
+}
+
+//! Every declared start's fit, and which is best.
+struct BayesianDecayMultiFit {
+    std::vector<BayesianDecayFit> fits;
+    std::size_t best = 0;
+};
+
+/**
+ * \brief Fit every declared start and keep the highest log posterior.
+ *
+ * The starts run `n_concurrent` at a time, each on its own thread with the pool's
+ * loops inline (`bayesian_serial_here`). Every fit is returned, so a caller reports
+ * where each start ended -- two starts that end apart are a second mode, and one
+ * start alone cannot show that.
+ */
+inline BayesianDecayMultiFit bayesian_decay_fit_best_of_starts(const BayesianDecayExperiment& f, const BayesianDecayTensors& env,
+                                                              const std::vector<BayesianDecayStart>& starts, int max_iter = 1000,
+                                                              std::size_t n_concurrent = 4) {
+    const std::size_t dim = f.dim;
+    BayesianDecayMultiFit out;
+    out.fits.resize(starts.size());
+    std::atomic<std::size_t> next{0};
+    auto work = [&] {
+        internal::bayesian_serial_here() = true;
+        for (;;) {
+            const std::size_t i = next.fetch_add(1);
+            if (i >= starts.size()) return;
+            std::vector<double> th = starts[i].theta;
+            if (starts[i].adam_steps > 0) {
+                ::tttrlib::AdamState st;
+                st.reset(dim);
+                std::vector<double> neg(dim);
+                for (int k = 0; k < starts[i].adam_steps; ++k) {
+                    const BayesianDecayPoint pt = bayesian_decay_evaluate(f, env, th);
+                    for (std::size_t a = 0; a < dim; ++a) neg[a] = -pt.grad[a];
+                    ::tttrlib::adam_update(th.data(), neg.data(), dim, st, starts[i].adam_lr);
+                }
+            }
+            out.fits[i] = bayesian_decay_fit_node(f, env, th, starts[i].line_search_below, max_iter);
+        }
+    };
+    std::vector<std::thread> pool;
+    for (std::size_t w = 0; w < std::max<std::size_t>(1, std::min(n_concurrent, starts.size())); ++w) pool.emplace_back(work);
+    for (auto& t : pool) t.join();
+    //: a start whose fit failed (a non-finite log posterior) never wins, wherever it sits in the list
+    auto score = [&](std::size_t i) { const double v = out.fits[i].pt.logpost; return std::isfinite(v) ? v : -std::numeric_limits<double>::infinity(); };
+    for (std::size_t i = 1; i < out.fits.size(); ++i)
+        if (score(i) > score(out.best)) out.best = i;
+    return out;
+}
+
+//! One node of the lambda grid: the fit at that log10 lambda and its p(R/R0) summary.
+struct BayesianDecayLambdaNode {
+    double log10_lam = 0.0;
+    BayesianDecayFit fit;
+    std::vector<double> p, p_sd;
+    double mean_rel = 0.0, mean_rel_sd = 0.0;
+};
+
+//! The grid, its evidence weights and the mixture's p(R/R0).
+struct BayesianDecayLambdaGrid {
+    std::vector<BayesianDecayLambdaNode> nodes;
+    std::vector<double> weights, p_mean, p_sd;
+    double mean_rel = 0.0, mean_rel_sd = 0.0;
+};
+
+/**
+ * \brief The P-spline weight varied, not held: a fit per log10 lambda node, weighted
+ *        by its Laplace evidence p(y | lambda) (Rue, Martino & Chopin 2009's grid).
+ *
+ * **Why not lambda as a free parameter of one fit.** `p(c | lambda)` carries
+ * `lambda^{rank/2}` and grows without bound as the coefficients approach the penalty's
+ * null space, so a joint maximum over (c, lambda) runs to large lambda: on CBM56 it went
+ * to log10 lambda 3.9 while the evidence, with c integrated out, put 40 % of its weight at
+ * -1 (PRD-143 A4.6). The evidence is the density of lambda given the data (with its flat
+ * prior on log10 lambda), so the grid integrates lambda out; the mixture's sd includes
+ * the spread between nodes (`BayesianEvidenceMixture`).
+ *
+ * The node nearest `theta_centre`'s lambda is fitted from `theta_centre`, the others from
+ * their inner neighbour's end, outwards. `f` is copied; its `fixed_values["log10_lam"]`
+ * is set per node, and `env` (the tensors) does not depend on it.
+ */
+inline BayesianDecayLambdaGrid bayesian_decay_fit_lambda_grid(const BayesianDecayExperiment& f, const BayesianDecayTensors& env,
+                                                             const std::vector<double>& log10_nodes, const std::vector<double>& theta_centre,
+                                                             double log10_centre, int max_iter = 1000) {
+    BayesianDecayLambdaGrid G;
+    std::vector<double> nodes = log10_nodes;
+    std::sort(nodes.begin(), nodes.end());
+    std::size_t c0 = 0;
+    for (std::size_t i = 0; i < nodes.size(); ++i)
+        if (std::fabs(nodes[i] - log10_centre) < std::fabs(nodes[c0] - log10_centre)) c0 = i;
+    G.nodes.resize(nodes.size());
+    BayesianDecayExperiment g = f;
+    auto fit_at = [&](std::size_t i, const std::vector<double>& start) {
+        g.fixed_values["log10_lam"] = {nodes[i]};
+        BayesianDecayLambdaNode& N = G.nodes[i];
+        N.log10_lam = nodes[i];
+        N.fit = bayesian_decay_fit_node(g, env, start, 1.0, max_iter);
+        const std::vector<double> Sig = bayesian_decay_covariance(N.fit.pt, g.dim);
+        bayesian_decay_distribution_with_sd(g, env, N.fit.theta, Sig, N.p, N.p_sd, &N.mean_rel, &N.mean_rel_sd);
+    };
+    fit_at(c0, theta_centre);
+    for (std::size_t i = c0 + 1; i < nodes.size(); ++i) fit_at(i, G.nodes[i - 1].fit.theta);
+    for (std::size_t i = c0; i-- > 0;) fit_at(i, G.nodes[i + 1].fit.theta);
+    BayesianEvidenceMixture scalar, vec;
+    for (const auto& N : G.nodes) {
+        scalar.add(N.fit.evidence, N.mean_rel, N.mean_rel_sd * N.mean_rel_sd);
+        std::vector<double> v(N.p_sd.size());
+        for (std::size_t j = 0; j < v.size(); ++j) v[j] = N.p_sd[j] * N.p_sd[j];
+        vec.add_vector(N.fit.evidence, N.p, v);
+    }
+    G.weights = scalar.weights();
+    scalar.moments(&G.mean_rel, &G.mean_rel_sd);
+    vec.moments_vector(&G.p_mean, &G.p_sd);
+    return G;
 }
 
 //! @}
