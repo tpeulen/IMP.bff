@@ -168,3 +168,24 @@ def test_a_prior_pulls_the_distribution_towards_it():
         counts = _port(problem, key, "maxent", "amplitudes")
         np.testing.assert_allclose(counts / counts.sum(), p / p.sum(), rtol=1e-12)
     assert shares[1] > shares[0] + 0.02
+
+
+def test_an_empty_fit_window_is_an_empty_distribution_not_an_error():
+    y = _decay_from([0.5, 1.0, 0.5, 4.0], 2e5, 5.0, seed=7)
+    data = bff.FitDataset()
+    data.set_values_array(np.ascontiguousarray(y))
+    data.set_noise_family(bff.FIT_NOISE_FAMILY_POISSON)
+    data.set_mask_array(np.zeros(N))
+    response = bff.FitDataset()
+    response.set_values_array(np.ascontiguousarray(IRF))
+    spec = bff.ModelSearchSpec.from_name("tcspc_maxent_lifetime")
+    spec.set_dataset("decay", data)
+    spec.set_dataset("response", response)
+    spec.set_scalar("dt", DT)
+    spec.set_scalar("period", PERIOD)
+    spec.set_port("maxent_prior", bff.GraphPort([0.0]))
+    problem = spec.build()
+    key = problem.get_structure_keys()[0]
+    problem.activate_structure(key)
+    assert not np.any(_port(problem, key, "maxent", "amplitudes"))
+    assert np.all(np.isfinite(_curve(problem, key)))

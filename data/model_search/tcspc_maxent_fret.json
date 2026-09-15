@@ -79,7 +79,8 @@
   },
   "reference_modes": [
    "tcspc_total_photons",
-   "tcspc_peak_photons"
+   "tcspc_peak_photons",
+   "tcspc_donor_reference"
   ],
   "axis": {
    "x": "time (ns)",
