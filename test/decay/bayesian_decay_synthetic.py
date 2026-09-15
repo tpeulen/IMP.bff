@@ -19,7 +19,7 @@ DT = 0.1
 SAMPLES, DETS = ("D0", "DA", "REF"), (("gp", 0), ("gs", 1))
 
 
-def write(directory, seed=0, pile_up=False, linearization=False):
+def write(directory, seed=0, pile_up=False, linearization=False, free_lambda=False):
     rng = np.random.default_rng(seed)
     K = KINT + 2
     arrays = {}
@@ -49,6 +49,9 @@ def write(directory, seed=0, pile_up=False, linearization=False):
         off += size
 
     var("c", NC - 1, "sum_to_zero", "pspline", constrained=NC)
+    if free_lambda:
+        # the P-spline's penalty weight as a free node (PRD-143 A4.6): logit on [-2, 5], uniform
+        var("log10_lam", 1, "logit", "uniform", -2.0, 5.0, -2.0, 5.0)
     var("x_d0", 1, "logit", "uniform", 0.0, 0.5, 0.0, 0.5)
     var("spec_eps", KINT, "identity", "spectrum_smoothness")
     var("w_a", NA - 1, "alr", constrained=NA)
@@ -95,7 +98,7 @@ def write(directory, seed=0, pile_up=False, linearization=False):
     put("mask", np.ones((len(keys), NBIN)))
     manifest = dict(axis=dict(n=NBIN, dt=DT, period=NBIN * DT, K=K, Kint=KINT), soft=0.05, ref_spec_sd=0.05,
                     keys=keys, data_keys=keys, responses=responses, scopes=scopes, parts=parts, variables=variables,
-                    fixed_values=dict(log10_lam=[1.0], l1=[0.0175], l2=[0.0526]), dim=off,
+                    fixed_values=dict(**({} if free_lambda else dict(log10_lam=[1.0])), l1=[0.0175], l2=[0.0526]), dim=off,
                     pspline=dict(n=NC, order=2, tilt_sd=3.0, quad_sd=30.0, rank=NC - 2, family="gaussian", nu=3.0,
                                  space="log", link="softmax", lam=10.0),
                     spec_smooth=dict(lam_s=0.01, weak_sd=3.0, n=KINT, logdet=0.0),
