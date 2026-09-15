@@ -18,7 +18,7 @@
  *   log |det| added; the lifetime spectrum's continuity prior (a Gaussian with
  *   precision `spec_smooth_P`); the P-spline on the coefficients of log p(R/R0)
  *   (Eilers & Marx 1996: second differences with precision lambda held at
- *   `fixed_values["log10_lam"]`, and a weak Gaussian on the linear tilt). Analytic
+ *   `fixed_values["log10_lam"]` or free as the variable `log10_lam`, and a weak Gaussian on the linear tilt). Analytic
  *   gradient and Hessian.
  * * **The likelihood**: Poisson over the masked bins, `lgamma(y + 1)` dropped.
  * * **The mode**: Fisher scoring -- `A = J' diag(mask / m) J - H_prior` -- stepped by
@@ -118,7 +118,24 @@ inline BayesianDecayPrior bayesian_decay_log_prior(const BayesianDecayExperiment
     const BayesianDecayVariableInfo vc = bayesian_decay_variable_info(f, "c");
     const BayesianDecayArray& Q = f["Q_c"];
     const std::size_t n = Q.shape[0], nz = Q.shape[1];
-    const double lam = std::pow(10.0, f.fixed_values.at("log10_lam")[0]);
+    //: lambda: held (fixed_values) or free (a variable `log10_lam`, logit on [lo, hi] -- its own
+    //: prior handled with the other variables above); PRD-143 A4.6
+    const BayesianDecayVariableInfo vl = bayesian_decay_variable_info(f, "log10_lam");
+    const auto fixed_lam = f.fixed_values.find("log10_lam");
+    if (vl.present == (fixed_lam != f.fixed_values.end()))
+        throw std::runtime_error("bayesian_decay_log_prior: log10_lam must be either held or free, exactly one");
+    double x_lam = 0.0, dL_dz = 0.0, d2L_dz2 = 0.0;           // L = ln lambda as a function of its z
+    if (vl.present) {
+        const BayesianDecayVariable* var = f.variable("log10_lam");
+        if (var->transform != "logit") throw std::runtime_error("bayesian_decay_log_prior: a free log10_lam needs the logit transform");
+        const double z = th[vl.off], sg = 1.0 / (1.0 + std::exp(-z)), w = var->hi - var->lo, ln10 = std::log(10.0);
+        x_lam = var->lo + w * sg;
+        dL_dz = ln10 * w * sg * (1.0 - sg);
+        d2L_dz2 = ln10 * w * sg * (1.0 - sg) * (1.0 - 2.0 * sg);
+    } else {
+        x_lam = fixed_lam->second[0];
+    }
+    const double lam = std::pow(10.0, x_lam);
     const double tilt_sd = ps.tilt_sd, rank = ps.rank;
     std::vector<double> c(n, 0.0);
     for (std::size_t i = 0; i < n; ++i) for (std::size_t j = 0; j < nz; ++j) c[i] += Q.d[i * nz + j] * th[vc.off + j];
@@ -139,6 +156,26 @@ inline BayesianDecayPrior bayesian_decay_log_prior(const BayesianDecayExperiment
         for (std::size_t a = 0; a < nz; ++a) for (std::size_t b = 0; b < nz; ++b) {
             double s = 0.0; for (std::size_t i = 0; i < n; ++i) s += Q.d[i * nz + a] * HQ[i * nz + b];
             P.H[(vc.off + a) * dim + vc.off + b] += s;
+        }
+    }
+    if (vl.present && derivs) {
+        //: in L = ln lambda the prior is (rank/2) L - (lambda/2) q(c) - tilt(c), q = |D c|^2:
+        //: f' = rank/2 - lambda q / 2, f'' = -lambda q / 2, d f'/dc = -lambda D'D c
+        const std::vector<double>& D = prior.difference_matrix();
+        const std::size_t nr = n - std::size_t(ps.order);
+        std::vector<double> d(nr, 0.0), DtDc(n, 0.0);
+        double q = 0.0;
+        for (std::size_t k = 0; k < nr; ++k) { for (std::size_t i = 0; i < n; ++i) d[k] += D[k * n + i] * c[i]; q += d[k] * d[k]; }
+        for (std::size_t k = 0; k < nr; ++k) for (std::size_t i = 0; i < n; ++i) DtDc[i] += D[k * n + i] * d[k];
+        const double f1 = 0.5 * rank - 0.5 * lam * q, f2 = -0.5 * lam * q;
+        const std::size_t zl = vl.off;
+        P.g[zl] += f1 * dL_dz;
+        P.H[zl * dim + zl] += f2 * dL_dz * dL_dz + f1 * d2L_dz2;
+        for (std::size_t j = 0; j < nz; ++j) {
+            double s = 0.0; for (std::size_t i = 0; i < n; ++i) s += Q.d[i * nz + j] * DtDc[i];
+            const double h = -lam * s * dL_dz;
+            P.H[(vc.off + j) * dim + zl] += h;
+            P.H[zl * dim + vc.off + j] += h;
         }
     }
     return P;
