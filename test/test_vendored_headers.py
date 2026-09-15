@@ -53,6 +53,7 @@ class Tests(IMP.test.TestCase):
         "AdamUpdate.h": ("math",),
         "DampedNewton.h": ("math",),
         "PoissonScore.h": ("math",),
+        "McmcDiagnostics.h": ("math",),
         "MaxEntQp.h": ("math",),
         "Mat.h": ("math",),
     }
