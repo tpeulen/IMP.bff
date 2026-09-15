@@ -22,9 +22,10 @@ IMPBFF_BEGIN_NAMESPACE
     `n_points`, `dt`, `period` (0 for single excitation), `folded_periods`
     (default 8). Writes the unconvolved decay to the output keyed by its name;
     a Convolution node reconvolves it and a TCSPCDecay with `curve_from_port`
-    adds the instrument. Scalar outputs named `efficiency` (the transfer
-    efficiency the density implies) and `acceptor_density` (C/C0 times C0 for
-    the scalar input `forster_radius`, in Å^-d) are written where they exist.
+    adds the instrument.
+    What the density implies (the efficiency, the absolute density) is not
+    computed here: it is reporting, not the fit's hot path, and a caller asks
+    for it through FRETAcceptorDensity.h when it wants it.
 */
 class IMPBFFEXPORT AcceptorDensityDecay : public GraphNode {
  public:

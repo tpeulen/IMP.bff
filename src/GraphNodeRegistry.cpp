@@ -22,6 +22,7 @@
 #include <IMP/bff/PhotophysicsLifetimeSpectrumNode.h>
 #include <IMP/bff/PhotophysicsTransferKineticsNode.h>
 #include <IMP/bff/PolymerDistances.h>
+#include <IMP/bff/TabulatedDistances.h>
 #include <IMP/bff/TCSPCDecay.h>
 
 #include <algorithm>
@@ -64,6 +65,7 @@ void install_builtin_types(FactoryMap& factories) {
   factories["DiscreteDistances"] = plain<DiscreteDistances>;
   factories["AcceptorDensityDecay"] = plain<AcceptorDensityDecay>;
   factories["PolymerDistances"] = plain<PolymerDistances>;
+  factories["TabulatedDistances"] = plain<TabulatedDistances>;
   factories["PhotophysicsLifetimeSpectrumNode"] =
       plain<PhotophysicsLifetimeSpectrumNode>;
   factories["PhotophysicsTransferKineticsNode"] =
