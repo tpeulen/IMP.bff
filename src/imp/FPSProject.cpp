@@ -45,7 +45,14 @@ bool is_absolute(const std::string& path) {
 std::string resolved(const std::string& path, const std::string& project_path) {
     if (path.empty() || is_absolute(path)) return path;
     const std::string dir = directory_of(project_path);
-    return dir.empty() ? path : dir + "/" + path;
+    if (dir.empty()) return path;
+    // Join with whichever separator `dir` already uses, so a Windows
+    // directory ("C:\Users\...") does not come back with one POSIX slash
+    // stitched onto its end ("C:\Users\.../name") -- functionally openable
+    // either way, but not the string pathlib itself would produce, which
+    // str(tmp_path / name) callers compare against exactly.
+    const char sep = dir.find('\\') != std::string::npos ? '\\' : '/';
+    return dir + sep + path;
 }
 
 //! `Double.ToString()` under an unknown culture.
