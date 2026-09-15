@@ -27,6 +27,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <vector>
 
 IMPBFF_BEGIN_NAMESPACE
@@ -109,6 +110,59 @@ class DualAveragingStepSize {
  private:
   double delta_, gamma_, t0_, kappa_;
   double mu_ = 0.0, s_bar_ = 0.0, x_bar_ = 0.0, counter_ = 0.0;
+};
+
+//! Running (Welford) mean and covariance -- full or diagonal -- of the draws in a metric window, with Stan's
+//! regularisation (`welford_covar_estimator` / `welford_var_estimator` + `covar_adaptation` / `var_adaptation`):
+//! `n/(n+5) S + 1e-3 5/(n+5) I`. PRD-147 A3.
+class CovarianceEstimator {
+ public:
+  CovarianceEstimator(std::size_t dim = 0, bool dense = true) { reset(dim, dense); }
+  void reset(std::size_t dim, bool dense) {
+    dim_ = dim;
+    dense_ = dense;
+    restart();
+  }
+  void restart() {
+    n_ = 0.0;
+    m_.assign(dim_, 0.0);
+    m2_.assign(dense_ ? dim_ * dim_ : dim_, 0.0);
+  }
+  void add(const std::vector<double>& q) {
+    n_ += 1.0;
+    std::vector<double> delta(dim_);
+    for (std::size_t i = 0; i < dim_; ++i) {
+      delta[i] = q[i] - m_[i];
+      m_[i] += delta[i] / n_;
+    }
+    if (dense_) {
+      for (std::size_t i = 0; i < dim_; ++i)
+        for (std::size_t j = 0; j < dim_; ++j) m2_[i * dim_ + j] += (q[i] - m_[i]) * delta[j];
+    } else {
+      for (std::size_t i = 0; i < dim_; ++i) m2_[i] += (q[i] - m_[i]) * delta[i];
+    }
+  }
+  double n() const { return n_; }
+  bool dense() const { return dense_; }
+  //! The regularised estimate: a dim x dim row-major covariance (dense) or dim variances (diagonal).
+  //! With fewer than two draws the sample term is zero, as Stan leaves it unset.
+  std::vector<double> regularised() const {
+    std::vector<double> out(m2_.size(), 0.0);
+    const double w = n_ / (n_ + 5.0), r = 1e-3 * (5.0 / (n_ + 5.0));
+    for (std::size_t k = 0; k < out.size(); ++k) out[k] = n_ > 1.0 ? w * m2_[k] / (n_ - 1.0) : 0.0;
+    if (dense_) {
+      for (std::size_t i = 0; i < dim_; ++i) out[i * dim_ + i] += r;
+    } else {
+      for (double& v : out) v += r;
+    }
+    return out;
+  }
+
+ private:
+  std::size_t dim_ = 0;
+  bool dense_ = true;
+  double n_ = 0.0;
+  std::vector<double> m_, m2_;
 };
 
 IMPBFF_END_NAMESPACE
