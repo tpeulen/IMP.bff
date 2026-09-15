@@ -9,7 +9,8 @@
  * PRD-143 #18, written 2026-09-15 (ucfret prompt 448), replacing ucfret's Python
  * builders (`s80_analytic_stage2.build`, `s79_fret_stage2`, `s53_phase1_pseudolik.Basis`)
  * step by step. Step 18a: the basis. 18b: the ridge projection onto it. 18c: the
- * donor quenching and rotational maps. 18d: the sensitised and direct acceptor maps.
+ * donor quenching and rotational maps. 18d: the sensitised and direct acceptor maps,
+ * as the prototype built them and (A4.3) exactly.
  */
 
 #ifndef IMPBFF_BAYESIANTRANSFERTENSORS_H
@@ -18,6 +19,7 @@
 #include <IMP/bff/BayesianMeasuredResponse.h>
 #include <IMP/bff/internal/DampedNewton.h>
 #include <IMP/bff/internal/BayesianParallel.h>
+#include <IMP/bff/PhotophysicsTransferKinetics.h>
 
 #if __has_include("pocketfft/pocketfft_hdronly.h")
 
@@ -249,11 +251,154 @@ struct BayesianAcceptorMaps {
   std::vector<double> sensitised, sensitised_rot, direct, direct_rot;
 };
 
+namespace internal {
+//! One term of an exact acceptor decay: the unit-area periodic column of `tau` at
+//! `order` (0: exp, 1: t exp), times `weight`.
+struct BayesianDecayTerm { double tau; int order; double weight; };
+/**
+ * The sensitised acceptor decay after exciting a donor of lifetime `tau_d` quenched by
+ * transfer at rate `k` to an acceptor of lifetime `tau_acc`, as terms that total the
+ * efficiency `k / (1/tau_d + k)`; with `extra_rate = 1/rho` its rotational partner
+ * (population times `exp(-t/rho)`, same scale). Empty when nothing is transferred.
+ */
+inline std::vector<BayesianDecayTerm> bayesian_sensitised_terms(double tau_d, double k, double tau_acc,
+                                                                double extra_rate = 0.0, double eps = 1e-8) {
+  std::vector<BayesianDecayTerm> out;
+  const double eff = k / (1.0 / tau_d + k);
+  internal::TransferComponent<double> comp[2];
+  internal::transfer_pair_components_t<double>(tau_d, tau_acc, k, 0.0, 1.0, 0.0, 0.0, 1.0, TRANSFER_EXACT, eps, comp);
+  auto area = [](const internal::TransferComponent<double>& q, double rate) {
+    return q.kind == TRANSFER_T_EXPONENTIAL ? q.amplitude / (rate * rate) : q.amplitude / rate;
+  };
+  double S = 0.0;
+  for (const auto& q : comp) S += area(q, q.rate);
+  if (!(S > 0.0) || !(eff > 0.0)) return out;
+  for (const auto& q : comp) {
+    if (q.amplitude == 0.0) continue;
+    const double rate = q.rate + extra_rate;
+    out.push_back({1.0 / rate, q.kind, eff / S * area(q, rate)});
+  }
+  return out;
+}
+}  // namespace internal
+
+//! How the acceptor maps are built.
+enum class BayesianAcceptorConstruction {
+  faithful,  //!< as ucfret's prototype: sampled exponentials, non-periodic trapezoid convolution
+  exact      //!< as the basis: exact bin-integrated periodic kernels (PRD-143 A4.3)
+};
+
+/**
+ * \brief The acceptor maps built exactly: every decay through the basis's own
+ *        periodic construction (PRD-143 A4.3, tpeulen: "convolution periodic").
+ *
+ * **Sensitised.** The acceptor's excited population after the donor (lifetime
+ * `tau_c`, quenched by `k_j`) is excited is `m^T exp(K t) p0` of the one-way transfer
+ * kinetics, `p0 = (1, 0)`, `m = (0, 1)` -- `PhotophysicsTransferKinetics.h`'s
+ * components: two exponentials, or an exponential and `t e^{-kt}` where the
+ * quenched donor and the acceptor decay at the same rate. Each component becomes the
+ * periodic column of its lifetime at its order (`periodic_decay_kernel` order 0 or 1,
+ * unit area), weighted by its area (`amplitude / rate`, `amplitude / rate^2`); the sum
+ * is scaled to total the transfer efficiency `k_j tau_q`, then projected.
+ *
+ * **Its rotational partner** multiplies the population by `exp(-t/rho)` ONCE, over
+ * the photon's whole time since the pulse: every component's rate is raised by
+ * `1/rho`, the amplitudes and the scale stay. (The prototype applies the factor to
+ * the donor part and again to the total; A4.3 measures the difference.)
+ *
+ * **Direct.** The periodic column at `tau_a`, scaled so its basis decay totals one;
+ * its partner the column at `1/(1/tau_a + 1/rho)` times `tau_s/tau_a`, same scale.
+ *
+ * `eps` is the degeneracy threshold of the kinetics (`Delta <= eps |l1|` takes the
+ * `t e^{-kt}` form): above it the two exponentials cancel to about `1e-16 / (Delta/|l1|)`,
+ * below it the degenerate form is off by about `Delta/|l1|`, so `1e-8` bounds both at
+ * `~1e-8`.
+ */
+inline BayesianAcceptorMaps bayesian_transfer_acceptor_maps_exact(const BayesianTransferBasis& tb,
+                                                                  const ::tttrlib::RidgeProjector& projector,
+                                                                  const std::vector<double>& fret_rates,
+                                                                  const std::vector<double>& tau_a,
+                                                                  const std::vector<double>& rho_a, double eps = 1e-8) {
+  const BayesianResponseBasis& B = tb.basis;
+  const std::size_t n = B.n, K = B.K;
+  const std::vector<double>& tau = tb.kernel->tau();
+  const std::size_t nt = tau.size(), nr = fret_rates.size(), na = tau_a.size(), nh = rho_a.size();
+  BayesianAcceptorMaps out;
+  out.n_rates = nr; out.n_ta = na; out.n_rho = nh; out.K = K; out.n_tau = nt;
+  out.sensitised.assign(nr * na * K * nt, 0.0);
+  out.sensitised_rot.assign(nh * nr * na * K * nt, 0.0);
+  out.direct.assign(na * K, 0.0);
+  out.direct_rot.assign(nh * na * K, 0.0);
+  BayesianResponseOptions opt;
+  opt.remove_background = false;
+  auto project = [&](const std::vector<double>& y, double* x) {
+    if (!projector.project(y.data(), x)) throw std::runtime_error("bayesian_transfer_acceptor_maps_exact: projection failed");
+  };
+  internal::bayesian_parallel_for(nr, [&](std::size_t j) {
+    // every component column this distance needs, then one basis call builds them all
+    struct Term { std::size_t column; double weight; };
+    std::vector<double> life; std::vector<int> order;
+    std::vector<std::vector<Term>> terms((1 + nh) * nt * na);   // [variant (0 plain, 1+r rotated)][c][l]
+    for (std::size_t c = 0; c < nt; ++c)
+      for (std::size_t l = 0; l < na; ++l)
+        for (std::size_t v = 0; v <= nh; ++v)
+          for (const auto& t : internal::bayesian_sensitised_terms(tau[c], fret_rates[j], tau_a[l],
+                                                                   v == 0 ? 0.0 : 1.0 / rho_a[v - 1], eps)) {
+            terms[(v * nt + c) * na + l].push_back({life.size(), t.weight});
+            life.push_back(t.tau); order.push_back(t.order);
+          }
+    if (life.empty()) return;
+    const BayesianPeriodicKernel kern(tb.kernel->axis(), life, order);
+    const BayesianResponseBasis cols = bayesian_response_basis(kern, tb.response, 0.0, 0.0, false, opt);
+    const std::size_t Kc = cols.K;
+    std::vector<double> y(n), x(K);
+    for (std::size_t v = 0; v <= nh; ++v)
+      for (std::size_t c = 0; c < nt; ++c)
+        for (std::size_t l = 0; l < na; ++l) {
+          std::fill(y.begin(), y.end(), 0.0);
+          for (const Term& t : terms[(v * nt + c) * na + l])
+            for (std::size_t i = 0; i < n; ++i) y[i] += t.weight * cols.B[i * Kc + 1 + t.column];
+          project(y, x.data());
+          for (std::size_t kk = 0; kk < K; ++kk) {
+            if (v == 0) out.sensitised[((j * na + l) * K + kk) * nt + c] = x[kk];
+            else out.sensitised_rot[((((v - 1) * nr + j) * na + l) * K + kk) * nt + c] = x[kk];
+          }
+        }
+  });
+  // direct excitation of the acceptor
+  std::vector<double> life, y(n), x(K);
+  for (std::size_t l = 0; l < na; ++l) {
+    life.push_back(tau_a[l]);
+    for (std::size_t r = 0; r < nh; ++r) life.push_back(1.0 / (1.0 / tau_a[l] + 1.0 / rho_a[r]));
+  }
+  const BayesianPeriodicKernel kern(tb.kernel->axis(), life);
+  const BayesianResponseBasis cols = bayesian_response_basis(kern, tb.response, 0.0, 0.0, false, opt);
+  for (std::size_t l = 0; l < na; ++l) {
+    const std::size_t base = l * (1 + nh);
+    for (std::size_t i = 0; i < n; ++i) y[i] = cols.B[i * cols.K + 1 + base];
+    project(y, x.data());
+    double area = 0.0;
+    for (std::size_t i = 0; i < n; ++i) for (std::size_t kk = 0; kk < K; ++kk) area += B.B[i * K + kk] * x[kk];
+    area = std::max(area, 1e-300);
+    for (std::size_t kk = 0; kk < K; ++kk) out.direct[l * K + kk] = x[kk] / area;
+    for (std::size_t r = 0; r < nh; ++r) {
+      const double ts = life[base + 1 + r];
+      for (std::size_t i = 0; i < n; ++i) y[i] = cols.B[i * cols.K + 2 + base + r] * (ts / tau_a[l]);
+      project(y, x.data());
+      for (std::size_t kk = 0; kk < K; ++kk) out.direct_rot[(r * na + l) * K + kk] = x[kk] / area;
+    }
+  }
+  return out;
+}
+
 inline BayesianAcceptorMaps bayesian_transfer_acceptor_maps(const BayesianTransferBasis& tb,
                                                             const ::tttrlib::RidgeProjector& projector,
                                                             const std::vector<double>& fret_rates,
                                                             const std::vector<double>& tau_a,
-                                                            const std::vector<double>& rho_a) {
+                                                            const std::vector<double>& rho_a,
+                                                            BayesianAcceptorConstruction how = BayesianAcceptorConstruction::faithful) {
+  if (how == BayesianAcceptorConstruction::exact)
+    return bayesian_transfer_acceptor_maps_exact(tb, projector, fret_rates, tau_a, rho_a);
   const BayesianResponseBasis& B = tb.basis;
   const std::size_t n = B.n, K = B.K;
   const double dt = tb.kernel->axis().dt;
