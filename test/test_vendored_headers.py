@@ -56,6 +56,7 @@ class Tests(IMP.test.TestCase):
         "McmcDiagnostics.h": ("math",),
         "NoUTurnSampler.h": ("math",),
         "Mat.h": ("math",),
+        "RegistryCore.h": ("core",),
     }
 
     def _paths(self, name="MlpCore.h"):
@@ -95,6 +96,20 @@ class Tests(IMP.test.TestCase):
                 f"include/internal/{name} differs from ../tttrlib/modules/math/include/{name}; "
                 "tttrlib is the source -- refresh with "
                 f"`cp ../tttrlib/modules/math/include/{name} include/internal/{name}`")
+
+    def test_registry_accessors_match_tttrlib_when_the_checkout_is_present(self):
+        """IMP.bff.registry()/describe()/resolve() are tttrlib's registry_access.py (PRD-147 A2)."""
+        here = os.path.dirname(os.path.abspath(__file__))
+        repo = os.path.dirname(here)
+        ours = os.path.join(repo, "pyext", "include", "registry_access.py")
+        theirs = os.path.join(os.path.dirname(repo), "tttrlib", "ext", "python", "registry_access.py")
+        self.assertTrue(os.path.exists(ours), ours)
+        if not os.path.exists(theirs):
+            self.skipTest("../tttrlib checkout not present; cannot compare")
+        self.assertEqual(_sha(ours), _sha(theirs),
+                         "pyext/include/registry_access.py differs from ../tttrlib/ext/python/registry_access.py; "
+                         "tttrlib is the source -- refresh with "
+                         "`cp ../tttrlib/ext/python/registry_access.py pyext/include/registry_access.py`")
 
     def _ptolib_paths(self):
         repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
