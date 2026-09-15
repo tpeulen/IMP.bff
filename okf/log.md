@@ -1,5 +1,24 @@
 # Update Log
 
+## 2026-09-15
+
+- **Maximum entropy leaves tttrlib; the engine is BFF's own (b1eec87)**: owner request "remove maxent
+  from tttrlib, provided bff maxent works as good or better". New public `maxent_solve` (quadratic
+  chi-square) and `maxent_invert` (weighted design against a prior). ChiSurf's FCS/DEER/2D-FLC
+  inversions and ucfret's MEM call them. `internal/MaxEntQp.h` is no longer a vendored copy. Measured
+  against tttrlib before removal:
+  - generic entry points bit-identical;
+  - TCSPC lifetime/FRET distributions equal, single-shot and periodic;
+  - one exception, periodic FRET at nu = 1e-6, where MaxEntSpectrum stalled at chi2r 2.73 against a
+    reachable 1.163: `quadpr_bound` never released a clamped amplitude. It is now KKT-correct
+    (1.1632, R 44.98 against tttrlib 1.1631, 44.97), and the generic answers moved by at most 2e-10
+    without raising the objective.
+  - tttrlib's answers are frozen as the floor in `test/decay/data/maxent_tttrlib_reference.json`.
+  - A held MaxEnt problem re-solves at a new nu in 34 ms, against 36 ms for a full tttrlib call. The
+    one-time description build is ~270 ms.
+  In the same session: autoscale holds `n0` through a conditional structure free entry
+  `{parameter, when}` (a49062d), and ChiSurf's classic TCSPC models and their alias paths are removed.
+
 ## 2026-09-14
 
 - **The command line is one C++ program, `bin/imp_bff.cpp` (T-20260914-02, owner ruling 2026-09-14)**:
