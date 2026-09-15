@@ -167,6 +167,11 @@ struct BayesianDecayExperiment {
   BayesianDecayPSpline pspline;
   std::map<std::string, BayesianDecayArray> arrays;
   std::shared_ptr<const BayesianPeriodicKernel> kernel_ptr;
+  //! Coates pile-up on every histogram, computed from its own counts (manifest block
+  //! `pile_up`); a DNL table per histogram is the optional array `linearization`
+  //! (n_data x n_bins). Both in internal/TCSPCInstrument.h's order.
+  bool pile_up = false;
+  double repetition_rate_mhz = 0.0, dead_time_ns = 0.0, measurement_time_s = 0.0;
 
   const BayesianDecayArray& operator[](const std::string& name) const {
     auto it = arrays.find(name);
@@ -240,6 +245,13 @@ inline nlohmann::json bayesian_decay_experiment_load(const std::string& dir, Bay
   ex.pspline.rank = ps["rank"].get<double>(); ex.pspline.family = str(ps["family"]);
   ex.pspline.space = str(ps["space"]); ex.pspline.link = str(ps["link"]);
   if (m.count("spec_smooth")) ex.spec_smooth_logdet = m["spec_smooth"]["logdet"].get<double>();
+  if (m.count("pile_up")) {
+    const auto& pu = m["pile_up"];
+    ex.pile_up = true;
+    ex.repetition_rate_mhz = pu["repetition_rate_mhz"].get<double>();
+    ex.dead_time_ns = pu["dead_time_ns"].get<double>();
+    ex.measurement_time_s = pu["measurement_time_s"].get<double>();
+  }
   for (auto it = m["arrays"].begin(); it != m["arrays"].end(); ++it) {
     const auto& spec = it.value();
     if (spec["dtype"].get<std::string>() != "float64") throw std::runtime_error("only float64 arrays: " + it.key());
@@ -975,6 +987,60 @@ inline std::vector<double> bayesian_decay_expected_counts(const BayesianDecayExp
       }();
     });
     for (auto& oc : out_cols) { std::sort(oc.begin(), oc.end()); oc.erase(std::unique(oc.begin(), oc.end()), oc.end()); }
+    //: detection per histogram (internal/TCSPCInstrument.h): pile-up on the fluorescence
+    //: and scatter, the uncorrelated background added after it, the DNL multiply. The
+    //: background left the amplitude-space stage in the flat column (K-1): per part its
+    //: amplitude is bkg / (1 + scat + bkg) of the part's amplitude total (every basis
+    //: column sums to one, no pattern), so it is taken back out here, and with
+    //: g = f lin the counts are g (raw - bg) + lin bg -- J = g J_raw + (lin - g) J_bg
+    const bool dnl = f.arrays.count("linearization") > 0;
+    if (f.pile_up || dnl) {
+        std::vector<double> bg(nd * n, 0.0), Jbg;
+        if (J) Jbg.assign(nd * n * dim, 0.0);
+        for (std::size_t q = 0; q < parts.size(); ++q) {
+            const BayesianDecayPart& pt = parts[q];
+            const std::size_t o = pt.out, ai = pt.amp_index;
+            const BayesianDecayResponseTangents& rb = bases[combo_of[q]];
+            const double scat = bayesian_decay_scalar(v, "scat_" + pt.channel), bkg = bayesian_decay_scalar(v, "bkg_" + pt.channel);
+            const double den = 1.0 + scat + bkg, ratio = bkg / den;
+            double total = 0.0; for (std::size_t k = 0; k < K; ++k) total += a2[ai * K + k];
+            const double amp = ratio * total;
+            for (std::size_t i = 0; i < n; ++i) bg[o * n + i] += rb.B[i * K + K - 1] * amp;
+            if (!J) continue;
+            std::vector<double> jrow(dim, 0.0);
+            for (std::size_t k = 0; k < K; ++k) for (std::size_t c = 0; c < dim; ++c) jrow[c] += ratio * (*Ja)[(ai * K + k) * dim + c];
+            const BayesianDecayVariableInfo v_sc = bayesian_decay_variable_info(f, "scat_" + pt.channel), v_bk = bayesian_decay_variable_info(f, "bkg_" + pt.channel);
+            if (v_sc.present) jrow[v_sc.off] += total * (-bkg / (den * den)) * bayesian_decay_dxdz(v_sc, scat);
+            if (v_bk.present) jrow[v_bk.off] += total * ((1.0 + scat) / (den * den)) * bayesian_decay_dxdz(v_bk, bkg);
+            for (std::size_t i = 0; i < n; ++i) {
+                const double b = rb.B[i * K + K - 1];
+                if (b == 0.0) continue;
+                for (std::size_t c : out_cols[o]) Jbg[(o * n + i) * dim + c] += b * jrow[c];
+            }
+        }
+        const BayesianDecayArray* lin = dnl ? &f["linearization"] : nullptr;
+        const BayesianDecayArray& y = f["y"];
+        internal::bayesian_parallel_for(nd, [&](std::size_t o) {
+            internal::TCSPCInstrumentSettings ds;
+            if (f.pile_up) {
+                ds.pile_up_data = y.d.data() + o * n; ds.pile_up_n_data = int(n);
+                ds.repetition_rate_mhz = f.repetition_rate_mhz; ds.dead_time_ns = f.dead_time_ns; ds.measurement_time_s = f.measurement_time_s;
+            }
+            if (lin) ds.linearization = lin->d.data() + o * n;
+            std::vector<double> g(n, 1.0), fl(n);
+            internal::tcspc_instrument_detection(g.data(), n, ds, (const double*)nullptr);     // g = f lin
+            for (std::size_t i = 0; i < n; ++i) fl[i] = raw[o * n + i] - bg[o * n + i];
+            internal::tcspc_instrument_detection(fl.data(), n, ds, bg.data() + o * n);
+            for (std::size_t i = 0; i < n; ++i) raw[o * n + i] = fl[i];
+            if (!J) return;
+            for (std::size_t i = 0; i < n; ++i) {
+                const double li = lin ? lin->d[o * n + i] : 1.0;
+                double* row = J->data() + (o * n + i) * dim;
+                const double* rbg = Jbg.data() + (o * n + i) * dim;
+                for (std::size_t c : out_cols[o]) row[c] = g[i] * row[c] + (li - g[i]) * rbg[c];
+            }
+        });
+    }
     for (std::size_t o = 0; o < nd; ++o) for (std::size_t i = 0; i < n; ++i) {
         const std::size_t j = o * n + i;
         lam[j] = bayesian_soft_positive(raw[j], soft, BAYESIAN_TORCH_SOFTPLUS_THRESHOLD);

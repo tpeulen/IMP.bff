@@ -19,7 +19,7 @@ DT = 0.1
 SAMPLES, DETS = ("D0", "DA", "REF"), (("gp", 0), ("gs", 1))
 
 
-def write(directory, seed=0):
+def write(directory, seed=0, pile_up=False, linearization=False):
     rng = np.random.default_rng(seed)
     K = KINT + 2
     arrays = {}
@@ -90,6 +90,8 @@ def write(directory, seed=0):
                               response=ri, scope=si, colour=0, pol=pol))
             keys.append(ch)
     put("y", rng.poisson(200.0, (len(keys), NBIN)).astype(float))
+    if linearization:
+        put("linearization", 1.0 + 0.05 * np.sin(0.4 * np.arange(NBIN))[None, :] * np.ones((len(keys), 1)))
     put("mask", np.ones((len(keys), NBIN)))
     manifest = dict(axis=dict(n=NBIN, dt=DT, period=NBIN * DT, K=K, Kint=KINT), soft=0.05, ref_spec_sd=0.05,
                     keys=keys, data_keys=keys, responses=responses, scopes=scopes, parts=parts, variables=variables,
@@ -97,6 +99,7 @@ def write(directory, seed=0):
                     pspline=dict(n=NC, order=2, tilt_sd=3.0, quad_sd=30.0, rank=NC - 2, family="gaussian", nu=3.0,
                                  space="log", link="softmax", lam=10.0),
                     spec_smooth=dict(lam_s=0.01, weak_sd=3.0, n=KINT, logdet=0.0),
+                    **(dict(pile_up=dict(repetition_rate_mhz=20.0, dead_time_ns=85.0, measurement_time_s=0.02)) if pile_up else {}),
                     arrays={k: dict(shape=list(v.shape), dtype="float64", file=f"{k}.bin") for k, v in arrays.items()})
     os.makedirs(directory, exist_ok=True)
     with open(os.path.join(directory, "manifest.json"), "w") as fh:
