@@ -120,6 +120,9 @@ struct BayesianDecayPart {
 //! A measured response and the names of the coordinates that prepare it.
 struct BayesianDecayResponse {
   std::string sample, det, bg_var, shift_var, offset_var;   //!< offset_var "" when none
+  //! PRD-144: the fluorescence response's tail, `(1 - a) u + a u (*) k(tau)`: the variables
+  //! holding `a` and `log10 tau` (ns), "" when the response has no tail
+  std::string tail_fraction_var, tail_log10_tau_var;
 };
 
 //! The P-spline prior on log p(R/R0) (Eilers & Marx 1996).
@@ -267,7 +270,9 @@ inline nlohmann::json bayesian_decay_experiment_load(const std::string& dir, Bay
     ex.parts.push_back(pt);
   }
   for (auto& r : m["responses"])
-    ex.responses.push_back({str(r["sample"]), str(r["det"]), str(r["bg_var"]), str(r["shift_var"]), str(r["offset_var"])});
+    ex.responses.push_back({str(r["sample"]), str(r["det"]), str(r["bg_var"]), str(r["shift_var"]), str(r["offset_var"]),
+                            r.count("tail_fraction_var") ? str(r["tail_fraction_var"]) : std::string(),
+                            r.count("tail_log10_tau_var") ? str(r["tail_log10_tau_var"]) : std::string()});
   for (auto& v : m["variables"]) {
     BayesianDecayVariable var;
     var.name = str(v["name"]); var.transform = str(v["transform"]); var.family = str(v["family"]);
@@ -951,7 +956,7 @@ inline BayesianDecayResponseTangents bayesian_decay_response_basis(const Bayesia
     //: each free coordinate's tangent is d/d b (the background fraction) or d/d shift,
     //: times its transform's chain factor; the detector's shift and the sample's
     //: offset share the shift tangent
-    std::vector<int> kind_of;    // per name: 0 background, 1 shift
+    std::vector<int> kind_of;    // per name: 0 background, 1 shift, 2 tail fraction, 3 tail log10 tau
     auto add = [&](const std::string& nm, int k) {
         if (nm.empty() || !derivs) return;
         const BayesianDecayVariableInfo vi = bayesian_decay_variable_info(f, nm);
@@ -960,16 +965,26 @@ inline BayesianDecayResponseTangents bayesian_decay_response_basis(const Bayesia
         out.chain.push_back(bayesian_decay_dxdz(vi, bayesian_decay_constrained_scalar(f, v, nm)));
     };
     add(bg_n, 0); add(sh_n, 1); add(of_n, 1);
+    const std::string ta_n = r.tail_fraction_var, tt_n = r.tail_log10_tau_var;
+    if ((ta_n.empty()) != (tt_n.empty()))
+        throw std::runtime_error("bayesian_decay_response_basis: a response tail needs both tail_fraction_var and tail_log10_tau_var");
+    add(ta_n, 2); add(tt_n, 3);
     const double shift_ns = bayesian_decay_constrained_scalar(f, v, sh_n) + off_ns + (of_n.empty() ? 0.0 : bayesian_decay_constrained_scalar(f, v, of_n));
     BayesianResponseOptions opt;
     opt.soft = soft;
     opt.clamp_in_tangent = clamp_in_tangent;
+    if (!ta_n.empty()) {
+        opt.tail_fraction = bayesian_decay_constrained_scalar(f, v, ta_n);
+        opt.tail_log10_tau = bayesian_decay_constrained_scalar(f, v, tt_n);
+        opt.tail_tangents = derivs;
+    }
     BayesianResponseBasis rb = bayesian_response_basis(f.kernel(), raw, bayesian_decay_constrained_scalar(f, v, bg_n),
                                                                 shift_ns / dt, derivs && !out.names.empty(), opt);
     out.dB.resize(out.names.size());
     for (std::size_t t = 0; t < out.names.size(); ++t) {
-        out.dB[t] = kind_of[t] == 0 ? rb.dB_background : rb.dB_shift;
-        const double c = out.chain[t] * (kind_of[t] == 0 ? 1.0 : 1.0 / dt);
+        const int kd = kind_of[t];
+        out.dB[t] = kd == 0 ? rb.dB_background : kd == 1 ? rb.dB_shift : kd == 2 ? rb.dB_tail_fraction : rb.dB_tail_log10_tau;
+        const double c = out.chain[t] * (kd == 1 ? 1.0 / dt : 1.0);
         for (double& q : out.dB[t]) q *= c;
     }
     out.B = std::move(rb.B);
