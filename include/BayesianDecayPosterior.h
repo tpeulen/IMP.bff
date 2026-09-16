@@ -526,6 +526,38 @@ struct BayesianDecayLambdaGrid {
     std::vector<BayesianDecayLambdaNode> nodes;
     std::vector<double> weights, p_mean, p_sd;
     double mean_rel = 0.0, mean_rel_sd = 0.0;
+    std::size_t n_coarse = 0;        //!< nodes of the first pass; the rest were added by refinement
+    std::size_t n_dropped = 0;       //!< nodes whose evidence was not finite (weight zero)
+    std::size_t n_improved = 0;      //!< nodes a sweep moved to a better mode found from a neighbour
+    //! quantiles of the mixture (not of the moments): mean R/R0 at 16/50/84 %, and p(R/R0) bin by bin
+    double mean_rel_q16 = 0.0, mean_rel_q50 = 0.0, mean_rel_q84 = 0.0;
+    std::vector<double> p_q16, p_q84;
+};
+
+/**
+ * \brief How the lambda grid is laid out and weighted -- the rules of ucfret's Python prototype
+ *        (`s88_laplace_posterior.py`), which this is the C++ side of.
+ */
+struct BayesianDecayLambdaOptions {
+    //! the roughness hyperparameter's tilt: the weight of a node is `exp(evidence + prior_slope * log10 lambda)`,
+    //! so a node one decade rougher must beat the smoother one by `prior_slope` nats ("smooth unless the data
+    //! insist"). Zero: the evidence alone decides.
+    double prior_slope = 0.0;
+    //! after the coarse pass, nodes this far apart are added across the range where the tilted evidence lies
+    //! within `refine_window` nats of its maximum (half a decade beyond the kept nodes), each warm-started from
+    //! its nearest fitted node -- the hyperparameter explored around its mode, as INLA does it. 0 turns it off.
+    double refine_step = 0.25;
+    double refine_window = 10.0;
+    int max_refine = 64;             //!< a cap on added nodes, so a flat evidence cannot run away
+    //! after every node is fitted, sweep the grid again refitting each node from its neighbours' end points and
+    //! keeping the higher posterior. A node warm-started from one side only can stay in a worse mode, and its
+    //! evidence -- which is what weights the mixture -- is then wrong: on CBM56 D0+DA the one-directional grid
+    //! had a 17-nat cliff between neighbouring nodes. 0 turns the sweeps off (the walk outward only).
+    int sweeps = 2;
+    //! the evidence with the exact Hessian (`bayesian_decay_polish_exact` + `bayesian_decay_laplace_evidence_exact`)
+    //! instead of Fisher's; on CBM56 it jumps ~2 nats between neighbours and is indefinite at one node (A4.9)
+    bool exact_evidence = false;
+    int max_iter = 1000;
 };
 
 /**
@@ -552,43 +584,131 @@ struct BayesianDecayLambdaGrid {
  */
 inline BayesianDecayLambdaGrid bayesian_decay_fit_lambda_grid(const BayesianDecayExperiment& f, const BayesianDecayTensors& env,
                                                              const std::vector<double>& log10_nodes, const std::vector<double>& theta_centre,
-                                                             double log10_centre, int max_iter = 1000, bool exact_evidence = false) {
+                                                             double log10_centre, const BayesianDecayLambdaOptions& opt) {
     BayesianDecayLambdaGrid G;
     std::vector<double> nodes = log10_nodes;
     std::sort(nodes.begin(), nodes.end());
-    std::size_t c0 = 0;
-    for (std::size_t i = 0; i < nodes.size(); ++i)
-        if (std::fabs(nodes[i] - log10_centre) < std::fabs(nodes[c0] - log10_centre)) c0 = i;
-    G.nodes.resize(nodes.size());
+    nodes.erase(std::unique(nodes.begin(), nodes.end()), nodes.end());
     BayesianDecayExperiment g = f;
-    auto fit_at = [&](std::size_t i, const std::vector<double>& start) {
-        g.fixed_values["log10_lam"] = {nodes[i]};
-        BayesianDecayLambdaNode& N = G.nodes[i];
-        N.log10_lam = nodes[i];
-        N.fit = bayesian_decay_fit_node(g, env, start, 1.0, max_iter);
+    //: one node, fitted from `start`, inserted so that `G.nodes` stays sorted by lambda
+    auto fit_into = [&](double x, const std::vector<double>& start) {
+        BayesianDecayLambdaNode N;
+        N.log10_lam = x;
+        g.fixed_values["log10_lam"] = {x};
+        N.fit = bayesian_decay_fit_node(g, env, start, 1.0, opt.max_iter);
         //: the node's evidence with the exact Hessian (bayesian_decay_hessian): Fisher's drops the
         //: second-derivative term, 11.7 nats on CBM56, and the weights are differences of these
-        if (exact_evidence) {
+        if (opt.exact_evidence) {
             N.fit = bayesian_decay_polish_exact(g, env, N.fit);
             N.fit.evidence = bayesian_decay_laplace_evidence_exact(g, env, N.fit.pt);
         }
         const std::vector<double> Sig = bayesian_decay_covariance(N.fit.pt, g.dim);
         bayesian_decay_distribution_with_sd(g, env, N.fit.theta, Sig, N.p, N.p_sd, &N.mean_rel, &N.mean_rel_sd);
+        const auto at = std::lower_bound(G.nodes.begin(), G.nodes.end(), x,
+                                         [](const BayesianDecayLambdaNode& a, double b) { return a.log10_lam < b; });
+        G.nodes.insert(at, N);
     };
-    fit_at(c0, theta_centre);
-    for (std::size_t i = c0 + 1; i < nodes.size(); ++i) fit_at(i, G.nodes[i - 1].fit.theta);
-    for (std::size_t i = c0; i-- > 0;) fit_at(i, G.nodes[i + 1].fit.theta);
+    //: the coarse pass: the node nearest the centre from `theta_centre`, the others warm-started from
+    //: their neighbour, walking outward
+    std::size_t c0 = 0;
+    for (std::size_t i = 0; i < nodes.size(); ++i)
+        if (std::fabs(nodes[i] - log10_centre) < std::fabs(nodes[c0] - log10_centre)) c0 = i;
+    fit_into(nodes[c0], theta_centre);
+    for (std::size_t i = c0 + 1; i < nodes.size(); ++i) fit_into(nodes[i], G.nodes.back().fit.theta);
+    for (std::size_t i = c0; i-- > 0;) fit_into(nodes[i], G.nodes.front().fit.theta);
+    G.n_coarse = G.nodes.size();
+
+    //: the tilted evidence, which is what the weights and the refinement window are read from
+    auto tilted = [&](const BayesianDecayLambdaNode& N) { return N.fit.evidence + opt.prior_slope * N.log10_lam; };
+    if (opt.refine_step > 0.0 && opt.refine_window > 0.0 && G.nodes.size() > 1) {
+        double best = -std::numeric_limits<double>::infinity();
+        double lo = 0.0, hi = 0.0;
+        bool any = false;
+        for (const auto& N : G.nodes)
+            if (std::isfinite(tilted(N)) && tilted(N) > best) best = tilted(N);
+        for (const auto& N : G.nodes)
+            if (std::isfinite(tilted(N)) && tilted(N) >= best - opt.refine_window) {
+                lo = any ? std::min(lo, N.log10_lam) : N.log10_lam;
+                hi = any ? std::max(hi, N.log10_lam) : N.log10_lam;
+                any = true;
+            }
+        if (any) {
+            //: half a decade beyond the kept nodes, inside the coarse grid's own range
+            lo = std::max(nodes.front(), lo - 0.5);
+            hi = std::min(nodes.back(), hi + 0.5);
+            std::vector<double> wanted;
+            for (double x = lo; x <= hi + 1e-9; x += opt.refine_step) {
+                bool have = false;
+                for (const auto& N : G.nodes) have = have || std::fabs(N.log10_lam - x) < 1e-9;
+                if (!have) wanted.push_back(x);
+            }
+            if (int(wanted.size()) > opt.max_refine) wanted.resize(std::size_t(opt.max_refine));
+            for (double x : wanted) {
+                //: warm start from the nearest node already fitted
+                std::size_t near = 0;
+                for (std::size_t i = 0; i < G.nodes.size(); ++i)
+                    if (std::fabs(G.nodes[i].log10_lam - x) < std::fabs(G.nodes[near].log10_lam - x)) near = i;
+                fit_into(x, G.nodes[near].fit.theta);
+            }
+        }
+    }
+
+    //: the sweeps: a node fitted from its neighbour's end point may find a better mode than its own start did
+    for (int pass = 0; pass < opt.sweeps; ++pass) {
+        std::size_t improved = 0;
+        for (std::size_t i = 0; i < G.nodes.size(); ++i) {
+            for (int side = 0; side < 2; ++side) {
+                const std::size_t j = side == 0 ? (i == 0 ? i : i - 1) : (i + 1 < G.nodes.size() ? i + 1 : i);
+                if (j == i) continue;
+                const double before = G.nodes[i].fit.pt.logpost;
+                BayesianDecayLambdaNode trial;
+                trial.log10_lam = G.nodes[i].log10_lam;
+                g.fixed_values["log10_lam"] = {trial.log10_lam};
+                trial.fit = bayesian_decay_fit_node(g, env, G.nodes[j].fit.theta, 1.0, opt.max_iter);
+                if (!(trial.fit.pt.logpost > before + 1e-6)) continue;
+                if (opt.exact_evidence) {
+                    trial.fit = bayesian_decay_polish_exact(g, env, trial.fit);
+                    trial.fit.evidence = bayesian_decay_laplace_evidence_exact(g, env, trial.fit.pt);
+                }
+                const std::vector<double> Sig = bayesian_decay_covariance(trial.fit.pt, g.dim);
+                bayesian_decay_distribution_with_sd(g, env, trial.fit.theta, Sig, trial.p, trial.p_sd, &trial.mean_rel, &trial.mean_rel_sd);
+                G.nodes[i] = trial;
+                ++improved;
+            }
+        }
+        G.n_improved += improved;
+        if (improved == 0) break;
+    }
+
     BayesianEvidenceMixture scalar, vec;
     for (const auto& N : G.nodes) {
-        scalar.add(N.fit.evidence, N.mean_rel, N.mean_rel_sd * N.mean_rel_sd);
+        if (!std::isfinite(N.fit.evidence)) ++G.n_dropped;
+        scalar.add(tilted(N), N.mean_rel, N.mean_rel_sd * N.mean_rel_sd);
         std::vector<double> v(N.p_sd.size());
         for (std::size_t j = 0; j < v.size(); ++j) v[j] = N.p_sd[j] * N.p_sd[j];
-        vec.add_vector(N.fit.evidence, N.p, v);
+        vec.add_vector(tilted(N), N.p, v);
     }
     G.weights = scalar.weights();
     scalar.moments(&G.mean_rel, &G.mean_rel_sd);
     vec.moments_vector(&G.p_mean, &G.p_sd);
+    G.mean_rel_q16 = scalar.quantile(0.15865525393145705);
+    G.mean_rel_q50 = scalar.quantile(0.5);
+    G.mean_rel_q84 = scalar.quantile(0.8413447460685429);
+    G.p_q16 = vec.quantile_vector(0.15865525393145705);
+    G.p_q84 = vec.quantile_vector(0.8413447460685429);
     return G;
+}
+
+//! The grid with the default rules; `max_iter` and `exact_evidence` as before.
+inline BayesianDecayLambdaGrid bayesian_decay_fit_lambda_grid(const BayesianDecayExperiment& f, const BayesianDecayTensors& env,
+                                                             const std::vector<double>& log10_nodes, const std::vector<double>& theta_centre,
+                                                             double log10_centre, int max_iter = 1000, bool exact_evidence = false) {
+    BayesianDecayLambdaOptions opt;
+    opt.max_iter = max_iter;
+    opt.exact_evidence = exact_evidence;
+    opt.refine_step = 0.0;          //!< the old behaviour: the given nodes, no refinement, no tilt, one pass
+    opt.sweeps = 0;
+    return bayesian_decay_fit_lambda_grid(f, env, log10_nodes, theta_centre, log10_centre, opt);
 }
 
 //! @}

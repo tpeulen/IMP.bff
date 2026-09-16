@@ -151,6 +151,64 @@ class BayesianEvidenceMixture {
     }
   }
 
+  /**
+   * \brief The mixture's CDF of a scalar summary: `F(t) = sum_i w_i Phi((t - mu_i) / sd_i)`.
+   *
+   * The nodes' Laplace approximations are normals, so the mixture over the hyperparameter is a mixture
+   * of normals and its CDF is analytic -- no draws. A node of zero variance contributes a step.
+   */
+  double cdf(double t) const {
+    const auto w = weights();
+    double F = 0.0;
+    for (std::size_t i = 0; i < w.size(); ++i) {
+      if (w[i] <= 0.0) continue;
+      const double sd = std::sqrt(v_[i] > 0.0 ? v_[i] : 0.0);
+      F += w[i] * (sd > 0.0 ? 0.5 * std::erfc(-(t - m_[i]) / (sd * 1.4142135623730951)) : (t >= m_[i] ? 1.0 : 0.0));
+    }
+    return F;
+  }
+
+  /**
+   * \brief The quantile of that mixture: `F(t) = p`, by bisection.
+   *
+   * A mixture's quantile is not the mixture of the nodes' quantiles, which is why a credible interval
+   * over a hyperparameter grid needs this rather than the moments alone. The bracket starts at the
+   * extreme nodes' means +- 40 sd and halves 200 times (about 1e-58 of the bracket).
+   */
+  double quantile(double p) const {
+    const auto w = weights();
+    double lo = 0.0, hi = 0.0;
+    bool any = false;
+    for (std::size_t i = 0; i < w.size(); ++i) {
+      if (w[i] <= 0.0) continue;
+      const double sd = std::sqrt(v_[i] > 0.0 ? v_[i] : 0.0);
+      lo = any ? std::min(lo, m_[i] - 40.0 * sd) : m_[i] - 40.0 * sd;
+      hi = any ? std::max(hi, m_[i] + 40.0 * sd) : m_[i] + 40.0 * sd;
+      any = true;
+    }
+    if (!any) return std::numeric_limits<double>::quiet_NaN();
+    if (!(p > 0.0)) return lo;
+    if (!(p < 1.0)) return hi;
+    for (int it = 0; it < 200; ++it) {
+      const double mid = 0.5 * (lo + hi);
+      (cdf(mid) < p ? lo : hi) = mid;
+    }
+    return 0.5 * (lo + hi);
+  }
+
+  //! The same quantile elementwise for a vector summary (p(R/R0) bin by bin).
+  std::vector<double> quantile_vector(double p) const {
+    const std::size_t n = mv_.empty() ? 0 : mv_[0].size();
+    const auto w = weights();
+    std::vector<double> out(n, 0.0);
+    for (std::size_t j = 0; j < n; ++j) {
+      BayesianEvidenceMixture one;
+      for (std::size_t i = 0; i < w.size(); ++i) one.add(lz_[i], mv_[i][j], vv_[i][j]);
+      out[j] = one.quantile(p);
+    }
+    return out;
+  }
+
  private:
   std::vector<double> lz_, m_, v_;
   std::vector<std::vector<double>> mv_, vv_;
