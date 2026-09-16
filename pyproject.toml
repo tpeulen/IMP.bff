@@ -1,15 +1,18 @@
 # The IMP-free core of IMP.bff as a pip package (PRD-137 step 6d).
 #
-# Package name `bff`, import name `IMP.bff` -- the same import the IMP module
-# build (conda package `imp.bff`) provides. The two are alternatives, not
-# companions: both own site-packages/IMP/bff/.
+# Package name `imp-bff`, import name `IMP.bff` -- the same import the IMP
+# module build (conda package `imp.bff`) provides. The two are alternatives,
+# not companions: both own site-packages/IMP/bff/. Named `imp-bff`, not the
+# shorter `bff`, because `bff` was already taken on PyPI by an unrelated
+# package (2026-09-16) -- `imp-bff` is also what chisurf's pixi.toml already
+# declares as its dependency.
 #
 # The build is standalone/CMakeLists.txt under scikit-build-core; the wheel
 # holds IMP/bff/{__init__.py,_IMP_bff.so,libimp_bff.*,data/<small set>}.
 # rotamer_library/ and cgprobe/ (62 MB) are fetched on first use from
 # IMP.bff.DATA_URL against data/registry.json (utility/data_registry.py).
 [project]
-name = "bff"
+name = "imp-bff"
 dynamic = ["version"]
 requires-python = ">=3.9"
 description = "Bayesian Framework for Fluorescence: the IMP-free core, importable as IMP.bff"

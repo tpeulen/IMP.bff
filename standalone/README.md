@@ -54,7 +54,7 @@ conda packages keep it, so `.rmf` files stay readable there. The whole test
 lane passes either way.
 
 
-- **`bff`** -- this core. `pip install bff` (wheels built by cibuildwheel
+- **`imp-bff`** -- this core. `pip install imp-bff` (wheels built by cibuildwheel
   from the root `pyproject.toml` over this directory, scikit-build-core;
   `utility/wheel_deps.sh` gives a wheel image cereal and an RMF 1.7.1 built
   without its HDF5 backend, since neither is on PyPI) and `conda install bff`

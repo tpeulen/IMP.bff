@@ -34,7 +34,7 @@ side-chain packing (`pack_protein_sidechains`), the whole fitting stack (`Minimi
 structure and trajectory IO.
 
 ```bash
-pip install bff             # wheels for Linux and macOS
+pip install imp-bff         # wheels for Linux and macOS
 conda install -c conda-forge bff
 ```
 

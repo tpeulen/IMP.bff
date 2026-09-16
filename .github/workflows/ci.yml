@@ -366,7 +366,7 @@ jobs:
 
   # ── Publish the wheels to PyPI on a published GitHub Release ──────────────
   #
-  # Trusted publishing: the PyPI project `bff` must list this workflow as a
+  # Trusted publishing: the PyPI project `imp-bff` must list this workflow as a
   # publisher (owner's step on pypi.org) before the first release runs this.
   publish_wheels:
     name: Publish wheels to PyPI
