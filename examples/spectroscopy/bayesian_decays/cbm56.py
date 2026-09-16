@@ -335,7 +335,7 @@ def pulse_offset_channels(loaded, which='h20') -> int:
     return int(round(float(np.mean(out))))
 
 
-def responses(loaded, which='h20', pad=(15, 150), n=None) -> dict:
+def responses(loaded, which='h20', pad=(15, 150), n=None, red_from='red', red_pedestal='keep') -> dict:
     """The instrument response of each detector, at the GREEN pulse's position.
 
     Which pulse each response is taken from is not a detail. The green
@@ -359,23 +359,39 @@ def responses(loaded, which='h20', pad=(15, 150), n=None) -> dict:
     perpendicular detector's background fraction walking to 0.44. More flat
     channels make `irf_bg` less identifiable against the flat column, and the
     walk takes it. The window stays; the wide one is a parameter.
+
+    **The red detectors' two choices are parameters here, because R1 of
+    `okf/prd-cbm56-red-detectors.md` tests them rather than assuming them.**
+    `red_from='red'` is the default described above; `'green'` takes the red
+    detectors' own green-pulse response where it sits, pedestal and all.
+    `red_pedestal='keep'` is the default; `'remove'` subtracts the flat median
+    measured beyond the pulse before windowing, which separates "which pulse"
+    from "how much flat" -- the red response is about seventy per cent pedestal
+    and `irf_bg_<detector>` has to carry that as a fitted fraction.
     """
     n = int(loaded['cal']['n_channels']) if n is None else int(n)
     off = pulse_offset_channels(loaded, which)
     out, info = {}, {}
     for det, (colour, pol) in DETECTORS.items():
         h = np.asarray(loaded['irf'][(which, colour, pol)], float)
-        if colour == 'green':
-            peak = int(np.argmax(h[:255])); source = 'the green pulse'
+        flat_raw = float(np.median(h[200:251])) if colour == 'green' else float(np.median(h[430:481]))
+        if colour == 'red' and red_pedestal == 'remove':
+            #: the flat level the detector sits at with no pulse, taken off before the window
+            h = np.maximum(h - flat_raw, 0.0)
+        if colour == 'green' or red_from == 'green':
+            peak = int(np.argmax(h[:255]))
+            source = 'the green pulse' if colour == 'green' else 'its own green pulse'
         else:
             peak = int(np.argmax(h[255:])) + 255; source = 'the red pulse, moved back'
         a, b = max(peak - pad[0], 0), min(peak + pad[1], len(h))
         seg = np.zeros(len(h)); seg[a:b] = h[a:b]
-        if colour == 'red':
+        if colour == 'red' and red_from == 'red':
             seg = np.roll(seg, -off)
+        if colour == 'red' and red_pedestal == 'remove':
+            source += ', pedestal removed'
         r = seg[:n].copy()
         out[det] = r
-        flat = float(np.median(h[200:251])) if colour == 'green' else float(np.median(h[430:481]))
+        flat = flat_raw if not (colour == 'red' and red_pedestal == 'remove') else 0.0
         info[det] = dict(peak_channel=peak, source=source, counts=float(r.sum()),
                          peak=float(r.max()), flat_per_channel=flat,
                          background_fraction=float(min(flat * (b - a) / max(r.sum(), 1), 0.95)))
@@ -765,7 +781,8 @@ def peak_fit_response(h, dt, stop_after_peak=1.0, start_fraction=0.05, pre=8, pu
 def model(loaded=None, n_coef=25, which='h20', verbose=True,
           samples=('D0', 'A0', 'DA'), detectors=None, irf='h20', rebin=False, growth=1.05,
           rl_iterations=500, irf_conv_stop=None, peak_stop=1.0, peak_pulse='gn', rho_grid=None,
-          d0_from=None, maps=None, mask_edges=None, sample_shifts=False, irf_by_sample=None):
+          d0_from=None, maps=None, mask_edges=None, sample_shifts=False, irf_by_sample=None,
+          red_from='red', red_pedestal='keep'):
     """Everything the fit needs: the maps on this axis, the measured responses,
     the twelve histograms, and the graph.
 
@@ -781,7 +798,7 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
     cal = d['cal']
     E, rel, spl, L = environment(n_coef=n_coef, verbose=verbose, rho_grid=rho_grid, maps=maps)
     n = int(E['n'])
-    irf, info, off = responses(d, which=which, n=n)
+    irf, info, off = responses(d, which=which, n=n, red_from=red_from, red_pedestal=red_pedestal)
     irf_h20 = {k: v.copy() for k, v in irf.items()}
     y_np, mask_np = histograms(d, n=n, mask_edges=mask_edges)
     if d0_from is not None:
@@ -943,7 +960,7 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
     for samp_, which_ in (irf_by_sample or {}).items():
         if samp_ not in samples or which_ == which:
             continue
-        irf_s, info_s, _ = responses(d, which=which_, n=n)
+        irf_s, info_s, _ = responses(d, which=which_, n=n, red_from=red_from, red_pedestal=red_pedestal)
         for det in dets:
             measured_by_sample[(samp_, det)] = L.tt(irf_s[det])
             irf_by_sample_resp[(samp_, det)] = irf_s[det]
