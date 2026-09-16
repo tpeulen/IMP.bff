@@ -651,7 +651,22 @@ void fcs_bunching_factor(const std::vector<double>& tau, double k_exc_0,
     return;
   }
   Eigen::VectorXcd evals = solver.eigenvalues();
+  // A generator's stationary mode has eigenvalue exactly zero -- its columns
+  // sum to zero, so probability is conserved. The decomposition returns it as
+  // round-off instead (~1e-18 of the largest rate), and clipping to Re <= 0
+  // keeps that as a slow decay: X(tau) then drifts off its own limit linearly,
+  // by 3e-9 per second for rhodamine. Round the stationary modes to zero, so
+  // the limit X(inf) = 1 is exact rather than nearly.
+  double scale = 0.0;
   for (int m = 0; m < n_states; ++m) {
+    scale = std::max(scale, std::abs(evals(m)));
+  }
+  const double stationary_tol = 1e-12 * scale;
+  for (int m = 0; m < n_states; ++m) {
+    if (std::abs(evals(m)) <= stationary_tol) {
+      evals(m) = std::complex<double>(0.0, 0.0);
+      continue;
+    }
     evals(m) = std::complex<double>(std::min(evals(m).real(), 0.0),
                                     evals(m).imag());
   }
