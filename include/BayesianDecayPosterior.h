@@ -715,6 +715,8 @@ struct BayesianDecayLambdaGrid {
     std::size_t n_dropped = 0;       //!< nodes whose evidence was not finite (weight zero)
     std::size_t n_improved = 0;      //!< nodes a sweep moved to a better mode found from a neighbour
     std::size_t n_tk = 0;            //!< nodes whose mean R/R0 came out of a Tierney-Kadane pair of tilted fits
+    std::size_t n_screened = 0;      //!< sweep trials considered
+    std::size_t n_swept_fits = 0;    //!< sweep trials that actually cost a fit (the rest were screened out)
     //! quantiles of the mixture (not of the moments): mean R/R0 at 16/50/84 %, and p(R/R0) bin by bin
     double mean_rel_q16 = 0.0, mean_rel_q50 = 0.0, mean_rel_q84 = 0.0;
     std::vector<double> p_q16, p_q84;
@@ -740,6 +742,13 @@ struct BayesianDecayLambdaOptions {
     //! evidence -- which is what weights the mixture -- is then wrong: on CBM56 D0+DA the one-directional grid
     //! had a 17-nat cliff between neighbouring nodes. 0 turns the sweeps off (the walk outward only).
     int sweeps = 2;
+    //! before a sweep trial costs a fit, score the neighbour's end point at this node's lambda and skip the
+    //! trial unless it is already better than the node's own mode -- one evaluation against a whole fit.
+    //! **Off by default, because it is not free**: on CBM56 D0+DA it took the grid from 89 s to 62 s but
+    //! found 9 of the 18 moves, shifting single-node evidences by up to 0.16 nats and the mixture's mean
+    //! R/R0 from 1.07957 to 1.07991 (PRD-149 A1). A trial started from a point that is worse at this node
+    //! can still descend into a better mode, which is what the screen throws away.
+    bool sweep_screen = false;
     //! the evidence with the exact Hessian (`bayesian_decay_polish_exact` + `bayesian_decay_laplace_evidence_exact`)
     //! instead of Fisher's; on CBM56 it jumps ~2 nats between neighbours and is indefinite at one node (A4.9)
     bool exact_evidence = false;
@@ -866,6 +875,13 @@ inline BayesianDecayLambdaGrid bayesian_decay_fit_lambda_grid(const BayesianDeca
                 BayesianDecayLambdaNode trial;
                 trial.log10_lam = G.nodes[i].log10_lam;
                 g.fixed_values["log10_lam"] = {trial.log10_lam};
+                //: the optional screen (off by default): score the neighbour's end point at THIS node's lambda
+                //: first -- one evaluation against a whole fit -- and skip the trial unless it is already better.
+                //: It catches the cliff case the sweep exists for, but NOT every move: measured on CBM56 it kept
+                //: 9 of 18 and moved the answer (see the option's own note).
+                ++G.n_screened;
+                if (opt.sweep_screen && !(bayesian_decay_log_posterior(g, env, G.nodes[j].fit.theta) > before)) continue;
+                ++G.n_swept_fits;
                 trial.fit = bayesian_decay_fit_node(g, env, G.nodes[j].fit.theta, 1.0, opt.max_iter, opt.tol);
                 if (!(trial.fit.pt.logpost > before + 1e-6)) continue;
                 if (opt.exact_evidence) {
