@@ -55,6 +55,7 @@ int main(int, char** argv) {
   BayesianDecayLambdaOptions tilt = plain; tilt.prior_slope = 2.0;
   BayesianDecayLambdaOptions refined; refined.refine_step = 0.25; refined.refine_window = 2.0; refined.max_iter = 300; refined.sweeps = 0;
   BayesianDecayLambdaOptions swept; swept.refine_step = 0.0; swept.max_iter = 300; swept.sweeps = 2;
+  BayesianDecayLambdaOptions tight = plain; tight.tol = 1e-10;
   std::printf("{");
   dump("plain", bayesian_decay_fit_lambda_grid(ex, E, nodes, th, 0.0, plain), false);
   dump("tilted", bayesian_decay_fit_lambda_grid(ex, E, nodes, th, 0.0, tilt), true);
@@ -64,6 +65,9 @@ int main(int, char** argv) {
     dump("swept", S, true);
     std::printf(",\"swept_improved\": %zu, \"swept_logpost\": [", S.n_improved);
     for (std::size_t i = 0; i < S.nodes.size(); ++i) std::printf("%s%.17g", i ? "," : "", S.nodes[i].fit.pt.logpost);
+    std::printf("], \"tight_logpost\": [");
+    const BayesianDecayLambdaGrid T = bayesian_decay_fit_lambda_grid(ex, E, nodes, th, 0.0, tight);
+    for (std::size_t i = 0; i < T.nodes.size(); ++i) std::printf("%s%.17g", i ? "," : "", T.nodes[i].fit.pt.logpost);
     std::printf("], \"plain_logpost\": [");
     const BayesianDecayLambdaGrid P = bayesian_decay_fit_lambda_grid(ex, E, nodes, th, 0.0, plain);
     for (std::size_t i = 0; i < P.nodes.size(); ++i) std::printf("%s%.17g", i ? "," : "", P.nodes[i].fit.pt.logpost);
@@ -152,3 +156,13 @@ def test_the_moment_mean_is_the_weighted_mean(result):
         assert math.isclose(g["mixture_mean"], float(np.sum(w * m)), rel_tol=1e-12)
         var = float(np.sum(w * (s ** 2 + m ** 2)) - np.sum(w * m) ** 2)
         assert math.isclose(g["mixture_sd"], math.sqrt(max(var, 0.0)), rel_tol=1e-12)
+
+
+def test_a_tighter_stopping_rule_never_ends_lower(result):
+    """`tol` is the node fit's scale-free decrement threshold. It is exposed because it is not a formality:
+    against the Python prototype on CBM56 both implementations stopped 0.07-0.6 nats short of their modes at
+    the default 1e-6, which is more than the 0.05 nats an evidence comparison between them needs (PRD-149 A3).
+    Tightening it by four orders of magnitude may cost iterations and must never end lower."""
+    tight, plain = np.asarray(result["tight_logpost"]), np.asarray(result["plain_logpost"])
+    assert tight.shape == plain.shape
+    assert np.all(tight >= plain - 1e-9), (tight - plain)

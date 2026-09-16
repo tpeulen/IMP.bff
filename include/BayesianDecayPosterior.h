@@ -744,6 +744,10 @@ struct BayesianDecayLambdaOptions {
     //! instead of Fisher's; on CBM56 it jumps ~2 nats between neighbours and is indefinite at one node (A4.9)
     bool exact_evidence = false;
     int max_iter = 1000;
+    //! the node fit's stopping rule: `g' A^-1 g / 2` below this. It is not a formality -- against the Python
+    //! prototype on CBM56 both sides stopped 0.07-0.6 nats short of their modes at the default, which is
+    //! larger than the 0.05 nats an evidence comparison between the two was declared to need (PRD-149 A3).
+    double tol = 1e-6;
     //! `"delta"` (the linearisation at each node's mode) or `"tk"` (Tierney-Kadane, two tilted fits per node).
     //! TK is run only where a node carries at least `tk_min_weight` of the mixture -- it doubles that node's
     //! fitting cost, and a node with no weight cannot move the answer. `tk_eps` keeps `log(f + eps)` finite.
@@ -793,7 +797,7 @@ inline BayesianDecayLambdaGrid bayesian_decay_fit_lambda_grid(const BayesianDeca
         BayesianDecayLambdaNode N;
         N.log10_lam = x;
         g.fixed_values["log10_lam"] = {x};
-        N.fit = bayesian_decay_fit_node(g, env, start, 1.0, opt.max_iter);
+        N.fit = bayesian_decay_fit_node(g, env, start, 1.0, opt.max_iter, opt.tol);
         //: the node's evidence with the exact Hessian (bayesian_decay_hessian): Fisher's drops the
         //: second-derivative term, 11.7 nats on CBM56, and the weights are differences of these
         if (opt.exact_evidence) {
@@ -862,7 +866,7 @@ inline BayesianDecayLambdaGrid bayesian_decay_fit_lambda_grid(const BayesianDeca
                 BayesianDecayLambdaNode trial;
                 trial.log10_lam = G.nodes[i].log10_lam;
                 g.fixed_values["log10_lam"] = {trial.log10_lam};
-                trial.fit = bayesian_decay_fit_node(g, env, G.nodes[j].fit.theta, 1.0, opt.max_iter);
+                trial.fit = bayesian_decay_fit_node(g, env, G.nodes[j].fit.theta, 1.0, opt.max_iter, opt.tol);
                 if (!(trial.fit.pt.logpost > before + 1e-6)) continue;
                 if (opt.exact_evidence) {
                     trial.fit = bayesian_decay_polish_exact(g, env, trial.fit);
