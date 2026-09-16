@@ -320,6 +320,74 @@ inline void bayesian_decay_distribution_with_sd(const BayesianDecayExperiment& f
     }
 }
 
+/**
+ * \brief The tilt `power * log(mean R/R0 + eps)` with its exact gradient and Hessian.
+ *
+ * Tierney-Kadane needs the posterior tilted by a power of the summary, and needs the tilt's
+ * curvature exactly (see `bayesian_tierney_kadane`). For the mean of `R/R0` that curvature is
+ * analytic and cheap: `p = softmax(spl Q z)` depends on `theta` only through the spline block,
+ * so with `u = spl Q z`, `f = sum_j p_j rel_j` and `g_j = p_j (rel_j - f)`,
+ *
+ *     df/du_k    = g_k
+ *     d2f/du_k du_l = delta_kl g_k - g_k p_l - p_k g_l
+ *
+ * and the tilt's own derivatives follow from `d log(f + eps)`. Everything outside the spline
+ * block is exactly zero, which is also why the tilted fit costs no more than an untilted one.
+ */
+struct BayesianDecayTilt {
+    double f = 0.0;                //!< the summary itself, mean R/R0
+    double value = 0.0;            //!< power * log(f + eps)
+    std::vector<double> grad;      //!< d value / d theta, `dim`
+    std::vector<double> hess;      //!< d2 value / d theta2, `dim x dim` row-major (empty if not asked for)
+};
+
+inline BayesianDecayTilt bayesian_decay_mean_rel_tilt(const BayesianDecayExperiment& f, const BayesianDecayTensors& e,
+                                                      const std::vector<double>& th, double power, double eps,
+                                                      bool want_hessian = true) {
+    const std::size_t dim = f.dim;
+    BayesianDecayTilt T;
+    T.grad.assign(dim, 0.0);
+    if (want_hessian) T.hess.assign(dim * dim, 0.0);
+    const std::vector<double> p = bayesian_decay_distribution(e, bayesian_decay_unpack(f, th));
+    const std::vector<double>& rel = f["rel"].d;
+    const BayesianDecayVariableInfo vc = bayesian_decay_variable_info(f, "c");
+    const BayesianDecayArray& Q = f["Q_c"];
+    const std::size_t nR = p.size(), nc = e.spl->shape[1], nz = Q.shape[1];
+    std::vector<double> M(nR * nz, 0.0);                      // spl @ Q, so u = M z
+    for (std::size_t j = 0; j < nR; ++j) for (std::size_t a = 0; a < nc; ++a) {
+        const double s_ = e.spl->d[j * nc + a];
+        if (s_ != 0.0) for (std::size_t b = 0; b < nz; ++b) M[j * nz + b] += s_ * Q.d[a * nz + b];
+    }
+    double fv = 0.0;
+    for (std::size_t j = 0; j < nR; ++j) fv += p[j] * rel[j];
+    T.f = fv;
+    std::vector<double> gj(nR), G(nz, 0.0), P(nz, 0.0);
+    for (std::size_t j = 0; j < nR; ++j) gj[j] = p[j] * (rel[j] - fv);
+    for (std::size_t j = 0; j < nR; ++j) for (std::size_t b = 0; b < nz; ++b) {
+        G[b] += gj[j] * M[j * nz + b];
+        P[b] += p[j] * M[j * nz + b];
+    }
+    const double d = fv + eps, k1 = power / d;
+    T.value = power * std::log(d);
+    for (std::size_t b = 0; b < nz; ++b) T.grad[vc.off + b] = k1 * G[b];
+    if (want_hessian) {
+        std::vector<double> W(nz * nz, 0.0);                  // M' diag(g) M
+        for (std::size_t j = 0; j < nR; ++j) {
+            if (gj[j] == 0.0) continue;
+            for (std::size_t a = 0; a < nz; ++a) {
+                const double t = gj[j] * M[j * nz + a];
+                for (std::size_t b = 0; b < nz; ++b) W[a * nz + b] += t * M[j * nz + b];
+            }
+        }
+        const double k2 = power / (d * d);
+        for (std::size_t a = 0; a < nz; ++a) for (std::size_t b = 0; b < nz; ++b) {
+            const double d2f = W[a * nz + b] - G[a] * P[b] - P[a] * G[b];
+            T.hess[(vc.off + a) * dim + vc.off + b] = k1 * d2f - k2 * G[a] * G[b];
+        }
+    }
+    return T;
+}
+
 //! one node fit: Fisher scoring stepped by imp.bff's DampedNewton, then the
 //! Laplace evidence (the loop cbm56_fit.cpp ran inline until the mixture needed
 //! it several times)
@@ -437,6 +505,102 @@ inline double bayesian_decay_laplace_evidence_exact(const BayesianDecayExperimen
 }
 
 /**
+ * \brief The mode of the tilted posterior `log p(y, theta) + power * log(mean R/R0 + eps)`.
+ *
+ * The same damped Newton loop as `bayesian_decay_fit_node`, with the tilt's exact gradient and
+ * curvature (`bayesian_decay_mean_rel_tilt`) added to the scoring matrix. The returned `pt` is
+ * the UNTILTED evaluation at the tilted mode, because that is what the Tierney-Kadane ratio
+ * needs; `dec` is the tilted decrement.
+ */
+inline BayesianDecayFit bayesian_decay_fit_node_tilted(const BayesianDecayExperiment& f, const BayesianDecayTensors& env,
+                                                       std::vector<double> th, double power, double eps,
+                                                       int max_iter = 100, double tol = 1e-8) {
+    const std::size_t dim = f.dim;
+    BayesianDecayFit R;
+    auto tilted_point = [&](const std::vector<double>& t) {
+        BayesianDecayPoint pt = bayesian_decay_evaluate(f, env, t);
+        const BayesianDecayTilt T = bayesian_decay_mean_rel_tilt(f, env, t, power, eps);
+        pt.logpost += T.value;
+        for (std::size_t i = 0; i < dim; ++i) pt.grad[i] += T.grad[i];
+        for (std::size_t i = 0; i < dim * dim; ++i) pt.A[i] -= T.hess[i];      //: A is the curvature of MINUS the log posterior
+        return pt;
+    };
+    auto objective = [&](const double* t) {
+        const std::vector<double> v(t, t + dim);
+        ++R.n_obj;
+        return -(bayesian_decay_log_posterior(f, env, v) + bayesian_decay_mean_rel_tilt(f, env, v, power, eps, false).value);
+    };
+    BayesianDecayPoint pt = tilted_point(th);
+    DampedNewton<decltype(objective)> stepper;
+    int it = 0;
+    for (; it < max_iter; ++it) {
+        const OptimizationStepResult r = stepper.step(pt.A.data(), pt.grad.data(), dim, -pt.logpost, th.data(), objective);
+        if (!r.accepted) { R.converged = std::isfinite(R.dec) && R.dec < 1e-3; break; }
+        R.dec = r.decrement;
+        R.n_fallback += r.gradient_fallback ? 1 : 0;
+        pt = tilted_point(th);
+        if (R.dec < tol) { R.converged = true; ++it; break; }
+    }
+    if (!R.converged && std::isfinite(R.dec) && R.dec < 1e-3) R.converged = true;
+    R.iterations = it;
+    R.theta = th;
+    R.pt = bayesian_decay_evaluate(f, env, th);
+    return R;
+}
+
+//! Tierney-Kadane and delta-method moments of mean R/R0 at one node, side by side.
+struct BayesianDecayTkSummary {
+    double mean = std::nan(""), sd = std::nan("");
+    bool ok = false;
+    int iterations = 0;            //!< both tilted fits together
+    double seconds = 0.0;
+};
+
+/**
+ * \brief The posterior mean and sd of mean R/R0 at one node by Tierney-Kadane (PRD-149 step 3).
+ *
+ * Two tilted fits (`power` 1 and 2) started from the node's own mode, combined by
+ * `bayesian_tierney_kadane`. Both tilted integrals are given the curvature rule that ratio
+ * needs: the node's own matrix plus the exact Hessian of the tilt at the tilted mode, never a
+ * second independent estimate of the whole curvature.
+ *
+ * Where the summary is nearly linear over the posterior's width this returns the delta method's
+ * answer; where it is not -- a distribution's mean near the edge of its support, a node whose
+ * p(R/R0) is sharply peaked -- it is the one with the smaller error (`O(n^-2)` against
+ * `O(n^-1)`), which is why the prototype applies it to the nodes carrying real weight.
+ */
+inline BayesianDecayTkSummary bayesian_decay_tk_mean_rel(const BayesianDecayExperiment& f, const BayesianDecayTensors& env,
+                                                         const BayesianDecayFit& node, double eps = 1e-6, int max_iter = 100,
+                                                         bool exact_curvature = false) {
+    using clk_ = std::chrono::steady_clock;
+    const auto t0 = clk_::now();
+    BayesianDecayTkSummary out;
+    const std::size_t dim = f.dim;
+    //: the base curvature both integrals share: Fisher's matrix (the prototype's rule) or the exact Hessian
+    const std::vector<double> A0 = exact_curvature ? bayesian_decay_hessian(f, env, node.theta) : node.pt.A;
+    double logdet0 = 0.0;
+    if (!bayesian_log_det_spd(A0.data(), dim, &logdet0)) return out;
+    const double L0 = node.pt.logpost;
+    double lr[2] = {std::nan(""), std::nan("")};
+    for (int k = 0; k < 2; ++k) {
+        const double power = double(k + 1);
+        const BayesianDecayFit t = bayesian_decay_fit_node_tilted(f, env, node.theta, power, eps, max_iter);
+        out.iterations += t.iterations;
+        if (!t.converged || !std::isfinite(t.pt.logpost)) return out;
+        const BayesianDecayTilt T = bayesian_decay_mean_rel_tilt(f, env, t.theta, power, eps);
+        std::vector<double> H = A0;                                 //: the NODE's matrix ...
+        for (std::size_t i = 0; i < dim * dim; ++i) H[i] -= T.hess[i];   //: ... plus the tilt's exact curvature at the tilted mode
+        double logdet1 = 0.0;
+        if (!bayesian_log_det_spd(H.data(), dim, &logdet1)) return out;
+        lr[k] = (t.pt.logpost + T.value) - L0 - 0.5 * (logdet1 - logdet0);
+    }
+    const BayesianTierneyKadane r = bayesian_tierney_kadane(lr[0], lr[1], eps);
+    out.mean = r.mean; out.sd = r.sd; out.ok = r.ok;
+    out.seconds = std::chrono::duration<double>(clk_::now() - t0).count();
+    return out;
+}
+
+/**
  * \brief A declared start: where a fit begins and how it walks from there.
  *
  * `adam_steps > 0` runs that many Adam steps (tttrlib `adam_update`, Kingma & Ba 2015,
@@ -519,6 +683,10 @@ struct BayesianDecayLambdaNode {
     BayesianDecayFit fit;
     std::vector<double> p, p_sd;
     double mean_rel = 0.0, mean_rel_sd = 0.0;
+    //! the same summary by Tierney-Kadane, where it was asked for and succeeded (`summary_method = "tk"`);
+    //! the delta-method pair above is always filled, so the two can be reported side by side
+    double tk_mean = std::nan(""), tk_sd = std::nan("");
+    bool tk_ok = false;
 };
 
 //! The grid, its evidence weights and the mixture's p(R/R0).
@@ -529,6 +697,7 @@ struct BayesianDecayLambdaGrid {
     std::size_t n_coarse = 0;        //!< nodes of the first pass; the rest were added by refinement
     std::size_t n_dropped = 0;       //!< nodes whose evidence was not finite (weight zero)
     std::size_t n_improved = 0;      //!< nodes a sweep moved to a better mode found from a neighbour
+    std::size_t n_tk = 0;            //!< nodes whose mean R/R0 came out of a Tierney-Kadane pair of tilted fits
     //! quantiles of the mixture (not of the moments): mean R/R0 at 16/50/84 %, and p(R/R0) bin by bin
     double mean_rel_q16 = 0.0, mean_rel_q50 = 0.0, mean_rel_q84 = 0.0;
     std::vector<double> p_q16, p_q84;
@@ -558,6 +727,18 @@ struct BayesianDecayLambdaOptions {
     //! instead of Fisher's; on CBM56 it jumps ~2 nats between neighbours and is indefinite at one node (A4.9)
     bool exact_evidence = false;
     int max_iter = 1000;
+    //! `"delta"` (the linearisation at each node's mode) or `"tk"` (Tierney-Kadane, two tilted fits per node).
+    //! TK is run only where a node carries at least `tk_min_weight` of the mixture -- it doubles that node's
+    //! fitting cost, and a node with no weight cannot move the answer. `tk_eps` keeps `log(f + eps)` finite.
+    std::string summary_method = "delta";
+    double tk_min_weight = 0.02;
+    double tk_eps = 1e-6;
+    int tk_max_iter = 100;
+    //! the curvature both tilted integrals share: Fisher's matrix (false, the prototype's rule and the
+    //! default, because the exact Hessian is indefinite at some CBM56 nodes -- A4.9) or the exact Hessian.
+    //! Measured on the simulated fixture against a converged NUTS reference (PRD-149 A2): the exact base
+    //! gives the sd to 0.6 % and the mean to 0.25 posterior sd, Fisher's 2.5 % and 0.39.
+    bool tk_exact_curvature = false;
 };
 
 /**
@@ -680,10 +861,30 @@ inline BayesianDecayLambdaGrid bayesian_decay_fit_lambda_grid(const BayesianDeca
         if (improved == 0) break;
     }
 
+    //: Tierney-Kadane where the node carries weight (the weights are the evidences, so they are known
+    //: before any summary is formed): two tilted fits per node, the delta-method pair kept beside it
+    if (opt.summary_method == "tk") {
+        BayesianEvidenceMixture w_only;
+        for (const auto& N : G.nodes) w_only.add(tilted(N), 0.0, 0.0);
+        const std::vector<double> w = w_only.weights();
+        for (std::size_t i = 0; i < G.nodes.size(); ++i) {
+            if (!(w[i] >= opt.tk_min_weight)) continue;
+            g.fixed_values["log10_lam"] = {G.nodes[i].log10_lam};
+            const BayesianDecayTkSummary tk = bayesian_decay_tk_mean_rel(g, env, G.nodes[i].fit, opt.tk_eps, opt.tk_max_iter,
+                                                                         opt.tk_exact_curvature);
+            G.nodes[i].tk_mean = tk.mean; G.nodes[i].tk_sd = tk.sd; G.nodes[i].tk_ok = tk.ok;
+            if (tk.ok) ++G.n_tk;
+        }
+    }
+
     BayesianEvidenceMixture scalar, vec;
     for (const auto& N : G.nodes) {
         if (!std::isfinite(N.fit.evidence)) ++G.n_dropped;
-        scalar.add(tilted(N), N.mean_rel, N.mean_rel_sd * N.mean_rel_sd);
+        //: a node TK did not reach (too little weight, or a tilted fit that did not converge) keeps the
+        //: delta method, which is what the prototype does
+        const bool use_tk = N.tk_ok && opt.summary_method == "tk";
+        scalar.add(tilted(N), use_tk ? N.tk_mean : N.mean_rel,
+                   use_tk ? N.tk_sd * N.tk_sd : N.mean_rel_sd * N.mean_rel_sd);
         std::vector<double> v(N.p_sd.size());
         for (std::size_t j = 0; j < v.size(); ++j) v[j] = N.p_sd[j] * N.p_sd[j];
         vec.add_vector(tilted(N), N.p, v);

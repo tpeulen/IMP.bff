@@ -59,6 +59,52 @@ inline bool bayesian_laplace_log_evidence(double log_post_at_mode, const double*
   return true;
 }
 
+//! The mean and standard deviation of a positive summary by Tierney & Kadane's ratio.
+struct BayesianTierneyKadane {
+  double mean = std::numeric_limits<double>::quiet_NaN();
+  double sd = std::numeric_limits<double>::quiet_NaN();
+  bool ok = false;
+};
+
+/**
+ * \brief Tierney & Kadane (1986) moments of a positive summary, from two tilted Laplace ratios.
+ *
+ * The posterior mean of a positive `f(theta)` is a ratio of two integrals,
+ * `E[f] = int f(theta) p(y, theta) dtheta / int p(y, theta) dtheta`, and both can be
+ * approximated by Laplace -- the numerator at the mode of `log p + log f`, the denominator at
+ * the mode of `log p`. Taking the ratio cancels the leading error terms, which is why the
+ * result is accurate to `O(n^-2)` where the delta method is `O(n^-1)` (Tierney & Kadane,
+ * *J. Amer. Statist. Assoc.* 81:82, 1986, the "fully exponential" approximation).
+ *
+ * The caller does the two tilted fits with the tilt `power * log(f + eps)` (`eps` keeps the
+ * logarithm finite where `f` can reach zero) and passes, for `power` 1 and 2,
+ *
+ *     log_ratio = [log p(y, theta_tilted) + power * log(f(theta_tilted) + eps)]
+ *                 - log p(y, theta_mode) - 0.5 * (log det H_tilted - log det H_mode),
+ *
+ * so that `exp(log_ratio_1) = E[f + eps]` and `exp(log_ratio_2) = E[(f + eps)^2]`. The
+ * `eps` cancels out of the variance exactly: `Var[f] = m2 - m1^2`.
+ *
+ * **The two curvatures have to be consistent.** The ratio needs the log-determinants to
+ * about `1e-4` nats, and two independent scoring runs do not deliver that -- in ucfret's
+ * prototype (`s88_laplace_posterior.py`, 2026-09-06) a tilted mode that sat exactly on the
+ * untilted one still differed by 0.026 nats beyond `log f`, which moved a mean by 2.6 %,
+ * three of its standard deviations. So `H_tilted` is built as the mode's own matrix plus the
+ * exact Hessian of the tilt at the tilted mode, never as a second independent estimate of
+ * the whole curvature.
+ */
+inline BayesianTierneyKadane bayesian_tierney_kadane(double log_ratio1, double log_ratio2, double eps) {
+  BayesianTierneyKadane r;
+  if (!std::isfinite(log_ratio1) || !std::isfinite(log_ratio2)) return r;
+  const double m1 = std::exp(log_ratio1), m2 = std::exp(log_ratio2);
+  const double var = m2 - m1 * m1;
+  if (!std::isfinite(m1) || !std::isfinite(m2)) return r;
+  r.mean = m1 - eps;
+  r.sd = std::sqrt(var > 0.0 ? var : 0.0);
+  r.ok = true;
+  return r;
+}
+
 /**
  * \brief A hyperparameter grid, its nodes weighted by their evidence.
  *
