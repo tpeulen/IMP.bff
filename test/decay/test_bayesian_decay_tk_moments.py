@@ -99,8 +99,10 @@ int main(int, char** argv) {
   const BayesianDecayTkSummary tk = bayesian_decay_tk_mean_rel(ex, E, F, eps, 100, false);
   const BayesianDecayTkSummary tkx = bayesian_decay_tk_mean_rel(ex, E, F, eps, 100, true);
   std::printf(", \"node\": {\"delta_mean\": %.17g, \"delta_sd\": %.17g, \"tk_mean\": %.17g, \"tk_sd\": %.17g, \"tk_ok\": %d,"
-              " \"tkx_mean\": %.17g, \"tkx_sd\": %.17g, \"tkx_ok\": %d, \"converged\": %d}",
-              delta_mean, delta_sd, tk.mean, tk.sd, tk.ok ? 1 : 0, tkx.mean, tkx.sd, tkx.ok ? 1 : 0, F.converged ? 1 : 0);
+              " \"tkx_mean\": %.17g, \"tkx_sd\": %.17g, \"tkx_ok\": %d, \"converged\": %d, \"shift1\": %.17g, \"shift2\": %.17g,"
+              " \"dlogdet1\": %.17g, \"dlogdet2\": %.17g}",
+              delta_mean, delta_sd, tk.mean, tk.sd, tk.ok ? 1 : 0, tkx.mean, tkx.sd, tkx.ok ? 1 : 0, F.converged ? 1 : 0,
+              tk.shift[0], tk.shift[1], tk.dlogdet[0], tk.dlogdet[1]);
 
   // 3. the reference: mean R/R0 sampled, with its own convergence
   {
@@ -249,6 +251,17 @@ def test_tk_mean_is_within_half_a_posterior_sd(result):
     assert abs(node["tkx_mean"] - mc["mean"]) <= 0.5 * mc["sd"], (node["tkx_mean"], mc["mean"], mc["sd"])
     #: and the exact-curvature base is no worse than Fisher's on this fixture
     assert abs(node["tkx_mean"] - mc["mean"]) <= abs(node["tk_mean"] - mc["mean"])
+
+
+def test_the_tilted_modes_move_by_what_the_theory_says(result):
+    """The tilted mode solves `grad log p + power * grad log f = 0`, so it sits about
+    `power * sd(f) / f` away from the untilted one in the posterior's own metric. Measuring it is how a
+    tilted fit that ran off (or did not move at all) is caught: it is the one number that says the two
+    Laplace integrals are being taken at comparable points."""
+    node = result["node"]
+    expect = node["delta_sd"] / node["delta_mean"]
+    for k, key in ((1.0, "shift1"), (2.0, "shift2")):
+        assert node[key] == pytest.approx(k * expect, rel=0.35), (key, node[key], k * expect)
 
 
 def test_tk_runs_only_where_the_node_carries_weight(result):

@@ -548,12 +548,18 @@ inline BayesianDecayFit bayesian_decay_fit_node_tilted(const BayesianDecayExperi
     return R;
 }
 
-//! Tierney-Kadane and delta-method moments of mean R/R0 at one node, side by side.
+//! Tierney-Kadane moments of mean R/R0 at one node, with what the two tilted fits did.
 struct BayesianDecayTkSummary {
     double mean = std::nan(""), sd = std::nan("");
     bool ok = false;
     int iterations = 0;            //!< both tilted fits together
     double seconds = 0.0;
+    //! per power (1, 2): how far the tilted mode moved from the node's, in the node's own metric
+    //! (`sqrt(d' A0 d)`, so 1 is one posterior sd), and the log-determinant the tilt added. The
+    //! displacement should be about `power * sd(f) / f`: a Laplace ratio whose modes are far apart is
+    //! outside the approximation's range, which is why it is reported and gated on.
+    double shift[2] = {std::nan(""), std::nan("")};
+    double dlogdet[2] = {std::nan(""), std::nan("")};
 };
 
 /**
@@ -593,6 +599,14 @@ inline BayesianDecayTkSummary bayesian_decay_tk_mean_rel(const BayesianDecayExpe
         double logdet1 = 0.0;
         if (!bayesian_log_det_spd(H.data(), dim, &logdet1)) return out;
         lr[k] = (t.pt.logpost + T.value) - L0 - 0.5 * (logdet1 - logdet0);
+        out.dlogdet[k] = logdet1 - logdet0;
+        double d2 = 0.0;
+        for (std::size_t i = 0; i < dim; ++i) {
+            const double di = t.theta[i] - node.theta[i];
+            if (di == 0.0) continue;
+            for (std::size_t j = 0; j < dim; ++j) d2 += di * A0[i * dim + j] * (t.theta[j] - node.theta[j]);
+        }
+        out.shift[k] = std::sqrt(d2 > 0.0 ? d2 : 0.0);
     }
     const BayesianTierneyKadane r = bayesian_tierney_kadane(lr[0], lr[1], eps);
     out.mean = r.mean; out.sd = r.sd; out.ok = r.ok;
@@ -687,6 +701,9 @@ struct BayesianDecayLambdaNode {
     //! the delta-method pair above is always filled, so the two can be reported side by side
     double tk_mean = std::nan(""), tk_sd = std::nan("");
     bool tk_ok = false;
+    //! what the two tilted fits did there (`BayesianDecayTkSummary::shift`, `dlogdet`), so a node whose
+    //! tilted modes ran far from its own can be seen and not quoted
+    double tk_shift[2] = {std::nan(""), std::nan("")}, tk_dlogdet[2] = {std::nan(""), std::nan("")};
 };
 
 //! The grid, its evidence weights and the mixture's p(R/R0).
@@ -873,6 +890,7 @@ inline BayesianDecayLambdaGrid bayesian_decay_fit_lambda_grid(const BayesianDeca
             const BayesianDecayTkSummary tk = bayesian_decay_tk_mean_rel(g, env, G.nodes[i].fit, opt.tk_eps, opt.tk_max_iter,
                                                                          opt.tk_exact_curvature);
             G.nodes[i].tk_mean = tk.mean; G.nodes[i].tk_sd = tk.sd; G.nodes[i].tk_ok = tk.ok;
+            for (int k = 0; k < 2; ++k) { G.nodes[i].tk_shift[k] = tk.shift[k]; G.nodes[i].tk_dlogdet[k] = tk.dlogdet[k]; }
             if (tk.ok) ++G.n_tk;
         }
     }
