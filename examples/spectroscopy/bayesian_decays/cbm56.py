@@ -1031,7 +1031,7 @@ def model(loaded=None, n_coef=25, which='h20', verbose=True,
 
 
 def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=False, fixed=None,
-        spec_smoothness=None):
+        spec_smoothness=None, chain=True, theta0=None):
     """The Laplace posterior of the whole model on the twelve histograms.
 
     **Automatic differentiation, not the analytic Jacobian.** The hand-written
@@ -1068,6 +1068,16 @@ def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=False, f
     elif spec_smoothness is not None:
         m['graph'].spec_smooth = L.SpectrumSmoothness(m['E']['Kint'], lam_s=10.0 ** float(spec_smoothness), weak_sd=3.0)
     th0, _ = L.start_from_data(m['graph'], m['y'], verbose=False, method='mem')
+    #: A COMMON START MAKES THE EVIDENCE A FUNCTION OF LAMBDA ALONE.  Chaining each node from its
+    #: predecessor's mode is a good warm start, but it makes the node's answer depend on the ORDER of
+    #: `lam_nodes`: running the same five-node grid up and down moved the weights from (0.05, 0.30, 0.22,
+    #: 0.26, 0.17) to (0.00, 0.04, 0.22, 0.55, 0.20) -- because the between-order scatter of the fits
+    #: (~5 nats in the log posterior) is larger than the evidence differences BETWEEN the nodes (~1-3
+    #: nats), which are what weights them.  With `chain=False` every node starts from the same point, so
+    #: the grid can be walked in any order and the weights do not move.  `theta0` supplies that point --
+    #: pass a converged mode and each node starts close to its own.
+    if theta0 is not None:
+        th0 = theta0.detach().clone()
     for k, med in m['bkg_medians'].items():
         nm = f'bkg_{k[0]}_{k[1]}'
         if nm in m['graph'].offsets:
@@ -1141,7 +1151,7 @@ def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=False, f
                          verbose=verbose, hessian='fisher')
         r['graph'] = gi; r['log10_lam'] = float(lg)
         nodes[float(lg)] = r
-        if r.get('converged'):
+        if r.get('converged') and chain:
             th_prev = th0.clone()
             th_prev[:] = th0
             for n_, (a, b) in gi.offsets.items():
@@ -1180,7 +1190,15 @@ def fit(m, lam_nodes=(1.0, 0.0, -1.0), seed=0, verbose=True, accelerate=False, f
     w = w / w.sum()
     best = float(np.asarray(lam_nodes, float)[int(np.argmax(w))])
     post = dict(nodes[best])
-    post.update(nodes=nodes, lam_nodes=[float(x) for x in lam_nodes], weights=w,
+    #: the best node's mode in the PARENT graph's coordinates, so a caller re-running the grid can hand it
+    #: back as `theta0` and give every node the same, already converged start
+    th_par = th0.clone(); th_par[:] = th0
+    for n_, (a_, b_) in nodes[best]['graph'].offsets.items():
+        if n_ in g.offsets:
+            a0_, b0_ = g.offsets[n_]
+            th_par[a0_:b0_] = nodes[best]['theta'][a_:b_]
+    post.update(theta_parent=th_par,
+                nodes=nodes, lam_nodes=[float(x) for x in lam_nodes], weights=w,
                 ev=ev, best_lam=best, evidence_available=bool(evidence_available),
                 converged_any=converged_any, fixed=dict(fixed or {}))
     vals, _ = post['graph'].unpack(post['theta'])
