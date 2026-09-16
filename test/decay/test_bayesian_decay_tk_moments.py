@@ -100,9 +100,12 @@ int main(int, char** argv) {
   const BayesianDecayTkSummary tkx = bayesian_decay_tk_mean_rel(ex, E, F, eps, 100, true);
   std::printf(", \"node\": {\"delta_mean\": %.17g, \"delta_sd\": %.17g, \"tk_mean\": %.17g, \"tk_sd\": %.17g, \"tk_ok\": %d,"
               " \"tkx_mean\": %.17g, \"tkx_sd\": %.17g, \"tkx_ok\": %d, \"converged\": %d, \"shift1\": %.17g, \"shift2\": %.17g,"
-              " \"dlogdet1\": %.17g, \"dlogdet2\": %.17g}",
+              " \"dlogdet1\": %.17g, \"dlogdet2\": %.17g, \"flat_curvature\": %.17g,"
+              " \"flat_ratio1\": %.17g, \"flat_ratio2\": %.17g, \"flat_share1\": %.17g, \"flat_share2\": %.17g,"
+              " \"flat_prior_share\": %.17g}",
               delta_mean, delta_sd, tk.mean, tk.sd, tk.ok ? 1 : 0, tkx.mean, tkx.sd, tkx.ok ? 1 : 0, F.converged ? 1 : 0,
-              tk.shift[0], tk.shift[1], tk.dlogdet[0], tk.dlogdet[1]);
+              tk.shift[0], tk.shift[1], tk.dlogdet[0], tk.dlogdet[1], tk.flat_curvature,
+              tk.flat_ratio[0], tk.flat_ratio[1], tk.flat_share[0], tk.flat_share[1], tk.flat_prior_share);
 
   // 3. the reference: mean R/R0 sampled, with its own convergence
   {
@@ -280,3 +283,34 @@ def test_the_default_summary_method_is_unchanged(result):
     g = result["grid"]
     assert g["delta_n_tk"] == 0
     assert all(v == 0.0 for v in g["delta_pair_difference"]), g["delta_pair_difference"]
+
+
+def test_the_flattest_directions_diagnostics_are_reported(result):
+    """TK's correction is a change in the log-VOLUME of the Laplace Gaussian, and ucfret rejected TK on
+    CBM56 in 2026-09-06 because that volume change lived in a spline direction with no data in it
+    (`okf/log.md` 23:55). These diagnostics report that mechanism; they do NOT decide it, and the numbers
+    measured on both sides say why no scale-free threshold was shipped:
+
+    | | this fixture (TK matches a sampled posterior) | CBM56 (TK inflates the sd fourfold) |
+    |---|---|---|
+    | flattest curvature | 0.114 | 2.4e-4 .. 2.4e-3 |
+    | of it from the prior alone | 99 % | 98 % |
+    | share of the log-det change it carries | 96 % | 39-63 % |
+    | log-det change | **+0.064** | **-0.13 .. -0.23** |
+
+    The prior holds the flattest direction in BOTH, so "is it prior-held" does not separate them; what
+    differs is how flat it is in absolute terms and whether the tilt sharpens that direction or flattens it.
+    This test pins the fixture's own numbers so a regression shows, and checks they are finite and
+    self-consistent -- `flat_share` must reproduce the flattest direction's own contribution to `dlogdet`."""
+    node = result["node"]
+    assert node["flat_curvature"] > 0.0 and np.isfinite(node["flat_curvature"])
+    assert 0.0 < node["flat_prior_share"] <= 1.05, node["flat_prior_share"]
+    for k in (1, 2):
+        share, dld, ratio = node[f"flat_share{k}"], node[f"dlogdet{k}"], node[f"flat_ratio{k}"]
+        assert np.isfinite(share) and np.isfinite(dld)
+        #: the share is log1p(tilt/curvature) / dlogdet by construction -- check it against the parts
+        assert share == pytest.approx(math.log1p(ratio * np.sign(dld)) / dld, rel=1e-6, abs=1e-6) or \
+            share == pytest.approx(math.log1p(-ratio) / dld, rel=1e-6, abs=1e-6), (k, share, ratio, dld)
+    #: this fixture's flattest direction is 2 to 3 orders of magnitude stiffer than CBM56's, which is the
+    #: one number that does distinguish the case where TK worked from the case where it did not
+    assert node["flat_curvature"] > 1e-2, node["flat_curvature"]

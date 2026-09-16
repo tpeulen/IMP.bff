@@ -59,6 +59,46 @@ inline bool bayesian_laplace_log_evidence(double log_post_at_mode, const double*
   return true;
 }
 
+/**
+ * \brief The smallest eigenvalue of a symmetric positive-definite `A` and its direction, by inverse
+ *        iteration on the Cholesky factor (Golub & Van Loan, *Matrix Computations* 4th ed., 8.2.2).
+ *
+ * **Why a posterior's flattest direction is worth a function of its own.** A Laplace approximation is a
+ * Gaussian fitted at a mode, and where the precision has a near-zero eigenvalue the Gaussian's width in
+ * that direction is set by whatever holds the coefficient there -- a smoothing prior, say -- and not by the
+ * data. Any quantity that depends on the approximation's VOLUME (an evidence, a ratio of two Laplace
+ * integrals) is then dominated by a direction in which the posterior is nowhere near Gaussian. Measuring
+ * that eigenvalue is how such a quantity can say so instead of being quoted.
+ *
+ * Returns false when `A` is not positive definite. `v` (length `n`) receives the unit eigenvector.
+ */
+inline bool bayesian_smallest_eigenpair(const double* A, std::size_t n, double* v, double* lambda_min,
+                                        int iterations = 60) {
+  CholeskyFactor ch;
+  if (!ch.factor(A, n)) return false;
+  std::vector<double> x(n, 0.0), y(n, 0.0);
+  for (std::size_t i = 0; i < n; ++i) x[i] = 1.0 / std::sqrt(double(n));
+  double lam = 0.0;
+  for (int it = 0; it < iterations; ++it) {
+    if (!ch.solve(x.data(), y.data())) return false;      //: y = A^-1 x, so y grows along the flattest axis
+    double nrm = 0.0;
+    for (std::size_t i = 0; i < n; ++i) nrm += y[i] * y[i];
+    nrm = std::sqrt(nrm);
+    if (!(nrm > 0.0) || !std::isfinite(nrm)) return false;
+    for (std::size_t i = 0; i < n; ++i) x[i] = y[i] / nrm;
+    //: the Rayleigh quotient x' A x, which is the eigenvalue once x has settled
+    lam = 0.0;
+    for (std::size_t i = 0; i < n; ++i) {
+      double s = 0.0;
+      for (std::size_t j = 0; j < n; ++j) s += A[i * n + j] * x[j];
+      lam += x[i] * s;
+    }
+  }
+  for (std::size_t i = 0; i < n; ++i) v[i] = x[i];
+  *lambda_min = lam;
+  return true;
+}
+
 //! The mean and standard deviation of a positive summary by Tierney & Kadane's ratio.
 struct BayesianTierneyKadane {
   double mean = std::numeric_limits<double>::quiet_NaN();

@@ -560,6 +560,30 @@ struct BayesianDecayTkSummary {
     //! outside the approximation's range, which is why it is reported and gated on.
     double shift[2] = {std::nan(""), std::nan("")};
     double dlogdet[2] = {std::nan(""), std::nan("")};
+    //! **The flattest direction, which is where this approximation dies.** `flat_curvature` is the
+    //! smallest eigenvalue of the node's own precision and `tilt_on_flat` the tilt's curvature along
+    //! that same direction; `flat_ratio` is their ratio per power. Where the ratio approaches one the
+    //! log-determinant change -- which IS the correction, once the tilted mode barely moves -- is a change
+    //! of order one in the log-volume of a direction the data do not constrain and where the posterior is
+    //! not Gaussian at all. ucfret measured exactly that and rejected TK on those grounds
+    //! (`okf/log.md` 2026-09-06 23:55: an eigenvalue of 2.7e-3 in a spline direction where p(R) is empty,
+    //! a tilt curvature of 7e-3 there, and a 4 % shift of the mean that belongs to the volume, not to the
+    //! mean). A TK number whose `flat_ratio` is not small is not a better moment; it is an artefact.
+    double flat_curvature = std::nan("");
+    double tilt_on_flat[2] = {std::nan(""), std::nan("")};
+    double flat_ratio[2] = {std::nan(""), std::nan("")};
+    //! the share of the whole log-determinant change that this ONE flattest direction contributes,
+    //! `log1p(tilt_on_flat / flat_curvature) / dlogdet`. Once the tilted mode barely moves, the
+    //! log-determinant change IS the correction, so a share near one says the correction is the volume of a
+    //! single direction the data do not constrain -- and the number should not be quoted as a moment.
+    double flat_share[2] = {std::nan(""), std::nan("")};
+    //! **What holds the flattest direction.** `flat_prior_share` is the fraction of that direction's
+    //! curvature supplied by the PRIOR alone, `v' (-H_prior) v / flat_curvature`. At one, the data say
+    //! nothing there and the direction's width is whatever the roughness prior chose; a correction that
+    //! lives in it is a property of the prior and the Gaussian approximation, not of the posterior mean.
+    //! ucfret's 2026-09-06 rejection of TK is exactly this case ("a direction of the spline coefficients
+    //! where p(R) is empty and only the roughness prior at lambda 1 holds the coefficient").
+    double flat_prior_share = std::nan("");
 };
 
 /**
@@ -586,6 +610,22 @@ inline BayesianDecayTkSummary bayesian_decay_tk_mean_rel(const BayesianDecayExpe
     const std::vector<double> A0 = exact_curvature ? bayesian_decay_hessian(f, env, node.theta) : node.pt.A;
     double logdet0 = 0.0;
     if (!bayesian_log_det_spd(A0.data(), dim, &logdet0)) return out;
+    //: the node's flattest direction, against which the tilt's curvature is measured below
+    std::vector<double> vflat(dim, 0.0);
+    double lam_min = std::nan("");
+    const bool have_flat = bayesian_smallest_eigenpair(A0.data(), dim, vflat.data(), &lam_min);
+    out.flat_curvature = have_flat ? lam_min : std::nan("");
+    if (have_flat && lam_min > 0.0) {
+        //: how much of that direction's curvature the prior alone supplies
+        const BayesianDecayPrior pr = bayesian_decay_log_prior(f, node.theta, true);
+        double q = 0.0;
+        for (std::size_t i = 0; i < dim; ++i) {
+            double si = 0.0;
+            for (std::size_t j = 0; j < dim; ++j) si -= pr.H[i * dim + j] * vflat[j];
+            q += vflat[i] * si;
+        }
+        out.flat_prior_share = q / lam_min;
+    }
     const double L0 = node.pt.logpost;
     double lr[2] = {std::nan(""), std::nan("")};
     for (int k = 0; k < 2; ++k) {
@@ -607,6 +647,19 @@ inline BayesianDecayTkSummary bayesian_decay_tk_mean_rel(const BayesianDecayExpe
             for (std::size_t j = 0; j < dim; ++j) d2 += di * A0[i * dim + j] * (t.theta[j] - node.theta[j]);
         }
         out.shift[k] = std::sqrt(d2 > 0.0 ? d2 : 0.0);
+        if (have_flat) {
+            //: v' (-d2 tilt) v, the tilt's curvature along the direction the data leave flat
+            double q = 0.0;
+            for (std::size_t i = 0; i < dim; ++i) {
+                double si = 0.0;
+                for (std::size_t j = 0; j < dim; ++j) si -= T.hess[i * dim + j] * vflat[j];
+                q += vflat[i] * si;
+            }
+            out.tilt_on_flat[k] = q;
+            out.flat_ratio[k] = lam_min > 0.0 ? std::fabs(q) / lam_min : std::numeric_limits<double>::infinity();
+            if (lam_min > 0.0 && std::fabs(out.dlogdet[k]) > 0.0)
+                out.flat_share[k] = std::log1p(q / lam_min) / out.dlogdet[k];
+        }
     }
     const BayesianTierneyKadane r = bayesian_tierney_kadane(lr[0], lr[1], eps);
     out.mean = r.mean; out.sd = r.sd; out.ok = r.ok;
@@ -704,6 +757,10 @@ struct BayesianDecayLambdaNode {
     //! what the two tilted fits did there (`BayesianDecayTkSummary::shift`, `dlogdet`), so a node whose
     //! tilted modes ran far from its own can be seen and not quoted
     double tk_shift[2] = {std::nan(""), std::nan("")}, tk_dlogdet[2] = {std::nan(""), std::nan("")};
+    //! the flattest direction's curvature at this node, and the tilt's curvature along it relative to it
+    double tk_flat_curvature = std::nan(""), tk_flat_ratio[2] = {std::nan(""), std::nan("")};
+    double tk_flat_share[2] = {std::nan(""), std::nan("")};
+    double tk_flat_prior_share = std::nan("");
 };
 
 //! The grid, its evidence weights and the mixture's p(R/R0).
@@ -910,7 +967,13 @@ inline BayesianDecayLambdaGrid bayesian_decay_fit_lambda_grid(const BayesianDeca
             const BayesianDecayTkSummary tk = bayesian_decay_tk_mean_rel(g, env, G.nodes[i].fit, opt.tk_eps, opt.tk_max_iter,
                                                                          opt.tk_exact_curvature);
             G.nodes[i].tk_mean = tk.mean; G.nodes[i].tk_sd = tk.sd; G.nodes[i].tk_ok = tk.ok;
-            for (int k = 0; k < 2; ++k) { G.nodes[i].tk_shift[k] = tk.shift[k]; G.nodes[i].tk_dlogdet[k] = tk.dlogdet[k]; }
+            G.nodes[i].tk_flat_curvature = tk.flat_curvature;
+            G.nodes[i].tk_flat_prior_share = tk.flat_prior_share;
+            for (int k = 0; k < 2; ++k) {
+                G.nodes[i].tk_shift[k] = tk.shift[k]; G.nodes[i].tk_dlogdet[k] = tk.dlogdet[k];
+                G.nodes[i].tk_flat_ratio[k] = tk.flat_ratio[k];
+                G.nodes[i].tk_flat_share[k] = tk.flat_share[k];
+            }
             if (tk.ok) ++G.n_tk;
         }
     }
