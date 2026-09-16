@@ -725,9 +725,13 @@ inline BayesianDecayMultiFit bayesian_decay_fit_best_of_starts(const BayesianDec
                 ::tttrlib::AdamState st;
                 st.reset(dim);
                 std::vector<double> neg(dim);
+                std::vector<double> g_;
                 for (int k = 0; k < starts[i].adam_steps; ++k) {
-                    const BayesianDecayPoint pt = bayesian_decay_evaluate(f, env, th);
-                    for (std::size_t a = 0; a < dim; ++a) neg[a] = -pt.grad[a];
+                    //: the GRADIENT path, not `evaluate`: Adam uses only the gradient, and evaluate also
+                    //: builds the (n_data x dim) Jacobian and the dim x dim normal equations it throws away.
+                    //: Measured on CBM56 (6 histograms, dim 136): 14.5 ms a step against 3.6 ms.
+                    bayesian_decay_log_posterior_and_gradient(f, env, th, g_);
+                    for (std::size_t a = 0; a < dim; ++a) neg[a] = -g_[a];
                     ::tttrlib::adam_update(th.data(), neg.data(), dim, st, starts[i].adam_lr);
                 }
             }
