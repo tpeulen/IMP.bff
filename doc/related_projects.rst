@@ -26,7 +26,7 @@ enhance the functionality of tttrlib estimators.
 
 **Fluorescence lifetime imaging**
 
-- `clsmview <https://gitlab.peulen.xyz/tpeulen/clsmview/>`_ A python program with
+- `clsmview <https://github.com/tpeulen/clsmview/>`_ A python program with
   graphical user interface to vizualize and process confocal laser scanning data
   with tttrlib.
 
