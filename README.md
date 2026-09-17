@@ -39,14 +39,19 @@ pip install imp-bff                      # wheels for Linux, macOS and Windows
 conda install -c conda-forge bff         # the same core as a conda package
 ```
 
-While a version is still a **pre-release**, pip only takes it when asked:
+Publishing a GitHub release builds the wheels for every platform, uploads them
+to PyPI and attaches the same files to the release page, so both routes below
+carry exactly what CI built.
+
+A **pre-release** — an `a`/`b`/`rc` version, which is what the 0.15 line is
+right now — is only taken when asked for:
 
 ```bash
 pip install --pre imp-bff
 ```
 
-Straight from a GitHub release, without PyPI — pip picks the wheel that fits
-your platform and Python version off the release page:
+Straight from the release page, which also works for a version that is not on
+PyPI, and in a room with no PyPI access but a mirror of the release:
 
 ```bash
 pip install --pre \
@@ -54,8 +59,8 @@ pip install --pre \
   imp-bff
 ```
 
-(`--find-links` adds the release page; PyPI still serves numpy and pooch, so
-do not add `--no-index`.)
+(`--find-links` adds the release page to the places pip looks; PyPI still
+serves numpy and pooch, so do not add `--no-index`.)
 
 **`imp.bff` — the IMP module.** The same library built inside the Integrative
 Modeling Platform, with the connection layer: restraints IMP's optimizers

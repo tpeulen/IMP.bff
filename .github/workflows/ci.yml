@@ -369,20 +369,48 @@ jobs:
   # Trusted publishing: the PyPI project `imp-bff` must list this workflow as a
   # publisher (owner's step on pypi.org) before the first release runs this.
   publish_wheels:
-    name: Publish wheels to PyPI
+    name: Publish wheels
     needs: pip_wheel
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
+      # id-token for PyPI trusted publishing, contents to attach the same
+      # wheels to the GitHub release.
       id-token: write
+      contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
           pattern: wheels-*
           path: dist
           merge-multiple: true
+      - name: What was built
+        run: ls -l dist/
+
+      # The release page carries the wheels as well as PyPI. It is what makes
+      # `pip install --find-links <release page>` work -- for a pre-release
+      # that nobody wants on PyPI yet, for an air-gapped room, and while the
+      # PyPI publisher below is still being set up.
+      - name: Attach the wheels to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.event.release.tag_name }}" dist/*.whl --clobber --repo "${{ github.repository }}"
+
+      # Trusted publishing: no API token anywhere. It needs the PyPI project
+      # `imp-bff` to name this workflow as a publisher -- pypi.org -> the
+      # project (or "pending publisher" before the first upload) -> Publishing,
+      # with owner `tpeulen`, repository `IMP.bff`, workflow `ci.yml` and
+      # environment `pypi`. Until that exists the step below is the only part
+      # of the release that fails, and the wheels are already on the release
+      # page by then.
+      #
+      # skip-existing, because re-running a release build must not fail on a
+      # version PyPI already has: a version is immutable there.
       - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+          print-hash: true
 
   # ── Documentation ─────────────────────────────────────────────────────────
   #
