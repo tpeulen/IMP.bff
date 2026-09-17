@@ -422,6 +422,59 @@ def hgbp1_frames(every: int = 4, atoms: str = "CA"):
         frames.append("".join(lines) + "END\n")
     return frames
 
+
+def hgbp1_state(frame: int = 0, cache: Optional[pathlib.Path] = None) -> pathlib.Path:
+    """One frame of the hGBP1 transition as a PDB file, with every atom.
+
+    The accessible-volume search needs the obstacles, not just the trace, so
+    this writes the whole coarse-grained model rather than the CA frames
+    :func:`hgbp1_frames` produces for the viewer.
+    """
+    import IMP.bff as bff
+
+    cache = pathlib.Path(cache or DATA)
+    cache.mkdir(parents=True, exist_ok=True)
+    out = cache / f"hGBP1_frame{int(frame):03d}.pdb"
+    if out.exists() and out.stat().st_size > 0:
+        return out
+
+    root = repo_root()
+    topology = [line for line in (root / HGBP1["topology"]).read_text().splitlines(keepends=True)
+                if line.startswith("ATOM")]
+    header = bff.read_dcd_header(str(root / HGBP1["trajectory"]))
+    flat = np.asarray(bff.read_dcd(str(root / HGBP1["trajectory"])), dtype=float)
+    xyz = flat.reshape(header.n_frames, header.n_atoms, 3)[int(frame)]
+    lines = [f"{line[:30]}{x:8.3f}{y:8.3f}{z:8.3f}{line[54:]}"
+             for line, (x, y, z) in zip(topology, xyz)]
+    out.write_text("".join(lines) + "END\n")
+    return out
+
+
+def hgbp1_n_frames() -> int:
+    """How many frames the recorded transition has."""
+    import IMP.bff as bff
+
+    return int(bff.read_dcd_header(str(repo_root() / HGBP1["trajectory"])).n_frames)
+
+
+def hgbp1_network() -> dict:
+    """The published hGBP1 FRET network: positions, and measured distances.
+
+    Unlike everything else in this workshop, these distances are **measured**,
+    not simulated: 68 entries, each with its error bars and its Forster
+    radius, as an fps.json carries them. The 68 are 34 distinct measurements
+    declared twice, once for each protomer of the C2 dimer, and every error
+    bar in this file happens to be symmetric.
+    """
+    import json
+
+    document = json.loads((repo_root() / HGBP1["network"]).read_text())
+    return {
+        "positions": document["Positions"],
+        "distances": document["Distances"],
+        "chi2_sets": list(document.get("\u03c7\u00b2", {})),
+    }
+
 def _atom_key(line: str):
     """chain, residue, insertion code, atom name -- what makes an atom the same atom."""
     return line[21:22], line[22:27].strip(), line[12:16].strip(), line[17:20].strip()
@@ -879,7 +932,7 @@ __all__ = [
     "STATES", "DYES", "R0", "ROTAMER_LIBRARIES", "fetch_pdb", "single_dimer",
     "ca_position",
     "av", "av_points", "EmptyVolume", "rda", "rda_e", "efficiency", "distance_distribution",
-    "protein_for_view", "points_to_pdb", "score_coloured_pdb", "morph_pdb", "morph_frames", "hgbp1_frames", "HGBP1", "av_pdb", "viewer_html", "show",
+    "protein_for_view", "points_to_pdb", "score_coloured_pdb", "morph_pdb", "morph_frames", "hgbp1_frames", "hgbp1_state", "hgbp1_n_frames", "hgbp1_network", "HGBP1", "av_pdb", "viewer_html", "show",
     "site_panel", "circle_plot", "deviation_scale", "deviation_mappable",
     "rotamer_library_name", "rotamer_pdb",
 ]

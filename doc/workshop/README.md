@@ -1,64 +1,78 @@
 # FRET workshop: from a structure to a measured, modelled ensemble
 
-Seven steps, one molecule. **BmrA** is a homodimeric ABC transporter with two
-experimentally determined arrangements of its nucleotide-binding domains —
-[6R72](https://www.rcsb.org/structure/6R72) (closed, outward-facing, X-ray)
-and [8QOE](https://www.rcsb.org/structure/8QOE) (open, inward-facing,
-cryo-EM). The workshop asks the question a FRET experiment on BmrA has to
-answer — *which residues do I mutate, what will they tell me, and what do the
-distances I measure say about the structure?* — and answers it with the
+Eight steps. The question they answer together is the one a FRET experiment
+has to answer — *which residues do I label, what will they tell me, and what do
+the distances I measure say about the structure?* — and they answer it with the
 library rather than with slides.
 
-Every notebook runs. They are executed against the build as part of preparing
-this material, and the numbers printed in them come from those runs.
+Two molecules, each where it belongs:
+
+- **hGBP1**, human guanylate-binding protein 1, carries the single-chain
+  steps. Its conformational transition is a recorded trajectory
+  (`examples/structure/GBP/hgbp1_transition.dcd`, 58 frames on
+  `hgbp1_cg.pdb`), so the ensemble the measurements have to resolve is real
+  rather than interpolated, and the notebooks animate it.
+- **BmrA**, a homodimeric ABC transporter, carries the two steps that need two
+  protomers: choosing sites when one cysteine mutation labels every protomer,
+  and docking one protomer against the other. Its two states are
+  [6R72](https://www.rcsb.org/structure/6R72) (closed) and
+  [8QOE](https://www.rcsb.org/structure/8QOE) (open).
+
+Every notebook is executed against the build before it is published, and the
+numbers printed in them come from those runs.
 
 ## Before the room
 
 ```bash
-conda install -c conda-forge imp.bff      # the IMP module: needed from step 5 on
-pip install --pre "imp-bff[notebooks]"    # or the core alone, for steps 1-4
+conda install -c conda-forge imp.bff      # the IMP module: needed for the docking step
+pip install --pre "imp-bff[notebooks]"    # or the core alone, for everything else
 imp_bff_fetch_data                        # rotamer libraries, once, 62 MB
 ```
 
-The structures download themselves on first use into `_data/` beside these
-notebooks, so the room needs the network once, at the start, not per attendee
-per notebook.
-
-`IMP.bff.get_build()` says which package is in the interpreter: `"core"` (pip)
-or `"imp"` (conda). Steps that need IMP's optimizers or hierarchies say so.
+BmrA's two structures download themselves on first use into `_data/` beside
+these notebooks; hGBP1's trajectory ships with the repository. `IMP.bff.get_build()`
+says which package is in the interpreter: `"core"` (pip) or `"imp"` (conda).
 
 ## The steps
 
-| notebook | the question | needs |
-|---|---|---|
-| `01_label_sites.ipynb` | Which residues can carry a dye at all? | core |
-| `03_volumes_and_rotamers.ipynb` | Where does the dye actually go — as a volume, and as a real dye? | core |
-| `05_docking.ipynb` | Given the distances, where do the two protomers sit? | IMP |
-| `06_network_circle_plot.ipynb` | Which measurements does my model still disagree with? | core |
-| `07_maxent_ensemble.ipynb` | Which *population* of structures fits, assuming as little as possible? | core |
-
-Two of the steps are older notebooks that already existed and were kept
-because they are good:
-
-- `../../ipynb/example/labelizer_greedy_homodimer.ipynb` — choosing *sites* for
-  a homodimer, where one cysteine mutation labels both protomers and the pairs
-  come for free. This one is on BmrA.
-- `../../ipynb/example/labelizer_greedy_pipeline.ipynb` — the monomer version:
-  which *pairs* to measure, ranked by what each one buys.
+| notebook | the question |
+|---|---|
+| `01_accessible_volumes.ipynb` | Where can the dye be? What an AV assumes, and what it costs when the assumption is wrong. |
+| `02_rotamers.ipynb` | The dye itself: explicit conformers from a rotamer library, drawn inside the volume they fill. |
+| `03_labelizer.ipynb` | Which residues can carry a dye at all — every term of the label score, not just the total. |
+| `03b_labelizer_pairs.ipynb` | The Labelizer's own pair score, in one state and across two. A companion to step 3. |
+| `04_pair_selection_olga.ipynb` | Which measurement to make first, and when another stops paying (Olga's criterion). |
+| `05_site_selection_homodimer.ipynb` | A homodimer is labelled statistically: choose *sites*, and pay for every pair they imply. |
+| `06_docking_homodimer.ipynb` | Given the distances, where does the second protomer sit? |
+| `07_distance_networks.ipynb` | Reading a network: which measurements a model still disagrees with, and what the pattern means. |
+| `08_ensemble_maxent.ipynb` | Not one structure but a population, with as little assumed as the data allow. |
 
 ## What is real and what is simulated
 
-The structures, the accessible volumes, the label scores, the docking and the
-maximum-entropy inversion are all real computations by `IMP.bff`.
+The structures, the trajectory, the accessible volumes, the rotamer ensembles,
+the label scores, the selection, the docking and the maximum-entropy inversion
+are all real computations by `IMP.bff`. The labelling positions and the Förster
+radius in the hGBP1 steps are the published ones.
 
-The *measurements* are not: no experimental BmrA FRET network ships with this
-repository, so the notebooks that need measured distances generate them from
-one structure and add noise, and say so where they do it. Everything
-downstream of that point is therefore a recovery test — which is the honest
-way to teach it, because you can check the answer.
+The *measurements* are not. `examples/structure/GBP/hGBP1.fps.json` holds 68
+real measured distances, but they belong to the hGBP1 **dimer**: all 34
+distinct values are inter-protomer, and 14 of the 20 whose residues exist in
+the single-chain topology lie outside the whole range one molecule can produce
+over the entire trajectory. Notebook 07 shows that rather than asserting it.
+So where measured distances are needed, the notebooks generate them from a
+known structure with stated noise, and say so where they do it — which also
+makes every one of those steps a recovery test, where the answer can be
+checked.
 
-One caution the material makes explicit, because it costs people days: BmrA
-has no ConSurf conservation data (checked against UniProt O06967, ConSurf-DB
-and labelizer.org). The published label score multiplies a conservation term
-in, so scoring BmrA with the paper model unchanged returns exactly zero for
-every residue. The notebooks drop that term and say what it costs.
+## Two things the material insists on
+
+**A score is not a usable site.** A residue can pass the label score and have
+nowhere for the dye to go. The pair screen then falls back to the attachment
+point and ranks the pair anyway: on hGBP1, 123 of 1953 pairs rest on a site
+with no accessible volume, the best of them at rank 73. Every notebook that
+ranks pairs audits its shortlist by rebuilding the volumes.
+
+**A better χ² is not a better model.** The networks step scores data from the
+middle of a transition against the two end states: one of them wins at χ² 7.7,
+and both are wrong — and they fail with opposite signs, which is what a
+two-state model of a continuous motion cannot express.
