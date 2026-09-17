@@ -69,3 +69,29 @@ on the same sites. The notebook draws its synthetic measurements around the
 *engine's* column rather than the helper's, and prints the comparison, so the
 recovery test is not scored against a different forward model than the one it
 optimises.
+
+## 5. The pair screen ranks pairs whose dye has nowhere to go
+
+Found while writing `doc/workshop/02_which_pair.ipynb`, confirmed separately.
+
+`labelizer_fret_pair_scores` scores a pair from the two sites' volumes, and
+when a volume comes back empty it falls back to the attachment point and
+**still scores and ranks the row**. On BmrA's closed state, with the stock
+`LabelizerFRETOptions`:
+
+- residues A422 and B422 have **zero accessible voxels** -- the library says so
+  on stderr, `AV P30014: no accessible voxel ... clearance below half the
+  linker width walls the source in`;
+- both clear the label-score threshold at 1.52, because the label score asks
+  whether a cysteine belongs at that position, not whether a dye on a 20 A
+  linker can reach anywhere from it;
+- **247 of 7750 pairs involve residue 422**, and they carry ordinary-looking
+  scores and distances: `A551-B422` sits at rank 96 with value 1.5702 and a
+  quoted distance of 51.9 A.
+
+A warning on stderr is not enough for a number that goes into a ranked table a
+user reads. Either the row should carry a status the caller can filter on, as
+`LabelizerScore.status` already does for unscored residues, or the pair should
+be dropped from the screen. Until then, a screen's shortlist has to be audited
+by rebuilding its sites' volumes -- which is what notebook 02 does, and how
+this was found.

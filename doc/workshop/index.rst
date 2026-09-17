@@ -23,7 +23,9 @@ simulated, because no experimental BmrA network ships with this repository.
 
    README
    01_label_sites
+   02_which_pair
    03_volumes_and_rotamers
+   04_greedy_olga
    05_docking
    06_network_circle_plot
    07_maxent_ensemble
