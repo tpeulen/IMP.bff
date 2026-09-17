@@ -21,6 +21,7 @@ move of each.
 
 | PRD | what | status | next |
 |---|---|---|---|
+| [150](prd-150.md) | kinetic schemes composed from factors: aGrUM's CTBN amalgamation (CIMs -> joint generator `K[target, source]`), after checking which schemes in the stack factor | done (2026-09-17) | chisurf `burst/simulate.py` k_nrad/k_rad through it; the FRETExchange pair product-vs-sum question |
 | [143](prd-143.md) | one implementation per concept in the decay stack (Bayesian headers, crosstalk, IRF preparation, convolution, polarisation, FRET transfer) | active (2026-09-14) | step 1: the Bayesian headers onto bff's own blocks |
 | [142](prd-142.md) | the Bayesian decay analysis of a real measurement (CBM56), ported from ucfret into bff's C++, with tests | steps 1-5 done (2026-09-14) | tttrlib `thirdparty/` on the module include path; step 6 subcommand |
 | [141](prd-141.md) | one precise flat vocabulary for IMP.bff | active (2026-09-11) | Stage 0: baseline the Graph/Fit/Inference slice. |

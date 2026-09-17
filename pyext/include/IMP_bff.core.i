@@ -1154,6 +1154,10 @@ IMP_SWIG_VALUE(IMP::bff, MfdbAttribution, MfdbAttributions);
 /* The processes that deactivate or depolarise a dye. */
 %include "IMP_bff.photophysics.i"
 
+/* Kinetic schemes composed from factors: conditional intensity matrices and
+   their amalgamation into the joint generator (PRD-150). */
+%include "IMP_bff.kineticnetwork.i"
+
 /* The channels that deactivate an excited dye. They consume `States`, so they
    come after the object that is one. */
 %include "IMP_bff.photophysicsinteractionterms.i"
