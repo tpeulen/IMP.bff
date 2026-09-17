@@ -60,3 +60,8 @@ dbtemp/
 # restored with `python utility/data_registry.py --fetch` (PRD-137 6d)
 data/rotamer_library/
 data/cgprobe/
+
+# The workshop downloads its structures on first use; they are not sources.
+doc/workshop/_data/
+# sphinx-gallery writes this next to conf.py on every build.
+doc/sg_execution_times.rst

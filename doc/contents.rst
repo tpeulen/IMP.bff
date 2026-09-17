@@ -18,5 +18,6 @@ Table of contents
     preface
     getting_started
     manual/index
+    workshop/index
 
 
