@@ -39,6 +39,9 @@ import numpy as np
 %template(VectorInt64) std::vector<long long >;
 %include "IMP/bff/InferenceFactorGraph.h"
 %template(VectorInferenceJunctionTreeEdge) std::vector<IMP::bff::InferenceJunctionTreeEdge>;
+/* Gaussian factors in canonical form and exact variable elimination over the
+   factor graph above (aGrUM's CLG inference). */
+%include "IMP_bff.inferencegaussian.i"
 
 /*
  * The reactive GraphPort/GraphNode runtime ported from chinet (phase 1 of removing

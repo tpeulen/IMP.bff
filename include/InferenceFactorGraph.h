@@ -224,11 +224,18 @@ class IMPBFFEXPORT InferenceFactorGraph {
 
   //! A greedy variable-elimination order.
   /*!
-      \param[in] heuristic "min_fill" (default) or "min_degree". min_fill
-             repeatedly eliminates the variable whose elimination adds the
-             fewest new edges; min_degree the one with the fewest neighbours.
-             Ties break on the flat-vector index, so the order is
-             deterministic.
+      \param[in] heuristic "min_fill" (default), "min_degree" or "weighted".
+             min_fill repeatedly eliminates the variable whose elimination
+             adds the fewest new edges; min_degree the one with the fewest
+             neighbours. "weighted" is aGrUM's default triangulation
+             (`DefaultEliminationSequenceStrategy` over a `SimplicialSet`):
+             simplicial variables first, then almost-simplicial ones whose
+             clique weight does not exceed the widest clique so far, then the
+             smallest clique weight (Kjaerulff). A clique's weight is the sum
+             of its variables' sizes -- the dimension a Gaussian elimination
+             step works in, as aGrUM's log domain sizes are the log of a
+             table's size. Ties break on the flat-vector index, so the order
+             is deterministic (aGrUM's follow its hash tables).
 
       \return variable keys in elimination order
   */
@@ -342,8 +349,10 @@ class IMPBFFEXPORT InferenceFactorGraph {
 
   mutable bool has_moral_ = false;
   mutable std::vector<std::set<int> > moral_;
-  mutable std::vector<int> order_min_fill_, order_min_degree_;
-  mutable bool has_order_min_fill_ = false, has_order_min_degree_ = false;
+  mutable std::vector<int> order_min_fill_, order_min_degree_, order_weighted_;
+  mutable bool has_order_min_fill_ = false, has_order_min_degree_ = false,
+               has_order_weighted_ = false;
+  std::vector<int> compute_weighted_order() const;
   mutable std::vector<std::vector<std::string> > cliques_;
   mutable bool has_cliques_ = false;
 };

@@ -13,6 +13,7 @@
 #include <IMP/bff/internal/json.h>
 
 #include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <limits>
 #include <sstream>
@@ -96,8 +97,10 @@ void InferenceFactorGraph::invalidate() {
   moral_.clear();
   has_order_min_fill_ = false;
   has_order_min_degree_ = false;
+  has_order_weighted_ = false;
   order_min_fill_.clear();
   order_min_degree_.clear();
+  order_weighted_.clear();
   has_cliques_ = false;
   cliques_.clear();
 }
@@ -248,14 +251,23 @@ std::vector<std::vector<std::string> > InferenceFactorGraph::connected_component
 std::vector<std::string> InferenceFactorGraph::get_elimination_order(
     const std::string& heuristic) const {
   bool use_min_fill;
-  if (heuristic == "min_fill") {
+  if (heuristic == "weighted") {
+    if (!has_order_weighted_) {
+      order_weighted_ = compute_weighted_order();
+      has_order_weighted_ = true;
+    }
+    std::vector<std::string> out;
+    out.reserve(order_weighted_.size());
+    for (int v : order_weighted_) out.push_back(variables_[v].key);
+    return out;
+  } else if (heuristic == "min_fill") {
     use_min_fill = true;
   } else if (heuristic == "min_degree") {
     use_min_fill = false;
   } else {
     throw std::invalid_argument(
         "unknown elimination heuristic '" + heuristic +
-        "'; expected 'min_fill' or 'min_degree'");
+        "'; expected 'min_fill', 'min_degree' or 'weighted'");
   }
   if (use_min_fill && has_order_min_fill_) {
     std::vector<std::string> out;
@@ -338,6 +350,118 @@ std::vector<std::string> InferenceFactorGraph::get_elimination_order(
   out.reserve(order.size());
   for (int v : order) out.push_back(variables_[v].key);
   return out;
+}
+
+std::vector<int> InferenceFactorGraph::compute_weighted_order() const {
+  // aGrUM's default triangulation, ../chisurf/junk/aGrUM at 9f2905b60:
+  // DefaultEliminationSequenceStrategy::nextNodeToEliminate
+  // (defaultEliminationSequenceStrategy.cpp 159-189) over a SimplicialSet
+  // (simplicialSet.cpp), with GUM_QUASI_RATIO 0.99 and GUM_WEIGHT_THRESHOLD 0
+  // (simplicialSet.h). The SimplicialSet keeps triangle counts incrementally;
+  // what decides the order is only this, so it is recomputed per step:
+  //  - a node's weight is its log domain size plus its neighbours'
+  //    (_initialize_ 554-569); here the log domain size is the variable's
+  //    size, the dimension a Gaussian step works in;
+  //  - the log treewidth starts at the smallest weight (_initialize_) and
+  //    becomes the largest weight eliminated (eraseClique 325);
+  //  - a simplicial node goes first, whatever its weight (_updateList_ 438);
+  //  - then an almost-simplicial node -- one neighbour short of a clique
+  //    (_updateList_ 448-458) -- whose weight is at most the log treewidth
+  //    plus log(1 + threshold) = 0 (hasAlmostSimplicialNode 481-505);
+  //  - the quasi-simplicial list is never used: _updateList_ 463 divides
+  //    two Size values, >= 0.99 only for a node already simplicial;
+  //  - otherwise the smallest weight (Kjaerulff, 177-188).
+  // Within a class the smallest weight wins and ties break on the flat-vector
+  // index. aGrUM's lazy list update can pick another member of the same
+  // class (a simplicial elimination adds no fill-in either way).
+  const int n = static_cast<int>(variables_.size());
+  std::vector<std::set<int> > adj = moral_adjacency();
+  std::vector<bool> alive(n, true);
+  auto weight = [&](int v) {
+    double w = variables_[v].size;
+    for (int u : adj[v]) w += variables_[u].size;
+    return w;
+  };
+  auto adjacent_pairs = [&](int v) {
+    std::vector<int> nb(adj[v].begin(), adj[v].end());
+    long pairs = 0;
+    for (std::size_t a = 0; a < nb.size(); ++a)
+      for (std::size_t b = a + 1; b < nb.size(); ++b)
+        if (adj[nb[a]].count(nb[b])) ++pairs;
+    return pairs;
+  };
+  auto common = [&](int u, int v) {
+    long c = 0;
+    for (int w : adj[u])
+      if (adj[v].count(w)) ++c;
+    return c;
+  };
+  double log_tree_width = std::numeric_limits<double>::max();
+  for (int v = 0; v < n; ++v) log_tree_width = std::min(log_tree_width, weight(v));
+  const double log_threshold = std::log(1.0 + 0.0);
+
+  std::vector<int> order;
+  order.reserve(n);
+  for (int step = 0; step < n; ++step) {
+    int best_simplicial = -1, best_almost = -1, best_any = -1;
+    double w_simplicial = 0.0, w_almost = 0.0, w_any = 0.0;
+    auto better = [&](int candidate, double w, int incumbent, double w_inc) {
+      return incumbent == -1 || w < w_inc ||
+             (w == w_inc &&
+              variables_[candidate].index < variables_[incumbent].index);
+    };
+    for (int v = 0; v < n; ++v) {
+      if (!alive[v]) continue;
+      const double w = weight(v);
+      const long k = static_cast<long>(adj[v].size());
+      const long pairs = adjacent_pairs(v);
+      if (better(v, w, best_any, w_any)) {
+        best_any = v;
+        w_any = w;
+      }
+      if (pairs == k * (k - 1) / 2) {
+        if (better(v, w, best_simplicial, w_simplicial)) {
+          best_simplicial = v;
+          w_simplicial = w;
+        }
+        continue;
+      }
+      const long almost = (k - 1) * (k - 2) / 2;
+      bool is_almost = false;
+      for (int u : adj[v]) {
+        if (almost == pairs - common(u, v)) {
+          is_almost = true;
+          break;
+        }
+      }
+      if (is_almost && better(v, w, best_almost, w_almost)) {
+        best_almost = v;
+        w_almost = w;
+      }
+    }
+    int best;
+    if (best_simplicial != -1) {
+      best = best_simplicial;
+    } else if (best_almost != -1 &&
+               w_almost <= log_tree_width + log_threshold) {
+      best = best_almost;
+    } else {
+      best = best_any;
+    }
+    log_tree_width = std::max(log_tree_width, weight(best));
+    std::vector<int> nb(adj[best].begin(), adj[best].end());
+    for (std::size_t a = 0; a < nb.size(); ++a) {
+      for (std::size_t b = a + 1; b < nb.size(); ++b) {
+        adj[nb[a]].insert(nb[b]);
+        adj[nb[b]].insert(nb[a]);
+      }
+    }
+    for (int u : nb) adj[u].erase(best);
+    adj[best].clear();
+    alive[best] = false;
+    order.push_back(best);
+  }
+  return order;
 }
 
 std::vector<std::vector<std::string> > InferenceFactorGraph::compute_cliques(
