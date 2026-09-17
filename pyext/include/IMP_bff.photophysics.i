@@ -23,4 +23,6 @@ IMP_SWIG_VALUE(IMP::bff, Kappa2Distribution, Kappa2Distributions);
               get_scale);
 %attribute_np(IMP::bff::Kappa2Distribution, std::vector<double>, hist,
               get_hist);
+%attribute_np(IMP::bff::Kappa2Distribution, std::vector<double>, weights,
+              get_weights);
 %include "IMP/bff/FRETExchange.h"

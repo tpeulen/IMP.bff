@@ -108,6 +108,10 @@ void Kappa2Distribution::get_values(double** out_view, int* n_out_view) const {
     internal::copy_to_view(values, out_view, n_out_view);
 }
 
+void Kappa2Distribution::get_weights(double** out_view, int* n_out_view) const {
+    internal::copy_to_view(weights, out_view, n_out_view);
+}
+
 void Kappa2Distribution::get_scale(double** out_view, int* n_out_view) const {
     internal::copy_to_view(scale, out_view, n_out_view);
 }
@@ -131,6 +135,7 @@ Kappa2Distribution wobbling_kappa2_distribution_delta(
     for (double p = 0.001; p < 2.0 * M_PI; p += d_rad) phi.push_back(p);
 
     std::vector<double> k2(beta1.size() * phi.size(), 0.0);
+    std::vector<double> w(k2.size(), 0.0);
     const double sd = std::sin(delta), cd = std::cos(delta);
     for (std::size_t i = 0; i < beta1.size(); ++i) {
         const double cb = std::cos(beta1[i]), sb = std::sin(beta1[i]);
@@ -142,14 +147,23 @@ Kappa2Distribution wobbling_kappa2_distribution_delta(
         for (std::size_t j = 0; j < phi.size(); ++j) {
             const double cp = std::cos(phi[j]), sp = std::sin(phi[j]);
             // R_DA is along x, so beta2 needs only the x component of d2.
+            //
+            // Signed: beta2 runs over (0, pi). The cross term of eq. 9,
+            // cos(beta1) cos(beta2) cos(delta), is only invariant when an axis
+            // and delta flip together, so folding beta2 into (0, pi/2) on its
+            // own made that term one-signed and biased every mean -- for a
+            // fixed delta and an isotropic R_DA the mean came out 0.707 where
+            // an independent Monte Carlo over the same geometry gives 0.668.
             const double d2x = (n1[0] * cp + n2[0] * sp) * sd + d1[0] * cd;
-            const double beta2 = std::acos(std::min(1.0, std::abs(d2x)));
+            const double beta2 = std::acos(std::max(-1.0, std::min(1.0, d2x)));
             const double v = wobbling_kappa2(delta, sD2, sA2, beta1[i], beta2);
             k2[i * phi.size() + j] = v;
+            w[i * phi.size() + j] = weight;
             accumulate(k2_hist, k2_scale, v, weight);
         }
     }
     out.values.swap(k2);
+    out.weights.swap(w);
     return out;
 }
 
@@ -191,6 +205,8 @@ Kappa2Distribution wobbling_kappa2_distribution(
         k2[i] = v;
         accumulate(k2_hist, k2_scale, v, 1.0);
     }
+    // Uniform samples on the sphere: every one counts the same.
+    out.weights.assign(k2.size(), 1.0);
     out.values.swap(k2);
     return out;
 }

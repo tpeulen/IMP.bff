@@ -148,6 +148,43 @@ def test_delta_distribution_is_solid_angle_weighted():
     assert hist.sum() == pytest.approx(n_phi * weights.sum(), rel=1e-9)
 
 
+def test_delta_distribution_mean_matches_an_independent_monte_carlo():
+    """For a known angle between the dye axes and a random R_DA, the weighted
+    mean is what a Monte Carlo over the same geometry gives.
+
+    The grid used to fold beta2 into (0, pi/2), which made eq. 9's cross term
+    cos(beta1) cos(beta2) cos(delta) one-signed, and its values carried no
+    weights, so a mean over them counted the crowded pole as often as the
+    equator. Both biased the mean: 0.633 reported against 0.668.
+    """
+    sD2, sA2, delta = -0.3627, 0.5130, 1.0063
+    dist = o.wobbling_kappa2_distribution_delta(delta, sD2, sA2, 0.5, 131, 0.0, 4.0)
+    values, weights = np.asarray(dist.values), np.asarray(dist.weights)
+    assert weights.shape == values.shape
+    grid_mean = float(np.dot(weights, values) / weights.sum())
+
+    rng = np.random.default_rng(0)
+    n = 400_000
+    r = rng.normal(size=(n, 3))
+    r /= np.linalg.norm(r, axis=1)[:, None]
+    phi = rng.uniform(0.0, 2.0 * np.pi, n)
+    d2 = np.stack([np.sin(delta) * np.cos(phi), np.sin(delta) * np.sin(phi),
+                   np.full(n, np.cos(delta))], axis=1)
+    cb1, cb2 = r[:, 2], np.einsum("ij,ij->i", r, d2)
+    p2 = lambda c: 1.5 * c * c - 0.5
+    mc = 2.0 / 3.0 * (1.0 + sD2 * p2(cb1) + sA2 * p2(cb2) + sD2 * sA2 * (
+        p2(np.cos(delta)) + 6.0 * p2(cb1) * p2(cb2) + 1.0 + 2.0 * p2(cb1)
+        + 2.0 * p2(cb2) - 9.0 * cb1 * cb2 * np.cos(delta)))
+    assert grid_mean == pytest.approx(float(mc.mean()), abs=5e-3)
+
+
+def test_a_random_sample_weighs_every_value_the_same():
+    """Uniform samples on the sphere need no weights; they are all 1."""
+    dist = o.wobbling_kappa2_distribution(0.2, 0.3, 31, 0.0, 4.0, 1000, 7)
+    assert np.all(np.asarray(dist.weights) == 1.0)
+    assert np.asarray(dist.weights).shape == np.asarray(dist.values).shape
+
+
 def test_delta_distribution_is_deterministic():
     a = _wobbling_delta(0.2, 0.15, 0.25, 2.0, 31)
     b = _wobbling_delta(0.2, 0.15, 0.25, 2.0, 31)

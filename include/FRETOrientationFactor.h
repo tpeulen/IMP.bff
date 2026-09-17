@@ -63,10 +63,16 @@ struct IMPBFFEXPORT Kappa2Distribution {
     std::vector<double> scale;
     //! The histogram: one fewer than #scale, weighted where the sweep weights.
     std::vector<double> hist;
+    //! The weight of each entry of #values in any moment taken over them: 1
+    //! for a random sample, the solid-angle element for a swept grid. Without
+    //! it the mean of a grid over-counts the pole, where the grid points
+    //! crowd, and reports a biased orientation factor.
+    std::vector<double> weights;
 
     Kappa2Distribution() {}
 
     void get_values(double** out_view, int* n_out_view) const;
+    void get_weights(double** out_view, int* n_out_view) const;
     void get_scale(double** out_view, int* n_out_view) const;
     void get_hist(double** out_view, int* n_out_view) const;
 
