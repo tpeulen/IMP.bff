@@ -23,10 +23,10 @@ secondary structure.""")
 code1 = nbf.v4.new_code_cell(r"""pdb_1ddb = "../../test/input/labelizer/1DDB-39.pdb"
 grades = "../../test/input/labelizer/1DDB-conservationscore-39-A.pdb"
 
-full_model = bff.ll_model_paper()          # cs(w=1), se(w=1), tp(0), cr(w=1), ss(w=1), ce(0)
-scores_cs = bff.ll_score_structure(pdb_1ddb, full_model, bff.LlOptions(), grades)
+full_model = bff.labelizer_model_paper()          # cs(w=1), se(w=1), tp(0), cr(w=1), ss(w=1), ce(0)
+scores_cs = bff.labelizer_score_structure(pdb_1ddb, full_model, bff.LabelizerOptions(), grades)
 
-comb_cs = {bff.ll_residue_key(r.asym_id, r.seq_id): r.value
+comb_cs = {bff.labelizer_residue_key(r.asym_id, r.seq_id): r.value
            for r in scores_cs if r.score_type == "combined"}
 status = {}
 for r in scores_cs:
@@ -41,12 +41,12 @@ for rank, (key, value) in enumerate(
     print(f"{rank:>4}  {key:>6}  {'':>7}  {value:>7.4f}")""")
 
 code2 = nbf.v4.new_code_cell(r"""# with vs without: how much the conservation term moves the answer
-scores_ncs = bff.ll_score_structure(
-    pdb_1ddb, [p for p in full_model if p.tag != "cs"], bff.LlOptions())
-comb_ncs = {bff.ll_residue_key(r.asym_id, r.seq_id): r.value
+scores_ncs = bff.labelizer_score_structure(
+    pdb_1ddb, [p for p in full_model if p.tag != "cs"], bff.LabelizerOptions())
+comb_ncs = {bff.labelizer_residue_key(r.asym_id, r.seq_id): r.value
             for r in scores_ncs if r.score_type == "combined"}
 
-grades_map = bff.ll_read_consurf(grades)
+grades_map = bff.labelizer_read_consurf(grades)
 keys = sorted(set(comb_cs) & set(comb_ncs), key=lambda k: int(k[1:]))
 x = np.array([comb_ncs[k] for k in keys])          # no conservation
 y = np.array([comb_cs[k] for k in keys])           # full published model
