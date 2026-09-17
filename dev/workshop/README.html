@@ -1,0 +1,376 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <title>FRET workshop: from a structure to a measured, modelled ensemble &mdash; IMP.bff  documentation</title>
+  
+  <link rel="canonical" href="http://scikit-learn.org/stable/workshop/README.html" />
+
+  
+
+  <link rel="stylesheet" href="../_static/css/vendor/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sg_gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sg_gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sg_gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sg_gallery-rendered-html.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+<script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+<script src="../_static/jquery.js"></script> 
+</head>
+<body>
+<nav id="navbar" class="sk-docs-navbar navbar navbar-expand-md navbar-light bg-light py-0">
+  <div class="container-fluid sk-docs-container px-0">
+    <button
+      id="sk-navbar-toggler"
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="sk-navbar-collapse collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../install.html">Install</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../manual/index.html">User Manual</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../api/index.html">API</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../auto_examples/index.html">Examples</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../glossary.html" >Glossary</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../zreferences.html" >References</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../faq.html" >FAQ</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../related_projects.html" >Related packages</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../roadmap.html" >Roadmap</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../about.html" >About us</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://integrativemodeling.org/" >IMP</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+        </li>
+        <li class="nav-item dropdown nav-more-item-dropdown">
+          <a class="sk-nav-link nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">More</a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="sk-nav-dropdown-item dropdown-item" href="../glossary.html" >Glossary</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../zreferences.html" >References</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../faq.html" >FAQ</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../related_projects.html" >Related packages</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../roadmap.html" >Roadmap</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../about.html" >About us</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://integrativemodeling.org/" >IMP</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+          </div>
+        </li>
+      </ul>
+      <div id="searchbox" role="search">
+          <div class="searchformwrapper">
+          <form class="search" action="../search.html" method="get">
+            <input class="sk-search-text-input" type="text" name="q" aria-labelledby="searchlabel" />
+            <input class="sk-search-text-btn" type="submit" value="Go" />
+          </form>
+          </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="d-flex" id="sk-doc-wrapper">
+    <input type="checkbox" name="sk-toggle-checkbox" id="sk-toggle-checkbox">
+    <label id="sk-sidemenu-toggle" class="sk-btn-toggle-toc btn sk-btn-primary" for="sk-toggle-checkbox">Toggle Menu</label>
+    <div id="sk-sidebar-wrapper" class="border-right">
+      <div class="sk-sidebar-toc-wrapper">
+        <div class="sk-sidebar-toc-logo">
+        </div>
+        <div class="btn-group w-100 mb-2" role="group" aria-label="rellinks">
+            <a href="index.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Workshop: from a structure to a measured ensemble">Prev</a><a href="index.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Workshop: from a structure to a measured ensemble">Up</a>
+            <a href="01_label_sites.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="1. Which residues can carry a dye?">Next</a>
+        </div>
+            <div class="sk-sidebar-toc">
+              <ul>
+<li><a class="reference internal" href="#">FRET workshop: from a structure to a measured, modelled ensemble</a><ul>
+<li><a class="reference internal" href="#before-the-room">Before the room</a></li>
+<li><a class="reference internal" href="#the-steps">The steps</a></li>
+<li><a class="reference internal" href="#what-is-real-and-what-is-simulated">What is real and what is simulated</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+      </div>
+    </div>
+    <div id="sk-page-content-wrapper">
+      <div class="sk-page-content container-fluid body px-md-3" role="main">
+        
+  <section id="fret-workshop-from-a-structure-to-a-measured-modelled-ensemble">
+<h1>FRET workshop: from a structure to a measured, modelled ensemble<a class="headerlink" href="#fret-workshop-from-a-structure-to-a-measured-modelled-ensemble" title="Permalink to this heading">¶</a></h1>
+<p>Seven steps, one molecule. <strong>BmrA</strong> is a homodimeric ABC transporter with two
+experimentally determined arrangements of its nucleotide-binding domains —
+<a class="reference external" href="https://www.rcsb.org/structure/6R72">6R72</a> (closed, outward-facing, X-ray)
+and <a class="reference external" href="https://www.rcsb.org/structure/8QOE">8QOE</a> (open, inward-facing,
+cryo-EM). The workshop asks the question a FRET experiment on BmrA has to
+answer — <em>which residues do I mutate, what will they tell me, and what do the
+distances I measure say about the structure?</em> — and answers it with the
+library rather than with slides.</p>
+<p>Every notebook runs. They are executed against the build as part of preparing
+this material, and the numbers printed in them come from those runs.</p>
+<section id="before-the-room">
+<h2>Before the room<a class="headerlink" href="#before-the-room" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>imp.bff<span class="w">      </span><span class="c1"># the IMP module: needed from step 5 on</span>
+pip<span class="w"> </span>install<span class="w"> </span>--pre<span class="w"> </span><span class="s2">"imp-bff[notebooks]"</span><span class="w">    </span><span class="c1"># or the core alone, for steps 1-4</span>
+imp_bff_fetch_data<span class="w">                        </span><span class="c1"># rotamer libraries, once, 62 MB</span>
+</pre></div>
+</div>
+<p>The structures download themselves on first use into <code class="docutils literal notranslate"><span class="pre">_data/</span></code> beside these
+notebooks, so the room needs the network once, at the start, not per attendee
+per notebook.</p>
+<p><code class="docutils literal notranslate"><span class="pre">IMP.bff.get_build()</span></code> says which package is in the interpreter: <code class="docutils literal notranslate"><span class="pre">&quot;core&quot;</span></code> (pip)
+or <code class="docutils literal notranslate"><span class="pre">&quot;imp&quot;</span></code> (conda). Steps that need IMP’s optimizers or hierarchies say so.</p>
+</section>
+<section id="the-steps">
+<h2>The steps<a class="headerlink" href="#the-steps" title="Permalink to this heading">¶</a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>notebook</p></th>
+<th class="head"><p>the question</p></th>
+<th class="head"><p>needs</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">01_label_sites.ipynb</span></code></p></td>
+<td><p>Which residues can carry a dye at all?</p></td>
+<td><p>core</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">03_volumes_and_rotamers.ipynb</span></code></p></td>
+<td><p>Where does the dye actually go — as a volume, and as a real dye?</p></td>
+<td><p>core</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">05_docking.ipynb</span></code></p></td>
+<td><p>Given the distances, where do the two protomers sit?</p></td>
+<td><p>IMP</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">06_network_circle_plot.ipynb</span></code></p></td>
+<td><p>Which measurements does my model still disagree with?</p></td>
+<td><p>core</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">07_maxent_ensemble.ipynb</span></code></p></td>
+<td><p>Which <em>population</em> of structures fits, assuming as little as possible?</p></td>
+<td><p>core</p></td>
+</tr>
+</tbody>
+</table>
+<p>Two of the steps are older notebooks that already existed and were kept
+because they are good:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">../../ipynb/example/labelizer_greedy_homodimer.ipynb</span></code> — choosing <em>sites</em> for
+a homodimer, where one cysteine mutation labels both protomers and the pairs
+come for free. This one is on BmrA.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">../../ipynb/example/labelizer_greedy_pipeline.ipynb</span></code> — the monomer version:
+which <em>pairs</em> to measure, ranked by what each one buys.</p></li>
+</ul>
+</section>
+<section id="what-is-real-and-what-is-simulated">
+<h2>What is real and what is simulated<a class="headerlink" href="#what-is-real-and-what-is-simulated" title="Permalink to this heading">¶</a></h2>
+<p>The structures, the accessible volumes, the label scores, the docking and the
+maximum-entropy inversion are all real computations by <code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code>.</p>
+<p>The <em>measurements</em> are not: no experimental BmrA FRET network ships with this
+repository, so the notebooks that need measured distances generate them from
+one structure and add noise, and say so where they do it. Everything
+downstream of that point is therefore a recovery test — which is the honest
+way to teach it, because you can check the answer.</p>
+<p>One caution the material makes explicit, because it costs people days: BmrA
+has no ConSurf conservation data (checked against UniProt O06967, ConSurf-DB
+and labelizer.org). The published label score multiplies a conservation term
+in, so scoring BmrA with the paper model unchanged returns exactly zero for
+every residue. The notebooks drop that term and say what it costs.</p>
+</section>
+</section>
+
+
+      </div>
+    <div class="container">
+      <footer class="sk-content-footer">
+            &copy; 2021 - 2026, IMP developers.
+      </footer>
+    </div>
+  </div>
+</div>
+<script src="../_static/js/vendor/bootstrap.min.js"></script>
+
+<script>
+    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+    ga('create', 'UA-22606712-2', 'auto');
+    ga('set', 'anonymizeIp', true);
+    ga('send', 'pageview');
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+<script>
+$(document).ready(function() {
+    /* Add a [>>>] button on the top-right corner of code samples to hide
+     * the >>> and ... prompts and the output and thus make the code
+     * copyable. */
+    var div = $('.highlight-python .highlight,' +
+                '.highlight-python3 .highlight,' +
+                '.highlight-pycon .highlight,' +
+		'.highlight-default .highlight')
+    var pre = div.find('pre');
+
+    // get the styles from the current theme
+    pre.parent().parent().css('position', 'relative');
+    var hide_text = 'Hide prompts and outputs';
+    var show_text = 'Show prompts and outputs';
+
+    // create and add the button to all the code blocks that contain >>>
+    div.each(function(index) {
+        var jthis = $(this);
+        if (jthis.find('.gp').length > 0) {
+            var button = $('<span class="copybutton">&gt;&gt;&gt;</span>');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+            jthis.prepend(button);
+        }
+        // tracebacks (.gt) contain bare text elements that need to be
+        // wrapped in a span to work with .nextUntil() (see later)
+        jthis.find('pre:has(.gt)').contents().filter(function() {
+            return ((this.nodeType == 3) && (this.data.trim().length > 0));
+        }).wrap('<span>');
+    });
+
+    // define the behavior of the button when it's clicked
+    $('.copybutton').click(function(e){
+        e.preventDefault();
+        var button = $(this);
+        if (button.data('hidden') === 'false') {
+            // hide the code output
+            button.parent().find('.go, .gp, .gt').hide();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'hidden');
+            button.css('text-decoration', 'line-through');
+            button.attr('title', show_text);
+            button.data('hidden', 'true');
+        } else {
+            // show the code output
+            button.parent().find('.go, .gp, .gt').show();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'visible');
+            button.css('text-decoration', 'none');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+        }
+    });
+
+	/*** Add permalink buttons next to glossary terms ***/
+	$('dl.glossary > dt[id]').append(function() {
+		return ('<a class="headerlink" href="#' +
+			    this.getAttribute('id') +
+			    '" title="Permalink to this term">¶</a>');
+	});
+  /*** Hide navbar when scrolling down ***/
+  // Returns true when headerlink target matches hash in url
+  (function() {
+    hashTargetOnTop = function() {
+        var hash = window.location.hash;
+        if ( hash.length < 2 ) { return false; }
+
+        var target = document.getElementById( hash.slice(1) );
+        if ( target === null ) { return false; }
+
+        var top = target.getBoundingClientRect().top;
+        return (top < 2) && (top > -2);
+    };
+
+    // Hide navbar on load if hash target is on top
+    var navBar = document.getElementById("navbar");
+    var navBarToggler = document.getElementById("sk-navbar-toggler");
+    var navBarHeightHidden = "-" + navBar.getBoundingClientRect().height + "px";
+    var $window = $(window);
+
+    hideNavBar = function() {
+        navBar.style.top = navBarHeightHidden;
+    };
+
+    showNavBar = function() {
+        navBar.style.top = "0";
+    }
+
+    if (hashTargetOnTop()) {
+        hideNavBar()
+    }
+
+    var prevScrollpos = window.pageYOffset;
+    hideOnScroll = function(lastScrollTop) {
+        if (($window.width() < 768) && (navBarToggler.getAttribute("aria-expanded") === 'true')) {
+            return;
+        }
+        if (lastScrollTop > 2 && (prevScrollpos <= lastScrollTop) || hashTargetOnTop()){
+            hideNavBar()
+        } else {
+            showNavBar()
+        }
+        prevScrollpos = lastScrollTop;
+    };
+
+    /*** high performance scroll event listener***/
+    var raf = window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        window.oRequestAnimationFrame;
+    var lastScrollTop = $window.scrollTop();
+
+    if (raf) {
+        loop();
+    }
+
+    function loop() {
+        var scrollTop = $window.scrollTop();
+        if (lastScrollTop === scrollTop) {
+            raf(loop);
+            return;
+        } else {
+            lastScrollTop = scrollTop;
+            hideOnScroll(lastScrollTop);
+            raf(loop);
+        }
+    }
+  })();
+});
+
+</script>
+    
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+</body>
+</html>

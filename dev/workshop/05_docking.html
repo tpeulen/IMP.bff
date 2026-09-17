@@ -1,0 +1,933 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <title>Docking two protomers against a FRET distance network &mdash; IMP.bff  documentation</title>
+  
+  <link rel="canonical" href="http://scikit-learn.org/stable/workshop/05_docking.html" />
+
+  
+
+  <link rel="stylesheet" href="../_static/css/vendor/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sg_gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sg_gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sg_gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sg_gallery-rendered-html.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/nbsphinx-code-cells.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+<script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+<script src="../_static/jquery.js"></script> 
+</head>
+<body>
+<nav id="navbar" class="sk-docs-navbar navbar navbar-expand-md navbar-light bg-light py-0">
+  <div class="container-fluid sk-docs-container px-0">
+    <button
+      id="sk-navbar-toggler"
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="sk-navbar-collapse collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../install.html">Install</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../manual/index.html">User Manual</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../api/index.html">API</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../auto_examples/index.html">Examples</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../glossary.html" >Glossary</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../zreferences.html" >References</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../faq.html" >FAQ</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../related_projects.html" >Related packages</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../roadmap.html" >Roadmap</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../about.html" >About us</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://integrativemodeling.org/" >IMP</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+        </li>
+        <li class="nav-item dropdown nav-more-item-dropdown">
+          <a class="sk-nav-link nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">More</a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="sk-nav-dropdown-item dropdown-item" href="../glossary.html" >Glossary</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../zreferences.html" >References</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../faq.html" >FAQ</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../related_projects.html" >Related packages</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../roadmap.html" >Roadmap</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../about.html" >About us</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://integrativemodeling.org/" >IMP</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+          </div>
+        </li>
+      </ul>
+      <div id="searchbox" role="search">
+          <div class="searchformwrapper">
+          <form class="search" action="../search.html" method="get">
+            <input class="sk-search-text-input" type="text" name="q" aria-labelledby="searchlabel" />
+            <input class="sk-search-text-btn" type="submit" value="Go" />
+          </form>
+          </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="d-flex" id="sk-doc-wrapper">
+    <input type="checkbox" name="sk-toggle-checkbox" id="sk-toggle-checkbox">
+    <label id="sk-sidemenu-toggle" class="sk-btn-toggle-toc btn sk-btn-primary" for="sk-toggle-checkbox">Toggle Menu</label>
+    <div id="sk-sidebar-wrapper" class="border-right">
+      <div class="sk-sidebar-toc-wrapper">
+        <div class="sk-sidebar-toc-logo">
+        </div>
+        <div class="btn-group w-100 mb-2" role="group" aria-label="rellinks">
+            <a href="03_volumes_and_rotamers.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Volumes and rotamers: two ways to put a dye on a structure">Prev</a><a href="index.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Workshop: from a structure to a measured ensemble">Up</a>
+            <a href="06_network_circle_plot.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Reading a FRET network as a picture">Next</a>
+        </div>
+            <div class="sk-sidebar-toc">
+              <ul>
+<li><a class="reference internal" href="#">Docking two protomers against a FRET distance network</a><ul>
+<li><a class="reference internal" href="#Two-rigid-bodies">Two rigid bodies</a></li>
+<li><a class="reference internal" href="#The-network">The network</a></li>
+<li><a class="reference internal" href="#The-labelling-file">The labelling file</a></li>
+<li><a class="reference internal" href="#The-measurements-are-synthetic,-and-here-is-why">The measurements are synthetic, and here is why</a></li>
+<li><a class="reference internal" href="#What-is-being-minimised">What is being minimised</a></li>
+<li><a class="reference internal" href="#Does-the-network-tell-the-two-states-apart?">Does the network tell the two states apart?</a></li>
+<li><a class="reference internal" href="#The-landscape-around-the-answer">The landscape around the answer</a></li>
+<li><a class="reference internal" href="#The-search,-and-how-far-it-reaches">The search, and how far it reaches</a></li>
+<li><a class="reference internal" href="#The-per-distance-report">The per-distance report</a></li>
+<li><a class="reference internal" href="#Looking-at-it">Looking at it</a></li>
+<li><a class="reference internal" href="#What-a-production-run-looks-like,-and-what-this-one-left-out">What a production run looks like, and what this one left out</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+      </div>
+    </div>
+    <div id="sk-page-content-wrapper">
+      <div class="sk-page-content container-fluid body px-md-3" role="main">
+        
+  <section id="Docking-two-protomers-against-a-FRET-distance-network">
+<h1>Docking two protomers against a FRET distance network<a class="headerlink" href="#Docking-two-protomers-against-a-FRET-distance-network" title="Permalink to this heading">¶</a></h1>
+<p>You have a handful of measured inter-subunit distances and two copies of a protein that you believe form a dimer. Where does the second copy sit relative to the first?</p>
+<p>That is the docking question, and in FRET it is posed like this: each measurement is a mean donor–acceptor distance between a dye at one site on protomer A and a dye at one site on protomer B. Each dye is not a point but a cloud – the accessible volume of the linker – so a “distance” is a statistic of two clouds, not of two atoms. Move protomer B, and every one of those statistics changes. Docking is the search for the placement of B that reproduces them all.</p>
+<p>The protein here is <strong>BmrA</strong>, a bacterial ABC transporter that works as a homodimer. <code class="docutils literal notranslate"><span class="pre">doc/workshop/workshop.py</span></code> keeps two states of it: the compact, outward-facing structure 6R72 (<code class="docutils literal notranslate"><span class="pre">&quot;closed&quot;</span></code>) and the inward-facing cryo-EM structure 8QOE (<code class="docutils literal notranslate"><span class="pre">&quot;open&quot;</span></code>), each cut down to chains A and B – one dimer.</p>
+<p>What this notebook does, in order:</p>
+<ol class="arabic simple">
+<li><p>build a network of ten inter-protomer site pairs and compute their accessible-volume distances in the closed state;</p></li>
+<li><p>turn those into a synthetic measurement set with realistic noise;</p></li>
+<li><p>ask whether the network <em>discriminates</em>: does a wrong placement score worse, and by how much;</p></li>
+<li><p>run the library’s rigid-body docking and measure how far from the answer a run can start and still get back;</p></li>
+<li><p>report the per-distance deviations and the RMSD to the deposited arrangement, before and after.</p></li>
+</ol>
+<p>Every number below is produced by the cell that prints it. Where the result is a limitation rather than a success, it is stated as one.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="c1"># The notebook is normally executed with its own directory as the working</span>
+<span class="c1"># directory, but that is a convention, not a guarantee -- so find workshop.py</span>
+<span class="c1"># rather than assume it is next door.</span>
+<span class="k">for</span> <span class="n">_candidate</span> <span class="ow">in</span> <span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">(),</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span> <span class="o">/</span> <span class="s2">"doc"</span> <span class="o">/</span> <span class="s2">"workshop"</span><span class="p">,</span>
+                   <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span><span class="p">):</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">_candidate</span> <span class="o">/</span> <span class="s2">"workshop.py"</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">_candidate</span><span class="o">.</span><span class="n">resolve</span><span class="p">()))</span>
+        <span class="k">break</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">"workshop.py not found; run this from doc/workshop"</span><span class="p">)</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">workshop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ws</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">IMP</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">IMP.algebra</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">IMP.atom</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">IMP.bff</span>
+
+<span class="n">IMP</span><span class="o">.</span><span class="n">set_log_level</span><span class="p">(</span><span class="n">IMP</span><span class="o">.</span><span class="n">SILENT</span><span class="p">)</span>
+<span class="n">T_START</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+<span class="n">WORK</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">"bmra_docking_"</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"IMP.bff from"</span><span class="p">,</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"scratch directory"</span><span class="p">,</span> <span class="n">WORK</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<section id="Two-rigid-bodies">
+<h2>Two rigid bodies<a class="headerlink" href="#Two-rigid-bodies" title="Permalink to this heading">¶</a></h2>
+<p>The docking engine works on rigid bodies, and one rigid body is one PDB file: <code class="docutils literal notranslate"><span class="pre">IMP.bff.create_docking_assembly</span></code> reads each path, makes it a body, and the <code class="docutils literal notranslate"><span class="pre">body_id</span></code> field of each labelling position says which body that position rides on. So the first thing to do is cut the dimer in two.</p>
+<p>The split is a real modelling decision, not bookkeeping. It asserts that each protomer keeps its internal geometry and that only their relative placement is unknown. For BmrA that assertion is already an approximation – the nucleotide-binding domains move relative to the transmembrane domains between the two states – and the notebook comes back to it at the end.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">split_chain</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">destination</span><span class="p">):</span>
+    <span class="c1"># One chain of a PDB as its own file: one rigid body for the docking.</span>
+    <span class="n">kept</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">(</span><span class="n">keepends</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">"ATOM"</span><span class="p">,</span> <span class="s2">"TER"</span><span class="p">))</span> <span class="ow">and</span> <span class="n">line</span><span class="p">[</span><span class="mi">21</span><span class="p">:</span><span class="mi">22</span><span class="p">]</span> <span class="o">==</span> <span class="n">chain</span><span class="p">]</span>
+    <span class="n">kept</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"END</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">destination</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">kept</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">destination</span><span class="p">)</span>
+
+
+<span class="n">closed_dimer</span> <span class="o">=</span> <span class="n">ws</span><span class="o">.</span><span class="n">single_dimer</span><span class="p">(</span><span class="s2">"closed"</span><span class="p">)</span>
+<span class="n">open_dimer</span> <span class="o">=</span> <span class="n">ws</span><span class="o">.</span><span class="n">single_dimer</span><span class="p">(</span><span class="s2">"open"</span><span class="p">)</span>
+
+<span class="n">PROTOMER_A</span> <span class="o">=</span> <span class="n">split_chain</span><span class="p">(</span><span class="n">closed_dimer</span><span class="p">,</span> <span class="s2">"A"</span><span class="p">,</span> <span class="n">WORK</span> <span class="o">/</span> <span class="s2">"protomer_A.pdb"</span><span class="p">)</span>
+<span class="n">PROTOMER_B</span> <span class="o">=</span> <span class="n">split_chain</span><span class="p">(</span><span class="n">closed_dimer</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">,</span> <span class="n">WORK</span> <span class="o">/</span> <span class="s2">"protomer_B.pdb"</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">"dimer  "</span><span class="p">,</span> <span class="n">closed_dimer</span><span class="p">),</span> <span class="p">(</span><span class="s2">"body 0 (chain A)"</span><span class="p">,</span> <span class="n">PROTOMER_A</span><span class="p">),</span>
+                    <span class="p">(</span><span class="s2">"body 1 (chain B)"</span><span class="p">,</span> <span class="n">PROTOMER_B</span><span class="p">)):</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"ATOM"</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="si">%-18s</span><span class="s2"> </span><span class="si">%6d</span><span class="s2"> atoms  </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="The-network">
+<h2>The network<a class="headerlink" href="#The-network" title="Permalink to this heading">¶</a></h2>
+<p>A network is a set of site pairs, each pair one residue on chain A carrying the donor and one residue on chain B carrying the acceptor. Two things decide whether a pair is worth measuring:</p>
+<ul class="simple">
+<li><p><strong>The distance has to be in range.</strong> Transfer efficiency is <span class="math notranslate nohighlight">\(E = 1/(1 + (R/R_0)^6)\)</span>, so with <span class="math notranslate nohighlight">\(R_0 = 52\)</span> Å a 25 Å distance gives <span class="math notranslate nohighlight">\(E = 0.98\)</span> and a 95 Å distance gives <span class="math notranslate nohighlight">\(E = 0.03\)</span>. Neither number moves when the structure does. Useful pairs sit roughly between 30 and 80 Å.</p></li>
+<li><p><strong>The dye has to have somewhere to go.</strong> <code class="docutils literal notranslate"><span class="pre">ws.av</span></code> raises <code class="docutils literal notranslate"><span class="pre">EmptyVolume</span></code> when the accessible volume of a site comes back empty. That is not a short distance, it is <em>no</em> distance, and a site like that has to be dropped rather than fudged.</p></li>
+</ul>
+<p>The ten pairs below were picked from a scan over surface positions spread along the protomer – residues 60 and 220 in the transmembrane region, 290 to 520 towards and inside the nucleotide-binding domain – so that the network constrains more than one direction. A network whose pairs all run parallel pins down one coordinate and leaves the other five free, however precise each individual measurement is.</p>
+<p>The volumes are computed on the <em>whole dimer</em>, not on the isolated protomer: a dye at the subunit interface is occluded by the partner chain, and that occlusion is part of the distance.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">CLEARANCE</span> <span class="o">=</span> <span class="mf">7.0</span>          <span class="c1"># allowed_sphere_radius, A -- see the note below</span>
+<span class="n">NOISE</span> <span class="o">=</span> <span class="mf">0.06</span>             <span class="c1"># relative error of the synthetic measurements</span>
+
+<span class="n">PAIRS</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">"A"</span><span class="p">,</span> <span class="mi">410</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">,</span> <span class="mi">220</span><span class="p">),</span> <span class="p">(</span><span class="s2">"A"</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">,</span> <span class="mi">290</span><span class="p">),</span> <span class="p">(</span><span class="s2">"A"</span><span class="p">,</span> <span class="mi">470</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">,</span> <span class="mi">220</span><span class="p">),</span>
+         <span class="p">(</span><span class="s2">"A"</span><span class="p">,</span> <span class="mi">220</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">,</span> <span class="mi">520</span><span class="p">),</span> <span class="p">(</span><span class="s2">"A"</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">,</span> <span class="mi">60</span><span class="p">),</span> <span class="p">(</span><span class="s2">"A"</span><span class="p">,</span> <span class="mi">520</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">,</span> <span class="mi">350</span><span class="p">),</span>
+         <span class="p">(</span><span class="s2">"A"</span><span class="p">,</span> <span class="mi">350</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">,</span> <span class="mi">410</span><span class="p">),</span> <span class="p">(</span><span class="s2">"A"</span><span class="p">,</span> <span class="mi">520</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">,</span> <span class="mi">520</span><span class="p">),</span> <span class="p">(</span><span class="s2">"A"</span><span class="p">,</span> <span class="mi">470</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">,</span> <span class="mi">290</span><span class="p">),</span>
+         <span class="p">(</span><span class="s2">"A"</span><span class="p">,</span> <span class="mi">350</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">,</span> <span class="mi">60</span><span class="p">)]</span>
+
+<span class="n">DYE_OF_CHAIN</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"A"</span><span class="p">:</span> <span class="s2">"Alexa488"</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">:</span> <span class="s2">"Alexa647"</span><span class="p">}</span>
+<span class="n">SITES</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">PAIRS</span><span class="p">}</span> <span class="o">|</span> <span class="p">{(</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">PAIRS</span><span class="p">})</span>
+
+<span class="n">site_name</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">chain</span><span class="p">,</span> <span class="n">resi</span><span class="p">:</span> <span class="s2">"</span><span class="si">%s%d</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">chain</span><span class="p">,</span> <span class="n">resi</span><span class="p">)</span>
+<span class="n">pair_name</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="s2">"</span><span class="si">%s%d</span><span class="s2">_</span><span class="si">%s%d</span><span class="s2">"</span> <span class="o">%</span> <span class="n">p</span>
+
+<span class="n">volume</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">chain</span><span class="p">,</span> <span class="n">resi</span> <span class="ow">in</span> <span class="n">SITES</span><span class="p">:</span>
+    <span class="n">volume</span><span class="p">[(</span><span class="n">chain</span><span class="p">,</span> <span class="n">resi</span><span class="p">)]</span> <span class="o">=</span> <span class="n">ws</span><span class="o">.</span><span class="n">av</span><span class="p">(</span><span class="n">closed_dimer</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">resi</span><span class="p">,</span>
+                                  <span class="n">DYE_OF_CHAIN</span><span class="p">[</span><span class="n">chain</span><span class="p">],</span>
+                                  <span class="n">allowed_sphere_radius</span><span class="o">=</span><span class="n">CLEARANCE</span><span class="p">)</span>
+
+<span class="n">helper_distance</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">ws</span><span class="o">.</span><span class="n">rda_e</span><span class="p">(</span><span class="n">volume</span><span class="p">[(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">])],</span> <span class="n">volume</span><span class="p">[(</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">])])</span>
+                   <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">PAIRS</span><span class="p">}</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="si">%-14s</span><span class="s2"> </span><span class="si">%-10s</span><span class="s2"> </span><span class="si">%-10s</span><span class="s2"> </span><span class="si">%8s</span><span class="s2"> </span><span class="si">%8s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="s2">"pair"</span><span class="p">,</span> <span class="s2">"donor"</span><span class="p">,</span> <span class="s2">"acceptor"</span><span class="p">,</span> <span class="s2">"&lt;RDA&gt;_E"</span><span class="p">,</span> <span class="s2">"E"</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">PAIRS</span><span class="p">:</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">helper_distance</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="si">%-14s</span><span class="s2"> </span><span class="si">%-10s</span><span class="s2"> </span><span class="si">%-10s</span><span class="s2"> </span><span class="si">%8.2f</span><span class="s2"> </span><span class="si">%8.3f</span><span class="s2">"</span>
+          <span class="o">%</span> <span class="p">(</span><span class="n">pair_name</span><span class="p">(</span><span class="n">p</span><span class="p">),</span> <span class="n">site_name</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">site_name</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span>
+             <span class="n">d</span><span class="p">,</span> <span class="n">ws</span><span class="o">.</span><span class="n">efficiency</span><span class="p">(</span><span class="n">d</span><span class="p">)))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="si">%d</span><span class="s2"> sites, </span><span class="si">%d</span><span class="s2"> pairs, all volumes non-empty"</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">SITES</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">PAIRS</span><span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;RDA&gt;_E</span></code> is the distance that reproduces the mean transfer efficiency of the two clouds. It is what a FRET experiment reports, and it is not the mean of the distance distribution – for broad volumes the two differ by several Ångström. Mixing the two conventions is one of the commonest ways to get a structure that is wrong by more than its stated error bar, which is why the <code class="docutils literal notranslate"><span class="pre">fps.json</span></code> written below names the convention explicitly (<code class="docutils literal notranslate"><span class="pre">&quot;distance_type&quot;:</span> <span class="pre">&quot;RDAMeanE&quot;</span></code>).</p>
+<p>A word on <code class="docutils literal notranslate"><span class="pre">allowed_sphere_radius</span></code>, set to 7 Å here. It is the free sphere the search is allowed around the attachment atom. The path search inflates every obstacle by half the linker width, so at a tight site the source voxel gets walled in and the volume comes back empty even though a real dye would fit. The two doors onto an accessible volume in this library do not agree on a default – <code class="docutils literal notranslate"><span class="pre">ws.av</span></code> strips the attachment residue’s own side chain, the <code class="docutils literal notranslate"><span class="pre">fps.json</span></code> route strips only what its
+<code class="docutils literal notranslate"><span class="pre">strip_mask</span></code> says – so both are spelled out below and given the same value. If you change one, change the other, or the table and the docking will be computing different distances.</p>
+</section>
+<section id="The-labelling-file">
+<h2>The labelling file<a class="headerlink" href="#The-labelling-file" title="Permalink to this heading">¶</a></h2>
+<p>Everything the docking engine needs about the dyes lives in one JSON document: a <code class="docutils literal notranslate"><span class="pre">Positions</span></code> section (where each dye hangs, with the geometry of its linker), a <code class="docutils literal notranslate"><span class="pre">Distances</span></code> section (what was measured, with its error bars and its distance convention), and a <code class="docutils literal notranslate"><span class="pre">χ²</span></code> section naming score sets – subsets of the distances that can be scored together.</p>
+<p><code class="docutils literal notranslate"><span class="pre">IMP.bff.score_structures</span></code> reads that document against a list of structures and returns the per-pair table: measured value, model value, and the asymmetric <span class="math notranslate nohighlight">\(\chi^2\)</span> of each pair. Run against the deposited arrangement it is the sanity check you do before anything else – it says whether the file resolves against the structures at all.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">POSITIONS</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">chain</span><span class="p">,</span> <span class="n">resi</span> <span class="ow">in</span> <span class="n">SITES</span><span class="p">:</span>
+    <span class="n">geometry</span> <span class="o">=</span> <span class="n">ws</span><span class="o">.</span><span class="n">DYES</span><span class="p">[</span><span class="n">DYE_OF_CHAIN</span><span class="p">[</span><span class="n">chain</span><span class="p">]]</span>
+    <span class="n">POSITIONS</span><span class="p">[</span><span class="n">site_name</span><span class="p">(</span><span class="n">chain</span><span class="p">,</span> <span class="n">resi</span><span class="p">)]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"chain_identifier"</span><span class="p">:</span> <span class="n">chain</span><span class="p">,</span>
+        <span class="s2">"residue_seq_number"</span><span class="p">:</span> <span class="n">resi</span><span class="p">,</span>
+        <span class="s2">"atom_name"</span><span class="p">:</span> <span class="s2">"CB"</span><span class="p">,</span>
+        <span class="s2">"simulation_type"</span><span class="p">:</span> <span class="s2">"AV1"</span><span class="p">,</span>
+        <span class="s2">"linker_length"</span><span class="p">:</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">"linker_length"</span><span class="p">],</span>
+        <span class="s2">"linker_width"</span><span class="p">:</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">"linker_width"</span><span class="p">],</span>
+        <span class="s2">"radius1"</span><span class="p">:</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">"av1_radius"</span><span class="p">],</span>
+        <span class="s2">"radius2"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="s2">"radius3"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="s2">"simulation_grid_resolution"</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span>
+        <span class="s2">"allowed_sphere_radius"</span><span class="p">:</span> <span class="n">CLEARANCE</span><span class="p">,</span>
+        <span class="c1"># the attachment residue's own side chain is not an obstacle for its</span>
+        <span class="c1"># own dye; IMP.bff spells that selection for us</span>
+        <span class="s2">"strip_mask"</span><span class="p">:</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">default_strip_mask</span><span class="p">(</span><span class="n">chain</span><span class="p">,</span> <span class="n">resi</span><span class="p">,</span> <span class="s2">"CB"</span><span class="p">),</span>
+        <span class="s2">"body_id"</span><span class="p">:</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">chain</span> <span class="o">==</span> <span class="s2">"A"</span> <span class="k">else</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">write_fps</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">distances</span><span class="p">):</span>
+    <span class="c1"># An fps.json for our network, with the given distances in Angstrom.</span>
+    <span class="n">section</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">PAIRS</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">distances</span><span class="p">[</span><span class="n">p</span><span class="p">])</span>
+        <span class="n">section</span><span class="p">[</span><span class="n">pair_name</span><span class="p">(</span><span class="n">p</span><span class="p">)]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"position1_name"</span><span class="p">:</span> <span class="n">site_name</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+            <span class="s2">"position2_name"</span><span class="p">:</span> <span class="n">site_name</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span>
+            <span class="s2">"distance"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="s2">"distance_type"</span><span class="p">:</span> <span class="s2">"RDAMeanE"</span><span class="p">,</span>
+            <span class="s2">"Forster_radius"</span><span class="p">:</span> <span class="n">ws</span><span class="o">.</span><span class="n">R0</span><span class="p">,</span>
+            <span class="s2">"error_neg"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">NOISE</span> <span class="o">*</span> <span class="n">value</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="s2">"error_pos"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">NOISE</span> <span class="o">*</span> <span class="n">value</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="p">}</span>
+    <span class="n">document</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"Positions"</span><span class="p">:</span> <span class="n">POSITIONS</span><span class="p">,</span> <span class="s2">"Distances"</span><span class="p">:</span> <span class="n">section</span><span class="p">,</span>
+                <span class="s2">"χ²"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"all"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"distances"</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">section</span><span class="p">)}}}</span>
+    <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+
+<span class="n">probe_file</span> <span class="o">=</span> <span class="n">write_fps</span><span class="p">(</span><span class="n">WORK</span> <span class="o">/</span> <span class="s2">"probe.fps.json"</span><span class="p">,</span> <span class="n">helper_distance</span><span class="p">)</span>
+<span class="n">probe</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">score_structures</span><span class="p">([</span><span class="n">PROTOMER_A</span><span class="p">,</span> <span class="n">PROTOMER_B</span><span class="p">],</span> <span class="n">probe_file</span><span class="p">,</span> <span class="s2">"all"</span><span class="p">,</span>
+                                 <span class="kc">False</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">"olga"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+<span class="n">engine_distance</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="p">[</span><span class="n">q</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">probe</span><span class="o">.</span><span class="n">pairs</span> <span class="k">if</span> <span class="n">q</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">pair_name</span><span class="p">(</span><span class="n">p</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">distance_model</span>
+                   <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">PAIRS</span><span class="p">}</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="si">%-14s</span><span class="s2"> </span><span class="si">%10s</span><span class="s2"> </span><span class="si">%10s</span><span class="s2"> </span><span class="si">%8s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="s2">"pair"</span><span class="p">,</span> <span class="s2">"ws.av"</span><span class="p">,</span> <span class="s2">"engine"</span><span class="p">,</span> <span class="s2">"diff"</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">PAIRS</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="si">%-14s</span><span class="s2"> </span><span class="si">%10.2f</span><span class="s2"> </span><span class="si">%10.2f</span><span class="s2"> </span><span class="si">%8.2f</span><span class="s2">"</span>
+          <span class="o">%</span> <span class="p">(</span><span class="n">pair_name</span><span class="p">(</span><span class="n">p</span><span class="p">),</span> <span class="n">helper_distance</span><span class="p">[</span><span class="n">p</span><span class="p">],</span> <span class="n">engine_distance</span><span class="p">[</span><span class="n">p</span><span class="p">],</span>
+             <span class="n">engine_distance</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">-</span> <span class="n">helper_distance</span><span class="p">[</span><span class="n">p</span><span class="p">]))</span>
+<span class="n">deltas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">engine_distance</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">-</span> <span class="n">helper_distance</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">PAIRS</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">mean |difference| </span><span class="si">%.2f</span><span class="s2"> A, largest </span><span class="si">%.2f</span><span class="s2"> A"</span>
+      <span class="o">%</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">deltas</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">deltas</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+</pre></div>
+</div>
+</div>
+<p>The two columns are the same quantity computed by two code paths: <code class="docutils literal notranslate"><span class="pre">ws.av</span></code> builds each cloud from the PDB file and averages the pair explicitly, while the docking assembly builds the clouds on the loaded hierarchy and carries them as rigid-body members. They agree to about a Ångström on most pairs and disagree by more on the ones whose site sits in a crowded pocket, where the two treatments of the attachment residue and of the sampling grid bite hardest.</p>
+<p>That difference matters for what comes next. If we drew synthetic “measurements” around the <code class="docutils literal notranslate"><span class="pre">ws.av</span></code> column and then scored with the engine, a perfect docking would still show a residual of a few Ångström, and we would be measuring the disagreement between two AV implementations rather than the search. So the data below is drawn around the <strong>engine’s</strong> values at the deposited arrangement. The truth is then exactly reachable, and any residual we see afterwards is noise or a failed search –
+which is what we want to study.</p>
+</section>
+<section id="The-measurements-are-synthetic,-and-here-is-why">
+<h2>The measurements are synthetic, and here is why<a class="headerlink" href="#The-measurements-are-synthetic,-and-here-is-why" title="Permalink to this heading">¶</a></h2>
+<p><strong>No experimental BmrA FRET network ships with this repository.</strong> The numbers below are generated: take the model distances at the deposited arrangement and multiply each by <span class="math notranslate nohighlight">\(1 + 0.06\,\varepsilon\)</span> with <span class="math notranslate nohighlight">\(\varepsilon\)</span> standard normal. Six percent is a fair figure for a well-calibrated single-molecule MFD measurement of an inter-dye distance in this range – it folds in the uncertainty of <span class="math notranslate nohighlight">\(R_0\)</span>, of the quantum yields, of the correction factors and of the fit itself.</p>
+<p>Two consequences to keep in mind while reading every number after this point:</p>
+<ul class="simple">
+<li><p><strong>The true answer is known.</strong> That is the point of a synthetic set – it lets us measure how far the docked model is from the right one, which a real experiment never lets you do.</p></li>
+<li><p><strong>The errors are honest but the model is not challenged.</strong> Real data carries more than noise: a dye that sticks to the surface, a site whose labelling perturbs the structure, a state mixture that makes one “distance” the average of two. None of that is here, so the fits below are better behaved than any real network.</p></li>
+</ul>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">20260917</span><span class="p">)</span>
+<span class="n">measured</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">engine_distance</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">NOISE</span> <span class="o">*</span> <span class="n">rng</span><span class="o">.</span><span class="n">standard_normal</span><span class="p">())</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">PAIRS</span><span class="p">}</span>
+<span class="n">FPS_FILE</span> <span class="o">=</span> <span class="n">write_fps</span><span class="p">(</span><span class="n">WORK</span> <span class="o">/</span> <span class="s2">"bmra_network.fps.json"</span><span class="p">,</span> <span class="n">measured</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="si">%-14s</span><span class="s2"> </span><span class="si">%10s</span><span class="s2"> </span><span class="si">%10s</span><span class="s2"> </span><span class="si">%9s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="s2">"pair"</span><span class="p">,</span> <span class="s2">"truth"</span><span class="p">,</span> <span class="s2">"measured"</span><span class="p">,</span> <span class="s2">"draw"</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">PAIRS</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="si">%-14s</span><span class="s2"> </span><span class="si">%10.2f</span><span class="s2"> </span><span class="si">%10.2f</span><span class="s2"> </span><span class="si">%8.1f%%</span><span class="s2">"</span>
+          <span class="o">%</span> <span class="p">(</span><span class="n">pair_name</span><span class="p">(</span><span class="n">p</span><span class="p">),</span> <span class="n">engine_distance</span><span class="p">[</span><span class="n">p</span><span class="p">],</span> <span class="n">measured</span><span class="p">[</span><span class="n">p</span><span class="p">],</span>
+             <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">measured</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">/</span> <span class="n">engine_distance</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">wrote </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="n">FPS_FILE</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="What-is-being-minimised">
+<h2>What is being minimised<a class="headerlink" href="#What-is-being-minimised" title="Permalink to this heading">¶</a></h2>
+<p>The docking score has two parts.</p>
+<p>The <strong>data term</strong> is the sum over pairs of <span class="math notranslate nohighlight">\(\tfrac12\chi^2\)</span>, where the <span class="math notranslate nohighlight">\(\chi^2\)</span> of a pair picks its error bar by the sign of the residual (model minus data), so an asymmetric error bar is honoured. Divided by the number of distances it is the reduced <span class="math notranslate nohighlight">\(\chi^2\)</span> that the tables below report: about 1 means the model reproduces the data to within the stated errors, much less than 1 means the errors were overstated, much more means the model is wrong or the errors are.</p>
+<p>The <strong>excluded-volume term</strong> penalises atom overlap between bodies. It is what stops the search from putting the two protomers inside one another, and it is scaled by a van der Waals radii set. Which set is not a detail:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reference</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"imp"</span><span class="p">,</span> <span class="s2">"olga"</span><span class="p">):</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">score_structures</span><span class="p">([</span><span class="n">PROTOMER_A</span><span class="p">,</span> <span class="n">PROTOMER_B</span><span class="p">],</span> <span class="n">FPS_FILE</span><span class="p">,</span> <span class="s2">"all"</span><span class="p">,</span>
+                                 <span class="kc">False</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">reference</span><span class="p">[</span><span class="n">source</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="si">%-5s</span><span class="s2"> radii: total </span><span class="si">%8.2f</span><span class="s2"> = data </span><span class="si">%6.2f</span><span class="s2"> + clash </span><span class="si">%8.2f</span><span class="s2">   chi2_red </span><span class="si">%.2f</span><span class="s2">"</span>
+          <span class="o">%</span> <span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">score</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">score</span> <span class="o">-</span> <span class="n">r</span><span class="o">.</span><span class="n">e_clash</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">e_clash</span><span class="p">,</span>
+             <span class="nb">sum</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">chi2</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">pairs</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">pairs</span><span class="p">)))</span>
+
+<span class="n">CLASH_RADII</span> <span class="o">=</span> <span class="s2">"olga"</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">using </span><span class="si">%r</span><span class="s2"> for everything below"</span> <span class="o">%</span> <span class="n">CLASH_RADII</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Same structure, same data, same distances – and an excluded-volume term that differs by a factor of eighteen. <code class="docutils literal notranslate"><span class="pre">&quot;imp&quot;</span></code> is the united-atom radius each particle carries after <code class="docutils literal notranslate"><span class="pre">IMP.atom.read_pdb</span></code>; <code class="docutils literal notranslate"><span class="pre">&quot;olga&quot;</span></code> is the Bondi-scale table that the FPS clash tolerance was originally calibrated against. With <code class="docutils literal notranslate"><span class="pre">&quot;imp&quot;</span></code> radii the clash term of the <em>deposited, experimentally determined</em> dimer is sixteen times the whole data term, so the search would spend almost all its effort pushing the two protomers
+apart and none of it on the ten measurements. <code class="docutils literal notranslate"><span class="pre">&quot;olga&quot;</span></code> puts the two terms on a comparable footing. Neither is wrong; they answer “how big is an atom” differently, and a docking run has to answer it once, consistently.</p>
+<p>The reduced <span class="math notranslate nohighlight">\(\chi^2\)</span> at the deposited arrangement is well below 1, as it should be: this is the structure the data was generated from, and the only thing left is the 6% noise, which the 6% error bars then over-explain slightly.</p>
+</section>
+<section id="Does-the-network-tell-the-two-states-apart?">
+<h2>Does the network tell the two states apart?<a class="headerlink" href="#Does-the-network-tell-the-two-states-apart?" title="Permalink to this heading">¶</a></h2>
+<p>Before searching for an unknown placement, check that the data can recognise a known wrong one. <code class="docutils literal notranslate"><span class="pre">IMP.bff.screen_structures</span></code> takes a library of candidate structures – each one a complete structure carrying every labelling site – and ranks them by how well they reproduce the file. Here the library is two entries: the closed state the data came from, and the open state.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ranked</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">screen_structures</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">closed_dimer</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">open_dimer</span><span class="p">)],</span>
+                                   <span class="n">FPS_FILE</span><span class="p">,</span> <span class="s2">"all"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="si">%-20s</span><span class="s2"> </span><span class="si">%10s</span><span class="s2"> </span><span class="si">%10s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="s2">"candidate"</span><span class="p">,</span> <span class="s2">"score"</span><span class="p">,</span> <span class="s2">"chi2_red"</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">ranked</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="si">%-20s</span><span class="s2"> </span><span class="si">%10.2f</span><span class="s2"> </span><span class="si">%10.2f</span><span class="s2">"</span>
+          <span class="o">%</span> <span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">score</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">chi2_r</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<p>The closed state wins by roughly a factor of nine in reduced <span class="math notranslate nohighlight">\(\chi^2\)</span>. That is the easy version of the question – two candidates, one of them the source of the data – but it is the version a real project usually starts with, and a network that cannot pass it is not worth docking with.</p>
+<p>Note that screening moves nothing. It scores structures as they stand, which is why each candidate has to carry <em>all</em> the sites on its own; hand it a single protomer and every pair involving the other chain returns no model value at all and the whole candidate scores <code class="docutils literal notranslate"><span class="pre">nan</span></code>.</p>
+</section>
+<section id="The-landscape-around-the-answer">
+<h2>The landscape around the answer<a class="headerlink" href="#The-landscape-around-the-answer" title="Permalink to this heading">¶</a></h2>
+<p>Now the harder question: how sharply does the score rise as the second protomer is moved off its deposited position? This is what decides whether a network “pins the structure down”, and it is cheap to measure – build the assembly once, apply candidate poses to it, and score.</p>
+<p><code class="docutils literal notranslate"><span class="pre">IMP.bff.capture_poses</span></code> serialises the current placement of every body as a translation and a quaternion; <code class="docutils literal notranslate"><span class="pre">IMP.bff.apply_poses</span></code> puts one back. Between the two we can put the second body wherever we like. Each candidate here is the deposited pose with body 1 rotated about its own centre and displaced in a random direction.</p>
+<p>One approximation is now in force, and it is the one the sampling uses: <code class="docutils literal notranslate"><span class="pre">mean_position_restraint=True</span></code> replaces each pair’s full distance distribution by the separation of the two cloud <em>mean positions</em>, with a transfer width <code class="docutils literal notranslate"><span class="pre">sigma_da</span></code>. The clouds are sampled once and then carried rigidly. That is exact for a body that only moves, and wrong in proportion to how much the occlusion of a dye changes as the partner chain moves past it – so a docked pose is always re-scored with full volumes at
+the end.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">assembly</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">create_docking_assembly</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">PROTOMER_A</span><span class="p">,</span> <span class="n">PROTOMER_B</span><span class="p">],</span> <span class="n">FPS_FILE</span><span class="p">,</span> <span class="s2">"all"</span><span class="p">,</span>
+    <span class="kc">True</span><span class="p">,</span>            <span class="c1"># mean_position_restraint</span>
+    <span class="mf">1.0</span><span class="p">,</span>             <span class="c1"># ev_weight</span>
+    <span class="mf">6.0</span><span class="p">,</span>             <span class="c1"># sigma_da</span>
+    <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>        <span class="c1"># clash_tolerance, max_force: library defaults</span>
+    <span class="n">CLASH_RADII</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+<span class="n">REFERENCE_POSES</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">capture_poses</span><span class="p">(</span><span class="n">assembly</span><span class="p">)</span>
+<span class="n">BODY_B_CENTRE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">REFERENCE_POSES</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="s2">"t"</span><span class="p">])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">displaced_pose</span><span class="p">(</span><span class="n">rotation_deg</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">shift</span><span class="p">):</span>
+    <span class="c1"># The deposited pose with body 1 turned about its centre and moved.</span>
+    <span class="n">rotation</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">algebra</span><span class="o">.</span><span class="n">get_rotation_about_axis</span><span class="p">(</span>
+        <span class="n">IMP</span><span class="o">.</span><span class="n">algebra</span><span class="o">.</span><span class="n">Vector3D</span><span class="p">(</span><span class="o">*</span><span class="n">axis</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">rotation_deg</span><span class="p">))</span>
+    <span class="n">centre</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">algebra</span><span class="o">.</span><span class="n">Vector3D</span><span class="p">(</span><span class="o">*</span><span class="n">BODY_B_CENTRE</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">REFERENCE_POSES</span><span class="p">):</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"body_id"</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">rotation</span><span class="o">.</span><span class="n">get_rotated</span><span class="p">(</span><span class="n">IMP</span><span class="o">.</span><span class="n">algebra</span><span class="o">.</span><span class="n">Vector3D</span><span class="p">(</span><span class="o">*</span><span class="n">entry</span><span class="p">[</span><span class="s2">"t"</span><span class="p">])</span> <span class="o">-</span> <span class="n">centre</span><span class="p">)</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">t</span> <span class="o">+</span> <span class="n">centre</span> <span class="o">+</span> <span class="n">IMP</span><span class="o">.</span><span class="n">algebra</span><span class="o">.</span><span class="n">Vector3D</span><span class="p">(</span><span class="o">*</span><span class="n">shift</span><span class="p">)</span>
+            <span class="n">entry</span><span class="p">[</span><span class="s2">"q"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">((</span><span class="n">rotation</span> <span class="o">*</span> <span class="n">IMP</span><span class="o">.</span><span class="n">algebra</span><span class="o">.</span><span class="n">Rotation3D</span><span class="p">(</span><span class="o">*</span><span class="n">entry</span><span class="p">[</span><span class="s2">"q"</span><span class="p">]))</span><span class="o">.</span><span class="n">get_quaternion</span><span class="p">())</span>
+            <span class="n">entry</span><span class="p">[</span><span class="s2">"t"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">chi2_red</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">chi2</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">pairs</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">pairs</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">score_pose</span><span class="p">(</span><span class="n">poses</span><span class="p">):</span>
+    <span class="c1"># Score one pose with the assembly; also its RMSD to the deposited one.</span>
+    <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">apply_poses</span><span class="p">(</span><span class="n">assembly</span><span class="p">,</span> <span class="n">poses</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">score_assembly</span><span class="p">(</span><span class="n">assembly</span><span class="p">)</span>
+    <span class="n">rmsd</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">pose_rmsd</span><span class="p">(</span><span class="n">assembly</span><span class="p">,</span> <span class="n">REFERENCE_POSES</span><span class="p">,</span> <span class="n">poses</span><span class="p">)</span>
+    <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">apply_poses</span><span class="p">(</span><span class="n">assembly</span><span class="p">,</span> <span class="n">REFERENCE_POSES</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span><span class="p">,</span> <span class="n">rmsd</span>
+
+
+<span class="n">AMPLITUDES</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">,</span> <span class="mf">18.0</span><span class="p">,</span> <span class="mf">25.0</span><span class="p">,</span> <span class="mf">35.0</span><span class="p">)</span>
+<span class="n">scan_rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">scan</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">amplitude</span> <span class="ow">in</span> <span class="n">AMPLITUDES</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span> <span class="k">if</span> <span class="n">amplitude</span> <span class="k">else</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">axis</span> <span class="o">=</span> <span class="n">scan_rng</span><span class="o">.</span><span class="n">standard_normal</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">axis</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="n">scan_rng</span><span class="o">.</span><span class="n">standard_normal</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">step</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
+        <span class="n">pose</span> <span class="o">=</span> <span class="n">displaced_pose</span><span class="p">(</span><span class="n">amplitude</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
+        <span class="n">result</span><span class="p">,</span> <span class="n">rmsd</span> <span class="o">=</span> <span class="n">score_pose</span><span class="p">(</span><span class="n">pose</span><span class="p">)</span>
+        <span class="n">scan</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">amplitude</span><span class="p">,</span> <span class="n">rmsd</span><span class="p">,</span> <span class="n">chi2_red</span><span class="p">(</span><span class="n">result</span><span class="p">),</span> <span class="n">result</span><span class="o">.</span><span class="n">e_clash</span><span class="p">))</span>
+<span class="n">scan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">scan</span><span class="p">)</span>
+<span class="n">DEPOSITED_CHI2R</span> <span class="o">=</span> <span class="n">scan</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="si">%d</span><span class="s2"> candidate placements scored in </span><span class="si">%.1f</span><span class="s2"> s</span><span class="se">\n</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">scan</span><span class="p">),</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span><span class="p">))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="si">%10s</span><span class="s2"> </span><span class="si">%10s</span><span class="s2"> </span><span class="si">%12s</span><span class="s2"> </span><span class="si">%12s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="s2">"amplitude"</span><span class="p">,</span> <span class="s2">"RMSD"</span><span class="p">,</span> <span class="s2">"chi2_red"</span><span class="p">,</span> <span class="s2">"clash"</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">amplitude</span> <span class="ow">in</span> <span class="n">AMPLITUDES</span><span class="p">:</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">scan</span><span class="p">[</span><span class="n">scan</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">amplitude</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="si">%8.0f</span><span class="s2"> A </span><span class="si">%8.1f</span><span class="s2"> A </span><span class="si">%12.2f</span><span class="s2"> </span><span class="si">%12.1f</span><span class="s2">"</span>
+          <span class="o">%</span> <span class="p">(</span><span class="n">amplitude</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">rows</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">rows</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]),</span>
+             <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">rows</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">])))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">the deposited arrangement scores chi2_red </span><span class="si">%.2f</span><span class="s2"> under this"</span>
+      <span class="s2">" approximation"</span> <span class="o">%</span> <span class="n">DEPOSITED_CHI2R</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"(it scored </span><span class="si">%.2f</span><span class="s2"> with full volumes -- the mean-position restraint is"</span>
+      <span class="s2">" the price of speed)"</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">chi2</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">reference</span><span class="p">[</span><span class="n">CLASH_RADII</span><span class="p">]</span><span class="o">.</span><span class="n">pairs</span><span class="p">)</span>
+                                <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">reference</span><span class="p">[</span><span class="n">CLASH_RADII</span><span class="p">]</span><span class="o">.</span><span class="n">pairs</span><span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">medians</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">scan</span><span class="p">[</span><span class="n">scan</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">a</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                     <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">scan</span><span class="p">[</span><span class="n">scan</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">a</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span>
+                     <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">scan</span><span class="p">[</span><span class="n">scan</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">a</span><span class="p">,</span> <span class="mi">3</span><span class="p">])]</span>
+                    <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">AMPLITUDES</span><span class="p">])</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">10.5</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">))</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">scan</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">scan</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span> <span class="s2">"o"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#2E5E8B"</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.45</span><span class="p">,</span>
+             <span class="n">label</span><span class="o">=</span><span class="s2">"one candidate placement"</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">medians</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">medians</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="s2">"-"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#12395E"</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+             <span class="n">label</span><span class="o">=</span><span class="s2">"median per amplitude"</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="n">DEPOSITED_CHI2R</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"0.55"</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">"--"</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="s2">"deposited arrangement"</span><span class="p">,</span> <span class="p">(</span><span class="n">scan</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">*</span> <span class="mf">0.30</span><span class="p">,</span>
+                                           <span class="n">DEPOSITED_CHI2R</span> <span class="o">*</span> <span class="mf">1.22</span><span class="p">),</span>
+                 <span class="n">color</span><span class="o">=</span><span class="s2">"0.4"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">"reduced $\chi^2$ of the ten distances"</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"the data term"</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">"lower right"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mf">8.5</span><span class="p">)</span>
+
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">scan</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">scan</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="mf">1e-2</span><span class="p">,</span> <span class="s2">"o"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#B03A2E"</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.45</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">medians</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">medians</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mf">1e-2</span><span class="p">,</span> <span class="s2">"-"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#7B1E14"</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"excluded-volume term"</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"the clash term"</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">:</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">"log"</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"RMSD from the deposited arrangement (A)"</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.25</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">"BmrA: score against displacement of protomer B"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">window</span> <span class="ow">in</span> <span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">7.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">12.0</span><span class="p">,</span> <span class="mf">22.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">22.0</span><span class="p">,</span> <span class="mf">40.0</span><span class="p">)):</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">scan</span><span class="p">[(</span><span class="n">scan</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">window</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">scan</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">window</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="si">%2.0f</span><span class="s2">-</span><span class="si">%2.0f</span><span class="s2"> A off: data term x</span><span class="si">%.1f</span><span class="s2">, clash term x</span><span class="si">%.0f</span><span class="s2">"</span>
+              <span class="o">%</span> <span class="p">(</span><span class="n">window</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">window</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                 <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">rows</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="n">DEPOSITED_CHI2R</span><span class="p">,</span>
+                 <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">rows</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">])</span> <span class="o">/</span> <span class="n">scan</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">]))</span>
+</pre></div>
+</div>
+</div>
+<p>The left panel is the answer to “does the network pin the structure down”, and it has two parts. Within two or three Ångström of the deposited arrangement the data term is flat – it even dips slightly below the deposited value, because a 6% error bar on ten distances cannot tell those placements apart, and because the frozen clouds of the mean-position approximation are not exactly the clouds the moved structure has. <strong>That flat region is the resolution of this network: about two to three
+Ångström, not zero.</strong> Outside it the data term climbs steeply, several-fold by ten Ångström and more than twentyfold by twenty, which is what makes a search possible at all.</p>
+<p>So do not read the floor of that curve as a goodness of fit. The mean-position approximation is there to make tens of thousands of evaluations affordable; the number you quote comes from a full re-scoring at the end, which is what the last section does. And the printed table is the honest version of the picture – a median over four random directions per amplitude, because a single direction can be unrepresentatively good or bad.</p>
+<p>The right panel is the reason the search is hard, and it is specific to this complex. BmrA’s two protomers are intertwined: their transmembrane helices cross over, so protomer B cannot be moved out of the dimer – or back into it – as a rigid piece without passing through protomer A. Two Ångström of displacement already costs a hundredfold in overlap energy, and the term does not come back down as the displacement grows, because in almost every direction the moved protomer is still ploughing
+through the one that is held fixed. Only a translation along the one axis that slides the two apart escapes it, and the data term there is already hopeless.</p>
+<p>So the two panels between them describe a wall: the data says where the answer is, and the excluded volume stands between the search and it. A minimiser that runs into that wall slides along it rather than through it, which is exactly what the next section measures.</p>
+</section>
+<section id="The-search,-and-how-far-it-reaches">
+<h2>The search, and how far it reaches<a class="headerlink" href="#The-search,-and-how-far-it-reaches" title="Permalink to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">IMP.bff.dock_minimize</span></code> is the local half of the engine: it applies a starting pose, then drives the mobile bodies downhill under the distance restraints and the excluded-volume term with conjugate gradients. (<code class="docutils literal notranslate"><span class="pre">IMP.bff.dock</span></code> is the global half – a Monte-Carlo or ensemble sampler over the same objective – and is what a production run uses; the last section says what that costs.)</p>
+<p>Instead of one docking run, the honest experiment is a series of them from increasingly displaced starts, which measures the radius of convergence: the distance from which a local method still gets home. <code class="docutils literal notranslate"><span class="pre">initial_poses</span></code> hands the run its start, and <code class="docutils literal notranslate"><span class="pre">shuffle_max_translation</span> <span class="pre">=</span> <span class="pre">0</span></code> stops it from randomising on top of that, so the only thing varying between rows is how far the start was.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">params</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">DockingParameters</span><span class="p">()</span>
+<span class="n">params</span><span class="o">.</span><span class="n">score_set</span> <span class="o">=</span> <span class="s2">"all"</span>
+<span class="n">params</span><span class="o">.</span><span class="n">fixed_body</span> <span class="o">=</span> <span class="mi">0</span>                 <span class="c1"># chain A is the frame; chain B moves</span>
+<span class="n">params</span><span class="o">.</span><span class="n">n_frames</span> <span class="o">=</span> <span class="mi">300</span>                 <span class="c1"># conjugate-gradient iterations</span>
+<span class="n">params</span><span class="o">.</span><span class="n">shuffle_max_translation</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># the start is given, not randomised</span>
+<span class="n">params</span><span class="o">.</span><span class="n">mean_position_restraint</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">params</span><span class="o">.</span><span class="n">coarse_clash</span> <span class="o">=</span> <span class="kc">False</span>           <span class="c1"># per-atom clash: required by olga radii</span>
+<span class="n">params</span><span class="o">.</span><span class="n">clash_radii_source</span> <span class="o">=</span> <span class="n">CLASH_RADII</span>
+<span class="n">params</span><span class="o">.</span><span class="n">save_trajectory</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="n">dock_rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="n">runs</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">amplitude</span> <span class="ow">in</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">):</span>
+    <span class="n">axis</span> <span class="o">=</span> <span class="n">dock_rng</span><span class="o">.</span><span class="n">standard_normal</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">axis</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="n">dock_rng</span><span class="o">.</span><span class="n">standard_normal</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">step</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">displaced_pose</span><span class="p">(</span><span class="n">amplitude</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
+    <span class="n">before</span><span class="p">,</span> <span class="n">rmsd_before</span> <span class="o">=</span> <span class="n">score_pose</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+
+    <span class="n">docked</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">dock_minimize</span><span class="p">([</span><span class="n">PROTOMER_A</span><span class="p">,</span> <span class="n">PROTOMER_B</span><span class="p">],</span> <span class="n">FPS_FILE</span><span class="p">,</span>
+                                   <span class="nb">str</span><span class="p">(</span><span class="n">WORK</span> <span class="o">/</span> <span class="p">(</span><span class="s2">"dock_</span><span class="si">%02d</span><span class="s2">"</span> <span class="o">%</span> <span class="n">amplitude</span><span class="p">)),</span>
+                                   <span class="n">params</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span>
+    <span class="n">after</span><span class="p">,</span> <span class="n">rmsd_after</span> <span class="o">=</span> <span class="n">score_pose</span><span class="p">(</span><span class="n">docked</span><span class="o">.</span><span class="n">poses</span><span class="p">)</span>
+    <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"amplitude"</span><span class="p">:</span> <span class="n">amplitude</span><span class="p">,</span> <span class="s2">"start"</span><span class="p">:</span> <span class="n">start</span><span class="p">,</span> <span class="s2">"docked"</span><span class="p">:</span> <span class="n">docked</span><span class="p">,</span>
+                 <span class="s2">"before"</span><span class="p">:</span> <span class="n">before</span><span class="p">,</span> <span class="s2">"after"</span><span class="p">:</span> <span class="n">after</span><span class="p">,</span>
+                 <span class="s2">"rmsd_before"</span><span class="p">:</span> <span class="n">rmsd_before</span><span class="p">,</span> <span class="s2">"rmsd_after"</span><span class="p">:</span> <span class="n">rmsd_after</span><span class="p">})</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"start </span><span class="si">%5.2f</span><span class="s2"> A (chi2_r </span><span class="si">%8.2f</span><span class="s2">, clash </span><span class="si">%8.1f</span><span class="s2">)  -&gt;  "</span>
+          <span class="s2">"docked </span><span class="si">%6.2f</span><span class="s2"> A (chi2_r </span><span class="si">%7.2f</span><span class="s2">, clash </span><span class="si">%6.2f</span><span class="s2">)"</span>
+          <span class="o">%</span> <span class="p">(</span><span class="n">rmsd_before</span><span class="p">,</span> <span class="n">chi2_red</span><span class="p">(</span><span class="n">before</span><span class="p">),</span> <span class="n">before</span><span class="o">.</span><span class="n">e_clash</span><span class="p">,</span>
+             <span class="n">rmsd_after</span><span class="p">,</span> <span class="n">chi2_red</span><span class="p">(</span><span class="n">after</span><span class="p">),</span> <span class="n">after</span><span class="o">.</span><span class="n">e_clash</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="si">%d</span><span class="s2"> runs in </span><span class="si">%.0f</span><span class="s2"> s"</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">runs</span><span class="p">),</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">6.2</span><span class="p">,</span> <span class="mf">4.6</span><span class="p">))</span>
+<span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">"rmsd_before"</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">runs</span><span class="p">]</span>
+<span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">"rmsd_after"</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">runs</span><span class="p">]</span>
+<span class="n">c</span> <span class="o">=</span> <span class="p">[</span><span class="n">chi2_red</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"after"</span><span class="p">])</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">runs</span><span class="p">]</span>
+<span class="n">sc</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">"viridis"</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">LogNorm</span><span class="p">(),</span>
+                <span class="n">s</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s2">"0.2"</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">runs</span><span class="p">:</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="s2">"</span><span class="si">%.0f</span><span class="s2">"</span> <span class="o">%</span> <span class="n">r</span><span class="p">[</span><span class="s2">"amplitude"</span><span class="p">],</span>
+                <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"rmsd_before"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"rmsd_after"</span><span class="p">]),</span>
+                <span class="n">textcoords</span><span class="o">=</span><span class="s2">"offset points"</span><span class="p">,</span> <span class="n">xytext</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">lim</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">y</span><span class="p">))</span> <span class="o">*</span> <span class="mf">1.1</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">lim</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">lim</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">"0.7"</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">"--"</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">"no improvement"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#2E8B57"</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"1 A from the answer"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"RMSD of the starting arrangement (A)"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"RMSD after docking (A)"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">lim</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">lim</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.25</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">"upper left"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">sc</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s2">"reduced $\chi^2$ after docking"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"radius of convergence of a local dock"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="n">recovered</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">runs</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"rmsd_after"</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">]</span>
+<span class="n">lost</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">runs</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"rmsd_after"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mf">1.0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"recovered (&lt; 1 A): starts at </span><span class="si">%s</span><span class="s2">"</span>
+      <span class="o">%</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">"</span><span class="si">%.1f</span><span class="s2"> A"</span> <span class="o">%</span> <span class="n">r</span><span class="p">[</span><span class="s2">"rmsd_before"</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">recovered</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"lost:              starts at </span><span class="si">%s</span><span class="s2">"</span>
+      <span class="o">%</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">"</span><span class="si">%.1f</span><span class="s2"> A"</span> <span class="o">%</span> <span class="n">r</span><span class="p">[</span><span class="s2">"rmsd_before"</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">lost</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<p>Read the figure as two regimes, with one instructive exception.</p>
+<p>Starts within about two and a half Ångström come back to within a few tenths of an Ångström of the deposited arrangement. In that regime the ten distances genuinely determine the placement, and the exercise is <em>refinement</em>: you already have a model, and the data sharpens it and tells you by how much.</p>
+<p>Starts beyond that mostly end twenty Ångström or more away, with a reduced <span class="math notranslate nohighlight">\(\chi^2\)</span> in the tens – and, notably, with a <em>low</em> clash term. That is the wall from the previous section. The minimiser cannot push protomer B back through protomer A, so it slides it off the interface into a clash-free but data-incompatible arrangement and stops there. The score says honestly that the model is bad; the minimiser simply cannot reach the good one from there.</p>
+<p>The exception is worth looking for in the table: one run ends a few Ångström out with a data term as good as the correct answer’s and a clash term in the hundreds. The ten distances alone do not exclude that pose – the excluded volume does. This is the everyday argument for keeping a steric term in the objective even when the measurements are what you care about, and the reason the two terms are always reported separately rather than summed into one number.</p>
+<p>This is the result to carry away, and it is not a defect of the data: the network is informative (the landscape section proved that), the <em>local search</em> is the limitation. For an intertwined dimer like BmrA, “dock the two protomers from scratch as rigid bodies” is not a well-posed problem to begin with – the assembled structure is not reachable from a separated one by rigid motion. Where rigid-body FRET docking earns its keep is on complexes whose components associate by a surface, as in the
+HIV reverse transcriptase / DNA example that ships in <code class="docutils literal notranslate"><span class="pre">examples/structure/fret_docking.py</span></code>.</p>
+</section>
+<section id="The-per-distance-report">
+<h2>The per-distance report<a class="headerlink" href="#The-per-distance-report" title="Permalink to this heading">¶</a></h2>
+<p>A total <span class="math notranslate nohighlight">\(\chi^2\)</span> hides which measurement is unhappy. The per-pair table is what you actually read after a docking run: the residual is the model minus the data, so a positive value means the model is too long. Below are the deviations of one run – the hardest start that still came home – before and after the minimisation, and the same numbers as a network diagram, each chord coloured by how far that pair is off.</p>
+<p>The final model is also re-scored with the <em>full</em> accessible volumes rather than the mean-position approximation the search ran under. That is the number to quote.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The run worth showing is the hardest start that still came home; if none</span>
+<span class="c1"># did, the one that ended with the lowest total score.</span>
+<span class="n">recovered_runs</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">runs</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"rmsd_after"</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">]</span>
+<span class="n">best</span> <span class="o">=</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">recovered_runs</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="s2">"rmsd_before"</span><span class="p">])</span> <span class="k">if</span> <span class="n">recovered_runs</span>
+        <span class="k">else</span> <span class="nb">min</span><span class="p">(</span><span class="n">runs</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="s2">"after"</span><span class="p">]</span><span class="o">.</span><span class="n">score</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"showing the run that started </span><span class="si">%.2f</span><span class="s2"> A off and ended </span><span class="si">%.2f</span><span class="s2"> A off"</span>
+      <span class="o">%</span> <span class="p">(</span><span class="n">best</span><span class="p">[</span><span class="s2">"rmsd_before"</span><span class="p">],</span> <span class="n">best</span><span class="p">[</span><span class="s2">"rmsd_after"</span><span class="p">]))</span>
+
+<span class="n">docked_pdb</span> <span class="o">=</span> <span class="n">best</span><span class="p">[</span><span class="s2">"docked"</span><span class="p">]</span><span class="o">.</span><span class="n">best_pdbs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">docked_A</span> <span class="o">=</span> <span class="n">split_chain</span><span class="p">(</span><span class="n">docked_pdb</span><span class="p">,</span> <span class="s2">"A"</span><span class="p">,</span> <span class="n">WORK</span> <span class="o">/</span> <span class="s2">"docked_A.pdb"</span><span class="p">)</span>
+<span class="n">docked_B</span> <span class="o">=</span> <span class="n">split_chain</span><span class="p">(</span><span class="n">docked_pdb</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">,</span> <span class="n">WORK</span> <span class="o">/</span> <span class="s2">"docked_B.pdb"</span><span class="p">)</span>
+<span class="n">full</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">score_structures</span><span class="p">([</span><span class="n">docked_A</span><span class="p">,</span> <span class="n">docked_B</span><span class="p">],</span> <span class="n">FPS_FILE</span><span class="p">,</span> <span class="s2">"all"</span><span class="p">,</span>
+                                <span class="kc">False</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="n">CLASH_RADII</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">chi2_red   mean-position (what the search minimised): </span><span class="si">%.3f</span><span class="s2">"</span>
+      <span class="o">%</span> <span class="n">chi2_red</span><span class="p">(</span><span class="n">best</span><span class="p">[</span><span class="s2">"after"</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"chi2_red   full volumes  (what to quote):              </span><span class="si">%.3f</span><span class="s2">"</span> <span class="o">%</span> <span class="n">chi2_red</span><span class="p">(</span><span class="n">full</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"chi2_red   deposited arrangement, full volumes:        </span><span class="si">%.3f</span><span class="s2">"</span>
+      <span class="o">%</span> <span class="n">chi2_red</span><span class="p">(</span><span class="n">reference</span><span class="p">[</span><span class="n">CLASH_RADII</span><span class="p">]))</span>
+
+<span class="n">before_model</span> <span class="o">=</span> <span class="p">{</span><span class="n">q</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">q</span><span class="o">.</span><span class="n">distance_model</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">best</span><span class="p">[</span><span class="s2">"before"</span><span class="p">]</span><span class="o">.</span><span class="n">pairs</span><span class="p">}</span>
+<span class="n">after_model</span> <span class="o">=</span> <span class="p">{</span><span class="n">q</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">q</span><span class="o">.</span><span class="n">distance_model</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">full</span><span class="o">.</span><span class="n">pairs</span><span class="p">}</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="si">%-14s</span><span class="s2"> </span><span class="si">%9s</span><span class="s2"> </span><span class="si">%9s</span><span class="s2"> </span><span class="si">%9s</span><span class="s2"> </span><span class="si">%9s</span><span class="s2"> </span><span class="si">%9s</span><span class="s2">"</span>
+      <span class="o">%</span> <span class="p">(</span><span class="s2">"pair"</span><span class="p">,</span> <span class="s2">"measured"</span><span class="p">,</span> <span class="s2">"start"</span><span class="p">,</span> <span class="s2">"dev"</span><span class="p">,</span> <span class="s2">"docked"</span><span class="p">,</span> <span class="s2">"dev"</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">PAIRS</span><span class="p">:</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">pair_name</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">measured</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="si">%-14s</span><span class="s2"> </span><span class="si">%9.2f</span><span class="s2"> </span><span class="si">%9.2f</span><span class="s2"> </span><span class="si">%+9.2f</span><span class="s2"> </span><span class="si">%9.2f</span><span class="s2"> </span><span class="si">%+9.2f</span><span class="s2">"</span>
+          <span class="o">%</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">before_model</span><span class="p">[</span><span class="n">n</span><span class="p">],</span> <span class="n">before_model</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">-</span> <span class="n">m</span><span class="p">,</span>
+             <span class="n">after_model</span><span class="p">[</span><span class="n">n</span><span class="p">],</span> <span class="n">after_model</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">-</span> <span class="n">m</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">chords</span> <span class="o">=</span> <span class="p">[(</span><span class="n">site_name</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">site_name</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">PAIRS</span><span class="p">]</span>
+<span class="n">start_dev</span> <span class="o">=</span> <span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="n">before_model</span><span class="p">[</span><span class="n">pair_name</span><span class="p">(</span><span class="n">p</span><span class="p">)]</span> <span class="o">-</span> <span class="n">measured</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+             <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">chords</span><span class="p">,</span> <span class="n">PAIRS</span><span class="p">)}</span>
+<span class="n">final_dev</span> <span class="o">=</span> <span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="n">after_model</span><span class="p">[</span><span class="n">pair_name</span><span class="p">(</span><span class="n">p</span><span class="p">)]</span> <span class="o">-</span> <span class="n">measured</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+             <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">chords</span><span class="p">,</span> <span class="n">PAIRS</span><span class="p">)}</span>
+<span class="n">limit</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">start_dev</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+            <span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">final_dev</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">11.5</span><span class="p">,</span> <span class="mf">5.2</span><span class="p">))</span>
+<span class="n">ws</span><span class="o">.</span><span class="n">circle_plot</span><span class="p">(</span><span class="n">chords</span><span class="p">,</span> <span class="n">start_dev</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">vmax</span><span class="o">=</span><span class="n">limit</span><span class="p">,</span>
+               <span class="n">title</span><span class="o">=</span><span class="s2">"start (</span><span class="si">%.1f</span><span class="s2"> A off)"</span> <span class="o">%</span> <span class="n">best</span><span class="p">[</span><span class="s2">"rmsd_before"</span><span class="p">])</span>
+<span class="n">ws</span><span class="o">.</span><span class="n">circle_plot</span><span class="p">(</span><span class="n">chords</span><span class="p">,</span> <span class="n">final_dev</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">vmax</span><span class="o">=</span><span class="n">limit</span><span class="p">,</span>
+               <span class="n">title</span><span class="o">=</span><span class="s2">"docked (</span><span class="si">%.1f</span><span class="s2"> A off)"</span> <span class="o">%</span> <span class="n">best</span><span class="p">[</span><span class="s2">"rmsd_after"</span><span class="p">])</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"mean |deviation|: start </span><span class="si">%.2f</span><span class="s2"> A -&gt; docked </span><span class="si">%.2f</span><span class="s2"> A"</span>
+      <span class="o">%</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="nb">abs</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">start_dev</span><span class="o">.</span><span class="n">values</span><span class="p">()]),</span>
+         <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="nb">abs</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">final_dev</span><span class="o">.</span><span class="n">values</span><span class="p">()])))</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Looking-at-it">
+<h2>Looking at it<a class="headerlink" href="#Looking-at-it" title="Permalink to this heading">¶</a></h2>
+<p>Three arrangements: the deposited dimer, the start of that run, and where the docking put it. Chain A is in the same place in all three by construction – it is body 0, held fixed – so everything you see move is protomer B.</p>
+<p>The viewer loads Mol* from a CDN, so it needs internet access from the browser. Nothing above depends on it.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">start_pdb</span> <span class="o">=</span> <span class="n">WORK</span> <span class="o">/</span> <span class="s2">"start.pdb"</span>
+<span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">apply_poses</span><span class="p">(</span><span class="n">assembly</span><span class="p">,</span> <span class="n">best</span><span class="p">[</span><span class="s2">"start"</span><span class="p">])</span>
+<span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">write_pdb</span><span class="p">(</span><span class="n">assembly</span><span class="o">.</span><span class="n">get_root</span><span class="p">(),</span> <span class="nb">str</span><span class="p">(</span><span class="n">start_pdb</span><span class="p">))</span>
+<span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">apply_poses</span><span class="p">(</span><span class="n">assembly</span><span class="p">,</span> <span class="n">REFERENCE_POSES</span><span class="p">)</span>
+
+<span class="n">widest</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">PAIRS</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">helper_distance</span><span class="p">[</span><span class="n">p</span><span class="p">])</span>
+<span class="n">ws</span><span class="o">.</span><span class="n">show</span><span class="p">([</span>
+    <span class="p">{</span><span class="s2">"title"</span><span class="p">:</span> <span class="s2">"deposited (6R72 A+B), with the volumes of </span><span class="si">%s</span><span class="s2"> and </span><span class="si">%s</span><span class="s2">"</span>
+              <span class="o">%</span> <span class="p">(</span><span class="n">site_name</span><span class="p">(</span><span class="n">widest</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">widest</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">site_name</span><span class="p">(</span><span class="n">widest</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">widest</span><span class="p">[</span><span class="mi">3</span><span class="p">])),</span>
+     <span class="s2">"structure"</span><span class="p">:</span> <span class="n">ws</span><span class="o">.</span><span class="n">protein_for_view</span><span class="p">(</span><span class="n">closed_dimer</span><span class="p">),</span>
+     <span class="s2">"clouds"</span><span class="p">:</span> <span class="p">[</span>
+         <span class="p">{</span><span class="s2">"pdb"</span><span class="p">:</span> <span class="n">ws</span><span class="o">.</span><span class="n">av_pdb</span><span class="p">(</span><span class="n">volume</span><span class="p">[(</span><span class="n">widest</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">widest</span><span class="p">[</span><span class="mi">1</span><span class="p">])]),</span>
+          <span class="s2">"colour"</span><span class="p">:</span> <span class="n">ws</span><span class="o">.</span><span class="n">DONOR_COLOUR</span><span class="p">,</span> <span class="s2">"label"</span><span class="p">:</span> <span class="n">site_name</span><span class="p">(</span><span class="n">widest</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">widest</span><span class="p">[</span><span class="mi">1</span><span class="p">])},</span>
+         <span class="p">{</span><span class="s2">"pdb"</span><span class="p">:</span> <span class="n">ws</span><span class="o">.</span><span class="n">av_pdb</span><span class="p">(</span><span class="n">volume</span><span class="p">[(</span><span class="n">widest</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">widest</span><span class="p">[</span><span class="mi">3</span><span class="p">])]),</span>
+          <span class="s2">"colour"</span><span class="p">:</span> <span class="n">ws</span><span class="o">.</span><span class="n">ACCEPTOR_COLOUR</span><span class="p">,</span> <span class="s2">"label"</span><span class="p">:</span> <span class="n">site_name</span><span class="p">(</span><span class="n">widest</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">widest</span><span class="p">[</span><span class="mi">3</span><span class="p">])},</span>
+     <span class="p">]},</span>
+    <span class="p">{</span><span class="s2">"title"</span><span class="p">:</span> <span class="s2">"start of the best run (</span><span class="si">%.1f</span><span class="s2"> A off)"</span> <span class="o">%</span> <span class="n">best</span><span class="p">[</span><span class="s2">"rmsd_before"</span><span class="p">],</span>
+     <span class="s2">"structure"</span><span class="p">:</span> <span class="n">ws</span><span class="o">.</span><span class="n">protein_for_view</span><span class="p">(</span><span class="n">start_pdb</span><span class="p">)},</span>
+    <span class="p">{</span><span class="s2">"title"</span><span class="p">:</span> <span class="s2">"docked (</span><span class="si">%.1f</span><span class="s2"> A off, chi2_red </span><span class="si">%.2f</span><span class="s2">)"</span>
+              <span class="o">%</span> <span class="p">(</span><span class="n">best</span><span class="p">[</span><span class="s2">"rmsd_after"</span><span class="p">],</span> <span class="n">chi2_red</span><span class="p">(</span><span class="n">full</span><span class="p">)),</span>
+     <span class="s2">"structure"</span><span class="p">:</span> <span class="n">ws</span><span class="o">.</span><span class="n">protein_for_view</span><span class="p">(</span><span class="n">docked_pdb</span><span class="p">)},</span>
+<span class="p">],</span> <span class="n">height</span><span class="o">=</span><span class="mi">430</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="What-a-production-run-looks-like,-and-what-this-one-left-out">
+<h2>What a production run looks like, and what this one left out<a class="headerlink" href="#What-a-production-run-looks-like,-and-what-this-one-left-out" title="Permalink to this heading">¶</a></h2>
+<p>Everything above fits in a few minutes because every choice was made to keep it there. A real determination differs in the following ways.</p>
+<p><strong>Global sampling instead of local descent.</strong> <code class="docutils literal notranslate"><span class="pre">IMP.bff.dock</span></code> runs the same objective under a sampler chosen by <code class="docutils literal notranslate"><span class="pre">DockingParameters.sampler</span></code> – <code class="docutils literal notranslate"><span class="pre">&quot;metropolis&quot;</span></code>, or the ensemble movers <code class="docutils literal notranslate"><span class="pre">&quot;stretch&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;slice&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;de&quot;</span></code>, which do not need their step sizes tuned. A production run is <code class="docutils literal notranslate"><span class="pre">n_frames</span></code> in the hundreds with <code class="docutils literal notranslate"><span class="pre">mc_steps</span></code> of ten or more, simulated annealing on, <code class="docutils literal notranslate"><span class="pre">shuffle_max_translation</span></code> large enough to forget where it started, and <code class="docutils literal notranslate"><span class="pre">n_best</span></code> set so the twenty best-scoring poses are
+written out. That is tens of thousands of evaluations per run, minutes to hours, and it is repeated from many independent starts – <em>the spread of the resulting scores is the result, not the best of them.</em></p>
+<p><strong>Error bars on the pose.</strong> <code class="docutils literal notranslate"><span class="pre">IMP.bff.fps_bootstrap</span></code> perturbs the measurements within their error bars and re-docks, once per replica, so the scatter of the replicas around the parent gives the precision of the placement in Ångström. <code class="docutils literal notranslate"><span class="pre">IMP.bff.estimate_docking_errors</span></code> is the lighter version of the same idea. A docked structure without one of these is a point estimate with no error bar.</p>
+<p><strong>Volumes resampled in context.</strong> <code class="docutils literal notranslate"><span class="pre">DockingParameters.refine_av_cycles</span></code> re-runs the accessible-volume calculation at the docked pose and minimises again, which matters exactly where the mean-position approximation is weakest: a dye whose occlusion by the partner subunit changes as the subunit moves.</p>
+<p><strong>A command line, not a notebook.</strong> All of the above is <code class="docutils literal notranslate"><span class="pre">imp_bff</span> <span class="pre">dock</span></code>; see <code class="docutils literal notranslate"><span class="pre">imp_bff</span> <span class="pre">dock</span> <span class="pre">--help</span></code> and <code class="docutils literal notranslate"><span class="pre">src/imp/CommandLineDock.cpp</span></code>.</p>
+<p>And the four things this notebook is honest about having simplified:</p>
+<ol class="arabic simple">
+<li><p><strong>The data is synthetic</strong> – generated from the very structure the docking was asked to find, with Gaussian noise and nothing else. Real networks carry dye artefacts, labelling perturbations and state mixtures, and a real fit is judged against those, not against a known answer.</p></li>
+<li><p><strong>The protomers were treated as rigid.</strong> BmrA’s nucleotide-binding domains move relative to its transmembrane domains between the two states, so a real analysis of this system is a flexible problem, and a rigid dock can at best answer “which state”, which is the screening question the notebook ran.</p></li>
+<li><p><strong>Only the local search was exercised.</strong> The runs above are conjugate gradients from a given start; no Monte-Carlo sampling was run at all. The failures past a couple of Ångström are failures of local descent against an excluded-volume wall, not of the data, and a global sampler is the thing to reach for next.</p></li>
+<li><p><strong>One noise draw, one network.</strong> The whole analysis rests on a single realisation of the measurement error and a single choice of ten pairs. Repeating it over draws is what turns “the docking recovered the structure” into a statement with an error bar on it.</p></li>
+</ol>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">"total notebook runtime: </span><span class="si">%.0f</span><span class="s2"> s"</span> <span class="o">%</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">T_START</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+      </div>
+    <div class="container">
+      <footer class="sk-content-footer">
+            &copy; 2021 - 2026, IMP developers.
+      </footer>
+    </div>
+  </div>
+</div>
+<script src="../_static/js/vendor/bootstrap.min.js"></script>
+
+<script>
+    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+    ga('create', 'UA-22606712-2', 'auto');
+    ga('set', 'anonymizeIp', true);
+    ga('send', 'pageview');
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+<script>
+$(document).ready(function() {
+    /* Add a [>>>] button on the top-right corner of code samples to hide
+     * the >>> and ... prompts and the output and thus make the code
+     * copyable. */
+    var div = $('.highlight-python .highlight,' +
+                '.highlight-python3 .highlight,' +
+                '.highlight-pycon .highlight,' +
+		'.highlight-default .highlight')
+    var pre = div.find('pre');
+
+    // get the styles from the current theme
+    pre.parent().parent().css('position', 'relative');
+    var hide_text = 'Hide prompts and outputs';
+    var show_text = 'Show prompts and outputs';
+
+    // create and add the button to all the code blocks that contain >>>
+    div.each(function(index) {
+        var jthis = $(this);
+        if (jthis.find('.gp').length > 0) {
+            var button = $('<span class="copybutton">&gt;&gt;&gt;</span>');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+            jthis.prepend(button);
+        }
+        // tracebacks (.gt) contain bare text elements that need to be
+        // wrapped in a span to work with .nextUntil() (see later)
+        jthis.find('pre:has(.gt)').contents().filter(function() {
+            return ((this.nodeType == 3) && (this.data.trim().length > 0));
+        }).wrap('<span>');
+    });
+
+    // define the behavior of the button when it's clicked
+    $('.copybutton').click(function(e){
+        e.preventDefault();
+        var button = $(this);
+        if (button.data('hidden') === 'false') {
+            // hide the code output
+            button.parent().find('.go, .gp, .gt').hide();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'hidden');
+            button.css('text-decoration', 'line-through');
+            button.attr('title', show_text);
+            button.data('hidden', 'true');
+        } else {
+            // show the code output
+            button.parent().find('.go, .gp, .gt').show();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'visible');
+            button.css('text-decoration', 'none');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+        }
+    });
+
+	/*** Add permalink buttons next to glossary terms ***/
+	$('dl.glossary > dt[id]').append(function() {
+		return ('<a class="headerlink" href="#' +
+			    this.getAttribute('id') +
+			    '" title="Permalink to this term">¶</a>');
+	});
+  /*** Hide navbar when scrolling down ***/
+  // Returns true when headerlink target matches hash in url
+  (function() {
+    hashTargetOnTop = function() {
+        var hash = window.location.hash;
+        if ( hash.length < 2 ) { return false; }
+
+        var target = document.getElementById( hash.slice(1) );
+        if ( target === null ) { return false; }
+
+        var top = target.getBoundingClientRect().top;
+        return (top < 2) && (top > -2);
+    };
+
+    // Hide navbar on load if hash target is on top
+    var navBar = document.getElementById("navbar");
+    var navBarToggler = document.getElementById("sk-navbar-toggler");
+    var navBarHeightHidden = "-" + navBar.getBoundingClientRect().height + "px";
+    var $window = $(window);
+
+    hideNavBar = function() {
+        navBar.style.top = navBarHeightHidden;
+    };
+
+    showNavBar = function() {
+        navBar.style.top = "0";
+    }
+
+    if (hashTargetOnTop()) {
+        hideNavBar()
+    }
+
+    var prevScrollpos = window.pageYOffset;
+    hideOnScroll = function(lastScrollTop) {
+        if (($window.width() < 768) && (navBarToggler.getAttribute("aria-expanded") === 'true')) {
+            return;
+        }
+        if (lastScrollTop > 2 && (prevScrollpos <= lastScrollTop) || hashTargetOnTop()){
+            hideNavBar()
+        } else {
+            showNavBar()
+        }
+        prevScrollpos = lastScrollTop;
+    };
+
+    /*** high performance scroll event listener***/
+    var raf = window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        window.oRequestAnimationFrame;
+    var lastScrollTop = $window.scrollTop();
+
+    if (raf) {
+        loop();
+    }
+
+    function loop() {
+        var scrollTop = $window.scrollTop();
+        if (lastScrollTop === scrollTop) {
+            raf(loop);
+            return;
+        } else {
+            lastScrollTop = scrollTop;
+            hideOnScroll(lastScrollTop);
+            raf(loop);
+        }
+    }
+  })();
+});
+
+</script>
+    
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+</body>
+</html>
