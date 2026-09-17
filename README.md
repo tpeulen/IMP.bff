@@ -50,7 +50,7 @@ your platform and Python version off the release page:
 
 ```bash
 pip install --pre --no-index \
-  --find-links https://github.com/tpeulen/imp.bff/releases/expanded_assets/v0.15.0a1 \
+  --find-links https://github.com/tpeulen/IMP.bff/releases/expanded_assets/v0.15.0a1 \
   imp-bff
 ```
 
@@ -80,7 +80,7 @@ the core beside them. `[notebooks]` adds exactly what they import — Jupyter,
 matplotlib, scipy, scikit-learn, pandas, tttrlib and py3Dmol:
 
 ```bash
-git clone https://github.com/tpeulen/imp.bff
+git clone https://github.com/tpeulen/IMP.bff
 cd imp.bff
 python -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
 pip install --pre "imp-bff[notebooks]"
