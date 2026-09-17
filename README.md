@@ -20,6 +20,14 @@ name is reachable flat as `IMP.bff.<Name>`; the manual page
 `doc/manual/structure/structure_cgprobe.ipynb` walks the explicit route, and
 `okf/cgprobe.md` records how the code is organised.
 
+## Documentation
+
+<https://tpeulen.github.io/IMP.bff/> — built and published by CI: `dev/` follows
+this branch, a release adds its own version and moves `stable/`. The
+[workshop](https://tpeulen.github.io/IMP.bff/dev/workshop/index.html) walks the
+whole route on one molecule, from choosing a labelling site to weighting an
+ensemble against the measured distances.
+
 ## Install
 
 Two packages, one import name. Both give you `import IMP.bff`; they own the

@@ -76,7 +76,7 @@ imp_bff = "IMP.bff:bin_cli"
 
 [project.urls]
 homepage = "https://github.com/fluorescence-tools/imp.bff"
-documentation = "https://docs.peulen.xyz/imp.bff"
+documentation = "https://tpeulen.github.io/IMP.bff/"
 repository = "https://github.com/fluorescence-tools/imp.bff.git"
 
 [build-system]
