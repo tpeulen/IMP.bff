@@ -83,13 +83,14 @@ Install</h2>
 <p>**<code>imp-bff</code> — the core, no <a class="el" href="namespace_i_m_p.html">IMP</a>.** Label distributions and accessible volumes, explicit dyes from a rotamer library (<code><a class="el" href="class_f_r_e_t_rotamer.html" title="FRET over a trajectory from two screened rotamer libraries.">FRETRotamer</a></code>), dye diffusion on a grid (<code><a class="el" href="class_probe_diffusion_simulation.html" title="A dye&#39;s Brownian walk in its accessible volume, and the field it samples.">ProbeDiffusionSimulation</a></code>, <code><a class="el" href="class_dynamic_accessible_volume.html" title="An accessible volume with diffusion, quenching and FRET rate fields.">DynamicAccessibleVolume</a></code>), linker sampling (<code><a class="el" href="struct_r_r_t_tree.html" title="A tree of configurations, each reached from its parent by one step.">RRTTree</a></code>), probe force fields (<code>create_forcefield_system</code>), side-chain packing (<code>pack_protein_sidechains</code>), the whole fitting stack (<code>Minimizer</code>, <code><a class="el" href="class_t_c_s_p_c_decay.html">TCSPCDecay</a></code>, <code>ChiSquared</code>, FCS, κ²), the labelling-site score, and structure and trajectory IO. It needs nothing but Python and numpy: the wheel links no library outside itself.</p>
 <div class="fragment"><div class="line">pip install imp-bff                      # wheels for Linux, macOS and Windows</div>
 <div class="line">conda install -c conda-forge bff         # the same core as a conda package</div>
-</div><!-- fragment --><p>While a version is still a <b>pre-release</b>, pip only takes it when asked:</p>
+</div><!-- fragment --><p>Publishing a GitHub release builds the wheels for every platform, uploads them to PyPI and attaches the same files to the release page, so both routes below carry exactly what CI built.</p>
+<p>A <b>pre-release</b> — an <code>a</code>/<code>b</code>/<code>rc</code> version, which is what the 0.15 line is right now — is only taken when asked for:</p>
 <div class="fragment"><div class="line">pip install --pre imp-bff</div>
-</div><!-- fragment --><p>Straight from a GitHub release, without PyPI — pip picks the wheel that fits your platform and Python version off the release page:</p>
+</div><!-- fragment --><p>Straight from the release page, which also works for a version that is not on PyPI, and in a room with no PyPI access but a mirror of the release:</p>
 <div class="fragment"><div class="line">pip install --pre \</div>
 <div class="line">  --find-links https://github.com/tpeulen/IMP.bff/releases/expanded_assets/v0.15.0a1 \</div>
 <div class="line">  imp-bff</div>
-</div><!-- fragment --><p>(<code>--find-links</code> adds the release page; PyPI still serves numpy and pooch, so do not add <code>--no-index</code>.)</p>
+</div><!-- fragment --><p>(<code>--find-links</code> adds the release page to the places pip looks; PyPI still serves numpy and pooch, so do not add <code>--no-index</code>.)</p>
 <p>**<code>imp.bff</code> — the <a class="el" href="namespace_i_m_p.html">IMP</a> module.** The same library built inside the Integrative Modeling Platform, with the connection layer: restraints <a class="el" href="namespace_i_m_p.html">IMP</a>'s optimizers score, decorators on <a class="el" href="namespace_i_m_p.html">IMP</a> particles, <code>IMP.atom</code> hierarchies — and the two dye roads that run on them, attaching a dye onto a structure (<code>attach_probes</code>, <code>place_probe</code>) and driving it with Langevin dynamics (<code>make_langevin_simulator</code>, <code><a class="el" href="class_attached_probe_dynamics.html" title="Langevin (md) or Brownian (bd) dynamics of an attached label.">AttachedProbeDynamics</a></code>), which use <a class="el" href="namespace_i_m_p.html">IMP</a>'s own integrators.</p>
 <div class="fragment"><div class="line">conda install -c conda-forge imp.bff</div>
 </div><!-- fragment --><p><code><a class="el" href="namespace_i_m_p_1_1bff.html#a5e7a2d928eae3750d3c40162412b067e" title="Which IMP.bff this translation unit was built as.">IMP.bff.get_build()</a></code> says which one you have: <code>"core"</code> or <code>"imp"</code>.</p>
@@ -291,7 +292,7 @@ Info</h1>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Sep 17 2026 19:51:57 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 17 2026 20:01:26 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
