@@ -1,0 +1,15 @@
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/ProbeComponentTemplate.h" name="/home/runner/work/IMP.bff/IMP.bff/include/ProbeComponentTemplate.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="346,5,582,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,152,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="347,63,144,108,142,102,346,57"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="177,108,370,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="407,63,312,105,310,100,405,58"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="395,108,445,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="453,61,435,97,430,94,448,59"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="470,108,546,133"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="480,59,498,94,493,97,475,61"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="571,108,629,133"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="507,58,572,98,569,103,504,62"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="654,108,717,133"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="533,58,644,100,642,105,531,63"/>
+</map>

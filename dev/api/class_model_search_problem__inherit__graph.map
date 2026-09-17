@@ -1,0 +1,9 @@
+<map id="ModelSearchProblem" name="ModelSearchProblem">
+<area shape="rect" id="Node000001" title="Model&#45;specific topology and evaluation, implemented entirely in C++." alt="" coords="273,5,461,191"/>
+<area shape="rect" id="Node000002" href="$class_fitting_model_search_problem.html" title="A live, callback&#45;free adapter from declarative structures to FitMinimizer." alt="" coords="5,253,235,533"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="280,203,249,240,237,255,232,251,245,237,276,200"/>
+<area shape="rect" id="Node000003" href="$class_multi_structure_model_search_problem.html" title="A callback&#45;free fitting search whose structures have different graphs." alt="" coords="259,239,475,548"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="369,204,369,239,364,239,364,204"/>
+<area shape="rect" id="Node000004" href="$class_tabular_model_search_problem.html" title="A callback&#45;free finite problem, useful for persisted/pre&#45;scored graphs." alt="" coords="499,281,731,506"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="457,200,489,237,524,279,520,282,485,240,453,203"/>
+</map>

@@ -1,0 +1,14 @@
+<map id="Probe" name="Probe">
+<area shape="rect" id="Node000001" title=" " alt="" coords="184,501,353,707"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="44,135,122,200"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="63,201,39,244,17,297,11,325,8,354,11,381,20,408,49,453,86,492,128,526,171,553,168,557,125,530,83,496,45,456,15,410,6,383,3,354,5,324,12,295,34,242,58,199"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="179,318,358,383"/>
+<area shape="poly" id="edge6_Node000006_Node000002" title=" " alt="" coords="117,198,226,304,222,308,113,202"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="18,5,148,85"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="86,99,86,134,80,134,80,99"/>
+<area shape="rect" id="Node000004" href="$struct_spectrum.html" title="Excitation and emission on a shared wavelength grid." alt="" coords="382,298,576,403"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="448,405,393,479,366,510,362,506,389,476,443,402"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="400,135,558,200"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="482,200,482,282,476,282,476,200"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="271,384,271,484,266,484,266,384"/>
+</map>

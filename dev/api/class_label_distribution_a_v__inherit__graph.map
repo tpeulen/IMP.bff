@@ -1,0 +1,5 @@
+<map id="LabelDistributionAV" name="LabelDistributionAV">
+<area shape="rect" id="Node000001" title="A label whose states come from an accessible&#45;volume search." alt="" coords="27,493,193,559"/>
+<area shape="rect" id="Node000002" href="$class_label_distribution.html" title="Where a dye is, as something that produces states on demand." alt="" coords="5,5,215,445"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,459,113,493,107,493,107,459"/>
+</map>

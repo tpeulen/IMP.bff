@@ -1,0 +1,7 @@
+<map id="EnsembleSliceKernel" name="EnsembleSliceKernel">
+<area shape="rect" id="Node000001" title="The ensemble slice sampler (Karamanis &amp; Beutler 2021; what zeus runs), differential directions." alt="" coords="11,752,189,1057"/>
+<area shape="rect" id="Node000002" href="$classinternal_1_1_walker_kernel_base.html" title="Walkers, their log densities and blobs, and the target they are evaluated on." alt="" coords="5,319,195,704"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,718,103,752,97,752,97,718"/>
+<area shape="rect" id="Node000003" href="$class_sampler_kernel.html" title="One transition of every walker a kernel holds." alt="" coords="27,5,173,271"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="103,285,103,318,97,318,97,285"/>
+</map>

@@ -1,0 +1,484 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <title>Explicit dyes: labelling, rotamer libraries and FRET &mdash; IMP.bff  documentation</title>
+  
+  <link rel="canonical" href="http://scikit-learn.org/stable/manual/structure/structure_cgprobe.html" />
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/vendor/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-rendered-html.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/nbsphinx-code-cells.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+<script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+<script src="../../_static/jquery.js"></script> 
+</head>
+<body>
+<nav id="navbar" class="sk-docs-navbar navbar navbar-expand-md navbar-light bg-light py-0">
+  <div class="container-fluid sk-docs-container px-0">
+    <button
+      id="sk-navbar-toggler"
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="sk-navbar-collapse collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../install.html">Install</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../index.html">User Manual</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../api/index.html">API</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../auto_examples/index.html">Examples</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../glossary.html" >Glossary</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../zreferences.html" >References</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../faq.html" >FAQ</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../related_projects.html" >Related packages</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../roadmap.html" >Roadmap</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../about.html" >About us</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://integrativemodeling.org/" >IMP</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+        </li>
+        <li class="nav-item dropdown nav-more-item-dropdown">
+          <a class="sk-nav-link nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">More</a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../glossary.html" >Glossary</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../zreferences.html" >References</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../faq.html" >FAQ</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../related_projects.html" >Related packages</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../roadmap.html" >Roadmap</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../about.html" >About us</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://integrativemodeling.org/" >IMP</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+          </div>
+        </li>
+      </ul>
+      <div id="searchbox" role="search">
+          <div class="searchformwrapper">
+          <form class="search" action="../../search.html" method="get">
+            <input class="sk-search-text-input" type="text" name="q" aria-labelledby="searchlabel" />
+            <input class="sk-search-text-btn" type="submit" value="Go" />
+          </form>
+          </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="d-flex" id="sk-doc-wrapper">
+    <input type="checkbox" name="sk-toggle-checkbox" id="sk-toggle-checkbox">
+    <label id="sk-sidemenu-toggle" class="sk-btn-toggle-toc btn sk-btn-primary" for="sk-toggle-checkbox">Toggle Menu</label>
+    <div id="sk-sidebar-wrapper" class="border-right">
+      <div class="sk-sidebar-toc-wrapper">
+        <div class="sk-sidebar-toc-logo">
+        </div>
+        <div class="btn-group w-100 mb-2" role="group" aria-label="rellinks">
+            <a href="structure_accessible_volumes.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Accessible Volumes">Prev</a><a href="index.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Structural modeling">Up</a>
+            <a href="structure_potentials.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Scoring a coarse-grained protein">Next</a>
+        </div>
+            <div class="sk-sidebar-toc">
+              <ul>
+<li><a class="reference internal" href="#">Explicit dyes: labelling, rotamer libraries and FRET</a><ul>
+<li><a class="reference internal" href="#1.-Label-a-structure-with-an-explicit-dye">1. Label a structure with an explicit dye</a></li>
+<li><a class="reference internal" href="#2.-Rotamer-libraries">2. Rotamer libraries</a></li>
+<li><a class="reference internal" href="#3.-Förster-radius-and-κ²">3. Förster radius and κ²</a></li>
+<li><a class="reference internal" href="#4.-Rotamer-FRET-(FRETpredict-compatible)">4. Rotamer FRET (FRETpredict-compatible)</a></li>
+<li><a class="reference internal" href="#5.-FRET-regimes-and-the-kinetic-master-equation">5. FRET regimes and the kinetic master equation</a></li>
+<li><a class="reference internal" href="#6.-Sampling-the-linker-yourself">6. Sampling the linker yourself</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+      </div>
+    </div>
+    <div id="sk-page-content-wrapper">
+      <div class="sk-page-content container-fluid body px-md-3" role="main">
+        
+  <section id="Explicit-dyes:-labelling,-rotamer-libraries-and-FRET">
+<h1>Explicit dyes: labelling, rotamer libraries and FRET<a class="headerlink" href="#Explicit-dyes:-labelling,-rotamer-libraries-and-FRET" title="Permalink to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> models a fluorescent label in two ways. The <strong>accessible volume</strong> (AV, see <em>Accessible volumes</em>) treats the dye as a point on a flexible linker and enumerates where it can go. The <strong>explicit dye</strong> route (the <code class="docutils literal notranslate"><span class="pre">cgprobe</span></code> layer) places an atomistic dye + linker on a residue, either from a <strong>rotamer library</strong> (FRETpredict’s libraries ship as module data) or by <strong>sampling the linker degrees of freedom</strong>, and scores each conformer against the protein. This page walks the explicit route
+with the flat <code class="docutils literal notranslate"><span class="pre">IMP.bff.*</span></code> API; everything shown here is reachable as <code class="docutils literal notranslate"><span class="pre">IMP.bff.&lt;Name&gt;</span></code> (the sub-packages are just where the code lives).</p>
+<p>Physics pins behind this page (PRD-107): rotamer FRET reproduces FRETpredict on its Hsp90 and pp11 references (<code class="docutils literal notranslate"><span class="pre">test/cgprobe/rotamer/test_fretpredict_pins.py</span></code>), and the invariants of κ², R0, the FRET regimes and the kinetic master equation are asserted in <code class="docutils literal notranslate"><span class="pre">test/cgprobe/test_physics_invariants.py</span></code>.</p>
+<section id="1.-Label-a-structure-with-an-explicit-dye">
+<h2>1. Label a structure with an explicit dye<a class="headerlink" href="#1.-Label-a-structure-with-an-explicit-dye" title="Permalink to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">attach_probes</span></code> moves a dye hierarchy (read from MOL2 or PDB) into the backbone frame of a residue (origin CA, x along CA→N, y in the N–CA–C plane) and, on request, strips the residue’s side chain first. Note the keep-set: cgprobe keeps <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">CA</span> <span class="pre">C</span> <span class="pre">O</span> <span class="pre">OXT</span></code> and <strong>strips CB</strong>, because the explicit linker is built off CA and replaces the whole side chain; the AV convention keeps CB. Both go through one strip engine (<code class="docutils literal notranslate"><span class="pre">IMP.bff.strip_hierarchy</span></code>, PRD-106).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">IMP</span><span class="o">,</span><span class="w"> </span><span class="nn">IMP.atom</span><span class="o">,</span><span class="w"> </span><span class="nn">IMP.core</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">IMP.bff</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">IMP.bff</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_structure_dir</span>   <span class="c1"># bundled inputs (data/cgprobe)</span>
+
+<span class="n">m</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">Model</span><span class="p">()</span>
+<span class="n">protein</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">read_pdb</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">get_structure_dir</span><span class="p">(</span><span class="s2">"1DG3.pdb"</span><span class="p">)),</span> <span class="n">m</span><span class="p">,</span> <span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">NonWaterPDBSelector</span><span class="p">())</span>
+<span class="n">dye</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">read_mol2</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">get_structure_dir</span><span class="p">(</span><span class="s2">"alexa488_r48.mol2"</span><span class="p">)),</span> <span class="n">m</span><span class="p">)</span>
+
+<span class="n">site</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">resolve_probe_site</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="s2">"A"</span><span class="p">,</span> <span class="mi">481</span><span class="p">)</span>          <span class="c1"># {'CA':..., 'N':..., 'C':...}</span>
+<span class="n">attachment</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">ProbeAttachment</span><span class="p">(</span><span class="n">dye</span><span class="p">,</span> <span class="s2">"A"</span><span class="p">,</span> <span class="mi">481</span><span class="p">)</span>
+<span class="n">attached</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">attach_probes</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="p">[</span><span class="n">attachment</span><span class="p">],</span>
+                                 <span class="n">strip_site_sidechain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"dye atoms:"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">get_by_type</span><span class="p">(</span><span class="n">dye</span><span class="p">,</span> <span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">ATOM_TYPE</span><span class="p">)),</span>
+      <span class="s2">"site keep-set:"</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">site_keep_atom_names</span><span class="p">()))</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+dye atoms: 83 site keep-set: (&#39;N&#39;, &#39;CA&#39;, &#39;C&#39;, &#39;O&#39;, &#39;OXT&#39;)
+</pre></div></div>
+</div>
+</section>
+<section id="2.-Rotamer-libraries">
+<h2>2. Rotamer libraries<a class="headerlink" href="#2.-Rotamer-libraries" title="Permalink to this heading">¶</a></h2>
+<p>The FRETpredict rotamer libraries are IMP.bff module data (<code class="docutils literal notranslate"><span class="pre">data/rotamer_library</span></code>). A library name selects the dye, the linker and the clustering cutoff; the cutoff in the name is honoured (<code class="docutils literal notranslate"><span class="pre">cutoff10</span></code> = 711 rotamers for Alexa488 C1R, <code class="docutils literal notranslate"><span class="pre">cutoff30</span></code> = 33 — the default).</p>
+<p>The libraries ship as one <strong>``.drot.pto``</strong> container per family (PRD-118): a PTO/EBML document holding, per library, the template, the Z-matrix and, per conformer, its own base coordinates, bond lengths, bond angles and dihedrals. Two things follow. It is <em>self-contained</em> — atom names, residue names and elements ride inside it, so unlike the BinaryCIF frame store it needs no <code class="docutils literal notranslate"><span class="pre">.pdb</span></code> beside it — and a conformer <em>is</em> a dihedral vector, which is what continuous side-chain sampling needs. It is
+also lossless: rebuilding a conformer reproduces the source to ~1e-6 Å, which is what keeps the FRETpredict parity pins inside their 1e-5 tolerance, at ~0.65× the size of the BinaryCIF of the same ensemble (which still ships, and still reads).</p>
+<p>Building a library from a trajectory is one program — <code class="docutils literal notranslate"><span class="pre">.bcif</span></code>, <code class="docutils literal notranslate"><span class="pre">.dcd</span></code> and (through mdtraj) <code class="docutils literal notranslate"><span class="pre">.xtc</span></code> all read:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>imp_bff traj2drot lib.bcif lib.drot --top lib.pdb --weights lib_weights.txt
+imp_bff traj2drot raw.dcd  lib.drot --top lib.pdb --cluster 1.0
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">--cluster</span> <span class="pre">A</span></code> takes PRD-118’s raw-MD path: the frames are leader-clustered by <code class="docutils literal notranslate"><span class="pre">cluster_frames_leader</span></code> — the algorithm FRETpredict’s own libraries were built with — the leaders become the rotamers and the cluster populations the weights. A path is a library name everywhere a name is taken, so a library you just built drops straight into <code class="docutils literal notranslate"><span class="pre">ProbeRotamerEnsemble.from_site</span></code> and <code class="docutils literal notranslate"><span class="pre">FRETRotamer</span></code>; <code class="docutils literal notranslate"><span class="pre">examples/structure/drot_rotamer_library.py</span></code> runs that path end to end.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lib</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">load_probe_rotamer_library</span><span class="p">(</span><span class="s2">"AlexaFluor 488 C1R cutoff30"</span><span class="p">)</span>
+<span class="n">meta</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">lib</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">lib</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s2">"rotamers x atoms x 3;"</span><span class="p">,</span> <span class="s2">"weights sum"</span><span class="p">,</span> <span class="n">lib</span><span class="o">.</span><span class="n">weights</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"chromophore centre selector:"</span><span class="p">,</span> <span class="n">meta</span><span class="p">[</span><span class="s2">"r"</span><span class="p">],</span> <span class="s2">" dipole:"</span><span class="p">,</span> <span class="n">meta</span><span class="p">[</span><span class="s2">"mu"</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">resolve_probe_rotamer_library_path</span><span class="p">(</span><span class="s2">"AlexaFluor 488 C1R cutoff10"</span><span class="p">))</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(33, 83, 3) rotamers x atoms x 3; weights sum 1.0
+chromophore centre selector: [&#39;C7 and resname A48&#39;]  dipole: [&#39;C2&#39;, &#39;C13 and resname A48&#39;]
+dyes.drot.pto::A48_C1R_cutoff10
+</pre></div></div>
+</div>
+</section>
+<section id="3.-Förster-radius-and-κ²">
+<h2>3. Förster radius and κ²<a class="headerlink" href="#3.-Förster-radius-and-κ²" title="Permalink to this heading">¶</a></h2>
+<p>R0 comes from the bundled donor emission / acceptor excitation spectra (<code class="docutils literal notranslate"><span class="pre">IMP.bff.forster_radius_from_spectra</span></code>) and is in <strong>Ångström</strong>, like every other length in this package – the spectra it integrates are in nanometres and the conversion happens once, inside. κ² comes from transition-dipole vectors (<code class="docutils literal notranslate"><span class="pre">IMP.bff.kappa2_dipole_matrix</span></code>, the full donor-by-acceptor matrix).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="n">r0_iso</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">forster_radius_from_spectra</span><span class="p">(</span><span class="s2">"AlexaFluor 488"</span><span class="p">,</span> <span class="s2">"AlexaFluor 594"</span><span class="p">,</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">kappa2_isotropic</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"R0(A488/A594, kappa2=2/3) ="</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">r0_iso</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="s2">"A"</span><span class="p">)</span>
+<span class="n">mu_d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]]);</span> <span class="n">mu_a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]]);</span> <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">50.0</span><span class="p">]]])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"collinear kappa2 ="</span><span class="p">,</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">kappa2_dipole_matrix</span><span class="p">(</span><span class="n">mu_d</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">mu_a</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">r</span><span class="o">.</span><span class="n">ravel</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+R0(A488/A594, kappa2=2/3) = 56.878 A
+collinear kappa2 = 4.0
+</pre></div></div>
+</div>
+</section>
+<section id="4.-Rotamer-FRET-(FRETpredict-compatible)">
+<h2>4. Rotamer FRET (FRETpredict-compatible)<a class="headerlink" href="#4.-Rotamer-FRET-(FRETpredict-compatible)" title="Permalink to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">FRETRotamer</span></code> places two libraries on two sites of a structure (PDB, multi-MODEL PDB, or RMF trajectory), screens every rotamer against the protein (Lennard-Jones, optional Debye–Hückel), and reports per frame the static, dynamic-1 and dynamic-2 efficiencies, ⟨κ²⟩ and the partition functions.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">IMP.bff</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_structure_dir</span>
+<span class="n">fret</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">FRETRotamer</span><span class="p">(</span>
+    <span class="nb">str</span><span class="p">(</span><span class="n">get_structure_dir</span><span class="p">(</span><span class="s2">"148L.pdb"</span><span class="p">)),</span> <span class="p">[</span><span class="mi">22</span><span class="p">,</span> <span class="mi">137</span><span class="p">],</span> <span class="n">chains</span><span class="o">=</span><span class="p">[</span><span class="s2">"E"</span><span class="p">,</span> <span class="s2">"E"</span><span class="p">],</span>   <span class="c1"># T4 lysozyme, chain E</span>
+    <span class="n">donor</span><span class="o">=</span><span class="s2">"AlexaFluor 488"</span><span class="p">,</span> <span class="n">acceptor</span><span class="o">=</span><span class="s2">"AlexaFluor 594"</span><span class="p">,</span>
+    <span class="n">libname_1</span><span class="o">=</span><span class="s2">"AlexaFluor 488 C1R cutoff30"</span><span class="p">,</span> <span class="n">libname_2</span><span class="o">=</span><span class="s2">"AlexaFluor 594 C1R cutoff30"</span><span class="p">,</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mi">298</span><span class="p">,</span> <span class="n">electrostatic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">output_prefix</span><span class="o">=</span><span class="s2">"t4l_rotamer"</span><span class="p">)</span>
+<span class="n">fret</span><span class="o">.</span><span class="n">trajectory_analysis</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"E_static"</span><span class="p">,</span> <span class="n">fret</span><span class="o">.</span><span class="n">estatic_values</span><span class="p">,</span> <span class="s2">"E_dyn1"</span><span class="p">,</span> <span class="n">fret</span><span class="o">.</span><span class="n">edynamic1_values</span><span class="p">,</span> <span class="s2">"&lt;kappa2&gt;"</span><span class="p">,</span> <span class="n">fret</span><span class="o">.</span><span class="n">k2_values</span><span class="p">,</span> <span class="s2">"Z"</span><span class="p">,</span> <span class="n">fret</span><span class="o">.</span><span class="n">z_values</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+E_static [0.9961626] E_dyn1 [0.99853722] &lt;kappa2&gt; [0.63724536] Z [[4.04320651 0.5739155 ]]
+</pre></div></div>
+</div>
+</section>
+<section id="5.-FRET-regimes-and-the-kinetic-master-equation">
+<h2>5. FRET regimes and the kinetic master equation<a class="headerlink" href="#5.-FRET-regimes-and-the-kinetic-master-equation" title="Permalink to this heading">¶</a></h2>
+<p>Given a donor×acceptor grid of distances and κ² with weights, <code class="docutils literal notranslate"><span class="pre">fret_efficiency_regimes</span></code> returns the static, dynamic and dynamic+ averages; <code class="docutils literal notranslate"><span class="pre">fret_efficiency_exact_kinetic</span></code> solves the master equation for a transition matrix (slow exchange → static average, fast exchange → dynamic average).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">45.0</span><span class="p">,</span> <span class="mf">60.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">52.0</span><span class="p">,</span> <span class="mf">48.0</span><span class="p">]]);</span> <span class="n">k2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]])</span>
+<span class="n">wd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">]);</span> <span class="n">wa</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">fret_efficiency_regimes</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">k2</span><span class="p">,</span> <span class="n">wd</span><span class="p">,</span> <span class="n">wa</span><span class="p">,</span> <span class="n">forster_radius</span><span class="o">=</span><span class="mf">52.0</span><span class="p">))</span>
+<span class="n">P</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">transition_matrix_from_counts</span><span class="p">([</span><span class="mi">8</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">rates</span> <span class="o">=</span> <span class="p">((</span><span class="mf">52.0</span> <span class="o">/</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">**</span> <span class="mi">6</span> <span class="o">*</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="n">k2</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">)</span>      <span class="c1"># donor states vs one acceptor, 1/ns</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"E (kinetic, donor exchange):"</span><span class="p">,</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">fret_efficiency_exact_kinetic</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">rates</span><span class="p">,</span> <span class="n">tau0</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mf">0.1</span><span class="p">))</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+FRETRegimes(static=0.579387, dynamic=0.603931)
+E (kinetic, donor exchange): 0.6167689346520641
+</pre></div></div>
+</div>
+</section>
+<section id="6.-Sampling-the-linker-yourself">
+<h2>6. Sampling the linker yourself<a class="headerlink" href="#6.-Sampling-the-linker-yourself" title="Permalink to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">LinkerSampler</span></code> / <code class="docutils literal notranslate"><span class="pre">generate_linker_rotamers</span></code> Metropolis-sample a dye’s linker torsions and bond angles (bonded 1-2/1-3/1-4 pairs excluded from the LJ score), cluster the frames and Boltzmann-weight the clusters; <code class="docutils literal notranslate"><span class="pre">run_torsion_rrt</span></code> and <code class="docutils literal notranslate"><span class="pre">run_rigid_body_rrt</span></code> grow collision-free trees. Real stochastic dynamics of an attached dye – Langevin-thermostat MD or Brownian dynamics on the dye force field with the protein as soft-sphere obstacles – is <code class="docutils literal notranslate"><span class="pre">AttachedProbeDynamics</span></code>
+(<code class="docutils literal notranslate"><span class="pre">integrator=&quot;md&quot;|&quot;bd&quot;</span></code>; thermodynamic pins in <code class="docutils literal notranslate"><span class="pre">test/cgprobe/test_langevin_sampler.py</span></code>). The command line (<code class="docutils literal notranslate"><span class="pre">imp_bff</span> <span class="pre">--help</span></code>) drives the same code; <code class="docutils literal notranslate"><span class="pre">examples/structure/hgbp1_explicit_dye_fret.py</span></code> strings ensembles, FRET, an fps.json with <code class="docutils literal notranslate"><span class="pre">R1</span></code> positions and a Langevin run together.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lib_gen</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">generate_linker_rotamers</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">get_structure_dir</span><span class="p">(</span><span class="s2">"alexa488_r48.mol2"</span><span class="p">)),</span>
+                                          <span class="n">n_steps</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">write_every</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">cluster_threshold</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+<span class="c1"># `generate_linker_rotamers` answers an `IMP.bff.ProbeRotamerLibrary` -- the one</span>
+<span class="c1"># value every rotamer reader in this module returns -- not a dict.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">lib_gen</span><span class="o">.</span><span class="n">n_rotamers</span><span class="p">,</span> <span class="s2">"clusters;"</span><span class="p">,</span>
+      <span class="n">lib_gen</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">,</span> <span class="s2">"atoms; transitions"</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">lib_gen</span><span class="o">.</span><span class="n">transitions</span><span class="p">))</span>
+
+<span class="c1"># a short Langevin run of the attached dye (see section 1 for `protein`, `dye`)</span>
+<span class="n">sampler</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">AttachedProbeDynamics</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">dye</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">get_structure_dir</span><span class="p">(</span><span class="s2">"alexa488_r48.mol2"</span><span class="p">)),</span> <span class="s2">"A"</span><span class="p">,</span> <span class="mi">481</span><span class="p">,</span>
+                                     <span class="n">integrator</span><span class="o">=</span><span class="s2">"md"</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">sampler</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">traj</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">write_every</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">traj</span><span class="o">.</span><span class="n">n_frames</span><span class="p">,</span> <span class="s2">"frames; &lt;T_kin&gt; ="</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">sampler</span><span class="o">.</span><span class="n">kinetic_temperature</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">traj</span><span class="o">.</span><span class="n">kinetic_energy</span><span class="p">)</span> <span class="o">/</span> <span class="n">traj</span><span class="o">.</span><span class="n">n_frames</span><span class="p">),</span> <span class="s2">"K"</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+20 clusters; transitions 19
+10 frames; &lt;T_kin&gt; = 300 K
+</pre></div></div>
+</div>
+</section>
+</section>
+
+
+      </div>
+    <div class="container">
+      <footer class="sk-content-footer">
+            &copy; 2021 - 2026, IMP developers.
+      </footer>
+    </div>
+  </div>
+</div>
+<script src="../../_static/js/vendor/bootstrap.min.js"></script>
+
+<script>
+    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+    ga('create', 'UA-22606712-2', 'auto');
+    ga('set', 'anonymizeIp', true);
+    ga('send', 'pageview');
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+<script>
+$(document).ready(function() {
+    /* Add a [>>>] button on the top-right corner of code samples to hide
+     * the >>> and ... prompts and the output and thus make the code
+     * copyable. */
+    var div = $('.highlight-python .highlight,' +
+                '.highlight-python3 .highlight,' +
+                '.highlight-pycon .highlight,' +
+		'.highlight-default .highlight')
+    var pre = div.find('pre');
+
+    // get the styles from the current theme
+    pre.parent().parent().css('position', 'relative');
+    var hide_text = 'Hide prompts and outputs';
+    var show_text = 'Show prompts and outputs';
+
+    // create and add the button to all the code blocks that contain >>>
+    div.each(function(index) {
+        var jthis = $(this);
+        if (jthis.find('.gp').length > 0) {
+            var button = $('<span class="copybutton">&gt;&gt;&gt;</span>');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+            jthis.prepend(button);
+        }
+        // tracebacks (.gt) contain bare text elements that need to be
+        // wrapped in a span to work with .nextUntil() (see later)
+        jthis.find('pre:has(.gt)').contents().filter(function() {
+            return ((this.nodeType == 3) && (this.data.trim().length > 0));
+        }).wrap('<span>');
+    });
+
+    // define the behavior of the button when it's clicked
+    $('.copybutton').click(function(e){
+        e.preventDefault();
+        var button = $(this);
+        if (button.data('hidden') === 'false') {
+            // hide the code output
+            button.parent().find('.go, .gp, .gt').hide();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'hidden');
+            button.css('text-decoration', 'line-through');
+            button.attr('title', show_text);
+            button.data('hidden', 'true');
+        } else {
+            // show the code output
+            button.parent().find('.go, .gp, .gt').show();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'visible');
+            button.css('text-decoration', 'none');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+        }
+    });
+
+	/*** Add permalink buttons next to glossary terms ***/
+	$('dl.glossary > dt[id]').append(function() {
+		return ('<a class="headerlink" href="#' +
+			    this.getAttribute('id') +
+			    '" title="Permalink to this term">¶</a>');
+	});
+  /*** Hide navbar when scrolling down ***/
+  // Returns true when headerlink target matches hash in url
+  (function() {
+    hashTargetOnTop = function() {
+        var hash = window.location.hash;
+        if ( hash.length < 2 ) { return false; }
+
+        var target = document.getElementById( hash.slice(1) );
+        if ( target === null ) { return false; }
+
+        var top = target.getBoundingClientRect().top;
+        return (top < 2) && (top > -2);
+    };
+
+    // Hide navbar on load if hash target is on top
+    var navBar = document.getElementById("navbar");
+    var navBarToggler = document.getElementById("sk-navbar-toggler");
+    var navBarHeightHidden = "-" + navBar.getBoundingClientRect().height + "px";
+    var $window = $(window);
+
+    hideNavBar = function() {
+        navBar.style.top = navBarHeightHidden;
+    };
+
+    showNavBar = function() {
+        navBar.style.top = "0";
+    }
+
+    if (hashTargetOnTop()) {
+        hideNavBar()
+    }
+
+    var prevScrollpos = window.pageYOffset;
+    hideOnScroll = function(lastScrollTop) {
+        if (($window.width() < 768) && (navBarToggler.getAttribute("aria-expanded") === 'true')) {
+            return;
+        }
+        if (lastScrollTop > 2 && (prevScrollpos <= lastScrollTop) || hashTargetOnTop()){
+            hideNavBar()
+        } else {
+            showNavBar()
+        }
+        prevScrollpos = lastScrollTop;
+    };
+
+    /*** high performance scroll event listener***/
+    var raf = window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        window.oRequestAnimationFrame;
+    var lastScrollTop = $window.scrollTop();
+
+    if (raf) {
+        loop();
+    }
+
+    function loop() {
+        var scrollTop = $window.scrollTop();
+        if (lastScrollTop === scrollTop) {
+            raf(loop);
+            return;
+        } else {
+            lastScrollTop = scrollTop;
+            hideOnScroll(lastScrollTop);
+            raf(loop);
+        }
+    }
+  })();
+});
+
+</script>
+    
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+</body>
+</html>

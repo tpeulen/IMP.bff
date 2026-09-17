@@ -1,0 +1,406 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <title>Getting Started &mdash; IMP.bff  documentation</title>
+  
+  <link rel="canonical" href="http://scikit-learn.org/stable/getting_started.html" />
+
+  
+
+  <link rel="stylesheet" href="_static/css/vendor/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sg_gallery.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sg_gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sg_gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sg_gallery-rendered-html.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+<script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+<script src="_static/jquery.js"></script> 
+</head>
+<body>
+<nav id="navbar" class="sk-docs-navbar navbar navbar-expand-md navbar-light bg-light py-0">
+  <div class="container-fluid sk-docs-container px-0">
+    <button
+      id="sk-navbar-toggler"
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="sk-navbar-collapse collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="install.html">Install</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="manual/index.html">User Manual</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="api/index.html">API</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="auto_examples/index.html">Examples</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="glossary.html" >Glossary</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="zreferences.html" >References</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="faq.html" >FAQ</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="related_projects.html" >Related packages</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="roadmap.html" >Roadmap</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="about.html" >About us</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://integrativemodeling.org/" >IMP</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+        </li>
+        <li class="nav-item dropdown nav-more-item-dropdown">
+          <a class="sk-nav-link nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">More</a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="sk-nav-dropdown-item dropdown-item" href="glossary.html" >Glossary</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="zreferences.html" >References</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="faq.html" >FAQ</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="related_projects.html" >Related packages</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="roadmap.html" >Roadmap</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="about.html" >About us</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://integrativemodeling.org/" >IMP</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+          </div>
+        </li>
+      </ul>
+      <div id="searchbox" role="search">
+          <div class="searchformwrapper">
+          <form class="search" action="search.html" method="get">
+            <input class="sk-search-text-input" type="text" name="q" aria-labelledby="searchlabel" />
+            <input class="sk-search-text-btn" type="submit" value="Go" />
+          </form>
+          </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="d-flex" id="sk-doc-wrapper">
+    <input type="checkbox" name="sk-toggle-checkbox" id="sk-toggle-checkbox">
+    <label id="sk-sidemenu-toggle" class="sk-btn-toggle-toc btn sk-btn-primary" for="sk-toggle-checkbox">Toggle Menu</label>
+    <div id="sk-sidebar-wrapper" class="border-right">
+      <div class="sk-sidebar-toc-wrapper">
+        <div class="sk-sidebar-toc-logo">
+        </div>
+        <div class="btn-group w-100 mb-2" role="group" aria-label="rellinks">
+            <a href="roadmap.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Roadmap">Prev</a>
+            <a href="#" role="button" class="btn sk-btn-rellink disabled py-1">Up</a>
+            <a href="manual/index.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="User manual">Next</a>
+        </div>
+            <div class="sk-sidebar-toc">
+              <ul>
+<li><a class="reference internal" href="#">Getting Started</a><ul>
+<li><a class="reference internal" href="#Restrained-integrative-modeling">Restrained integrative modeling</a></li>
+<li><a class="reference internal" href="#Next-steps">Next steps</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+      </div>
+    </div>
+    <div id="sk-page-content-wrapper">
+      <div class="sk-page-content container-fluid body px-md-3" role="main">
+        
+  <section id="Getting-Started">
+<h1>Getting Started<a class="headerlink" href="#Getting-Started" title="Permalink to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> is an open source framework for Bayesian modeling of fluorescence data. BFF provides various tools for data processing and preprocessing. IMP.bff is not an application in the traditional sense: there is no program called <code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> that you run. <code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> is a collection of libraries and different programs written in C++ and the Python programming language. Those libraries and programs can easily be chained together to create tools and pipelines for integrative modeling with
+fluorescence information with the integrative modeling platform (IMP). Don’t worry, you don’t need to know anything about Python programming to use existing simulation pipelines. You can use the existing application examples as templates.</p>
+<p>On the other hand, if you do not mind doing a little programming, this approach gives you enormous power and flexibility. Your script has complete access to the entire IMP and <code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> application programming interface (API), as well as the full power of the Python language and libraries. You have complete control over every detail of the integrative modeling process, from defining the representation of your system to analyzing the results.</p>
+<p>The purpose of this guide is to illustrate some of the main <code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> features. It assumes a very basic working knowledge on the integrative modeling platform (IMP), fluorescence spectroscopy (decay analysis, correlation spectroscopy, etc.). Please refer to our <a class="reference internal" href="install.html"><span class="doc">installation instructions</span></a> for installing <code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code>.</p>
+<p>Given an set of AVs features such as the distribution between AVs can be computed.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="n">rda_start</span><span class="p">,</span> <span class="n">rda_stop</span><span class="p">,</span> <span class="n">n_bins</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">128</span>
+<span class="n">n_samples</span> <span class="o">=</span> <span class="mi">10000</span>
+<span class="n">rda</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">rda_start</span><span class="p">,</span> <span class="n">rda_stop</span><span class="p">,</span> <span class="n">n_bins</span><span class="p">)</span>
+<span class="n">p_rda</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">av_distance_distribution</span><span class="p">(</span><span class="n">av1</span><span class="p">,</span> <span class="n">av2</span><span class="p">,</span> <span class="n">rda</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Such distance distributions can be used to compute experimental observables. More details on fluorescence experiments and observables provided in the <a class="reference internal" href="manual/index.html"><span class="doc">user manual</span></a> section of the user manual and in the <a class="reference internal" href="auto_examples/index.html"><span class="doc">example</span></a> section if <code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code>.</p>
+<section id="Restrained-integrative-modeling">
+<h2>Restrained integrative modeling<a class="headerlink" href="#Restrained-integrative-modeling" title="Permalink to this heading">¶</a></h2>
+<p>!!!!!STOP!!!!!!!</p>
+<p>A feature that is likely used the most for integrative modeling are FRET-restraints. A set of simulated labeled can be used as restraint for integrative modeling. To incorporate a restraint for integrative modeling, first, import the module:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">IMP.bff</span>
+</pre></div>
+</div>
+<p>Then, define a <code class="docutils literal notranslate"><span class="pre">fps.json</span></code> file that contain experimental information:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"Distances"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"5-44_C3"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"error_neg"</span><span class="p">:</span><span class="w"> </span><span class="mf">3.6</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"error_pos"</span><span class="p">:</span><span class="w"> </span><span class="mf">3.6</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"distance"</span><span class="p">:</span><span class="w"> </span><span class="mf">25.6</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"position1_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"5D"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"position2_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"44A"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"Forster_radius"</span><span class="p">:</span><span class="w"> </span><span class="mi">52</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"distance_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"RDAMean"</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">"5-132_C3"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"error_neg"</span><span class="p">:</span><span class="w"> </span><span class="mf">5.9</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"error_pos"</span><span class="p">:</span><span class="w"> </span><span class="mf">5.9</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"distance"</span><span class="p">:</span><span class="w"> </span><span class="mf">35.8</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"position1_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"5D"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"position2_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"132A"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"Forster_radius"</span><span class="p">:</span><span class="w"> </span><span class="mi">52</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"distance_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"RDAMean"</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"Positions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"5D"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"allowed_sphere_radius"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"atom_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"CB"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"linker_length"</span><span class="p">:</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"linker_width"</span><span class="p">:</span><span class="w"> </span><span class="mf">2.5</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"radius1"</span><span class="p">:</span><span class="w"> </span><span class="mf">3.5</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"residue_seq_number"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"simulation_grid_resolution"</span><span class="p">:</span><span class="w"> </span><span class="mf">2.0</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"simulation_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AV1"</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">"132A"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"atom_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"CB"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"contact_volume_thickness"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"linker_length"</span><span class="p">:</span><span class="w"> </span><span class="mi">22</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"linker_width"</span><span class="p">:</span><span class="w"> </span><span class="mf">3.5</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"radius1"</span><span class="p">:</span><span class="w"> </span><span class="mf">3.5</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"residue_seq_number"</span><span class="p">:</span><span class="w"> </span><span class="mi">132</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"simulation_grid_resolution"</span><span class="p">:</span><span class="w"> </span><span class="mf">2.0</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"simulation_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AV1"</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">"44A"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"atom_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"CB"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"contact_volume_thickness"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"linker_length"</span><span class="p">:</span><span class="w"> </span><span class="mi">22</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"linker_width"</span><span class="p">:</span><span class="w"> </span><span class="mf">4.5</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"radius1"</span><span class="p">:</span><span class="w"> </span><span class="mf">3.5</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"residue_seq_number"</span><span class="p">:</span><span class="w"> </span><span class="mi">44</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"simulation_grid_resolution"</span><span class="p">:</span><span class="w"> </span><span class="mf">2.0</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"simulation_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AV1"</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"χ²"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"chi2_C3_all"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"distances"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="s2">"5-132_C3"</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">"5-44_C3"</span>
+<span class="w">      </span><span class="p">]</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">"chi2_C3"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"distances"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="s2">"5-132_C2"</span>
+<span class="w">      </span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>In your modeling script import the module:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">IMP.bff</span>
+</pre></div>
+</div>
+<p>Finally, select the “score set”, i.e., a set of distances that are used for score calculation, create the restraint and add it to the model.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fps_json_fn</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">root_dir</span> <span class="o">/</span> <span class="s2">"screening.fps.json"</span><span class="p">)</span>
+<span class="n">score_set</span> <span class="o">=</span> <span class="s2">"chi2_C3_all"</span>
+<span class="n">fret_rs</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">probe_network_restraint_set</span><span class="p">(</span>
+    <span class="n">hier</span><span class="p">,</span> <span class="n">fps_json_fn</span><span class="p">,</span>
+    <span class="n">mean_position_restraint</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">score_set</span><span class="o">=</span><span class="n">score_set</span>
+<span class="p">)</span>
+<span class="n">IMP</span><span class="o">.</span><span class="n">pmi</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">add_restraint_to_model</span><span class="p">(</span><span class="n">hier</span><span class="o">.</span><span class="n">get_model</span><span class="p">(),</span> <span class="n">fret_rs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The restraint has two modes of operation. Either the AVs are computed once and the label mean positions are attached to rigid bodies and the distance between the mean positions are used for scoring (mean_position_restraint) or the AVs are recomputed at every iteration. The later is computationally more expensive (but more accurate). More features of <code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> are described the examples.</p>
+</section>
+<section id="Next-steps">
+<h2>Next steps<a class="headerlink" href="#Next-steps" title="Permalink to this heading">¶</a></h2>
+<p>We have briefly covered how <code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> can be used for restrained simulations. Please refer to our <a class="reference external" href="user%20manual">user manual</a> for details on all the tools that we provide. You can also find an exhaustive list of the public API in the <a class="reference external" href="api_ref">API</a> or the numerous <a class="reference external" href="auto_examples/index">examples</a> that illustrate the use of <code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> in many different contexts.</p>
+</section>
+</section>
+
+
+      </div>
+    <div class="container">
+      <footer class="sk-content-footer">
+            &copy; 2021 - 2026, IMP developers.
+      </footer>
+    </div>
+  </div>
+</div>
+<script src="_static/js/vendor/bootstrap.min.js"></script>
+
+<script>
+    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+    ga('create', 'UA-22606712-2', 'auto');
+    ga('set', 'anonymizeIp', true);
+    ga('send', 'pageview');
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+<script>
+$(document).ready(function() {
+    /* Add a [>>>] button on the top-right corner of code samples to hide
+     * the >>> and ... prompts and the output and thus make the code
+     * copyable. */
+    var div = $('.highlight-python .highlight,' +
+                '.highlight-python3 .highlight,' +
+                '.highlight-pycon .highlight,' +
+		'.highlight-default .highlight')
+    var pre = div.find('pre');
+
+    // get the styles from the current theme
+    pre.parent().parent().css('position', 'relative');
+    var hide_text = 'Hide prompts and outputs';
+    var show_text = 'Show prompts and outputs';
+
+    // create and add the button to all the code blocks that contain >>>
+    div.each(function(index) {
+        var jthis = $(this);
+        if (jthis.find('.gp').length > 0) {
+            var button = $('<span class="copybutton">&gt;&gt;&gt;</span>');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+            jthis.prepend(button);
+        }
+        // tracebacks (.gt) contain bare text elements that need to be
+        // wrapped in a span to work with .nextUntil() (see later)
+        jthis.find('pre:has(.gt)').contents().filter(function() {
+            return ((this.nodeType == 3) && (this.data.trim().length > 0));
+        }).wrap('<span>');
+    });
+
+    // define the behavior of the button when it's clicked
+    $('.copybutton').click(function(e){
+        e.preventDefault();
+        var button = $(this);
+        if (button.data('hidden') === 'false') {
+            // hide the code output
+            button.parent().find('.go, .gp, .gt').hide();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'hidden');
+            button.css('text-decoration', 'line-through');
+            button.attr('title', show_text);
+            button.data('hidden', 'true');
+        } else {
+            // show the code output
+            button.parent().find('.go, .gp, .gt').show();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'visible');
+            button.css('text-decoration', 'none');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+        }
+    });
+
+	/*** Add permalink buttons next to glossary terms ***/
+	$('dl.glossary > dt[id]').append(function() {
+		return ('<a class="headerlink" href="#' +
+			    this.getAttribute('id') +
+			    '" title="Permalink to this term">¶</a>');
+	});
+  /*** Hide navbar when scrolling down ***/
+  // Returns true when headerlink target matches hash in url
+  (function() {
+    hashTargetOnTop = function() {
+        var hash = window.location.hash;
+        if ( hash.length < 2 ) { return false; }
+
+        var target = document.getElementById( hash.slice(1) );
+        if ( target === null ) { return false; }
+
+        var top = target.getBoundingClientRect().top;
+        return (top < 2) && (top > -2);
+    };
+
+    // Hide navbar on load if hash target is on top
+    var navBar = document.getElementById("navbar");
+    var navBarToggler = document.getElementById("sk-navbar-toggler");
+    var navBarHeightHidden = "-" + navBar.getBoundingClientRect().height + "px";
+    var $window = $(window);
+
+    hideNavBar = function() {
+        navBar.style.top = navBarHeightHidden;
+    };
+
+    showNavBar = function() {
+        navBar.style.top = "0";
+    }
+
+    if (hashTargetOnTop()) {
+        hideNavBar()
+    }
+
+    var prevScrollpos = window.pageYOffset;
+    hideOnScroll = function(lastScrollTop) {
+        if (($window.width() < 768) && (navBarToggler.getAttribute("aria-expanded") === 'true')) {
+            return;
+        }
+        if (lastScrollTop > 2 && (prevScrollpos <= lastScrollTop) || hashTargetOnTop()){
+            hideNavBar()
+        } else {
+            showNavBar()
+        }
+        prevScrollpos = lastScrollTop;
+    };
+
+    /*** high performance scroll event listener***/
+    var raf = window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        window.oRequestAnimationFrame;
+    var lastScrollTop = $window.scrollTop();
+
+    if (raf) {
+        loop();
+    }
+
+    function loop() {
+        var scrollTop = $window.scrollTop();
+        if (lastScrollTop === scrollTop) {
+            raf(loop);
+            return;
+        } else {
+            lastScrollTop = scrollTop;
+            hideOnScroll(lastScrollTop);
+            raf(loop);
+        }
+    }
+  })();
+});
+
+</script>
+    
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+</body>
+</html>

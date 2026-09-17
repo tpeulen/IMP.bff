@@ -1,0 +1,14 @@
+<map id="ProbeRotamerLibrary" name="ProbeRotamerLibrary">
+<area shape="rect" id="Node000001" title="An ensemble of conformers with a weight each: a rotamer library." alt="" coords="173,420,366,605"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,263,163,328"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,327,111,361,131,394,163,429,159,432,127,398,106,363,92,329"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="313,263,492,328"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="385,330,337,407,333,404,381,327"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="193,135,271,200"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="231,201,225,263,223,295,225,328,240,404,235,405,220,328,218,295,220,262,225,200"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="273,196,348,251,345,255,270,200"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="167,5,297,85"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="235,99,235,134,229,134,229,99"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="516,263,647,328"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="553,330,517,364,476,398,382,457,379,453,473,394,514,360,549,326"/>
+</map>

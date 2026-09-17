@@ -1,0 +1,20 @@
+<map id="DockingSpread" name="DockingSpread">
+<area shape="rect" id="Node000001" title="What repeated minimisation from random starts says about a docking." alt="" coords="297,737,434,903"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="391,549,585,615"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="474,616,418,724,413,721,469,614"/>
+<area shape="rect" id="Node000003" href="$struct_docking_trial.html" title="One independent docking start of dock_from_independent_starts." alt="" coords="545,307,663,412"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="579,413,515,536,510,533,574,411"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="477,135,555,200"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="544,199,560,223,588,290,583,292,555,225,540,202"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="341,327,520,392"/>
+<area shape="poly" id="edge8_Node000008_Node000004" title=" " alt="" coords="496,201,482,225,448,312,443,310,478,223,491,199"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="451,5,581,85"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="519,99,519,134,513,134,513,99"/>
+<area shape="rect" id="Node000006" href="$struct_docking_position_uncertainty.html" title="What repeated docking says about a model&#39;s precision." alt="" coords="141,489,361,675"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="298,674,321,721,316,724,293,676"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="160,327,317,392"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="243,392,247,473,242,473,238,392"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="410,394,354,467,345,479,340,475,350,464,406,391"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="5,327,136,392"/>
+<area shape="poly" id="edge9_Node000006_Node000009" title=" " alt="" coords="95,391,150,464,159,475,155,478,146,467,91,394"/>
+</map>

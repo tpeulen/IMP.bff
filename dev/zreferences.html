@@ -1,0 +1,585 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <title>References &mdash; IMP.bff  documentation</title>
+  
+  <link rel="canonical" href="http://scikit-learn.org/stable/zreferences.html" />
+
+  
+
+  <link rel="stylesheet" href="_static/css/vendor/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sg_gallery.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sg_gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sg_gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sg_gallery-rendered-html.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+<script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+<script src="_static/jquery.js"></script> 
+</head>
+<body>
+<nav id="navbar" class="sk-docs-navbar navbar navbar-expand-md navbar-light bg-light py-0">
+  <div class="container-fluid sk-docs-container px-0">
+    <button
+      id="sk-navbar-toggler"
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="sk-navbar-collapse collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="install.html">Install</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="manual/index.html">User Manual</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="api/index.html">API</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="auto_examples/index.html">Examples</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="glossary.html" >Glossary</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="#" >References</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="faq.html" >FAQ</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="related_projects.html" >Related packages</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="roadmap.html" >Roadmap</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="about.html" >About us</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://integrativemodeling.org/" >IMP</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+        </li>
+        <li class="nav-item dropdown nav-more-item-dropdown">
+          <a class="sk-nav-link nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">More</a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="sk-nav-dropdown-item dropdown-item" href="glossary.html" >Glossary</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="#" >References</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="faq.html" >FAQ</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="related_projects.html" >Related packages</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="roadmap.html" >Roadmap</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="about.html" >About us</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://integrativemodeling.org/" >IMP</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+          </div>
+        </li>
+      </ul>
+      <div id="searchbox" role="search">
+          <div class="searchformwrapper">
+          <form class="search" action="search.html" method="get">
+            <input class="sk-search-text-input" type="text" name="q" aria-labelledby="searchlabel" />
+            <input class="sk-search-text-btn" type="submit" value="Go" />
+          </form>
+          </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="d-flex" id="sk-doc-wrapper">
+    <input type="checkbox" name="sk-toggle-checkbox" id="sk-toggle-checkbox">
+    <label id="sk-sidemenu-toggle" class="sk-btn-toggle-toc btn sk-btn-primary" for="sk-toggle-checkbox">Toggle Menu</label>
+    <div id="sk-sidebar-wrapper" class="border-right">
+      <div class="sk-sidebar-toc-wrapper">
+        <div class="sk-sidebar-toc-logo">
+        </div>
+        <div class="btn-group w-100 mb-2" role="group" aria-label="rellinks">
+            <a href="#" role="button" class="btn sk-btn-rellink py-1 disabled"">Prev</a>
+            <a href="#" role="button" class="btn sk-btn-rellink disabled py-1">Up</a>
+            <a href="#" role="button" class="btn sk-btn-rellink py-1 disabled"">Next</a>
+        </div>
+            <div class="sk-sidebar-toc sk-sidebar-global-toc">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="preface.html">Welcome</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manual/index.html">User manual</a></li>
+</ul>
+
+            </div>
+      </div>
+    </div>
+    <div id="sk-page-content-wrapper">
+      <div class="sk-page-content container-fluid body px-md-3" role="main">
+        
+  <section id="references">
+<span id="application-menu"></span><h1>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h1>
+<div class="docutils container" id="id1">
+<div class="citation" id="id5" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>ASRN+05<span class="fn-bracket">]</span></span>
+<p>Wajih Al-Soufi, Belén Reija, Mercedes Novo, Suren Felekyan, Ralf Kühnemuth, and Claus AM Seidel. Fluorescence correlation spectroscopy, a tool to investigate supramolecular dynamics: inclusion complexes of pyronines with cyclodextrin. <em>Journal of the American Chemical Society</em>, 127(24):8775–8784, 2005.</p>
+</div>
+<div class="citation" id="id50" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>AFGS06a<span class="fn-bracket">]</span></span>
+<p>Matthew Antonik, Suren Felekyan, Alexander Gaiduk, and Claus A. M. Seidel. Separating structural heterogeneities from stochastic variations in fluorescence resonance energy transfer distributions via photon distribution analysis. <em>The Journal of Physical Chemistry B</em>, 110(13):6970–6978, 2006.</p>
+</div>
+<div class="citation" id="id25" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>AFGS06b<span class="fn-bracket">]</span></span>
+<p>Matthew Antonik, Suren Felekyan, Alexander Gaiduk, and Claus AM Seidel. Separating structural heterogeneities from stochastic variations in fluorescence resonance energy transfer distributions via photon distribution analysis. <em>The Journal of Physical Chemistry B</em>, 110(13):6970–6978, 2006.</p>
+</div>
+<div class="citation" id="id44" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>Bec05<span class="fn-bracket">]</span></span>
+<p>Wolfgang Becker. <em>Advanced Time-Correlated Single Photon Counting Techniques</em>. Springer Science &amp; Business Media, December 2005. ISBN 978-3-540-28882-4. Google-Books-ID: fLP0PB9CZ94C.</p>
+</div>
+<div class="citation" id="id63" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>BWR+02<span class="fn-bracket">]</span></span>
+<p>Martin Bohmer, Michaek Wahl, Hans-Jurgen Rahn, Rainer Erdmann, and Jorg Enderlein. Time-resolved fluorescence correlation spectroscopy. <em>Chemical Physics Letters</em>, 353:439–445, 2002.</p>
+</div>
+<div class="citation" id="id28" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>BSV+11<span class="fn-bracket">]</span></span>
+<p>Axel T Brunger, Pavel Strop, Marija Vrljic, Steven Chu, and Keith R Weninger. Three-dimensional molecular modeling with single molecule fret. <em>Journal of structural biology</em>, 173(3):497–505, 2011.</p>
+</div>
+<div class="citation" id="id14" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>CGM+11<span class="fn-bracket">]</span></span>
+<p>Hoi Sung Chung, Irina V Gopich, Kevin McHale, Troy Cellmer, John M Louis, and William A Eaton. Extracting rate coefficients from single-molecule photon trajectories and fret efficiency histograms for a fast-folding protein. <em>The journal of physical chemistry A</em>, 115(16):3642–3656, 2011.</p>
+</div>
+<div class="citation" id="id36" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>Cle92<span class="fn-bracket">]</span></span>
+<p>Robert M Clegg. [18] fluorescence resonance energy transfer and nucleic acids. <em>Methods in enzymology</em>, 211:353–388, 1992.</p>
+</div>
+<div class="citation" id="id46" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>Coa68<span class="fn-bracket">]</span></span>
+<p>P B Coates. The correction for photon `pile-up' in the measurement of radiative lifetimes. <em>Journal of Physics E: Scientific Instruments</em>, 1(8):878–879, August 1968. URL: <a class="reference external" href="http://stacks.iop.org/0022-3735/1/i=8/a=437?key=crossref.19c54cc94064528a5003e3e0a645afc3">http://stacks.iop.org/0022-3735/1/i=8/a=437?key=crossref.19c54cc94064528a5003e3e0a645afc3</a> (visited on 2020-03-23), <a class="reference external" href="https://doi.org/10.1088/0022-3735/1/8/437">doi:10.1088/0022-3735/1/8/437</a>.</p>
+</div>
+<div class="citation" id="id42" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>DBS+05<span class="fn-bracket">]</span></span>
+<p>Michelle A. Digman, Claire M. Brown, Parijat Sengupta, Paul W. Wiseman, Alan R. Horwitz, and Enrico Gratton. Measuring Fast Dynamics in Solutions and Cells with a Laser Scanning Microscope. <em>Biophysical Journal</em>, 89(2):1317–1327, August 2005. URL: <a class="reference external" href="http://www.sciencedirect.com/science/article/pii/S000634950572779X">http://www.sciencedirect.com/science/article/pii/S000634950572779X</a> (visited on 2020-05-18), <a class="reference external" href="https://doi.org/10.1529/biophysj.105.062836">doi:10.1529/biophysj.105.062836</a>.</p>
+</div>
+<div class="citation" id="id40" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>DCZG08<span class="fn-bracket">]</span></span>
+<p>Michelle A. Digman, Valeria R. Caiolfa, Moreno Zamai, and Enrico Gratton. The phasor approach to fluorescence lifetime imaging analysis. <em>Biophysical Journal</em>, 94(2):L14–L16, 2008. URL: <a class="reference external" href="https://www.sciencedirect.com/science/article/pii/S0006349508707112">https://www.sciencedirect.com/science/article/pii/S0006349508707112</a>, <a class="reference external" href="https://doi.org/https://doi.org/10.1529/biophysj.107.120154">doi:https://doi.org/10.1529/biophysj.107.120154</a>.</p>
+</div>
+<div class="citation" id="id41" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>DSW+05<span class="fn-bracket">]</span></span>
+<p>Michelle A. Digman, Parijat Sengupta, Paul W. Wiseman, Claire M. Brown, Alan R. Horwitz, and Enrico Gratton. Fluctuation Correlation Spectroscopy with a Laser-Scanning Microscope: Exploiting the Hidden Time Structure. <em>Biophysical Journal</em>, 88(5):L33–L36, May 2005. URL: <a class="reference external" href="http://www.sciencedirect.com/science/article/pii/S0006349505733580">http://www.sciencedirect.com/science/article/pii/S0006349505733580</a> (visited on 2020-05-18), <a class="reference external" href="https://doi.org/10.1529/biophysj.105.061788">doi:10.1529/biophysj.105.061788</a>.</p>
+</div>
+<div class="citation" id="id38" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>DWHG09<span class="fn-bracket">]</span></span>
+<p>Michelle A. Digman, Paul W. Wiseman, Alan R. Horwitz, and Enrico Gratton. Detecting Protein Complexes in Living Cells from Laser Scanning Confocal Image Sequences by the Cross Correlation Raster Image Spectroscopy Method. <em>Biophysical Journal</em>, 96(2):707–716, January 2009. URL: <a class="reference external" href="http://www.sciencedirect.com/science/article/pii/S0006349508000799">http://www.sciencedirect.com/science/article/pii/S0006349508000799</a> (visited on 2020-05-18), <a class="reference external" href="https://doi.org/10.1016/j.bpj.2008.09.051">doi:10.1016/j.bpj.2008.09.051</a>.</p>
+</div>
+<div class="citation" id="id72" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>DPH+16<span class="fn-bracket">]</span></span>
+<p>Mykola Dimura, Thomas O Peulen, Christian A Hanke, Aiswaria Prakash, Holger Gohlke, and Claus AM Seidel. Quantitative fret studies and integrative modeling unravel the structure and dynamics of biomolecular systems. <em>Current opinion in structural biology</em>, 40:163–185, 2016.</p>
+</div>
+<div class="citation" id="id35" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>EBB+01<span class="fn-bracket">]</span></span>
+<p>C Eggeling, S Berger, L Brand, JR Fries, J Schaffer, A Volkmer, and CAM Seidel. Data registration and selective single-molecule analysis using multi-parameter fluorescence detection. <em>Journal of biotechnology</em>, 86(3):163–180, 2001.</p>
+</div>
+<div class="citation" id="id64" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>Els13<span class="fn-bracket">]</span></span>
+<p>Elliot L Elson. 40 years of fcs: how it all began. <em>Methods in enzymology</em>, 518:1–10, 2013.</p>
+</div>
+<div class="citation" id="id65" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>EM74<span class="fn-bracket">]</span></span>
+<p>Elliot L Elson and Douglas Magde. Fluorescence correlation spectroscopy. i. conceptual basis and theory. <em>Biopolymers: Original Research on Biomolecules</em>, 13(1):1–27, 1974.</p>
+</div>
+<div class="citation" id="id62" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>EE97<span class="fn-bracket">]</span></span>
+<p>Jorg Enderlein and Rainer Erdmann. Fast fitting of multi-exponential decay curves. <em>Optics Communications</em>, 134:371–378, 1997.</p>
+</div>
+<div class="citation" id="id57" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>End12<span class="fn-bracket">]</span></span>
+<p>Jöerg Enderlein. Polymer dynamics, fluorescence correlation spectroscopy, and the limits of optical resolution. <em>Phys Rev Lett.</em>, 2012. <a class="reference external" href="https://arxiv.org/abs/1203.3204v1">arXiv:1203.3204v1</a>, <a class="reference external" href="https://doi.org/10.1103/PhysRevLett.108.108101">doi:10.1103/PhysRevLett.108.108101</a>.</p>
+</div>
+<div class="citation" id="id4" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>FSK+13<span class="fn-bracket">]</span></span>
+<p>Suren Felekyan, Hugo Sanabria, Stanislav Kalinin, Ralf Kühnemuth, and Claus AM Seidel. Analyzing förster resonance energy transfer with fluctuation algorithms. <em>Methods in enzymology</em>, 519:39–85, 2013.</p>
+</div>
+<div class="citation" id="id34" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>FBE+98<span class="fn-bracket">]</span></span>
+<p>Joachim R Fries, Leif Brand, Christian Eggeling, Malte Köllner, and Claus AM Seidel. Quantitative identification of different single molecules by selective time-resolved confocal fluorescence spectroscopy. <em>The Journal of Physical Chemistry A</em>, 102(33):6601–6613, 1998.</p>
+</div>
+<div class="citation" id="id31" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>GS05<span class="fn-bracket">]</span></span>
+<p>Irina Gopich and Attila Szabo. Theory of photon statistics in single-molecule förster resonance energy transfer. <em>The Journal of chemical physics</em>, 122(1):014707, 2005.</p>
+</div>
+<div class="citation" id="id32" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>GS03<span class="fn-bracket">]</span></span>
+<p>Irina V Gopich and Attila Szabo. Single-macromolecule fluorescence resonance energy transfer and free-energy profiles. <em>The Journal of Physical Chemistry B</em>, 107(21):5058–5063, 2003.</p>
+</div>
+<div class="citation" id="id21" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>GS07<span class="fn-bracket">]</span></span>
+<p>Irina V Gopich and Attila Szabo. Single-molecule fret with diffusion and conformational dynamics. <em>The Journal of Physical Chemistry B</em>, 111(44):12925–12932, 2007.</p>
+</div>
+<div class="citation" id="id15" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>GS09<span class="fn-bracket">]</span></span>
+<p>Irina V Gopich and Attila Szabo. Decoding the pattern of photon colors in single-molecule fret. <em>The Journal of Physical Chemistry B</em>, 113(31):10965–10973, 2009.</p>
+</div>
+<div class="citation" id="id16" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>GS10<span class="fn-bracket">]</span></span>
+<p>Irina V Gopich and Attila Szabo. Fret efficiency distributions of multistate single molecules. <em>The Journal of Physical Chemistry B</em>, 114(46):15221–15226, 2010.</p>
+</div>
+<div class="citation" id="id39" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>GL10<span class="fn-bracket">]</span></span>
+<p>Kaushik Gurunathan and Marcia Levitus. Fret fluctuation spectroscopy of diffusing biopolymers: contributions of conformational dynamics and translational diffusion. <em>The Journal of Physical Chemistry B</em>, 114(2):980–986, 2010.</p>
+</div>
+<div class="citation" id="id2" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>HDSL16<span class="fn-bracket">]</span></span>
+<p>Jelle Hendrix, Tomas Dekens, Waldemar Schrimpf, and Don C. Lamb. Arbitrary-Region Raster Image Correlation Spectroscopy. <em>Biophysical Journal</em>, 111(8):1785–1796, October 2016. URL: <a class="reference external" href="http://www.sciencedirect.com/science/article/pii/S0006349516308104">http://www.sciencedirect.com/science/article/pii/S0006349516308104</a> (visited on 2020-05-18), <a class="reference external" href="https://doi.org/10.1016/j.bpj.2016.09.012">doi:10.1016/j.bpj.2016.09.012</a>.</p>
+</div>
+<div class="citation" id="id47" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>IDH73<span class="fn-bracket">]</span></span>
+<p>Irvin Isenberg, Robert D. Dyson, and Richard Hanson. Studies on the Analysis of Fluorescence Decay Data by the Method of Moments. <em>Biophysical Journal</em>, 13(10):1090–1115, October 1973. URL: <a class="reference external" href="https://linkinghub.elsevier.com/retrieve/pii/S0006349573860473">https://linkinghub.elsevier.com/retrieve/pii/S0006349573860473</a> (visited on 2020-04-30), <a class="reference external" href="https://doi.org/10.1016/S0006-3495(73)86047-3">doi:10.1016/S0006-3495(73)86047-3</a>.</p>
+</div>
+<div class="citation" id="id8" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>Joh06<span class="fn-bracket">]</span></span>
+<p>Carey K Johnson. Calmodulin, conformational states, and calcium signaling. a single-molecule perspective. <em>Biochemistry</em>, 45(48):14233–14246, 2006.</p>
+</div>
+<div class="citation" id="id51" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>KFAS07a<span class="fn-bracket">]</span></span>
+<p>Stanislav Kalinin, Suren Felekyan, Matthew Antonik, and Claus A. M. Seidel. Probability distribution analysis of single-molecule fluorescence anisotropy and resonance energy transfer. <em>The Journal of Physical Chemistry B</em>, 111(34):10253–10262, 2007.</p>
+</div>
+<div class="citation" id="id24" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>KFAS07b<span class="fn-bracket">]</span></span>
+<p>Stanislav Kalinin, Suren Felekyan, Matthew Antonik, and Claus AM Seidel. Probability distribution analysis of single-molecule fluorescence anisotropy and resonance energy transfer. <em>The Journal of Physical Chemistry B</em>, 111(34):10253–10262, 2007.</p>
+</div>
+<div class="citation" id="id23" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>KFVS08<span class="fn-bracket">]</span></span>
+<p>Stanislav Kalinin, Suren Felekyan, Alessandro Valeri, and Claus AM Seidel. Characterizing multiple molecular states in single-molecule multiparameter fluorescence detection by probability distribution analysis. <em>The Journal of Physical Chemistry B</em>, 112(28):8361–8374, 2008.</p>
+</div>
+<div class="citation" id="id71" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>KPS+12<span class="fn-bracket">]</span></span>
+<p>Stanislav Kalinin, Thomas Peulen, Simon Sindbert, Paul J Rothwell, Sylvia Berger, Tobias Restle, Roger S Goody, Holger Gohlke, and Claus AM Seidel. A toolkit and benchmark study for fret-restrained high-precision structural modeling. <em>Nature methods</em>, 9(12):1218–1225, 2012.</p>
+</div>
+<div class="citation" id="id19" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>KSM+10<span class="fn-bracket">]</span></span>
+<p>Stanislav Kalinin, Evangelos Sisamakis, Steven W Magennis, Suren Felekyan, and Claus AM Seidel. On the origin of broadening of single-molecule fret efficiency distributions beyond shot noise limits. <em>The journal of physical chemistry B</em>, 114(18):6197–6206, 2010.</p>
+</div>
+<div class="citation" id="id20" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>KVA+10<span class="fn-bracket">]</span></span>
+<p>Stanislav Kalinin, Alessandro Valeri, Matthew Antonik, Suren Felekyan, and Claus AM Seidel. Detection of structural dynamics by fret: a photon distribution and fluorescence lifetime analysis of systems with multiple states. <em>The Journal of Physical Chemistry B</em>, 114(23):7983–7995, 2010.</p>
+</div>
+<div class="citation" id="id61" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>KWB+07<span class="fn-bracket">]</span></span>
+<p>Peter Kapusta, Michael Wahl, Ales Benda, Martin Hof, and Jorg Enderlein. Fluorescence lifetime correlation spectroscopy. <em>Journal of Fluorescence</em>, 17:43–48, 2007.</p>
+</div>
+<div class="citation" id="id3" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>KHB+05<span class="fn-bracket">]</span></span>
+<p>Sally A Kim, Katrin G Heinze, Kirsten Bacia, M Neal Waxham, and Petra Schwille. Two-photon cross-correlation analysis of intracellular reactions with variable stoichiometry. <em>Biophysical Journal</em>, 88(6):4319–4336, 2005.</p>
+</div>
+<div class="citation" id="id73" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>KSM95<span class="fn-bracket">]</span></span>
+<p>Masanori Koshioka, Keiji Sasaki, and Hiroshi Masuhara. Time-dependent fluorescence depolarization analysis in three-dimensional microspectroscopy. <em>Applied spectroscopy</em>, 49(2):224–228, 1995.</p>
+</div>
+<div class="citation" id="id48" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>KSK+12<span class="fn-bracket">]</span></span>
+<p>Volodymyr Kudryavtsev, Martin Sikor, Stanislav Kalinin, Dejana Mokranjac, Claus AM Seidel, and Don C Lamb. Combining mfd and pie for accurate single-pair förster resonance energy transfer measurements. <em>ChemPhysChem</em>, 13(4):1060–1078, 2012.</p>
+</div>
+<div class="citation" id="id56" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>KuhnemuthS01<span class="fn-bracket">]</span></span>
+<p>Ralf Kühnemuth and Claus A. M. Seidel. Principles of single molecule multiparameter fluorescence spectroscopy. <em>Single Molecules</em>, 2:251–254, 2001.</p>
+</div>
+<div class="citation" id="id55" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>LFH06<span class="fn-bracket">]</span></span>
+<p>Ted A. Laurence, Samantha Fore, and Thomas Huser. Fast, flexible algorithm for calculating photon correlations. <em>Optics express</em>, 31:829, 2006.</p>
+</div>
+<div class="citation" id="id52" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>LKK+04<span class="fn-bracket">]</span></span>
+<p>Ted A. Laurence, Achillefs N. Kapanidis, Xiangxu Kong, Daniel S. Chemla, and Shimon Weiss. Photon arrival-time interval distribution (PAID): a novel tool for analyzing molecular interactions. <em>The Journal of Physical Chemistry B</em>, 108(9):3051–3067, 2004.</p>
+</div>
+<div class="citation" id="id6" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>Lev10<span class="fn-bracket">]</span></span>
+<p>Marcia Levitus. Relaxation kinetics by fluorescence correlation spectroscopy: determination of kinetic parameters in the presence of fluorescent impurities. <em>The journal of physical chemistry letters</em>, 1(9):1346–1350, 2010.</p>
+</div>
+<div class="citation" id="id66" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>MEW72<span class="fn-bracket">]</span></span>
+<p>Douglas Magde, Elliot Elson, and Watt W Webb. Thermodynamic fluctuations in a reacting system—measurement by fluorescence correlation spectroscopy. <em>Physical Review Letters</em>, 29(11):705, 1972.</p>
+</div>
+<div class="citation" id="id49" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>MCH+01<span class="fn-bracket">]</span></span>
+<p>Michael Maus, Mircea Cotlet, Johan Hofkens, Thomas Gensch, Frans C De Schryver, J Schaffer, and CAM Seidel. An experimental comparison of the maximum likelihood estimation and nonlinear least-squares fluorescence lifetime analysis of single molecules. <em>Analytical chemistry</em>, 73(9):2078–2086, 2001.</p>
+</div>
+<div class="citation" id="id27" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>MCZ+10<span class="fn-bracket">]</span></span>
+<p>James J McCann, Ucheor B Choi, Liqiang Zheng, Keith Weninger, and Mark E Bowen. Optimizing methods to recover absolute fret efficiency from immobilized single molecules. <em>Biophysical journal</em>, 99(3):961–970, 2010.</p>
+</div>
+<div class="citation" id="id26" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>NMH+06<span class="fn-bracket">]</span></span>
+<p>Eyal Nir, Xavier Michalet, Kambiz M Hamadani, Ted A Laurence, Daniel Neuhauser, Yevgeniy Kovchegov, and Shimon Weiss. Shot-noise limited single-molecule fret histograms: comparison between theory and experiments. <em>The Journal of Physical Chemistry B</em>, 110(44):22103–22124, 2006.</p>
+</div>
+<div class="citation" id="id45" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>OConnor12a<span class="fn-bracket">]</span></span>
+<p>Desmond O'Connor. <em>Time-correlated single photon counting</em>. Academic Press, December 2012. ISBN 978-0-323-14144-4. Google-Books-ID: ELQ0Mz6Rq1EC.</p>
+</div>
+<div class="citation" id="id70" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>OConnor12b<span class="fn-bracket">]</span></span>
+<p>Desmond O'Connor. <em>Time-correlated single photon counting</em>. Academic press, 2012.</p>
+</div>
+<div class="citation" id="id18" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>PMLK06<span class="fn-bracket">]</span></span>
+<p>Kaupo Palo, Ülo Mets, Vello Loorits, and Peet Kask. Calculation of photon-count number distributions via master equations. <em>Biophysical journal</em>, 90(6):2179–2191, 2006.</p>
+</div>
+<div class="citation" id="id43" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>PHW+93<span class="fn-bracket">]</span></span>
+<p>N. O. Petersen, P. L. Höddelius, P. W. Wiseman, O. Seger, and K. E. Magnusson. Quantitation of membrane receptor distributions by image correlation spectroscopy: concept and application. <em>Biophysical Journal</em>, 65(3):1135–1146, September 1993. URL: <a class="reference external" href="http://www.sciencedirect.com/science/article/pii/S0006349593811731">http://www.sciencedirect.com/science/article/pii/S0006349593811731</a> (visited on 2020-05-18), <a class="reference external" href="https://doi.org/10.1016/S0006-3495(93)81173-1">doi:10.1016/S0006-3495(93)81173-1</a>.</p>
+</div>
+<div class="citation" id="id67" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>POS17<span class="fn-bracket">]</span></span>
+<p>Thomas-Otavio Peulen, Oleg Opanasyuk, and Claus AM Seidel. Combining graphical and analytical methods with molecular simulations to analyze time-resolved fret measurements of labeled macromolecules accurately. <em>The Journal of Physical Chemistry B</em>, 121(35):8211–8241, 2017.</p>
+</div>
+<div class="citation" id="id9" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>PAJ11<span class="fn-bracket">]</span></span>
+<p>E Shane Price, Marek Aleksiejew, and Carey K Johnson. Fret-fcs detection of intralobe dynamics in calmodulin. <em>The Journal of Physical Chemistry B</em>, 115(29):9320–9326, 2011.</p>
+</div>
+<div class="citation" id="id12" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>PDJ10<span class="fn-bracket">]</span></span>
+<p>E Shane Price, Matthew S DeVore, and Carey K Johnson. Detecting intramolecular dynamics and multiple forster resonance energy transfer states by fluorescence correlation spectroscopy. <em>The Journal of Physical Chemistry B</em>, 114(17):5895–5902, 2010.</p>
+</div>
+<div class="citation" id="id59" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>Qia90<span class="fn-bracket">]</span></span>
+<p>Hong Qian. On the statistics of fluorescence correlation spectroscopy. <em>Biophysical Chemistry</em>, 38(1):49–57, 1990.</p>
+</div>
+<div class="citation" id="id37" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>RMJG18<span class="fn-bracket">]</span></span>
+<p>Suman Ranjit, Leonel Malacrida, David M Jameson, and Enrico Gratton. Fit-free analysis of fluorescence lifetime imaging data using the phasor approach. <em>Nature protocols</em>, 13(9):1979–2004, 2018.</p>
+</div>
+<div class="citation" id="id54" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>RBC+10<span class="fn-bracket">]</span></span>
+<p>J. Ries, M. Bayer, Csucs, G, Dirkx, R, M. Solimena, H. Ewers, and P. Schwille. Automated suppression of sample-related artifacts in fluorescence correlation spectroscopy. <em>Optics express</em>, 18(11):11073–11082, 2010.</p>
+</div>
+<div class="citation" id="id33" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>SEM05<span class="fn-bracket">]</span></span>
+<p>Chandran R Sabanayagam, John S Eid, and Amit Meller. Using fluorescence resonance energy transfer to measure distances along individual dna molecules: corrections due to nonideal transfer. <em>The Journal of chemical physics</em>, 122(6):061103, 2005.</p>
+</div>
+<div class="citation" id="id17" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>STK10<span class="fn-bracket">]</span></span>
+<p>Yusdi Santoso, Joseph P Torella, and Achillefs N Kapanidis. Characterizing single-molecule fret dynamics with probability distribution analysis. <em>ChemPhysChem</em>, 11(10):2209–2219, 2010.</p>
+</div>
+<div class="citation" id="id29" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>SVK+10<span class="fn-bracket">]</span></span>
+<p>Evangelos Sisamakis, Alessandro Valeri, Stanislav Kalinin, Paul J Rothwell, and Claus AM Seidel. Accurate single-molecule fret studies using multiparameter fluorescence detection. <em>Methods in enzymology</em>, 475:455–514, 2010.</p>
+</div>
+<div class="citation" id="id7" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>SAU+04<span class="fn-bracket">]</span></span>
+<p>Brian D Slaughter, Michael W Allen, Jay R Unruh, Ramona J Bieber Urbauer, and Carey K Johnson. Single-molecule resonance energy transfer and fluorescence correlation spectroscopy of calmodulin in solution. <em>The Journal of Physical Chemistry B</em>, 108(29):10388–10397, 2004.</p>
+</div>
+<div class="citation" id="id10" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>SBUJ05<span class="fn-bracket">]</span></span>
+<p>Brian D Slaughter, Ramona J Bieber-Urbauer, and Carey K Johnson. Single-molecule tracking of sub-millisecond domain motion in calmodulin. <em>The Journal of Physical Chemistry B</em>, 109(26):12658–12662, 2005.</p>
+</div>
+<div class="citation" id="id11" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>SUA+05<span class="fn-bracket">]</span></span>
+<p>Brian D Slaughter, Jay R Unruh, Michael W Allen, Ramona J Bieber Urbauer, and Carey K Johnson. Conformational substates of calmodulin revealed by single-pair fluorescence resonance energy transfer: influence of solution conditions and oxidative modification. <em>Biochemistry</em>, 44(10):3694–3707, 2005.</p>
+</div>
+<div class="citation" id="id58" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>SRB01<span class="fn-bracket">]</span></span>
+<p>Konstantin Starchev, Jaro Ricka, and Jacques Buffle. Noise on fluorescence correlation spectroscopy. <em>Journal of Colloid and Interface Science</em>, 2001.</p>
+</div>
+<div class="citation" id="id69" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>SSSV99<span class="fn-bracket">]</span></span>
+<p>George Striker, Vinod Subramaniam, Claus AM Seidel, and Andreas Volkmer. Photochromicity and fluorescence lifetimes of green fluorescent protein. <em>The Journal of Physical Chemistry B</em>, 103(40):8612–8617, 1999.</p>
+</div>
+<div class="citation" id="id22" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>TTM+12<span class="fn-bracket">]</span></span>
+<p>Toma E Tomov, Roman Tsukanov, Rula Masoud, Miran Liber, Noa Plavner, and Eyal Nir. Disentangling subpopulations in single-molecule fret and alex experiments with photon distribution analysis. <em>Biophysical journal</em>, 102(5):1163–1173, 2012.</p>
+</div>
+<div class="citation" id="id13" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>TL07<span class="fn-bracket">]</span></span>
+<p>Tedman Torres and Marcia Levitus. Measuring conformational dynamics: a new fcs-fret approach. <em>The Journal of Physical Chemistry B</em>, 111(25):7392–7400, 2007.</p>
+</div>
+<div class="citation" id="id68" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>VopelHP+14<span class="fn-bracket">]</span></span>
+<p>Tobias Vöpel, Carola S Hengstenberg, Thomas-Otavio Peulen, Yathrib Ajaj, Claus AM Seidel, Christian Herrmann, and Johann P Klare. Triphosphate induced dimerization of human guanylate binding protein 1 involves association of the c-terminal helices: a joint double electron–electron resonance and fret study. <em>Biochemistry</em>, 53(28):4590–4600, 2014.</p>
+</div>
+<div class="citation" id="id53" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>WGPE03<span class="fn-bracket">]</span></span>
+<p>Michael Wahl, Ingo Gregor, Matthias Patting, and Jörg Enderlein. Fast calculation of fluorescence correlation data with asynchronous time-correlated single-photon counting. <em>Optics express</em>, 11(26):3583–3591, 2003.</p>
+</div>
+<div class="citation" id="id60" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>WRV01<span class="fn-bracket">]</span></span>
+<p>Thorsten Wohland, Rudolf Rigler, and Horst Vogel. The standard deviation in fluorescence correlation spectroscopy. <em>Biophysical Journal</em>, 80(6):2987–2999, 2001.</p>
+</div>
+<div class="citation" id="id30" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>ZY05<span class="fn-bracket">]</span></span>
+<p>Kai Zhang and Haw Yang. Photon-by-photon determination of emission bursts from diffusing single chromophores. <em>The Journal of Physical Chemistry B</em>, 109(46):21930–21937, 2005.</p>
+</div>
+</div>
+</div>
+</section>
+
+
+      </div>
+    <div class="container">
+      <footer class="sk-content-footer">
+            &copy; 2021 - 2026, IMP developers.
+      </footer>
+    </div>
+  </div>
+</div>
+<script src="_static/js/vendor/bootstrap.min.js"></script>
+
+<script>
+    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+    ga('create', 'UA-22606712-2', 'auto');
+    ga('set', 'anonymizeIp', true);
+    ga('send', 'pageview');
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+<script>
+$(document).ready(function() {
+    /* Add a [>>>] button on the top-right corner of code samples to hide
+     * the >>> and ... prompts and the output and thus make the code
+     * copyable. */
+    var div = $('.highlight-python .highlight,' +
+                '.highlight-python3 .highlight,' +
+                '.highlight-pycon .highlight,' +
+		'.highlight-default .highlight')
+    var pre = div.find('pre');
+
+    // get the styles from the current theme
+    pre.parent().parent().css('position', 'relative');
+    var hide_text = 'Hide prompts and outputs';
+    var show_text = 'Show prompts and outputs';
+
+    // create and add the button to all the code blocks that contain >>>
+    div.each(function(index) {
+        var jthis = $(this);
+        if (jthis.find('.gp').length > 0) {
+            var button = $('<span class="copybutton">&gt;&gt;&gt;</span>');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+            jthis.prepend(button);
+        }
+        // tracebacks (.gt) contain bare text elements that need to be
+        // wrapped in a span to work with .nextUntil() (see later)
+        jthis.find('pre:has(.gt)').contents().filter(function() {
+            return ((this.nodeType == 3) && (this.data.trim().length > 0));
+        }).wrap('<span>');
+    });
+
+    // define the behavior of the button when it's clicked
+    $('.copybutton').click(function(e){
+        e.preventDefault();
+        var button = $(this);
+        if (button.data('hidden') === 'false') {
+            // hide the code output
+            button.parent().find('.go, .gp, .gt').hide();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'hidden');
+            button.css('text-decoration', 'line-through');
+            button.attr('title', show_text);
+            button.data('hidden', 'true');
+        } else {
+            // show the code output
+            button.parent().find('.go, .gp, .gt').show();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'visible');
+            button.css('text-decoration', 'none');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+        }
+    });
+
+	/*** Add permalink buttons next to glossary terms ***/
+	$('dl.glossary > dt[id]').append(function() {
+		return ('<a class="headerlink" href="#' +
+			    this.getAttribute('id') +
+			    '" title="Permalink to this term">¶</a>');
+	});
+  /*** Hide navbar when scrolling down ***/
+  // Returns true when headerlink target matches hash in url
+  (function() {
+    hashTargetOnTop = function() {
+        var hash = window.location.hash;
+        if ( hash.length < 2 ) { return false; }
+
+        var target = document.getElementById( hash.slice(1) );
+        if ( target === null ) { return false; }
+
+        var top = target.getBoundingClientRect().top;
+        return (top < 2) && (top > -2);
+    };
+
+    // Hide navbar on load if hash target is on top
+    var navBar = document.getElementById("navbar");
+    var navBarToggler = document.getElementById("sk-navbar-toggler");
+    var navBarHeightHidden = "-" + navBar.getBoundingClientRect().height + "px";
+    var $window = $(window);
+
+    hideNavBar = function() {
+        navBar.style.top = navBarHeightHidden;
+    };
+
+    showNavBar = function() {
+        navBar.style.top = "0";
+    }
+
+    if (hashTargetOnTop()) {
+        hideNavBar()
+    }
+
+    var prevScrollpos = window.pageYOffset;
+    hideOnScroll = function(lastScrollTop) {
+        if (($window.width() < 768) && (navBarToggler.getAttribute("aria-expanded") === 'true')) {
+            return;
+        }
+        if (lastScrollTop > 2 && (prevScrollpos <= lastScrollTop) || hashTargetOnTop()){
+            hideNavBar()
+        } else {
+            showNavBar()
+        }
+        prevScrollpos = lastScrollTop;
+    };
+
+    /*** high performance scroll event listener***/
+    var raf = window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        window.oRequestAnimationFrame;
+    var lastScrollTop = $window.scrollTop();
+
+    if (raf) {
+        loop();
+    }
+
+    function loop() {
+        var scrollTop = $window.scrollTop();
+        if (lastScrollTop === scrollTop) {
+            raf(loop);
+            return;
+        } else {
+            lastScrollTop = scrollTop;
+            hideOnScroll(lastScrollTop);
+            raf(loop);
+        }
+    }
+  })();
+});
+
+</script>
+    
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+</body>
+</html>

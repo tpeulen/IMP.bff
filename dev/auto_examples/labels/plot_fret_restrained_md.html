@@ -1,0 +1,588 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <title>FRET-restrained molecular dynamics: driving T4L from C2 to C1 &mdash; IMP.bff  documentation</title>
+  
+  <link rel="canonical" href="http://scikit-learn.org/stable/auto_examples/labels/plot_fret_restrained_md.html" />
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/vendor/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-rendered-html.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+<script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+<script src="../../_static/jquery.js"></script> 
+</head>
+<body>
+<nav id="navbar" class="sk-docs-navbar navbar navbar-expand-md navbar-light bg-light py-0">
+  <div class="container-fluid sk-docs-container px-0">
+    <button
+      id="sk-navbar-toggler"
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="sk-navbar-collapse collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../install.html">Install</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../manual/index.html">User Manual</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../api/index.html">API</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../index.html">Examples</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../glossary.html" >Glossary</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../zreferences.html" >References</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../faq.html" >FAQ</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../related_projects.html" >Related packages</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../roadmap.html" >Roadmap</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../about.html" >About us</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://integrativemodeling.org/" >IMP</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+        </li>
+        <li class="nav-item dropdown nav-more-item-dropdown">
+          <a class="sk-nav-link nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">More</a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../glossary.html" >Glossary</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../zreferences.html" >References</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../faq.html" >FAQ</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../related_projects.html" >Related packages</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../roadmap.html" >Roadmap</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../about.html" >About us</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://integrativemodeling.org/" >IMP</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+          </div>
+        </li>
+      </ul>
+      <div id="searchbox" role="search">
+          <div class="searchformwrapper">
+          <form class="search" action="../../search.html" method="get">
+            <input class="sk-search-text-input" type="text" name="q" aria-labelledby="searchlabel" />
+            <input class="sk-search-text-btn" type="submit" value="Go" />
+          </form>
+          </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="d-flex" id="sk-doc-wrapper">
+    <input type="checkbox" name="sk-toggle-checkbox" id="sk-toggle-checkbox">
+    <label id="sk-sidemenu-toggle" class="sk-btn-toggle-toc btn sk-btn-primary" for="sk-toggle-checkbox">Toggle Menu</label>
+    <div id="sk-sidebar-wrapper" class="border-right">
+      <div class="sk-sidebar-toc-wrapper">
+        <div class="sk-sidebar-toc-logo">
+        </div>
+        <div class="btn-group w-100 mb-2" role="group" aria-label="rellinks">
+            <a href="#" role="button" class="btn sk-btn-rellink py-1 disabled"">Prev</a>
+            <a href="#" role="button" class="btn sk-btn-rellink disabled py-1">Up</a>
+            <a href="#" role="button" class="btn sk-btn-rellink py-1 disabled"">Next</a>
+        </div>
+            <div class="sk-sidebar-toc">
+              <ul>
+<li><a class="reference internal" href="#">FRET-restrained molecular dynamics: driving T4L from C2 to C1</a><ul>
+<li><a class="reference internal" href="#out-to-openmm">Out to OpenMM</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+      </div>
+    </div>
+    <div id="sk-page-content-wrapper">
+      <div class="sk-page-content container-fluid body px-md-3" role="main">
+        
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="reference internal" href="#sphx-glr-download-auto-examples-labels-plot-fret-restrained-md-py"><span class="std std-ref">Go to the end</span></a>
+to download the full example code.</p>
+</div>
+<section class="sphx-glr-example-title" id="fret-restrained-molecular-dynamics-driving-t4l-from-c2-to-c1">
+<span id="sphx-glr-auto-examples-labels-plot-fret-restrained-md-py"></span><h1>FRET-restrained molecular dynamics: driving T4L from C2 to C1<a class="headerlink" href="#fret-restrained-molecular-dynamics-driving-t4l-from-c2-to-c1" title="Permalink to this heading">¶</a></h1>
+<p>An accessible-volume network can <em>score</em> a structure. To make it <em>move</em> one, the
+restraint has to have a gradient and a shape an integrator can live with, which
+is what <code class="xref py py-class docutils literal notranslate"><span class="pre">IMP.bff.AVFlatBottomRestraint</span></code> is: zero inside the experimental
+error bars, harmonic outside them, and <strong>linear</strong> past that so the force is
+capped and a badly-placed start cannot blow up the first step. It is the same
+well an AMBER <code class="docutils literal notranslate"><span class="pre">&amp;rst</span></code> record describes, so a restraint written here and one
+written for an MD engine are the same restraint.</p>
+<p><code class="docutils literal notranslate"><span class="pre">md_flat_bottom_restraints</span></code> builds the whole thing from an fps.json: it
+computes both volumes, converts each measured distance and its asymmetric errors
+into <em>mean-position</em> bounds with <code class="docutils literal notranslate"><span class="pre">rmp_flat_bottom_bounds</span></code> – a conversion that
+is not a constant offset, because it depends on the shapes of both volumes –
+creates one probe particle per labelling position tethered to its site, and puts
+a well between every measured pair.</p>
+<p>The T4L file carries two independent sets of 33 measured distances, <code class="docutils literal notranslate"><span class="pre">C1</span></code> and
+<code class="docutils literal notranslate"><span class="pre">C2</span></code>, for the same 33 position pairs: two conformational states of the same
+protein. Here the structure is equilibrated under the C2 distances and then the
+restraints are switched to C1, so the transition is driven by the data alone.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span><span class="w">
+</span><span class="kn">import</span><span class="w"> </span><span class="nn">pylab</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span><span class="w">
+</span><span class="w">
+</span><span class="kn">import</span><span class="w"> </span><span class="nn">IMP</span><span class="w">
+</span><span class="kn">import</span><span class="w"> </span><span class="nn">IMP</span><span class="nn">.</span><span class="nn">algebra</span><span class="w">
+</span><span class="kn">import</span><span class="w"> </span><span class="nn">IMP</span><span class="nn">.</span><span class="nn">atom</span><span class="w">
+</span><span class="kn">import</span><span class="w"> </span><span class="nn">IMP</span><span class="nn">.</span><span class="nn">core</span><span class="w">
+</span><span class="kn">import</span><span class="w"> </span><span class="nn">IMP</span><span class="nn">.</span><span class="nn">bff</span><span class="w">
+</span><span class="w">
+</span><span class="n">IMP</span><span class="o">.</span><span class="n">set_log_level</span><span class="p">(</span><span class="n">IMP</span><span class="o">.</span><span class="n">SILENT</span><span class="p">)</span><span class="w">
+</span></pre></div></div>
+<p>The structure. All heavy atoms, because the accessible volumes are computed
+against them; only the alpha carbons will be moved.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="n">m</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="p">)</span><span class="w">
+</span><span class="n">hier</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">read_pdb</span><span class="p">(</span><span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">get_example_path</span><span class="p">(</span><span class="s2">&quot;</span><span class="s2">structure/T4L/3GUN.pdb</span><span class="s2">&quot;</span><span class="p">)</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span><span class="w">
+</span>                         <span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">NonWaterNonHydrogenPDBSelector</span><span class="p">(</span><span class="p">)</span><span class="p">)</span><span class="w">
+</span><span class="n">fps_json</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">get_example_path</span><span class="p">(</span><span class="s2">&quot;</span><span class="s2">structure/T4L/fret.fps.json</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="w">
+</span><span class="n">cas</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">Selection</span><span class="p">(</span><span class="n">hier</span><span class="p">,</span> <span class="n">atom_type</span><span class="o">=</span><span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">AT_CA</span><span class="p">)</span><span class="o">.</span><span class="n">get_selected_particles</span><span class="p">(</span><span class="p">)</span><span class="w">
+</span><span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">cas</span><span class="p">:</span><span class="w">
+</span>    <span class="k">if</span> <span class="ow">not</span> <span class="n">IMP</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">XYZR</span><span class="o">.</span><span class="n">get_is_setup</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="p">:</span><span class="w">
+</span>        <span class="n">IMP</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">XYZR</span><span class="o">.</span><span class="n">setup_particle</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">)</span><span class="w">
+</span>    <span class="k">if</span> <span class="ow">not</span> <span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">Mass</span><span class="o">.</span><span class="n">get_is_setup</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="p">:</span><span class="w">
+</span>        <span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">Mass</span><span class="o">.</span><span class="n">setup_particle</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="mf">110.0</span><span class="p">)</span><span class="w">
+</span>    <span class="n">IMP</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">XYZ</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">set_coordinates_are_optimized</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">cas</span><span class="p">)</span><span class="si">}</span><span class="s2"> alpha carbons</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span></pre></div></div>
+<p>A C-alpha elastic network: stiff along the backbone, soft for every other
+contact within 10 A. It holds the fold together without deciding what the
+fold is, so the FRET restraints are what pick the conformation.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="k">def</span><span class="w"> </span><span class="nf">elastic_network</span><span class="p">(</span><span class="n">particles</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">k_backbone</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span> <span class="n">k_contact</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span><span class="p">:</span><span class="w">
+</span>    <span class="n">xyz</span> <span class="o">=</span> <span class="p">[</span><span class="n">IMP</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">XYZ</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">get_coordinates</span><span class="p">(</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">particles</span><span class="p">]</span><span class="w">
+</span>    <span class="n">out</span> <span class="o">=</span> <span class="p">[</span><span class="p">]</span><span class="w">
+</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">particles</span><span class="p">)</span><span class="p">)</span><span class="p">:</span><span class="w">
+</span>        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">particles</span><span class="p">)</span><span class="p">)</span><span class="p">:</span><span class="w">
+</span>            <span class="n">d</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">algebra</span><span class="o">.</span><span class="n">get_distance</span><span class="p">(</span><span class="n">xyz</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="p">,</span> <span class="n">xyz</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="p">)</span><span class="w">
+</span>            <span class="k">if</span> <span class="n">d</span> <span class="o">&lt;</span> <span class="n">cutoff</span><span class="p">:</span><span class="w">
+</span>                <span class="n">k</span> <span class="o">=</span> <span class="n">k_backbone</span> <span class="k">if</span> <span class="n">j</span> <span class="o">==</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">k_contact</span><span class="w">
+</span>                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">IMP</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">DistanceRestraint</span><span class="p">(</span><span class="w">
+</span>                    <span class="n">m</span><span class="p">,</span> <span class="n">IMP</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">Harmonic</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span><span class="p">,</span> <span class="n">particles</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="p">,</span> <span class="n">particles</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="p">)</span><span class="p">)</span><span class="w">
+</span>    <span class="k">return</span> <span class="n">out</span><span class="w">
+</span><span class="w">
+</span><span class="n">network</span> <span class="o">=</span> <span class="n">elastic_network</span><span class="p">(</span><span class="n">cas</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">network</span><span class="p">)</span><span class="si">}</span><span class="s2"> elastic-network restraints</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span></pre></div></div>
+<p>The FRET restraints. One call per score set: the volumes are built on the
+structure as it stands, so calling it again later re-derives the bounds from
+the geometry the trajectory has reached.</p>
+<p><code class="docutils literal notranslate"><span class="pre">tether_atom=&quot;CA&quot;</span></code> puts each probe on the alpha carbon of its labelling
+residue rather than on the C-beta the fps.json names, because only the alpha
+carbons move here – a probe tethered to an atom nothing optimises cannot
+follow the structure.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="k">def</span><span class="w"> </span><span class="nf">fret_restraints</span><span class="p">(</span><span class="n">score_set</span><span class="p">)</span><span class="p">:</span><span class="w">
+</span>    <span class="c1"># f_max = 15 kcal/mol/A at one error bar, tether 30: strong enough to bend</span><span class="w">
+</span>    <span class="c1"># the network above, which is the balance any restrained refinement has to</span><span class="w">
+</span>    <span class="c1"># strike. Too soft and the data is decoration; too stiff and the force</span><span class="w">
+</span>    <span class="c1"># field is.</span><span class="w">
+</span>    <span class="k">return</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">md_flat_bottom_restraints</span><span class="p">(</span><span class="w">
+</span>        <span class="n">hier</span><span class="p">,</span> <span class="n">fps_json</span><span class="p">,</span> <span class="n">score_set</span><span class="p">,</span> <span class="mf">15.0</span><span class="p">,</span> <span class="mf">30.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s2">CA</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="w">
+</span><span class="n">state_c2</span> <span class="o">=</span> <span class="n">fret_restraints</span><span class="p">(</span><span class="s2">&quot;</span><span class="s2">chi2_C2_33p</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="c1"># The same 33 pairs under the C1 distances, on the *starting* structure, purely</span><span class="w">
+</span><span class="c1"># as the baseline the run is measured against.</span><span class="w">
+</span><span class="n">baseline_c1</span> <span class="o">=</span> <span class="n">fret_restraints</span><span class="p">(</span><span class="s2">&quot;</span><span class="s2">chi2_C1_33p</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">state_c2</span><span class="o">.</span><span class="n">get_pair_names</span><span class="p">(</span><span class="p">)</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span><span class="si">}</span><span class="s2"> restrained pairs, </span><span class="s2">&quot;</span><span class="w">
+</span>      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">state_c2</span><span class="o">.</span><span class="n">get_probes</span><span class="p">(</span><span class="p">)</span><span class="p">)</span><span class="si">}</span><span class="s2"> probes</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span></pre></div></div>
+<p>Run. The reporter records every restrained probe-probe distance so the
+trajectory can be read as the experiment reads it.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="k">def</span><span class="w"> </span><span class="nf">simulate</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">n_steps</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span> <span class="n">report_every</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span><span class="w">
+</span>             <span class="n">rebuild_every</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;Run MD under the elastic network plus `system`, reporting distances.
+
+    ``AVRebuildOptimizerState`` resamples the volumes every ``rebuild_every``
+    steps and re-derives every well from the geometry the trajectory has
+    reached. Without it the wells keep the bounds derived from the *starting*
+    structure for the whole run, and on this system those bounds move by
+    several angstrom as the fold opens.
+    &quot;&quot;&quot;</span><span class="w">
+</span>    <span class="n">sf</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">RestraintsScoringFunction</span><span class="p">(</span><span class="w">
+</span>        <span class="n">network</span> <span class="o">+</span> <span class="p">[</span><span class="n">system</span><span class="o">.</span><span class="n">get_restraints</span><span class="p">(</span><span class="p">)</span><span class="p">]</span><span class="p">)</span><span class="w">
+</span>    <span class="n">md</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">MolecularDynamics</span><span class="p">(</span><span class="n">m</span><span class="p">)</span><span class="w">
+</span>    <span class="n">md</span><span class="o">.</span><span class="n">set_scoring_function</span><span class="p">(</span><span class="n">sf</span><span class="p">)</span><span class="w">
+</span>    <span class="n">md</span><span class="o">.</span><span class="n">set_maximum_time_step</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span><span class="w">
+</span>    <span class="n">md</span><span class="o">.</span><span class="n">add_optimizer_state</span><span class="p">(</span><span class="w">
+</span>        <span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">VelocityScalingOptimizerState</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">cas</span><span class="p">,</span> <span class="n">temperature</span><span class="p">)</span><span class="p">)</span><span class="w">
+</span>    <span class="n">md</span><span class="o">.</span><span class="n">add_optimizer_state</span><span class="p">(</span><span class="w">
+</span>        <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">AVRebuildOptimizerState</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">rebuild_every</span><span class="p">)</span><span class="p">)</span><span class="w">
+</span>    <span class="n">wells</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">get_wells</span><span class="p">(</span><span class="p">)</span><span class="w">
+</span>    <span class="n">trace</span> <span class="o">=</span> <span class="p">[</span><span class="p">]</span><span class="w">
+</span>    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_steps</span><span class="p">,</span> <span class="n">report_every</span><span class="p">)</span><span class="p">:</span><span class="w">
+</span>        <span class="n">md</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">report_every</span><span class="p">)</span><span class="w">
+</span>        <span class="n">trace</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="p">[</span><span class="n">w</span><span class="o">.</span><span class="n">get_distance</span><span class="p">(</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">wells</span><span class="p">]</span><span class="p">)</span><span class="w">
+</span>    <span class="c1"># MD explores; a short minimisation settles into the well it found.</span><span class="w">
+</span>    <span class="n">cg</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">ConjugateGradients</span><span class="p">(</span><span class="n">m</span><span class="p">)</span><span class="w">
+</span>    <span class="n">cg</span><span class="o">.</span><span class="n">set_scoring_function</span><span class="p">(</span><span class="n">sf</span><span class="p">)</span><span class="w">
+</span>    <span class="n">cg</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span><span class="w">
+</span>    <span class="n">trace</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="p">[</span><span class="n">w</span><span class="o">.</span><span class="n">get_distance</span><span class="p">(</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">wells</span><span class="p">]</span><span class="p">)</span><span class="w">
+</span>    <span class="k">return</span> <a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="numpy.array"><span class="n">np</span><span class="o">.</span><span class="n">array</span></a><span class="p">(</span><span class="n">trace</span><span class="p">)</span><span class="w">
+</span><span class="w">
+</span><span class="w">
+</span><span class="n">N</span> <span class="o">=</span> <span class="mi">12000</span><span class="w">
+</span><span class="n">start_c2</span> <span class="o">=</span> <span class="p">[</span><span class="n">w</span><span class="o">.</span><span class="n">get_distance</span><span class="p">(</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">state_c2</span><span class="o">.</span><span class="n">get_wells</span><span class="p">(</span><span class="p">)</span><span class="p">]</span><span class="w">
+</span><span class="n">trace_c2</span> <span class="o">=</span> <span class="n">simulate</span><span class="p">(</span><span class="n">state_c2</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="s2">under C2: </span><span class="si">{</span><span class="n">trace_c2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> reports of </span><span class="si">{</span><span class="n">trace_c2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> distances</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span></pre></div></div>
+<p>Switch to C1. The volumes are rebuilt on the structure the C2 run reached, so
+the new bounds are derived from the geometry actually in hand.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="n">state_c1</span> <span class="o">=</span> <span class="n">fret_restraints</span><span class="p">(</span><span class="s2">&quot;</span><span class="s2">chi2_C1_33p</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="c1"># The network is re-anchored on the C2 conformer too. It stands for *local*</span><span class="w">
+</span><span class="c1"># structure -- what a fold will not give up -- and not for one conformation;</span><span class="w">
+</span><span class="c1"># left on the crystal coordinates it becomes a memory of where the run started,</span><span class="w">
+</span><span class="c1"># and the C1 phase stalls at 29 of 33 because the network is pulling back.</span><span class="w">
+</span><span class="n">network</span> <span class="o">=</span> <span class="n">elastic_network</span><span class="p">(</span><span class="n">cas</span><span class="p">)</span><span class="w">
+</span><span class="n">trace_c1</span> <span class="o">=</span> <span class="n">simulate</span><span class="p">(</span><span class="n">state_c1</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="s2">under C1: </span><span class="si">{</span><span class="n">trace_c1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> reports</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span></pre></div></div>
+<p>Did the data move the structure? A distance is <em>satisfied</em> when it sits inside
+its flat bottom. Count how many of the 33 are satisfied under each set, before
+and after the switch.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="k">def</span><span class="w"> </span><span class="nf">satisfied</span><span class="p">(</span><span class="n">wells</span><span class="p">,</span> <span class="n">distances</span><span class="p">)</span><span class="p">:</span><span class="w">
+</span>    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">w</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">wells</span><span class="p">,</span> <span class="n">distances</span><span class="p">)</span><span class="w">
+</span>               <span class="k">if</span> <span class="n">w</span><span class="o">.</span><span class="n">get_bounds</span><span class="p">(</span><span class="p">)</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span><span class="o">=</span> <span class="n">d</span> <span class="o">&lt;</span><span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">get_bounds</span><span class="p">(</span><span class="p">)</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="p">)</span><span class="w">
+</span><span class="w">
+</span><span class="n">wells_c2</span><span class="p">,</span> <span class="n">wells_c1</span> <span class="o">=</span> <span class="n">state_c2</span><span class="o">.</span><span class="n">get_wells</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="n">state_c1</span><span class="o">.</span><span class="n">get_wells</span><span class="p">(</span><span class="p">)</span><span class="w">
+</span><span class="n">base</span> <span class="o">=</span> <span class="n">baseline_c1</span><span class="o">.</span><span class="n">get_wells</span><span class="p">(</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="s2">C1 distances satisfied by the crystal structure: </span><span class="s2">&quot;</span><span class="w">
+</span>      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">satisfied</span><span class="p">(</span><span class="n">base</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="n">w</span><span class="o">.</span><span class="n">get_distance</span><span class="p">(</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">w</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">base</span><span class="p">]</span><span class="p">)</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">base</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="s2">C2 distances satisfied, start -&gt; end of the C2 run: </span><span class="s2">&quot;</span><span class="w">
+</span>      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">satisfied</span><span class="p">(</span><span class="n">wells_c2</span><span class="p">,</span><span class="w"> </span><span class="n">start_c2</span><span class="p">)</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">satisfied</span><span class="p">(</span><span class="n">wells_c2</span><span class="p">,</span><span class="w"> </span><span class="n">trace_c2</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="w">
+</span>      <span class="sa">f</span><span class="s2">&quot;</span><span class="s2"> of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">wells_c2</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="c1"># Note the counts do not reach 33 of 33. With the volumes held fixed they do --</span><span class="w">
+</span><span class="c1"># but only because the wells are then a target derived from a structure the run</span><span class="w">
+</span><span class="c1"># has already left. Rebuilding moves the target onto the geometry in hand, which</span><span class="w">
+</span><span class="c1"># is a harder and a truer one.</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="s2">C1 distances satisfied, start -&gt; end of the C1 run: </span><span class="s2">&quot;</span><span class="w">
+</span>      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">satisfied</span><span class="p">(</span><span class="n">wells_c1</span><span class="p">,</span><span class="w"> </span><span class="n">trace_c1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="p">)</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">satisfied</span><span class="p">(</span><span class="n">wells_c1</span><span class="p">,</span><span class="w"> </span><span class="n">trace_c1</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="w">
+</span>      <span class="sa">f</span><span class="s2">&quot;</span><span class="s2"> of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">wells_c1</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span></pre></div></div>
+<p>The trajectory, read as the experiment reads it. Each line is one restrained
+probe-probe distance; the dashed line marks the switch from the C2 targets to
+the C1 targets.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="n">trace</span> <span class="o">=</span> <a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.vstack.html#numpy.vstack" title="numpy.vstack"><span class="n">np</span><span class="o">.</span><span class="n">vstack</span></a><span class="p">(</span><span class="p">[</span><span class="n">trace_c2</span><span class="p">,</span> <span class="n">trace_c1</span><span class="p">]</span><span class="p">)</span><span class="w">
+</span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">)</span><span class="p">)</span><span class="w">
+</span><span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="p">)</span><span class="p">:</span><span class="w">
+</span>    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="p">:</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span><span class="w">
+</span><span class="n">ax</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trace_c2</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">k</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">--</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.2</span><span class="p">)</span><span class="w">
+</span><span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trace_c2</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">(</span><span class="p">)</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s2"> restraints switched C2 -&gt; C1</span><span class="s2">&quot;</span><span class="p">,</span><span class="w">
+</span>        <span class="n">va</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">top</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span><span class="w">
+</span><span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;</span><span class="s2">report (250 MD steps each)</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;</span><span class="s2">probe-probe distance / $</span><span class="s2">\</span><span class="s2">AA$</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;</span><span class="s2">T4 lysozyme driven from the C2 distances to the C1 distances</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="p">)</span><span class="w">
+</span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="p">)</span><span class="w">
+</span></pre></div></div>
+<section id="out-to-openmm">
+<h2>Out to OpenMM<a class="headerlink" href="#out-to-openmm" title="Permalink to this heading">¶</a></h2>
+<p>IMP has no bridge to an MD engine – <code class="docutils literal notranslate"><span class="pre">IMP.modeller</span></code> is its only external
+package interface and Modeller is not one – so the way to run these
+restraints in OpenMM is to export them. <code class="docutils literal notranslate"><span class="pre">write_openmm_restraints</span></code> writes a
+document with everything an OpenMM script has to add to a <code class="docutils literal notranslate"><span class="pre">System</span></code> built
+from the same structure, <strong>in OpenMM’s units</strong>: nanometres and kJ/mol.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="kn">import</span><span class="w"> </span><span class="nn">json</span><span class="w">
+</span><span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span><span class="w">
+</span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span><span class="w">
+</span><span class="w">
+</span><span class="n">work</span> <span class="o">=</span> <a class="sphx-glr-backref-module-tempfile sphx-glr-backref-type-py-function reference external" href="https://docs.python.org/3/library/tempfile.html#tempfile.mkdtemp" title="tempfile.mkdtemp"><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span></a><span class="p">(</span><span class="p">)</span><span class="w">
+</span><span class="n">out</span> <span class="o">=</span> <a class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function reference external" href="https://docs.python.org/3/library/os.path.html#os.path.join" title="os.path.join"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span></a><span class="p">(</span><span class="n">work</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s2">t4l_c1.openmm.json</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">write_openmm_restraints</span><span class="p">(</span><span class="n">state_c1</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">hier</span><span class="p">)</span><span class="w">
+</span><span class="n">doc</span> <span class="o">=</span> <a class="sphx-glr-backref-module-json sphx-glr-backref-type-py-function reference external" href="https://docs.python.org/3/library/json.html#json.load" title="json.load"><span class="n">json</span><span class="o">.</span><span class="n">load</span></a><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="p">)</span><span class="w">
+</span><span class="w">
+</span><span class="c1"># ...and the OpenMM around it, as a script that runs. The restraint table is</span><span class="w">
+</span><span class="c1"># embedded, so the generated file is the whole input.</span><span class="w">
+</span><span class="n">script</span> <span class="o">=</span> <a class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function reference external" href="https://docs.python.org/3/library/os.path.html#os.path.join" title="os.path.join"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span></a><span class="p">(</span><span class="n">work</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s2">run_t4l_c1.py</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">write_openmm_script</span><span class="p">(</span><span class="w">
+</span>    <span class="n">state_c1</span><span class="p">,</span> <span class="n">script</span><span class="p">,</span> <span class="n">hier</span><span class="p">,</span><span class="w">
+</span>    <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">get_example_path</span><span class="p">(</span><span class="s2">&quot;</span><span class="s2">structure/T4L/3GUN.pdb</span><span class="s2">&quot;</span><span class="p">)</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="s2">generated </span><span class="si">{</span><a class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function reference external" href="https://docs.python.org/3/library/os.path.html#os.path.basename" title="os.path.basename"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span></a><span class="p">(</span><span class="n">script</span><span class="p">)</span><span class="si">}</span><span class="s2">, </span><span class="s2">&quot;</span><span class="w">
+</span>      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">script</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="p">)</span><span class="o">.</span><span class="n">splitlines</span><span class="p">(</span><span class="p">)</span><span class="p">)</span><span class="si">}</span><span class="s2"> lines</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s1">'</span><span class="s1">probes</span><span class="s1">'</span><span class="p">]</span><span class="p">)</span><span class="si">}</span><span class="s2"> probes, </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s1">'</span><span class="s1">restraints</span><span class="s1">'</span><span class="p">]</span><span class="p">)</span><span class="si">}</span><span class="s2"> restraints, </span><span class="s2">&quot;</span><span class="w">
+</span>      <span class="sa">f</span><span class="s2">&quot;</span><span class="s2">units </span><span class="si">{</span><span class="n">doc</span><span class="p">[</span><span class="s1">'</span><span class="s1">units</span><span class="s1">'</span><span class="p">]</span><span class="p">[</span><span class="s1">'</span><span class="s1">length</span><span class="s1">'</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">doc</span><span class="p">[</span><span class="s1">'</span><span class="s1">units</span><span class="s1">'</span><span class="p">]</span><span class="p">[</span><span class="s1">'</span><span class="s1">energy</span><span class="s1">'</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><a class="sphx-glr-backref-module-json sphx-glr-backref-type-py-function reference external" href="https://docs.python.org/3/library/json.html#json.dumps" title="json.dumps"><span class="n">json</span><span class="o">.</span><span class="n">dumps</span></a><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">restraints</span><span class="s2">&quot;</span><span class="p">]</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="p">)</span><span class="w">
+</span></pre></div></div>
+<p>What consumes it. Attachment atoms are named by chain, residue and atom
+rather than indexed, because an index depends on how the reader built its
+topology – whether it kept hydrogens, waters, altlocs – and a spec that
+names atoms by position in someone else’s file silently restrains the wrong
+ones.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span class="kn">import</span><span class="w"> </span><span class="nn">openmm</span><span class="o">,</span><span class="w"> </span><span class="nn">openmm</span><span class="nn">.</span><span class="nn">unit</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">unit</span><span class="w">
+</span><span class="w">
+</span><span class="n">doc</span> <span class="o">=</span> <a class="sphx-glr-backref-module-json sphx-glr-backref-type-py-function reference external" href="https://docs.python.org/3/library/json.html#json.load" title="json.load"><span class="n">json</span><span class="o">.</span><span class="n">load</span></a><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;</span><span class="s2">t4l_c1.openmm.json</span><span class="s2">&quot;</span><span class="p">)</span><span class="p">)</span><span class="w">
+</span><span class="n">index_of</span> <span class="o">=</span> <span class="p">{</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">index</span><span class="w">
+</span>            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">topology</span><span class="o">.</span><span class="n">chains</span><span class="p">(</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">residues</span><span class="p">(</span><span class="p">)</span><span class="w">
+</span>            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">atoms</span><span class="p">(</span><span class="p">)</span><span class="p">}</span><span class="w">
+</span><span class="w">
+</span><span class="n">probe_index</span> <span class="o">=</span> <span class="p">{</span><span class="p">}</span><span class="w">
+</span><span class="n">tether</span> <span class="o">=</span> <span class="n">openmm</span><span class="o">.</span><span class="n">HarmonicBondForce</span><span class="p">(</span><span class="p">)</span><span class="w">
+</span><span class="k">for</span> <span class="n">probe</span> <span class="ow">in</span> <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">probes</span><span class="s2">&quot;</span><span class="p">]</span><span class="p">:</span><span class="w">
+</span>    <span class="n">probe_index</span><span class="p">[</span><span class="n">probe</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">name</span><span class="s2">&quot;</span><span class="p">]</span><span class="p">]</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">addParticle</span><span class="p">(</span><span class="n">probe</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">mass</span><span class="s2">&quot;</span><span class="p">]</span><span class="p">)</span><span class="w">
+</span>    <span class="n">at</span> <span class="o">=</span> <span class="n">probe</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">attachment</span><span class="s2">&quot;</span><span class="p">]</span><span class="w">
+</span>    <span class="n">tether</span><span class="o">.</span><span class="n">addBond</span><span class="p">(</span><span class="n">index_of</span><span class="p">[</span><span class="p">(</span><span class="n">at</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">chain</span><span class="s2">&quot;</span><span class="p">]</span><span class="p">,</span> <span class="n">at</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">residue</span><span class="s2">&quot;</span><span class="p">]</span><span class="p">,</span> <span class="n">at</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">atom</span><span class="s2">&quot;</span><span class="p">]</span><span class="p">)</span><span class="p">]</span><span class="p">,</span><span class="w">
+</span>                   <span class="n">probe_index</span><span class="p">[</span><span class="n">probe</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">name</span><span class="s2">&quot;</span><span class="p">]</span><span class="p">]</span><span class="p">,</span><span class="w">
+</span>                   <span class="n">probe</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">tether</span><span class="s2">&quot;</span><span class="p">]</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">length</span><span class="s2">&quot;</span><span class="p">]</span><span class="p">,</span> <span class="n">probe</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">tether</span><span class="s2">&quot;</span><span class="p">]</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">k</span><span class="s2">&quot;</span><span class="p">]</span><span class="p">)</span><span class="w">
+</span><span class="n">system</span><span class="o">.</span><span class="n">addForce</span><span class="p">(</span><span class="n">tether</span><span class="p">)</span><span class="w">
+</span><span class="w">
+</span><span class="n">wells</span> <span class="o">=</span> <span class="n">openmm</span><span class="o">.</span><span class="n">CustomBondForce</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">energy_expression</span><span class="s2">&quot;</span><span class="p">]</span><span class="p">)</span><span class="w">
+</span><span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">per_bond_parameters</span><span class="s2">&quot;</span><span class="p">]</span><span class="p">:</span><span class="w">
+</span>    <span class="n">wells</span><span class="o">.</span><span class="n">addPerBondParameter</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="w">
+</span><span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">restraints</span><span class="s2">&quot;</span><span class="p">]</span><span class="p">:</span><span class="w">
+</span>    <span class="n">wells</span><span class="o">.</span><span class="n">addBond</span><span class="p">(</span><span class="n">probe_index</span><span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">probe_1</span><span class="s2">&quot;</span><span class="p">]</span><span class="p">]</span><span class="p">,</span> <span class="n">probe_index</span><span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">probe_2</span><span class="s2">&quot;</span><span class="p">]</span><span class="p">]</span><span class="p">,</span><span class="w">
+</span>                  <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">per_bond_parameters</span><span class="s2">&quot;</span><span class="p">]</span><span class="p">]</span><span class="p">)</span><span class="w">
+</span><span class="n">system</span><span class="o">.</span><span class="n">addForce</span><span class="p">(</span><span class="n">wells</span><span class="p">)</span><span class="w">
+</span></pre></div></div>
+<p>The probe positions in the document are the starting coordinates those new
+particles need, appended to whatever the topology’s own positions are.</p>
+<p>The exported well <em>is</em> the well. <code class="docutils literal notranslate"><span class="pre">openmm_flat_bottom_energy</span></code> is one string
+used by both sides, and it can be checked here without OpenMM installed –
+OpenMM’s <code class="docutils literal notranslate"><span class="pre">select</span></code> and <code class="docutils literal notranslate"><span class="pre">step</span></code> are two lines of Python, and <code class="docutils literal notranslate"><span class="pre">^</span></code> is
+Python’s <code class="docutils literal notranslate"><span class="pre">**</span></code>.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="k">def</span><span class="w"> </span><span class="nf">openmm_eval</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="o">*</span><span class="o">*</span><span class="n">values</span><span class="p">)</span><span class="p">:</span><span class="w">
+</span>    <span class="n">ns</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="w">
+</span>    <span class="n">ns</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">select</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">a</span> <span class="k">if</span> <span class="n">c</span> <span class="k">else</span> <span class="n">b</span><span class="w">
+</span>    <span class="n">ns</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">step</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span><span class="o">=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span><span class="w">
+</span>    <span class="k">return</span> <span class="nb">eval</span><span class="p">(</span><span class="n">expression</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="s2">^</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s2">**</span><span class="s2">&quot;</span><span class="p">)</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;</span><span class="s2">__builtins__</span><span class="s2">&quot;</span><span class="p">:</span> <span class="p">{</span><span class="p">}</span><span class="p">}</span><span class="p">,</span> <span class="n">ns</span><span class="p">)</span><span class="w">
+</span><span class="w">
+</span><span class="w">
+</span><span class="n">A_TO_NM</span><span class="p">,</span> <span class="n">KCAL_TO_KJ</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">4.184</span><span class="w">
+</span><span class="n">example</span> <span class="o">=</span> <span class="n">state_c1</span><span class="o">.</span><span class="n">get_wells</span><span class="p">(</span><span class="p">)</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w">
+</span><span class="n">r1</span><span class="p">,</span> <span class="n">r2</span><span class="p">,</span> <span class="n">r3</span><span class="p">,</span> <span class="n">r4</span> <span class="o">=</span> <span class="n">example</span><span class="o">.</span><span class="n">get_bounds</span><span class="p">(</span><span class="p">)</span><span class="w">
+</span><span class="n">k2</span><span class="p">,</span> <span class="n">k3</span> <span class="o">=</span> <span class="n">example</span><span class="o">.</span><span class="n">get_force_constants</span><span class="p">(</span><span class="p">)</span><span class="w">
+</span><span class="w">
+</span><span class="n">grid</span> <span class="o">=</span> <a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.linspace.html#numpy.linspace" title="numpy.linspace"><span class="n">np</span><span class="o">.</span><span class="n">linspace</span></a><span class="p">(</span><span class="mf">0.6</span> <span class="o">*</span> <span class="n">r1</span><span class="p">,</span> <span class="mf">1.4</span> <span class="o">*</span> <span class="n">r4</span><span class="p">,</span> <span class="mi">300</span><span class="p">)</span><span class="w">
+</span><span class="n">here</span> <span class="o">=</span> <a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="numpy.array"><span class="n">np</span><span class="o">.</span><span class="n">array</span></a><span class="p">(</span><span class="p">[</span><span class="n">openmm_eval</span><span class="p">(</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">select(step(r1-r), k2*(r1-r2)^2 + 2*k2*(r1-r2)*(r-r1),</span><span class="s2">&quot;</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">select(step(r2-r), k2*(r-r2)^2,</span><span class="s2">&quot;</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">select(step(r-r4), k3*(r4-r3)^2 + 2*k3*(r4-r3)*(r-r4),</span><span class="s2">&quot;</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">select(step(r-r3), k3*(r-r3)^2, 0))))</span><span class="s2">&quot;</span><span class="p">,</span><span class="w">
+</span>    <span class="n">r</span><span class="o">=</span><span class="n">d</span><span class="p">,</span> <span class="n">r1</span><span class="o">=</span><span class="n">r1</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="n">r2</span><span class="p">,</span> <span class="n">r3</span><span class="o">=</span><span class="n">r3</span><span class="p">,</span> <span class="n">r4</span><span class="o">=</span><span class="n">r4</span><span class="p">,</span> <span class="n">k2</span><span class="o">=</span><span class="n">k2</span><span class="p">,</span> <span class="n">k3</span><span class="o">=</span><span class="n">k3</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">grid</span><span class="p">]</span><span class="p">)</span><span class="w">
+</span><span class="n">there</span> <span class="o">=</span> <a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="numpy.array"><span class="n">np</span><span class="o">.</span><span class="n">array</span></a><span class="p">(</span><span class="p">[</span><span class="n">openmm_eval</span><span class="p">(</span><span class="w">
+</span>    <span class="n">doc</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">energy_expression</span><span class="s2">&quot;</span><span class="p">]</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="n">d</span> <span class="o">*</span> <span class="n">A_TO_NM</span><span class="p">,</span> <span class="n">r1</span><span class="o">=</span><span class="n">r1</span> <span class="o">*</span> <span class="n">A_TO_NM</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="n">r2</span> <span class="o">*</span> <span class="n">A_TO_NM</span><span class="p">,</span><span class="w">
+</span>    <span class="n">r3</span><span class="o">=</span><span class="n">r3</span> <span class="o">*</span> <span class="n">A_TO_NM</span><span class="p">,</span> <span class="n">r4</span><span class="o">=</span><span class="n">r4</span> <span class="o">*</span> <span class="n">A_TO_NM</span><span class="p">,</span> <span class="n">k2</span><span class="o">=</span><span class="n">k2</span> <span class="o">*</span> <span class="n">KCAL_TO_KJ</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">,</span><span class="w">
+</span>    <span class="n">k3</span><span class="o">=</span><span class="n">k3</span> <span class="o">*</span> <span class="n">KCAL_TO_KJ</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">grid</span><span class="p">]</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="s2">worst |exported - local| over the well: </span><span class="s2">&quot;</span><span class="w">
+</span>      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.max.html#numpy.max" title="numpy.max"><span class="n">np</span><span class="o">.</span><span class="n">max</span></a><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">there</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">here</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">KCAL_TO_KJ</span><span class="p">)</span><span class="p">)</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2"> kJ/mol</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="w">
+</span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">6.5</span><span class="p">,</span> <span class="mf">3.6</span><span class="p">)</span><span class="p">)</span><span class="w">
+</span><span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">there</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">as exported to OpenMM</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">here</span> <span class="o">*</span> <span class="n">KCAL_TO_KJ</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">--</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">k</span><span class="s2">&quot;</span><span class="p">,</span><span class="w">
+</span>        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">as evaluated by IMP.bff</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">ax</span><span class="o">.</span><span class="n">axvspan</span><span class="p">(</span><span class="n">r2</span><span class="p">,</span> <span class="n">r3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">0.9</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">flat bottom (within the error bars)</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;</span><span class="s2">probe-probe distance / $</span><span class="s2">\</span><span class="s2">AA$</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;</span><span class="s2">energy / kJ mol$^</span><span class="s2">{</span><span class="s2">-1}$</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">example</span><span class="o">.</span><span class="n">get_name</span><span class="p">(</span><span class="p">)</span><span class="si">}</span><span class="s2">: harmonic walls, capped tails</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span><span class="w">
+</span><span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="p">)</span><span class="w">
+</span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="p">)</span><span class="w">
+</span></pre></div></div>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-labels-plot-fret-restrained-md-py">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/0e570b84d43ca50ce5540817da6b3548/plot_fret_restrained_md.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_fret_restrained_md.ipynb</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/539f7cb29825f35802b00b57a94455f5/plot_fret_restrained_md.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_fret_restrained_md.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-zip docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/cc07cfd3afb222b1e5d0176d6f3e0c90/plot_fret_restrained_md.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">zipped:</span> <span class="pre">plot_fret_restrained_md.zip</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+</section>
+
+
+      </div>
+    <div class="container">
+      <footer class="sk-content-footer">
+            &copy; 2021 - 2026, IMP developers.
+      </footer>
+    </div>
+  </div>
+</div>
+<script src="../../_static/js/vendor/bootstrap.min.js"></script>
+
+<script>
+    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+    ga('create', 'UA-22606712-2', 'auto');
+    ga('set', 'anonymizeIp', true);
+    ga('send', 'pageview');
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+<script>
+$(document).ready(function() {
+    /* Add a [>>>] button on the top-right corner of code samples to hide
+     * the >>> and ... prompts and the output and thus make the code
+     * copyable. */
+    var div = $('.highlight-python .highlight,' +
+                '.highlight-python3 .highlight,' +
+                '.highlight-pycon .highlight,' +
+		'.highlight-default .highlight')
+    var pre = div.find('pre');
+
+    // get the styles from the current theme
+    pre.parent().parent().css('position', 'relative');
+    var hide_text = 'Hide prompts and outputs';
+    var show_text = 'Show prompts and outputs';
+
+    // create and add the button to all the code blocks that contain >>>
+    div.each(function(index) {
+        var jthis = $(this);
+        if (jthis.find('.gp').length > 0) {
+            var button = $('<span class="copybutton">&gt;&gt;&gt;</span>');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+            jthis.prepend(button);
+        }
+        // tracebacks (.gt) contain bare text elements that need to be
+        // wrapped in a span to work with .nextUntil() (see later)
+        jthis.find('pre:has(.gt)').contents().filter(function() {
+            return ((this.nodeType == 3) && (this.data.trim().length > 0));
+        }).wrap('<span>');
+    });
+
+    // define the behavior of the button when it's clicked
+    $('.copybutton').click(function(e){
+        e.preventDefault();
+        var button = $(this);
+        if (button.data('hidden') === 'false') {
+            // hide the code output
+            button.parent().find('.go, .gp, .gt').hide();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'hidden');
+            button.css('text-decoration', 'line-through');
+            button.attr('title', show_text);
+            button.data('hidden', 'true');
+        } else {
+            // show the code output
+            button.parent().find('.go, .gp, .gt').show();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'visible');
+            button.css('text-decoration', 'none');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+        }
+    });
+
+	/*** Add permalink buttons next to glossary terms ***/
+	$('dl.glossary > dt[id]').append(function() {
+		return ('<a class="headerlink" href="#' +
+			    this.getAttribute('id') +
+			    '" title="Permalink to this term">¶</a>');
+	});
+  /*** Hide navbar when scrolling down ***/
+  // Returns true when headerlink target matches hash in url
+  (function() {
+    hashTargetOnTop = function() {
+        var hash = window.location.hash;
+        if ( hash.length < 2 ) { return false; }
+
+        var target = document.getElementById( hash.slice(1) );
+        if ( target === null ) { return false; }
+
+        var top = target.getBoundingClientRect().top;
+        return (top < 2) && (top > -2);
+    };
+
+    // Hide navbar on load if hash target is on top
+    var navBar = document.getElementById("navbar");
+    var navBarToggler = document.getElementById("sk-navbar-toggler");
+    var navBarHeightHidden = "-" + navBar.getBoundingClientRect().height + "px";
+    var $window = $(window);
+
+    hideNavBar = function() {
+        navBar.style.top = navBarHeightHidden;
+    };
+
+    showNavBar = function() {
+        navBar.style.top = "0";
+    }
+
+    if (hashTargetOnTop()) {
+        hideNavBar()
+    }
+
+    var prevScrollpos = window.pageYOffset;
+    hideOnScroll = function(lastScrollTop) {
+        if (($window.width() < 768) && (navBarToggler.getAttribute("aria-expanded") === 'true')) {
+            return;
+        }
+        if (lastScrollTop > 2 && (prevScrollpos <= lastScrollTop) || hashTargetOnTop()){
+            hideNavBar()
+        } else {
+            showNavBar()
+        }
+        prevScrollpos = lastScrollTop;
+    };
+
+    /*** high performance scroll event listener***/
+    var raf = window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        window.oRequestAnimationFrame;
+    var lastScrollTop = $window.scrollTop();
+
+    if (raf) {
+        loop();
+    }
+
+    function loop() {
+        var scrollTop = $window.scrollTop();
+        if (lastScrollTop === scrollTop) {
+            raf(loop);
+            return;
+        } else {
+            lastScrollTop = scrollTop;
+            hideOnScroll(lastScrollTop);
+            raf(loop);
+        }
+    }
+  })();
+});
+
+</script>
+    
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+</body>
+</html>

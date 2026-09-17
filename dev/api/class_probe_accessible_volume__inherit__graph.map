@@ -1,0 +1,7 @@
+<map id="ProbeAccessibleVolume" name="ProbeAccessibleVolume">
+<area shape="rect" id="Node000001" title="States enumerated as a voxel grid, plus the grid itself." alt="" coords="9,399,203,684"/>
+<area shape="rect" id="Node000003" href="$class_a_c_v.html" title="Accessible contact volume: the cloud split by proximity to a surface." alt="" coords="5,732,207,917"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="109,698,109,732,103,732,103,698"/>
+<area shape="rect" id="Node000002" href="$class_states.html" title="A weighted set of states of one label." alt="" coords="15,5,197,351"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,364,109,398,103,398,103,364"/>
+</map>

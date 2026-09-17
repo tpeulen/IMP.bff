@@ -1,0 +1,17 @@
+<map id="ProbePosition" name="ProbePosition">
+<area shape="rect" id="Node000001" title="Where a probe is attached: flrCIF&#39;s _flr_poly_probe_position." alt="" coords="405,843,599,1088"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="471,135,549,200"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="551,185,575,201,595,222,605,240,610,255,614,292,620,363,620,435,616,507,607,578,581,713,551,827,546,826,576,711,602,578,610,507,615,435,615,363,609,292,605,256,600,242,591,226,571,205,548,190"/>
+<area shape="rect" id="Node000004" href="$struct_probe.html" title=" " alt="" coords="224,575,393,780"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="471,178,420,190,362,212,333,227,305,246,281,268,262,293,246,324,237,357,232,390,232,425,241,494,259,559,254,560,236,495,226,425,227,390,231,355,241,322,257,291,277,264,302,242,330,223,359,207,419,185,470,172"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="421,318,599,383"/>
+<area shape="poly" id="edge8_Node000007_Node000002" title=" " alt="" coords="513,200,513,301,507,301,507,200"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="445,5,575,85"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="513,99,513,134,507,134,507,99"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="380,779,413,827,408,830,375,782"/>
+<area shape="rect" id="Node000005" href="$struct_spectrum.html" title="Excitation and emission on a shared wavelength grid." alt="" coords="5,298,199,403"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="108,403,122,476,135,514,154,549,180,583,213,612,209,616,177,587,149,552,130,516,117,477,103,404"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="23,135,181,200"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="105,200,105,282,99,282,99,200"/>
+<area shape="poly" id="edge7_Node000004_Node000007" title=" " alt="" coords="493,385,382,562,378,559,488,382"/>
+</map>

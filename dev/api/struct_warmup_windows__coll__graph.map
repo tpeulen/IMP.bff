@@ -1,0 +1,5 @@
+<map id="WarmupWindows" name="WarmupWindows">
+<area shape="rect" id="Node000001" title="The windowed warm&#45;up schedule for n_warmup iterations." alt="" coords="7,133,134,219"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,136,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="73,71,73,117,68,117,68,71"/>
+</map>

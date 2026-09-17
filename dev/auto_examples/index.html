@@ -1,0 +1,355 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <title>Examples &mdash; IMP.bff  documentation</title>
+  
+  <link rel="canonical" href="http://scikit-learn.org/stable/auto_examples/index.html" />
+
+  
+
+  <link rel="stylesheet" href="../_static/css/vendor/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sg_gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sg_gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sg_gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sg_gallery-rendered-html.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+<script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+<script src="../_static/jquery.js"></script> 
+</head>
+<body>
+<nav id="navbar" class="sk-docs-navbar navbar navbar-expand-md navbar-light bg-light py-0">
+  <div class="container-fluid sk-docs-container px-0">
+    <button
+      id="sk-navbar-toggler"
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="sk-navbar-collapse collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../install.html">Install</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../manual/index.html">User Manual</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../api/index.html">API</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="#">Examples</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../glossary.html" >Glossary</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../zreferences.html" >References</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../faq.html" >FAQ</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../related_projects.html" >Related packages</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../roadmap.html" >Roadmap</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../about.html" >About us</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://integrativemodeling.org/" >IMP</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+        </li>
+        <li class="nav-item dropdown nav-more-item-dropdown">
+          <a class="sk-nav-link nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">More</a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="sk-nav-dropdown-item dropdown-item" href="../glossary.html" >Glossary</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../zreferences.html" >References</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../faq.html" >FAQ</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../related_projects.html" >Related packages</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../roadmap.html" >Roadmap</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../about.html" >About us</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://integrativemodeling.org/" >IMP</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+          </div>
+        </li>
+      </ul>
+      <div id="searchbox" role="search">
+          <div class="searchformwrapper">
+          <form class="search" action="../search.html" method="get">
+            <input class="sk-search-text-input" type="text" name="q" aria-labelledby="searchlabel" />
+            <input class="sk-search-text-btn" type="submit" value="Go" />
+          </form>
+          </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="d-flex" id="sk-doc-wrapper">
+    <input type="checkbox" name="sk-toggle-checkbox" id="sk-toggle-checkbox">
+    <label id="sk-sidemenu-toggle" class="sk-btn-toggle-toc btn sk-btn-primary" for="sk-toggle-checkbox">Toggle Menu</label>
+    <div id="sk-sidebar-wrapper" class="border-right">
+      <div class="sk-sidebar-toc-wrapper">
+        <div class="sk-sidebar-toc-logo">
+        </div>
+        <div class="btn-group w-100 mb-2" role="group" aria-label="rellinks">
+            <a href="#" role="button" class="btn sk-btn-rellink py-1 disabled"">Prev</a>
+            <a href="#" role="button" class="btn sk-btn-rellink disabled py-1">Up</a>
+            <a href="#" role="button" class="btn sk-btn-rellink py-1 disabled"">Next</a>
+        </div>
+            <div class="sk-sidebar-toc">
+              <ul>
+<li><a class="reference internal" href="#">Examples</a><ul>
+<li><a class="reference internal" href="#labelling-simulations">Labelling simulations</a></li>
+<li><a class="reference internal" href="#fluorescence-spectroscopy">Fluorescence spectroscopy</a></li>
+<li><a class="reference internal" href="#structural-modeling">Structural modeling</a></li>
+<li><a class="reference internal" href="#release-highlights">Release Highlights</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+      </div>
+    </div>
+    <div id="sk-page-content-wrapper">
+      <div class="sk-page-content container-fluid body px-md-3" role="main">
+        
+  <section id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Permalink to this heading">¶</a></h1>
+<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"></div><section id="labelling-simulations">
+<h2>Labelling simulations<a class="headerlink" href="#labelling-simulations" title="Permalink to this heading">¶</a></h2>
+<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="Scoring of structures"><img alt="" src="../_images/sphx_glr_plot_AVScreening_thumb.png" />
+<p><a class="reference internal" href="labels/plot_AVScreening.html"><span class="doc">Scoring of structures</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Scoring of structures</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="In this example a T4 lysozme structure is loaded and scored using IMP.bff.ProbeNetworkRestraint by experimental data in a fps.json file."><img alt="" src="../_images/sphx_glr_plot_ProbeNetworkRestraint_thumb.png" />
+<p><a class="reference internal" href="labels/plot_ProbeNetworkRestraint.html"><span class="doc">Accessible Volume Restraint</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Accessible Volume Restraint</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="Path search"><img alt="" src="../_images/sphx_glr_plot_path_maps_thumb.png" />
+<p><a class="reference internal" href="labels/plot_path_maps.html"><span class="doc">Path search</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Path search</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="Path searches"><img alt="" src="../_images/sphx_glr_plot_search_thumb.png" />
+<p><a class="reference internal" href="labels/plot_search.html"><span class="doc">Path searches</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Path searches</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="IMP.bff.select_probe_pairs answers it the way Olga does (Dimura et al., Nat. Commun. 11, 5394, 2020). A measurement is worth making if it separates the ensemble -- if the conformers it cannot tell apart are also the ones that are structurally alike. The selector adds the pair that leaves the smallest expected RMSD between the true structure and the one the measurements would single out, then repeats on what is left. What comes back is an ordered list and a decay curve: how much precision each further measurement buys, and where buying more stops paying."><img alt="" src="../_images/sphx_glr_plot_pair_selection_thumb.png" />
+<p><a class="reference internal" href="labels/plot_pair_selection.html"><span class="doc">Which FRET pair to measure next</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Which FRET pair to measure next</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="The AV decorator uses the Dijkstra&#x27;s algorithm to compute all path from the attachment site to a set of grid points around the attachment site. The AV decorator uses the IMP.bff.PathMap class for computing the AV. The occupied volume of leaves in a molecular hierarchy serve as obstacles in the path search."><img alt="" src="../_images/sphx_glr_plot_AVDecorator_thumb.png" />
+<p><a class="reference internal" href="labels/plot_AVDecorator.html"><span class="doc">Accessible volume decorator</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Accessible volume decorator</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="Which residue of a protein should carry the dye? The Labelizer score (Gebhardt et al., Nat. Commun. 16, 3305, 2025) answers it by combining four per-residue quantities into one number: how conserved the position is, how exposed it is, what secondary structure it sits in, and how much the residue already resembles a cysteine."><img alt="" src="../_images/sphx_glr_plot_labelizer_score_thumb.png" />
+<p><a class="reference internal" href="labels/plot_labelizer_score.html"><span class="doc">Choosing a labelling site: the Labelizer score, natively</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Choosing a labelling site: the Labelizer score, natively</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="plot_labelizer_score.py asks where a dye can go. This asks the second question, which is the one that decides an experiment: given two conformations of a protein, which pair of sites would actually report on the change?"><img alt="" src="../_images/sphx_glr_plot_labelizer_fret_pair_thumb.png" />
+<p><a class="reference internal" href="labels/plot_labelizer_fret_pair.html"><span class="doc">Which pair to measure: a FRET assay for a conformational change</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Which pair to measure: a FRET assay for a conformational change</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="md_flat_bottom_restraints builds the whole thing from an fps.json: it computes both volumes, converts each measured distance and its asymmetric errors into mean-position bounds with rmp_flat_bottom_bounds -- a conversion that is not a constant offset, because it depends on the shapes of both volumes -- creates one probe particle per labelling position tethered to its site, and puts a well between every measured pair."><img alt="" src="../_images/sphx_glr_plot_fret_restrained_md_thumb.png" />
+<p><a class="reference internal" href="labels/plot_fret_restrained_md.html"><span class="doc">FRET-restrained molecular dynamics: driving T4L from C2 to C1</span></a></p>
+  <div class="sphx-glr-thumbnail-title">FRET-restrained molecular dynamics: driving T4L from C2 to C1</div>
+</div></div></section>
+<section id="fluorescence-spectroscopy">
+<h2>Fluorescence spectroscopy<a class="headerlink" href="#fluorescence-spectroscopy" title="Permalink to this heading">¶</a></h2>
+<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="Orientation factor"><img alt="" src="../_images/sphx_glr_plot_k2_uncertainty_thumb.png" />
+<p><a class="reference internal" href="spectroscopy/plot_k2_uncertainty.html"><span class="doc">Orientation factor</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Orientation factor</div>
+</div></div></section>
+<section id="structural-modeling">
+<h2>Structural modeling<a class="headerlink" href="#structural-modeling" title="Permalink to this heading">¶</a></h2>
+<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"></div></section>
+<section id="release-highlights">
+<h2>Release Highlights<a class="headerlink" href="#release-highlights" title="Permalink to this heading">¶</a></h2>
+<p>These examples illustrate the main features of current <code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> releases.</p>
+<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="We are pleased to announce the release of IMP.bff 0.12, which comes with many bug fixes and new features! We detail below a few of the major features of this release. For an exhaustive list of all the changes, please refer to the release notes."><img alt="" src="../_images/sphx_glr_plot_release_highlights_0_12_0_thumb.png" />
+<p><a class="reference internal" href="release_highlights/plot_release_highlights_0_12_0.html"><span class="doc">Release Highlights for IMP.bff 0.12.0</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Release Highlights for IMP.bff 0.12.0</div>
+</div></div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-footer sphx-glr-footer-gallery docutils container">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/07fcc19ba03226cd3d83d4e40ec44385/auto_examples_python.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">all</span> <span class="pre">examples</span> <span class="pre">in</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">auto_examples_python.zip</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/6f1e7a639e0699d6164445b55e6c116d/auto_examples_jupyter.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">all</span> <span class="pre">examples</span> <span class="pre">in</span> <span class="pre">Jupyter</span> <span class="pre">notebooks:</span> <span class="pre">auto_examples_jupyter.zip</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+</section>
+
+
+      </div>
+    <div class="container">
+      <footer class="sk-content-footer">
+            &copy; 2021 - 2026, IMP developers.
+      </footer>
+    </div>
+  </div>
+</div>
+<script src="../_static/js/vendor/bootstrap.min.js"></script>
+
+<script>
+    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+    ga('create', 'UA-22606712-2', 'auto');
+    ga('set', 'anonymizeIp', true);
+    ga('send', 'pageview');
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+<script>
+$(document).ready(function() {
+    /* Add a [>>>] button on the top-right corner of code samples to hide
+     * the >>> and ... prompts and the output and thus make the code
+     * copyable. */
+    var div = $('.highlight-python .highlight,' +
+                '.highlight-python3 .highlight,' +
+                '.highlight-pycon .highlight,' +
+		'.highlight-default .highlight')
+    var pre = div.find('pre');
+
+    // get the styles from the current theme
+    pre.parent().parent().css('position', 'relative');
+    var hide_text = 'Hide prompts and outputs';
+    var show_text = 'Show prompts and outputs';
+
+    // create and add the button to all the code blocks that contain >>>
+    div.each(function(index) {
+        var jthis = $(this);
+        if (jthis.find('.gp').length > 0) {
+            var button = $('<span class="copybutton">&gt;&gt;&gt;</span>');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+            jthis.prepend(button);
+        }
+        // tracebacks (.gt) contain bare text elements that need to be
+        // wrapped in a span to work with .nextUntil() (see later)
+        jthis.find('pre:has(.gt)').contents().filter(function() {
+            return ((this.nodeType == 3) && (this.data.trim().length > 0));
+        }).wrap('<span>');
+    });
+
+    // define the behavior of the button when it's clicked
+    $('.copybutton').click(function(e){
+        e.preventDefault();
+        var button = $(this);
+        if (button.data('hidden') === 'false') {
+            // hide the code output
+            button.parent().find('.go, .gp, .gt').hide();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'hidden');
+            button.css('text-decoration', 'line-through');
+            button.attr('title', show_text);
+            button.data('hidden', 'true');
+        } else {
+            // show the code output
+            button.parent().find('.go, .gp, .gt').show();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'visible');
+            button.css('text-decoration', 'none');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+        }
+    });
+
+	/*** Add permalink buttons next to glossary terms ***/
+	$('dl.glossary > dt[id]').append(function() {
+		return ('<a class="headerlink" href="#' +
+			    this.getAttribute('id') +
+			    '" title="Permalink to this term">¶</a>');
+	});
+  /*** Hide navbar when scrolling down ***/
+  // Returns true when headerlink target matches hash in url
+  (function() {
+    hashTargetOnTop = function() {
+        var hash = window.location.hash;
+        if ( hash.length < 2 ) { return false; }
+
+        var target = document.getElementById( hash.slice(1) );
+        if ( target === null ) { return false; }
+
+        var top = target.getBoundingClientRect().top;
+        return (top < 2) && (top > -2);
+    };
+
+    // Hide navbar on load if hash target is on top
+    var navBar = document.getElementById("navbar");
+    var navBarToggler = document.getElementById("sk-navbar-toggler");
+    var navBarHeightHidden = "-" + navBar.getBoundingClientRect().height + "px";
+    var $window = $(window);
+
+    hideNavBar = function() {
+        navBar.style.top = navBarHeightHidden;
+    };
+
+    showNavBar = function() {
+        navBar.style.top = "0";
+    }
+
+    if (hashTargetOnTop()) {
+        hideNavBar()
+    }
+
+    var prevScrollpos = window.pageYOffset;
+    hideOnScroll = function(lastScrollTop) {
+        if (($window.width() < 768) && (navBarToggler.getAttribute("aria-expanded") === 'true')) {
+            return;
+        }
+        if (lastScrollTop > 2 && (prevScrollpos <= lastScrollTop) || hashTargetOnTop()){
+            hideNavBar()
+        } else {
+            showNavBar()
+        }
+        prevScrollpos = lastScrollTop;
+    };
+
+    /*** high performance scroll event listener***/
+    var raf = window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        window.oRequestAnimationFrame;
+    var lastScrollTop = $window.scrollTop();
+
+    if (raf) {
+        loop();
+    }
+
+    function loop() {
+        var scrollTop = $window.scrollTop();
+        if (lastScrollTop === scrollTop) {
+            raf(loop);
+            return;
+        } else {
+            lastScrollTop = scrollTop;
+            hideOnScroll(lastScrollTop);
+            raf(loop);
+        }
+    }
+  })();
+});
+
+</script>
+    
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+</body>
+</html>

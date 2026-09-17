@@ -1,0 +1,9 @@
+<map id="ModelSearchConfigurationError" name="ModelSearchConfigurationError">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,345,205,440"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="41,232,170,297"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,311,108,345,103,345,103,311"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="50,119,161,184"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="108,198,108,232,103,232,103,198"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="52,5,159,71"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="108,84,108,119,103,119,103,84"/>
+</map>

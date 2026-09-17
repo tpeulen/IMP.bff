@@ -1,0 +1,17 @@
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/ProbeTrajectoryDensity.h" name="/home/runner/work/IMP.bff/IMP.bff/include/ProbeTrajectoryDensity.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="385,5,610,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,152,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="385,60,148,108,147,103,384,54"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="177,108,287,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="417,63,281,106,279,101,415,58"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="312,108,448,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="463,62,408,102,405,98,460,58"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="472,108,523,133"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="500,60,500,94,495,94,495,60"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="547,108,623,133"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="526,58,566,96,562,100,522,62"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="648,108,707,133"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="553,58,642,100,640,105,551,62"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="731,108,794,133"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="579,58,719,102,717,107,578,63"/>
+</map>

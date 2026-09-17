@@ -1,0 +1,12 @@
+<map id="ProbeSimulationTrajectory" name="ProbeSimulationTrajectory">
+<area shape="rect" id="Node000001" title="One recorded run: the frames, and what was known at each of them." alt="" coords="121,435,330,660"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,263,163,328"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,328,79,368,82,389,88,410,113,450,108,453,83,412,76,391,74,369,75,328"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="329,263,508,328"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="396,330,324,423,320,420,392,327"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="207,135,286,200"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="246,201,240,263,232,418,227,418,235,262,240,200"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="288,195,364,251,361,255,285,200"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="181,5,312,85"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="249,99,249,134,244,134,244,99"/>
+</map>

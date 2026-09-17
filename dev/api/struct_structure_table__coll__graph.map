@@ -1,0 +1,13 @@
+<map id="StructureTable" name="StructureTable">
+<area shape="rect" id="Node000001" title="A coordinate file as parallel columns, one entry per atom." alt="" coords="155,435,349,780"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,263,163,328"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,327,153,419,149,422,99,329"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="187,263,317,328"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="255,328,255,418,249,418,249,328"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="341,263,520,328"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="415,329,359,426,354,423,410,327"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="391,135,470,200"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="433,200,433,246,428,246,428,200"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="365,5,496,85"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="433,99,433,134,428,134,428,99"/>
+</map>

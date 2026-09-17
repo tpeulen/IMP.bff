@@ -1,0 +1,9 @@
+<map id="States" name="States">
+<area shape="rect" id="Node000001" title="A weighted set of states of one label." alt="" coords="125,5,306,351"/>
+<area shape="rect" id="Node000002" href="$class_probe_accessible_volume.html" title="States enumerated as a voxel grid, plus the grid itself." alt="" coords="9,409,203,694"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,365,150,409,145,407,158,363"/>
+<area shape="rect" id="Node000004" href="$class_probe_rotamer_ensemble.html" title="A rotamer library placed and screened at one labelling site." alt="" coords="227,399,423,704"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="272,363,282,397,277,399,267,365"/>
+<area shape="rect" id="Node000003" href="$class_a_c_v.html" title="Accessible contact volume: the cloud split by proximity to a surface." alt="" coords="5,752,207,937"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="109,708,109,752,103,752,103,708"/>
+</map>

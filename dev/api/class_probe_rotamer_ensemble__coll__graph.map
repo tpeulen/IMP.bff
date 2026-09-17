@@ -1,0 +1,14 @@
+<map id="ProbeRotamerEnsemble" name="ProbeRotamerEnsemble">
+<area shape="rect" id="Node000001" title="A rotamer library placed and screened at one labelling site." alt="" coords="143,764,339,1069"/>
+<area shape="rect" id="Node000002" href="$class_states.html" title="A weighted set of states of one label." alt="" coords="151,449,332,715"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="244,729,244,764,239,764,239,729"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,285,163,350"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="81,350,80,387,88,424,111,464,141,500,137,504,106,468,83,426,74,387,76,350"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="223,135,302,200"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="262,200,256,278,248,433,243,433,251,277,257,200"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="384,277,539,357"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="304,196,398,265,394,270,301,200"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="197,5,328,85"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="265,99,265,134,260,134,260,99"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="430,360,345,462,341,458,426,356"/>
+</map>

@@ -1,0 +1,296 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <title>IMP.bff: Bayesian fluorescence framework for integrative modeling &mdash; IMP.bff  documentation</title>
+  
+  <link rel="canonical" href="http://scikit-learn.org/stable/index.html" />
+
+  
+
+  <link rel="stylesheet" href="_static/css/vendor/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sg_gallery.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sg_gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sg_gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sg_gallery-rendered-html.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+<script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+<script src="_static/jquery.js"></script> 
+</head>
+<body>
+<nav id="navbar" class="sk-landing-navbar navbar navbar-expand-md navbar-light bg-light py-0">
+  <div class="container-fluid sk-landing-container px-0">
+    <button
+      id="sk-navbar-toggler"
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="sk-navbar-collapse collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="install.html">Install</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="manual/index.html">User Manual</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="api/index.html">API</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="auto_examples/index.html">Examples</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="glossary.html" >Glossary</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="zreferences.html" >References</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="faq.html" >FAQ</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="related_projects.html" >Related packages</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="roadmap.html" >Roadmap</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="about.html" >About us</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://integrativemodeling.org/" >IMP</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+        </li>
+        <li class="nav-item dropdown nav-more-item-dropdown">
+          <a class="sk-nav-link nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">More</a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="sk-nav-dropdown-item dropdown-item" href="glossary.html" >Glossary</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="zreferences.html" >References</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="faq.html" >FAQ</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="related_projects.html" >Related packages</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="roadmap.html" >Roadmap</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="about.html" >About us</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://integrativemodeling.org/" >IMP</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+          </div>
+        </li>
+      </ul>
+      <div id="searchbox" role="search">
+          <div class="searchformwrapper">
+          <form class="search" action="search.html" method="get">
+            <input class="sk-search-text-input" type="text" name="q" aria-labelledby="searchlabel" />
+            <input class="sk-search-text-btn" type="submit" value="Go" />
+          </form>
+          </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="container-fluid sk-landing-bg py-3">
+  <div class="container sk-landing-container">
+    <div class="row">
+      <div class="col-md-6 mb-3 mb-md-0">
+        <h1 class="sk-landing-header text-white text-monospace">IMP.bff</h1>
+        <h4 class="sk-landing-subheader text-white font-italic mb-3">Bayesian Fluorescence Framework</h4>
+        <a class="btn sk-landing-btn mb-1" href="getting_started.html" role="button">Getting Started</a>
+        <a class="btn sk-landing-btn mb-1" href="auto_examples/release_highlights/plot_release_highlights_0_12_0.html" role="button">Release Highlights for 0.12</a>
+        <a class="btn sk-landing-btn mb-1" href="https://github.com/fluorescence-tools/imp.bff" role="button">GitHub</a>
+      </div>
+      <div class="col-md-6 d-flex">
+        <ul class="sk-landing-header-body">
+          <li>Fluorescence-based structural modeling</li>
+          <li>Accessible to everybody, and reusable in various contexts</li>
+          <li>Built in C/C++ and wrapped for Python and NumPy</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container sk-landing-container pt-3 body" role="main">
+  <div class="row no-gutters">
+    <div class="col-md-4 mb-3 px-md-2 sk-px-xl-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <a href="auto_examples/index.html#structural-modeling"><h4 class="sk-card-title card-title">Structural modeling</h4></a>
+          <p class="card-text">Molecular integrative modeling using label-based restraints.</p>
+          <p class="card-text"><strong>Applications:</strong>
+            <a href="auto_examples/structure/t4l_pmi.html">Conformers</a>,
+            <a href="auto_examples/structure/mGBP2_dimer_fp.html">complexes</a>.</br>
+          <strong>Methods:</strong>
+          <a href="auto_examples/labels/plot_AVScreening.html">Scoring</a>,
+          <a href="auto_examples/structure/tg2_flexfit.html">flexible fitting</a>,
+          and <a href="auto_examples/index.html#structural-modeling">more...</a></p>
+        </div>
+        <div class="overflow-hidden mx-2 text-center flex-fill">
+          <a href="auto_examples/structure/tg2_flexfit.html"  aria-label="Flexible fitting">
+          <img src="_images/sphx_glr_tg2_flexfit_thumb.gif" class="sk-index-img" style="width:initial;max-width:initial" alt="Flexible fitting of structures">
+          </a>
+        </div>
+          <a href="auto_examples/index.html#structural-modeling" class="sk-btn-primary btn text-white btn-block" role="button">Examples</a>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3 px-md-2 sk-px-xl-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <a href="auto_examples/index.html#label-simulations"><h4 class="sk-card-title card-title">Label simulations</h4></a>
+          <p class="card-text">Compute positional distributions of labels around attachment sites.</p>
+          <p class="card-text"><strong>Applications:</strong> FRET, EPR, XL-MS, ...</br>
+          <strong>Methods:</strong>
+          <a href="auto_examples/labels/plot_search.html#path-search">Path search</a>,
+          <a href="auto_examples/labels/plot_AVDecorator.html">accessible volume</a>,
+          and <a href="auto_examples/index.html#label-simulations">more...</a></p>
+        </div>
+        <div class="overflow-hidden mx-2 text-center flex-fill">
+          <a href="auto_examples/labels/plot_search.html"  aria-label="Path search on molecules">
+          <img src="_images/sphx_glr_plot_path_maps_002.png" class="sk-index-img" alt="Path search on molecules">
+          </a>
+        </div>
+          <a href="auto_examples/index.html#label-simulations" class="sk-btn-primary btn text-white btn-block" role="button">Examples</a>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3 px-md-2 sk-px-xl-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <a href="auto_examples/index.html#fluorescence-spectroscopy"><h4 class="sk-card-title card-title">Fluorescence spectroscopy</h4></a>
+          <p class="card-text">Process and analyze fluorescence data.</p>
+          <p class="card-text"><strong>Applications:</strong> Imaging, FRET, interaction studies, etc.</br>
+          <strong>Methods:</strong>
+          <a href="auto_examples/spectroscopy/plot_k2_uncertainty.html">Orientation factor</a>,
+          <a href="auto_examples/index.html#fluorescence-spectroscopy">Fluorescence decays</a>
+          and <a href="auto_examples/index.html#fluorescence-spectroscopy">more...</a></p>
+        </div>
+        <div class="overflow-hidden mx-2 text-center flex-fill">
+          <a href="auto_examples/index.html#fluorescence-spectroscopy"  aria-label="Orientation uncertainty">
+          <img src="_images/sphx_glr_plot_k2_uncertainty_001.png" class="sk-index-img" alt="Orientation uncertainty">
+          </a>
+        </div>
+          <a href="auto_examples/index.html#spectroscopy" class="sk-btn-primary btn text-white btn-block" role="button">Examples</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container-fluid sk-landing-bg-more-info py-3">
+  <div class="container sk-landing-container">
+    <div class="row">
+      <div class="col-md-4">
+        <h4 class="sk-landing-call-header">News</h4>
+        <ul class="sk-landing-call-list list-unstyled">
+
+          <li><strong>On-going development:</strong>
+            <a href="whats_new.html"><strong>What's new</strong> (Changelog)</a>
+          <li><strong>July 2022.</strong> IMP.bff 0.12.0 is available for download (<a href="whats_new/v0.12.0.html#version-0-0-12">Changelog</a>).
+          <li><strong>IMP.bff from 0.12.0 requires Python 3.8 or greater.</strong>
+          </li>
+        </ul>
+      </div>
+      <div class="col-md-4">
+        <h4 class="sk-landing-call-header">Community</h4>
+        <ul class="sk-landing-call-list list-unstyled">
+          <li><strong>About us:</strong> See <a href="about.html#authors">about</a></li>
+          <li><strong>Questions?</strong> See <a href="faq.html">FAQ</a></li>
+          <li>Communication on all channels should respect <a href="https://www.python.org/psf/conduct/">PSF's code of conduct.</a></li>
+        </ul>
+        <a class="btn btn-warning btn-big mb-1" href="about.html#citing-IMP.bff"><strong>Cite us!</strong></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="_static/js/vendor/bootstrap.min.js"></script>
+
+<script>
+    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+    ga('create', 'UA-22606712-2', 'auto');
+    ga('set', 'anonymizeIp', true);
+    ga('send', 'pageview');
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+<script>
+$(document).ready(function() {
+    /* Add a [>>>] button on the top-right corner of code samples to hide
+     * the >>> and ... prompts and the output and thus make the code
+     * copyable. */
+    var div = $('.highlight-python .highlight,' +
+                '.highlight-python3 .highlight,' +
+                '.highlight-pycon .highlight,' +
+		'.highlight-default .highlight')
+    var pre = div.find('pre');
+
+    // get the styles from the current theme
+    pre.parent().parent().css('position', 'relative');
+    var hide_text = 'Hide prompts and outputs';
+    var show_text = 'Show prompts and outputs';
+
+    // create and add the button to all the code blocks that contain >>>
+    div.each(function(index) {
+        var jthis = $(this);
+        if (jthis.find('.gp').length > 0) {
+            var button = $('<span class="copybutton">&gt;&gt;&gt;</span>');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+            jthis.prepend(button);
+        }
+        // tracebacks (.gt) contain bare text elements that need to be
+        // wrapped in a span to work with .nextUntil() (see later)
+        jthis.find('pre:has(.gt)').contents().filter(function() {
+            return ((this.nodeType == 3) && (this.data.trim().length > 0));
+        }).wrap('<span>');
+    });
+
+    // define the behavior of the button when it's clicked
+    $('.copybutton').click(function(e){
+        e.preventDefault();
+        var button = $(this);
+        if (button.data('hidden') === 'false') {
+            // hide the code output
+            button.parent().find('.go, .gp, .gt').hide();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'hidden');
+            button.css('text-decoration', 'line-through');
+            button.attr('title', show_text);
+            button.data('hidden', 'true');
+        } else {
+            // show the code output
+            button.parent().find('.go, .gp, .gt').show();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'visible');
+            button.css('text-decoration', 'none');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+        }
+    });
+
+	/*** Add permalink buttons next to glossary terms ***/
+	$('dl.glossary > dt[id]').append(function() {
+		return ('<a class="headerlink" href="#' +
+			    this.getAttribute('id') +
+			    '" title="Permalink to this term">¶</a>');
+	});
+});
+
+</script>
+</body>
+</html>

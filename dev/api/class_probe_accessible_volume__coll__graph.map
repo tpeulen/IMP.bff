@@ -1,0 +1,15 @@
+<map id="ProbeAccessibleVolume" name="ProbeAccessibleVolume">
+<area shape="rect" id="Node000001" title="States enumerated as a voxel grid, plus the grid itself." alt="" coords="5,764,199,1009"/>
+<area shape="rect" id="Node000002" href="$class_states.html" title="A weighted set of states of one label." alt="" coords="198,449,379,715"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,728,179,765,175,762,198,725"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="30,285,187,350"/>
+<area shape="poly" id="edge7_Node000001_Node000003" title=" " alt="" coords="108,351,101,449,98,604,100,747,95,747,93,604,95,449,103,350"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="111,350,117,388,123,407,133,424,144,433,155,436,167,440,181,447,187,453,184,457,178,452,165,444,153,441,141,437,129,427,119,409,112,389,106,351"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="269,135,348,200"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="308,200,302,277,295,433,290,433,297,277,303,200"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="430,277,585,357"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="350,196,444,265,440,270,347,200"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="243,5,374,85"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="311,99,311,134,306,134,306,99"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="477,360,392,461,388,458,473,356"/>
+</map>

@@ -1,0 +1,330 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <title>Two-state system &mdash; IMP.bff  documentation</title>
+  
+  <link rel="canonical" href="http://scikit-learn.org/stable/manual/fcs/fcs_two_state_systems.html" />
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/vendor/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-rendered-html.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/nbsphinx-code-cells.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+<script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+<script src="../../_static/jquery.js"></script> 
+</head>
+<body>
+<nav id="navbar" class="sk-docs-navbar navbar navbar-expand-md navbar-light bg-light py-0">
+  <div class="container-fluid sk-docs-container px-0">
+    <button
+      id="sk-navbar-toggler"
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="sk-navbar-collapse collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../install.html">Install</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../index.html">User Manual</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../api/index.html">API</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../auto_examples/index.html">Examples</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../glossary.html" >Glossary</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../zreferences.html" >References</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../faq.html" >FAQ</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../related_projects.html" >Related packages</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../roadmap.html" >Roadmap</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../about.html" >About us</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://integrativemodeling.org/" >IMP</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+        </li>
+        <li class="nav-item dropdown nav-more-item-dropdown">
+          <a class="sk-nav-link nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">More</a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../glossary.html" >Glossary</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../zreferences.html" >References</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../faq.html" >FAQ</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../related_projects.html" >Related packages</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../roadmap.html" >Roadmap</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../about.html" >About us</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://integrativemodeling.org/" >IMP</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+          </div>
+        </li>
+      </ul>
+      <div id="searchbox" role="search">
+          <div class="searchformwrapper">
+          <form class="search" action="../../search.html" method="get">
+            <input class="sk-search-text-input" type="text" name="q" aria-labelledby="searchlabel" />
+            <input class="sk-search-text-btn" type="submit" value="Go" />
+          </form>
+          </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="d-flex" id="sk-doc-wrapper">
+    <input type="checkbox" name="sk-toggle-checkbox" id="sk-toggle-checkbox">
+    <label id="sk-sidemenu-toggle" class="sk-btn-toggle-toc btn sk-btn-primary" for="sk-toggle-checkbox">Toggle Menu</label>
+    <div id="sk-sidebar-wrapper" class="border-right">
+      <div class="sk-sidebar-toc-wrapper">
+        <div class="sk-sidebar-toc-logo">
+        </div>
+        <div class="btn-group w-100 mb-2" role="group" aria-label="rellinks">
+            <a href="#" role="button" class="btn sk-btn-rellink py-1 disabled"">Prev</a>
+            <a href="#" role="button" class="btn sk-btn-rellink disabled py-1">Up</a>
+            <a href="#" role="button" class="btn sk-btn-rellink py-1 disabled"">Next</a>
+        </div>
+            <div class="sk-sidebar-toc">
+              <ul>
+<li><a class="reference internal" href="#">Two-state system</a></li>
+<li><a class="reference internal" href="#Analysis">Analysis</a></li>
+</ul>
+
+            </div>
+      </div>
+    </div>
+    <div id="sk-page-content-wrapper">
+      <div class="sk-page-content container-fluid body px-md-3" role="main">
+        
+  <section id="Two-state-system">
+<h1>Two-state system<a class="headerlink" href="#Two-state-system" title="Permalink to this heading">¶</a></h1>
+<p>In a two state system given donor excitation an analytical solution assuming equal diffusion coefficients of the states <span class="math notranslate nohighlight">\(D_{diff}^{(1)}=D_{diff}^{(2)}\)</span>, sole presence of DA-molecules, and absence of bleaching (<span class="math notranslate nohighlight">\(G_{G,R}=G_{R,G}\)</span>) can be calculated. The number of molecules per species are defined by the equilibrium constant <span class="math notranslate nohighlight">\(K\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\\
+K = \frac{k_{21}}{k_{12}} \\
+N^{(1)}=N \cdot \frac{k_{21}}{k_{12}+k_{12}} \\
+N^{(2)}=N \cdot \frac{k_{12}}{k_{12}+k_{12}}\end{split}\]</div>
+<p>Assuming that the characteristic time of the triplet state is much smaller than the relaxation time given by the exchange rate constants (<span class="math notranslate nohighlight">\(t_R=(1 / (k_{12} + k_{21})\)</span>)</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\\
+G_{G,G}(t_c) = 1 + \frac{1}{N} G_{diff}(t_c) \left[ 1+ AC_{G,G} \exp\left( -\frac{t_c}{t_R} \right)\right ] \\
+G_{R,R}(t_c) = 1 + \frac{1}{N} G_{diff}(t_c) \left[ 1+ AC_{R,R} \exp\left( -\frac{t_c}{t_R} \right)\right ] \\
+G_{G,R}(t_c) = 1 + \frac{1}{N} G_{diff}(t_c) \left[ 1 - (AC_{G,G} \cdot AC_{R,R})^{1/2} \exp\left( -\frac{t_c}{t_R} \right)\right ]\end{split}\]</div>
+<p>Here <span class="math notranslate nohighlight">\(G_{diff}(t_c)\)</span> <span class="math notranslate nohighlight">\(AC_{G,G}\)</span>, <span class="math notranslate nohighlight">\(AC_{R,R}\)</span>, and <span class="math notranslate nohighlight">\(AC_{G,R}\)</span> are the amplitudes of the kinetic reaction terms, which depend on the molecular brightnesses <span class="math notranslate nohighlight">\(Q(i)\)</span> of the FRET states.</p>
+<p>The molecular brightness corresponds to the observed photon count rate per molecule, <span class="math notranslate nohighlight">\(Q^{(i)}\)</span>, where <span class="math notranslate nohighlight">\(F^{(i)}\)</span> is the total number of fluorescence photons of the <span class="math notranslate nohighlight">\(N^{(i)}\)</span> molecules of species <span class="math notranslate nohighlight">\(i\)</span>. The molecular brightness is an intrinsic molecular property of the dyes. It is proportional to the product of the focal excitation irradiance, <span class="math notranslate nohighlight">\(I_0\)</span>, the extinction coefficient, <span class="math notranslate nohighlight">\(\epsilon^{(i)}\)</span>, fluorescence quantum yield, <span class="math notranslate nohighlight">\(\Phi_F^{(i)}\)</span>, and spectral
+dependent detection efficiencies <span class="math notranslate nohighlight">\(g_G\)</span> or <span class="math notranslate nohighlight">\(g_R\)</span> for green and red detectors, respectively, as <span class="math notranslate nohighlight">\(Q_{G,R}^{(i)} \propto I_0 \epsilon^{(i)} \Phi_F^{(i)} g_{G,R}\)</span> <span id="id1">[<a class="reference internal" href="../../zreferences.html#id35" title="C Eggeling, S Berger, L Brand, JR Fries, J Schaffer, A Volkmer, and CAM Seidel. Data registration and selective single-molecule analysis using multi-parameter fluorescence detection. Journal of biotechnology, 86(3):163–180, 2001.">EBB+01</a>, <a class="reference internal" href="../../zreferences.html#id34" title="Joachim R Fries, Leif Brand, Christian Eggeling, Malte Köllner, and Claus AM Seidel. Quantitative identification of different single molecules by selective time-resolved confocal fluorescence spectroscopy. The Journal of Physical Chemistry A, 102(33):6601–6613, 1998.">FBE+98</a>]</span>. The FRET efficiency <span class="math notranslate nohighlight">\(E^{(i)}\)</span> of species <span class="math notranslate nohighlight">\(i\)</span> is related to the molecular brightness by the relationship:</p>
+<div class="math notranslate nohighlight">
+\[E^{(i)} = \frac{Q_R^{(i)} - \alpha Q_G^{(i)}}{Q_R^{(i)} - \alpha Q_G^{(i)} + Q_G^{(i)} \gamma'}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\gamma' = \Phi_{F,A}^{(A,0)} g_R / (\Phi_{F,D}^{(D,0)} g_G)\)</span> and <span class="math notranslate nohighlight">\(\alpha\)</span> is the spectral cross-talk from the green to the red channel. Given the brightnesses <span class="math notranslate nohighlight">\(Q^{(i)}\)</span>, the pre-exponential factors are defined by:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}AC_{G,G} = \frac{(Q_G^{(1)} - Q_G^{(2)})^2}{(K Q_G^{(1)} + Q_G^{(2)})^2}\cdot K \\
+AC_{R,R} = \frac{(Q_R^{(2)} - Q_R^{(1)})^2}{(K Q_R^{(2)} + Q_R^{(1)})^2}\cdot K \\
+CC_{G,G} = \frac{(Q_G^{(1)} - Q_G^{(2)})}{(K Q_G^{(1)} + Q_G^{(2)})}\cdot \frac{(Q_R^{(2)} - Q_R^{(1)})}{(Q_R^{(2)} + K Q_R^{(1)})}K\end{split}\]</div>
+<p>The brightnesses can be neglected if each of the two species contributes only to one of the correlation channels. The contrast can be increased by lifetime filtered FCS (fFCS).</p>
+</section>
+<section id="Analysis">
+<h1>Analysis<a class="headerlink" href="#Analysis" title="Permalink to this heading">¶</a></h1>
+<p>As described previously there are several analogous possibilities to compute correlations. Two possibilities are shown in the example below. Analyzing such correlation functions informs on diffusion and fast kinetics. Such correlation functions can be analyzed by dedicated open tools for fluorescence such as <a class="reference external" href="https://github.com/fluorescence-tools/chisurf/">ChiSurf</a>, <a class="reference external" href="https://github.com/FCS-analysis/PyCorrFit">PyCorrFit</a>, and <a class="reference external" href="https://github.com/fluorescence-tools/pam%3E">PAM</a> or generic
+curve analysis software.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+</div>
+</section>
+
+
+      </div>
+    <div class="container">
+      <footer class="sk-content-footer">
+            &copy; 2021 - 2026, IMP developers.
+      </footer>
+    </div>
+  </div>
+</div>
+<script src="../../_static/js/vendor/bootstrap.min.js"></script>
+
+<script>
+    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+    ga('create', 'UA-22606712-2', 'auto');
+    ga('set', 'anonymizeIp', true);
+    ga('send', 'pageview');
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+<script>
+$(document).ready(function() {
+    /* Add a [>>>] button on the top-right corner of code samples to hide
+     * the >>> and ... prompts and the output and thus make the code
+     * copyable. */
+    var div = $('.highlight-python .highlight,' +
+                '.highlight-python3 .highlight,' +
+                '.highlight-pycon .highlight,' +
+		'.highlight-default .highlight')
+    var pre = div.find('pre');
+
+    // get the styles from the current theme
+    pre.parent().parent().css('position', 'relative');
+    var hide_text = 'Hide prompts and outputs';
+    var show_text = 'Show prompts and outputs';
+
+    // create and add the button to all the code blocks that contain >>>
+    div.each(function(index) {
+        var jthis = $(this);
+        if (jthis.find('.gp').length > 0) {
+            var button = $('<span class="copybutton">&gt;&gt;&gt;</span>');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+            jthis.prepend(button);
+        }
+        // tracebacks (.gt) contain bare text elements that need to be
+        // wrapped in a span to work with .nextUntil() (see later)
+        jthis.find('pre:has(.gt)').contents().filter(function() {
+            return ((this.nodeType == 3) && (this.data.trim().length > 0));
+        }).wrap('<span>');
+    });
+
+    // define the behavior of the button when it's clicked
+    $('.copybutton').click(function(e){
+        e.preventDefault();
+        var button = $(this);
+        if (button.data('hidden') === 'false') {
+            // hide the code output
+            button.parent().find('.go, .gp, .gt').hide();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'hidden');
+            button.css('text-decoration', 'line-through');
+            button.attr('title', show_text);
+            button.data('hidden', 'true');
+        } else {
+            // show the code output
+            button.parent().find('.go, .gp, .gt').show();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'visible');
+            button.css('text-decoration', 'none');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+        }
+    });
+
+	/*** Add permalink buttons next to glossary terms ***/
+	$('dl.glossary > dt[id]').append(function() {
+		return ('<a class="headerlink" href="#' +
+			    this.getAttribute('id') +
+			    '" title="Permalink to this term">¶</a>');
+	});
+  /*** Hide navbar when scrolling down ***/
+  // Returns true when headerlink target matches hash in url
+  (function() {
+    hashTargetOnTop = function() {
+        var hash = window.location.hash;
+        if ( hash.length < 2 ) { return false; }
+
+        var target = document.getElementById( hash.slice(1) );
+        if ( target === null ) { return false; }
+
+        var top = target.getBoundingClientRect().top;
+        return (top < 2) && (top > -2);
+    };
+
+    // Hide navbar on load if hash target is on top
+    var navBar = document.getElementById("navbar");
+    var navBarToggler = document.getElementById("sk-navbar-toggler");
+    var navBarHeightHidden = "-" + navBar.getBoundingClientRect().height + "px";
+    var $window = $(window);
+
+    hideNavBar = function() {
+        navBar.style.top = navBarHeightHidden;
+    };
+
+    showNavBar = function() {
+        navBar.style.top = "0";
+    }
+
+    if (hashTargetOnTop()) {
+        hideNavBar()
+    }
+
+    var prevScrollpos = window.pageYOffset;
+    hideOnScroll = function(lastScrollTop) {
+        if (($window.width() < 768) && (navBarToggler.getAttribute("aria-expanded") === 'true')) {
+            return;
+        }
+        if (lastScrollTop > 2 && (prevScrollpos <= lastScrollTop) || hashTargetOnTop()){
+            hideNavBar()
+        } else {
+            showNavBar()
+        }
+        prevScrollpos = lastScrollTop;
+    };
+
+    /*** high performance scroll event listener***/
+    var raf = window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        window.oRequestAnimationFrame;
+    var lastScrollTop = $window.scrollTop();
+
+    if (raf) {
+        loop();
+    }
+
+    function loop() {
+        var scrollTop = $window.scrollTop();
+        if (lastScrollTop === scrollTop) {
+            raf(loop);
+            return;
+        } else {
+            lastScrollTop = scrollTop;
+            hideOnScroll(lastScrollTop);
+            raf(loop);
+        }
+    }
+  })();
+});
+
+</script>
+    
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+</body>
+</html>

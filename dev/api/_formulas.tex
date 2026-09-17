@@ -1,0 +1,1074 @@
+\documentclass{article}
+\usepackage{ifthen}
+\usepackage{epsfig}
+\usepackage[utf8]{inputenc}
+\usepackage{xcolor}
+\usepackage{newunicodechar}
+  \makeatletter
+    \def\doxynewunicodechar#1#2{%
+    \@tempswafalse
+    \edef\nuc@tempa{\detokenize{#1}}%
+    \if\relax\nuc@tempa\relax
+      \nuc@emptyargerr
+    \else
+      \edef\@tempb{\expandafter\@car\nuc@tempa\@nil}%
+      \nuc@check
+      \if@tempswa
+        \@namedef{u8:\nuc@tempa}{#2}%
+      \fi
+    \fi
+  }
+  \makeatother
+  \doxynewunicodechar{⁻}{${}^{-}$}% Superscript minus
+  \doxynewunicodechar{²}{${}^{2}$}% Superscript two
+  \doxynewunicodechar{³}{${}^{3}$}% Superscript three
+
+\pagestyle{empty}
+\begin{document}
+$\langle R_{DA}\rangle$
+\pagebreak
+
+$R_{mp}$
+\pagebreak
+
+$\sqrt{2 D \Delta t}/dg$
+\pagebreak
+
+$\langle \Delta x^2\rangle = 2 D t$
+\pagebreak
+
+$D$
+\pagebreak
+
+$\sqrt{m}$
+\pagebreak
+
+$m$
+\pagebreak
+
+$\partial p/\partial t = \nabla\cdot(D\nabla p) - kp$
+\pagebreak
+
+$e^{-k\,dt}$
+\pagebreak
+
+$dp/dt = -kp$
+\pagebreak
+
+$k\,dt$
+\pagebreak
+
+$k\,dt > 1$
+\pagebreak
+
+$D\,dt/dg^2$
+\pagebreak
+
+$1 - 6D\,dt/dg^2 - k\,dt$
+\pagebreak
+
+$dt \le 1/(6D/dg^2 + k_{max})$
+\pagebreak
+
+$k_{max} = 0$
+\pagebreak
+
+$dt \le dg^2/(6D)$
+\pagebreak
+
+$|1 - 6D\,dt/dg^2 - k\,dt|$
+\pagebreak
+
+$p(t) = e^{-Lt}p_0$
+\pagebreak
+
+$L$
+\pagebreak
+
+$q = \sqrt{d}\,p$
+\pagebreak
+
+$\sqrt{d}$
+\pagebreak
+
+$L = \sum_k \bar F_k\, F(t_k)$
+\pagebreak
+
+$F(t_k)$
+\pagebreak
+
+$\partial L/\partial d$
+\pagebreak
+
+$\partial L/\partial \mathrm{decay}$
+\pagebreak
+
+$\partial L/\partial \mathrm{cur}$
+\pagebreak
+
+$p_{n+1} = A p_n$
+\pagebreak
+
+$A$
+\pagebreak
+
+$\bar p_n = \partial L/\partial p_n$
+\pagebreak
+
+$\bar p_n = A^T \bar p_{n+1}$
+\pagebreak
+
+$\bar F_k$
+\pagebreak
+
+$F$
+\pagebreak
+
+$n_\mathrm{steps}\, ng^3$
+\pagebreak
+
+$\lceil\sqrt{n_\mathrm{steps}}\rceil$
+\pagebreak
+
+$k$
+\pagebreak
+
+$D_{ij}(p_i - p_j)$
+\pagebreak
+
+$D_i p_i - D_j p_j$
+\pagebreak
+
+$p \propto 1/D$
+\pagebreak
+
+$p_0 = e^{-\lambda},\; p_k = p_{k-1}\lambda/k$
+\pagebreak
+
+$z = -\log(1 - \kappa (x - \mu)/\sigma)/\kappa$
+\pagebreak
+
+$z$
+\pagebreak
+
+$d$
+\pagebreak
+
+$p(r) = (r/d)\,[\,N(r; d, \sigma) - N(r; -d, \sigma)\,]$
+\pagebreak
+
+$d = 0$
+\pagebreak
+
+$2 r^2/\sigma^2 \cdot N(r; 0, \sigma)$
+\pagebreak
+
+$\sqrt{\sum d^2 / \sum n}$
+\pagebreak
+
+$\chi^2$
+\pagebreak
+
+$k = 2/\text{ClashTolerance}^2$
+\pagebreak
+
+$k = 1$
+\pagebreak
+
+$\sigma_+ = 10$
+\pagebreak
+
+$\sigma_- = 3$
+\pagebreak
+
+$P(X > 0)$
+\pagebreak
+
+$\sigma_+/(\sigma_++\sigma_-)$
+\pagebreak
+
+$0^\pm$
+\pagebreak
+
+$\sigma_-/\sigma_+$
+\pagebreak
+
+$2(\sigma_+-\sigma_-)/\sqrt{2\pi}$
+\pagebreak
+
+$(\sigma_+-\sigma_-)/\sqrt{2\pi}$
+\pagebreak
+
+$\sqrt{\sigma_+^2-\sigma_+\sigma_-+\sigma_-^2 - \mu^2}$
+\pagebreak
+
+$R' - R$
+\pagebreak
+
+$P(R' > R)$
+\pagebreak
+
+$k_{clash} = 2/0.5^2 = 8$
+\pagebreak
+
+$U = R_a - R_b$
+\pagebreak
+
+$t = t_a - t_b$
+\pagebreak
+
+$r$
+\pagebreak
+
+$Ur + t$
+\pagebreak
+
+$\mathrm{RMSD} = \sqrt{\frac{1}{N}\sum_i |U r_i + t|^2}$
+\pagebreak
+
+$|U r_i - t|^2$
+\pagebreak
+
+$|Ur - t|^2$
+\pagebreak
+
+$\frac{4}{N}\sum_i (U r_i)\cdot t$
+\pagebreak
+
+$\sqrt{\text{squared\_deviation} / n}$
+\pagebreak
+
+$p(R_{DA})$
+\pagebreak
+
+$F_{max}\sigma^2/2$
+\pagebreak
+
+$\sigma$
+\pagebreak
+
+$k_{clash} = 2/\text{ClashTolerance}^2$
+\pagebreak
+
+$10^{-6}\max(1, |E|)$
+\pagebreak
+
+$-\log L = (d/\sigma)^2/2$
+\pagebreak
+
+$\sigma_\pm/(\sigma_++\sigma_-)$
+\pagebreak
+
+$f(x) \propto \phi(x/\sigma_+)$
+\pagebreak
+
+$x>0$
+\pagebreak
+
+$\phi(x/\sigma_-)$
+\pagebreak
+
+$x<0$
+\pagebreak
+
+$\int e^{-x^2} f(x)\,dx$
+\pagebreak
+
+$V_\mathrm{eff} = \pi (\int \kappa\,dz)^2 / \int (\kappa^2/w^2)\,dz$
+\pagebreak
+
+$J_0(x) = \frac{1}{\pi}\int_0^\pi \cos(x\sin\theta)\,d\theta$
+\pagebreak
+
+$k_{exc}(0,0)$
+\pagebreak
+
+$\sigma_{abs}\, 2\Phi/(\pi w_0^2)$
+\pagebreak
+
+$\Phi = P/(h c/\lambda)$
+\pagebreak
+
+$\sigma_{abs} = 10^{-4}\cdot 1000\ln(10)\,\epsilon/N_A$
+\pagebreak
+
+$X(\tau) = q_a^T e^{K\tau} (q_b \circ p_{eq}) /
+((q_a\cdot p_{eq})(q_b\cdot p_{eq}))$
+\pagebreak
+
+$K = K_{dark} + k_{exc} K_{exc}$
+\pagebreak
+
+$V_0/V_{eff}$
+\pagebreak
+
+$1/y$
+\pagebreak
+
+$1/\lambda$
+\pagebreak
+
+$\mathrm{var} = \lambda$
+\pagebreak
+
+$(y-\mu)/\sqrt{\mathrm{var}(\mu)}$
+\pagebreak
+
+$(y-\mu)/\sqrt{y}$
+\pagebreak
+
+$\partial\,\mathrm{value}/\partial\,\mathrm{this}$
+\pagebreak
+
+\[ \mathrm{Var}(z) = \sum_s \left(\frac{\partial z}{\partial s}\right)^2
+    \mathrm{Var}(s) \]
+\pagebreak
+
+$r = (VV - G\,VH)/(VV + 2G\,VH)$
+\pagebreak
+
+$VV$
+\pagebreak
+
+$VH$
+\pagebreak
+
+$\mathrm{Var} = \sum_i c_i^2
+\mathrm{Var}_i$
+\pagebreak
+
+$I_{VV} + 4G^2 I_{VH}$
+\pagebreak
+
+$I_{VV} + 2G I_{VH}$
+\pagebreak
+
+$2G$
+\pagebreak
+
+$-\log y!$
+\pagebreak
+
+$\langle R_{DA}\rangle_E$
+\pagebreak
+
+$|Ur + t|^2$
+\pagebreak
+
+$N$
+\pagebreak
+
+$T_{pose} \circ T_{input}^{-1}$
+\pagebreak
+
+$T_{input}$
+\pagebreak
+
+$dof = \max(N_{dist} - 6(N_{mol}-1), 1)$
+\pagebreak
+
+$1/kT$
+\pagebreak
+
+$dg = \max(\min(0.2L, 0.2W, 0.4R_1, 0.4R_2, 0.4R_3),
+0.4)$
+\pagebreak
+
+$R_0$
+\pagebreak
+
+$\kappa^2 = 2/3$
+\pagebreak
+
+$\kappa^2$
+\pagebreak
+
+$N_1 \times N_2$
+\pagebreak
+
+$(N_1, N_2, 3)$
+\pagebreak
+
+$(\hat\mu_D\cdot\hat\mu_A - 3(\hat\mu_D\cdot\hat r)(\hat\mu_A\cdot\hat r))^2$
+\pagebreak
+
+$E = 1/(1 + \tfrac{2}{3}(R/R_0)^6/\kappa^2)$
+\pagebreak
+
+$k_{FRET}/k_{rad} = \tfrac{3}{2}\kappa^2 (R_0/R)^6$
+\pagebreak
+
+$(R/R_0)^6$
+\pagebreak
+
+$\langle\kappa^2\rangle$
+\pagebreak
+
+$1/r^6$
+\pagebreak
+
+$R_0^6$
+\pagebreak
+
+$\kappa^2/(2/3)$
+\pagebreak
+
+$1.5\kappa^2$
+\pagebreak
+
+$k(t) = (1/\tau_0)\,\langle (R_0/|r_D(t) - r_A|)^6\rangle_A\,
+(\kappa^2/(2/3))$
+\pagebreak
+
+$(R_0/r)^6$
+\pagebreak
+
+$P$
+\pagebreak
+
+$M = (P - I)/dt$
+\pagebreak
+
+$G_j = \int_0^\infty p_j\,dt$
+\pagebreak
+
+$(k_{rad} I + K_{FRET} - M)^T G = w$
+\pagebreak
+
+$\sum_i k_{FRET,i} G_i$
+\pagebreak
+
+$i \to j$
+\pagebreak
+
+$G$
+\pagebreak
+
+$A G = w$
+\pagebreak
+
+$M$
+\pagebreak
+
+$P^T$
+\pagebreak
+
+$(n_d n_a)^2$
+\pagebreak
+
+$R_{DA}$
+\pagebreak
+
+$\kappa$
+\pagebreak
+
+$p(\kappa^2)$
+\pagebreak
+
+$\beta_1$
+\pagebreak
+
+$(0, \pi/2)$
+\pagebreak
+
+$\phi$
+\pagebreak
+
+$(0, 2\pi)$
+\pagebreak
+
+$\sin\beta_1$
+\pagebreak
+
+$\langle\kappa^2\rangle = 0.333$
+\pagebreak
+
+$2/3$
+\pagebreak
+
+$\kappa = \hat\mu_D\cdot\hat\mu_A - 3(\hat\mu_D\cdot\hat r)(\hat\mu_A\cdot\hat r)$
+\pagebreak
+
+$\kappa^2 = 1$
+\pagebreak
+
+$R_{app}/R_{DA} = (\langle\kappa^2\rangle/\kappa^2)^{1/6}$
+\pagebreak
+
+$|dк^2/dr| = 6\langle
+\kappa^2\rangle / r^7$
+\pagebreak
+
+$(S^2_\delta, \delta)$
+\pagebreak
+
+$L = \sum_k \bar F_k F(t_k)$
+\pagebreak
+
+$jls \cdot (1 - 2|E - 0.5|)$
+\pagebreak
+
+$R \approx R_0$
+\pagebreak
+
+$jls \cdot |E(d_1) - E(d_2)|$
+\pagebreak
+
+$jls \cdot (1 - |1 - (E_1 + E_2)|) \cdot \max(0, 1 - 20|E_1 - E_2|)$
+\pagebreak
+
+\[
+    \mathrm{mean} = c_\beta + \left(\tfrac{3}{4} - \frac{d}{R}\right)
+                    (\ell + \mathrm{off})\,\hat{n}
+\]
+\pagebreak
+
+$R$
+\pagebreak
+
+$\ell$
+\pagebreak
+
+$b + 0.54\ell - 0.0225\ell^2$
+\pagebreak
+
+$b = \max(1.7,\, 2\min(r_i) - 1.7)$
+\pagebreak
+
+$R_E$
+\pagebreak
+
+$R_{mp} \le R_E \le \langle R_{DA}\rangle$
+\pagebreak
+
+$1/R^6$
+\pagebreak
+
+$R = R_0$
+\pagebreak
+
+$P(\mathrm{labelable} \mid s) / P(\mathrm{labelable})$
+\pagebreak
+
+$2E/(3Nk_B)$
+\pagebreak
+
+$P(\ell)$
+\pagebreak
+
+$r(t) = \sum_i b_i e^{-t/\rho_i}$
+\pagebreak
+
+\[
+  f_{VV} = f\,(1 + (2 - 3 l_1)\,r), \qquad
+  f_{VH} = f\,(1 - (1 - 3 l_2)\,r) / G
+\]
+\pagebreak
+
+$G = S_\parallel / S_\perp$
+\pagebreak
+
+$1/G$
+\pagebreak
+
+$b_i$
+\pagebreak
+
+$r(0)$
+\pagebreak
+
+$S_\parallel / S_\perp$
+\pagebreak
+
+$1/\tau_0$
+\pagebreak
+
+$k(r) = \sum_a k_{Q,a} \exp(-(|r - r_a| - r_{dye}) / r_{C,a})$
+\pagebreak
+
+$k(r) = (1/\tau_0) (R_0/r)^6 \kappa^2 / (2/3)$
+\pagebreak
+
+$k_Q$
+\pagebreak
+
+$r_C$
+\pagebreak
+
+$k = k_{rad} + k_{PET} + k_{FRET} + \dots$
+\pagebreak
+
+$E = 1 - \langle\tau\rangle_{x,DA} / \langle\tau\rangle_{x,D}$
+\pagebreak
+
+$w_i$
+\pagebreak
+
+$k_i$
+\pagebreak
+
+$F(t) = \sum_i w_i e^{-k_i t}$
+\pagebreak
+
+$F(t) = \sum_i a_i e^{-k_i t}$
+\pagebreak
+
+$\sum_i a_i$
+\pagebreak
+
+$\sum_i a_i k_i$
+\pagebreak
+
+$F'(0)$
+\pagebreak
+
+$a_i b_j$
+\pagebreak
+
+$w_i v_j$
+\pagebreak
+
+$n \times m$
+\pagebreak
+
+$R_{app} = R_{DA} \cdot (R_{app}/R_{DA})$
+\pagebreak
+
+$10^{-10}$
+\pagebreak
+
+$[\min R_{DA} \cdot \min r, \max R_{DA} \cdot \max r]$
+\pagebreak
+
+$R_{app}/R_{DA}$
+\pagebreak
+
+$1/(1/t_1 + 1/t_2)$
+\pagebreak
+
+$k = i n_2 + j$
+\pagebreak
+
+$1/k$
+\pagebreak
+
+$\langle\tau\rangle_x = \sum a_i \tau_i / \sum a_i$
+\pagebreak
+
+$\langle\tau\rangle_f = \sum a_i \tau_i^2 / \sum a_i \tau_i$
+\pagebreak
+
+$\sum a$
+\pagebreak
+
+$\sum a k$
+\pagebreak
+
+$-\tau_0 \ln(1-u)$
+\pagebreak
+
+$1-u$
+\pagebreak
+
+$\ln(1/(u+\epsilon))$
+\pagebreak
+
+$u > 1-\epsilon$
+\pagebreak
+
+$1/\tau_0 + k_q(\text{frame})$
+\pagebreak
+
+$d^2 < r^2$
+\pagebreak
+
+$k(r) = 1/\tau_0 + \sum_a k_a e^{-(|r-r_a| - r_{dye})/r_{C,a}}$
+\pagebreak
+
+$(i - (ng-1)/2)\,dg$
+\pagebreak
+
+$f$
+\pagebreak
+
+$r = k$
+\pagebreak
+
+$\p radial[\operatorname{round}(|r|)]$
+\pagebreak
+
+$k(r) = 1/\tau_0 + \sum_a k_{Q,a}\,e^{-(|r - r_a| - r_{dye})/r_{C,a}}$
+\pagebreak
+
+$1 - QY_{DA}/QY_D$
+\pagebreak
+
+$b\sqrt{N}$
+\pagebreak
+
+$P(r) = 4\pi r^2 (3/2\pi\langle r^2\rangle)^{3/2}\exp(-3r^2/2\langle r^2\rangle)$
+\pagebreak
+
+$\kappa = 0.125$
+\pagebreak
+
+$r^2$
+\pagebreak
+
+$J$
+\pagebreak
+
+$h$
+\pagebreak
+
+$b_S^2$
+\pagebreak
+
+$b_U^2$
+\pagebreak
+
+$\varphi(k)$
+\pagebreak
+
+$\varphi(k) = \mathbf{1}^\top[\prod_i M_i(k)]\mathbf{1} / \varphi(0)$
+\pagebreak
+
+$M(k)_{\sigma\sigma'} = W(\sigma,\sigma')e^{-k^2b_{\sigma'}^2/6}$
+\pagebreak
+
+$P(R)$
+\pagebreak
+
+$P(R) = (2R/\pi)\int_0^\infty k\sin(kR)\varphi(k)\,dk$
+\pagebreak
+
+$b_S = b_U$
+\pagebreak
+
+$\varphi$
+\pagebreak
+
+$\varphi(k)/\varphi(0)$
+\pagebreak
+
+$P(r) \propto r^{2+\theta}\exp[-(r/r_0)^{\delta}]$
+\pagebreak
+
+$\theta = (\gamma-1)/\nu$
+\pagebreak
+
+$\delta = 1/(1-\nu)$
+\pagebreak
+
+$r_0$
+\pagebreak
+
+$\sqrt{\langle r^2\rangle}$
+\pagebreak
+
+$(R_{mp}^{lo}, R_{mp}^{target}, R_{mp}^{hi})$
+\pagebreak
+
+$R_{mp} \to \langle R_{DA}\rangle$
+\pagebreak
+
+$d_{mp}$
+\pagebreak
+
+$dS/dd_{mp}$
+\pagebreak
+
+$\partial d_{mp}/\partial x = \pm\hat r$
+\pagebreak
+
+\[
+E(d) = \begin{cases}
+  2k_2(r_1-r_2)(d-r_1) + k_2(r_1-r_2)^2 & d < r_1 \\
+  k_2 (d-r_2)^2                         & r_1 \le d < r_2 \\
+  0                                     & r_2 \le d \le r_3 \\
+  k_3 (d-r_3)^2                         & r_3 < d \le r_4 \\
+  2k_3(r_4-r_3)(d-r_4) + k_3(r_4-r_3)^2 & d > r_4
+\end{cases}
+\]
+\pagebreak
+
+$[r_1, r_4]$
+\pagebreak
+
+$k = F_{max} / (2\sigma)$
+\pagebreak
+
+$\Delta r_{max} = F_{max}\sigma_{exp}^2/2$
+\pagebreak
+
+$R_{min}/2$
+\pagebreak
+
+$\epsilon$
+\pagebreak
+
+$Q(\nu/2, \chi^2/2)$
+\pagebreak
+
+$\nu/2$
+\pagebreak
+
+$\nu$
+\pagebreak
+
+$(e_{ki} - e_{kj})^2 / \sigma^2$
+\pagebreak
+
+$1/\sigma^2$
+\pagebreak
+
+$p$
+\pagebreak
+
+$|\{p : \mathrm{both\ sites\ chosen}\}|$
+\pagebreak
+
+$E = s(s - 2)$
+\pagebreak
+
+$s = (r_m^2/r^2)^3$
+\pagebreak
+
+$r_m$
+\pagebreak
+
+$E = \sum \epsilon_{ij}(-s + s^2/4 + 0.00818)$
+\pagebreak
+
+$s = 2(r_m/r)^6$
+\pagebreak
+
+$r_m < r < 2.5 r_m$
+\pagebreak
+
+$-\epsilon_{ij}$
+\pagebreak
+
+$E = \frac{1}{8\pi}(\frac{1}{\epsilon_0} - \frac{1}{\epsilon})
+\sum_{i \le j} q_i q_j (\frac{1}{f_{GB}} - \frac{1}{f_c})$
+\pagebreak
+
+$f_{GB} = \sqrt{r^2 + a_i a_j e^{-r^2/4a_ia_j}}$
+\pagebreak
+
+$\phi_i$
+\pagebreak
+
+$\psi_i$
+\pagebreak
+
+$\psi$
+\pagebreak
+
+$(\phi, \psi)$
+\pagebreak
+
+$-\log(P/P_{max})$
+\pagebreak
+
+$\frac{1}{2}k(\sigma - r)^2$
+\pagebreak
+
+$((\sigma - r)/t)^2$
+\pagebreak
+
+$k = 2/t^2$
+\pagebreak
+
+$t$
+\pagebreak
+
+$k(x - x_0)^2$
+\pagebreak
+
+$\frac{1}{2}k(x-x_0)^2$
+\pagebreak
+
+$E = \sum_{i<j} ((\sigma_{ij} - r_{ij})/t)^2$
+\pagebreak
+
+$r_c < r_{ij} < \sigma_{ij}$
+\pagebreak
+
+$V = k(1 + \cos(n\phi - \delta))$
+\pagebreak
+
+$k(1 - \cos(n\phi - \delta'))$
+\pagebreak
+
+$\delta' = \delta + \pi$
+\pagebreak
+
+$R_{min}$
+\pagebreak
+
+$r \ge R_{min}$
+\pagebreak
+
+$R_{ij}$
+\pagebreak
+
+$\kappa^2_{ij}$
+\pagebreak
+
+$w_i w_j$
+\pagebreak
+
+$(\sum w)^2 / \sum w^2$
+\pagebreak
+
+$p_{eq} \propto 1$
+\pagebreak
+
+$p_{eq} \propto 1/D$
+\pagebreak
+
+$\log q_d \leftarrow \log q_d - K(E^{bb}_d + \sum_{e \neq d} E^{sc}_{de} q_e)$
+\pagebreak
+
+$-\pi$
+\pagebreak
+
+$+\pi$
+\pagebreak
+
+$radius + probe$
+\pagebreak
+
+$(2\,radius + probe)^2$
+\pagebreak
+
+$r_i + probe$
+\pagebreak
+
+$r_j + probe$
+\pagebreak
+
+$4\pi (r_i + probe)^2 f_i$
+\pagebreak
+
+$r_i^2$
+\pagebreak
+
+$(n\_frames \times n\_atoms)$
+\pagebreak
+
+$n\_atoms$
+\pagebreak
+
+$I_0$
+\pagebreak
+
+$I_0(x)$
+\pagebreak
+
+$I_0(-x) = I_0(x)$
+\pagebreak
+
+$\exp(-x)$
+\pagebreak
+
+$Q(a, x)$
+\pagebreak
+
+$P(\chi^2 \ge c)$
+\pagebreak
+
+$\langle E\rangle$
+\pagebreak
+
+$|\langle a\rangle - \langle b\rangle|$
+\pagebreak
+
+$|a - b|$
+\pagebreak
+
+$O(n_1 n_2)$
+\pagebreak
+
+$1/\sqrt{n}$
+\pagebreak
+
+$dR_{model}/dR_{mp} = 1$
+\pagebreak
+
+$\chi^2 = (d_m - d_e)^2 / \sigma^2$
+\pagebreak
+
+$k = 2/\sigma^2$
+\pagebreak
+
+$\Delta r_{max} = F_{max}/k = F_{max}\sigma^2/2$
+\pagebreak
+
+\[
+  E(\Delta r) = \begin{cases}
+    (\Delta r/\sigma)^2                      & |\Delta r| \le \Delta r_{max}\\
+    F_{max}\,(|\Delta r| - \Delta r_{max}/2) & |\Delta r| >  \Delta r_{max}
+  \end{cases}
+\]
+\pagebreak
+
+$C^1$
+\pagebreak
+
+$dE/d|\Delta r|$
+\pagebreak
+
+$-\log L$
+\pagebreak
+
+$\sigma = 0.1$
+\pagebreak
+
+$\sigma = 3$
+\pagebreak
+
+$1/(1 + (r/R_0)^6)$
+\pagebreak
+
+$(ng-1)/2$
+\pagebreak
+
+$(R_{mp}, \langle R_{DA}\rangle, R_E, \sigma_R)$
+\pagebreak
+
+$[0, R_{max}]$
+\pagebreak
+
+$R_{mp} + \sigma^2 / R_{mp}$
+\pagebreak
+
+$d = \Delta + \varepsilon$
+\pagebreak
+
+$\varepsilon \sim N(0, \sigma^2 I_3)$
+\pagebreak
+
+$\langle|\varepsilon_\perp|^2\rangle = 2\sigma^2$
+\pagebreak
+
+$\sigma^2/R_{mp}$
+\pagebreak
+
+$\sigma/R_{mp}$
+\pagebreak
+
+$c_0 + c_1 x + c_2 x^2 + \dots$
+\pagebreak
+
+$r_i + r_j + \mathrm{tolerance}$
+\pagebreak
+
+$2^{-1/6} R_{min}$
+\pagebreak
+
+$C^T C / n$
+\pagebreak
+
+\end{document}

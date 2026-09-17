@@ -1,0 +1,332 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <title>Installation &mdash; IMP.bff  documentation</title>
+  
+  <link rel="canonical" href="http://scikit-learn.org/stable/install.html" />
+
+  
+
+  <link rel="stylesheet" href="_static/css/vendor/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sg_gallery.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sg_gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sg_gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sg_gallery-rendered-html.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+<script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+<script src="_static/jquery.js"></script> 
+</head>
+<body>
+<nav id="navbar" class="sk-docs-navbar navbar navbar-expand-md navbar-light bg-light py-0">
+  <div class="container-fluid sk-docs-container px-0">
+    <button
+      id="sk-navbar-toggler"
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="sk-navbar-collapse collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="#">Install</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="manual/index.html">User Manual</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="api/index.html">API</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="auto_examples/index.html">Examples</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="glossary.html" >Glossary</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="zreferences.html" >References</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="faq.html" >FAQ</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="related_projects.html" >Related packages</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="roadmap.html" >Roadmap</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="about.html" >About us</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://integrativemodeling.org/" >IMP</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+        </li>
+        <li class="nav-item dropdown nav-more-item-dropdown">
+          <a class="sk-nav-link nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">More</a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="sk-nav-dropdown-item dropdown-item" href="glossary.html" >Glossary</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="zreferences.html" >References</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="faq.html" >FAQ</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="related_projects.html" >Related packages</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="roadmap.html" >Roadmap</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="about.html" >About us</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://integrativemodeling.org/" >IMP</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+          </div>
+        </li>
+      </ul>
+      <div id="searchbox" role="search">
+          <div class="searchformwrapper">
+          <form class="search" action="search.html" method="get">
+            <input class="sk-search-text-input" type="text" name="q" aria-labelledby="searchlabel" />
+            <input class="sk-search-text-btn" type="submit" value="Go" />
+          </form>
+          </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="d-flex" id="sk-doc-wrapper">
+    <input type="checkbox" name="sk-toggle-checkbox" id="sk-toggle-checkbox">
+    <label id="sk-sidemenu-toggle" class="sk-btn-toggle-toc btn sk-btn-primary" for="sk-toggle-checkbox">Toggle Menu</label>
+    <div id="sk-sidebar-wrapper" class="border-right">
+      <div class="sk-sidebar-toc-wrapper">
+        <div class="sk-sidebar-toc-logo">
+        </div>
+        <div class="btn-group w-100 mb-2" role="group" aria-label="rellinks">
+            <a href="preface.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Welcome">Prev</a><a href="preface.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Welcome">Up</a>
+            <a href="related_projects.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Related Projects">Next</a>
+        </div>
+            <div class="sk-sidebar-toc">
+              <ul>
+<li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#Binaries">Binaries</a></li>
+<li><a class="reference internal" href="#Compilation">Compilation</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+      </div>
+    </div>
+    <div id="sk-page-content-wrapper">
+      <div class="sk-page-content container-fluid body px-md-3" role="main">
+        
+  <section id="Installation">
+<h1>Installation<a class="headerlink" href="#Installation" title="Permalink to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> is installed from prebuilt binaries using the <a class="reference external" href="https://docs.conda.io">Conda</a> package manager. Conda is included as part of the Anaconda Python distribution, which you can download from <a class="reference external" href="https://docs.continuum.io/anaconda/install">https://docs.continuum.io/anaconda/install</a>. Anaconda is a Python distribution specifically designed for scientific applications, with many of the most popular mathematical and scientific packages preinstalled. Alternatively, <code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> can be installed in a Miniconda distribuition (available from
+<a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">https://docs.conda.io/en/latest/miniconda.html</a>). Miniconda includes only Python itself, plus the Conda package manager. Miniconda offers a much smaller initial download, with the ability to then install only the packages you want.</p>
+<section id="Binaries">
+<h2>Binaries<a class="headerlink" href="#Binaries" title="Permalink to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Begin by installing a recent 64 bit, Python 3.x version of either Anaconda or Miniconda.</p></li>
+<li><p>Open a command line terminal and type the following command</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>imp.bff
+</pre></div>
+</div>
+<p>This will install a version of <code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> compiled with the latest version of IMP. Alternatively you can request a version that is compiled for a specific IMP version with the command</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>tpeulen<span class="w"> </span>imp.bff<span class="w"> </span><span class="nv">imp</span><span class="o">=</span><span class="m">2</span>.17
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">2.17</span></code> should be replaced with the particular IMP version you want to target. We build packages for IMP 2.17 and above for Linux, Windows, and macOS (x86). Because different IMP releases are not binary compatible with each other, <code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> can only work with the particular IMP version it was compiled with.</p>
+<div class="admonition note">
+<p>Future IMP.bff releases may be distributed together with IMP.</p>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Optionally verify your installation using the unit-test that ship with the <code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> git repository by typing the following commands:</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>nose<span class="w"> </span>git
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/tpeulen/IMP.bff
+<span class="nb">cd</span><span class="w"> </span>bff/test
+nosetests
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">nosetests</span></code> command verifies that <code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> produces consistent results.</p>
+</section>
+<section id="Compilation">
+<h2>Compilation<a class="headerlink" href="#Compilation" title="Permalink to this heading">¶</a></h2>
+<p>A second option is to compile <code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> from source. This provides more flexibility, but it is much more work, and there is rarely a need for anyone but advanced users to compile from source. <code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> can be compiled and installed using the source code provided in the git repository. The continuous integration pipeline in <code class="docutils literal notranslate"><span class="pre">.github/workflows/ci.yml</span></code> can serve as a reference for compilation. As an IMP module <code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> can be compiled either together with IMP or out of tree
+(<a class="reference external" href="https://integrativemodeling.org/2.17.0/doc/manual/outoftree.html">https://integrativemodeling.org/2.17.0/doc/manual/outoftree.html</a>).</p>
+<p>On windows <code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> is compiled with the <a class="reference external" href="https://visualstudio.microsoft.com">Visual Studio 2019</a>. For compilation the Visual Studio Community edition is sufficient. In addition to Visual Studio the libraries and the include files as listed above need to be installed. The prebuilt binaries are compiled on Windows 10 with using 64bit anaconda Python environments <a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">miniconda</a> using the conda build recipe that is provided with the source code
+in the <code class="docutils literal notranslate"><span class="pre">conda-recipe</span></code> folder or take a look at the <code class="docutils literal notranslate"><span class="pre">Dockerfile</span></code> that is used to create a Windows build environment. For MacOS the prebuilt binaries are compiled on MacOS 10.14 with the Apple clang compiler using a anaconda distribution and the provided <code class="docutils literal notranslate"><span class="pre">conda-recipe</span></code>. The Linux prebuilt binaries are compiled on Ubuntu 18.04 in an anaconda distribution and the provided <code class="docutils literal notranslate"><span class="pre">conda-recipe</span></code>.</p>
+</section>
+</section>
+
+
+      </div>
+    <div class="container">
+      <footer class="sk-content-footer">
+            &copy; 2021 - 2026, IMP developers.
+      </footer>
+    </div>
+  </div>
+</div>
+<script src="_static/js/vendor/bootstrap.min.js"></script>
+
+<script>
+    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+    ga('create', 'UA-22606712-2', 'auto');
+    ga('set', 'anonymizeIp', true);
+    ga('send', 'pageview');
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+<script>
+$(document).ready(function() {
+    /* Add a [>>>] button on the top-right corner of code samples to hide
+     * the >>> and ... prompts and the output and thus make the code
+     * copyable. */
+    var div = $('.highlight-python .highlight,' +
+                '.highlight-python3 .highlight,' +
+                '.highlight-pycon .highlight,' +
+		'.highlight-default .highlight')
+    var pre = div.find('pre');
+
+    // get the styles from the current theme
+    pre.parent().parent().css('position', 'relative');
+    var hide_text = 'Hide prompts and outputs';
+    var show_text = 'Show prompts and outputs';
+
+    // create and add the button to all the code blocks that contain >>>
+    div.each(function(index) {
+        var jthis = $(this);
+        if (jthis.find('.gp').length > 0) {
+            var button = $('<span class="copybutton">&gt;&gt;&gt;</span>');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+            jthis.prepend(button);
+        }
+        // tracebacks (.gt) contain bare text elements that need to be
+        // wrapped in a span to work with .nextUntil() (see later)
+        jthis.find('pre:has(.gt)').contents().filter(function() {
+            return ((this.nodeType == 3) && (this.data.trim().length > 0));
+        }).wrap('<span>');
+    });
+
+    // define the behavior of the button when it's clicked
+    $('.copybutton').click(function(e){
+        e.preventDefault();
+        var button = $(this);
+        if (button.data('hidden') === 'false') {
+            // hide the code output
+            button.parent().find('.go, .gp, .gt').hide();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'hidden');
+            button.css('text-decoration', 'line-through');
+            button.attr('title', show_text);
+            button.data('hidden', 'true');
+        } else {
+            // show the code output
+            button.parent().find('.go, .gp, .gt').show();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'visible');
+            button.css('text-decoration', 'none');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+        }
+    });
+
+	/*** Add permalink buttons next to glossary terms ***/
+	$('dl.glossary > dt[id]').append(function() {
+		return ('<a class="headerlink" href="#' +
+			    this.getAttribute('id') +
+			    '" title="Permalink to this term">¶</a>');
+	});
+  /*** Hide navbar when scrolling down ***/
+  // Returns true when headerlink target matches hash in url
+  (function() {
+    hashTargetOnTop = function() {
+        var hash = window.location.hash;
+        if ( hash.length < 2 ) { return false; }
+
+        var target = document.getElementById( hash.slice(1) );
+        if ( target === null ) { return false; }
+
+        var top = target.getBoundingClientRect().top;
+        return (top < 2) && (top > -2);
+    };
+
+    // Hide navbar on load if hash target is on top
+    var navBar = document.getElementById("navbar");
+    var navBarToggler = document.getElementById("sk-navbar-toggler");
+    var navBarHeightHidden = "-" + navBar.getBoundingClientRect().height + "px";
+    var $window = $(window);
+
+    hideNavBar = function() {
+        navBar.style.top = navBarHeightHidden;
+    };
+
+    showNavBar = function() {
+        navBar.style.top = "0";
+    }
+
+    if (hashTargetOnTop()) {
+        hideNavBar()
+    }
+
+    var prevScrollpos = window.pageYOffset;
+    hideOnScroll = function(lastScrollTop) {
+        if (($window.width() < 768) && (navBarToggler.getAttribute("aria-expanded") === 'true')) {
+            return;
+        }
+        if (lastScrollTop > 2 && (prevScrollpos <= lastScrollTop) || hashTargetOnTop()){
+            hideNavBar()
+        } else {
+            showNavBar()
+        }
+        prevScrollpos = lastScrollTop;
+    };
+
+    /*** high performance scroll event listener***/
+    var raf = window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        window.oRequestAnimationFrame;
+    var lastScrollTop = $window.scrollTop();
+
+    if (raf) {
+        loop();
+    }
+
+    function loop() {
+        var scrollTop = $window.scrollTop();
+        if (lastScrollTop === scrollTop) {
+            raf(loop);
+            return;
+        } else {
+            lastScrollTop = scrollTop;
+            hideOnScroll(lastScrollTop);
+            raf(loop);
+        }
+    }
+  })();
+});
+
+</script>
+    
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+</body>
+</html>

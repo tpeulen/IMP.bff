@@ -1,0 +1,537 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <title>Choosing where to put the dye &mdash; IMP.bff  documentation</title>
+  
+  <link rel="canonical" href="http://scikit-learn.org/stable/manual/structure/structure_label_sites.html" />
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/vendor/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-rendered-html.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/nbsphinx-code-cells.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+<script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+<script src="../../_static/jquery.js"></script> 
+</head>
+<body>
+<nav id="navbar" class="sk-docs-navbar navbar navbar-expand-md navbar-light bg-light py-0">
+  <div class="container-fluid sk-docs-container px-0">
+    <button
+      id="sk-navbar-toggler"
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="sk-navbar-collapse collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../install.html">Install</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../index.html">User Manual</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../api/index.html">API</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../auto_examples/index.html">Examples</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../glossary.html" >Glossary</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../zreferences.html" >References</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../faq.html" >FAQ</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../related_projects.html" >Related packages</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../roadmap.html" >Roadmap</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../about.html" >About us</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://integrativemodeling.org/" >IMP</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+        </li>
+        <li class="nav-item dropdown nav-more-item-dropdown">
+          <a class="sk-nav-link nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">More</a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../glossary.html" >Glossary</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../zreferences.html" >References</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../faq.html" >FAQ</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../related_projects.html" >Related packages</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../roadmap.html" >Roadmap</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../about.html" >About us</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://integrativemodeling.org/" >IMP</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+          </div>
+        </li>
+      </ul>
+      <div id="searchbox" role="search">
+          <div class="searchformwrapper">
+          <form class="search" action="../../search.html" method="get">
+            <input class="sk-search-text-input" type="text" name="q" aria-labelledby="searchlabel" />
+            <input class="sk-search-text-btn" type="submit" value="Go" />
+          </form>
+          </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="d-flex" id="sk-doc-wrapper">
+    <input type="checkbox" name="sk-toggle-checkbox" id="sk-toggle-checkbox">
+    <label id="sk-sidemenu-toggle" class="sk-btn-toggle-toc btn sk-btn-primary" for="sk-toggle-checkbox">Toggle Menu</label>
+    <div id="sk-sidebar-wrapper" class="border-right">
+      <div class="sk-sidebar-toc-wrapper">
+        <div class="sk-sidebar-toc-logo">
+        </div>
+        <div class="btn-group w-100 mb-2" role="group" aria-label="rellinks">
+            <a href="structure_potentials.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Scoring a coarse-grained protein">Prev</a><a href="index.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Structural modeling">Up</a>
+            <a href="../fcs/index.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Fluorescence correlation spectroscopy">Next</a>
+        </div>
+            <div class="sk-sidebar-toc">
+              <ul>
+<li><a class="reference internal" href="#">Choosing where to put the dye</a><ul>
+<li><a class="reference internal" href="#The-structure">The structure</a></li>
+<li><a class="reference internal" href="#The-structural-features">The structural features</a><ul>
+<li><a class="reference internal" href="#Does-it-agree-with-the-real-DSSP?">Does it agree with the real DSSP?</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#The-score">The score</a></li>
+<li><a class="reference internal" href="#Which-pair-to-measure">Which pair to measure</a></li>
+<li><a class="reference internal" href="#One-file-out">One file out</a><ul>
+<li><a class="reference internal" href="#A-caveat-the-reference-carries,-and-this-port-inherits">A caveat the reference carries, and this port inherits</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#The-picture">The picture</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+      </div>
+    </div>
+    <div id="sk-page-content-wrapper">
+      <div class="sk-page-content container-fluid body px-md-3" role="main">
+        
+  <section id="Choosing-where-to-put-the-dye">
+<h1>Choosing where to put the dye<a class="headerlink" href="#Choosing-where-to-put-the-dye" title="Permalink to this heading">¶</a></h1>
+<p>Before any FRET experiment there is a question that has nothing to do with photons: <strong>which residue should carry the label, and which pair should be measured?</strong></p>
+<p>The Labelizer score (Gebhardt <em>et al.</em>, <em>Nat. Commun.</em> <strong>16</strong>, 3305, 2025) answers it by combining four per-residue quantities — how conserved a position is, how exposed it is, what secondary structure it sits in, and how much the residue already resembles a cysteine — into one number, and then scoring pairs of the good sites by how informative a FRET measurement between them would be.</p>
+<p><code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> carries a 1:1 native port of that model. This page walks it end to end and, along the way, shows what happened when it was checked against the reference implementation’s own published output.</p>
+<p>Two things to know before reading any number:</p>
+<ul class="simple">
+<li><p><strong>A score is a likelihood ratio, not a probability.</strong> Each fitted table holds <span class="math notranslate nohighlight">\(P(\text{labelable} \mid s) / P(\text{labelable})\)</span>, so 1 is the base rate and the combined score is unbounded above.</p></li>
+<li><p><strong>The published arithmetic is the default, defects included</strong>, because that is what the paper’s numbers were computed with. <code class="docutils literal notranslate"><span class="pre">LABELIZER_MODEL_CORRECTED</span></code> selects the arithmetic the reference documents instead, and a written container always records which was used.</p></li>
+</ul>
+<section id="The-structure">
+<h2>The structure<a class="headerlink" href="#The-structure" title="Permalink to this heading">¶</a></h2>
+<p>Mouse BID (PDB 1DDB, model 39, chain A) — the worked example the reference ships, which is what makes the comparison below possible at all.</p>
+<p>Conservation is <strong>imported, never computed</strong>: an alignment and a rate estimate are a different program. <code class="docutils literal notranslate"><span class="pre">labelizer_read_consurf</span></code> takes a ConSurf <code class="docutils literal notranslate"><span class="pre">.grades</span></code> table or a PDB carrying the normalised grade in its B-factor column.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">IMP.bff</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">bff</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">'..'</span><span class="p">,</span> <span class="s1">'..'</span><span class="p">,</span> <span class="s1">'..'</span><span class="p">,</span> <span class="s1">'test'</span><span class="p">,</span> <span class="s1">'input'</span><span class="p">,</span> <span class="s1">'labelizer'</span><span class="p">)</span>
+<span class="n">pdb</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">'1DDB-39.pdb'</span><span class="p">)</span>
+<span class="n">conservation</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">'1DDB-39_cs.pdb'</span><span class="p">)</span>
+
+<span class="n">structure</span> <span class="o">=</span> <span class="n">bff</span><span class="o">.</span><span class="n">labelizer_read_structure</span><span class="p">(</span><span class="n">pdb</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">residues</span><span class="p">)</span><span class="si">}</span><span class="s1"> residues, </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">vdw</span><span class="p">)</span><span class="si">}</span><span class="s1"> atoms, '</span>
+      <span class="sa">f</span><span class="s1">'chains </span><span class="si">{</span><span class="nb">sorted</span><span class="p">({</span><span class="n">r</span><span class="o">.</span><span class="n">chain</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">structure</span><span class="o">.</span><span class="n">residues</span><span class="p">})</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+</section>
+<section id="The-structural-features">
+<h2>The structural features<a class="headerlink" href="#The-structural-features" title="Permalink to this heading">¶</a></h2>
+<p>These are the quantities the model scores. Each is a kernel of its own, useful outside the score.</p>
+<p><code class="docutils literal notranslate"><span class="pre">labelizer_dssp</span></code> is the interesting one. The reference shells out to the DSSP binary and raises <code class="docutils literal notranslate"><span class="pre">RuntimeError(&quot;Unknown</span> <span class="pre">platform&quot;)</span></code> on macOS, so the secondary-structure term simply could not be evaluated. This is a native Kabsch–Sander implementation.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">secondary</span> <span class="o">=</span> <span class="n">bff</span><span class="o">.</span><span class="n">labelizer_dssp</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
+<span class="n">depth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">bff</span><span class="o">.</span><span class="n">labelizer_residue_depth</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="mf">1.4</span><span class="p">,</span> <span class="mi">590</span><span class="p">))</span>
+<span class="n">rsa</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">bff</span><span class="o">.</span><span class="n">labelizer_relative_solvent_accessibility</span><span class="p">(</span>
+    <span class="n">structure</span><span class="p">,</span> <span class="n">bff</span><span class="o">.</span><span class="n">LABELIZER_MAXASA_WILKE</span><span class="p">,</span> <span class="mf">1.4</span><span class="p">,</span> <span class="mi">590</span><span class="p">))</span>
+<span class="n">hse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">bff</span><span class="o">.</span><span class="n">labelizer_half_sphere_exposure</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="mf">13.0</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">secondary</span><span class="p">[:</span><span class="mi">90</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">({</span><span class="n">c</span><span class="p">:</span> <span class="n">secondary</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">secondary</span><span class="p">))})</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'depth </span><span class="si">{</span><span class="n">depth</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">depth</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1"> A, '</span>
+      <span class="sa">f</span><span class="s1">'RSA </span><span class="si">{</span><span class="n">rsa</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">rsa</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<p>BID is all-helical, and the assignment says so: 96 <code class="docutils literal notranslate"><span class="pre">H</span></code>, no strands at all.</p>
+<section id="Does-it-agree-with-the-real-DSSP?">
+<h3>Does it agree with the real DSSP?<a class="headerlink" href="#Does-it-agree-with-the-real-DSSP?" title="Permalink to this heading">¶</a></h3>
+<p>It can be checked exactly. The reference’s <code class="docutils literal notranslate"><span class="pre">ss</span></code> score is a lookup on the DSSP letter, so inverting its published score recovers the letter its binary assigned.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">table</span> <span class="o">=</span> <span class="n">bff</span><span class="o">.</span><span class="n">labelizer_load_table</span><span class="p">(</span><span class="s1">'C_SS1_SS'</span><span class="p">)</span>
+<span class="n">by_value</span> <span class="o">=</span> <span class="p">{</span><span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">9</span><span class="p">):</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">dict</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">by_key</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">'1DDB-39_ss.csv'</span><span class="p">))</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+    <span class="n">reference</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="nb">float</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">fh</span><span class="p">))[</span><span class="mi">1</span><span class="p">:]}</span>
+
+<span class="n">disagree</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="n">bff</span><span class="o">.</span><span class="n">labelizer_residue_key</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">chain</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">seq_id</span><span class="p">),</span>
+     <span class="n">by_value</span><span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">reference</span><span class="p">[</span><span class="n">bff</span><span class="o">.</span><span class="n">labelizer_residue_key</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">chain</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">seq_id</span><span class="p">)],</span> <span class="mi">9</span><span class="p">)],</span>
+     <span class="n">secondary</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">residues</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">by_value</span><span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">reference</span><span class="p">[</span><span class="n">bff</span><span class="o">.</span><span class="n">labelizer_residue_key</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">chain</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">seq_id</span><span class="p">)],</span> <span class="mi">9</span><span class="p">)]</span>
+       <span class="o">!=</span> <span class="n">secondary</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+<span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">residues</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">disagree</span><span class="p">)</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">residues</span><span class="p">)</span><span class="si">}</span><span class="s1">'</span>
+      <span class="sa">f</span><span class="s1">' residues agree with the reference DSSP'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'disagreements:'</span><span class="p">,</span> <span class="n">disagree</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<p><strong>All 195.</strong> Two corrections were needed to get there, and both are real:</p>
+<ol class="arabic simple">
+<li><p>DSSP marks the residues <em>between</em> an n-turn’s hydrogen-bonded pair — <code class="docutils literal notranslate"><span class="pre">k+1</span> <span class="pre">…</span> <span class="pre">k+n-1</span></code>, not the donor <code class="docutils literal notranslate"><span class="pre">k</span></code>. Including <code class="docutils literal notranslate"><span class="pre">k</span></code> over-assigned <code class="docutils literal notranslate"><span class="pre">T</span></code>.</p></li>
+<li><p><strong>DSSP 3.0 reversed the π/α precedence</strong> (Touw 2015): where a 4-turn and a 5-turn overlap, the π-helix now wins. That accounted for the last four residues, and it dates the reference’s own output to DSSP ≥ 3.</p></li>
+</ol>
+<p>The solvent-exposure term cannot be exact in the same way — its published form is MSMS residue depth, and the MSMS binaries the reference ships are 32-bit ppc/i386 Mach-O that do not execute. The native surface agrees with <strong>no bias</strong> (mean +0.015 Å, r = 0.976, 92 % within one table bin). See <code class="docutils literal notranslate"><span class="pre">okf/validation/labelizer_ab.md</span></code>.</p>
+</section>
+</section>
+<section id="The-score">
+<h2>The score<a class="headerlink" href="#The-score" title="Permalink to this heading">¶</a></h2>
+<p>The published model weights conservation, solvent exposure, cysteine resemblance and secondary structure at 1, and switches tryptophan proximity and charge environment <strong>off</strong> — they are weight 0 in the paper, not merely down-weighted.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">bff</span><span class="o">.</span><span class="n">labelizer_model_paper</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s1">(w=</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">weight</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">table</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s2">"hard-coded"</span><span class="si">}</span><span class="s1">)'</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">model</span><span class="p">))</span>
+
+<span class="n">scores</span> <span class="o">=</span> <span class="n">bff</span><span class="o">.</span><span class="n">labelizer_score_structure</span><span class="p">(</span><span class="n">pdb</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">bff</span><span class="o">.</span><span class="n">LabelizerOptions</span><span class="p">(),</span> <span class="n">conservation</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span><span class="si">}</span><span class="s1"> rows: one per (position, score_type)'</span><span class="p">)</span>
+
+<span class="n">combined</span> <span class="o">=</span> <span class="p">{</span><span class="n">bff</span><span class="o">.</span><span class="n">labelizer_residue_key</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">asym_id</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">seq_id</span><span class="p">):</span> <span class="n">r</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">scores</span>
+            <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">score_type</span> <span class="o">==</span> <span class="s1">'combined'</span> <span class="ow">and</span> <span class="n">r</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s1">'scored'</span><span class="p">}</span>
+<span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">combined</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">kv</span><span class="p">:</span> <span class="o">-</span><span class="n">kv</span><span class="p">[</span><span class="mi">1</span><span class="p">])[:</span><span class="mi">8</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'  </span><span class="si">{</span><span class="n">key</span><span class="si">:</span><span class="s1">&lt;6</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<p>Serine, glutamine and threonine on exposed loops — which is what the cysteine-resemblance table encodes (S 2.19, Q 1.95, T 1.58 against W 0.21).</p>
+<p>The rows are <strong>tidy</strong>: one per (position, score type), which is the shape the container stores and the shape a dataframe wants. A position that was not scored carries a <code class="docutils literal notranslate"><span class="pre">status</span></code> and <strong>no value</strong> — never a sentinel.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">by_type</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">:</span>
+    <span class="n">by_type</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">score_type</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">score_type</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">by_type</span><span class="p">):</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">by_type</span><span class="p">[</span><span class="n">score_type</span><span class="p">]</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s1">'scored'</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'  </span><span class="si">{</span><span class="n">score_type</span><span class="si">:</span><span class="s1">&lt;22</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s1">&gt;4</span><span class="si">}</span><span class="s1"> scored, </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">n</span><span class="si">:</span><span class="s1">&gt;3</span><span class="si">}</span><span class="s1"> not'</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+</section>
+<section id="Which-pair-to-measure">
+<h2>Which pair to measure<a class="headerlink" href="#Which-pair-to-measure" title="Permalink to this heading">¶</a></h2>
+<p>A pair is informative when both sites are labelable <strong>and</strong> the dye–dye distance sits where FRET responds to it, which is near <span class="math notranslate nohighlight">\(R_0\)</span>. The score is <span class="math notranslate nohighlight">\(jls \cdot (1 - 2|E - 0.5|)\)</span>, maximal at <span class="math notranslate nohighlight">\(R = R_0\)</span>.</p>
+<p>Placing the dye is a cost ladder. The analytic <em>alpha cone</em> is the reference’s cheap estimate; a real accessible volume is the expensive truth. So every pair is screened with the cone and the best <code class="docutils literal notranslate"><span class="pre">n_refine</span></code> are rebuilt — which is the reference’s design, and it turns out to matter a great deal.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">options</span> <span class="o">=</span> <span class="n">bff</span><span class="o">.</span><span class="n">LabelizerFRETOptions</span><span class="p">()</span>
+<span class="n">options</span><span class="o">.</span><span class="n">forster_radius</span> <span class="o">=</span> <span class="mf">52.0</span>
+<span class="n">options</span><span class="o">.</span><span class="n">n_refine</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="n">pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">bff</span><span class="o">.</span><span class="n">labelizer_fret_pair_scores</span><span class="p">(</span><span class="n">pdb</span><span class="p">,</span> <span class="n">combined</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span>
+<span class="n">above</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">combined</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">v</span> <span class="o">&gt;=</span> <span class="n">options</span><span class="o">.</span><span class="n">label_score_threshold</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">pairs</span><span class="p">)</span><span class="si">}</span><span class="s1"> pairs from the </span><span class="si">{</span><span class="n">above</span><span class="si">}</span><span class="s1"> sites at or above the '</span>
+      <span class="sa">f</span><span class="s1">'label-score threshold of </span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">label_score_threshold</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+
+<span class="n">refined</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pairs</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">probe_model</span> <span class="o">==</span> <span class="n">bff</span><span class="o">.</span><span class="n">PROBE_MODEL_ACCESSIBLE_VOLUME</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">the five the cone ranked best, after rebuilding their dye clouds:'</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">refined</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'  </span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">asym_id_1</span><span class="si">}{</span><span class="n">p</span><span class="o">.</span><span class="n">seq_id_1</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">asym_id_2</span><span class="si">}{</span><span class="n">p</span><span class="o">.</span><span class="n">seq_id_2</span><span class="si">:</span><span class="s1">&lt;5</span><span class="si">}</span><span class="s1"> '</span>
+          <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">value</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1">  d=</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">distance</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1"> A'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">the best pairs now:'</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">[:</span><span class="mi">5</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'  </span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">asym_id_1</span><span class="si">}{</span><span class="n">p</span><span class="o">.</span><span class="n">seq_id_1</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">asym_id_2</span><span class="si">}{</span><span class="n">p</span><span class="o">.</span><span class="n">seq_id_2</span><span class="si">:</span><span class="s1">&lt;5</span><span class="si">}</span><span class="s1"> '</span>
+          <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">value</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1">  d=</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">distance</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1"> A'</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<p>The refined pairs have <strong>fallen out of the top five</strong>. The cone places the dye 2–5 Å too far out, and because the pair score peaks sharply at <span class="math notranslate nohighlight">\(R = R_0\)</span> that is a ~30 % score error. This is why <code class="docutils literal notranslate"><span class="pre">n_refine</span></code> should not be left at zero for real work — the cheap screen is for ranking candidates, not for choosing between them.</p>
+</section>
+<section id="One-file-out">
+<h2>One file out<a class="headerlink" href="#One-file-out" title="Permalink to this heading">¶</a></h2>
+<p>The reference writes six CSVs, four PDBs carrying a dimensionless score in the B-factor column, a heat-map JSON and a zip. This writes <strong>one container</strong>: the structure verbatim, the scores as tables whose columns are named by MMFDB dictionary items, the complete settings, and provenance edges tying them together.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">out</span> <span class="o">=</span> <span class="s1">'1DDB-39.mmfdb.pto'</span>
+<span class="n">settings</span> <span class="o">=</span> <span class="n">bff</span><span class="o">.</span><span class="n">labelizer_settings_json</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">bff</span><span class="o">.</span><span class="n">LabelizerOptions</span><span class="p">(),</span> <span class="n">options</span><span class="p">,</span> <span class="n">conservation</span><span class="p">)</span>
+<span class="n">bff</span><span class="o">.</span><span class="n">labelizer_write_pto</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">pdb</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">pairs</span><span class="p">[:</span><span class="mi">200</span><span class="p">],</span> <span class="n">settings</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s1">  </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="si">}</span><span class="s1"> bytes'</span><span class="p">)</span>
+
+<span class="c1"># The structure comes back byte for byte, verified against its checksum.</span>
+<span class="n">digest</span> <span class="o">=</span> <span class="n">bff</span><span class="o">.</span><span class="n">labelizer_extract_pto_structure</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="s1">'recovered.pdb'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'recovered, sha256 verified:'</span><span class="p">,</span> <span class="n">digest</span><span class="p">[:</span><span class="mi">16</span><span class="p">],</span> <span class="s1">'...'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'identical:'</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">pdb</span><span class="p">,</span> <span class="s1">'rb'</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="o">==</span> <span class="nb">open</span><span class="p">(</span><span class="s1">'recovered.pdb'</span><span class="p">,</span> <span class="s1">'rb'</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+<span class="n">back</span> <span class="o">=</span> <span class="n">bff</span><span class="o">.</span><span class="n">labelizer_read_pto_scores</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">back</span><span class="p">)</span><span class="si">}</span><span class="s1"> score rows read back'</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<section id="A-caveat-the-reference-carries,-and-this-port-inherits">
+<h3>A caveat the reference carries, and this port inherits<a class="headerlink" href="#A-caveat-the-reference-carries,-and-this-port-inherits" title="Permalink to this heading">¶</a></h3>
+<p>The shipped example passes its conservation PDB as <strong>both input and output</strong>, so each run feeds the previous run’s scores back in as grades. The lookup has a two-cycle (1.63 → 2.3553…, 2.36 → 1.6322…, each rounding back to the other’s grade), so the example’s conservation term is stuck on exactly two values across 195 residues where the table has ten bins.</p>
+<p>The lookup itself reproduces both to sixteen digits — the machinery is exact; the input is not. It is a good argument for a container that records what produced a number, and against writing an output to the path an input was read from.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">t</span> <span class="o">=</span> <span class="n">bff</span><span class="o">.</span><span class="n">labelizer_load_table</span><span class="p">(</span><span class="s1">'N_CS2_Score'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">bff</span><span class="o">.</span><span class="n">labelizer_lookup</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mf">1.63</span><span class="p">),</span> <span class="n">bff</span><span class="o">.</span><span class="n">labelizer_lookup</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mf">2.36</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'distinct conservation values in the example:'</span><span class="p">,</span>
+      <span class="nb">len</span><span class="p">({</span><span class="n">r</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">scores</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">score_type</span> <span class="o">==</span> <span class="s1">'conservation'</span><span class="p">}))</span>
+<br/></pre></div>
+</div>
+</div>
+</section>
+</section>
+<section id="The-picture">
+<h2>The picture<a class="headerlink" href="#The-picture" title="Permalink to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">seq</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">seq_id</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">structure</span><span class="o">.</span><span class="n">residues</span><span class="p">]</span>
+<span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">combined</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">bff</span><span class="o">.</span><span class="n">labelizer_residue_key</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">chain</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">seq_id</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+          <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">structure</span><span class="o">.</span><span class="n">residues</span><span class="p">]</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">bx</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                             <span class="n">gridspec_kw</span><span class="o">=</span><span class="p">{</span><span class="s1">'height_ratios'</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]})</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'#3b6ea5'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'0.6'</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">'--'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'#b5651d'</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">':'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'combined label score'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Labelizer score along mouse BID (1DDB model 39, chain A)'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.99</span><span class="p">,</span> <span class="mf">0.06</span><span class="p">,</span> <span class="s1">'dashed: base rate   dotted: pairing threshold'</span><span class="p">,</span>
+        <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">'right'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'0.4'</span><span class="p">)</span>
+
+<span class="n">bx</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'#5a5a5a'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'residue depth (A)'</span><span class="p">)</span>
+<span class="n">bx</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">rsa</span> <span class="o">*</span> <span class="mf">4.0</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'#7aa457'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'RSA (x4)'</span><span class="p">)</span>
+<span class="n">bx</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'residue'</span><span class="p">)</span>
+<span class="n">bx</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'exposure'</span><span class="p">)</span>
+<span class="n">bx</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">'upper right'</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<br/></pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+      </div>
+    <div class="container">
+      <footer class="sk-content-footer">
+            &copy; 2021 - 2026, IMP developers.
+      </footer>
+    </div>
+  </div>
+</div>
+<script src="../../_static/js/vendor/bootstrap.min.js"></script>
+
+<script>
+    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+    ga('create', 'UA-22606712-2', 'auto');
+    ga('set', 'anonymizeIp', true);
+    ga('send', 'pageview');
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+<script>
+$(document).ready(function() {
+    /* Add a [>>>] button on the top-right corner of code samples to hide
+     * the >>> and ... prompts and the output and thus make the code
+     * copyable. */
+    var div = $('.highlight-python .highlight,' +
+                '.highlight-python3 .highlight,' +
+                '.highlight-pycon .highlight,' +
+		'.highlight-default .highlight')
+    var pre = div.find('pre');
+
+    // get the styles from the current theme
+    pre.parent().parent().css('position', 'relative');
+    var hide_text = 'Hide prompts and outputs';
+    var show_text = 'Show prompts and outputs';
+
+    // create and add the button to all the code blocks that contain >>>
+    div.each(function(index) {
+        var jthis = $(this);
+        if (jthis.find('.gp').length > 0) {
+            var button = $('<span class="copybutton">&gt;&gt;&gt;</span>');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+            jthis.prepend(button);
+        }
+        // tracebacks (.gt) contain bare text elements that need to be
+        // wrapped in a span to work with .nextUntil() (see later)
+        jthis.find('pre:has(.gt)').contents().filter(function() {
+            return ((this.nodeType == 3) && (this.data.trim().length > 0));
+        }).wrap('<span>');
+    });
+
+    // define the behavior of the button when it's clicked
+    $('.copybutton').click(function(e){
+        e.preventDefault();
+        var button = $(this);
+        if (button.data('hidden') === 'false') {
+            // hide the code output
+            button.parent().find('.go, .gp, .gt').hide();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'hidden');
+            button.css('text-decoration', 'line-through');
+            button.attr('title', show_text);
+            button.data('hidden', 'true');
+        } else {
+            // show the code output
+            button.parent().find('.go, .gp, .gt').show();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'visible');
+            button.css('text-decoration', 'none');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+        }
+    });
+
+	/*** Add permalink buttons next to glossary terms ***/
+	$('dl.glossary > dt[id]').append(function() {
+		return ('<a class="headerlink" href="#' +
+			    this.getAttribute('id') +
+			    '" title="Permalink to this term">¶</a>');
+	});
+  /*** Hide navbar when scrolling down ***/
+  // Returns true when headerlink target matches hash in url
+  (function() {
+    hashTargetOnTop = function() {
+        var hash = window.location.hash;
+        if ( hash.length < 2 ) { return false; }
+
+        var target = document.getElementById( hash.slice(1) );
+        if ( target === null ) { return false; }
+
+        var top = target.getBoundingClientRect().top;
+        return (top < 2) && (top > -2);
+    };
+
+    // Hide navbar on load if hash target is on top
+    var navBar = document.getElementById("navbar");
+    var navBarToggler = document.getElementById("sk-navbar-toggler");
+    var navBarHeightHidden = "-" + navBar.getBoundingClientRect().height + "px";
+    var $window = $(window);
+
+    hideNavBar = function() {
+        navBar.style.top = navBarHeightHidden;
+    };
+
+    showNavBar = function() {
+        navBar.style.top = "0";
+    }
+
+    if (hashTargetOnTop()) {
+        hideNavBar()
+    }
+
+    var prevScrollpos = window.pageYOffset;
+    hideOnScroll = function(lastScrollTop) {
+        if (($window.width() < 768) && (navBarToggler.getAttribute("aria-expanded") === 'true')) {
+            return;
+        }
+        if (lastScrollTop > 2 && (prevScrollpos <= lastScrollTop) || hashTargetOnTop()){
+            hideNavBar()
+        } else {
+            showNavBar()
+        }
+        prevScrollpos = lastScrollTop;
+    };
+
+    /*** high performance scroll event listener***/
+    var raf = window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        window.oRequestAnimationFrame;
+    var lastScrollTop = $window.scrollTop();
+
+    if (raf) {
+        loop();
+    }
+
+    function loop() {
+        var scrollTop = $window.scrollTop();
+        if (lastScrollTop === scrollTop) {
+            raf(loop);
+            return;
+        } else {
+            lastScrollTop = scrollTop;
+            hideOnScroll(lastScrollTop);
+            raf(loop);
+        }
+    }
+  })();
+});
+
+</script>
+    
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+</body>
+</html>

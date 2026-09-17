@@ -1,0 +1,17 @@
+<map id="ACV" name="ACV">
+<area shape="rect" id="Node000001" title="Accessible contact volume: the cloud split by proximity to a surface." alt="" coords="5,1059,207,1244"/>
+<area shape="rect" id="Node000002" href="$class_probe_accessible_volume.html" title="States enumerated as a voxel grid, plus the grid itself." alt="" coords="9,764,203,1009"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,1023,109,1058,103,1058,103,1023"/>
+<area shape="rect" id="Node000003" href="$class_states.html" title="A weighted set of states of one label." alt="" coords="202,449,383,715"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="207,728,183,765,179,762,202,725"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="34,285,191,350"/>
+<area shape="poly" id="edge8_Node000002_Node000004" title=" " alt="" coords="112,351,105,449,102,604,104,747,99,747,97,604,99,449,107,350"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="115,350,121,388,127,407,137,424,148,433,159,436,171,440,185,447,191,453,188,457,182,452,169,444,157,441,145,437,133,427,123,409,116,389,110,351"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="273,135,352,200"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="312,200,306,277,299,433,294,433,301,277,307,200"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="434,277,589,357"/>
+<area shape="poly" id="edge7_Node000007_Node000005" title=" " alt="" coords="354,196,448,265,444,270,351,200"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="247,5,378,85"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="315,99,315,134,310,134,310,99"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="481,360,396,461,392,458,477,356"/>
+</map>

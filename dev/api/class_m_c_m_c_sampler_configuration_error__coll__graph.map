@@ -1,0 +1,9 @@
+<map id="MCMCSamplerConfigurationError" name="MCMCSamplerConfigurationError">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,345,217,440"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="47,232,176,297"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,311,114,345,109,345,109,311"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="56,119,167,184"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="114,198,114,232,109,232,109,198"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="58,5,165,71"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="114,84,114,119,109,119,109,84"/>
+</map>

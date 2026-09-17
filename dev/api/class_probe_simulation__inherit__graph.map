@@ -1,0 +1,7 @@
+<map id="ProbeSimulation" name="ProbeSimulation">
+<area shape="rect" id="Node000001" title="The shape every probe simulation has: set positions, advance, read back." alt="" coords="128,5,321,311"/>
+<area shape="rect" id="Node000002" href="$class_molecular_probe_simulation.html" title="A dye placed on a structure and moved, as an ordinary simulation object." alt="" coords="5,359,215,624"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,325,158,359,153,358,165,323"/>
+<area shape="rect" id="Node000003" href="$class_probe_diffusion_simulation.html" title="A dye&#39;s Brownian walk in its accessible volume, and the field it samples." alt="" coords="239,359,443,624"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="285,323,297,358,292,359,280,325"/>
+</map>

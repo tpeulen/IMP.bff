@@ -1,0 +1,23 @@
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/PhotophysicsInteractionTerms.h" name="/home/runner/work/IMP.bff/IMP.bff/include/PhotophysicsInteractionTerms.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="775,5,1055,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,152,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="775,49,498,75,166,110,166,105,497,70,774,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="177,108,301,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="775,53,315,111,314,105,774,48"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="325,108,488,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="775,60,488,108,487,103,774,55"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="513,108,751,133"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="829,63,683,107,682,102,828,58"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="776,108,880,133"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="890,62,852,100,848,96,886,58"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="905,108,1098,133"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="943,58,982,96,978,100,939,62"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="1123,108,1181,133"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="988,58,1111,102,1109,107,986,63"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="1205,108,1256,133"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="1017,57,1193,105,1191,110,1015,63"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="1280,108,1339,133"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="1049,57,1267,105,1266,110,1048,63"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="1363,108,1426,133"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="1056,52,1194,75,1350,105,1349,111,1193,80,1055,57"/>
+</map>

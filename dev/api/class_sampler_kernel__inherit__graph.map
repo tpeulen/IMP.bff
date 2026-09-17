@@ -1,0 +1,15 @@
+<map id="SamplerKernel" name="SamplerKernel">
+<area shape="rect" id="Node000001" title="One transition of every walker a kernel holds." alt="" coords="278,5,423,271"/>
+<area shape="rect" id="Node000002" href="$class_nuts_kernel.html" title=" " alt="" coords="188,379,327,644"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="317,285,293,379,288,377,312,284"/>
+<area shape="rect" id="Node000003" href="$classinternal_1_1_walker_kernel_base.html" title="Walkers, their log densities and blobs, and the target they are evaluated on." alt="" coords="351,319,540,704"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="390,284,399,318,394,319,385,285"/>
+<area shape="rect" id="Node000004" href="$class_blocked_metropolis_kernel.html" title=" " alt="" coords="5,772,205,1037"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="342,704,340,706,309,725,279,732,250,737,219,754,197,774,193,770,216,750,249,732,278,726,307,720,337,702,339,700"/>
+<area shape="rect" id="Node000005" href="$class_differential_evolution_kernel.html" title=" " alt="" coords="229,782,443,1027"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="391,718,373,782,367,781,385,717"/>
+<area shape="rect" id="Node000006" href="$class_ensemble_slice_kernel.html" title="The ensemble slice sampler (Karamanis &amp; Beutler 2021; what zeus runs), differential directions." alt="" coords="467,752,645,1057"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="506,717,516,751,510,752,501,718"/>
+<area shape="rect" id="Node000007" href="$class_stretch_kernel.html" title="The affine&#45;invariant ensemble stretch move (Goodman &amp; Weare 2010; chisurf&#39;s EnsembleSampler)." alt="" coords="669,782,795,1027"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="552,616,607,681,660,751,678,781,673,783,655,753,603,684,548,620"/>
+</map>

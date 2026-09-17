@@ -1,0 +1,313 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <title>Fluorescence correlation spectroscopy &mdash; IMP.bff  documentation</title>
+  
+  <link rel="canonical" href="http://scikit-learn.org/stable/manual/concepts/fcs.html" />
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/vendor/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-rendered-html.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+<script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+<script src="../../_static/jquery.js"></script> 
+</head>
+<body>
+<nav id="navbar" class="sk-docs-navbar navbar navbar-expand-md navbar-light bg-light py-0">
+  <div class="container-fluid sk-docs-container px-0">
+    <button
+      id="sk-navbar-toggler"
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="sk-navbar-collapse collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../install.html">Install</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../index.html">User Manual</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../api/index.html">API</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../auto_examples/index.html">Examples</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../glossary.html" >Glossary</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../zreferences.html" >References</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../faq.html" >FAQ</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../related_projects.html" >Related packages</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../roadmap.html" >Roadmap</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../about.html" >About us</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://integrativemodeling.org/" >IMP</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+        </li>
+        <li class="nav-item dropdown nav-more-item-dropdown">
+          <a class="sk-nav-link nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">More</a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../glossary.html" >Glossary</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../zreferences.html" >References</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../faq.html" >FAQ</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../related_projects.html" >Related packages</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../roadmap.html" >Roadmap</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../about.html" >About us</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://integrativemodeling.org/" >IMP</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+          </div>
+        </li>
+      </ul>
+      <div id="searchbox" role="search">
+          <div class="searchformwrapper">
+          <form class="search" action="../../search.html" method="get">
+            <input class="sk-search-text-input" type="text" name="q" aria-labelledby="searchlabel" />
+            <input class="sk-search-text-btn" type="submit" value="Go" />
+          </form>
+          </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="d-flex" id="sk-doc-wrapper">
+    <input type="checkbox" name="sk-toggle-checkbox" id="sk-toggle-checkbox">
+    <label id="sk-sidemenu-toggle" class="sk-btn-toggle-toc btn sk-btn-primary" for="sk-toggle-checkbox">Toggle Menu</label>
+    <div id="sk-sidebar-wrapper" class="border-right">
+      <div class="sk-sidebar-toc-wrapper">
+        <div class="sk-sidebar-toc-logo">
+        </div>
+        <div class="btn-group w-100 mb-2" role="group" aria-label="rellinks">
+            <a href="#" role="button" class="btn sk-btn-rellink py-1 disabled"">Prev</a>
+            <a href="#" role="button" class="btn sk-btn-rellink disabled py-1">Up</a>
+            <a href="#" role="button" class="btn sk-btn-rellink py-1 disabled"">Next</a>
+        </div>
+            <div class="sk-sidebar-toc">
+              <ul>
+<li><a class="reference internal" href="#">Fluorescence correlation spectroscopy</a></li>
+</ul>
+
+            </div>
+      </div>
+    </div>
+    <div id="sk-page-content-wrapper">
+      <div class="sk-page-content container-fluid body px-md-3" role="main">
+        
+  <section id="Fluorescence-correlation-spectroscopy">
+<h1>Fluorescence correlation spectroscopy<a class="headerlink" href="#Fluorescence-correlation-spectroscopy" title="Permalink to this heading">¶</a></h1>
+<p>The most common method to study fluctuations in the time evolution of any signal is to compute the correlation function of such. In this respect, fluorescence correlation spectroscopy (FCS) <span id="id1">[<a class="reference internal" href="../../zreferences.html#id64" title="Elliot L Elson. 40 years of fcs: how it all began. Methods in enzymology, 518:1–10, 2013.">Els13</a>, <a class="reference internal" href="../../zreferences.html#id65" title="Elliot L Elson and Douglas Magde. Fluorescence correlation spectroscopy. i. conceptual basis and theory. Biopolymers: Original Research on Biomolecules, 13(1):1–27, 1974.">EM74</a>, <a class="reference internal" href="../../zreferences.html#id66" title="Douglas Magde, Elliot Elson, and Watt W Webb. Thermodynamic fluctuations in a reacting system—measurement by fluorescence correlation spectroscopy. Physical Review Letters, 29(11):705, 1972.">MEW72</a>]</span>.</p>
+<p>In combination with FRET (FRET-FCS) was developed as a powerful tool <span id="id2">[<a class="reference internal" href="../../zreferences.html#id7" title="Brian D Slaughter, Michael W Allen, Jay R Unruh, Ramona J Bieber Urbauer, and Carey K Johnson. Single-molecule resonance energy transfer and fluorescence correlation spectroscopy of calmodulin in solution. The Journal of Physical Chemistry B, 108(29):10388–10397, 2004.">SAU+04</a>, <a class="reference internal" href="../../zreferences.html#id13" title="Tedman Torres and Marcia Levitus. Measuring conformational dynamics: a new fcs-fret approach. The Journal of Physical Chemistry B, 111(25):7392–7400, 2007.">TL07</a>]</span> that allows for the analysis of FRET fluctuations covering a time range of nanoseconds to seconds. Hence, it is a perfect method to study conformational dynamics of biomolecules, complex formation, folding and catalysis
+<span id="id3">[<a class="reference internal" href="../../zreferences.html#id5" title="Wajih Al-Soufi, Belén Reija, Mercedes Novo, Suren Felekyan, Ralf Kühnemuth, and Claus AM Seidel. Fluorescence correlation spectroscopy, a tool to investigate supramolecular dynamics: inclusion complexes of pyronines with cyclodextrin. Journal of the American Chemical Society, 127(24):8775–8784, 2005.">ASRN+05</a>, <a class="reference internal" href="../../zreferences.html#id39" title="Kaushik Gurunathan and Marcia Levitus. Fret fluctuation spectroscopy of diffusing biopolymers: contributions of conformational dynamics and translational diffusion. The Journal of Physical Chemistry B, 114(2):980–986, 2010.">GL10</a>, <a class="reference internal" href="../../zreferences.html#id8" title="Carey K Johnson. Calmodulin, conformational states, and calcium signaling. a single-molecule perspective. Biochemistry, 45(48):14233–14246, 2006.">Joh06</a>, <a class="reference internal" href="../../zreferences.html#id6" title="Marcia Levitus. Relaxation kinetics by fluorescence correlation spectroscopy: determination of kinetic parameters in the presence of fluorescent impurities. The journal of physical chemistry letters, 1(9):1346–1350, 2010.">Lev10</a>, <a class="reference internal" href="../../zreferences.html#id9" title="E Shane Price, Marek Aleksiejew, and Carey K Johnson. Fret-fcs detection of intralobe dynamics in calmodulin. The Journal of Physical Chemistry B, 115(29):9320–9326, 2011.">PAJ11</a>, <a class="reference internal" href="../../zreferences.html#id12" title="E Shane Price, Matthew S DeVore, and Carey K Johnson. Detecting intramolecular dynamics and multiple forster resonance energy transfer states by fluorescence correlation spectroscopy. The Journal of Physical Chemistry B, 114(17):5895–5902, 2010.">PDJ10</a>, <a class="reference internal" href="../../zreferences.html#id7" title="Brian D Slaughter, Michael W Allen, Jay R Unruh, Ramona J Bieber Urbauer, and Carey K Johnson. Single-molecule resonance energy transfer and fluorescence correlation spectroscopy of calmodulin in solution. The Journal of Physical Chemistry B, 108(29):10388–10397, 2004.">SAU+04</a>, <a class="reference internal" href="../../zreferences.html#id10" title="Brian D Slaughter, Ramona J Bieber-Urbauer, and Carey K Johnson. Single-molecule tracking of sub-millisecond domain motion in calmodulin. The Journal of Physical Chemistry B, 109(26):12658–12662, 2005.">SBUJ05</a>, <a class="reference internal" href="../../zreferences.html#id11" title="Brian D Slaughter, Jay R Unruh, Michael W Allen, Ramona J Bieber Urbauer, and Carey K Johnson. Conformational substates of calmodulin revealed by single-pair fluorescence resonance energy transfer: influence of solution conditions and oxidative modification. Biochemistry, 44(10):3694–3707, 2005.">SUA+05</a>, <a class="reference internal" href="../../zreferences.html#id13" title="Tedman Torres and Marcia Levitus. Measuring conformational dynamics: a new fcs-fret approach. The Journal of Physical Chemistry B, 111(25):7392–7400, 2007.">TL07</a>]</span></p>
+<p>Confocal fluorescence correlation spectroscopy (FCS) is a powerful method to analyze molecular dynamics. FCS has single molecule sensitivity, is highly selective, and live-cell compatible. FCS has a broad measurable time range spanning from ~ns to ∼s. Moreover, FCS provides spatial selectivity so that e. g. in live cells membrane, cytoplasmic and nucleus molecular dynamics can be easily distinguished.</p>
+<p>The main underlying principle in correlation spectroscopy is the statistical analysis of intensity fluctuations emitted by fluorescently labeled biomolecules by correlation analysis. The resulting auto- (FCS) or cross-correlation functions (FCCS) then can be further analyzed by curve fitting to eventually derive the rate constants of interest. In other words: The statistical methods FCS and FCCS do not provide single molecule traces like in single particle tracking, but a dynamic pattern or
+“fingerprint” of a probed specimen with high temporal resolution.</p>
+<p>Structural fluctuations are reflected by the correlation function, which in turn provides restraints on the number of conformational states. In this section we briefly describe the simplest case of FRET-FCS and discuss various experimental scenarios. A detailed review was recently published covering all advantages and challenges of these methods <span id="id4">[<a class="reference internal" href="../../zreferences.html#id4" title="Suren Felekyan, Hugo Sanabria, Stanislav Kalinin, Ralf Kühnemuth, and Claus AM Seidel. Analyzing förster resonance energy transfer with fluctuation algorithms. Methods in enzymology, 519:39–85, 2013.">FSK+13</a>]</span>.</p>
+<p>The auto/cross-correlation of two correlation channels <span class="math notranslate nohighlight">\(S_A\)</span> and <span class="math notranslate nohighlight">\(S_B\)</span> is given by:</p>
+<div class="math notranslate nohighlight">
+\[G_{A,B} (t_{c}) = 1 + \frac{\langle \delta S_A(t) \delta S_B (t+t_c) \rangle}{\langle S_A(t) \rangle \langle S_B(t) \rangle}\]</div>
+<p>If <span class="math notranslate nohighlight">\(S_A\)</span> equals <span class="math notranslate nohighlight">\(S_B\)</span> the correlation function is called autocorrelation function otherwise it is called cross-correlation function. If all species are of equal brightness, the amplitude at zero time of the autocorrelation function, <span class="math notranslate nohighlight">\(G(0)\)</span>, allows to determine the mean number of molecules <span class="math notranslate nohighlight">\(N\)</span> in the detection volume, <span class="math notranslate nohighlight">\(V_{det}\)</span>, or the concentration, <span class="math notranslate nohighlight">\(c\)</span>, if the parameters of detection volume are known.</p>
+<div class="math notranslate nohighlight">
+\[G(t_c=0) = 1 + \frac{1}{N} \cdot G_{diff}(t_c)\]</div>
+<p>with <span class="math notranslate nohighlight">\(c = N / V_{det}\)</span>. For a 3-dimensional Gaussian shaped detection/illumination volume the normalized diffusion term is given by</p>
+<div class="math notranslate nohighlight">
+\[G_{diff}(t_c) = \left( 1 + \frac{t_c}{t_{diff}} \right )^{-1} \left( 1 + \left( \frac{\omega_0}{z_0} \right)^2 \frac{t_c}{t_{diff}} \right)^{-1/2}\]</div>
+<p>whereas <span class="math notranslate nohighlight">\(\omega_0\)</span> and <span class="math notranslate nohighlight">\(z_0\)</span> are shape parameters of the detection volume that is defined by <span class="math notranslate nohighlight">\(w(x,y,z)=\exp (-2 (x^2 + y^2) / \omega_0^2) \exp (-2 z^2/z_0^2)\)</span>. For 1-photon excitation the characteristic diffusion time related to the diffusion coefficient <span class="math notranslate nohighlight">\(D_{diff}^{(i)}\)</span> is given by <span class="math notranslate nohighlight">\(t_{diff}^{(i)} = \omega_0^2 / (4 D_{diff}^{(i)})\)</span>. The autocorrelation function allows for a direct assessment of the diffusion constant <span class="math notranslate nohighlight">\(D_{diff}\)</span>.</p>
+<p>In a mixture of <span class="math notranslate nohighlight">\(n\)</span> species with corresponding brightnesses, <span class="math notranslate nohighlight">\(Q^{(i)}\)</span>, diffusion constants, <span class="math notranslate nohighlight">\(D_{diff}^{(i)}\)</span>, and fractions, <span class="math notranslate nohighlight">\(x^{(i)}\)</span>, <span class="math notranslate nohighlight">\(i = 1, \dots, n\)</span> it is most convenient to define the autocorrelation function <span id="id5">[<a class="reference internal" href="../../zreferences.html#id3" title="Sally A Kim, Katrin G Heinze, Kirsten Bacia, M Neal Waxham, and Petra Schwille. Two-photon cross-correlation analysis of intracellular reactions with variable stoichiometry. Biophysical Journal, 88(6):4319–4336, 2005.">KHB+05</a>]</span>.</p>
+<div class="math notranslate nohighlight">
+\[G(t_c) = 1 + \frac{1}{N} \frac{\sum_i^nx^{(i)} (Q^{(i)})^2 G_{diff}^{(i)}(t_c)}{\left( \sum_i^n x^{(i)} Q^{(i)} \right)^2}\]</div>
+<p>Even if the brightness, <span class="math notranslate nohighlight">\(Q^{(i)}\)</span>, is known for each species, the diffusion coefficients, <span class="math notranslate nohighlight">\(D_{diff}^{(i)}\)</span>, still have to be significantly distinct for successful extraction of <span class="math notranslate nohighlight">\(c^{(i)}\)</span> values, emphasizing the need of a proper methodology that can distinguish species in a mixture.</p>
+</section>
+
+
+      </div>
+    <div class="container">
+      <footer class="sk-content-footer">
+            &copy; 2021 - 2026, IMP developers.
+      </footer>
+    </div>
+  </div>
+</div>
+<script src="../../_static/js/vendor/bootstrap.min.js"></script>
+
+<script>
+    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+    ga('create', 'UA-22606712-2', 'auto');
+    ga('set', 'anonymizeIp', true);
+    ga('send', 'pageview');
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+<script>
+$(document).ready(function() {
+    /* Add a [>>>] button on the top-right corner of code samples to hide
+     * the >>> and ... prompts and the output and thus make the code
+     * copyable. */
+    var div = $('.highlight-python .highlight,' +
+                '.highlight-python3 .highlight,' +
+                '.highlight-pycon .highlight,' +
+		'.highlight-default .highlight')
+    var pre = div.find('pre');
+
+    // get the styles from the current theme
+    pre.parent().parent().css('position', 'relative');
+    var hide_text = 'Hide prompts and outputs';
+    var show_text = 'Show prompts and outputs';
+
+    // create and add the button to all the code blocks that contain >>>
+    div.each(function(index) {
+        var jthis = $(this);
+        if (jthis.find('.gp').length > 0) {
+            var button = $('<span class="copybutton">&gt;&gt;&gt;</span>');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+            jthis.prepend(button);
+        }
+        // tracebacks (.gt) contain bare text elements that need to be
+        // wrapped in a span to work with .nextUntil() (see later)
+        jthis.find('pre:has(.gt)').contents().filter(function() {
+            return ((this.nodeType == 3) && (this.data.trim().length > 0));
+        }).wrap('<span>');
+    });
+
+    // define the behavior of the button when it's clicked
+    $('.copybutton').click(function(e){
+        e.preventDefault();
+        var button = $(this);
+        if (button.data('hidden') === 'false') {
+            // hide the code output
+            button.parent().find('.go, .gp, .gt').hide();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'hidden');
+            button.css('text-decoration', 'line-through');
+            button.attr('title', show_text);
+            button.data('hidden', 'true');
+        } else {
+            // show the code output
+            button.parent().find('.go, .gp, .gt').show();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'visible');
+            button.css('text-decoration', 'none');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+        }
+    });
+
+	/*** Add permalink buttons next to glossary terms ***/
+	$('dl.glossary > dt[id]').append(function() {
+		return ('<a class="headerlink" href="#' +
+			    this.getAttribute('id') +
+			    '" title="Permalink to this term">¶</a>');
+	});
+  /*** Hide navbar when scrolling down ***/
+  // Returns true when headerlink target matches hash in url
+  (function() {
+    hashTargetOnTop = function() {
+        var hash = window.location.hash;
+        if ( hash.length < 2 ) { return false; }
+
+        var target = document.getElementById( hash.slice(1) );
+        if ( target === null ) { return false; }
+
+        var top = target.getBoundingClientRect().top;
+        return (top < 2) && (top > -2);
+    };
+
+    // Hide navbar on load if hash target is on top
+    var navBar = document.getElementById("navbar");
+    var navBarToggler = document.getElementById("sk-navbar-toggler");
+    var navBarHeightHidden = "-" + navBar.getBoundingClientRect().height + "px";
+    var $window = $(window);
+
+    hideNavBar = function() {
+        navBar.style.top = navBarHeightHidden;
+    };
+
+    showNavBar = function() {
+        navBar.style.top = "0";
+    }
+
+    if (hashTargetOnTop()) {
+        hideNavBar()
+    }
+
+    var prevScrollpos = window.pageYOffset;
+    hideOnScroll = function(lastScrollTop) {
+        if (($window.width() < 768) && (navBarToggler.getAttribute("aria-expanded") === 'true')) {
+            return;
+        }
+        if (lastScrollTop > 2 && (prevScrollpos <= lastScrollTop) || hashTargetOnTop()){
+            hideNavBar()
+        } else {
+            showNavBar()
+        }
+        prevScrollpos = lastScrollTop;
+    };
+
+    /*** high performance scroll event listener***/
+    var raf = window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        window.oRequestAnimationFrame;
+    var lastScrollTop = $window.scrollTop();
+
+    if (raf) {
+        loop();
+    }
+
+    function loop() {
+        var scrollTop = $window.scrollTop();
+        if (lastScrollTop === scrollTop) {
+            raf(loop);
+            return;
+        } else {
+            lastScrollTop = scrollTop;
+            hideOnScroll(lastScrollTop);
+            raf(loop);
+        }
+    }
+  })();
+});
+
+</script>
+    
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+</body>
+</html>

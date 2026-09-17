@@ -1,0 +1,5 @@
+<map id="GoRestraint" name="GoRestraint">
+<area shape="rect" id="Node000001" title="A Go model over a set of beads: truncated Lennard&#45;Jones on native contacts." alt="" coords="5,119,196,324"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="48,5,153,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,84,103,119,98,119,98,84"/>
+</map>

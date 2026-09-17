@@ -1,0 +1,13 @@
+<map id="Mol2Component" name="Mol2Component">
+<area shape="rect" id="Node000001" title="The atoms and bonds of a MOL2 file." alt="" coords="183,657,304,723"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="12,522,192,587"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,585,199,644,196,648,134,589"/>
+<area shape="rect" id="Node000003" href="$struct_mol2_atom.html" title="One MOL2 atom, as the force&#45;field builder needs it." alt="" coords="5,307,199,452"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="105,452,105,505,99,505,99,452"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="63,135,141,200"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="105,200,105,290,99,290,99,200"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="37,5,167,85"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="105,99,105,134,99,134,99,99"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="216,515,367,595"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="280,596,263,643,258,641,275,594"/>
+</map>

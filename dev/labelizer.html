@@ -1,0 +1,507 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <title>Choosing a labelling site {#labelizer} &mdash; IMP.bff  documentation</title>
+  
+  <link rel="canonical" href="http://scikit-learn.org/stable/labelizer.html" />
+
+  
+
+  <link rel="stylesheet" href="_static/css/vendor/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sg_gallery.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sg_gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sg_gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sg_gallery-rendered-html.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+<script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+<script src="_static/jquery.js"></script> 
+</head>
+<body>
+<nav id="navbar" class="sk-docs-navbar navbar navbar-expand-md navbar-light bg-light py-0">
+  <div class="container-fluid sk-docs-container px-0">
+    <button
+      id="sk-navbar-toggler"
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="sk-navbar-collapse collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="install.html">Install</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="manual/index.html">User Manual</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="api/index.html">API</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="auto_examples/index.html">Examples</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="glossary.html" >Glossary</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="zreferences.html" >References</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="faq.html" >FAQ</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="related_projects.html" >Related packages</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="roadmap.html" >Roadmap</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="about.html" >About us</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://integrativemodeling.org/" >IMP</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+        </li>
+        <li class="nav-item dropdown nav-more-item-dropdown">
+          <a class="sk-nav-link nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">More</a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="sk-nav-dropdown-item dropdown-item" href="glossary.html" >Glossary</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="zreferences.html" >References</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="faq.html" >FAQ</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="related_projects.html" >Related packages</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="roadmap.html" >Roadmap</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="about.html" >About us</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://integrativemodeling.org/" >IMP</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+          </div>
+        </li>
+      </ul>
+      <div id="searchbox" role="search">
+          <div class="searchformwrapper">
+          <form class="search" action="search.html" method="get">
+            <input class="sk-search-text-input" type="text" name="q" aria-labelledby="searchlabel" />
+            <input class="sk-search-text-btn" type="submit" value="Go" />
+          </form>
+          </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="d-flex" id="sk-doc-wrapper">
+    <input type="checkbox" name="sk-toggle-checkbox" id="sk-toggle-checkbox">
+    <label id="sk-sidemenu-toggle" class="sk-btn-toggle-toc btn sk-btn-primary" for="sk-toggle-checkbox">Toggle Menu</label>
+    <div id="sk-sidebar-wrapper" class="border-right">
+      <div class="sk-sidebar-toc-wrapper">
+        <div class="sk-sidebar-toc-logo">
+        </div>
+        <div class="btn-group w-100 mb-2" role="group" aria-label="rellinks">
+            <a href="#" role="button" class="btn sk-btn-rellink py-1 disabled"">Prev</a>
+            <a href="#" role="button" class="btn sk-btn-rellink disabled py-1">Up</a>
+            <a href="#" role="button" class="btn sk-btn-rellink py-1 disabled"">Next</a>
+        </div>
+            <div class="sk-sidebar-toc">
+              <ul>
+<li><a class="reference internal" href="#">Choosing a labelling site {#labelizer}</a><ul>
+<li><a class="reference internal" href="#why-it-is-here-at-all">Why it is here at all</a></li>
+<li><a class="reference internal" href="#what-a-score-means">What a score means</a></li>
+<li><a class="reference internal" href="#getting-a-number-out">Getting a number out</a></li>
+<li><a class="reference internal" href="#which-pair-to-measure">Which pair to measure</a></li>
+<li><a class="reference internal" href="#the-dyes">The dyes</a></li>
+<li><a class="reference internal" href="#the-output-is-one-file">The output is one file</a></li>
+<li><a class="reference internal" href="#reproducing-the-paper-defects-and-all">Reproducing the paper, defects and all</a></li>
+<li><a class="reference internal" href="#where-to-look-next">Where to look next</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+      </div>
+    </div>
+    <div id="sk-page-content-wrapper">
+      <div class="sk-page-content container-fluid body px-md-3" role="main">
+        
+  <section id="choosing-a-labelling-site-labelizer">
+<h1>Choosing a labelling site {#labelizer}<a class="headerlink" href="#choosing-a-labelling-site-labelizer" title="Permalink to this heading">¶</a></h1>
+<p>[TOC]</p>
+<p>Before a FRET experiment there is a question that has nothing to do with
+photons: <strong>where does the dye go, and which pair do you measure?</strong> Getting it
+wrong is expensive in the way that matters — the protein is expressed, labelled
+and measured before anyone finds out that the dye was buried, that it stuck to
+a hydrophobic patch, or that the two sites never move relative to each other.</p>
+<p><code class="docutils literal notranslate"><span class="pre">IMP.bff</span></code> answers both questions with a native port of the label-site score of
+Gebhardt <em>et al.</em>, <em>Nat. Commun.</em> <strong>16</strong>, 3305 (2025). Everything is prefixed
+<code class="docutils literal notranslate"><span class="pre">labelizer_</span></code> / <code class="docutils literal notranslate"><span class="pre">Labelizer</span></code>, so the ported model is distinguishable from this package’s own
+physics without consulting a design note.</p>
+<section id="why-it-is-here-at-all">
+<h2>Why it is here at all<a class="headerlink" href="#why-it-is-here-at-all" title="Permalink to this heading">¶</a></h2>
+<p>The reference implementation is a Python package, and it does not run. Its
+secondary-structure term shells out to DSSP and raises
+<code class="docutils literal notranslate"><span class="pre">RuntimeError(&quot;Unknown</span> <span class="pre">platform&quot;)</span></code> on macOS outright; its <strong>default</strong>
+solvent-exposure term shells out to MSMS, whose bundled binaries are 32-bit
+ppc/i386 Mach-O; and it pins <code class="docutils literal notranslate"><span class="pre">labellib</span></code>, which is not used in this package. A
+scoring model whose default term cannot be evaluated is not a model anyone can
+check.</p>
+<p>Meanwhile every piece of physics underneath it was already here — accessible
+volumes, Förster radii, κ², PET quenchers, Shrake–Rupley surfaces, side-chain
+packing — and what was missing was only the scoring layer on top. Nothing in
+<code class="docutils literal notranslate"><span class="pre">include/</span></code> iterated residues and emitted a score column.</p>
+<p>So the two external programs are replaced by native kernels
+(#IMP::bff::labelizer_dssp, #IMP::bff::labelizer_residue_depth) and the difference is
+<strong>measured</strong> rather than asserted. See <code class="docutils literal notranslate"><span class="pre">okf/validation/labelizer_ab.md</span></code>: on the
+reference’s own published output the secondary-structure and
+cysteine-resemblance terms agree exactly on every residue of two proteins, and
+the native surface matches MSMS with no bias.</p>
+</section>
+<section id="what-a-score-means">
+<h2>What a score means<a class="headerlink" href="#what-a-score-means" title="Permalink to this heading">¶</a></h2>
+<p><strong>A parameter score is a likelihood ratio, not a probability.</strong> Each fitted
+table holds</p>
+<p>\f[
+\frac{P(\mathrm{labelable} \mid s)}{P(\mathrm{labelable})}
+\f]</p>
+<p>binned over an observable. A value above 1 says the observation makes a site
+<em>more</em> likely to be labelable than the base rate. Values run from 0 to about
+3.9, and because the terms are multiplied the combined score is <strong>unbounded
+above</strong> — a cysteine on an exposed loop passes 2 easily. The <code class="docutils literal notranslate"><span class="pre">0.5</span></code> threshold
+the pair layer filters on is a threshold on that unbounded quantity, not a
+probability cut.</p>
+<p>The published model combines four terms as a weighted geometric mean:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>term</p></th>
+<th class="head"><p>tag</p></th>
+<th class="head"><p>what it measures</p></th>
+<th class="head"><p>why it matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>conservation</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cs</span></code></p></td>
+<td><p>evolutionary rate at the position</p></td>
+<td><p>a conserved residue is doing something; mutating it to cysteine may cost function</p></td>
+</tr>
+<tr class="row-odd"><td><p>solvent exposure</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">se</span></code></p></td>
+<td><p>depth below the molecular surface</p></td>
+<td><p>a buried position cannot be reached by a labelling reagent</p></td>
+</tr>
+<tr class="row-even"><td><p>cysteine resemblance</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cr</span></code></p></td>
+<td><p>how much the residue already resembles a cysteine</p></td>
+<td><p>a conservative substitution perturbs least</p></td>
+</tr>
+<tr class="row-odd"><td><p>secondary structure</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ss</span></code></p></td>
+<td><p>the local DSSP state</p></td>
+<td><p>loops and turns tolerate a dye; helices and strands less so</p></td>
+</tr>
+</tbody>
+</table>
+<p>Two further terms — tryptophan proximity (<code class="docutils literal notranslate"><span class="pre">tp</span></code>) and charge environment (<code class="docutils literal notranslate"><span class="pre">ce</span></code>) —
+are implemented and carry <strong>weight zero in the published model</strong>. They are
+switched off there, not merely down-weighted. A third, methionine exclusion
+(<code class="docutils literal notranslate"><span class="pre">me</span></code>), vetoes a site near an exposed methionine and is not part of the
+published four.</p>
+</section>
+<section id="getting-a-number-out">
+<h2>Getting a number out<a class="headerlink" href="#getting-a-number-out" title="Permalink to this heading">¶</a></h2>
+<p>The public C++ files follow the computation: <code class="docutils literal notranslate"><span class="pre">LabelizerFeatures.h</span></code> supplies
+structure properties, <code class="docutils literal notranslate"><span class="pre">LabelizerScore.h</span></code> computes labelability,
+<code class="docutils literal notranslate"><span class="pre">LabelizerFRET.h</span></code> scores pairs, and <code class="docutils literal notranslate"><span class="pre">LabelizerIO.h</span></code> reads and writes scored
+containers. Each header includes the lower-level declarations it needs.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>#include &lt;IMP/bff/LabelizerFRET.h&gt;
+
+const std::vector&lt;LabelizerScore&gt; scores = labelizer_score_structure(
+        "protein.pdb", labelizer_model_paper(), LabelizerOptions(), "grades.txt");
+</pre></div>
+</div>
+<p>Each #IMP::bff::LabelizerScore is one row of <code class="docutils literal notranslate"><span class="pre">_mmfdb_label_score</span></code>: a position, a
+<code class="docutils literal notranslate"><span class="pre">score_type</span></code>, a value and a <code class="docutils literal notranslate"><span class="pre">status</span></code>. <strong>A position that was not scored carries
+no value at all</strong> — <code class="docutils literal notranslate"><span class="pre">status</span></code> says why. That is not fastidiousness: the
+reference writes <code class="docutils literal notranslate"><span class="pre">-1</span></code> for “excluded” and <code class="docutils literal notranslate"><span class="pre">0</span></code> for “no contribution” into the
+same column as real scores, so its output cannot be read back, and the shipped
+example’s conservation column is degenerate as a direct consequence.</p>
+<p>Conservation is <strong>imported, never computed</strong> (#IMP::bff::labelizer_read_consurf). An
+alignment and a rate estimate are a different program; this reads its result.</p>
+</section>
+<section id="which-pair-to-measure">
+<h2>Which pair to measure<a class="headerlink" href="#which-pair-to-measure" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LabelizerFRETOptions options;
+options.forster_radius = forster_radius(get_probe("Alexa488"),
+                                        get_probe("Alexa647"));
+const std::vector&lt;LabelizerFRETPairScore&gt; pairs = labelizer_fret_pair_scores(
+        "protein.pdb", labelizer_combined_by_key(scores), options);
+</pre></div>
+</div>
+<p>A pair is worth measuring when both sites are labelable <strong>and</strong> the dye–dye
+distance sits where FRET responds to it — near \f$R_0\f$. With two
+conformations (#IMP::bff::labelizer_pair_scores_two_states) the criterion changes: what
+matters is that the distance <em>moves</em>.</p>
+<p>Placing the dye is a cost ladder, and the rungs are not interchangeable:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>model</p></th>
+<th class="head"><p>cost</p></th>
+<th class="head"><p>what it is</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>#IMP::bff::PROBE_MODEL_CBETA</p></td>
+<td><p>nothing</p></td>
+<td><p>the Cβ itself; no dye at all</p></td>
+</tr>
+<tr class="row-odd"><td><p>#IMP::bff::PROBE_MODEL_ALPHA_CONE</p></td>
+<td><p>one neighbour search</p></td>
+<td><p>the reference’s analytic estimate of the dye’s mean position</p></td>
+</tr>
+<tr class="row-even"><td><p>#IMP::bff::PROBE_MODEL_ACCESSIBLE_VOLUME</p></td>
+<td><p>a grid search</p></td>
+<td><p>a real accessible volume, this package’s own</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Do not leave <code class="docutils literal notranslate"><span class="pre">n_refine</span></code> at zero for real work.</strong> The analytic cone
+over-reaches by 2–5 Å, and because the pair score peaks sharply at
+\f$R = R_0\f$ that is a large error in the quantity being ranked: measured on
+one structure, <em>none</em> of the top five pairs by cone score were still in the top
+five after rebuilding the clouds. The cheap screen is for deciding which pairs
+are worth building volumes for, not for choosing between them.</p>
+</section>
+<section id="the-dyes">
+<h2>The dyes<a class="headerlink" href="#the-dyes" title="Permalink to this heading">¶</a></h2>
+<p>\f$R_0\f$ is <strong>derived, not supplied</strong> — from the donor’s quantum yield and the
+overlap of its emission with the acceptor’s absorption
+(#IMP::bff::forster_radius). Naming the dyes makes the number traceable;
+asserting <code class="docutils literal notranslate"><span class="pre">52.0</span></code> does not.</p>
+<p>Names resolve loosely (#IMP::bff::resolve_probe_name), because the library keys
+are vendor spellings — <code class="docutils literal notranslate"><span class="pre">AlexaFluor488</span></code>, <code class="docutils literal notranslate"><span class="pre">LumiprobeCy3</span></code>, <code class="docutils literal notranslate"><span class="pre">ATTO647N</span></code> — and nobody
+types those. <code class="docutils literal notranslate"><span class="pre">Alexa488</span></code>, <code class="docutils literal notranslate"><span class="pre">Cy3</span></code> and <code class="docutils literal notranslate"><span class="pre">Atto647N</span></code> all work. Ambiguity raises rather
+than guessing.</p>
+<p>The library is a <strong>probe</strong> library (#IMP::bff::ProbeLibrary.h), not a dye
+library: #IMP::bff::ProbeType distinguishes a dye from a fluorescent protein
+from an EPR spin label, and the shipped rotamer stores are already partitioned
+that way. It matters here because a spin label has no spectra by construction,
+so #IMP::bff::forster_radius refuses one <strong>by naming the probe type</strong> rather
+than reporting a missing spectrum — a category error and a missing file should
+not read the same.</p>
+<p>One unit trap, stated because it nearly shipped: <code class="docutils literal notranslate"><span class="pre">forster_radius</span></code> and the
+container’s #IMP::bff::probe_pto_forster_radius both return <strong>Ångström</strong>, and so
+does everything that consumes an \f$R_0\f$ here. Spectra are in nanometres. An
+\f$R_0\f$ near 5 is nanometres and is wrong by a factor of ten; near 50 it is
+right.</p>
+</section>
+<section id="the-output-is-one-file">
+<h2>The output is one file<a class="headerlink" href="#the-output-is-one-file" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>labelizer_write_pto("scored.mmfdb.pto", "protein.pdb", scores, pairs, settings);
+</pre></div>
+</div>
+<p>The reference writes six CSVs, four PDBs carrying a dimensionless score in the
+B-factor column, a heat-map JSON and a zip. This writes one container
+(#IMP::bff::labelizer_write_pto): the structure verbatim and recoverable against its
+SHA-256, the scores as tables whose columns are named by MMFDB dictionary
+items, the complete settings, and provenance edges tying them together. A
+<code class="docutils literal notranslate"><span class="pre">.pto</span></code> is an EBML document, so a walker in any language can read it without
+this package.</p>
+</section>
+<section id="reproducing-the-paper-defects-and-all">
+<h2>Reproducing the paper, defects and all<a class="headerlink" href="#reproducing-the-paper-defects-and-all" title="Permalink to this heading">¶</a></h2>
+<p>The default is #IMP::bff::LABELIZER_MODEL_PUBLISHED, which reproduces the reference
+<strong>including three defects</strong>, because the paper’s numbers were computed with
+them: the joined label score of a pair uses <code class="docutils literal notranslate"><span class="pre">prod</span> <span class="pre">**</span> <span class="pre">0.5</span></code> where the geometric
+mean is <code class="docutils literal notranslate"><span class="pre">prod</span> <span class="pre">**</span> <span class="pre">(1/N)</span></code>; a term of weight <em>zero</em> that happens to read exactly
+<code class="docutils literal notranslate"><span class="pre">0.0</span></code> still zeroes the whole score; and the configurable excluded amino acid is
+written to one attribute and read from another, so it is always methionine.</p>
+<p>#IMP::bff::LABELIZER_MODEL_CORRECTED fixes all three. Which was used is recorded in
+the container, so a file always says which numbers it holds.</p>
+</section>
+<section id="where-to-look-next">
+<h2>Where to look next<a class="headerlink" href="#where-to-look-next" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">examples/labels/plot_labelizer_score.py</span></code> — the per-residue score, end to end.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">examples/labels/plot_labelizer_fret_pair.py</span></code> — the two-conformation pair
+score on maltose-binding protein, with \f$R_0\f$ from named dyes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">imp_bff</span> <span class="pre">labelizer</span></code> — the same from a command line.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">okf/validation/labelizer_ab.md</span></code> — what agrees with the reference, and by how
+much.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">okf/labelizer-correspondence.md</span></code> — which reference function became which
+symbol, and what was deliberately not ported.</p></li>
+</ul>
+</section>
+</section>
+
+
+      </div>
+    <div class="container">
+      <footer class="sk-content-footer">
+            &copy; 2021 - 2026, IMP developers.
+      </footer>
+    </div>
+  </div>
+</div>
+<script src="_static/js/vendor/bootstrap.min.js"></script>
+
+<script>
+    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+    ga('create', 'UA-22606712-2', 'auto');
+    ga('set', 'anonymizeIp', true);
+    ga('send', 'pageview');
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+<script>
+$(document).ready(function() {
+    /* Add a [>>>] button on the top-right corner of code samples to hide
+     * the >>> and ... prompts and the output and thus make the code
+     * copyable. */
+    var div = $('.highlight-python .highlight,' +
+                '.highlight-python3 .highlight,' +
+                '.highlight-pycon .highlight,' +
+		'.highlight-default .highlight')
+    var pre = div.find('pre');
+
+    // get the styles from the current theme
+    pre.parent().parent().css('position', 'relative');
+    var hide_text = 'Hide prompts and outputs';
+    var show_text = 'Show prompts and outputs';
+
+    // create and add the button to all the code blocks that contain >>>
+    div.each(function(index) {
+        var jthis = $(this);
+        if (jthis.find('.gp').length > 0) {
+            var button = $('<span class="copybutton">&gt;&gt;&gt;</span>');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+            jthis.prepend(button);
+        }
+        // tracebacks (.gt) contain bare text elements that need to be
+        // wrapped in a span to work with .nextUntil() (see later)
+        jthis.find('pre:has(.gt)').contents().filter(function() {
+            return ((this.nodeType == 3) && (this.data.trim().length > 0));
+        }).wrap('<span>');
+    });
+
+    // define the behavior of the button when it's clicked
+    $('.copybutton').click(function(e){
+        e.preventDefault();
+        var button = $(this);
+        if (button.data('hidden') === 'false') {
+            // hide the code output
+            button.parent().find('.go, .gp, .gt').hide();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'hidden');
+            button.css('text-decoration', 'line-through');
+            button.attr('title', show_text);
+            button.data('hidden', 'true');
+        } else {
+            // show the code output
+            button.parent().find('.go, .gp, .gt').show();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'visible');
+            button.css('text-decoration', 'none');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+        }
+    });
+
+	/*** Add permalink buttons next to glossary terms ***/
+	$('dl.glossary > dt[id]').append(function() {
+		return ('<a class="headerlink" href="#' +
+			    this.getAttribute('id') +
+			    '" title="Permalink to this term">¶</a>');
+	});
+  /*** Hide navbar when scrolling down ***/
+  // Returns true when headerlink target matches hash in url
+  (function() {
+    hashTargetOnTop = function() {
+        var hash = window.location.hash;
+        if ( hash.length < 2 ) { return false; }
+
+        var target = document.getElementById( hash.slice(1) );
+        if ( target === null ) { return false; }
+
+        var top = target.getBoundingClientRect().top;
+        return (top < 2) && (top > -2);
+    };
+
+    // Hide navbar on load if hash target is on top
+    var navBar = document.getElementById("navbar");
+    var navBarToggler = document.getElementById("sk-navbar-toggler");
+    var navBarHeightHidden = "-" + navBar.getBoundingClientRect().height + "px";
+    var $window = $(window);
+
+    hideNavBar = function() {
+        navBar.style.top = navBarHeightHidden;
+    };
+
+    showNavBar = function() {
+        navBar.style.top = "0";
+    }
+
+    if (hashTargetOnTop()) {
+        hideNavBar()
+    }
+
+    var prevScrollpos = window.pageYOffset;
+    hideOnScroll = function(lastScrollTop) {
+        if (($window.width() < 768) && (navBarToggler.getAttribute("aria-expanded") === 'true')) {
+            return;
+        }
+        if (lastScrollTop > 2 && (prevScrollpos <= lastScrollTop) || hashTargetOnTop()){
+            hideNavBar()
+        } else {
+            showNavBar()
+        }
+        prevScrollpos = lastScrollTop;
+    };
+
+    /*** high performance scroll event listener***/
+    var raf = window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        window.oRequestAnimationFrame;
+    var lastScrollTop = $window.scrollTop();
+
+    if (raf) {
+        loop();
+    }
+
+    function loop() {
+        var scrollTop = $window.scrollTop();
+        if (lastScrollTop === scrollTop) {
+            raf(loop);
+            return;
+        } else {
+            lastScrollTop = scrollTop;
+            hideOnScroll(lastScrollTop);
+            raf(loop);
+        }
+    }
+  })();
+});
+
+</script>
+    
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+</body>
+</html>

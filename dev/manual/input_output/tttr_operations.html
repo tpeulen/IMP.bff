@@ -1,0 +1,486 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <title>Common operations &mdash; IMP.bff  documentation</title>
+  
+  <link rel="canonical" href="http://scikit-learn.org/stable/manual/input_output/tttr_operations.html" />
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/vendor/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-rendered-html.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+<script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+<script src="../../_static/jquery.js"></script> 
+</head>
+<body>
+<nav id="navbar" class="sk-docs-navbar navbar navbar-expand-md navbar-light bg-light py-0">
+  <div class="container-fluid sk-docs-container px-0">
+    <button
+      id="sk-navbar-toggler"
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="sk-navbar-collapse collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../install.html">Install</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../index.html">User Manual</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../api/index.html">API</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../auto_examples/index.html">Examples</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../glossary.html" >Glossary</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../zreferences.html" >References</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../faq.html" >FAQ</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../related_projects.html" >Related packages</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../roadmap.html" >Roadmap</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../about.html" >About us</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://integrativemodeling.org/" >IMP</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+        </li>
+        <li class="nav-item dropdown nav-more-item-dropdown">
+          <a class="sk-nav-link nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">More</a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../glossary.html" >Glossary</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../zreferences.html" >References</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../faq.html" >FAQ</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../related_projects.html" >Related packages</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../roadmap.html" >Roadmap</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../about.html" >About us</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://integrativemodeling.org/" >IMP</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+          </div>
+        </li>
+      </ul>
+      <div id="searchbox" role="search">
+          <div class="searchformwrapper">
+          <form class="search" action="../../search.html" method="get">
+            <input class="sk-search-text-input" type="text" name="q" aria-labelledby="searchlabel" />
+            <input class="sk-search-text-btn" type="submit" value="Go" />
+          </form>
+          </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="d-flex" id="sk-doc-wrapper">
+    <input type="checkbox" name="sk-toggle-checkbox" id="sk-toggle-checkbox">
+    <label id="sk-sidemenu-toggle" class="sk-btn-toggle-toc btn sk-btn-primary" for="sk-toggle-checkbox">Toggle Menu</label>
+    <div id="sk-sidebar-wrapper" class="border-right">
+      <div class="sk-sidebar-toc-wrapper">
+        <div class="sk-sidebar-toc-logo">
+        </div>
+        <div class="btn-group w-100 mb-2" role="group" aria-label="rellinks">
+            <a href="#" role="button" class="btn sk-btn-rellink py-1 disabled"">Prev</a>
+            <a href="#" role="button" class="btn sk-btn-rellink disabled py-1">Up</a>
+            <a href="#" role="button" class="btn sk-btn-rellink py-1 disabled"">Next</a>
+        </div>
+            <div class="sk-sidebar-toc">
+              <ul>
+<li><a class="reference internal" href="#">Common operations</a><ul>
+<li><a class="reference internal" href="#slicing-subsets">Slicing / subsets</a></li>
+<li><a class="reference internal" href="#joining-tttrs">Joining TTTRs</a></li>
+<li><a class="reference internal" href="#selections">Selections</a><ul>
+<li><a class="reference internal" href="#using-selections">Using selections</a></li>
+<li><a class="reference internal" href="#channel-selections">Channel selections</a></li>
+<li><a class="reference internal" href="#count-rate-selections">Count rate selections</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tttr-ranges">TTTR ranges</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+      </div>
+    </div>
+    <div id="sk-page-content-wrapper">
+      <div class="sk-page-content container-fluid body px-md-3" role="main">
+        
+  <section id="common-operations">
+<h1>Common operations<a class="headerlink" href="#common-operations" title="Permalink to this heading">¶</a></h1>
+<p>Creating fluorescence decay histograms</p>
+<p>plots/tttr_microtime_histogram.py</p>
+<blockquote>
+<div><p>Fluorescence decay histograms with different coarsening factors</p>
+</div></blockquote>
+<p>Compute mean fluorescence lifetimes.
+TODO</p>
+<p>shift_macro_time</p>
+<p>get_used_routing_channels</p>
+<section id="slicing-subsets">
+<h2>Slicing / subsets<a class="headerlink" href="#slicing-subsets" title="Permalink to this heading">¶</a></h2>
+<p>New TTTR objects can be created by slicing existing objects, if you are
+interested a subset of the data.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">tttrlib</span><span class="o">.</span><span class="n">TTTR</span><span class="p">(</span><span class="s1">'./data/bh/bh_spc132.spc'</span><span class="p">,</span> <span class="s1">'SPC-130'</span><span class="p">)</span>
+<span class="n">data_sliced</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:</span><span class="mi">10</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>A slice of a <code class="docutils literal notranslate"><span class="pre">TTTR</span></code> object creates a copy, i.e., the routing channel, the
+macro, and the micro times are copied including the header information.</p>
+</section>
+<section id="joining-tttrs">
+<h2>Joining TTTRs<a class="headerlink" href="#joining-tttrs" title="Permalink to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">TTTR</span></code> objects can be joined either by the append method or by using the <code class="docutils literal notranslate"><span class="pre">+</span></code>
+operator.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">tttrlib</span><span class="o">.</span><span class="n">TTTR</span><span class="p">(</span><span class="s1">'./data/bh/bh_spc132.spc'</span><span class="p">,</span> <span class="s1">'SPC-130'</span><span class="p">)</span>
+<span class="n">d2</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+    <span class="n">other</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+    <span class="n">shift_macro_time</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">macro_time_offset</span><span class="o">=</span><span class="mi">0</span>
+<span class="p">)</span>
+<span class="n">d3</span> <span class="o">=</span> <span class="n">data</span> <span class="o">+</span> <span class="n">data</span>
+<span class="nb">len</span><span class="p">(</span><span class="n">d2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="nb">len</span><span class="p">(</span><span class="n">d3</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">d2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">shift_macro_time</span></code> is set to True, which is the default, the macro times of the
+data that are offset by the last macro time record in the first set in addition to
+the value specified by <code class="docutils literal notranslate"><span class="pre">macro_time_offset</span></code>. The parameter <code class="docutils literal notranslate"><span class="pre">macro_time_offset</span></code>
+is set to zero by default.</p>
+<p>By appending TTTR objects to each other data that is splitted into multiple files
+can be joined into a single TTTR object as follows</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">'./data/bh/bh_spc132_smDNA/*.spc'</span><span class="p">)</span>
+<span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">'*.spc'</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">tttrlib</span><span class="o">.</span><span class="n">TTTR</span><span class="p">(</span><span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">'SPC-130'</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">files</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tttrlib</span><span class="o">.</span><span class="n">TTTR</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s1">'SPC-130'</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In practice, take care that the files are ordered. The code above stiches the
+objects in the order as returned by the <code class="docutils literal notranslate"><span class="pre">glob</span></code> module. The glob module finds
+all the pathnames matching a specified pattern according to the rules used by
+the Unix shell, although results are returned in arbitrary order. Hence, we
+sort the data by creating time first. In case you need another ordering, e.g.
+lexical ordering adapt the code.</p>
+</div>
+</section>
+<section id="selections">
+<h2>Selections<a class="headerlink" href="#selections" title="Permalink to this heading">¶</a></h2>
+<p>A defining feature of TTTR data is that subsets can be selected and defined for
+more detailed analysis. This is for instance exploited in single-molecule experimetns
+There are different methods to access subsets of a TTTR object that are described
+in this section.</p>
+<section id="using-selections">
+<h3>Using selections<a class="headerlink" href="#using-selections" title="Permalink to this heading">¶</a></h3>
+<p>There is a set of functions and methods to select subsets of TTTR objects.
+Beyond the the array processing capabilities either provided by the high-level
+programming language or an library like <a class="reference external" href="http://www.numpy.org/">NumPy</a>, <code class="docutils literal notranslate"><span class="pre">tttrlib</span></code>
+offers a set of functions and methods to select a subset of the data contained
+in a TTTR file. There are two options to get selection for a subset of the data</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>By <em>ranges</em></p></li>
+<li><p>By <em>selection</em></p></li>
+</ol>
+</div></blockquote>
+<p><em>Ranges</em> are lists of tuples marking the beginning and the end of a range.
+<em>Selections</em> are list of integers, where the integers refer to the indices
+of the event stream that was selected.</p>
+<p>For instance, for the sequence of time events displayed in the following table</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>index</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>2</p></td>
+<td><p>3</p></td>
+<td><p>4</p></td>
+<td><p>5</p></td>
+<td><p>6</p></td>
+<td><p>7</p></td>
+<td><p>8</p></td>
+<td><p>9</p></td>
+</tr>
+<tr class="row-even"><td><p>time</p></td>
+<td><p>1</p></td>
+<td><p>12</p></td>
+<td><p>13</p></td>
+<td><p>14</p></td>
+<td><p>15</p></td>
+<td><p>18</p></td>
+<td><p>20</p></td>
+<td><p>23</p></td>
+<td><p>30</p></td>
+<td><p>32</p></td>
+</tr>
+</tbody>
+</table>
+<p>the selection (1, 3, 5, 7) yields:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">12</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="mi">18</span><span class="p">,</span> <span class="mi">23</span>
+</pre></div>
+</div>
+<p>and the ranges (0, 2) and (7, 9) yield:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">),</span> <span class="p">(</span><span class="mi">23</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Depending on the specific application either ranges or selections are more useful.
+For instance, single molecule bursts are usually defined by <em>ranges</em>, while detection
+channels are usually selected by <em>selections</em>.</p>
+</section>
+<section id="channel-selections">
+<h3>Channel selections<a class="headerlink" href="#channel-selections" title="Permalink to this heading">¶</a></h3>
+<p>A very typical use case in TCSPC experiments (either in fluorescence lifetime
+microscopy (FLIM) or multiparameteric fluorescence detection (MFD)) is to select
+a subset of the registered events based on the detection channel. The experimental
+example data provided by the file <code class="docutils literal notranslate"><span class="pre">./examples/bh/bh_spc132.spc</span></code> four detectors
+were used to register the fluorescence signal with two polarizations in a ‘green’
+and ‘red’ spectral range. In the example file the detector numbers for the green
+fluorescence were (0, 8) and (1, 9) for the red detection window.</p>
+<p>The method ‘get_selection_by_channel’ provides an array that contains the indices
+of the events when a the channel equals the channel number of the provided
+arguments. To obtain the indices where the channel number. In the example below
+the indices of the green (channel = 0 or channel = 8) and the indeces of the red
+(channel = 1 or channel = 9) are saved in the variables <code class="docutils literal notranslate"><span class="pre">green_indices</span></code>  and
+<code class="docutils literal notranslate"><span class="pre">red_indices</span></code>, respectively.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tttrlib</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">tttrlib</span><span class="o">.</span><span class="n">TTTR</span><span class="p">(</span><span class="s1">'./examples/bh/bh_spc132.spc'</span><span class="p">,</span> <span class="s1">'SPC-130'</span><span class="p">)</span>
+
+<span class="n">green_indices</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get_selection_by_channel</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">])</span>
+<span class="n">red_indices</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get_selection_by_channel</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>This examples needs to be adapted to the channel assignment dependent on the actual
+experimental setup.</p>
+<p>Selections can be made by channel with such a selection a new <code class="docutils literal notranslate"><span class="pre">TTTR</span></code> object can
+be created.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">tttrlib</span><span class="o">.</span><span class="n">TTTR</span><span class="p">(</span><span class="s1">'./data/bh/bh_spc132.spc'</span><span class="p">,</span> <span class="s1">'SPC-130'</span><span class="p">)</span>
+<span class="n">ch1_indeces</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get_selection_by_channel</span><span class="p">([</span><span class="mi">8</span><span class="p">])</span>
+<span class="n">data_ch1</span> <span class="o">=</span> <span class="n">tttrlib</span><span class="o">.</span><span class="n">TTTR</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ch1_indeces</span><span class="p">)</span>
+<span class="c1"># alternatively</span>
+<span class="n">data_ch1</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">ch1_indeces</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">TTTR</span></code> object can be operated on normally.</p>
+</section>
+<section id="count-rate-selections">
+<h3>Count rate selections<a class="headerlink" href="#count-rate-selections" title="Permalink to this heading">¶</a></h3>
+<p>Another very common selection is based on the count rate. The count rate is
+determined by the number of detected events within a given time window. The
+selection by the method <code class="docutils literal notranslate"><span class="pre">get_selection_by_count_rate</span></code> returns all indices where
+less photons were detected within a specified time window. The time window is
+given by the number of macro time steps.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tttrlib</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">tttrlib</span><span class="o">.</span><span class="n">TTTR</span><span class="p">(</span><span class="s1">'./examples/bh/bh_spc132.spc'</span><span class="p">,</span> <span class="s1">'SPC-130'</span><span class="p">)</span>
+<span class="n">cr_selection</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get_time_window_ranges</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the example shown above, the time window is 1200000 and 30 is the maximum
+number of photons within that is permitted in a time window.</p>
+<p>Such count rate selections are for instance used to detect bursts in single molecule
+experiments or to generate filters for advanced FCS analysis <span id="id1">[<a class="reference internal" href="../../zreferences.html#id52" title="Ted A. Laurence, Achillefs N. Kapanidis, Xiangxu Kong, Daniel S. Chemla, and Shimon Weiss. Photon arrival-time interval distribution (PAID): a novel tool for analyzing molecular interactions. The Journal of Physical Chemistry B, 108(9):3051–3067, 2004.">LKK+04</a>]</span>
+(see also <span class="xref std std-ref">Correlation:Count rate filer</span> and <span class="xref std std-ref">Single Molecule:Burst selection</span>).</p>
+</section>
+</section>
+<section id="tttr-ranges">
+<h2>TTTR ranges<a class="headerlink" href="#tttr-ranges" title="Permalink to this heading">¶</a></h2>
+<p>STOP</p>
+</section>
+</section>
+
+
+      </div>
+    <div class="container">
+      <footer class="sk-content-footer">
+            &copy; 2021 - 2026, IMP developers.
+      </footer>
+    </div>
+  </div>
+</div>
+<script src="../../_static/js/vendor/bootstrap.min.js"></script>
+
+<script>
+    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+    ga('create', 'UA-22606712-2', 'auto');
+    ga('set', 'anonymizeIp', true);
+    ga('send', 'pageview');
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+<script>
+$(document).ready(function() {
+    /* Add a [>>>] button on the top-right corner of code samples to hide
+     * the >>> and ... prompts and the output and thus make the code
+     * copyable. */
+    var div = $('.highlight-python .highlight,' +
+                '.highlight-python3 .highlight,' +
+                '.highlight-pycon .highlight,' +
+		'.highlight-default .highlight')
+    var pre = div.find('pre');
+
+    // get the styles from the current theme
+    pre.parent().parent().css('position', 'relative');
+    var hide_text = 'Hide prompts and outputs';
+    var show_text = 'Show prompts and outputs';
+
+    // create and add the button to all the code blocks that contain >>>
+    div.each(function(index) {
+        var jthis = $(this);
+        if (jthis.find('.gp').length > 0) {
+            var button = $('<span class="copybutton">&gt;&gt;&gt;</span>');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+            jthis.prepend(button);
+        }
+        // tracebacks (.gt) contain bare text elements that need to be
+        // wrapped in a span to work with .nextUntil() (see later)
+        jthis.find('pre:has(.gt)').contents().filter(function() {
+            return ((this.nodeType == 3) && (this.data.trim().length > 0));
+        }).wrap('<span>');
+    });
+
+    // define the behavior of the button when it's clicked
+    $('.copybutton').click(function(e){
+        e.preventDefault();
+        var button = $(this);
+        if (button.data('hidden') === 'false') {
+            // hide the code output
+            button.parent().find('.go, .gp, .gt').hide();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'hidden');
+            button.css('text-decoration', 'line-through');
+            button.attr('title', show_text);
+            button.data('hidden', 'true');
+        } else {
+            // show the code output
+            button.parent().find('.go, .gp, .gt').show();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'visible');
+            button.css('text-decoration', 'none');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+        }
+    });
+
+	/*** Add permalink buttons next to glossary terms ***/
+	$('dl.glossary > dt[id]').append(function() {
+		return ('<a class="headerlink" href="#' +
+			    this.getAttribute('id') +
+			    '" title="Permalink to this term">¶</a>');
+	});
+  /*** Hide navbar when scrolling down ***/
+  // Returns true when headerlink target matches hash in url
+  (function() {
+    hashTargetOnTop = function() {
+        var hash = window.location.hash;
+        if ( hash.length < 2 ) { return false; }
+
+        var target = document.getElementById( hash.slice(1) );
+        if ( target === null ) { return false; }
+
+        var top = target.getBoundingClientRect().top;
+        return (top < 2) && (top > -2);
+    };
+
+    // Hide navbar on load if hash target is on top
+    var navBar = document.getElementById("navbar");
+    var navBarToggler = document.getElementById("sk-navbar-toggler");
+    var navBarHeightHidden = "-" + navBar.getBoundingClientRect().height + "px";
+    var $window = $(window);
+
+    hideNavBar = function() {
+        navBar.style.top = navBarHeightHidden;
+    };
+
+    showNavBar = function() {
+        navBar.style.top = "0";
+    }
+
+    if (hashTargetOnTop()) {
+        hideNavBar()
+    }
+
+    var prevScrollpos = window.pageYOffset;
+    hideOnScroll = function(lastScrollTop) {
+        if (($window.width() < 768) && (navBarToggler.getAttribute("aria-expanded") === 'true')) {
+            return;
+        }
+        if (lastScrollTop > 2 && (prevScrollpos <= lastScrollTop) || hashTargetOnTop()){
+            hideNavBar()
+        } else {
+            showNavBar()
+        }
+        prevScrollpos = lastScrollTop;
+    };
+
+    /*** high performance scroll event listener***/
+    var raf = window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        window.oRequestAnimationFrame;
+    var lastScrollTop = $window.scrollTop();
+
+    if (raf) {
+        loop();
+    }
+
+    function loop() {
+        var scrollTop = $window.scrollTop();
+        if (lastScrollTop === scrollTop) {
+            raf(loop);
+            return;
+        } else {
+            lastScrollTop = scrollTop;
+            hideOnScroll(lastScrollTop);
+            raf(loop);
+        }
+    }
+  })();
+});
+
+</script>
+    
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+</body>
+</html>

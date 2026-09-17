@@ -1,0 +1,5 @@
+<map id="ProbeRotamerEnsemble" name="ProbeRotamerEnsemble">
+<area shape="rect" id="Node000001" title="A rotamer library placed and screened at one labelling site." alt="" coords="5,399,201,704"/>
+<area shape="rect" id="Node000002" href="$class_states.html" title="A weighted set of states of one label." alt="" coords="13,5,194,351"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,365,106,398,101,398,101,365"/>
+</map>

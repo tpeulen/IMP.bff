@@ -1,0 +1,7 @@
+<map id="PETTerm" name="PETTerm">
+<area shape="rect" id="Node000001" title="2&#45;body: photoinduced electron transfer between a dye and quencher atoms." alt="" coords="25,312,176,497"/>
+<area shape="rect" id="Node000002" href="$class_interaction_term.html" title="One deactivation channel." alt="" coords="5,119,196,264"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,278,103,312,98,312,98,278"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="57,5,145,71"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="103,84,103,118,98,118,98,84"/>
+</map>

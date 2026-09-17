@@ -1,0 +1,9 @@
+<map id="PoissonGoodnessOfFit" name="PoissonGoodnessOfFit">
+<area shape="rect" id="Node000001" title="Several histograms, each and together." alt="" coords="34,524,193,689"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,381,221,461"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,461,116,507,111,507,111,461"/>
+<area shape="rect" id="Node000003" href="$struct_poisson_histogram_fit.html" title="One histogram&#39;s goodness of fit (poisson_goodness_of_fit)." alt="" coords="39,133,187,319"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="116,319,116,365,111,365,111,319"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="35,5,192,71"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="116,71,116,117,111,117,111,71"/>
+</map>

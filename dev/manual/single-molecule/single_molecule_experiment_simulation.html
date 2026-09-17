@@ -1,0 +1,385 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <title>Simulating confocal smFRET experiments &mdash; IMP.bff  documentation</title>
+  
+  <link rel="canonical" href="http://scikit-learn.org/stable/manual/single-molecule/single_molecule_experiment_simulation.html" />
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/vendor/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-rendered-html.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/nbsphinx-code-cells.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+<script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+<script src="../../_static/jquery.js"></script> 
+</head>
+<body>
+<nav id="navbar" class="sk-docs-navbar navbar navbar-expand-md navbar-light bg-light py-0">
+  <div class="container-fluid sk-docs-container px-0">
+    <button
+      id="sk-navbar-toggler"
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="sk-navbar-collapse collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../install.html">Install</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../index.html">User Manual</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../api/index.html">API</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../auto_examples/index.html">Examples</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../glossary.html" >Glossary</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../zreferences.html" >References</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../faq.html" >FAQ</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../related_projects.html" >Related packages</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../roadmap.html" >Roadmap</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../about.html" >About us</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://integrativemodeling.org/" >IMP</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+        </li>
+        <li class="nav-item dropdown nav-more-item-dropdown">
+          <a class="sk-nav-link nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">More</a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../glossary.html" >Glossary</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../zreferences.html" >References</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../faq.html" >FAQ</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../related_projects.html" >Related packages</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../roadmap.html" >Roadmap</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../about.html" >About us</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://integrativemodeling.org/" >IMP</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+          </div>
+        </li>
+      </ul>
+      <div id="searchbox" role="search">
+          <div class="searchformwrapper">
+          <form class="search" action="../../search.html" method="get">
+            <input class="sk-search-text-input" type="text" name="q" aria-labelledby="searchlabel" />
+            <input class="sk-search-text-btn" type="submit" value="Go" />
+          </form>
+          </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="d-flex" id="sk-doc-wrapper">
+    <input type="checkbox" name="sk-toggle-checkbox" id="sk-toggle-checkbox">
+    <label id="sk-sidemenu-toggle" class="sk-btn-toggle-toc btn sk-btn-primary" for="sk-toggle-checkbox">Toggle Menu</label>
+    <div id="sk-sidebar-wrapper" class="border-right">
+      <div class="sk-sidebar-toc-wrapper">
+        <div class="sk-sidebar-toc-logo">
+        </div>
+        <div class="btn-group w-100 mb-2" role="group" aria-label="rellinks">
+            <a href="index.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Single molecule spectroscopy">Prev</a><a href="index.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Single molecule spectroscopy">Up</a>
+            <a href="#" role="button" class="btn sk-btn-rellink py-1 disabled"">Next</a>
+        </div>
+            <div class="sk-sidebar-toc">
+              <ul>
+<li><a class="reference internal" href="#">Simulating confocal smFRET experiments</a><ul>
+<li><a class="reference internal" href="#Simulating-fluorescence">Simulating fluorescence</a></li>
+<li><a class="reference internal" href="#Simulation-software">Simulation software</a></li>
+<li><a class="reference internal" href="#Olga:-Label-simulations">Olga: Label simulations</a></li>
+<li><a class="reference internal" href="#QuEst:-PET-donor-quenching">QuEst: PET donor quenching</a></li>
+<li><a class="reference internal" href="#ChiSurf:-Computing-of-decay-pattern">ChiSurf: Computing of decay pattern</a></li>
+<li><a class="reference internal" href="#Burbulator:-Single-molecule-spectroscopy-simulation">Burbulator: Single-molecule spectroscopy simulation</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+      </div>
+    </div>
+    <div id="sk-page-content-wrapper">
+      <div class="sk-page-content container-fluid body px-md-3" role="main">
+        
+  <section id="Simulating-confocal-smFRET-experiments">
+<h1>Simulating confocal smFRET experiments<a class="headerlink" href="#Simulating-confocal-smFRET-experiments" title="Permalink to this heading">¶</a></h1>
+<p>The methods to simulate confocal smFRET experiments were previously described <a class="reference external" href="https://pubs.acs.org/doi/10.1021/jp102156t">[PD]</a> in detail implemented in public available software <a class="reference external" href="https://www.sciencedirect.com/science/article/pii/S0959440X1630197X">[CO]</a> at the <a class="reference external" href="https://www.modelarchive.org/api/projects/ma-a2hbq">model archive</a> and <a class="reference external" href="https://github.com/fluorescence-tools/">github</a>. The input for confocal single molecule (sm) Foerster Resonance Energy (FRET) experiment simulations is
+generated in multiple steps that make use of different software packages. These steps are briefly outlined in this tutorial.</p>
+<section id="Simulating-fluorescence">
+<h2>Simulating fluorescence<a class="headerlink" href="#Simulating-fluorescence" title="Permalink to this heading">¶</a></h2>
+<p>Simulations of a confocal experiment of biomolecules require knowledge of dye properties and photophysics of biomolecular states, defined experimental setups, and single molecule diffusion to compute photon traces. This tutorial focuses on spectroscopic aspects. A simulation of a confocal single molecule FRET experiment requires the fluorescent properties of a set of states. Simulations of dynamic molecules moreover require exchange rate constants among the states. In fluorescence experiments a
+state is defined by its brightness in the detection channels and a set of fluorescence lifetimes and anisotropy. The fluorescence lifetimes and anisotropy result in polarization dependent fluorescence decay patterns <a class="reference external" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9014241/">FL</a>. The brightness is the number of photons per unit of time that a molecule emits in a given state.</p>
+<p>Thus, to simulate a smFRET experiment for a biomolecular structure the fluorescence properties for that structure need to be determined. In a confocal single molecule experiment on biomolecules biomolecules are usually labeled by an externally introduced dyes that are flexibly tethered to the studied molecules. Thus, the fluorescence lifetimes and anisotropies of a state depend on the conformation of host molecules and the dyes. For accurate analysis and simulations the flexible tethering needs
+to be taken into consideration when defining a state for the simulations <a class="reference external" href="https://www.nature.com/articles/nmeth.2222">RT</a>. Fluorescence properties of dyes are modulated by their environment. Fluorophores can interact with their local environment. These interactions alter the fluorescence lifetime of a dye. In a FRET experiment that measures the migration of energy from an excited donor dye to an acceptor dye two major effects need to be considered: (i) the donor can be quenched by its local
+environment (Photoinduced Electron Transfer, PET) and (ii) the donor can be quenched by the acceptor by the energy migration to the acceptor (FRET). PET is a dynamic process influenced by dye diffusion <a class="reference external" href="https://pubs.acs.org/doi/full/10.1021/acs.jpcb.7b03441">ET</a>. Thus, the conformation of the host molecule together with dye properties result in lifetime distributions for the simulations of biomolecular states. Interestingly, for typical flexible tethered dyes the quenching by PET and FRET can
+be approximated to be independent <a class="reference external" href="https://pubs.acs.org/doi/full/10.1021/acs.jpcb.7b03441">ET</a>. Thus, in the presented pipeline FRET is computed independently of PET.</p>
+<p>In systems with multiple biomolecular states moreover, equilibrium populations of states, the kinetic exchange among the states and the experimental setup and the measurement process needs to be simulated.</p>
+</section>
+<section id="Simulation-software">
+<h2>Simulation software<a class="headerlink" href="#Simulation-software" title="Permalink to this heading">¶</a></h2>
+<p>This tutorial makes use of:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Olga</span></code> - for simulating labels and inter-label distance distributions in FRET experiments</p></li>
+<li><p>Quenching Estimator (<code class="docutils literal notranslate"><span class="pre">QuEst</span></code>) - for estimating dynamic quenching (PET)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ChiSurf</span></code> - for scripting and computation of fluorescence decay curves</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Burbulator</span></code> - for simulating a confocal setup, molecular diffusion, molecular kinetics, and photon traces.</p></li>
+</ol>
+<p><code class="docutils literal notranslate"><span class="pre">Olga</span></code> is a program that simulates the distribution of dyes around their attachment site to compute distance distributions and corresponding distance distributions between dyes. <code class="docutils literal notranslate"><span class="pre">QuEst</span></code> (Quenching Estimator) is a program that simulates the diffusion of a dyes within its accessible volume to estimate the magnitue of local quenching. ChiSurf is a software package for the global analysis of fluorescence data. <code class="docutils literal notranslate"><span class="pre">ChiSurf</span></code> comes with forward models for fluorescence decays and can be scripted
+using Python. Thus, <code class="docutils literal notranslate"><span class="pre">ChiSurf</span></code> is used to compute fluorescence decay patterns for structures that server as an input for single-molecule simulations. <code class="docutils literal notranslate"><span class="pre">Burbulator</span></code> is a program to simulate confocal single-molecule experiments (including the kinetic exchange among different states). Burbulator uses polarization resolved fluorescence decay patterns and brightness as an input to define states and simulate photon traces.</p>
+</section>
+<section id="Olga:-Label-simulations">
+<h2>Olga: Label simulations<a class="headerlink" href="#Olga:-Label-simulations" title="Permalink to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Olga</span></code> is a software to simulate inter-label distance distribitions for molecular structures. <code class="docutils literal notranslate"><span class="pre">Olga</span></code> is available at <a class="reference external" href="https://github.com/fluorescence-tools/Olga">https://github.com/fluorescence-tools/Olga</a>. To simulate inter-label distances Olga requires label properties, labeling sites, and molecular structures as an input. Label properties and labeling sites are defined in JSON file. Atomic coordinates of molecular structures can be read from PDB files or DCD trajectories. For a structure and label pair Olga simulates the positional
+distribution of the label around their attachment site (see below).</p>
+<img alt="AV clouds" src="https://github.com/Fluorescence-Tools/Olga/blob/master/doc/screening%20tutorial/DNA_AVs.jpg?raw=true" />
+<p>Given an ensemble of structures and a set of labeling pairs, <code class="docutils literal notranslate"><span class="pre">Olga</span></code> can rank the labeling pairs based on their information content <a class="reference external" href="https://www.nature.com/articles/s41467-020-19023-1">AF</a>. Moreover, <code class="docutils literal notranslate"><span class="pre">Olga</span></code> can compute inter-label distance distribitions among experimental observables such as average FRET efficiencies to rank structural models. The computed distance distributions for a set of structures servers as an input modeled photon traces.</p>
+</section>
+<section id="QuEst:-PET-donor-quenching">
+<h2>QuEst: PET donor quenching<a class="headerlink" href="#QuEst:-PET-donor-quenching" title="Permalink to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">QuEst</span></code> simulates the diffusion and interaction of dyes tethered to a protein to simulate dynmaic quenching by PET, <a class="reference external" href="https://pubs.acs.org/doi/full/10.1021/acs.jpcb.7b03441">[ET]</a>). <code class="docutils literal notranslate"><span class="pre">QuEst</span></code> is available at <a class="reference external" href="https://github.com/fluorescence-tools/QuEst">https://github.com/fluorescence-tools/QuEst</a>. The output of a <code class="docutils literal notranslate"><span class="pre">QuEst</span></code> simulation is a fluorescence decay curve of a dye along with the corresponding fluorescence quantum yield that can serve as an input for donor fluorescence properties in FRET experiment simulations.</p>
+<img alt="Quest_gui" src="https://github.com/Fluorescence-Tools/quest/raw/master/doc/img/readme_screenshot_0.png?raw=true" />
+<p><code class="docutils literal notranslate"><span class="pre">QuEst</span></code> simulates fluorescence decays is three stages:</p>
+<ol class="arabic simple">
+<li><p>Identification of quenching amino acids (above highlighted in red)</p></li>
+<li><p>Simulation of the dye diffusion and interaction (sticking) to the protein surface</p></li>
+<li><p>Using the dye simulation the excitation, quenching, and fluorescence of the dye is simulated</p></li>
+</ol>
+<p>The output of <code class="docutils literal notranslate"><span class="pre">QuEst</span></code> is a fluorescence decay curve for a specific labeling position.</p>
+</section>
+<section id="ChiSurf:-Computing-of-decay-pattern">
+<h2>ChiSurf: Computing of decay pattern<a class="headerlink" href="#ChiSurf:-Computing-of-decay-pattern" title="Permalink to this heading">¶</a></h2>
+<hr class="docutils" />
+<p><em>Input</em>: Instrumental features (e.g., IRF), Fluorescence decay in the absence of FRET, distance distributions</p>
+<p><em>Output</em>: Fluorescence decay in the presence of FRET</p>
+<hr class="docutils" />
+<p><code class="docutils literal notranslate"><span class="pre">ChiSurf</span></code> is software to design representations and optimize, sampling, over representation parameters of fluorescence data. <code class="docutils literal notranslate"><span class="pre">ChiSurf</span></code> provides scoring functions and forward models and scripting capabilities. A subset of the functionality us used here to compute fluorescence decay pattern as an input for the simulation software <code class="docutils literal notranslate"><span class="pre">Burbulator</span></code>. Releases of <code class="docutils literal notranslate"><span class="pre">ChiSurf</span></code> can be downloaded at <a class="reference external" href="https://github.com/fluorescence-tools/chisurf">GitHub</a> and the release
+<a class="reference external" href="https://peulen.xyz/downloads/chisurf/">archive</a>.</p>
+<p><em>Output</em>: Fluorescence decays in the presence of FRET</p>
+</section>
+<section id="Burbulator:-Single-molecule-spectroscopy-simulation">
+<h2>Burbulator: Single-molecule spectroscopy simulation<a class="headerlink" href="#Burbulator:-Single-molecule-spectroscopy-simulation" title="Permalink to this heading">¶</a></h2>
+<hr class="docutils" />
+<p><em>Input</em>: decay pattern, kinetic rate constants, diffusion coefficients</p>
+<p><em>Output</em>: Single photon trace</p>
+<hr class="docutils" />
+<p>The simulation software for confocal single molecule (FRET) experiment (<code class="docutils literal notranslate"><span class="pre">Burbulator</span></code>) was developed for Windows and that can be used on other platforms such as Linux and macOS using <a class="reference external" href="https://www.winehq.org/">Wine</a>. To obtain Burbulator download the data accompanying <a class="reference external" href="https://www.sciencedirect.com/science/article/pii/S0959440X1630197X">[CO]</a> either with curl or using a webbrowser with the following <a class="reference external" href="https://www.modelarchive.org/doi/10.5452/ma-a2hbq">link</a>. Unfortunatelly, the
+<code class="docutils literal notranslate"><span class="pre">modelarchive</span></code> website will provide you with a file named wrongly as a <code class="docutils literal notranslate"><span class="pre">.cif</span></code>. Thus, you need to rename the file to correct file type <code class="docutils literal notranslate"><span class="pre">.tar.gz</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span><span class="w"> </span>mkdir<span class="w"> </span>cosb_model
+<span class="o">!</span><span class="w"> </span>curl<span class="w"> </span>https://www.modelarchive.org/api/projects/ma-a2hbq?type<span class="o">=</span>basic__model_file_name<span class="w"> </span>-o<span class="w"> </span>cosb_model.tar.gz
+<span class="o">!</span><span class="w"> </span>tar<span class="w"> </span>xfz<span class="w"> </span>cosb_model.tar.gz<span class="w"> </span>-C<span class="w"> </span>cosb_model
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 12.1M  100 12.1M    0     0  8869k      0  0:00:01  0:00:01 --:--:-- 8874k
+tar: Removing leading `/&#39; from member names
+</pre></div></div>
+</div>
+<p>In the archive you find the Burbulator program (<code class="docutils literal notranslate"><span class="pre">Burbulator.exe</span></code>) along with necessary runtimes (<code class="docutils literal notranslate"><span class="pre">VC++</span> <span class="pre">runtime</span> <span class="pre">6195</span></code>), a brief description that (<code class="docutils literal notranslate"><span class="pre">burbulator</span> <span class="pre">help.pdf</span></code>) that outlines the theory, and the file <code class="docutils literal notranslate"><span class="pre">Description.pdf</span></code> (in the root directory of the archive) that describes in greater detail the usage of Burbulator. The output of a Burbulator simulation are Becker&amp;Hickl SPC files that can be processes using conventional single-molecule <a class="reference external" href="https://fret.community/software/">FRET
+software</a>.</p>
+</section>
+</section>
+
+
+      </div>
+    <div class="container">
+      <footer class="sk-content-footer">
+            &copy; 2021 - 2026, IMP developers.
+      </footer>
+    </div>
+  </div>
+</div>
+<script src="../../_static/js/vendor/bootstrap.min.js"></script>
+
+<script>
+    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+    ga('create', 'UA-22606712-2', 'auto');
+    ga('set', 'anonymizeIp', true);
+    ga('send', 'pageview');
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+<script>
+$(document).ready(function() {
+    /* Add a [>>>] button on the top-right corner of code samples to hide
+     * the >>> and ... prompts and the output and thus make the code
+     * copyable. */
+    var div = $('.highlight-python .highlight,' +
+                '.highlight-python3 .highlight,' +
+                '.highlight-pycon .highlight,' +
+		'.highlight-default .highlight')
+    var pre = div.find('pre');
+
+    // get the styles from the current theme
+    pre.parent().parent().css('position', 'relative');
+    var hide_text = 'Hide prompts and outputs';
+    var show_text = 'Show prompts and outputs';
+
+    // create and add the button to all the code blocks that contain >>>
+    div.each(function(index) {
+        var jthis = $(this);
+        if (jthis.find('.gp').length > 0) {
+            var button = $('<span class="copybutton">&gt;&gt;&gt;</span>');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+            jthis.prepend(button);
+        }
+        // tracebacks (.gt) contain bare text elements that need to be
+        // wrapped in a span to work with .nextUntil() (see later)
+        jthis.find('pre:has(.gt)').contents().filter(function() {
+            return ((this.nodeType == 3) && (this.data.trim().length > 0));
+        }).wrap('<span>');
+    });
+
+    // define the behavior of the button when it's clicked
+    $('.copybutton').click(function(e){
+        e.preventDefault();
+        var button = $(this);
+        if (button.data('hidden') === 'false') {
+            // hide the code output
+            button.parent().find('.go, .gp, .gt').hide();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'hidden');
+            button.css('text-decoration', 'line-through');
+            button.attr('title', show_text);
+            button.data('hidden', 'true');
+        } else {
+            // show the code output
+            button.parent().find('.go, .gp, .gt').show();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'visible');
+            button.css('text-decoration', 'none');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+        }
+    });
+
+	/*** Add permalink buttons next to glossary terms ***/
+	$('dl.glossary > dt[id]').append(function() {
+		return ('<a class="headerlink" href="#' +
+			    this.getAttribute('id') +
+			    '" title="Permalink to this term">¶</a>');
+	});
+  /*** Hide navbar when scrolling down ***/
+  // Returns true when headerlink target matches hash in url
+  (function() {
+    hashTargetOnTop = function() {
+        var hash = window.location.hash;
+        if ( hash.length < 2 ) { return false; }
+
+        var target = document.getElementById( hash.slice(1) );
+        if ( target === null ) { return false; }
+
+        var top = target.getBoundingClientRect().top;
+        return (top < 2) && (top > -2);
+    };
+
+    // Hide navbar on load if hash target is on top
+    var navBar = document.getElementById("navbar");
+    var navBarToggler = document.getElementById("sk-navbar-toggler");
+    var navBarHeightHidden = "-" + navBar.getBoundingClientRect().height + "px";
+    var $window = $(window);
+
+    hideNavBar = function() {
+        navBar.style.top = navBarHeightHidden;
+    };
+
+    showNavBar = function() {
+        navBar.style.top = "0";
+    }
+
+    if (hashTargetOnTop()) {
+        hideNavBar()
+    }
+
+    var prevScrollpos = window.pageYOffset;
+    hideOnScroll = function(lastScrollTop) {
+        if (($window.width() < 768) && (navBarToggler.getAttribute("aria-expanded") === 'true')) {
+            return;
+        }
+        if (lastScrollTop > 2 && (prevScrollpos <= lastScrollTop) || hashTargetOnTop()){
+            hideNavBar()
+        } else {
+            showNavBar()
+        }
+        prevScrollpos = lastScrollTop;
+    };
+
+    /*** high performance scroll event listener***/
+    var raf = window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        window.oRequestAnimationFrame;
+    var lastScrollTop = $window.scrollTop();
+
+    if (raf) {
+        loop();
+    }
+
+    function loop() {
+        var scrollTop = $window.scrollTop();
+        if (lastScrollTop === scrollTop) {
+            raf(loop);
+            return;
+        } else {
+            lastScrollTop = scrollTop;
+            hideOnScroll(lastScrollTop);
+            raf(loop);
+        }
+    }
+  })();
+});
+
+</script>
+    
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+</body>
+</html>

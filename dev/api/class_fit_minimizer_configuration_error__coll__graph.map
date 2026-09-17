@@ -1,0 +1,9 @@
+<map id="FitMinimizerConfigurationError" name="FitMinimizerConfigurationError">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,345,203,440"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="39,232,169,297"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,311,107,345,101,345,101,311"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="49,119,159,184"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="107,198,107,232,101,232,101,198"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="51,5,157,71"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="107,84,107,119,101,119,101,84"/>
+</map>

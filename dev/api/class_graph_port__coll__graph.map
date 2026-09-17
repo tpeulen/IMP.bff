@@ -1,0 +1,7 @@
+<map id="GraphPort" name="GraphPort">
+<area shape="rect" id="Node000001" title="A value cell with links, bounds and invalidation&#45;driven evaluation." alt="" coords="97,299,223,564"/>
+<area shape="rect" id="Node000002" href="$class_graph_object.html" title="The identity half of chinet&#39;s GraphObject: a name and a uid." alt="" coords="5,5,136,251"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,263,123,298,118,299,108,264"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="160,88,339,168"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="236,182,202,299,197,298,231,180"/>
+</map>

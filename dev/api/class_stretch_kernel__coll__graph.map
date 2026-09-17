@@ -1,0 +1,21 @@
+<map id="StretchKernel" name="StretchKernel">
+<area shape="rect" id="Node000001" title="The affine&#45;invariant ensemble stretch move (Goodman &amp; Weare 2010; chisurf&#39;s EnsembleSampler)." alt="" coords="285,1083,410,1328"/>
+<area shape="rect" id="Node000002" href="$classinternal_1_1_walker_kernel_base.html" title="Walkers, their log densities and blobs, and the target they are evaluated on." alt="" coords="253,748,442,1033"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="350,1047,350,1083,345,1083,345,1047"/>
+<area shape="rect" id="Node000003" href="$class_sampler_kernel.html" title="One transition of every walker a kernel holds." alt="" coords="5,405,151,671"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="161,663,165,669,255,780,250,784,161,672,156,666"/>
+<area shape="rect" id="Node000004" href="$struct_sampling_target.html" title="What is sampled." alt="" coords="175,465,341,611"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="279,610,310,731,305,733,274,612"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="314,263,471,328"/>
+<area shape="poly" id="edge10_Node000002_Node000005" title=" " alt="" coords="394,328,387,498,371,724,371,732,365,731,366,724,382,497,389,328"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="343,330,320,354,294,400,277,450,272,449,289,398,316,350,339,326"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="527,498,693,578"/>
+<area shape="poly" id="edge9_Node000009_Node000005" title=" " alt="" coords="430,326,509,404,574,483,570,486,505,407,427,330"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="111,263,290,328"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="211,327,240,448,234,450,206,329"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="161,135,240,200"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="203,200,203,246,198,246,198,200"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="135,5,266,85"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="203,99,203,134,198,134,198,99"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="583,580,454,751,450,748,579,577"/>
+</map>

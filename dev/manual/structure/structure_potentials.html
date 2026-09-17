@@ -1,0 +1,543 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <title>Scoring a coarse-grained protein &mdash; IMP.bff  documentation</title>
+  
+  <link rel="canonical" href="http://scikit-learn.org/stable/manual/structure/structure_potentials.html" />
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/vendor/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-binder.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-dataframe.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sg_gallery-rendered-html.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/nbsphinx-code-cells.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+<script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+<script src="../../_static/jquery.js"></script> 
+</head>
+<body>
+<nav id="navbar" class="sk-docs-navbar navbar navbar-expand-md navbar-light bg-light py-0">
+  <div class="container-fluid sk-docs-container px-0">
+    <button
+      id="sk-navbar-toggler"
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="sk-navbar-collapse collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../install.html">Install</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../index.html">User Manual</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../api/index.html">API</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link" href="../../auto_examples/index.html">Examples</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../glossary.html" >Glossary</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../zreferences.html" >References</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../faq.html" >FAQ</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../related_projects.html" >Related packages</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../roadmap.html" >Roadmap</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../../about.html" >About us</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://integrativemodeling.org/" >IMP</a>
+        </li>
+        <li class="nav-item">
+          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+        </li>
+        <li class="nav-item dropdown nav-more-item-dropdown">
+          <a class="sk-nav-link nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">More</a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../glossary.html" >Glossary</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../zreferences.html" >References</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../faq.html" >FAQ</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../related_projects.html" >Related packages</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../roadmap.html" >Roadmap</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="../../about.html" >About us</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://integrativemodeling.org/" >IMP</a>
+              <a class="sk-nav-dropdown-item dropdown-item" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
+          </div>
+        </li>
+      </ul>
+      <div id="searchbox" role="search">
+          <div class="searchformwrapper">
+          <form class="search" action="../../search.html" method="get">
+            <input class="sk-search-text-input" type="text" name="q" aria-labelledby="searchlabel" />
+            <input class="sk-search-text-btn" type="submit" value="Go" />
+          </form>
+          </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="d-flex" id="sk-doc-wrapper">
+    <input type="checkbox" name="sk-toggle-checkbox" id="sk-toggle-checkbox">
+    <label id="sk-sidemenu-toggle" class="sk-btn-toggle-toc btn sk-btn-primary" for="sk-toggle-checkbox">Toggle Menu</label>
+    <div id="sk-sidebar-wrapper" class="border-right">
+      <div class="sk-sidebar-toc-wrapper">
+        <div class="sk-sidebar-toc-logo">
+        </div>
+        <div class="btn-group w-100 mb-2" role="group" aria-label="rellinks">
+            <a href="structure_cgprobe.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Explicit dyes: labelling, rotamer libraries and FRET">Prev</a><a href="index.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Structural modeling">Up</a>
+            <a href="structure_label_sites.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Choosing where to put the dye">Next</a>
+        </div>
+            <div class="sk-sidebar-toc">
+              <ul>
+<li><a class="reference internal" href="#">Scoring a coarse-grained protein</a><ul>
+<li><a class="reference internal" href="#A-structure-to-score">A structure to score</a></li>
+<li><a class="reference internal" href="#The-Gō-model">The Gō model</a></li>
+<li><a class="reference internal" href="#Sterics">Sterics</a></li>
+<li><a class="reference internal" href="#Solvent-exposure">Solvent exposure</a></li>
+<li><a class="reference internal" href="#Residue-typed-contact-potentials">Residue-typed contact potentials</a></li>
+<li><a class="reference internal" href="#Hydrogen-bonds">Hydrogen bonds</a></li>
+<li><a class="reference internal" href="#Backbone-dihedrals">Backbone dihedrals</a></li>
+<li><a class="reference internal" href="#Putting-them-together">Putting them together</a></li>
+<li><a class="reference internal" href="#What-is-not-here">What is not here</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+      </div>
+    </div>
+    <div id="sk-page-content-wrapper">
+      <div class="sk-page-content container-fluid body px-md-3" role="main">
+        
+  <section id="Scoring-a-coarse-grained-protein">
+<h1>Scoring a coarse-grained protein<a class="headerlink" href="#Scoring-a-coarse-grained-protein" title="Permalink to this heading">¶</a></h1>
+<p>A coarse-grained protein model is one bead or a few per residue, and the energy that holds it together is a sum of <em>knowledge-based</em> terms – what the PDB says residues of these types usually do at this distance – and <em>steric</em> terms – what they physically cannot do.</p>
+<p><strong>They are IMP scores.</strong> A coarse-grained potential needs coordinates, a residue lookup and a pair loop with a cutoff, and IMP has all three – particles in a <code class="docutils literal notranslate"><span class="pre">Model</span></code>, a <code class="docutils literal notranslate"><span class="pre">Hierarchy</span></code> over them, and a <code class="docutils literal notranslate"><span class="pre">ClosePairContainer</span></code>. So the terms compose with IMP’s optimizers and scoring functions like any other restraint, instead of being a second scoring world beside them.</p>
+<section id="A-structure-to-score">
+<h2>A structure to score<a class="headerlink" href="#A-structure-to-score" title="Permalink to this heading">¶</a></h2>
+<p>T4 lysozyme, read as C-alphas – one bead per residue.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">example_path</span><span class="p">(</span><span class="n">relative</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Example data from the installed package, or from this checkout.</span>
+
+<span class="sd">    ``IMP.bff.get_example_path`` reads the examples the conda module installs.</span>
+<span class="sd">    The pip wheel deliberately does not carry them (they are 84 MB against a</span>
+<span class="sd">    6.6 MB wheel), so it raises, and the notebook then looks for the same file</span>
+<span class="sd">    in the repository it is running from.</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">candidate</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">get_example_path</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">relative</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">candidate</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="n">here</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="p">(</span><span class="n">here</span><span class="p">,</span> <span class="o">*</span><span class="n">here</span><span class="o">.</span><span class="n">parents</span><span class="p">):</span>
+        <span class="n">candidate</span> <span class="o">=</span> <span class="n">parent</span> <span class="o">/</span> <span class="s2">"examples"</span> <span class="o">/</span> <span class="n">relative</span>
+        <span class="k">if</span> <span class="n">candidate</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"examples/</span><span class="si">{</span><span class="n">relative</span><span class="si">}</span><span class="s2"> is in neither the installed package nor a parent "</span>
+        <span class="sa">f</span><span class="s2">"of </span><span class="si">{</span><span class="n">here</span><span class="si">}</span><span class="s2">: run this notebook from a checkout, or install the conda "</span>
+        <span class="sa">f</span><span class="s2">"package imp.bff, which ships the examples."</span>
+    <span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">IMP</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">IMP.atom</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">IMP.container</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">IMP.core</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">IMP.bff</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">Model</span><span class="p">()</span>
+<span class="n">hierarchy</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">read_pdb</span><span class="p">(</span>
+    <span class="n">example_path</span><span class="p">(</span><span class="s2">"structure/T4L/3GUN.pdb"</span><span class="p">),</span> <span class="n">model</span><span class="p">,</span>
+    <span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">CAlphaPDBSelector</span><span class="p">())</span>
+<span class="n">cas</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">get_particle_index</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">get_leaves</span><span class="p">(</span><span class="n">hierarchy</span><span class="p">)]</span>
+<span class="nb">len</span><span class="p">(</span><span class="n">cas</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+</section>
+<section id="The-Gō-model">
+<h2>The Gō model<a class="headerlink" href="#The-Gō-model" title="Permalink to this heading">¶</a></h2>
+<p>A well per residue pair, centred on the distance <em>this</em> structure has: pairs inside the cutoff are native and get the full depth, the rest get a fraction of it. The energy is a truncated Lennard-Jones, so a fold at its own native contacts sits at the floor and every departure costs.</p>
+<p>The contacts are taken when the restraint is built. <code class="docutils literal notranslate"><span class="pre">set_native_contacts</span></code> retakes them, which is how a different conformer becomes the reference.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">go</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">GoRestraint</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">cas</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mf">6.5</span><span class="p">,</span>
+                         <span class="n">nn_e_factor</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">get_n_native</span><span class="p">(),</span> <span class="s1">'native contacts of'</span><span class="p">,</span>
+      <span class="n">go</span><span class="o">.</span><span class="n">get_contacts</span><span class="p">()</span><span class="o">.</span><span class="n">get_n_contacts</span><span class="p">())</span>
+<span class="n">go</span><span class="o">.</span><span class="n">unprotected_evaluate</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># the wells, as numpy: one depth and one minimum per pair</span>
+<span class="n">go</span><span class="o">.</span><span class="n">get_contacts</span><span class="p">()</span><span class="o">.</span><span class="n">well_depths</span><span class="p">[:</span><span class="mi">5</span><span class="p">],</span> <span class="n">go</span><span class="o">.</span><span class="n">get_contacts</span><span class="p">()</span><span class="o">.</span><span class="n">well_minima</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+<br/></pre></div>
+</div>
+</div>
+</section>
+<section id="Sterics">
+<h2>Sterics<a class="headerlink" href="#Sterics" title="Permalink to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">create_clash_restraint</span></code> is IMP’s own <code class="docutils literal notranslate"><span class="pre">SoftSpherePairScore</span></code> over a <code class="docutils literal notranslate"><span class="pre">ClosePairContainer</span></code>, with the bonded pairs filtered out by <code class="docutils literal notranslate"><span class="pre">IMP.atom.StereochemistryPairFilter</span></code> when the hierarchy carries bonds.</p>
+<p>The ported potential is <span class="math notranslate nohighlight">\(((\sigma - r)/t)^2\)</span> and IMP’s soft sphere is <span class="math notranslate nohighlight">\(\tfrac{1}{2}k(\sigma - r)^2\)</span>, so the builder uses <span class="math notranslate nohighlight">\(k = 2/t^2\)</span> and the two are the same term. The reference implementation skipped pairs closer than a <code class="docutils literal notranslate"><span class="pre">covalent_radius</span></code>, which was a distance guess at <em>these are bonded</em>; IMP has the bond graph and can say so exactly.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">get_leaves</span><span class="p">(</span><span class="n">hierarchy</span><span class="p">):</span>
+    <span class="n">IMP</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">XYZR</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">set_radius</span><span class="p">(</span><span class="mf">2.5</span><span class="p">)</span>
+
+<span class="n">clash</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">create_clash_restraint</span><span class="p">(</span><span class="n">hierarchy</span><span class="p">,</span> <span class="n">clash_tolerance</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="n">IMP</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">RestraintsScoringFunction</span><span class="p">([</span><span class="n">clash</span><span class="p">])</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+</section>
+<section id="Solvent-exposure">
+<h2>Solvent exposure<a class="headerlink" href="#Solvent-exposure" title="Permalink to this heading">¶</a></h2>
+<p>Shrake-Rupley with one sphere per residue: the coarse-grained form of the accessible surface, composed from <code class="docutils literal notranslate"><span class="pre">sphere_points</span></code> and <code class="docutils literal notranslate"><span class="pre">solvent_accessible_surface_area</span></code>, which this module already had for atoms.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">residue_solvent_accessible_surface</span><span class="p">(</span>
+    <span class="n">hierarchy</span><span class="p">,</span> <span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">AT_CA</span><span class="p">,</span> <span class="n">n_sphere</span><span class="o">=</span><span class="mi">590</span><span class="p">,</span> <span class="n">probe</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">2.5</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+</section>
+<section id="Residue-typed-contact-potentials">
+<h2>Residue-typed contact potentials<a class="headerlink" href="#Residue-typed-contact-potentials" title="Permalink to this heading">¶</a></h2>
+<p>Miyazawa-Jernigan and the UNRES side-chain centroid potential are the same shape: a table indexed by the two residue types and, for UNRES, by the distance. That shape is <code class="docutils literal notranslate"><span class="pre">IMP.core.StatisticalPairScore</span></code>, which is what <code class="docutils literal notranslate"><span class="pre">IMP.atom.DopePairScore</span></code> is built on – so the potential is <em>data</em> and there is no loop to write.</p>
+<p><code class="docutils literal notranslate"><span class="pre">add_residue_type_score_data</span></code> puts the residue type on one atom per residue, the way <code class="docutils literal notranslate"><span class="pre">IMP.atom.add_dope_score_data</span></code> does for DOPE. A residue without that atom – a glycine has no C-beta – takes no part.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># an all-atom copy, because the C-beta is what Miyazawa-Jernigan scores</span>
+<span class="n">m2</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">Model</span><span class="p">()</span>
+<span class="n">all_atom</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">read_pdb</span><span class="p">(</span>
+    <span class="n">example_path</span><span class="p">(</span><span class="s2">"structure/T4L/3GUN.pdb"</span><span class="p">),</span> <span class="n">m2</span><span class="p">,</span>
+    <span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">NonWaterNonHydrogenPDBSelector</span><span class="p">())</span>
+<span class="n">typed</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">add_residue_type_score_data</span><span class="p">(</span><span class="n">all_atom</span><span class="p">,</span> <span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">AT_CB</span><span class="p">)</span>
+<span class="n">key</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">get_residue_type_key</span><span class="p">()</span>
+<span class="nb">len</span><span class="p">(</span><span class="n">typed</span><span class="p">),</span> <span class="n">typed</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<p>Every table this module ships is in <strong>one container</strong>, <code class="docutils literal notranslate"><span class="pre">data/potentials.pto</span></code> – the same shape as <code class="docutils literal notranslate"><span class="pre">dyes.drot.pto</span></code>. The default constructors read it, so a caller says what it wants scored and not where the numbers live.</p>
+<p>One file rather than four because a potential is not one table: the UNRES term needs its grid <em>and</em> the residue order that indexes it, the Ramachandran map needs to say which channel is glycine, and a reader that has to find four files in agreement with each other will one day find three.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">potential_table_names</span><span class="p">()</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mj</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">PairsRestraint</span><span class="p">(</span>
+    <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">MiyazawaJerniganPairScore</span><span class="p">(),</span>
+    <span class="n">IMP</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">ClosePairContainer</span><span class="p">(</span>
+        <span class="n">IMP</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">ListSingletonContainer</span><span class="p">(</span>
+            <span class="n">m2</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">get_index</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">typed</span><span class="p">]),</span> <span class="mf">6.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+<span class="n">IMP</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">RestraintsScoringFunction</span><span class="p">([</span><span class="n">mj</span><span class="p">])</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<p>The two contact potentials go into the container as <strong>text in IMP’s PMF format</strong>, which <code class="docutils literal notranslate"><span class="pre">IMP.core.StatisticalPairScore</span></code> reads directly – so the potential <em>is</em> the file and there is no loop in this module that touches it. The file names residues and IMP maps names to its own indices.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">t</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">read_potential_table</span><span class="p">(</span><span class="s1">'mj'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">kind</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="nb">chr</span><span class="p">(</span><span class="mi">10</span><span class="p">))[</span><span class="mi">0</span><span class="p">])</span>          <span class="c1"># bin width, type count</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="nb">chr</span><span class="p">(</span><span class="mi">10</span><span class="p">))[</span><span class="mi">1</span><span class="p">])</span>          <span class="c1"># one line per type pair</span>
+<br/></pre></div>
+</div>
+</div>
+<p>The manifest says what each table is and <strong>what the conversion did to it</strong> – the part four loose <code class="docutils literal notranslate"><span class="pre">.npy</span></code> files cannot carry. None of these were copies: the UNRES table had six NaNs, the hydrogen-bond lookup diverges to 7e33 below 1.3 Å, and two of the Ramachandran map’s five channels are coordinate grids rather than maps.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="n">manifest</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">read_potential_manifest</span><span class="p">())</span>
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">manifest</span><span class="p">[</span><span class="s1">'tables'</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s1">'--'</span><span class="p">,</span> <span class="n">entry</span><span class="p">[</span><span class="s1">'note'</span><span class="p">])</span>
+<br/></pre></div>
+</div>
+</div>
+</section>
+<section id="Hydrogen-bonds">
+<h2>Hydrogen bonds<a class="headerlink" href="#Hydrogen-bonds" title="Permalink to this heading">¶</a></h2>
+<p>A bond is an amide H within a few Angstrom of a carbonyl O, and it is scored by four distances at once – O-H, O-N, C-H, C-N – out of a four-channel lookup. Both directions of a residue pair are tested, so an antiparallel pair can contribute twice, and each channel can be switched off.</p>
+<p>The C-alpha cutoff <strong>is applied</strong>. The kernel this was ported from compared a plain C-alpha distance against the <em>square</em> of its cutoff, so its prefilter passed everything and the 8 Å it advertised was never in force; see <code class="docutils literal notranslate"><span class="pre">okf/validation/hbond_ca_cutoff.md</span></code>.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">hb</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">read_potential_table</span><span class="p">(</span><span class="s1">'hbond'</span><span class="p">)</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">HydrogenBondRestraint</span><span class="p">(</span><span class="n">m2</span><span class="p">,</span> <span class="n">all_atom</span><span class="p">,</span> <span class="n">hb</span><span class="o">.</span><span class="n">table</span><span class="p">,</span>
+                                  <span class="n">hb</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                  <span class="n">cutoff_ca</span><span class="o">=</span><span class="mf">8.0</span><span class="p">,</span> <span class="n">cutoff_h</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="c1"># a crystal structure read without hydrogens has no amide H, so</span>
+<span class="c1"># there is nothing to donate and the term is zero</span>
+<span class="n">r</span><span class="o">.</span><span class="n">unprotected_evaluate</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">r</span><span class="o">.</span><span class="n">get_n_hbonds</span><span class="p">()</span>
+<br/></pre></div>
+</div>
+</div>
+</section>
+<section id="Backbone-dihedrals">
+<h2>Backbone dihedrals<a class="headerlink" href="#Backbone-dihedrals" title="Permalink to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">RamachandranRestraint</span></code> reads <span class="math notranslate nohighlight">\((\phi, \psi)\)</span> per residue out of a grid as <span class="math notranslate nohighlight">\(-\log(P/P_{max})\)</span>, so a uniform map scores zero and an empty cell costs a penalty. The first residue has no <span class="math notranslate nohighlight">\(\phi\)</span> and the last no <span class="math notranslate nohighlight">\(\psi\)</span>; both come back as NaN and are skipped.</p>
+<p>ChiSurf’s class of this name returned 0.0 and logged a warning – the C function it called had been lost.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ra</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">read_potential_table</span><span class="p">(</span><span class="s1">'ramachandran'</span><span class="p">)</span>
+<span class="n">rama</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">RamachandranRestraint</span><span class="p">(</span><span class="n">m2</span><span class="p">,</span> <span class="n">all_atom</span><span class="p">,</span> <span class="n">ra</span><span class="o">.</span><span class="n">table</span><span class="p">,</span>
+                                     <span class="n">ra</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ra</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">phi</span><span class="p">,</span> <span class="n">psi</span> <span class="o">=</span> <span class="n">rama</span><span class="o">.</span><span class="n">phi</span><span class="p">,</span> <span class="n">rama</span><span class="o">.</span><span class="n">psi</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">phi</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">psi</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]))</span>
+<span class="n">rama</span><span class="o">.</span><span class="n">unprotected_evaluate</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+</section>
+<section id="Putting-them-together">
+<h2>Putting them together<a class="headerlink" href="#Putting-them-together" title="Permalink to this heading">¶</a></h2>
+<p>Every term is an <code class="docutils literal notranslate"><span class="pre">IMP.Restraint</span></code> or an <code class="docutils literal notranslate"><span class="pre">IMP.PairScore</span></code>, so a scoring function is the ordinary one and so is the optimizer.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sf</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">RestraintsScoringFunction</span><span class="p">([</span><span class="n">go</span><span class="p">,</span> <span class="n">clash</span><span class="p">])</span>
+<span class="n">sf</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+</section>
+<section id="What-is-not-here">
+<h2>What is not here<a class="headerlink" href="#What-is-not-here" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>The radius of gyration is <code class="docutils literal notranslate"><span class="pre">IMP.atom.get_radius_of_gyration</span></code>, which IMP has already.</p></li>
+<li><p>A harmonic tether to a reference conformer’s C-alpha internal coordinates is <code class="docutils literal notranslate"><span class="pre">create_ca_internal_restraints</span></code>, which assembles <code class="docutils literal notranslate"><span class="pre">IMP.core.Harmonic</span></code> distance, angle and dihedral restraints – IMP’s own, not a fourth copy of the arithmetic.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">IMP.atom.CAAngleRestraint</span></code> and <code class="docutils literal notranslate"><span class="pre">IMP.atom.CADihedralRestraint</span></code> are IMP’s <em>statistical</em> C-alpha terms, a score per angle bin. They answer a different question from the harmonic tether and both are worth having.</p></li>
+</ul>
+</section>
+</section>
+
+
+      </div>
+    <div class="container">
+      <footer class="sk-content-footer">
+            &copy; 2021 - 2026, IMP developers.
+      </footer>
+    </div>
+  </div>
+</div>
+<script src="../../_static/js/vendor/bootstrap.min.js"></script>
+
+<script>
+    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+    ga('create', 'UA-22606712-2', 'auto');
+    ga('set', 'anonymizeIp', true);
+    ga('send', 'pageview');
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+<script>
+$(document).ready(function() {
+    /* Add a [>>>] button on the top-right corner of code samples to hide
+     * the >>> and ... prompts and the output and thus make the code
+     * copyable. */
+    var div = $('.highlight-python .highlight,' +
+                '.highlight-python3 .highlight,' +
+                '.highlight-pycon .highlight,' +
+		'.highlight-default .highlight')
+    var pre = div.find('pre');
+
+    // get the styles from the current theme
+    pre.parent().parent().css('position', 'relative');
+    var hide_text = 'Hide prompts and outputs';
+    var show_text = 'Show prompts and outputs';
+
+    // create and add the button to all the code blocks that contain >>>
+    div.each(function(index) {
+        var jthis = $(this);
+        if (jthis.find('.gp').length > 0) {
+            var button = $('<span class="copybutton">&gt;&gt;&gt;</span>');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+            jthis.prepend(button);
+        }
+        // tracebacks (.gt) contain bare text elements that need to be
+        // wrapped in a span to work with .nextUntil() (see later)
+        jthis.find('pre:has(.gt)').contents().filter(function() {
+            return ((this.nodeType == 3) && (this.data.trim().length > 0));
+        }).wrap('<span>');
+    });
+
+    // define the behavior of the button when it's clicked
+    $('.copybutton').click(function(e){
+        e.preventDefault();
+        var button = $(this);
+        if (button.data('hidden') === 'false') {
+            // hide the code output
+            button.parent().find('.go, .gp, .gt').hide();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'hidden');
+            button.css('text-decoration', 'line-through');
+            button.attr('title', show_text);
+            button.data('hidden', 'true');
+        } else {
+            // show the code output
+            button.parent().find('.go, .gp, .gt').show();
+            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'visible');
+            button.css('text-decoration', 'none');
+            button.attr('title', hide_text);
+            button.data('hidden', 'false');
+        }
+    });
+
+	/*** Add permalink buttons next to glossary terms ***/
+	$('dl.glossary > dt[id]').append(function() {
+		return ('<a class="headerlink" href="#' +
+			    this.getAttribute('id') +
+			    '" title="Permalink to this term">¶</a>');
+	});
+  /*** Hide navbar when scrolling down ***/
+  // Returns true when headerlink target matches hash in url
+  (function() {
+    hashTargetOnTop = function() {
+        var hash = window.location.hash;
+        if ( hash.length < 2 ) { return false; }
+
+        var target = document.getElementById( hash.slice(1) );
+        if ( target === null ) { return false; }
+
+        var top = target.getBoundingClientRect().top;
+        return (top < 2) && (top > -2);
+    };
+
+    // Hide navbar on load if hash target is on top
+    var navBar = document.getElementById("navbar");
+    var navBarToggler = document.getElementById("sk-navbar-toggler");
+    var navBarHeightHidden = "-" + navBar.getBoundingClientRect().height + "px";
+    var $window = $(window);
+
+    hideNavBar = function() {
+        navBar.style.top = navBarHeightHidden;
+    };
+
+    showNavBar = function() {
+        navBar.style.top = "0";
+    }
+
+    if (hashTargetOnTop()) {
+        hideNavBar()
+    }
+
+    var prevScrollpos = window.pageYOffset;
+    hideOnScroll = function(lastScrollTop) {
+        if (($window.width() < 768) && (navBarToggler.getAttribute("aria-expanded") === 'true')) {
+            return;
+        }
+        if (lastScrollTop > 2 && (prevScrollpos <= lastScrollTop) || hashTargetOnTop()){
+            hideNavBar()
+        } else {
+            showNavBar()
+        }
+        prevScrollpos = lastScrollTop;
+    };
+
+    /*** high performance scroll event listener***/
+    var raf = window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        window.oRequestAnimationFrame;
+    var lastScrollTop = $window.scrollTop();
+
+    if (raf) {
+        loop();
+    }
+
+    function loop() {
+        var scrollTop = $window.scrollTop();
+        if (lastScrollTop === scrollTop) {
+            raf(loop);
+            return;
+        } else {
+            lastScrollTop = scrollTop;
+            hideOnScroll(lastScrollTop);
+            raf(loop);
+        }
+    }
+  })();
+});
+
+</script>
+    
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+</body>
+</html>
