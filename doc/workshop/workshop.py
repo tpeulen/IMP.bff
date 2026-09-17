@@ -304,6 +304,34 @@ def av_pdb(volume, **kwargs) -> str:
     return points_to_pdb(av_points(volume)[:, :3], **kwargs)
 
 
+
+def score_coloured_pdb(pdb_path, values, chains=None, default: float = 0.0) -> str:
+    """The structure with a per-residue number in the B-factor column.
+
+    ``values`` maps ``(chain, residue)`` to the number -- a label score, a
+    deviation, a weight. Mol*'s "uncertainty" theme colours by that column, so
+    a panel built with ``colour_by="score"`` paints the score onto the fold,
+    which is the picture the old labelizer script made by hand.
+    """
+    kept = []
+    for line in pathlib.Path(pdb_path).read_text().splitlines(keepends=True):
+        if not line.startswith(("ATOM", "HETATM")):
+            continue
+        chain = line[21:22]
+        if chains is not None and chain not in chains:
+            continue
+        if line.startswith("ATOM") and line[12:16].strip() not in BACKBONE:
+            continue
+        try:
+            resi = int(line[22:26])
+        except ValueError:
+            continue
+        value = values.get((chain, resi), default)
+        value = default if value is None or not np.isfinite(value) else float(value)
+        kept.append(f"{line[:60]}{min(value, 999.99):6.2f}{line[66:]}")
+    kept.append("END\n")
+    return "".join(kept)
+
 def _b64(text: str) -> str:
     return base64.b64encode(text.encode()).decode()
 
@@ -324,6 +352,9 @@ def viewer_html(panels: Sequence[dict], height: int = 520) -> str:
     payload = [{
         "title": panel.get("title", ""),
         "structure": _b64(panel["structure"]),
+        # Mol*'s "uncertainty" theme reads the B-factor column; a structure
+        # written by `score_coloured_pdb` carries the label score there.
+        "colour_by": panel.get("colour_by", ""),
         "clouds": [{"pdb": _b64(c["pdb"]), "colour": c.get("colour", DONOR_COLOUR),
                     "label": c.get("label", ""),
                     "style": c.get("style", "gaussian-surface")}
@@ -372,7 +403,12 @@ def viewer_html(panels: Sequence[dict], height: int = 520) -> str:
       return parse(panel.structure)
         .then(function(traj) {{
           return B.hierarchy.applyPreset(traj, "default",
-            {{ representationPreset: "polymer-and-ligand" }});
+            {{ representationPreset: "polymer-and-ligand",
+               theme: panel.colour_by === "score"
+                 ? {{ globalName: "uncertainty",
+                      globalColorParams: {{ list: {{ kind: "interpolate",
+                        colors: ["#2166ac", "#f7f7f7", "#b2182b"] }} }} }}
+                 : undefined }});
         }})
         .then(function() {{
           return panel.clouds.reduce(function(chain, cloud) {{
@@ -677,7 +713,7 @@ __all__ = [
     "STATES", "DYES", "R0", "ROTAMER_LIBRARIES", "fetch_pdb", "single_dimer",
     "ca_position",
     "av", "av_points", "EmptyVolume", "rda", "rda_e", "efficiency", "distance_distribution",
-    "protein_for_view", "points_to_pdb", "av_pdb", "viewer_html", "show",
+    "protein_for_view", "points_to_pdb", "score_coloured_pdb", "av_pdb", "viewer_html", "show",
     "site_panel", "circle_plot", "deviation_scale", "deviation_mappable",
     "rotamer_library_name", "rotamer_pdb",
 ]
