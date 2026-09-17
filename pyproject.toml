@@ -49,6 +49,14 @@ notebooks = [
     "pandas",
     "tttrlib",
     "py3Dmol",
+    # For a live session. The workshop's own 3D views are Mol* embedded as
+    # HTML, because that is the one thing that also survives into the built
+    # documentation: a published nglview widget renders nothing there (checked
+    # -- zero canvases on the page, no widget manager), while the Mol* panels
+    # draw the protein and play the trajectory. nglview is the nicer object to
+    # drive from a notebook you are sitting in front of, so it is here.
+    "nglview",
+    "ipywidgets",
 ]
 # The accelerator, which this package deliberately does not carry itself.
 #
