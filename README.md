@@ -79,27 +79,34 @@ image.
 ## Run the notebooks
 
 The notebooks are in the repository, not in the wheel, so clone it and install
-the core beside them. `[notebooks]` adds exactly what they import — Jupyter,
+the core beside them. `[notebooks]` adds what they import — Jupyter,
 matplotlib, scipy, scikit-learn, pandas, tttrlib and py3Dmol:
 
 ```bash
 git clone https://github.com/tpeulen/IMP.bff
-cd imp.bff
+cd IMP.bff
 python -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
 pip install --pre "imp-bff[notebooks]"
 imp_bff_fetch_data                                    # the 62 MB of libraries, once
-jupyter lab examples/spectroscopy/bayesian_decays
+jupyter lab doc/manual/quickstart_core.ipynb
 ```
 
-`examples/spectroscopy/bayesian_decays` is the series to start with: twenty
-notebooks that build one fluorescence-decay analysis from the measurement to a
-fit of real data, each one runnable on its own. They import `IMP.bff` and the
-`bd.py` beside them, so the core wheel is all they need.
+`doc/manual/quickstart_core.ipynb` is the start: a dye's accessible volume on a
+structure, the distance distribution between two of them, and a fluorescence
+decay through the same instrument model a fit optimises. It runs on the pip
+package alone — it is executed against the built wheel, so it either works or
+the release is wrong.
 
-`doc/manual/` is the manual, and the same applies: a notebook that only says
-`import IMP.bff` runs on the core. The ones that say `import IMP` — the
-restraint, docking and molecular-dynamics pages — need the IMP module, which is
-the conda package below, since they score with IMP's own optimizers.
+What else runs on the core: `doc/manual/structure/structure_label_sites.ipynb`
+(scoring the labelling sites of a structure) and
+`examples/labels/plot_labelizer_score.py`.
+
+**What needs more than the core.** Most of `doc/manual/structure/` and
+`examples/labels/` build IMP restraints, hierarchies or RMF trajectories, and
+want the conda module below — their first cell says `import IMP`, and the pip
+package deliberately does not carry IMP. `examples/spectroscopy/bayesian_decays`
+is a research log rather than a tutorial: it needs `torch` and a prototype
+directory that is not part of this repository (point `UCFRET_S88` at it).
 
 ## Coming from LabelLib
 
