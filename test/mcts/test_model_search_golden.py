@@ -110,8 +110,13 @@ def test_the_winning_topology_has_reproducible_parameters(name):
     for key in set(golden["structures"]) - _undetermined(golden):
         mask = golden["structures"][key]["fixed"]
         free = [i for i, fixed in enumerate(mask) if fixed == 0]
+        # A relative tolerance on a parameter whose answer is zero is a
+        # lottery, not a test: an unused amplitude lands at -1.2e-4 here and
+        # -2.5e-4 on another platform's libm, which is the same answer and a
+        # 53 % relative difference. The absolute floor is what makes this
+        # comparison mean "the user is handed the same numbers".
         assert [record["structures"][key]["values"][i] for i in free] == pytest.approx(
-            [golden["structures"][key]["values"][i] for i in free], rel=1e-4
+            [golden["structures"][key]["values"][i] for i in free], rel=1e-4, abs=1e-3
         ), key
 
 

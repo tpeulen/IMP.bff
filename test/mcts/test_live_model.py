@@ -250,8 +250,13 @@ def test_component_order_is_presentation_not_a_constraint(short_first):
              model.get_parameter(f"lifetime.amplitude.{i}").value) for i in (0, 1)]
     total = sum(a for _, a in rows)
     mixture = sorted((tau, a / total) for tau, a in rows)
-    assert [tau for tau, _ in mixture] == pytest.approx([0.6, 3.5], rel=1e-3)
-    assert [f for _, f in mixture] == pytest.approx([0.25, 0.75], rel=1e-3)
+    # The claim is that the *order* of the rows does not change the answer, so
+    # the tolerance only has to be tight enough to catch a different mixture.
+    # A least-squares minimum is not bit-identical across platforms: this
+    # recovered 0.6008 on x86_64 against 0.6000 here, which is the same answer
+    # and outside a 1e-3 relative band.
+    assert [tau for tau, _ in mixture] == pytest.approx([0.6, 3.5], rel=5e-3)
+    assert [f for _, f in mixture] == pytest.approx([0.25, 0.75], rel=5e-3)
 
 
 def test_a_polarized_family_is_the_lifetime_family_times_rotations():
