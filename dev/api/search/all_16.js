@@ -14,7 +14,7 @@ var searchData=
   ['weighted_5faverage_5fsd_5fse_11',['weighted_average_sd_se',['../_probe_rotamer_8h.html#aaf0ae353244136ff1aafd71c4912cafa',1,'ProbeRotamer.h']]],
   ['weighted_5fresiduals_12',['weighted_residuals',['../struct_poisson_histogram_fit.html#a2c5610480bfe639764885bc18d41ab0d',1,'PoissonHistogramFit']]],
   ['weights_13',['weights',['../struct_kappa2_distribution.html#aed3c833a221412120ea6475100c8dd60',1,'Kappa2Distribution::weights'],['../struct_probe_rotamer_library.html#a002ee2f8e94079449e25e05970007494',1,'ProbeRotamerLibrary::weights'],['../struct_rotamer_score_result.html#a68323a48e7832011fc665167c4fd274a',1,'RotamerScoreResult::weights'],['../class_bayesian_evidence_mixture.html#a2d1fab8bd7195578a14e74d8baf9832c',1,'BayesianEvidenceMixture::weights()']]],
-  ['which_20fret_20pair_20to_20measure_20next_14',['Which FRET pair to measure next',['../index.html#autotoc_md6',1,'']]],
+  ['which_20fret_20pair_20to_20measure_20next_14',['Which FRET pair to measure next',['../index.html#autotoc_md7',1,'']]],
   ['with_5ffinite_5fdifference_5fgradient_15',['with_finite_difference_gradient',['../_sampling_8h.html#a6d9b363ef8891ed839971469ace694b4',1,'Sampling.h']]],
   ['wobbling_5fkappa2_16',['wobbling_kappa2',['../_f_r_e_t_orientation_factor_8h.html#a12e2a449cf773e148876930666953fdc',1,'FRETOrientationFactor.h']]],
   ['wobbling_5fkappa2_5fdistribution_17',['wobbling_kappa2_distribution',['../_f_r_e_t_orientation_factor_8h.html#a16d70abf61b8cb9c3efa2c6d068226d3',1,'FRETOrientationFactor.h']]],

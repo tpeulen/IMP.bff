@@ -1,12 +1,12 @@
 var searchData=
 [
   ['a_0',['a',['../struct_atom_bond.html#a7e22f01c791c7c61e41f1c0d1d3e1a87',1,'AtomBond']]],
-  ['a_20first_20volume_1',['A first volume',['../index.html#autotoc_md3',1,'']]],
+  ['a_20first_20volume_1',['A first volume',['../index.html#autotoc_md4',1,'']]],
   ['a_20probe_20pdb_20to_20mmcif_2',['imp_bff probe-pdb2cif &amp;ndash; convert a probe PDB to mmCIF',['../index.html#imp_bff_probe_pdb2cif',1,'']]],
   ['a_20rotamer_20library_3',['imp_bff traj2drot &amp;ndash; build a rotamer library',['../index.html#imp_bff_traj2drot',1,'']]],
   ['a_20structure_4',['imp_bff labelizer &amp;ndash; score the labelling sites of a structure',['../index.html#imp_bff_labelizer',1,'']]],
   ['a_20trajectory_20to_20binarycif_5',['imp_bff traj2bcif &amp;ndash; convert a trajectory to BinaryCIF',['../index.html#imp_bff_traj2bcif',1,'']]],
-  ['a_20volume_6',['Measuring and exporting a volume',['../index.html#autotoc_md9',1,'']]],
+  ['a_20volume_6',['Measuring and exporting a volume',['../index.html#autotoc_md10',1,'']]],
   ['aabb_5fbuild_7',['aabb_build',['../_rotamer_scoring_8h.html#a6005ff03505d2e4214c87877c029f757',1,'RotamerScoring.h']]],
   ['aabb_5fbuild_5fsingle_8',['aabb_build_single',['../_rotamer_scoring_8h.html#a496244bbd2e22082d702b36db6efc18f',1,'RotamerScoring.h']]],
   ['aabb_5fintersects_5freference_9',['aabb_intersects_reference',['../_rotamer_scoring_8h.html#abaf085b784c3ba77e640c96621a42d13',1,'RotamerScoring.h']]],
@@ -75,7 +75,7 @@ var searchData=
   ['amplitude_72',['amplitude',['../structinternal_1_1_transfer_component.html#a9dc23d5223e329a2e0e6d423db2af7ed',1,'internal::TransferComponent']]],
   ['amplitudes_73',['amplitudes',['../class_max_ent_solution.html#ae28f8bee846d7af3ae8631d6b1959f1e',1,'MaxEntSolution']]],
   ['analyze_5fprobe_5ftrajectories_74',['analyze_probe_trajectories',['../_probe_trajectory_density_8h.html#aa6113fa52f06c8a01e7a618d52bb0969',1,'ProbeTrajectoryDensity.h']]],
-  ['and_20exporting_20a_20volume_75',['Measuring and exporting a volume',['../index.html#autotoc_md9',1,'']]],
+  ['and_20exporting_20a_20volume_75',['Measuring and exporting a volume',['../index.html#autotoc_md10',1,'']]],
   ['and_20screening_76',['imp_bff fps &amp;ndash; FRET-restrained docking and screening',['../index.html#imp_bff_fps',1,'']]],
   ['and_20the_20errors_20that_20fill_20them_77',['imp_bff fps-export &amp;ndash; FPS&apos;s result files, and the errors that fill them',['../index.html#imp_bff_fps_export',1,'']]],
   ['anisotropy_5ffrom_5fpolarised_78',['anisotropy_from_polarised',['../_photophysics_polarisation_8h.html#a796f9288edfab05d1d39c9d0a40d8924',1,'anisotropy_from_polarised(const T *vv, const T *vh, std::size_t n, const T &amp;g, T *out, double floor=1e-300):&#160;PhotophysicsPolarisation.h'],['../_photophysics_polarisation_8h.html#ad20b4db76b24ccb706e06d4d163bc5ba',1,'anisotropy_from_polarised(const T *vv, const T *vh, std::size_t n, const T &amp;g, const T &amp;w_vv, const T &amp;w_vh, T *out, double floor=1e-300):&#160;PhotophysicsPolarisation.h']]],

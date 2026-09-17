@@ -21,5 +21,5 @@ var searchData=
   ['update_5fquenching_5fmap_18',['update_quenching_map',['../class_dynamic_accessible_volume.html#a082aa340367bb3aa7af5ab033618c373',1,'DynamicAccessibleVolume']]],
   ['update_5ftiles_19',['update_tiles',['../class_path_map.html#a109aac20e7078680cf79a6938acdb678',1,'PathMap']]],
   ['upper_20',['upper',['../struct_sampling_target.html#a51ecd39fd4ce82b4fe6c6ed92532edd5',1,'SamplingTarget']]],
-  ['usage_3a_21',['Inter-label distance score usage:',['../index.html#autotoc_md4',1,'']]]
+  ['usage_3a_21',['Inter-label distance score usage:',['../index.html#autotoc_md5',1,'']]]
 ];
