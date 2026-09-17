@@ -49,10 +49,13 @@ Straight from a GitHub release, without PyPI — pip picks the wheel that fits
 your platform and Python version off the release page:
 
 ```bash
-pip install --pre --no-index \
+pip install --pre \
   --find-links https://github.com/tpeulen/IMP.bff/releases/expanded_assets/v0.15.0a1 \
   imp-bff
 ```
+
+(`--find-links` adds the release page; PyPI still serves numpy and pooch, so
+do not add `--no-index`.)
 
 **`imp.bff` — the IMP module.** The same library built inside the Integrative
 Modeling Platform, with the connection layer: restraints IMP's optimizers
