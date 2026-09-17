@@ -16,6 +16,10 @@ sys.path.insert(0, os.path.abspath('sphinxext'))
 
 import sphinx_gallery
 
+# doc/sphinxext is on sys.path (see above); the class lives there so that
+# Sphinx can pickle the config for a parallel build.
+from gallery_order import SubSectionTitleOrder
+
 # -- General configuration ---------------------------------------------------
 root_doc = 'contents'
 
@@ -33,10 +37,32 @@ extensions = [
     'sphinx.ext.imgconverter',
     'add_toctree_functions',
     'matplotlib.sphinxext.plot_directive',
-    'sphinx.ext.autosectionlabel'
+    'sphinx.ext.autosectionlabel',
+    # Markdown pages are documentation too: doc/labelizer.md and the
+    # workshop's README are written in it, and without a parser they are
+    # simply absent from the rendered docs.
+    'myst_parser',
 ]
 
 nbsphinx_allow_errors = True
+
+# Executing the notebooks and the example gallery needs the compiled module,
+# several gigabytes of structure/photon data and, for a few pages, the
+# network. That is a thing to do on a workstation, not on every CI run, so
+# execution is opt-in:
+#
+#     IMP_BFF_DOCS_EXECUTE_EXAMPLES=1 make -C doc html
+#
+# With the switch off, notebooks are rendered from the outputs they carry in
+# the repository and sphinx-gallery still produces a page, the highlighted
+# source and the .py/.ipynb downloads for every example -- only freshly
+# computed figures are missing.
+_execute_examples = os.environ.get(
+    'IMP_BFF_DOCS_EXECUTE_EXAMPLES', '0'
+).lower() in ('1', 'true', 'yes', 'on')
+
+# 'auto' would run any notebook that has no stored outputs.
+nbsphinx_execute = 'auto' if _execute_examples else 'never'
 
 # BibTEex
 extensions += ['sphinxcontrib.bibtex']
@@ -69,20 +95,44 @@ templates_path = ['templates']
 autosummary_generate = True
 
 # The suffix of source filenames.
-source_suffix = '.rst'
+source_suffix = {'.rst': 'restructuredtext', '.md': 'markdown'}
 
 # -- Project information -----------------------------------------------------
 project = u'IMP.bff'
 copyright = (
     f'2021 - {datetime.now().year}, IMP developers'
 )
-import IMP.bff
-version = IMP.bff.__version__
+# The compiled module is optional for a documentation build. Nothing in
+# doc/ uses `automodule`/`autoclass` -- the C++ API is Doxygen's job and the
+# narrative pages are hand-written .rst/.ipynb -- so the only thing the
+# import ever provided was the version string. Keeping it mandatory would
+# force every docs build (including CI) to compile IMP.bff first, which buys
+# nothing. Import it when it happens to be there, fall back otherwise.
+try:
+    import IMP.bff
+
+    version = IMP.bff.__version__
+except Exception:  # noqa: BLE001 - any import failure is a soft failure here
+    version = os.environ.get("IMP_BFF_DOCS_VERSION", "dev")
+    # So that a stray autodoc/autosummary directive degrades into a stub
+    # instead of failing the build.
+    autodoc_mock_imports = ["IMP", "IMP.bff"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = [u'_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = [
+    u'_build',
+    'Thumbs.db',
+    '.DS_Store',
+    # Jupyter's autosave copies are not pages; without this nbsphinx picks
+    # them up and every notebook is built twice under a second title.
+    '**/.ipynb_checkpoints',
+    # sphinx-gallery writes both a .rst and a .ipynb per example; reading the
+    # notebook as a source file too is the "multiple files found" error.
+    'auto_examples/**/*.ipynb',
+    'auto_examples/*.ipynb',
+]
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -160,16 +210,21 @@ html_copy_source = False
 html_context = {}
 # finds latest release highlights and places it into HTML context for
 # index.html
-release_highlights_dir = Path("..") / "examples" / "release_highlights"
+release_highlights_dir = Path(__file__).parent / ".." / "examples" / "release_highlights"
 # Finds the highlight with the latest version number
-latest_highlights = sorted(release_highlights_dir.glob("*.py"))[-1]
-latest_highlights = latest_highlights.with_suffix('').name
-html_context["release_highlights"] = f"auto_examples/release_highlights/{latest_highlights}"
+_highlights = sorted(release_highlights_dir.glob("plot_release_highlights_*.py"))
+# templates/index.html dereferences both unconditionally.
+html_context["release_highlights"] = "contents"
+html_context["release_highlights_version"] = version
+if _highlights:
+    latest_highlights = _highlights[-1].with_suffix('').name
+    html_context["release_highlights"] = \
+        f"auto_examples/release_highlights/{latest_highlights}"
 
-# get version from higlight name assuming highlights have the form
-# plot_release_highlights_0_22_0
-highlight_version = ".".join(latest_highlights.split("_")[-3:-1])
-html_context["release_highlights_version"] = highlight_version
+    # get version from higlight name assuming highlights have the form
+    # plot_release_highlights_0_22_0
+    highlight_version = ".".join(latest_highlights.split("_")[-3:-1])
+    html_context["release_highlights_version"] = highlight_version
 
 # -- Options for LaTeX output ------------------------------------------------
 latex_elements = {
@@ -203,39 +258,6 @@ intersphinx_mapping = {
 }
 
 
-class SubSectionTitleOrder:
-    """Sort example gallery by title of subsection.
-    Assumes README.rst exists for all subsections and uses the subsection with
-    dashes, '---', as the adornment.
-    """
-    def __init__(self, src_dir):
-        self.src_dir = src_dir
-        self.regex = re.compile(r"^([\w ]+)\n-", re.MULTILINE)
-
-    def __repr__(self):
-        return '<%s>' % (self.__class__.__name__,)
-
-    def __call__(self, directory):
-        src_path = os.path.normpath(os.path.join(self.src_dir, directory))
-
-        # Forces Release Highlights to the top
-        if os.path.basename(src_path) == "release_highlights":
-            return "0"
-
-        readme = os.path.join(src_path, "README.rst")
-
-        try:
-            with open(readme, 'r') as f:
-                content = f.read()
-        except FileNotFoundError:
-            return directory
-
-        title_match = self.regex.search(content)
-        if title_match is not None:
-            return title_match.group(1)
-        return directory
-
-
 sphinx_gallery_conf = {
     'doc_module': 'IMP.bff',
     'show_memory': False,
@@ -244,8 +266,21 @@ sphinx_gallery_conf = {
     'subsection_order': SubSectionTitleOrder('../examples'),
     # avoid generating too many cross-links
     'inspect_global_variables': False,
-    'remove_config_comments': True
+    'remove_config_comments': True,
+    'plot_gallery': _execute_examples,
+    # The gallery is the `plot_*.py` files. Everything else under examples/
+    # is a helper module imported by a notebook (bd.py, experiment.py,
+    # cbm56.py, ...) or a script that is run by hand; sphinx-gallery would
+    # demand a module docstring from each of them and abort the whole build
+    # on the first one that has none.
+    'ignore_pattern': r'(?:^|[\\/])(?:\.ipynb_checkpoints[\\/].*|(?!plot_)[^\\/]*)\.py$',
+    # Never fail the whole build over one example; the traceback is rendered
+    # into the example's own page instead.
+    'abort_on_example_error': False,
 }
+if not _execute_examples:
+    # Nothing was run, so there is no output to compare against.
+    sphinx_gallery_conf['filename_pattern'] = r'(?!.*)'
 
 # The following dictionary contains the information used to create the
 # thumbnails for the front page of the scikit-learn home page.

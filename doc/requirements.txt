@@ -1,0 +1,33 @@
+# Documentation toolchain, pinned so that CI and a workstation build the same
+# pages. Install with:
+#
+#     python -m pip install -r doc/requirements.txt
+#
+# The compiled module is deliberately NOT in here: doc/ contains no
+# `automodule`/`autoclass` directive (the C++ API comes from Doxygen), and
+# notebooks and the example gallery are not executed unless
+# IMP_BFF_DOCS_EXECUTE_EXAMPLES=1. See doc/conf.py.
+#
+# Sphinx is capped below 7.0: doc/themes/scikit-learn-modern is the vendored
+# scikit-learn theme of that era and its layout.html still uses the `style`
+# template variable (removed in Sphinx 7.0) and indexes `css_files` entries as
+# strings (they stopped being str subclasses in Sphinx 7.1). Raising the cap
+# means porting that theme first -- until then a newer Sphinx fails with
+# "UndefinedError: 'style' is undefined".
+sphinx>=6.2,<7.0
+# 2.6+ refuses docutils 0.18.*/0.19.*, which is the whole range Sphinx 6
+# allows; 2.5 has no such exclusion.
+sphinxcontrib-bibtex>=2.5,<2.6
+sphinx-gallery>=0.15,<1.0
+nbsphinx>=0.9,<0.10
+numpydoc>=1.5,<2.0
+# nbsphinx renders the stored outputs; it still imports these to do it.
+nbconvert>=7.0
+nbformat>=5.7
+ipython>=8.0
+# matplotlib.sphinxext.plot_directive is in conf.py's extension list.
+matplotlib>=3.6
+pillow>=9.0
+# Markdown pages (doc/labelizer.md, the workshop README). 2.x is the last
+# line that still supports the Sphinx 6 pinned above.
+myst-parser>=2.0,<3
