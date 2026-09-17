@@ -163,8 +163,7 @@
    "spectrum": {
     "type": "PhotophysicsLifetimeSpectrumNode",
     "config": {
-     "number_of_lifetimes": "{n}",
-     "normalize_amplitudes": true
+     "number_of_lifetimes": "{n}"
     },
     "inputs": {
      "repeat": {
@@ -178,6 +177,10 @@
     },
     "outputs": {
      "@name": "float_vector"
+    },
+    "config_rules": {
+     "normalize_amplitudes": "normalize_amplitudes",
+     "absolute_amplitudes": "absolute_amplitudes"
     }
    },
    "vv_aniso": {
@@ -520,5 +523,21 @@
    "delta": -1,
    "prior": 0.25
   }
- ]
+ ],
+ "optional_scalars": {
+  "normalize_amplitudes": 1,
+  "absolute_amplitudes": 1
+ },
+ "presentation": {
+  "scalars": {
+   "normalize_amplitudes": {
+    "label": "Normalize lifetime amplitudes",
+    "kind": "flag"
+   },
+   "absolute_amplitudes": {
+    "label": "Absolute lifetime amplitudes",
+    "kind": "flag"
+   }
+  }
+ }
 }

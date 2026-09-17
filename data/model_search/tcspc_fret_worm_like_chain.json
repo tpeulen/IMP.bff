@@ -128,6 +128,14 @@
    "dye_linker": {
     "label": "Dye linker",
     "kind": "flag"
+   },
+   "normalize_amplitudes": {
+    "label": "Normalize lifetime amplitudes",
+    "kind": "flag"
+   },
+   "absolute_amplitudes": {
+    "label": "Absolute lifetime amplitudes",
+    "kind": "flag"
    }
   },
   "distributions": {
@@ -236,7 +244,9 @@
   "lin_window_length": 17,
   "lin_window": 1,
   "reverse_linearization": 0,
-  "dye_linker": 0
+  "dye_linker": 0,
+  "normalize_amplitudes": 1,
+  "absolute_amplitudes": 1
  },
  "optional_datasets": [
   "response",
@@ -477,9 +487,7 @@
    "donor": {
     "type": "PhotophysicsLifetimeSpectrumNode",
     "config": {
-     "number_of_lifetimes": "{d}",
-     "normalize_amplitudes": true,
-     "absolute_amplitudes": true
+     "number_of_lifetimes": "{d}"
     },
     "inputs": {
      "repeat": {
@@ -493,6 +501,10 @@
     },
     "outputs": {
      "@name": "float_vector"
+    },
+    "config_rules": {
+     "normalize_amplitudes": "normalize_amplitudes",
+     "absolute_amplitudes": "absolute_amplitudes"
     }
    },
    "distances": {

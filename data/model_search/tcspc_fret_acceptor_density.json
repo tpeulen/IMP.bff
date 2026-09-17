@@ -99,6 +99,14 @@
    },
    "dimension": {
     "label": "Starting dimensionality (1, 2, 3)"
+   },
+   "normalize_amplitudes": {
+    "label": "Normalize lifetime amplitudes",
+    "kind": "flag"
+   },
+   "absolute_amplitudes": {
+    "label": "Absolute lifetime amplitudes",
+    "kind": "flag"
    }
   },
   "distributions": {
@@ -174,7 +182,9 @@
   "reverse_linearization": 0,
   "donor_lifetimes": 1,
   "dimension": 2,
-  "folded_periods": 8
+  "folded_periods": 8,
+  "normalize_amplitudes": 1,
+  "absolute_amplitudes": 1
  },
  "optional_datasets": [
   "response",
@@ -328,9 +338,7 @@
    "donor": {
     "type": "PhotophysicsLifetimeSpectrumNode",
     "config": {
-     "number_of_lifetimes": "{n}",
-     "normalize_amplitudes": true,
-     "absolute_amplitudes": true
+     "number_of_lifetimes": "{n}"
     },
     "inputs": {
      "repeat": {
@@ -344,6 +352,10 @@
     },
     "outputs": {
      "@name": "float_vector"
+    },
+    "config_rules": {
+     "normalize_amplitudes": "normalize_amplitudes",
+     "absolute_amplitudes": "absolute_amplitudes"
     }
    },
    "quenched": {

@@ -140,6 +140,14 @@
    "transfer_mode": {
     "label": "ChiSurf-regularised transfer kinetics",
     "kind": "flag"
+   },
+   "normalize_amplitudes": {
+    "label": "Normalize lifetime amplitudes",
+    "kind": "flag"
+   },
+   "absolute_amplitudes": {
+    "label": "Absolute lifetime amplitudes",
+    "kind": "flag"
    }
   },
   "distributions": {
@@ -250,7 +258,9 @@
   "reverse_linearization": 0,
   "distance_between_gaussians": 0,
   "lifetimes_a": 1,
-  "transfer_mode": 0
+  "transfer_mode": 0,
+  "normalize_amplitudes": 1,
+  "absolute_amplitudes": 1
  },
  "optional_datasets": [
   "response",
@@ -594,9 +604,7 @@
    "donor": {
     "type": "PhotophysicsLifetimeSpectrumNode",
     "config": {
-     "number_of_lifetimes": "{d}",
-     "normalize_amplitudes": true,
-     "absolute_amplitudes": true
+     "number_of_lifetimes": "{d}"
     },
     "inputs": {
      "repeat": {
@@ -610,6 +618,10 @@
     },
     "outputs": {
      "@name": "float_vector"
+    },
+    "config_rules": {
+     "normalize_amplitudes": "normalize_amplitudes",
+     "absolute_amplitudes": "absolute_amplitudes"
     }
    },
    "distances": {
@@ -675,9 +687,7 @@
    "chromophore_a": {
     "type": "PhotophysicsLifetimeSpectrumNode",
     "config": {
-     "number_of_lifetimes": "{a}",
-     "normalize_amplitudes": true,
-     "absolute_amplitudes": true
+     "number_of_lifetimes": "{a}"
     },
     "inputs": {
      "repeat": {
@@ -691,6 +701,10 @@
     },
     "outputs": {
      "@name": "float_vector"
+    },
+    "config_rules": {
+     "normalize_amplitudes": "normalize_amplitudes",
+     "absolute_amplitudes": "absolute_amplitudes"
     }
    },
    "transfer": {

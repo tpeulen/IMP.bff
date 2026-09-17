@@ -94,6 +94,14 @@
    "reverse_linearization": {
     "label": "Reverse DNL table",
     "kind": "flag"
+   },
+   "normalize_amplitudes": {
+    "label": "Normalize lifetime amplitudes",
+    "kind": "flag"
+   },
+   "absolute_amplitudes": {
+    "label": "Absolute lifetime amplitudes",
+    "kind": "flag"
    }
   },
   "distributions": {
@@ -153,7 +161,9 @@
   "fit_stop": 1e+18,
   "lin_window_length": 17,
   "lin_window": 1,
-  "reverse_linearization": 0
+  "reverse_linearization": 0,
+  "normalize_amplitudes": 1,
+  "absolute_amplitudes": 1
  },
  "optional_datasets": [
   "response",
@@ -279,9 +289,7 @@
     "type": "TCSPCDecay",
     "config": {
      "instrument_units": "counts",
-     "number_of_lifetimes": "{n}",
-     "normalize_amplitudes": true,
-     "absolute_amplitudes": true
+     "number_of_lifetimes": "{n}"
     },
     "config_rules": {
      "timing": [
@@ -336,7 +344,9 @@
        "blackman"
       ],
       "index": "lin_window"
-     }
+     },
+     "normalize_amplitudes": "normalize_amplitudes",
+     "absolute_amplitudes": "absolute_amplitudes"
     },
     "bind": {
      "response": "response",
