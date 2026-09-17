@@ -332,6 +332,137 @@ def score_coloured_pdb(pdb_path, values, chains=None, default: float = 0.0) -> s
     kept.append("END\n")
     return "".join(kept)
 
+
+def morph_pdb(frames, chains=None) -> str:
+    """Several structures as one multi-model PDB, for Mol* to animate through.
+
+    ``frames`` are paths or PDB texts, in the order they should play. Mol*'s
+    trajectory animation steps through the MODEL records, so a morph plays in
+    the browser with nothing pre-rendered.
+
+    **Every frame must hold the same atoms in the same order.** A viewer reads
+    a multi-model file as a trajectory only then; two PDB entries of the same
+    protein almost never qualify, because they resolve different atoms, and
+    the file silently loads as a single model instead. :func:`morph_frames`
+    builds frames that do qualify.
+    """
+    texts = [frame if "\n" in str(frame) else pathlib.Path(frame).read_text()
+             for frame in frames]
+    kept = []
+    for text in texts:
+        kept.append([line for line in text.splitlines(keepends=True)
+                     if line.startswith(("ATOM", "HETATM"))
+                     and (chains is None or line[21:22] in chains)])
+    counts = {len(atoms) for atoms in kept}
+    if len(counts) > 1:
+        raise ValueError(
+            f"the frames hold different numbers of atoms ({sorted(counts)}), so a "
+            f"viewer will read this as one model and the animation will not play. "
+            f"Build the frames on the atoms the structures share -- morph_frames() "
+            f"does that."
+        )
+    out = []
+    for index, atoms in enumerate(kept, start=1):
+        out.append(f"MODEL     {index:4d}\n")
+        out.extend(atoms)
+        out.append("ENDMDL\n")
+    out.append("END\n")
+    return "".join(out)
+
+
+
+#: hGBP1's conformational transition: a coarse-grained trajectory of the
+#: open/closed change, and the topology its frames are laid onto. A DCD holds
+#: coordinates and nothing else -- no atom names, no residues, no chains -- so
+#: the PDB is not optional.
+HGBP1 = {
+    "topology": "examples/structure/GBP/hgbp1_cg.pdb",
+    "trajectory": "examples/structure/GBP/hgbp1_transition.dcd",
+    "network": "examples/structure/GBP/hGBP1.fps.json",
+}
+
+
+def repo_root() -> pathlib.Path:
+    """The checkout this module lives in."""
+    return HERE.parent.parent
+
+
+def hgbp1_frames(every: int = 4, atoms: str = "CA"):
+    """The hGBP1 transition as PDB texts, one per frame, all with the same atoms.
+
+    ``every`` subsamples the 58 recorded frames; ``atoms`` selects what to keep
+    ("CA" for the trace, "all" for every coarse-grained bead). A backbone trace
+    is a tenth of the bytes and renders the change just as clearly, which
+    matters when the frames are inlined into a notebook.
+    """
+    import IMP.bff as bff
+
+    root = repo_root()
+    topology = (root / HGBP1["topology"]).read_text().splitlines(keepends=True)
+    template = [line for line in topology
+                if line.startswith("ATOM")
+                and (atoms == "all" or line[12:16].strip() == atoms)]
+    indices = [i for i, line in enumerate(
+        [l for l in topology if l.startswith("ATOM")])
+        if atoms == "all" or l[12:16].strip() == atoms] if False else None
+
+    keep = [i for i, line in enumerate([l for l in topology if l.startswith("ATOM")])
+            if atoms == "all" or line[12:16].strip() == atoms]
+
+    header = bff.read_dcd_header(str(root / HGBP1["trajectory"]))
+    flat = np.asarray(bff.read_dcd(str(root / HGBP1["trajectory"])), dtype=float)
+    xyz = flat.reshape(header.n_frames, header.n_atoms, 3)
+
+    frames = []
+    for f in range(0, header.n_frames, max(1, int(every))):
+        lines = []
+        for line, index in zip(template, keep):
+            x, y, z = xyz[f, index]
+            lines.append(f"{line[:30]}{x:8.3f}{y:8.3f}{z:8.3f}{line[54:]}")
+        frames.append("".join(lines) + "END\n")
+    return frames
+
+def _atom_key(line: str):
+    """chain, residue, insertion code, atom name -- what makes an atom the same atom."""
+    return line[21:22], line[22:27].strip(), line[12:16].strip(), line[17:20].strip()
+
+
+def morph_frames(pdb_a, pdb_b, n_frames: int = 9, chains=None):
+    """A straight-line morph between two structures, on the atoms they share.
+
+    Returns a list of PDB texts, all holding the same atoms in the same order,
+    which is what :func:`morph_pdb` and every viewer's trajectory reader need.
+
+    The line is a ruler, not a mechanism: it says where the two ends are and
+    how far apart, and nothing about the path between them.
+    """
+    def atoms_of(path):
+        table = {}
+        for line in pathlib.Path(path).read_text().splitlines(keepends=True):
+            if line.startswith("ATOM") and (chains is None or line[21:22] in chains):
+                table[_atom_key(line)] = line
+        return table
+
+    first, second = atoms_of(pdb_a), atoms_of(pdb_b)
+    shared = [key for key in first if key in second]
+    if not shared:
+        raise ValueError(f"{pdb_a} and {pdb_b} share no atoms by chain/residue/name")
+
+    start = np.array([[float(first[k][30:38]), float(first[k][38:46]),
+                       float(first[k][46:54])] for k in shared])
+    end = np.array([[float(second[k][30:38]), float(second[k][38:46]),
+                     float(second[k][46:54])] for k in shared])
+
+    frames = []
+    for t in np.linspace(0.0, 1.0, int(n_frames)):
+        xyz = (1.0 - t) * start + t * end
+        lines = []
+        for key, (x, y, z) in zip(shared, xyz):
+            line = first[key]
+            lines.append(f"{line[:30]}{x:8.3f}{y:8.3f}{z:8.3f}{line[54:]}")
+        frames.append("".join(lines) + "END\n")
+    return frames
+
 def _b64(text: str) -> str:
     return base64.b64encode(text.encode()).decode()
 
@@ -355,6 +486,12 @@ def viewer_html(panels: Sequence[dict], height: int = 520) -> str:
         # Mol*'s "uncertainty" theme reads the B-factor column; a structure
         # written by `score_coloured_pdb` carries the label score there.
         "colour_by": panel.get("colour_by", ""),
+        # Animation: "spin" turns the camera, "models" steps through the
+        # MODEL records of a multi-model PDB -- a morph between two states.
+        "spin": bool(panel.get("spin", False)),
+        "animate_models": bool(panel.get("animate_models", False)),
+        "n_models": panel["structure"].count("\nMODEL ") + panel["structure"].startswith("MODEL "),
+        "frame_ms": int(panel.get("frame_ms", 500)),
         "clouds": [{"pdb": _b64(c["pdb"]), "colour": c.get("colour", DONOR_COLOUR),
                     "label": c.get("label", ""),
                     "style": c.get("style", "gaussian-surface")}
@@ -393,11 +530,17 @@ def viewer_html(panels: Sequence[dict], height: int = 520) -> str:
       viewportShowSelectionMode: false, viewportShowAnimation: false
     }}).then(function(viewer) {{
       var plugin = viewer.plugin;
+      (window.__workshop_viewers = window.__workshop_viewers || []).push(viewer);
       var B = plugin.builders.structure;
 
       function parse(b64) {{
         return plugin.builders.data.rawData({{ data: atob(b64) }})
           .then(function(raw) {{ return B.parseTrajectory(raw, "pdb"); }});
+      }}
+
+      if (panel.spin) {{
+        plugin.canvas3d.setProps({{ trackball: {{ animate: {{
+          name: "spin", params: {{ speed: 0.6 }} }} }} }});
       }}
 
       return parse(panel.structure)
@@ -439,6 +582,29 @@ def viewer_html(panels: Sequence[dict], height: int = 520) -> str:
                 }});
             }});
           }}, Promise.resolve());
+        }})
+        .then(function() {{
+          // Step through the MODEL records of the trajectory.
+          //
+          // Not Mol*'s own "animate-model-index": in an embedded Viewer it
+          // reports itself as playing and never advances a frame (measured --
+          // its parameters are accepted, and ticking the manager by hand does
+          // nothing either). Setting the model index on the state tree is what
+          // that animation does internally, and it works here.
+          if (!panel.animate_models || panel.n_models < 2) return;
+          var cell = Array.from(plugin.state.data.cells.values()).filter(function(c) {{
+            return c.transform && c.transform.params &&
+                   ("modelIndex" in c.transform.params);
+          }})[0];
+          if (!cell) return;
+          var index = 0;
+          setInterval(function() {{
+            index = (index + 1) % panel.n_models;
+            var params = Object.assign({{}}, cell.transform.params,
+                                       {{ modelIndex: index }});
+            plugin.state.data.build().to(cell.transform.ref)
+              .update(params).commit();
+          }}, panel.frame_ms);
         }})
         .catch(function(error) {{
           host.innerHTML = "<pre style='padding:10px;font:12px monospace;" +
@@ -713,7 +879,7 @@ __all__ = [
     "STATES", "DYES", "R0", "ROTAMER_LIBRARIES", "fetch_pdb", "single_dimer",
     "ca_position",
     "av", "av_points", "EmptyVolume", "rda", "rda_e", "efficiency", "distance_distribution",
-    "protein_for_view", "points_to_pdb", "score_coloured_pdb", "av_pdb", "viewer_html", "show",
+    "protein_for_view", "points_to_pdb", "score_coloured_pdb", "morph_pdb", "morph_frames", "hgbp1_frames", "HGBP1", "av_pdb", "viewer_html", "show",
     "site_panel", "circle_plot", "deviation_scale", "deviation_mappable",
     "rotamer_library_name", "rotamer_pdb",
 ]
