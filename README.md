@@ -25,17 +25,33 @@ name is reachable flat as `IMP.bff.<Name>`; the manual page
 Two packages, one import name. Both give you `import IMP.bff`; they own the
 same files, so install one or the other, not both.
 
-**`bff` — the core, no IMP.** Label distributions and accessible volumes,
+**`imp-bff` — the core, no IMP.** Label distributions and accessible volumes,
 explicit dyes from a rotamer library (`FRETRotamer`), dye diffusion on a
 grid (`ProbeDiffusionSimulation`, `DynamicAccessibleVolume`), linker
 sampling (`RRTTree`), probe force fields (`create_forcefield_system`),
 side-chain packing (`pack_protein_sidechains`), the whole fitting stack (`Minimizer`,
 `TCSPCDecay`, `ChiSquared`, FCS, κ²), the labelling-site score, and
-structure and trajectory IO.
+structure and trajectory IO. It needs nothing but Python and numpy: the wheel
+links no library outside itself.
 
 ```bash
-pip install imp-bff         # wheels for Linux and macOS
-conda install -c conda-forge bff
+pip install imp-bff                      # wheels for Linux, macOS and Windows
+conda install -c conda-forge bff         # the same core as a conda package
+```
+
+While a version is still a **pre-release**, pip only takes it when asked:
+
+```bash
+pip install --pre imp-bff
+```
+
+Straight from a GitHub release, without PyPI — pip picks the wheel that fits
+your platform and Python version off the release page:
+
+```bash
+pip install --pre --no-index \
+  --find-links https://github.com/tpeulen/imp.bff/releases/expanded_assets/v0.15.0a1 \
+  imp-bff
 ```
 
 **`imp.bff` — the IMP module.** The same library built inside the Integrative
@@ -56,6 +72,31 @@ The large data (rotamer libraries, coarse-grained probe inputs — 62 MB) is
 downloaded on first use into a per-user cache. `imp_bff_fetch_data` takes it
 all at once, which is what you want before going offline or in a container
 image.
+
+## Run the notebooks
+
+The notebooks are in the repository, not in the wheel, so clone it and install
+the core beside them. `[notebooks]` adds exactly what they import — Jupyter,
+matplotlib, scipy, scikit-learn, pandas, tttrlib and py3Dmol:
+
+```bash
+git clone https://github.com/tpeulen/imp.bff
+cd imp.bff
+python -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
+pip install --pre "imp-bff[notebooks]"
+imp_bff_fetch_data                                    # the 62 MB of libraries, once
+jupyter lab examples/spectroscopy/bayesian_decays
+```
+
+`examples/spectroscopy/bayesian_decays` is the series to start with: twenty
+notebooks that build one fluorescence-decay analysis from the measurement to a
+fit of real data, each one runnable on its own. They import `IMP.bff` and the
+`bd.py` beside them, so the core wheel is all they need.
+
+`doc/manual/` is the manual, and the same applies: a notebook that only says
+`import IMP.bff` runs on the core. The ones that say `import IMP` — the
+restraint, docking and molecular-dynamics pages — need the IMP module, which is
+the conda package below, since they score with IMP's own optimizers.
 
 ## Coming from LabelLib
 

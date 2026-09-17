@@ -37,6 +37,19 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest", "scipy", "mrcfile"]
+# What the notebooks in examples/ and doc/manual/ import, so a reader clones the
+# repository and installs one thing. The heavy optional ones stay out: torch
+# (two single-molecule notebooks) and OpenMM (the MD export) are installed by
+# the reader who runs those.
+notebooks = [
+    "jupyterlab",
+    "matplotlib",
+    "scipy",
+    "scikit-learn",
+    "pandas",
+    "tttrlib",
+    "py3Dmol",
+]
 # The accelerator, which this package deliberately does not carry itself.
 #
 # `libimp_bff_wgpu` -- a few hundred kilobytes, built here and shipped in the
