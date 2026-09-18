@@ -692,6 +692,22 @@ def viewer_html(panels: Sequence[dict], height: int = 520) -> str:
     data = json.dumps(payload)
     unique = "ws-molstar-" + str(abs(hash(data)) % 10 ** 8)
 
+    # The "uncertainty" theme does not scale itself to the data -- its domain
+    # defaults to [0, 100], the B-factor scale -- so the score ramp gets its
+    # domain from the columns themselves, one domain shared by every score
+    # panel in the payload so two frames are coloured on the same scale.
+    factors = []
+    for panel in panels:
+        if panel.get("colour_by") != "score":
+            continue
+        for line in panel["structure"].splitlines():
+            if line.startswith(("ATOM", "HETATM")):
+                try:
+                    factors.append(float(line[60:66]))
+                except ValueError:
+                    pass
+    score_domain = [min(factors), max(factors)] if factors else [0.0, 1.0]
+
     return f"""
 <link rel="stylesheet" type="text/css" href="{MOLSTAR_CSS}" />
 <div id="{unique}" style="display:flex;gap:10px;flex-wrap:wrap"></div>
@@ -739,11 +755,17 @@ def viewer_html(panels: Sequence[dict], height: int = 520) -> str:
         .then(function(traj) {{
           return B.hierarchy.applyPreset(traj, "default",
             {{ representationPreset: "polymer-and-ligand",
-               theme: panel.colour_by === "score"
-                 ? {{ globalName: "uncertainty",
-                      globalColorParams: {{ list: {{ kind: "interpolate",
-                        colors: ["#2166ac", "#f7f7f7", "#b2182b"] }} }} }}
-                 : undefined }});
+               representationPresetParams: {{
+                 theme: panel.colour_by === "score"
+                   ? {{ globalName: "uncertainty",
+                        globalColorParams: {{ domain: {score_domain},
+                          // ColorScale.interpolate works on Color *numbers*;
+                          // hex strings render black. The uncertainty theme
+                          // reverses the list, so red is listed first and
+                          // lands on the domain's good end.
+                          list: {{ kind: "interpolate",
+                            colors: [0xb2182b, 0xf7f7f7, 0x2166ac] }} }} }}
+                   : undefined }} }});
         }})
         .then(function() {{
           return panel.clouds.reduce(function(chain, cloud) {{
