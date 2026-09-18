@@ -475,6 +475,145 @@ def hgbp1_network() -> dict:
         "chi2_sets": list(document.get("\u03c7\u00b2", {})),
     }
 
+
+#: The crystal entry the workshop's hGBP1 numbering hangs from: its model is
+#: what the coarse-grained topology was built on, and its ConSurf run is where
+#: the conservation grades come from.
+HGBP1_CRYSTAL = "1F5N"
+
+_CONSURF_UA = {"User-Agent": "imp-bff-workshop/1.0 (conservation grades)"}
+
+
+def _fetch_json(url: str, timeout: float = 60.0):
+    request = urllib.request.Request(url, headers=_CONSURF_UA)
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        return json.load(response)
+
+
+def _fetch_text(url: str, timeout: float = 120.0) -> str:
+    request = urllib.request.Request(url, headers=_CONSURF_UA)
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        return response.read().decode()
+
+
+def _consurf_from_labelizer_org(pdb_id: str = HGBP1_CRYSTAL):
+    """Grades from the paper's webserver, or ``None`` when it holds none.
+
+    The REST contract is the one ``ipynb/example`` interfaces: the entry id
+    from ``load_pdb``, the chains that have grades from ``conservationscore``,
+    then the grades PDB itself -- the normalised grade in the B-factor
+    column, on the entry's own numbering.
+    """
+    try:
+        api = "https://labelizer.org/backend/"
+        entry = _fetch_json(f"{api}load_pdb/{pdb_id}?db=PDB")
+        chains = _fetch_json(f"{api}conservationscore/{entry['id']}")["chains"]
+        if not chains:
+            return None
+        text = _fetch_text(f"{api}conservationscore/{entry['id']}/{chains[0]}")
+    except OSError as error:
+        print(f"labelizer.org unreachable ({error}); trying ConSurf-DB")
+        return None
+    scores, resnames = {}, {}
+    for line in text.splitlines():
+        if not line.startswith("ATOM") or len(line) < 66:
+            continue
+        position = int(line[22:26])
+        scores[position] = float(line[60:66])
+        resnames[position] = line[17:20].strip()
+    return scores, resnames
+
+
+def _consurf_from_consurfdb(pdb_id: str = HGBP1_CRYSTAL, chain: str = "A"):
+    """Grades from the precomputed ConSurf database, as a ``.grades`` table."""
+    import re
+
+    base = "https://consurfdb.tau.ac.il/"
+    found = _fetch_json(f"{base}find_chains/?pdb_ID={pdb_id}")
+    if not found or found[0] == "error" or chain not in found:
+        raise RuntimeError(f"ConSurf-DB holds no run for {pdb_id} chain {chain}: {found}")
+    data = _fetch_json(f"{base}get_final_data/?unique_pdb={pdb_id}"
+                       f"&identical_pdb={pdb_id}&identical_chain={chain}")
+    text = _fetch_text(data["Score_File"])
+    scores, resnames = {}, {}
+    for line in text.splitlines():
+        fields = line.split()
+        if len(fields) < 4 or not fields[0].isdigit():
+            continue
+        try:
+            score = float(fields[3])
+        except ValueError:
+            continue
+        match = re.match(r"^([A-Z]{3}):(\d+):([A-Za-z]+)$", fields[2])
+        if not match:
+            continue                    # a sequence position with no model residue
+        position = int(match.group(2))
+        scores[position] = score
+        resnames[position] = match.group(1)
+    return scores, resnames
+
+
+def hgbp1_consurf_grades(cache: Optional[pathlib.Path] = None) -> pathlib.Path:
+    """ConSurf conservation grades for hGBP1, in the form IMP.bff reads.
+
+    Two places serve such grades, and both are asked, in this order.
+    **labelizer.org**, the paper's own webserver, exposes its stored grades
+    over REST (the contract ``ipynb/example`` drives); its internal ConSurf
+    job has never delivered for :data:`HGBP1_CRYSTAL` -- an analysis job with
+    the conservation toggle on, submitted 2026-09-18, terminated with the
+    exposure, cysteine and secondary-structure tables and no conservation --
+    so that route answers "no chains" today and wins the day it answers
+    otherwise. **ConSurf-DB**, the precomputed database, holds a finished run
+    for 1F5N chain A: 6252 homologues found, 300 in the final alignment.
+
+    Either way the grades arrive on the crystal entry's numbering, and one
+    remap is needed: 1F5N models residues 7-583 with a disordered gap at
+    158-164 -- 570 residues, which the workshop topology numbers 1-570. The
+    k-th residue of the topology takes the grade of the k-th modelled
+    position, and the mapping is verified by residue identity before anything
+    is written: a mismatch raises rather than mis-grades.
+
+    What is written is one atom line per residue of the topology -- the
+    residue's own first atom, coordinates and all -- with the normalised
+    grade in the B-factor column. That is the file
+    ``bff.labelizer_read_consurf`` reads, and a viewer colours by it.
+    """
+    cache = pathlib.Path(cache or DATA)
+    cache.mkdir(parents=True, exist_ok=True)
+    out = cache / "hGBP1_consurf_grades.pdb"
+    if out.exists() and out.stat().st_size > 0:
+        return out
+
+    scores, resnames = _consurf_from_labelizer_org() or _consurf_from_consurfdb()
+    modelled = sorted(resnames)
+
+    first_atom = {}
+    for line in (repo_root() / HGBP1["topology"]).read_text().splitlines():
+        if line.startswith("ATOM"):
+            key = (line[21], int(line[22:26]))
+            first_atom.setdefault(key, line)
+    workshop = sorted(first_atom, key=lambda key: (key[0] != "A", key[1]))
+
+    if len(modelled) != len(workshop):
+        raise RuntimeError(
+            f"1F5N models {len(modelled)} residues but the workshop topology "
+            f"has {len(workshop)}: the grades cannot be mapped positionally")
+    wrong = [f"{chain}{resi} is {first_atom[(chain, resi)][17:20].strip()}, "
+             f"1F5N {modelled[k]} is {resnames[modelled[k]]}"
+             for k, (chain, resi) in enumerate(workshop)
+             if first_atom[(chain, resi)][17:20].strip() != resnames[modelled[k]]
+             or modelled[k] not in scores]
+    if wrong:
+        raise RuntimeError("the grades do not map onto the workshop topology by "
+                           f"residue identity: {'; '.join(wrong[:5])}")
+
+    out.write_text("".join(
+        first_atom[key][:60] + f"{scores[modelled[k]]:6.3f}"
+        + first_atom[key][66:].rstrip() + "\n"
+        for k, key in enumerate(workshop)) + "END\n")
+    return out
+
+
 def _atom_key(line: str):
     """chain, residue, insertion code, atom name -- what makes an atom the same atom."""
     return line[21:22], line[22:27].strip(), line[12:16].strip(), line[17:20].strip()
