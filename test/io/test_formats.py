@@ -1,6 +1,7 @@
 """The fps.json reader, the legacy C# formats, and structure IO."""
 
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -99,6 +100,45 @@ def test_read_old_lps_txt_av1_av3_xyz(tmp_path):
     errors = fps_schema.fps_schema_validate(json.dumps(
         {"Positions": positions, "Distances": distances})).errors
     assert not errors, errors
+
+
+def test_legacy_paths_carrying_windows_separators(tmp_path):
+    """The reader cuts directories and basenames off at either separator.
+
+    FPS ships projects whose files were named on Windows, and a Windows
+    caller hands these readers `\\`-joined paths: a '/'-only cut makes the
+    sibling Distances.txt unfindable and keys the PDB under its whole path,
+    so every atom silently falls back to the CA placeholder. Locked here
+    with literal backslash names, which only a POSIX filesystem can carry
+    -- on Windows the real separator IS the backslash, and the tests above
+    exercise that natively.
+    """
+    if os.name == "nt":
+        pytest.skip("the fixture needs a filesystem where \\ is a plain character")
+    # The bytes the backslash-joined strings name, written under those flat
+    # names; and the Distances.txt where the fixed reader will look for it:
+    # the directory the backslash cut yields, joined with a slash.
+    documents = tmp_path / "C:\\Users\\olga\\Documents"
+    documents.mkdir()
+    (documents / "Distances.txt").write_text(
+        "RDAMeanE\n"
+        "site1 site2 45.7 4.5 4.6 52.0\n")
+    (tmp_path / "C:\\Users\\olga\\Documents\\LPs.txt").write_text(
+        "site1 mol Alexa488 AV1 20.0 4.5 3.5 2\n"
+        "site2 mol Alexa647 AV3 21.0 4.0 9.0 3.0 1.5 1\n")
+    (tmp_path / "C:\\Users\\olga\\Documents\\mol.pdb").write_text(
+        "ATOM      1  CA  ALA A  12      11.000  12.000  13.000  1.00  0.00\n"
+        "ATOM      2  CB  ALA A  12      14.000  15.000  16.000  1.00  0.00\n"
+        "END\n")
+
+    doc = fio.read_fps_json(
+        str(documents) + "\\LPs.txt",
+        pdb_paths=[str(documents) + "\\mol.pdb"])
+    positions = json.loads(doc.positions)
+    distances = json.loads(doc.distances)
+    assert positions["site1"]["atom_name"] == "CB"
+    assert positions["site1"]["residue_seq_number"] == 12
+    assert distances["site1_site2"]["distance"] == 45.7
 
 
 def test_write_pdb_and_rmsd(tmp_path):

@@ -1131,12 +1131,15 @@ using IMP::bff::internal::trimmed;
 
 
 std::string directory_of(const std::string& path) {
-    const std::size_t at = path.find_last_of('/');
+    // Both separators: a Windows path arrives here with '\', and its
+    // directory is just as unreachable through a '/'-only search as a
+    // POSIX path would be through a '\'-only one.
+    const std::size_t at = path.find_last_of("/\\");
     return at == std::string::npos ? std::string() : path.substr(0, at);
 }
 
 std::string basename_of(const std::string& path) {
-    const std::size_t at = path.find_last_of('/');
+    const std::size_t at = path.find_last_of("/\\");
     return at == std::string::npos ? path : path.substr(at + 1);
 }
 

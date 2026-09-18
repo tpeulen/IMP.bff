@@ -75,18 +75,90 @@ int main() {
 """
 
 
+_HELLO = "int main() { return 0; }\n"
+
+# Runtime-linking flag sets, tried in order. On Windows a freshly compiled
+# exe whose C++ runtime is a PATH-resolved DLL depends on *whose*
+# libstdc++-6.dll wins the search -- a runner PATH carries several toolchains'
+# copies -- and a losing pick kills the process before its first buffered
+# write lands, which looks like "compiled fine, ran, printed nothing". The
+# static-first set cuts that dependency; the later entries cover drivers that
+# reject the GNU spellings (clang's MSVC target takes /MT for a static CRT).
+def _flag_sets():
+    if os.name != "nt":
+        return ((),)
+    return (("-static", "-static-libgcc", "-static-libstdc++"), ("/MT",), ())
+
+
+def _try_build(cxx, src, exe, flags):
+    r = subprocess.run([cxx, "-std=c++14", *flags, "-o", exe, src],
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    return r.returncode, r.stderr
+
+
+def _working_flags(cxx):
+    """The first flag set that yields an exe which compiles AND runs, or None.
+
+    A compiler only counts as found if its exes run: a toolchain whose
+    runtime DLLs do not resolve compiles anything and then loads nothing,
+    and a compiler that cannot produce a runnable exe is no compiler for
+    this test's purposes.
+    """
+    tmp = tempfile.mkdtemp()
+    try:
+        src = os.path.join(tmp, "hello.cpp")
+        with open(src, "w") as fh:
+            fh.write(_HELLO)
+        for flags in _flag_sets():
+            exe = os.path.join(tmp, "hello.exe" if os.name == "nt" else "hello")
+            rc, _ = _try_build(cxx, src, exe, flags)
+            if rc != 0:
+                continue
+            try:
+                run = subprocess.run([exe], stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE, text=True, timeout=120)
+            except OSError:
+                continue
+            if run.returncode == 0:
+                return flags
+        return None
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
 def _compiler():
+    """The first candidate whose exes compile AND run, with the flags that
+    made that true. Third element is the reason nothing was found -- the
+    skip message, which should not blame PATH when the real problem is a
+    compiler that cannot produce a runnable exe."""
+    tried = []
     for c in ("c++", "clang++", "g++"):
         p = shutil.which(c)
-        if p:
-            return p
-    return None
+        if not p:
+            continue
+        tried.append(p)
+        flags = _working_flags(p)
+        if flags is not None:
+            return p, flags, None
+    if tried:
+        return None, None, ("no compiler on PATH produces a runnable exe (tried: %s)"
+                            % ", ".join(tried))
+    return None, None, "no C++ compiler on PATH"
+
+
+def _version_line(cxx):
+    try:
+        r = subprocess.run([cxx, "--version"], stdout=subprocess.PIPE,
+                           stderr=subprocess.STDOUT, text=True, timeout=60)
+        return r.stdout.splitlines()[0] if r.stdout else ""
+    except (OSError, subprocess.SubprocessError):
+        return ""
 
 
 class TestBaseHeaderStandalone(unittest.TestCase):
 
     def setUp(self):
-        self.cxx = _compiler()
+        self.cxx, self.cxx_flags, self.no_cxx_because = _compiler()
         self.tmp = tempfile.mkdtemp()
         inc = os.path.join(self.tmp, "IMP", "bff")
         os.makedirs(inc)
@@ -112,19 +184,31 @@ class TestBaseHeaderStandalone(unittest.TestCase):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def _compile(self, *extra):
-        exe = os.path.join(self.tmp, "tu")
-        cmd = [self.cxx, "-std=c++14", "-I", self.tmp, "-o", exe, self.src]
+        exe = os.path.join(self.tmp, "tu.exe" if os.name == "nt" else "tu")
+        cmd = [self.cxx, "-std=c++14", *self.cxx_flags, "-I", self.tmp,
+               "-o", exe, self.src]
         cmd.extend(extra)
         r = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                            text=True)
         return r.returncode, r.stderr, exe
 
+    def _why(self, run):
+        return "%s (%s) flags=%s: exit %s\nstderr:\n%s\nstdout:\n%r" % (
+            self.cxx, _version_line(self.cxx), self.cxx_flags,
+            run.returncode, run.stderr[-2000:], run.stdout)
+
     def test_standalone_branch_compiles_and_runs(self):
         if not self.cxx:
-            self.skipTest("no C++ compiler on PATH")
+            self.skipTest(self.no_cxx_because)
         rc, err, exe = self._compile("-DIMPBFF_STANDALONE")
         self.assertEqual(rc, 0, err[-2000:])
-        out = subprocess.run([exe], stdout=subprocess.PIPE, text=True).stdout
+        run = subprocess.run([exe], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                             text=True, timeout=120)
+        # A Windows failure mode used to reach the assertions below as an
+        # empty stdout with no explanation: the exe died at load, and the
+        # exit code was thrown away. Assert on the exit code first.
+        self.assertEqual(run.returncode, 0, self._why(run))
+        out = run.stdout
         self.assertIn("Thing(7) n=1", out)          # IMP_VALUES + show()
         self.assertIn("VE:x is -3, which is negative", out)  # IMP_THROW, typed
         self.assertIn("SE:no such file", out)       # catchable as std::exception
@@ -134,7 +218,7 @@ class TestBaseHeaderStandalone(unittest.TestCase):
         # has grown an IMP-free path that is on by default -- which would be a
         # different design, and one that should be chosen, not stumbled into.
         if not self.cxx:
-            self.skipTest("no C++ compiler on PATH")
+            self.skipTest(self.no_cxx_because)
         rc, err, _ = self._compile()
         self.assertNotEqual(rc, 0)
         self.assertIn("IMP/exception.h", err)
