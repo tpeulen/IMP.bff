@@ -1,158 +1,657 @@
 
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="4. Which measurement do you make first?" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="workshop/04_pair_selection_olga.html" />
+<meta property="og:site_name" content="IMP.bff" />
+<meta property="og:description" content="The notebooks before this one asked where a dye can go and which pair of sites is worth the mutations. Those questions were asked about one structure, or about two. This one is asked about a whole ..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_workshop_04_pair_selection_olga_8506a297.png" />
+<meta property="og:image:alt" content="The notebooks before this one asked where a dye can go and which pair of sites is worth the mutations. Those questions were asked about one structure, or about two. This one is asked about a whole ..." />
+<meta name="description" content="The notebooks before this one asked where a dye can go and which pair of sites is worth the mutations. Those questions were asked about one structure, or about two. This one is asked about a whole ..." />
+<meta name="twitter:card" content="summary_large_image" />
+
+    <title>4. Which measurement do you make first? &#8212; IMP.bff vdev</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=c83e6b79" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
+
+    <script src="../_static/documentation_options.js?v=7f41d439"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'workshop/04_pair_selection_olga';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.21.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.peulen.xyz/bff/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'dev';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://docs.peulen.xyz/bff/workshop/04_pair_selection_olga.html" />
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Which sites to mutate: greedy selection for a homodimer (BmrA)" href="05_site_selection_homodimer.html" />
+    <link rel="prev" title="2. Which pair should be measured?" href="03b_labelizer_pairs.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="dev" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
 
   
-  <title>4. Which measurement do you make first? &mdash; IMP.bff  documentation</title>
+  <div id="pst-scroll-pixel-helper"></div>
   
-  <link rel="canonical" href="http://scikit-learn.org/stable/workshop/04_pair_selection_olga.html" />
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
 
   
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
 
-  <link rel="stylesheet" href="../_static/css/vendor/bootstrap.min.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/sg_gallery.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/sg_gallery-binder.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/sg_gallery-dataframe.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/sg_gallery-rendered-html.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/nbsphinx-code-cells.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-<script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-<script src="../_static/jquery.js"></script> 
-</head>
-<body>
-<nav id="navbar" class="sk-docs-navbar navbar navbar-expand-md navbar-light bg-light py-0">
-  <div class="container-fluid sk-docs-container px-0">
-    <button
-      id="sk-navbar-toggler"
-      class="navbar-toggler"
-      type="button"
-      data-toggle="collapse"
-      data-target="#navbarSupportedContent"
-      aria-controls="navbarSupportedContent"
-      aria-expanded="false"
-      aria-label="Toggle navigation"
-    >
-      <span class="navbar-toggler-icon"></span>
-    </button>
+  
+    
+  
 
-    <div class="sk-navbar-collapse collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav mr-auto">
-        <li class="nav-item">
-          <a class="sk-nav-link nav-link" href="../install.html">Install</a>
-        </li>
-        <li class="nav-item">
-          <a class="sk-nav-link nav-link" href="../manual/index.html">User Manual</a>
-        </li>
-        <li class="nav-item">
-          <a class="sk-nav-link nav-link" href="../api/index.html">API</a>
-        </li>
-        <li class="nav-item">
-          <a class="sk-nav-link nav-link" href="../auto_examples/index.html">Examples</a>
-        </li>
-        <li class="nav-item">
-          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../glossary.html" >Glossary</a>
-        </li>
-        <li class="nav-item">
-          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../zreferences.html" >References</a>
-        </li>
-        <li class="nav-item">
-          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../faq.html" >FAQ</a>
-        </li>
-        <li class="nav-item">
-          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../related_projects.html" >Related packages</a>
-        </li>
-        <li class="nav-item">
-          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../roadmap.html" >Roadmap</a>
-        </li>
-        <li class="nav-item">
-          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="../about.html" >About us</a>
-        </li>
-        <li class="nav-item">
-          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://integrativemodeling.org/" >IMP</a>
-        </li>
-        <li class="nav-item">
-          <a class="sk-nav-link nav-link nav-more-item-mobile-items" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
-        </li>
-        <li class="nav-item dropdown nav-more-item-dropdown">
-          <a class="sk-nav-link nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">More</a>
-          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-              <a class="sk-nav-dropdown-item dropdown-item" href="../glossary.html" >Glossary</a>
-              <a class="sk-nav-dropdown-item dropdown-item" href="../zreferences.html" >References</a>
-              <a class="sk-nav-dropdown-item dropdown-item" href="../faq.html" >FAQ</a>
-              <a class="sk-nav-dropdown-item dropdown-item" href="../related_projects.html" >Related packages</a>
-              <a class="sk-nav-dropdown-item dropdown-item" href="../roadmap.html" >Roadmap</a>
-              <a class="sk-nav-dropdown-item dropdown-item" href="../about.html" >About us</a>
-              <a class="sk-nav-dropdown-item dropdown-item" href="https://integrativemodeling.org/" >IMP</a>
-              <a class="sk-nav-dropdown-item dropdown-item" href="https://github.com/fluorescence-tools/imp.bff" >GitHub</a>
-          </div>
-        </li>
-      </ul>
-      <div id="searchbox" role="search">
-          <div class="searchformwrapper">
-          <form class="search" action="../search.html" method="get">
-            <input class="sk-search-text-input" type="text" name="q" aria-labelledby="searchlabel" />
-            <input class="sk-search-text-btn" type="submit" value="Go" />
-          </form>
-          </div>
-      </div>
-    </div>
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/imp_bff-logo.png" class="logo__image only-light" alt="IMP.bff vdev - Home"/>
+    <img src="../_static/imp_bff-logo.png" class="logo__image only-dark pst-js-only" alt="IMP.bff vdev - Home"/>
+  
+  
+</a></div>
+    
   </div>
-</nav>
-<div class="d-flex" id="sk-doc-wrapper">
-    <input type="checkbox" name="sk-toggle-checkbox" id="sk-toggle-checkbox">
-    <label id="sk-sidemenu-toggle" class="sk-btn-toggle-toc btn sk-btn-primary" for="sk-toggle-checkbox">Toggle Menu</label>
-    <div id="sk-sidebar-wrapper" class="border-right">
-      <div class="sk-sidebar-toc-wrapper">
-        <div class="sk-sidebar-toc-logo">
-        </div>
-        <div class="btn-group w-100 mb-2" role="group" aria-label="rellinks">
-            <a href="03b_labelizer_pairs.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="2. Which pair should be measured?">Prev</a><a href="index.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Workshop: from a structure to a measured ensemble">Up</a>
-            <a href="05_site_selection_homodimer.html" role="button" class="btn sk-btn-rellink py-1" sk-rellink-tooltip="Which sites to mutate: greedy selection for a homodimer (BmrA)">Next</a>
-        </div>
-            <div class="sk-sidebar-toc">
-              <ul>
-<li><a class="reference internal" href="#">4. Which measurement do you make first?</a><ul>
-<li><a class="reference internal" href="#1.-The-molecule-and-the-motion">1. The molecule and the motion</a><ul>
-<li><a class="reference internal" href="#The-transition,-animated">The transition, animated</a></li>
-</ul>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting_started.html">
+    Getting Started
+  </a>
 </li>
-<li><a class="reference internal" href="#2.-How-many-directions-does-the-ensemble-have?">2. How many directions does the ensemble have?</a></li>
-<li><a class="reference internal" href="#3.-The-candidate-measurements">3. The candidate measurements</a></li>
-<li><a class="reference internal" href="#4.-The-selection">4. The selection</a></li>
-<li><a class="reference internal" href="#5.-Where-buying-more-stops-paying">5. Where buying more stops paying</a></li>
-<li><a class="reference internal" href="#6.-Is-the-greedy-order-the-best-order?">6. Is the greedy order the best order?</a></li>
-<li><a class="reference internal" href="#7.-Informative-is-not-the-same-as-useful">7. Informative is not the same as useful</a><ul>
-<li><a class="reference internal" href="#The-network,-before-and-after-the-first-measurement">The network, before and after the first measurement</a></li>
-<li><a class="reference internal" href="#Why:-the-best-pairs-are-copies-of-one-another">Why: the best pairs are copies of one another</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#8.-Precision,-or-more-experiments?">8. Precision, or more experiments?</a></li>
-<li><a class="reference internal" href="#9.-Pairs,-or-labelling-sites?">9. Pairs, or labelling sites?</a></li>
-<li><a class="reference internal" href="#10.-Where-the-chosen-measurements-are">10. Where the chosen measurements are</a></li>
-<li><a class="reference internal" href="#What-this-notebook-does-and-does-not-claim">What this notebook does and does not claim</a></li>
-<li><a class="reference internal" href="#Next">Next</a></li>
-</ul>
-</li>
-</ul>
 
-            </div>
-      </div>
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Workshop: from a structure to a measured ensemble
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../manual/index.html">
+    User manual
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../auto_examples/index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../labelizer.html">
+    Choosing a labelling site {#labelizer}
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../about.html">
+    About us
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../whats_new.html">
+    Release History
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../roadmap.html">
+    Roadmap
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../related_projects.html">
+    Related Projects
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../preface.html">
+    Welcome
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../contents.html">
+    Table of contents
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../zreferences.html">
+    References
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
     </div>
-    <div id="sk-page-content-wrapper">
-      <div class="sk-page-content container-fluid body px-md-3" role="main">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tpeulen/IMP.bff" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Workshop: from a structure to a measured ensemble
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../manual/index.html">
+    User manual
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../auto_examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../labelizer.html">
+    Choosing a labelling site {#labelizer}
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../about.html">
+    About us
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../whats_new.html">
+    Release History
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../roadmap.html">
+    Roadmap
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../related_projects.html">
+    Related Projects
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../preface.html">
+    Welcome
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contents.html">
+    Table of contents
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../zreferences.html">
+    References
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tpeulen/IMP.bff" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="README.html">FRET workshop: from a structure to a measured, modelled ensemble</a></li>
+<li class="toctree-l1"><a class="reference internal" href="01_accessible_volumes.html">Label models: accessible volumes and rotamer ensembles</a></li>
+
+
+<li class="toctree-l1"><a class="reference internal" href="03_labelizer.html">1. Which residues can carry a dye?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03b_labelizer_pairs.html">2. Which pair should be measured?</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">4. Which measurement do you make first?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05_site_selection_homodimer.html">Which <em>sites</em> to mutate: greedy selection for a homodimer (BmrA)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06_docking_homodimer.html">Docking two protomers against a FRET distance network</a></li>
+<li class="toctree-l1"><a class="reference internal" href="07_distance_networks.html">Reading a FRET distance network as a picture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="08_ensemble_maxent.html">7 - Maximum entropy: a population of structures, not a structure</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Workshop: from a structure to a measured ensemble</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">4. Which measurement do you make first?</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
   <section id="4.-Which-measurement-do-you-make-first?">
-<h1>4. Which measurement do you make first?<a class="headerlink" href="#4.-Which-measurement-do-you-make-first?" title="Permalink to this heading">¶</a></h1>
+<h1>4. Which measurement do you make first?<a class="headerlink" href="#4.-Which-measurement-do-you-make-first?" title="Link to this heading">#</a></h1>
 <p>The notebooks before this one asked where a dye can go and which pair of sites is worth the mutations. Those questions were asked about one structure, or about two. This one is asked about a whole trajectory of candidate structures at once, and it is the question an experiment actually starts from:</p>
 <blockquote>
 <div><p>My protein moves. I have a network of distances I <em>could</em> measure. Which one do I measure first, and when does buying another stop paying?</p>
@@ -171,7 +670,7 @@ p_{kl} \;=\; P\!\left(\chi^{2} \ge \chi^{2}_{kl}\,\middle|\,\nu\right),\]</div>
 <p>with <span class="math notranslate nohighlight">\(\chi^{2}_{kl}\)</span> accumulating <span class="math notranslate nohighlight">\((E_k-E_l)^2/\sigma^2\)</span> over the measurements chosen so far, and <span class="math notranslate nohighlight">\(p_{kl}\)</span> the right-tail probability that structure <span class="math notranslate nohighlight">\(l\)</span> survives the data when structure <span class="math notranslate nohighlight">\(k\)</span> is the true one. A measurement that separates two structures pushes <span class="math notranslate nohighlight">\(p_{kl}\)</span> towards zero and takes their RMSD out of the sum. The selector adds, at each step, whichever candidate leaves the smallest expected RMSD, and the sequence of those numbers is the <strong>decay curve</strong>:
 what each further measurement buys.</p>
 <p>Three consequences, and they are what the notebook is for.</p>
-<table class="docutils align-default">
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"></th>
 <th class="head"><p>question</p></th>
@@ -193,6 +692,7 @@ what each further measurement buys.</p>
 </tr>
 </tbody>
 </table>
+</div>
 <p>The molecule is <strong>human guanylate-binding protein 1</strong>, and the ensemble is its conformational transition — a real, large, hinged motion, not an interpolation between two crystal forms. The calculation is the one in <code class="docutils literal notranslate"><span class="pre">`examples/labels/plot_pair_selection.py</span></code> &lt;../../examples/labels/plot_pair_selection.py&gt;`__ and <code class="docutils literal notranslate"><span class="pre">`ipynb/example/greedy_pair_selection.ipynb</span></code> &lt;../../ipynb/example/greedy_pair_selection.ipynb&gt;`__, re-told at workshop pace and pushed further.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
@@ -245,7 +745,7 @@ network    examples/structure/GBP/hGBP1.fps.json
 </pre></div></div>
 </div>
 <section id="1.-The-molecule-and-the-motion">
-<h2>1. The molecule and the motion<a class="headerlink" href="#1.-The-molecule-and-the-motion" title="Permalink to this heading">¶</a></h2>
+<h2>1. The molecule and the motion<a class="headerlink" href="#1.-The-molecule-and-the-motion" title="Link to this heading">#</a></h2>
 <p>hGBP1 is a large GTPase of the interferon response: a globular G domain welded to a long helical stalk. On nucleotide binding and hydrolysis the stalk swings away from the G domain — tens of ångström at the far end — and that motion is what a FRET experiment on this protein is for.</p>
 <p>The ensemble is <code class="docutils literal notranslate"><span class="pre">hgbp1_transition.dcd</span></code>: 58 frames of that transition on the coarse-grained topology in <code class="docutils literal notranslate"><span class="pre">hgbp1_cg.pdb</span></code>. A DCD holds coordinates and nothing else — no atom names, no residues, no chains — so the PDB is not optional; it is what tells every coordinate which atom it belongs to.</p>
 <div class="nbinput docutils container">
@@ -292,7 +792,7 @@ network    examples/structure/GBP/hGBP1.fps.json
 </pre></div></div>
 </div>
 <section id="The-transition,-animated">
-<h3>The transition, animated<a class="headerlink" href="#The-transition,-animated" title="Permalink to this heading">¶</a></h3>
+<h3>The transition, animated<a class="headerlink" href="#The-transition,-animated" title="Link to this heading">#</a></h3>
 <p>Before any arithmetic, the motion itself. Mol* steps through the models of a multi-model PDB, so a morph needs no video and nothing pre-rendered — every frame below is the deposited trajectory, subsampled every fourth frame.</p>
 <p>The view needs Mol* from a CDN and therefore internet access from the browser. Nothing else in the notebook depends on it.</p>
 <div class="nbinput docutils container">
@@ -458,7 +958,7 @@ network    examples/structure/GBP/hGBP1.fps.json
 </section>
 </section>
 <section id="2.-How-many-directions-does-the-ensemble-have?">
-<h2>2. How many directions does the ensemble have?<a class="headerlink" href="#2.-How-many-directions-does-the-ensemble-have?" title="Permalink to this heading">¶</a></h2>
+<h2>2. How many directions does the ensemble have?<a class="headerlink" href="#2.-How-many-directions-does-the-ensemble-have?" title="Link to this heading">#</a></h2>
 <p>This is the figure to look at before trusting anything the selector says, because the criterion behaves very differently on a <strong>one-parameter</strong> family. A straight interpolation between two states is one: every atom moves along a line, every distance reports the same number — how far along you are — and every measurement is a copy of every other, so the decay curve stops after the first step. That is the right answer for that ensemble and a poor advertisement for the method.</p>
 <p>A real transition need not be one-parameter, and this one is not. The left panel below is the pairwise RMSD matrix over the C-alpha trace; the right panel embeds it in a plane by classical multidimensional scaling, coloured by frame number so the path through the ensemble is visible. The eigenvalues of that embedding say how much of the spread each direction carries.</p>
 <div class="nbinput docutils container">
@@ -549,7 +1049,7 @@ spread carried by each direction of the ensemble
 <p>The path bends. If the transition were a straight line between two end states the embedding would be a line and the second direction would carry nothing; it carries almost a quarter of the spread, and the RMSD matrix shows it as off-diagonal structure rather than a clean gradient. Two directions is not many, but it is the difference between an ordering problem and no problem at all: no single distance can report on both, so the order in which you buy them decides how fast the ambiguity shrinks.</p>
 </section>
 <section id="3.-The-candidate-measurements">
-<h2>3. The candidate measurements<a class="headerlink" href="#3.-The-candidate-measurements" title="Permalink to this heading">¶</a></h2>
+<h2>3. The candidate measurements<a class="headerlink" href="#3.-The-candidate-measurements" title="Link to this heading">#</a></h2>
 <p>The candidates come from the labelling network the repository ships for this protein, <code class="docutils literal notranslate"><span class="pre">hGBP1.fps.json</span></code>: the positions somebody chose to work with, with the linker geometry of the dye that goes on each.</p>
 <p>Two honest adjustments are needed before it can be used here, and both are printed rather than asserted.</p>
 <ul class="simple">
@@ -759,7 +1259,7 @@ with the clearance the file asks for, 43 of 406 volumes come back empty; with 5.
 </div>
 </section>
 <section id="4.-The-selection">
-<h2>4. The selection<a class="headerlink" href="#4.-The-selection" title="Permalink to this heading">¶</a></h2>
+<h2>4. The selection<a class="headerlink" href="#4.-The-selection" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">select_probe_pairs</span></code> takes the efficiency matrix, the RMSD matrix and the measurement error, and returns the order and the decay. Two arguments carry assumptions worth naming:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">unique_only=True</span></code> stops it buying the same measurement twice.</p></li>
@@ -856,7 +1356,7 @@ step  measurement        E range  expected RMSD / A   bought
 </div>
 </section>
 <section id="5.-Where-buying-more-stops-paying">
-<h2>5. Where buying more stops paying<a class="headerlink" href="#5.-Where-buying-more-stops-paying" title="Permalink to this heading">¶</a></h2>
+<h2>5. Where buying more stops paying<a class="headerlink" href="#5.-Where-buying-more-stops-paying" title="Link to this heading">#</a></h2>
 <p>The curve has a knee, and the useful thing is to put numbers on it rather than adjectives.</p>
 <p>The <strong>relative gain</strong> of a step is the fraction of the current expected RMSD the next measurement removes. A line has to be drawn somewhere and it is drawn at 5 %; a gain smaller than that is not bigger than the scatter of the accessible-volume calculation that produced the efficiencies in the first place.</p>
 <p>The <strong>floor</strong> is the value the curve reaches and does not leave, and what it <em>is</em> matters more than where the knee is. It is not zero. It is the size of the structural differences this measurement error cannot resolve.</p>
@@ -926,7 +1426,7 @@ for scale, 8% of all frame pairs in the trajectory are closer to each other than
 <p>Some of those later steps make the expected RMSD go <em>up</em>, and that is the criterion working rather than failing. The right-tail probability is evaluated at the degrees of freedom of the whole set of measurements, so a measurement that adds a degree of freedom without separating anything new widens the set of structures that stay compatible with the data. A rising step is the criterion saying the experiment was already over.</p>
 </section>
 <section id="6.-Is-the-greedy-order-the-best-order?">
-<h2>6. Is the greedy order the best order?<a class="headerlink" href="#6.-Is-the-greedy-order-the-best-order?" title="Permalink to this heading">¶</a></h2>
+<h2>6. Is the greedy order the best order?<a class="headerlink" href="#6.-Is-the-greedy-order-the-best-order?" title="Link to this heading">#</a></h2>
 <p>Greedy takes the locally best measurement and never reconsiders. With twenty-one candidates every subset of one, two and three can be scored outright, so for once the greedy answer can be checked rather than trusted.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
@@ -981,7 +1481,7 @@ for scale, 8% of all frame pairs in the trajectory are closer to each other than
 </div>
 </section>
 <section id="7.-Informative-is-not-the-same-as-useful">
-<h2>7. Informative is not the same as useful<a class="headerlink" href="#7.-Informative-is-not-the-same-as-useful" title="Permalink to this heading">¶</a></h2>
+<h2>7. Informative is not the same as useful<a class="headerlink" href="#7.-Informative-is-not-the-same-as-useful" title="Link to this heading">#</a></h2>
 <p>This is the part of the criterion that is easy to state and easy to get wrong.</p>
 <p>Rank the twenty-one candidates by how good each would be <strong>on its own</strong> — the expected RMSD if it were the only measurement ever made. That is a sensible ranking and it is close to what any “which pair responds most to the conformational change” score gives you; the Labelizer’s pair score, for instance, asks which pair sits near <span class="math notranslate nohighlight">\(R_0\)</span> or which pair’s efficiency changes most between two structures, and it knows nothing about what the other candidates would have told you. Then buy the top
 three.</p>
@@ -1043,7 +1543,7 @@ the one-at-a-time order needs 8 measurements to match what the selector gets fro
 </pre></div></div>
 </div>
 <section id="The-network,-before-and-after-the-first-measurement">
-<h3>The network, before and after the first measurement<a class="headerlink" href="#The-network,-before-and-after-the-first-measurement" title="Permalink to this heading">¶</a></h3>
+<h3>The network, before and after the first measurement<a class="headerlink" href="#The-network,-before-and-after-the-first-measurement" title="Link to this heading">#</a></h3>
 <p>The same twenty-one candidates, drawn as a network: every labelling position on the rim, grouped by domain, one chord per candidate measurement.</p>
 <p>On the left each chord is coloured by what that measurement buys <strong>on its own</strong> — how much of the 12.94 Å prior it removes. On the right, by what it buys <strong>after the first measurement has already been made</strong>. The two panels share a colour scale, so the comparison is real, and the difference between them is the whole content of the criterion: buying one measurement does not just take a chord out of the network, it drains the value out of every chord that was reporting on the same thing.</p>
 <p>(The scale is symmetric because <code class="docutils literal notranslate"><span class="pre">ws.circle_plot</span></code> is built for deviations, which have a sign. Here almost everything is positive — a measurement rarely makes things worse — but not quite everything: the chords that go faintly blue on the right are measurements that, once 18-540 has been made, cost a degree of freedom and return nothing for it.)</p>
@@ -1114,7 +1614,7 @@ the largest remaining gain is 18-344, and that is the selector&#39;s second pick
 </div>
 </section>
 <section id="Why:-the-best-pairs-are-copies-of-one-another">
-<h3>Why: the best pairs are copies of one another<a class="headerlink" href="#Why:-the-best-pairs-are-copies-of-one-another" title="Permalink to this heading">¶</a></h3>
+<h3>Why: the best pairs are copies of one another<a class="headerlink" href="#Why:-the-best-pairs-are-copies-of-one-another" title="Link to this heading">#</a></h3>
 <p>The directions from section 2 make the mechanism explicit. Correlate each candidate’s predicted efficiency with a frame’s coordinate along each direction, and “what does this measurement report on” becomes a row of numbers.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
@@ -1217,7 +1717,7 @@ the three best taken one at a time
 </section>
 </section>
 <section id="8.-Precision,-or-more-experiments?">
-<h2>8. Precision, or more experiments?<a class="headerlink" href="#8.-Precision,-or-more-experiments?" title="Permalink to this heading">¶</a></h2>
+<h2>8. Precision, or more experiments?<a class="headerlink" href="#8.-Precision,-or-more-experiments?" title="Link to this heading">#</a></h2>
 <p>Everything so far was computed at one measurement error. That number is not a property of the protein — it is a property of your instrument, your correction factors and how long you count — and it is the single thing that decides how many measurements are worth funding.</p>
 <p>The sweep repeats the whole selection at seven errors, from 2 % (a well-corrected single-molecule setup with good statistics) to 18 % (a measurement nobody should base a structure on). Nothing else changes.</p>
 <div class="nbinput docutils container">
@@ -1298,7 +1798,7 @@ the three best taken one at a time
 <p>The left panel also shows the degrees-of-freedom penalty at its clearest. At coarse precision the curves turn back up and keep rising: past the third or fourth measurement every further one adds a degree of freedom without separating anything, so more structures stay compatible with the data and the expected error grows. A badly measured network is not merely uninformative — at this error it is worse than a small well-measured one.</p>
 </section>
 <section id="9.-Pairs,-or-labelling-sites?">
-<h2>9. Pairs, or labelling sites?<a class="headerlink" href="#9.-Pairs,-or-labelling-sites?" title="Permalink to this heading">¶</a></h2>
+<h2>9. Pairs, or labelling sites?<a class="headerlink" href="#9.-Pairs,-or-labelling-sites?" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">select_probe_pairs</span></code> prices one distance as one experiment. That is right when a distance is what you buy: an intramolecular pair in a monomer is a double cysteine mutant, and the mutant delivers that distance and no other.</p>
 <p>It is not right everywhere. In a homo-oligomer a cysteine at position <em>i</em> exists on every protomer at once, so buying a site delivers a family of distances and you pay for all of them. <code class="docutils literal notranslate"><span class="pre">select_probe_positions</span></code> applies the same criterion per <strong>site</strong>: each greedy step scores a candidate position by the expected RMSD left when every distance the enlarged set implies has been measured. The homodimer case is worked through in
 <code class="docutils literal notranslate"><span class="pre">`05_site_selection_homodimer.ipynb</span></code> &lt;05_site_selection_homodimer.ipynb&gt;`__; running it here, on a monomer whose network happens to be complete, shows what the difference is made of.</p>
@@ -1405,7 +1905,7 @@ at equal numbers of labelling positions
 <p>The pair selector can decline them, which is why its curve stays flat where the other rises, and on a monomer that is the honest accounting: a double cysteine mutant gives you one distance and you choose which. On a homo-oligomer it is not, and the pair curve there is a price list for experiments you cannot buy. Which curve you should read is not a property of the method. It is a property of your construct.</p>
 </section>
 <section id="10.-Where-the-chosen-measurements-are">
-<h2>10. Where the chosen measurements are<a class="headerlink" href="#10.-Where-the-chosen-measurements-are" title="Permalink to this heading">¶</a></h2>
+<h2>10. Where the chosen measurements are<a class="headerlink" href="#10.-Where-the-chosen-measurements-are" title="Link to this heading">#</a></h2>
 <p>The clouds below are the accessible volumes of the positions the first two chosen measurements use, on the first and the last frame of the transition, with the camera turning. Donor green, acceptor red. They are the same volumes the table was computed from, so the picture and the numbers cannot drift apart.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
@@ -1588,7 +2088,7 @@ measurement   R first frame / A   R last frame / A   E first   E last
 </div>
 </section>
 <section id="What-this-notebook-does-and-does-not-claim">
-<h2>What this notebook does and does not claim<a class="headerlink" href="#What-this-notebook-does-and-does-not-claim" title="Permalink to this heading">¶</a></h2>
+<h2>What this notebook does and does not claim<a class="headerlink" href="#What-this-notebook-does-and-does-not-claim" title="Link to this heading">#</a></h2>
 <p><strong>Does.</strong> Given these 58 frames of the hGBP1 transition, these 21 candidate distances and a transfer-efficiency error of 0.06, the expected error about which conformation you are looking at falls from 12.94 Å with no data to under two after four measurements, and the seventeen measurements after those buy nothing. The order is in section 4; the exhaustive check in section 6 says it is optimal for the first three; and section 7 shows that ordering the same candidates by how informative each is on
 its own does measurably worse.</p>
 <p><strong>Does not.</strong> It does not say that hGBP1 visits these 58 conformations with equal probability. They are frames of one trajectory, and the expected RMSD is an expectation over <em>that list</em>, weighted as though each frame were equally likely — change the list and the numbers change. The structures are coarse-grained, the efficiencies are AV1 predictions with their own uncertainty on top of the <span class="math notranslate nohighlight">\(\sigma\)</span> the selector was told about, and nothing here models the width of the dye distributions or
@@ -1596,7 +2096,7 @@ photophysics. The candidate set is the labelling network somebody already chose;
 <p>What survives all of that is the shape of the answer: a few measurements do almost all the work, the ones worth buying are the ones that are <em>not</em> redundant rather than the ones with the largest signal, and how many are worth funding is set by how well you can measure.</p>
 </section>
 <section id="Next">
-<h2>Next<a class="headerlink" href="#Next" title="Permalink to this heading">¶</a></h2>
+<h2>Next<a class="headerlink" href="#Next" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">`ipynb/example/greedy_pair_selection.ipynb</span></code> &lt;../../ipynb/example/greedy_pair_selection.ipynb&gt;`__ and <code class="docutils literal notranslate"><span class="pre">`examples/labels/plot_pair_selection.py</span></code> &lt;../../examples/labels/plot_pair_selection.py&gt;`__ are the shortest versions of this calculation, on a docked T4 lysozyme ensemble.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">`05_site_selection_homodimer.ipynb</span></code> &lt;05_site_selection_homodimer.ipynb&gt;`__ is the site-level question in full, on a homodimer, including what a one-parameter ensemble does to the decay curve.</p></li>
@@ -1606,158 +2106,129 @@ photophysics. The candidate set is the labelling network somebody already chose;
 </section>
 
 
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="03b_labelizer_pairs.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">2. Which pair should be measured?</p>
       </div>
-    <div class="container">
-      <footer class="sk-content-footer">
-            &copy; 2021 - 2026, IMP developers.
-      </footer>
+    </a>
+    <a class="right-next"
+       href="05_site_selection_homodimer.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Which <em>sites</em> to mutate: greedy selection for a homodimer (BmrA)</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#1.-The-molecule-and-the-motion">1. The molecule and the motion</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#The-transition,-animated">The transition, animated</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#2.-How-many-directions-does-the-ensemble-have?">2. How many directions does the ensemble have?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#3.-The-candidate-measurements">3. The candidate measurements</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#4.-The-selection">4. The selection</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#5.-Where-buying-more-stops-paying">5. Where buying more stops paying</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#6.-Is-the-greedy-order-the-best-order?">6. Is the greedy order the best order?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#7.-Informative-is-not-the-same-as-useful">7. Informative is not the same as useful</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#The-network,-before-and-after-the-first-measurement">The network, before and after the first measurement</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Why:-the-best-pairs-are-copies-of-one-another">Why: the best pairs are copies of one another</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#8.-Precision,-or-more-experiments?">8. Precision, or more experiments?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#9.-Pairs,-or-labelling-sites?">9. Pairs, or labelling sites?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#10.-Where-the-chosen-measurements-are">10. Where the chosen measurements are</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#What-this-notebook-does-and-does-not-claim">What this notebook does and does not claim</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Next">Next</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
     </div>
   </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2021 - 2026, IMP developers.
+      <br/>
+    
+  </p>
 </div>
-<script src="../_static/js/vendor/bootstrap.min.js"></script>
+      
+        <div class="footer-item">
 
-<script>
-    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
-    ga('create', 'UA-22606712-2', 'auto');
-    ga('set', 'anonymizeIp', true);
-    ga('send', 'pageview');
-</script>
-<script async src='https://www.google-analytics.com/analytics.js'></script>
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
+</p></div>
+      
+    </div>
+  
+</div>
 
-
-<script>
-$(document).ready(function() {
-    /* Add a [>>>] button on the top-right corner of code samples to hide
-     * the >>> and ... prompts and the output and thus make the code
-     * copyable. */
-    var div = $('.highlight-python .highlight,' +
-                '.highlight-python3 .highlight,' +
-                '.highlight-pycon .highlight,' +
-		'.highlight-default .highlight')
-    var pre = div.find('pre');
-
-    // get the styles from the current theme
-    pre.parent().parent().css('position', 'relative');
-    var hide_text = 'Hide prompts and outputs';
-    var show_text = 'Show prompts and outputs';
-
-    // create and add the button to all the code blocks that contain >>>
-    div.each(function(index) {
-        var jthis = $(this);
-        if (jthis.find('.gp').length > 0) {
-            var button = $('<span class="copybutton">&gt;&gt;&gt;</span>');
-            button.attr('title', hide_text);
-            button.data('hidden', 'false');
-            jthis.prepend(button);
-        }
-        // tracebacks (.gt) contain bare text elements that need to be
-        // wrapped in a span to work with .nextUntil() (see later)
-        jthis.find('pre:has(.gt)').contents().filter(function() {
-            return ((this.nodeType == 3) && (this.data.trim().length > 0));
-        }).wrap('<span>');
-    });
-
-    // define the behavior of the button when it's clicked
-    $('.copybutton').click(function(e){
-        e.preventDefault();
-        var button = $(this);
-        if (button.data('hidden') === 'false') {
-            // hide the code output
-            button.parent().find('.go, .gp, .gt').hide();
-            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'hidden');
-            button.css('text-decoration', 'line-through');
-            button.attr('title', show_text);
-            button.data('hidden', 'true');
-        } else {
-            // show the code output
-            button.parent().find('.go, .gp, .gt').show();
-            button.next('pre').find('.gt').nextUntil('.gp, .go').css('visibility', 'visible');
-            button.css('text-decoration', 'none');
-            button.attr('title', hide_text);
-            button.data('hidden', 'false');
-        }
-    });
-
-	/*** Add permalink buttons next to glossary terms ***/
-	$('dl.glossary > dt[id]').append(function() {
-		return ('<a class="headerlink" href="#' +
-			    this.getAttribute('id') +
-			    '" title="Permalink to this term">¶</a>');
-	});
-  /*** Hide navbar when scrolling down ***/
-  // Returns true when headerlink target matches hash in url
-  (function() {
-    hashTargetOnTop = function() {
-        var hash = window.location.hash;
-        if ( hash.length < 2 ) { return false; }
-
-        var target = document.getElementById( hash.slice(1) );
-        if ( target === null ) { return false; }
-
-        var top = target.getBoundingClientRect().top;
-        return (top < 2) && (top > -2);
-    };
-
-    // Hide navbar on load if hash target is on top
-    var navBar = document.getElementById("navbar");
-    var navBarToggler = document.getElementById("sk-navbar-toggler");
-    var navBarHeightHidden = "-" + navBar.getBoundingClientRect().height + "px";
-    var $window = $(window);
-
-    hideNavBar = function() {
-        navBar.style.top = navBarHeightHidden;
-    };
-
-    showNavBar = function() {
-        navBar.style.top = "0";
-    }
-
-    if (hashTargetOnTop()) {
-        hideNavBar()
-    }
-
-    var prevScrollpos = window.pageYOffset;
-    hideOnScroll = function(lastScrollTop) {
-        if (($window.width() < 768) && (navBarToggler.getAttribute("aria-expanded") === 'true')) {
-            return;
-        }
-        if (lastScrollTop > 2 && (prevScrollpos <= lastScrollTop) || hashTargetOnTop()){
-            hideNavBar()
-        } else {
-            showNavBar()
-        }
-        prevScrollpos = lastScrollTop;
-    };
-
-    /*** high performance scroll event listener***/
-    var raf = window.requestAnimationFrame ||
-        window.webkitRequestAnimationFrame ||
-        window.mozRequestAnimationFrame ||
-        window.msRequestAnimationFrame ||
-        window.oRequestAnimationFrame;
-    var lastScrollTop = $window.scrollTop();
-
-    if (raf) {
-        loop();
-    }
-
-    function loop() {
-        var scrollTop = $window.scrollTop();
-        if (lastScrollTop === scrollTop) {
-            raf(loop);
-            return;
-        } else {
-            lastScrollTop = scrollTop;
-            hideOnScroll(lastScrollTop);
-            raf(loop);
-        }
-    }
-  })();
-});
-
-</script>
-    
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
-    
-</body>
+  </footer>
+  </body>
 </html>
