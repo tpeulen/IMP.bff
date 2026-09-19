@@ -22,9 +22,9 @@ name is reachable flat as `IMP.bff.<Name>`; the manual page
 
 ## Documentation
 
-<https://docs.peulen.xyz/bff/> — built and published by CI: `dev/` follows
+<https://tpeulen.github.io/IMP.bff/> — built and published by CI: `dev/` follows
 this branch, a release adds its own version and moves `stable/`. The
-[workshop](https://docs.peulen.xyz/bff/dev/workshop/index.html) walks the
+[workshop](https://tpeulen.github.io/IMP.bff/dev/workshop/index.html) walks the
 whole route on one molecule, from choosing a labelling site to weighting an
 ensemble against the measured distances.
 

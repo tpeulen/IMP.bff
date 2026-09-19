@@ -112,10 +112,9 @@ project = u'IMP.bff'
 copyright = (
     f'2021 - {datetime.now().year}, IMP developers'
 )
-# The public documentation address is also the repository homepage.  Keep
-# generated canonical/OpenGraph URLs on the same custom domain as the README
-# and GitHub's About link.
-html_baseurl = 'https://docs.peulen.xyz/bff/'
+# GitHub Pages is the current public documentation site. The previous custom
+# domain remains linked from the landing page as the legacy documentation.
+html_baseurl = 'https://tpeulen.github.io/IMP.bff/dev/'
 # The compiled module is optional for a documentation build. Nothing in
 # doc/ uses `automodule`/`autoclass` -- the C++ API is Doxygen's job and the
 # narrative pages are hand-written .rst/.ipynb -- so the only thing the
@@ -189,7 +188,7 @@ if html_theme == "pydata_sphinx_theme":
         "show_toc_level": 2,
         "github_url": "https://github.com/tpeulen/IMP.bff",
         "switcher": {
-            "json_url": "https://docs.peulen.xyz/bff/switcher.json",
+            "json_url": "https://tpeulen.github.io/IMP.bff/switcher.json",
             "version_match": os.environ.get("DOCS_VERSION", "dev"),
             "check_switcher": False,
         },
@@ -365,4 +364,3 @@ def setup(app):
 warnings.filterwarnings("ignore", category=UserWarning,
                         message='Matplotlib is currently using agg, which is a'
                                 ' non-GUI backend, so cannot show the figure.')
-
