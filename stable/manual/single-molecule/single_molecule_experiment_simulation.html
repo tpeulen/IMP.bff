@@ -1,0 +1,865 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Simulating confocal smFRET experiments" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="manual/single-molecule/single_molecule_experiment_simulation.html" />
+<meta property="og:site_name" content="IMP.bff" />
+<meta property="og:description" content="The methods to simulate confocal smFRET experiments were previously described[PD] in detail implemented in public available software[CO] at the model archive and github. The input for confocal sing..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_manual_single-molecule_single_molecule_experiment_simulation_a313725a.png" />
+<meta property="og:image:alt" content="The methods to simulate confocal smFRET experiments were previously described[PD] in detail implemented in public available software[CO] at the model archive and github. The input for confocal sing..." />
+<meta name="description" content="The methods to simulate confocal smFRET experiments were previously described[PD] in detail implemented in public available software[CO] at the model archive and github. The input for confocal sing..." />
+<meta name="twitter:card" content="summary_large_image" />
+
+    <title>Simulating confocal smFRET experiments &#8212; IMP.bff vdev</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=c83e6b79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css?v=2aa19091" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
+
+    <script src="../../_static/documentation_options.js?v=7f41d439"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/sg-tags.js?v=d80f6fa4"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'manual/single-molecule/single_molecule_experiment_simulation';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.21.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.peulen.xyz/bff/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'dev';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://docs.peulen.xyz/bff/manual/single-molecule/single_molecule_experiment_simulation.html" />
+    <link rel="icon" href="../../_static/favicon.ico"/>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Examples" href="../../auto_examples/index.html" />
+    <link rel="prev" title="Single molecule spectroscopy" href="index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="dev" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/imp_bff-logo.png" class="logo__image only-light" alt="IMP.bff vdev - Home"/>
+    <img src="../../_static/imp_bff-logo.png" class="logo__image only-dark pst-js-only" alt="IMP.bff vdev - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../workshop/index.html">
+    Workshop: from a structure to a measured ensemble
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User manual
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../auto_examples/index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../labelizer.html">
+    Choosing a labelling site {#labelizer}
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../about.html">
+    About us
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../whats_new.html">
+    Release History
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../roadmap.html">
+    Roadmap
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../related_projects.html">
+    Related Projects
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../preface.html">
+    Welcome
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../contents.html">
+    Table of contents
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../zreferences.html">
+    References
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tpeulen/IMP.bff" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../workshop/index.html">
+    Workshop: from a structure to a measured ensemble
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User manual
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../auto_examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../labelizer.html">
+    Choosing a labelling site {#labelizer}
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../about.html">
+    About us
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../whats_new.html">
+    Release History
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../roadmap.html">
+    Roadmap
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../related_projects.html">
+    Related Projects
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../preface.html">
+    Welcome
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contents.html">
+    Table of contents
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../zreferences.html">
+    References
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tpeulen/IMP.bff" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../structure/index.html">Structural modeling</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../structure/structure_path_search.html">Path search</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../structure/structure_accessible_volumes.html">Accessible Volumes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../structure/structure_cgprobe.html">Explicit dyes: labelling, rotamer libraries and FRET</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../structure/structure_potentials.html">Scoring a coarse-grained protein</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../structure/structure_label_sites.html">Choosing where to put the dye</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../fcs/index.html">Fluorescence correlation spectroscopy</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../fcs/fcs_chisurf.html">Fluorescence correlation spectroscopy analysis in ChiSurf</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="simple">
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Single molecule spectroscopy</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Simulating confocal smFRET experiments</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">User manual</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Single molecule spectroscopy</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Simulating confocal smFRET experiments</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="Simulating-confocal-smFRET-experiments">
+<h1>Simulating confocal smFRET experiments<a class="headerlink" href="#Simulating-confocal-smFRET-experiments" title="Link to this heading">#</a></h1>
+<p>The methods to simulate confocal smFRET experiments were previously described <a class="reference external" href="https://pubs.acs.org/doi/10.1021/jp102156t">[PD]</a> in detail implemented in public available software <a class="reference external" href="https://www.sciencedirect.com/science/article/pii/S0959440X1630197X">[CO]</a> at the <a class="reference external" href="https://www.modelarchive.org/api/projects/ma-a2hbq">model archive</a> and <a class="reference external" href="https://github.com/fluorescence-tools/">github</a>. The input for confocal single molecule (sm) Foerster Resonance Energy (FRET) experiment simulations is
+generated in multiple steps that make use of different software packages. These steps are briefly outlined in this tutorial.</p>
+<section id="Simulating-fluorescence">
+<h2>Simulating fluorescence<a class="headerlink" href="#Simulating-fluorescence" title="Link to this heading">#</a></h2>
+<p>Simulations of a confocal experiment of biomolecules require knowledge of dye properties and photophysics of biomolecular states, defined experimental setups, and single molecule diffusion to compute photon traces. This tutorial focuses on spectroscopic aspects. A simulation of a confocal single molecule FRET experiment requires the fluorescent properties of a set of states. Simulations of dynamic molecules moreover require exchange rate constants among the states. In fluorescence experiments a
+state is defined by its brightness in the detection channels and a set of fluorescence lifetimes and anisotropy. The fluorescence lifetimes and anisotropy result in polarization dependent fluorescence decay patterns <a class="reference external" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9014241/">FL</a>. The brightness is the number of photons per unit of time that a molecule emits in a given state.</p>
+<p>Thus, to simulate a smFRET experiment for a biomolecular structure the fluorescence properties for that structure need to be determined. In a confocal single molecule experiment on biomolecules biomolecules are usually labeled by an externally introduced dyes that are flexibly tethered to the studied molecules. Thus, the fluorescence lifetimes and anisotropies of a state depend on the conformation of host molecules and the dyes. For accurate analysis and simulations the flexible tethering needs
+to be taken into consideration when defining a state for the simulations <a class="reference external" href="https://www.nature.com/articles/nmeth.2222">RT</a>. Fluorescence properties of dyes are modulated by their environment. Fluorophores can interact with their local environment. These interactions alter the fluorescence lifetime of a dye. In a FRET experiment that measures the migration of energy from an excited donor dye to an acceptor dye two major effects need to be considered: (i) the donor can be quenched by its local
+environment (Photoinduced Electron Transfer, PET) and (ii) the donor can be quenched by the acceptor by the energy migration to the acceptor (FRET). PET is a dynamic process influenced by dye diffusion <a class="reference external" href="https://pubs.acs.org/doi/full/10.1021/acs.jpcb.7b03441">ET</a>. Thus, the conformation of the host molecule together with dye properties result in lifetime distributions for the simulations of biomolecular states. Interestingly, for typical flexible tethered dyes the quenching by PET and FRET can
+be approximated to be independent <a class="reference external" href="https://pubs.acs.org/doi/full/10.1021/acs.jpcb.7b03441">ET</a>. Thus, in the presented pipeline FRET is computed independently of PET.</p>
+<p>In systems with multiple biomolecular states moreover, equilibrium populations of states, the kinetic exchange among the states and the experimental setup and the measurement process needs to be simulated.</p>
+</section>
+<section id="Simulation-software">
+<h2>Simulation software<a class="headerlink" href="#Simulation-software" title="Link to this heading">#</a></h2>
+<p>This tutorial makes use of:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Olga</span></code> - for simulating labels and inter-label distance distributions in FRET experiments</p></li>
+<li><p>Quenching Estimator (<code class="docutils literal notranslate"><span class="pre">QuEst</span></code>) - for estimating dynamic quenching (PET)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ChiSurf</span></code> - for scripting and computation of fluorescence decay curves</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Burbulator</span></code> - for simulating a confocal setup, molecular diffusion, molecular kinetics, and photon traces.</p></li>
+</ol>
+<p><code class="docutils literal notranslate"><span class="pre">Olga</span></code> is a program that simulates the distribution of dyes around their attachment site to compute distance distributions and corresponding distance distributions between dyes. <code class="docutils literal notranslate"><span class="pre">QuEst</span></code> (Quenching Estimator) is a program that simulates the diffusion of a dyes within its accessible volume to estimate the magnitue of local quenching. ChiSurf is a software package for the global analysis of fluorescence data. <code class="docutils literal notranslate"><span class="pre">ChiSurf</span></code> comes with forward models for fluorescence decays and can be scripted
+using Python. Thus, <code class="docutils literal notranslate"><span class="pre">ChiSurf</span></code> is used to compute fluorescence decay patterns for structures that server as an input for single-molecule simulations. <code class="docutils literal notranslate"><span class="pre">Burbulator</span></code> is a program to simulate confocal single-molecule experiments (including the kinetic exchange among different states). Burbulator uses polarization resolved fluorescence decay patterns and brightness as an input to define states and simulate photon traces.</p>
+</section>
+<section id="Olga:-Label-simulations">
+<h2>Olga: Label simulations<a class="headerlink" href="#Olga:-Label-simulations" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Olga</span></code> is a software to simulate inter-label distance distribitions for molecular structures. <code class="docutils literal notranslate"><span class="pre">Olga</span></code> is available at <a class="github reference external" href="https://github.com/fluorescence-tools/Olga">fluorescence-tools/Olga</a>. To simulate inter-label distances Olga requires label properties, labeling sites, and molecular structures as an input. Label properties and labeling sites are defined in JSON file. Atomic coordinates of molecular structures can be read from PDB files or DCD trajectories. For a structure and label pair Olga simulates the positional
+distribution of the label around their attachment site (see below).</p>
+<img alt="AV clouds" src="https://github.com/Fluorescence-Tools/Olga/blob/master/doc/screening%20tutorial/DNA_AVs.jpg?raw=true" />
+<p>Given an ensemble of structures and a set of labeling pairs, <code class="docutils literal notranslate"><span class="pre">Olga</span></code> can rank the labeling pairs based on their information content <a class="reference external" href="https://www.nature.com/articles/s41467-020-19023-1">AF</a>. Moreover, <code class="docutils literal notranslate"><span class="pre">Olga</span></code> can compute inter-label distance distribitions among experimental observables such as average FRET efficiencies to rank structural models. The computed distance distributions for a set of structures servers as an input modeled photon traces.</p>
+</section>
+<section id="QuEst:-PET-donor-quenching">
+<h2>QuEst: PET donor quenching<a class="headerlink" href="#QuEst:-PET-donor-quenching" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">QuEst</span></code> simulates the diffusion and interaction of dyes tethered to a protein to simulate dynmaic quenching by PET, <a class="reference external" href="https://pubs.acs.org/doi/full/10.1021/acs.jpcb.7b03441">[ET]</a>). <code class="docutils literal notranslate"><span class="pre">QuEst</span></code> is available at <a class="github reference external" href="https://github.com/fluorescence-tools/QuEst">fluorescence-tools/QuEst</a>. The output of a <code class="docutils literal notranslate"><span class="pre">QuEst</span></code> simulation is a fluorescence decay curve of a dye along with the corresponding fluorescence quantum yield that can serve as an input for donor fluorescence properties in FRET experiment simulations.</p>
+<img alt="Quest_gui" src="https://github.com/Fluorescence-Tools/quest/raw/master/doc/img/readme_screenshot_0.png?raw=true" />
+<p><code class="docutils literal notranslate"><span class="pre">QuEst</span></code> simulates fluorescence decays is three stages:</p>
+<ol class="arabic simple">
+<li><p>Identification of quenching amino acids (above highlighted in red)</p></li>
+<li><p>Simulation of the dye diffusion and interaction (sticking) to the protein surface</p></li>
+<li><p>Using the dye simulation the excitation, quenching, and fluorescence of the dye is simulated</p></li>
+</ol>
+<p>The output of <code class="docutils literal notranslate"><span class="pre">QuEst</span></code> is a fluorescence decay curve for a specific labeling position.</p>
+</section>
+<section id="ChiSurf:-Computing-of-decay-pattern">
+<h2>ChiSurf: Computing of decay pattern<a class="headerlink" href="#ChiSurf:-Computing-of-decay-pattern" title="Link to this heading">#</a></h2>
+<hr class="docutils" />
+<p><em>Input</em>: Instrumental features (e.g., IRF), Fluorescence decay in the absence of FRET, distance distributions</p>
+<p><em>Output</em>: Fluorescence decay in the presence of FRET</p>
+<hr class="docutils" />
+<p><code class="docutils literal notranslate"><span class="pre">ChiSurf</span></code> is software to design representations and optimize, sampling, over representation parameters of fluorescence data. <code class="docutils literal notranslate"><span class="pre">ChiSurf</span></code> provides scoring functions and forward models and scripting capabilities. A subset of the functionality us used here to compute fluorescence decay pattern as an input for the simulation software <code class="docutils literal notranslate"><span class="pre">Burbulator</span></code>. Releases of <code class="docutils literal notranslate"><span class="pre">ChiSurf</span></code> can be downloaded at <a class="reference external" href="https://github.com/fluorescence-tools/chisurf">GitHub</a> and the release
+<a class="reference external" href="https://peulen.xyz/downloads/chisurf/">archive</a>.</p>
+<p><em>Output</em>: Fluorescence decays in the presence of FRET</p>
+</section>
+<section id="Burbulator:-Single-molecule-spectroscopy-simulation">
+<h2>Burbulator: Single-molecule spectroscopy simulation<a class="headerlink" href="#Burbulator:-Single-molecule-spectroscopy-simulation" title="Link to this heading">#</a></h2>
+<hr class="docutils" />
+<p><em>Input</em>: decay pattern, kinetic rate constants, diffusion coefficients</p>
+<p><em>Output</em>: Single photon trace</p>
+<hr class="docutils" />
+<p>The simulation software for confocal single molecule (FRET) experiment (<code class="docutils literal notranslate"><span class="pre">Burbulator</span></code>) was developed for Windows and that can be used on other platforms such as Linux and macOS using <a class="reference external" href="https://www.winehq.org/">Wine</a>. To obtain Burbulator download the data accompanying <a class="reference external" href="https://www.sciencedirect.com/science/article/pii/S0959440X1630197X">[CO]</a> either with curl or using a webbrowser with the following <a class="reference external" href="https://www.modelarchive.org/doi/10.5452/ma-a2hbq">link</a>. Unfortunatelly, the
+<code class="docutils literal notranslate"><span class="pre">modelarchive</span></code> website will provide you with a file named wrongly as a <code class="docutils literal notranslate"><span class="pre">.cif</span></code>. Thus, you need to rename the file to correct file type <code class="docutils literal notranslate"><span class="pre">.tar.gz</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span><span class="w"> </span>mkdir<span class="w"> </span>cosb_model
+<span class="o">!</span><span class="w"> </span>curl<span class="w"> </span>https://www.modelarchive.org/api/projects/ma-a2hbq?type<span class="o">=</span>basic__model_file_name<span class="w"> </span>-o<span class="w"> </span>cosb_model.tar.gz
+<span class="o">!</span><span class="w"> </span>tar<span class="w"> </span>xfz<span class="w"> </span>cosb_model.tar.gz<span class="w"> </span>-C<span class="w"> </span>cosb_model
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 12.1M  100 12.1M    0     0  8869k      0  0:00:01  0:00:01 --:--:-- 8874k
+tar: Removing leading `/&#39; from member names
+</pre></div></div>
+</div>
+<p>In the archive you find the Burbulator program (<code class="docutils literal notranslate"><span class="pre">Burbulator.exe</span></code>) along with necessary runtimes (<code class="docutils literal notranslate"><span class="pre">VC++</span> <span class="pre">runtime</span> <span class="pre">6195</span></code>), a brief description that (<code class="docutils literal notranslate"><span class="pre">burbulator</span> <span class="pre">help.pdf</span></code>) that outlines the theory, and the file <code class="docutils literal notranslate"><span class="pre">Description.pdf</span></code> (in the root directory of the archive) that describes in greater detail the usage of Burbulator. The output of a Burbulator simulation are Becker&amp;Hickl SPC files that can be processes using conventional single-molecule <a class="reference external" href="https://fret.community/software/">FRET
+software</a>.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Single molecule spectroscopy</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../../auto_examples/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Examples</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Simulating-fluorescence">Simulating fluorescence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Simulation-software">Simulation software</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Olga:-Label-simulations">Olga: Label simulations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#QuEst:-PET-donor-quenching">QuEst: PET donor quenching</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ChiSurf:-Computing-of-decay-pattern">ChiSurf: Computing of decay pattern</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Burbulator:-Single-molecule-spectroscopy-simulation">Burbulator: Single-molecule spectroscopy simulation</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2021 - 2026, IMP developers.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

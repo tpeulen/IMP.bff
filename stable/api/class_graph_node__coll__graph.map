@@ -1,0 +1,7 @@
+<map id="GraphNode" name="GraphNode">
+<area shape="rect" id="Node000001" title="A function over named ports, evaluated lazily when its inputs settle." alt="" coords="83,299,240,584"/>
+<area shape="rect" id="Node000002" href="$class_graph_object.html" title="The identity half of chinet&#39;s GraphObject: a name and a uid." alt="" coords="5,5,136,251"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,263,123,298,117,299,107,264"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="160,88,347,168"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="241,182,206,299,201,298,235,180"/>
+</map>

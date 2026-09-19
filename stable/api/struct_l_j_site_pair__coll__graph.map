@@ -1,0 +1,7 @@
+<map id="LJSitePair" name="LJSitePair">
+<area shape="rect" id="Node000001" title="One non&#45;excluded site pair with its Lorentz&#45;Berthelot parameters." alt="" coords="5,277,199,363"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="63,135,141,200"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,200,105,261,99,261,99,200"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="37,5,167,85"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="105,99,105,134,99,134,99,99"/>
+</map>

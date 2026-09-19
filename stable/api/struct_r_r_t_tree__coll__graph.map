@@ -1,0 +1,7 @@
+<map id="RRTTree" name="RRTTree">
+<area shape="rect" id="Node000001" title="A tree of configurations, each reached from its parent by one step." alt="" coords="71,133,265,319"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,163,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="100,70,117,108,121,117,116,119,112,110,95,72"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="187,5,317,71"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="242,72,225,110,221,119,216,117,220,108,237,70"/>
+</map>

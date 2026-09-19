@@ -1,0 +1,864 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Which FRET pair to measure next" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="auto_examples/labels/plot_pair_selection.html" />
+<meta property="og:site_name" content="IMP.bff" />
+<meta property="og:description" content="An ensemble of candidate structures and a list of labelling pairs you could measure: which one do you measure first? IMP.bff.select_probe_pairs answers it the way Olga does (Dimura et al., Nat. Com..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_auto_examples_labels_plot_pair_selection_604d18de.png" />
+<meta property="og:image:alt" content="An ensemble of candidate structures and a list of labelling pairs you could measure: which one do you measure first? IMP.bff.select_probe_pairs answers it the way Olga does (Dimura et al., Nat. Com..." />
+<meta name="description" content="An ensemble of candidate structures and a list of labelling pairs you could measure: which one do you measure first? IMP.bff.select_probe_pairs answers it the way Olga does (Dimura et al., Nat. Com..." />
+<meta name="twitter:card" content="summary_large_image" />
+
+    <title>Which FRET pair to measure next &#8212; IMP.bff vdev</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=c83e6b79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
+
+    <script src="../../_static/documentation_options.js?v=7f41d439"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/sg-tags.js?v=d80f6fa4"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'auto_examples/labels/plot_pair_selection';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.21.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.peulen.xyz/bff/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'dev';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://docs.peulen.xyz/bff/auto_examples/labels/plot_pair_selection.html" />
+    <link rel="icon" href="../../_static/favicon.ico"/>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Accessible volume decorator" href="plot_AVDecorator.html" />
+    <link rel="prev" title="Path searches" href="plot_search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="dev" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/imp_bff-logo.png" class="logo__image only-light" alt="IMP.bff vdev - Home"/>
+    <img src="../../_static/imp_bff-logo.png" class="logo__image only-dark pst-js-only" alt="IMP.bff vdev - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../workshop/index.html">
+    Workshop: from a structure to a measured ensemble
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../manual/index.html">
+    User manual
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../labelizer.html">
+    Choosing a labelling site {#labelizer}
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../about.html">
+    About us
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../whats_new.html">
+    Release History
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../roadmap.html">
+    Roadmap
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../related_projects.html">
+    Related Projects
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../preface.html">
+    Welcome
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../contents.html">
+    Table of contents
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../zreferences.html">
+    References
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tpeulen/IMP.bff" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../workshop/index.html">
+    Workshop: from a structure to a measured ensemble
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../manual/index.html">
+    User manual
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../labelizer.html">
+    Choosing a labelling site {#labelizer}
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../about.html">
+    About us
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../whats_new.html">
+    Release History
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../roadmap.html">
+    Roadmap
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../related_projects.html">
+    Related Projects
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../preface.html">
+    Welcome
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contents.html">
+    Table of contents
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../zreferences.html">
+    References
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/tpeulen/IMP.bff" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Labelling simulations</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="plot_AVScreening.html">Scoring of structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ProbeNetworkRestraint.html">Accessible Volume Restraint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_path_maps.html">Path search</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_search.html">Path searches</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Which FRET pair to measure next</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_AVDecorator.html">Accessible volume decorator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_labelizer_score.html">Choosing a labelling site: the Labelizer score, natively</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_labelizer_fret_pair.html">Which pair to measure: a FRET assay for a conformational change</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_fret_restrained_md.html">FRET-restrained molecular dynamics: driving T4L from C2 to C1</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../spectroscopy/index.html">Fluorescence spectroscopy</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../spectroscopy/plot_k2_uncertainty.html">Orientation factor</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../structure/index.html">Structural modeling</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../release_highlights/index.html">Release Highlights</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../release_highlights/plot_release_highlights_0_12_0.html">Release Highlights for IMP.bff 0.12.0</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Examples</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Labelling simulations</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Which FRET pair to measure next</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="reference internal" href="#sphx-glr-download-auto-examples-labels-plot-pair-selection-py"><span class="std std-ref">Go to the end</span></a>
+to download the full example code.</p>
+</div>
+<section class="sphx-glr-example-title" id="which-fret-pair-to-measure-next">
+<span id="sphx-glr-auto-examples-labels-plot-pair-selection-py"></span><h1>Which FRET pair to measure next<a class="headerlink" href="#which-fret-pair-to-measure-next" title="Link to this heading">#</a></h1>
+<p>An ensemble of candidate structures and a list of labelling pairs you <em>could</em>
+measure: which one do you measure first?</p>
+<p><code class="docutils literal notranslate"><span class="pre">IMP.bff.select_probe_pairs</span></code> answers it the way Olga does (Dimura
+<em>et al.</em>, <em>Nat. Commun.</em> <strong>11</strong>, 5394, 2020). A measurement is worth making if
+it separates the ensemble – if the conformers it cannot tell apart are also
+the ones that are structurally alike. The selector adds the pair that leaves
+the smallest <em>expected</em> RMSD between the true structure and the one the
+measurements would single out, then repeats on what is left. What comes back is
+an ordered list and a decay curve: how much precision each further measurement
+buys, and where buying more stops paying.</p>
+<p>Two inputs are needed, and both are computed here rather than assumed: the FRET
+efficiency of every candidate pair in every frame, and the pairwise RMSD
+between the frames.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span><span class="w">
+</span><span class="kn">import</span><span class="w"> </span><span class="nn">pylab</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span><span class="w">
+</span><span class="w">
+</span><span class="kn">import</span><span class="w"> </span><span class="nn">RMF</span><span class="w">
+</span><span class="kn">import</span><span class="w"> </span><span class="nn">IMP</span><span class="w">
+</span><span class="kn">import</span><span class="w"> </span><span class="nn">IMP</span><span class="nn">.</span><span class="nn">atom</span><span class="w">
+</span><span class="kn">import</span><span class="w"> </span><span class="nn">IMP</span><span class="nn">.</span><span class="nn">core</span><span class="w">
+</span><span class="kn">import</span><span class="w"> </span><span class="nn">IMP</span><span class="nn">.</span><span class="nn">rmf</span><span class="w">
+</span><span class="kn">import</span><span class="w"> </span><span class="nn">IMP</span><span class="nn">.</span><span class="nn">bff</span><span class="w">
+</span></pre></div></div>
+<p>The ensemble. A hundred docked T4 lysozyme conformers, and the labelling
+positions and pairs of an fps.json file.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="n">m</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="p">)</span><span class="w">
+</span><span class="n">rmf_fn</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">get_example_path</span><span class="p">(</span><span class="s2">&quot;</span><span class="s2">structure/T4L/t4l_docking.rmf3</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">fps_json_path</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">get_example_path</span><span class="p">(</span><span class="s2">&quot;</span><span class="s2">structure/T4L/fret.fps.json</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="w">
+</span><span class="n">f</span> <span class="o">=</span> <span class="n">RMF</span><span class="o">.</span><span class="n">open_rmf_file_read_only</span><span class="p">(</span><span class="n">rmf_fn</span><span class="p">)</span><span class="w">
+</span><span class="n">hier</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">rmf</span><span class="o">.</span><span class="n">create_hierarchies</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w">
+</span><span class="n">IMP</span><span class="o">.</span><span class="n">rmf</span><span class="o">.</span><span class="n">load_frame</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">RMF</span><span class="o">.</span><span class="n">FrameID</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="p">)</span><span class="w">
+</span><span class="w">
+</span><span class="c1"># The beads the RMSD is measured over, taken before the restraint decorates the</span><span class="w">
+</span><span class="c1"># hierarchy with accessible volumes -- those move with the dye, not the fold.</span><span class="w">
+</span><span class="n">beads</span> <span class="o">=</span> <span class="p">[</span><span class="n">IMP</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">XYZ</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">IMP</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">get_leaves</span><span class="p">(</span><span class="n">hier</span><span class="p">)</span><span class="p">]</span><span class="w">
+</span><span class="n">frames</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">get_root_frames</span><span class="p">(</span><span class="p">)</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span><span class="si">}</span><span class="s2"> frames, </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">beads</span><span class="p">)</span><span class="si">}</span><span class="s2"> beads</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span></pre></div></div>
+<p>The candidate pairs. A score set names the subset of the file’s distances a
+given experiment covers; its pairs are the candidates to choose among.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="n">restraint</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">ProbeNetworkRestraint</span><span class="p">(</span><span class="w">
+</span>    <span class="n">hier</span><span class="p">,</span> <span class="n">fps_json_path</span><span class="p">,</span> <span class="n">score_set</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">chi2_C1_33p</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">pair_names</span> <span class="o">=</span> <span class="n">restraint</span><span class="o">.</span><span class="n">get_pair_names</span><span class="p">(</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">pair_names</span><span class="p">)</span><span class="si">}</span><span class="s2"> candidate pairs</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span></pre></div></div>
+<p>One pass over the ensemble collects both inputs. <code class="docutils literal notranslate"><span class="pre">get_pair_efficiencies</span></code>
+re-evaluates the accessible volumes and reports the mean FRET efficiency of
+every candidate, in the order <code class="docutils literal notranslate"><span class="pre">get_pair_names</span></code> gives – so the columns of
+<code class="docutils literal notranslate"><span class="pre">effs</span></code> are the candidates and its rows are the frames.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="n">effs</span> <span class="o">=</span> <a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.empty.html#numpy.empty" title="numpy.empty"><span class="n">np</span><span class="o">.</span><span class="n">empty</span></a><span class="p">(</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">pair_names</span><span class="p">)</span><span class="p">)</span><span class="p">)</span><span class="w">
+</span><span class="n">coords</span> <span class="o">=</span> <a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.empty.html#numpy.empty" title="numpy.empty"><span class="n">np</span><span class="o">.</span><span class="n">empty</span></a><span class="p">(</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">beads</span><span class="p">)</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="p">)</span><span class="w">
+</span><span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frame</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span><span class="p">:</span><span class="w">
+</span>    <span class="n">IMP</span><span class="o">.</span><span class="n">rmf</span><span class="o">.</span><span class="n">load_frame</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span><span class="w">
+</span>    <span class="n">effs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">restraint</span><span class="o">.</span><span class="n">get_pair_efficiencies</span><span class="p">(</span><span class="p">)</span><span class="w">
+</span>    <span class="n">coords</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">get_coordinates</span><span class="p">(</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">beads</span><span class="p">]</span><span class="w">
+</span></pre></div></div>
+<p>How far apart the ensemble places its conformers, after superposition. This
+is the yardstick the selection is scored against: a pair that separates
+structures which are already alike has told you nothing.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="n">rmsds</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">pairwise_rmsd</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="s2">RMSD spread </span><span class="si">{</span><span class="n">rmsds</span><span class="p">[</span><a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.triu_indices_from.html#numpy.triu_indices_from" title="numpy.triu_indices_from"><span class="n">np</span><span class="o">.</span><span class="n">triu_indices_from</span></a><span class="p">(</span><span class="n">rmsds</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> A mean, </span><span class="s2">&quot;</span><span class="w">
+</span>      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">rmsds</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> A max</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span></pre></div></div>
+<p>The selection. <code class="docutils literal notranslate"><span class="pre">err</span></code> is the expected absolute error of a FRET efficiency
+measurement – the selector’s only notion of what an experiment can resolve,
+and what stops it from believing a hair’s-breadth separation.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="n">selected</span><span class="p">,</span> <span class="n">decay</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">select_probe_pairs</span><span class="p">(</span><span class="w">
+</span>    <span class="n">effs</span><span class="p">,</span> <span class="n">rmsds</span><span class="p">,</span> <span class="n">measurement_error</span><span class="o">=</span><span class="mf">0.06</span><span class="p">,</span> <span class="n">max_pairs</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span><span class="w">
+</span><span class="w">
+</span><span class="n">start</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">expected_rmsd</span><span class="p">(</span><span class="w">
+</span>    <span class="n">rmsds</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.zeros.html#numpy.zeros" title="numpy.zeros"><span class="n">np</span><span class="o">.</span><span class="n">zeros</span></a><span class="p">(</span><span class="n">rmsds</span><span class="o">.</span><span class="n">size</span><span class="p">)</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">'</span><span class="s1">#</span><span class="s1">'</span><span class="si">:</span><span class="s2">&gt;2</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">'</span><span class="s1">pair</span><span class="s1">'</span><span class="si">:</span><span class="s2">&lt;12</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">'</span><span class="s1">expected RMSD</span><span class="s1">'</span><span class="si">:</span><span class="s2">&gt;13</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">'</span><span class="s1">gain</span><span class="s1">'</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">'</span><span class="s1">-</span><span class="s1">'</span><span class="si">:</span><span class="s2">&gt;2</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">'</span><span class="s1">(no data)</span><span class="s1">'</span><span class="si">:</span><span class="s2">&lt;12</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">start</span><span class="si">:</span><span class="s2">&gt;11.2f</span><span class="si">}</span><span class="s2"> A  </span><span class="si">{</span><span class="s1">'</span><span class="s1">'</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">previous</span> <span class="o">=</span> <span class="n">start</span><span class="w">
+</span><span class="k">for</span> <span class="n">rank</span><span class="p">,</span> <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">selected</span><span class="p">,</span> <span class="n">decay</span><span class="p">)</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="p">:</span><span class="w">
+</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">rank</span><span class="si">:</span><span class="s2">&gt;2</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">pair_names</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;12</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">&gt;11.2f</span><span class="si">}</span><span class="s2"> A  </span><span class="s2">&quot;</span><span class="w">
+</span>          <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">previous</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">value</span><span class="si">:</span><span class="s2">&gt;5.2f</span><span class="si">}</span><span class="s2"> A</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span>    <span class="n">previous</span> <span class="o">=</span> <span class="n">value</span><span class="w">
+</span></pre></div></div>
+<p>The decay curve. The first pairs are worth several angstrom each; the curve
+flattens once the remaining candidates report on distances the earlier ones
+have already pinned down.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span><span class="p">)</span><span class="w">
+</span><span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">decay</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="p">,</span> <a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.concatenate.html#numpy.concatenate" title="numpy.concatenate"><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span></a><span class="p">(</span><span class="p">[</span><span class="p">[</span><span class="n">start</span><span class="p">]</span><span class="p">,</span> <span class="n">decay</span><span class="p">]</span><span class="p">)</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s2">o-</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">decay</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="p">)</span><span class="w">
+</span><span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="p">[</span><span class="s2">&quot;</span><span class="s2">none</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">pair_names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">selected</span><span class="p">]</span><span class="p">,</span><span class="w">
+</span>                   <span class="n">rotation</span><span class="o">=</span><span class="mi">45</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">right</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;</span><span class="s2">measurements made, in the order chosen</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;</span><span class="s2">expected mean RMSD / $</span><span class="se">\\</span><span class="s2">AA$</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;</span><span class="s2">Precision bought by each further FRET pair</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="p">)</span><span class="w">
+</span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="p">)</span><span class="w">
+</span></pre></div></div>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-labels-plot-pair-selection-py">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/030bec74be7cfc4877d7ff7f3f24f9b6/plot_pair_selection.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_pair_selection.ipynb</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/553226ba30bc89ab23fa3d9d74be043d/plot_pair_selection.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_pair_selection.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-zip docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/85ebb8cfe997a5e0931df6df56e139da/plot_pair_selection.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">zipped:</span> <span class="pre">plot_pair_selection.zip</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="plot_search.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Path searches</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="plot_AVDecorator.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Accessible volume decorator</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2021 - 2026, IMP developers.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

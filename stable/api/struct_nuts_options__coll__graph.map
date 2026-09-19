@@ -1,0 +1,9 @@
+<map id="NutsOptions" name="NutsOptions">
+<area shape="rect" id="Node000001" title="NUTS settings. The step size is a start value when warm&#45;up adapts it." alt="" coords="75,263,208,428"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="31,135,110,200"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="76,200,85,238,89,247,84,249,80,239,71,201"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,5,136,85"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="73,99,73,134,68,134,68,99"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="135,135,292,200"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="203,201,183,248,179,246,198,199"/>
+</map>

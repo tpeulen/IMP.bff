@@ -1,0 +1,17 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,153,119,179"/>
+<area shape="rect" id="Node000001" href="$class_a_v_flat_bottom_restraint.html" title="A flat&#45;bottom distance restraint between two labelling positions." alt="" coords="188,5,359,31"/>
+<area shape="poly" id="edge19_Node000000_Node000001" title=" " alt="" coords="75,140,111,89,136,62,165,40,189,28,192,33,168,44,140,66,115,92,79,143"/>
+<area shape="rect" id="Node000002" href="$class_generalized_born_restraint.html" title="Generalized&#45;Born implicit solvation over a set of atoms." alt="" coords="179,55,368,80"/>
+<area shape="poly" id="edge20_Node000000_Node000002" title=" " alt="" coords="86,142,122,114,166,89,197,78,199,83,168,94,125,118,90,146"/>
+<area shape="rect" id="Node000003" href="$class_go_restraint.html" title="A Go model over a set of beads: truncated Lennard&#45;Jones on native contacts." alt="" coords="224,104,323,129"/>
+<area shape="poly" id="edge21_Node000000_Node000003" title=" " alt="" coords="127,147,166,138,223,125,224,130,167,143,129,153"/>
+<area shape="rect" id="Node000004" href="$class_hydrogen_bond_restraint.html" title="Backbone hydrogen bonds, from a four&#45;channel distance lookup." alt="" coords="185,153,362,179"/>
+<area shape="poly" id="edge22_Node000000_Node000004" title=" " alt="" coords="132,163,184,163,184,169,132,169"/>
+<area shape="rect" id="Node000005" href="$class_probe_accessible_volume_mean_distance_restraint.html" title="Score the separation of two mean dye positions against a measurement." alt="" coords="167,203,380,243"/>
+<area shape="poly" id="edge23_Node000000_Node000005" title=" " alt="" coords="124,180,200,201,198,206,122,185"/>
+<area shape="rect" id="Node000006" href="$class_probe_network_restraint.html" title="A restraint that uses an annotated volumetric network to score particle distances." alt="" coords="187,268,360,293"/>
+<area shape="poly" id="edge24_Node000000_Node000006" title=" " alt="" coords="86,188,122,222,168,253,200,265,198,270,165,258,119,226,82,191"/>
+<area shape="rect" id="Node000007" href="$class_ramachandran_restraint.html" title="The Ramachandran pseudo&#45;energy of a chain&#39;s backbone dihedrals." alt="" coords="184,317,363,343"/>
+<area shape="poly" id="edge25_Node000000_Node000007" title=" " alt="" coords="77,189,113,247,138,277,168,302,194,315,191,320,165,307,134,281,108,250,73,192"/>
+</map>

@@ -1,0 +1,10 @@
+<map id="ProbeTrajectoryDensityOptions" name="ProbeTrajectoryDensityOptions">
+<area shape="rect" id="Node000001" title="What analyze_probe_trajectories is told." alt="" coords="5,428,245,593"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="86,135,165,200"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="124,201,119,263,118,338,120,411,115,412,112,338,113,263,119,200"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="232,274,411,339"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="167,194,264,262,261,267,163,199"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="60,5,191,85"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="128,99,128,134,123,134,123,99"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="293,341,218,418,214,414,289,338"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="ProteinFrame" name="ProteinFrame">
+<area shape="rect" id="Node000001" title="An atom&#39;s name as its structure spells it, without a HET: prefix." alt="" coords="179,435,373,580"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,263,163,328"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,326,201,421,197,424,111,330"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="187,263,365,328"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="279,328,279,418,273,418,273,328"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="237,135,315,200"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="279,200,279,246,273,246,273,200"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="211,5,341,85"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="279,99,279,134,273,134,273,99"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="389,263,520,328"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="440,330,416,370,385,412,374,424,370,421,381,409,411,367,436,327"/>
+</map>

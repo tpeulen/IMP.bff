@@ -1,0 +1,15 @@
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/BayesianPSpline.h" name="/home/runner/work/IMP.bff/IMP.bff/include/BayesianPSpline.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="288,5,532,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,199,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="337,48,161,92,160,87,336,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="223,93,309,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="377,48,300,89,298,84,374,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="333,93,396,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="401,47,381,83,376,80,397,44"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="420,93,491,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="423,44,444,80,439,83,419,47"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="515,93,601,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="447,43,525,84,523,89,444,48"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="625,93,688,119"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="470,43,613,88,612,93,468,48"/>
+</map>

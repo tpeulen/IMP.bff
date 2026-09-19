@@ -1,0 +1,33 @@
+<map id="PathMap" name="PathMap">
+<area shape="rect" id="Node000001" title=" " alt="" coords="494,1191,695,1491"/>
+<area shape="rect" id="Node000002" href="$class_density_grid.html" title="A regular grid of doubles, with spheres sampled into it." alt="" coords="289,823,474,1128"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="480,1139,509,1189,505,1192,475,1141"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="387,565,475,631"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="427,645,404,823,399,822,422,644"/>
+<area shape="rect" id="Node000004" href="$class_grid_header.html" title="The shape of a grid: extent, spacing and where its corner sits." alt="" coords="499,465,621,731"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="501,729,463,809,458,806,496,727"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="5,565,163,631"/>
+<area shape="poly" id="edge15_Node000001_Node000005" title=" " alt="" coords="82,631,74,724,73,786,77,854,86,925,102,996,128,1064,165,1126,196,1163,231,1195,271,1223,312,1247,398,1285,479,1312,477,1317,396,1290,310,1252,268,1227,228,1199,192,1166,160,1130,123,1067,97,998,80,926,71,854,68,786,69,724,77,631"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="107,629,177,729,280,855,276,858,173,732,102,632"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="187,565,363,631"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="286,631,336,806,331,808,281,632"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="498,943,691,1008"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="597,1008,597,1174,592,1174,592,1008"/>
+<area shape="rect" id="Node000008" href="$class_path_map_tile.html" title=" " alt="" coords="646,495,839,701"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="705,702,616,928,611,926,700,700"/>
+<area shape="poly" id="edge8_Node000008_Node000008" title=" " alt="" coords="841,568,859,579,866,598,863,610,856,619,852,616,859,608,861,598,855,582,838,573"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="559,323,713,403"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="656,402,692,479,687,481,651,404"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="597,165,675,230"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="639,230,639,307,633,307,633,230"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="571,5,701,85"/>
+<area shape="poly" id="edge11_Node000010_Node000011" title=" " alt="" coords="639,99,639,164,633,164,633,99"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="737,323,916,403"/>
+<area shape="poly" id="edge12_Node000008_Node000012" title=" " alt="" coords="815,404,787,480,782,479,810,402"/>
+<area shape="rect" id="Node000013" href="$class_path_map_tile_edge.html" title=" " alt="" coords="730,135,923,260"/>
+<area shape="poly" id="edge13_Node000012_Node000013" title=" " alt="" coords="829,260,829,306,824,306,824,260"/>
+<area shape="rect" id="Node000014" href="$class_path_map_header.html" title=" " alt="" coords="715,835,917,1115"/>
+<area shape="poly" id="edge14_Node000001_Node000014" title=" " alt="" coords="733,1117,696,1178,692,1175,729,1114"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="941,943,1072,1008"/>
+<area shape="poly" id="edge16_Node000001_Node000015" title=" " alt="" coords="999,1009,973,1068,954,1100,931,1130,881,1178,824,1221,766,1258,711,1289,708,1284,764,1253,821,1217,877,1174,927,1126,950,1097,968,1066,994,1007"/>
+</map>

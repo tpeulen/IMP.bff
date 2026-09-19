@@ -1,0 +1,5 @@
+<map id="MolecularProbeSimulation" name="MolecularProbeSimulation">
+<area shape="rect" id="Node000001" title="A dye placed on a structure and moved, as an ordinary simulation object." alt="" coords="5,359,215,624"/>
+<area shape="rect" id="Node000002" href="$class_probe_simulation.html" title="The shape every probe simulation has: set positions, advance, read back." alt="" coords="13,5,207,311"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,324,113,358,107,358,107,324"/>
+</map>

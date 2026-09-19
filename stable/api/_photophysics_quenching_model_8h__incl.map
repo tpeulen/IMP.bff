@@ -1,0 +1,27 @@
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/PhotophysicsQuenchingModel.h" name="/home/runner/work/IMP.bff/IMP.bff/include/PhotophysicsQuenchingModel.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="1239,5,1518,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,115,152,141"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1239,38,1030,44,762,56,464,77,164,111,138,115,137,110,164,105,463,72,761,50,1030,38,1239,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="177,115,415,141"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="1239,45,872,70,428,111,384,116,384,111,428,105,872,65,1239,39"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="440,115,621,141"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="1239,47,959,72,634,111,602,116,601,110,633,105,959,67,1239,42"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="645,115,893,141"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="1240,58,858,116,857,111,1239,53"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="917,115,1125,141"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="1279,63,1079,115,1077,109,1278,57"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="1149,108,1360,148"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="1345,62,1292,102,1289,98,1342,58"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="1385,115,1623,141"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="1415,58,1479,105,1476,109,1412,62"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="1647,115,1841,141"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="1482,57,1687,109,1686,115,1481,63"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="1865,115,1924,141"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="1519,43,1681,66,1769,83,1854,105,1861,108,1859,113,1853,111,1767,89,1680,71,1518,48"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="1948,115,1999,141"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="1518,37,1613,45,1719,58,1829,78,1937,105,1942,107,1940,112,1935,111,1828,83,1718,63,1612,50,1518,42"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="2023,115,2081,141"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="1519,35,1627,43,1752,56,1883,76,2011,105,2018,108,2017,113,2010,111,1882,81,1751,61,1627,48,1518,41"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="2106,115,2169,141"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="1518,34,1642,40,1787,52,1942,74,2094,105,2102,108,2100,113,2093,111,1941,79,1787,58,1642,45,1518,39"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/FRETSpectrumNode.h" name="/home/runner/work/IMP.bff/IMP.bff/include/FRETSpectrumNode.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="298,5,563,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,152,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="347,48,144,93,143,88,346,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="177,93,333,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="390,48,294,90,292,85,387,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="357,93,505,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="433,46,433,79,428,79,428,46"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="529,93,588,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="463,43,530,84,527,88,460,48"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="613,93,675,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="483,43,600,86,599,91,481,48"/>
+</map>

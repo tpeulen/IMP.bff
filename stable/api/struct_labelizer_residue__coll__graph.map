@@ -1,0 +1,9 @@
+<map id="LabelizerResidue" name="LabelizerResidue">
+<area shape="rect" id="Node000001" title="One residue, and where its atoms are in the flat arrays of LabelizerStructure." alt="" coords="38,277,231,463"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="31,135,110,200"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,200,103,261,98,262,78,201"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,5,136,85"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="73,99,73,134,68,134,68,99"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="135,135,265,200"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="192,201,172,262,167,261,187,200"/>
+</map>

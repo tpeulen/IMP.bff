@@ -1,0 +1,13 @@
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/ModelSearchSelfPlay.h" name="/home/runner/work/IMP.bff/IMP.bff/include/ModelSearchSelfPlay.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="321,5,554,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,152,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="328,63,140,107,139,102,327,57"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="177,108,375,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="389,62,311,104,309,99,387,58"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="399,108,476,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="440,60,440,94,435,94,435,60"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="500,108,559,133"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="467,58,509,96,505,100,464,62"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="583,108,646,133"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="493,58,580,100,577,104,490,62"/>
+</map>

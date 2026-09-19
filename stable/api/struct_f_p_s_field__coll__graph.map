@@ -1,0 +1,10 @@
+<map id="FPSField" name="FPSField">
+<area shape="rect" id="Node000001" title="One field of an fps.json object." alt="" coords="5,405,199,511"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="63,135,141,200"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,201,95,263,95,327,98,389,93,389,90,328,90,263,95,200"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="197,263,375,328"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="143,193,228,251,225,255,140,198"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="37,5,167,85"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="105,99,105,134,99,134,99,99"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="251,330,175,397,172,393,248,326"/>
+</map>

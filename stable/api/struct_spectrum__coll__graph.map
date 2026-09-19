@@ -1,0 +1,5 @@
+<map id="Spectrum" name="Spectrum">
+<area shape="rect" id="Node000001" title="Excitation and emission on a shared wavelength grid." alt="" coords="5,163,199,268"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="23,5,181,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,71,105,146,99,146,99,71"/>
+</map>

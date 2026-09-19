@@ -1,0 +1,5 @@
+<map id="ProbeAccessibleVolumeOccupancyRegistry" name="ProbeAccessibleVolumeOccupancyRegistry">
+<area shape="rect" id="Node000001" title="One AVOccupancyMap per (spacing, extra&#45;radius) class, created on demand." alt="" coords="5,119,260,373"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="89,5,177,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,84,135,118,130,118,130,84"/>
+</map>

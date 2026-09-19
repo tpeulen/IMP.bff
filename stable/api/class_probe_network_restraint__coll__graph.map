@@ -1,0 +1,5 @@
+<map id="ProbeNetworkRestraint" name="ProbeNetworkRestraint">
+<area shape="rect" id="Node000001" title="A restraint that uses an annotated volumetric network to score particle distances." alt="" coords="5,119,195,384"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="47,5,153,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,84,103,119,97,119,97,84"/>
+</map>

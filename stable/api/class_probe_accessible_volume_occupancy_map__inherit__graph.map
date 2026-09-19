@@ -1,0 +1,7 @@
+<map id="ProbeAccessibleVolumeOccupancyMap" name="ProbeAccessibleVolumeOccupancyMap">
+<area shape="rect" id="Node000001" title="The occupancy raster over IMP particles." alt="" coords="5,432,273,572"/>
+<area shape="rect" id="Node000002" href="$class_occupancy_grid.html" title="Occupancy counts of atoms, inflated by one extra radius, on the AV lattice." alt="" coords="39,119,240,384"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,398,142,432,137,432,137,398"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="95,5,183,71"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="142,84,142,119,137,119,137,84"/>
+</map>

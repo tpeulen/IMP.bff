@@ -1,0 +1,11 @@
+<map id="InteractionTerm" name="InteractionTerm">
+<area shape="rect" id="Node000001" title="One deactivation channel." alt="" coords="200,119,391,264"/>
+<area shape="rect" id="Node000003" href="$class_f_r_e_t_term.html" title="2&#45;body: Förster transfer between two dyes." alt="" coords="5,312,196,512"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="225,276,191,314,187,310,221,272"/>
+<area shape="rect" id="Node000004" href="$class_p_e_t_term.html" title="2&#45;body: photoinduced electron transfer between a dye and quencher atoms." alt="" coords="220,319,371,505"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="298,278,298,319,293,319,293,278"/>
+<area shape="rect" id="Node000005" href="$class_radiative_term.html" title="1&#45;body: the dye&#39;s own decay, ." alt="" coords="395,349,529,475"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="361,274,417,347,413,351,356,277"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="251,5,339,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="298,84,298,118,293,118,293,84"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="GraphSession" name="GraphSession">
+<area shape="rect" id="Node000001" title="A saved&#45;and&#45;loadable graph of nodes and free ports, chinet&#39;s GraphSession." alt="" coords="5,299,188,604"/>
+<area shape="rect" id="Node000002" href="$class_graph_object.html" title="The identity half of chinet&#39;s GraphObject: a name and a uid." alt="" coords="31,5,162,251"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,265,99,298,94,298,94,265"/>
+</map>

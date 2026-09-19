@@ -1,0 +1,7 @@
+<map id="DifferentialEvolutionKernel" name="DifferentialEvolutionKernel">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,752,219,997"/>
+<area shape="rect" id="Node000002" href="$classinternal_1_1_walker_kernel_base.html" title="Walkers, their log densities and blobs, and the target they are evaluated on." alt="" coords="17,319,207,704"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,718,115,752,109,752,109,718"/>
+<area shape="rect" id="Node000003" href="$class_sampler_kernel.html" title="One transition of every walker a kernel holds." alt="" coords="39,5,185,271"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="115,285,115,318,109,318,109,285"/>
+</map>

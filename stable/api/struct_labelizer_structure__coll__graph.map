@@ -1,0 +1,18 @@
+<map id="LabelizerStructure" name="LabelizerStructure">
+<area shape="rect" id="Node000001" title="A structure as the scoring layer sees it: flat coordinates, grouped residues." alt="" coords="233,719,365,784"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,576,163,641"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,639,238,707,235,712,131,644"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="379,487,557,552"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="462,553,447,597,425,643,396,679,362,710,359,706,392,676,420,640,442,595,457,552"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="401,135,479,200"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="445,200,467,470,461,470,440,200"/>
+<area shape="rect" id="Node000007" href="$struct_labelizer_residue.html" title="One residue, and where its atoms are in the flat arrays of LabelizerStructure." alt="" coords="198,277,391,463"/>
+<area shape="poly" id="edge7_Node000007_Node000004" title=" " alt="" coords="402,198,374,226,347,265,342,262,370,222,399,194"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="375,5,505,85"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="443,99,443,134,437,134,437,99"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="187,576,411,641"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="301,641,301,702,296,702,296,641"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="291,463,292,552,293,560,287,560,287,552,285,463"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="217,135,348,200"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="285,200,287,253,287,260,282,261,281,253,280,200"/>
+</map>

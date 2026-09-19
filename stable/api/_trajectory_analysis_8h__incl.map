@@ -1,0 +1,9 @@
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/TrajectoryAnalysis.h" name="/home/runner/work/IMP.bff/IMP.bff/include/TrajectoryAnalysis.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="78,5,333,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,152,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,48,110,88,107,84,173,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="176,93,235,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="208,46,208,79,203,79,203,46"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="259,93,322,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="228,44,270,82,266,86,224,48"/>
+</map>

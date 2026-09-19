@@ -1,0 +1,5 @@
+<map id="TabularModelSearchProblem" name="TabularModelSearchProblem">
+<area shape="rect" id="Node000001" title="A callback&#45;free finite problem, useful for persisted/pre&#45;scored graphs." alt="" coords="5,239,237,464"/>
+<area shape="rect" id="Node000002" href="$class_model_search_problem.html" title="Model&#45;specific topology and evaluation, implemented entirely in C++." alt="" coords="27,5,215,191"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="124,205,124,239,119,239,119,205"/>
+</map>

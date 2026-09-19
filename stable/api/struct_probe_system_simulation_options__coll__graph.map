@@ -1,0 +1,7 @@
+<map id="ProbeSystemSimulationOptions" name="ProbeSystemSimulationOptions">
+<area shape="rect" id="Node000001" title="The settings of one imp_bff simulate run; the defaults are the program&#39;s." alt="" coords="5,307,225,572"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="76,135,155,200"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="118,200,118,290,113,290,113,200"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="50,5,181,85"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="118,99,118,134,113,134,113,99"/>
+</map>

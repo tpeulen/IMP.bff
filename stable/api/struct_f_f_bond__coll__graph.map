@@ -1,0 +1,7 @@
+<map id="FFBond" name="FFBond">
+<area shape="rect" id="Node000001" title="A harmonic bond between two sites." alt="" coords="5,292,199,357"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="63,135,141,200"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,200,105,276,99,276,99,200"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="37,5,167,85"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="105,99,105,134,99,134,99,99"/>
+</map>
