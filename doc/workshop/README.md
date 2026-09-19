@@ -1,6 +1,6 @@
 # FRET workshop: from a structure to a measured, modelled ensemble
 
-Eight steps. The question they answer together is the one a FRET experiment
+Seven steps. The question they answer together is the one a FRET experiment
 has to answer — *which residues do I label, what will they tell me, and what do
 the distances I measure say about the structure?* — and they answer it with the
 library rather than with slides.
@@ -37,8 +37,7 @@ says which package is in the interpreter: `"core"` (pip) or `"imp"` (conda).
 
 | notebook | the question |
 |---|---|
-| `01_accessible_volumes.ipynb` | Where can the dye be? What an AV assumes, and what it costs when the assumption is wrong. |
-| `02_rotamers.ipynb` | The dye itself: explicit conformers from a rotamer library, drawn inside the volume they fill. |
+| `01_accessible_volumes.ipynb` | Where can the dye be? Label models: accessible volumes (Part A) and explicit rotamers (Part B), with comparison graph. |
 | `03_labelizer.ipynb` | Which residues can carry a dye at all — every term of the label score, not just the total. |
 | `03b_labelizer_pairs.ipynb` | The Labelizer's own pair score, in one state and across two. A companion to step 3. |
 | `04_pair_selection_olga.ipynb` | Which measurement to make first, and when another stops paying (Olga's criterion). |

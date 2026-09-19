@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>IMP.bff documentation</title>
-    <link rel="canonical" href="stable/index.html">
+    <link rel="canonical" href="dev/index.html">
     <style>
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -49,12 +49,16 @@
   <body>
     <main>
       <h1>IMP.bff documentation</h1>
-      <p>Select a documentation version. The stable documentation is the
-      release-oriented default.</p>
+      <p>Current development documentation and retained legacy documentation
+      are both available below.</p>
       <div id="versions" class="versions">
-        <a class="version" href="stable/index.html">
-          <strong>stable</strong><br>
-          Current stable documentation
+        <a class="version" href="dev/index.html">
+          <strong>development</strong><br>
+          Current documentation
+        </a>
+        <a class="version" href="https://docs.peulen.xyz/bff/">
+          <strong>legacy documentation</strong><br>
+          Earlier IMP.bff documentation
         </a>
       </div>
     </main>
@@ -75,6 +79,11 @@
             link.innerHTML = "<strong>" + label + "</strong><br>" + suffix;
             root.appendChild(link);
           });
+          const legacy = document.createElement("a");
+          legacy.className = "version";
+          legacy.href = "https://docs.peulen.xyz/bff/";
+          legacy.innerHTML = "<strong>legacy documentation</strong><br>Earlier IMP.bff documentation";
+          root.appendChild(legacy);
         })
         .catch(() => {});
     </script>

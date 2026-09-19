@@ -481,9 +481,12 @@ jobs:
             echo "DOCS_LABEL=IMP.bff ${VERSION}" >> "$GITHUB_ENV"
             echo "DOCS_IS_STABLE=true" >> "$GITHUB_ENV"
             echo "DOCS_DEPLOY_STABLE=true" >> "$GITHUB_ENV"
+          elif [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "DOCS_VERSION=stable" >> "$GITHUB_ENV"
+            echo "DOCS_LABEL=stable" >> "$GITHUB_ENV"
+            echo "DOCS_IS_STABLE=true" >> "$GITHUB_ENV"
+            echo "DOCS_DEPLOY_STABLE=true" >> "$GITHUB_ENV"
           else
-            # `main` does not exist in this repository; dev is the only
-            # integration branch, so it is what "development" points at.
             echo "DOCS_VERSION=dev" >> "$GITHUB_ENV"
             echo "DOCS_LABEL=development" >> "$GITHUB_ENV"
             echo "DOCS_IS_STABLE=false" >> "$GITHUB_ENV"
@@ -522,11 +525,15 @@ jobs:
           if git show origin/gh-pages:versions.json > /tmp/imp-bff-versions.json 2>/dev/null; then
             EXISTING=/tmp/imp-bff-versions.json
           fi
+          # Seed stable on initial deployment if gh-pages does not yet have stable/index.html
+          if ! git show origin/gh-pages:stable/index.html >/dev/null 2>&1; then
+            echo "DOCS_DEPLOY_STABLE=true" >> "$GITHUB_ENV"
+          fi
           VERSION_ARGS=()
           if [ -n "$EXISTING" ]; then
             VERSION_ARGS+=(--existing "$EXISTING")
           fi
-          if [ "$DOCS_IS_STABLE" = "true" ]; then
+          if [ "$DOCS_IS_STABLE" = "true" ] || [ ! -f "$EXISTING" ]; then
             VERSION_ARGS+=(--stable)
           fi
           python utility/update_docs_versions.py \
@@ -535,7 +542,12 @@ jobs:
             --version "$DOCS_VERSION" \
             --label "$DOCS_LABEL" \
             --url "$DOCS_VERSION/index.html"
+          # Generate switcher.json for pydata-sphinx-theme (matching tttrlib)
+          python utility/make_switcher.py \
+            --versions doc/_build/pages-root/versions.json \
+            --output doc/_build/pages-root/switcher.json
           cat doc/_build/pages-root/versions.json
+          cat doc/_build/pages-root/switcher.json
 
       # Always, including on pull requests: a reviewer can download the pages
       # a change produces without anything being published.
@@ -585,7 +597,7 @@ jobs:
           destination_dir: dev
 
       - name: Deploy the documentation version selector
-        if: github.event_name == 'release' || (github.event_name == 'push' && github.ref == 'refs/heads/dev')
+        if: github.event_name == 'release' || (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main'))
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

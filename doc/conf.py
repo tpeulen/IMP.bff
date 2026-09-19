@@ -20,8 +20,12 @@ import sphinx_gallery
 # Sphinx can pickle the config for a parallel build.
 from gallery_order import SubSectionTitleOrder
 
+HERE = Path(__file__).parent.resolve()
+(HERE / "_static").mkdir(exist_ok=True)
+
 # -- General configuration ---------------------------------------------------
-root_doc = 'contents'
+root_doc = 'index'
+master_doc = 'index'
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -35,7 +39,6 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.imgconverter',
-    'add_toctree_functions',
     'matplotlib.sphinxext.plot_directive',
     'sphinx.ext.autosectionlabel',
     # Markdown pages are documentation too: doc/labelizer.md and the
@@ -43,6 +46,13 @@ extensions = [
     # simply absent from the rendered docs.
     'myst_parser',
 ]
+
+for _ext in ('sphinx_copybutton', 'sphinx_design', 'sphinxext.opengraph'):
+    try:
+        __import__(_ext)
+        extensions.append(_ext)
+    except ImportError:
+        pass
 
 nbsphinx_allow_errors = True
 
@@ -102,6 +112,10 @@ project = u'IMP.bff'
 copyright = (
     f'2021 - {datetime.now().year}, IMP developers'
 )
+# The public documentation address is also the repository homepage.  Keep
+# generated canonical/OpenGraph URLs on the same custom domain as the README
+# and GitHub's About link.
+html_baseurl = 'https://docs.peulen.xyz/bff/'
 # The compiled module is optional for a documentation build. Nothing in
 # doc/ uses `automodule`/`autoclass` -- the C++ API is Doxygen's job and the
 # narrative pages are hand-written .rst/.ipynb -- so the only thing the
@@ -144,55 +158,49 @@ add_function_parentheses = False
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
-# -- Options for HTML output -------------------------------------------------
+def _first_available_theme(candidates):
+    for modname, theme_name in candidates:
+        try:
+            __import__(modname)
+            return theme_name
+        except ImportError:
+            pass
+    return "alabaster"
 
-# The theme to use for HTML and HTML Help pages.  Major themes that come with
-# Sphinx are currently 'default' and 'sphinxdoc'.
-on_rtd = os.environ.get('READTHEDOCS') == 'True'
-if on_rtd:
-    try:
-        import sphinx_rtd_theme
-    except ImportError:
-        pass  # assume we have sphinx >= 1.3
-    else:
-        html_theme_path = sphinx_rtd_theme.get_html_theme_path()
-    html_theme = 'sphinx_rtd_theme'
-else:
-    # Add any paths that contain custom themes here, relative to this directory.
-    html_theme_path = ['themes']
-    html_theme = 'scikit-learn-modern'
-    # Theme options are theme-specific and customize the look and feel of a theme
-    # further.  For a list of options available for each theme, see the
-    # documentation.
-    html_theme_options = {'google_analytics': True,
-                          'mathjax_path': mathjax_path}
 
-# The name for this set of Sphinx documents.  If None, it defaults to
-# "<project> v<release> documentation".
-#html_title = None
+html_theme = _first_available_theme([
+    ("pydata_sphinx_theme", "pydata_sphinx_theme"),
+    ("furo", "furo"),
+    ("sphinx_rtd_theme", "sphinx_rtd_theme"),
+])
 
-# A shorter title for the navigation bar.  Default is the same as html_title.
-html_short_title = 'IMP.bff'
+html_title = f"{project} v{version}"
+html_short_title = "IMP.bff"
+html_logo = "logos/imp_bff-logo.png" if (HERE / "logos" / "imp_bff-logo.png").exists() else None
+html_favicon = "logos/favicon.ico" if (HERE / "logos" / "favicon.ico").exists() else None
+html_static_path = ["_static"] if (HERE / "_static").exists() else []
 
-# The name of an image file (relative to this directory) to place at the top
-# of the sidebar.
-html_logo = 'logos/imp_bff-logo.png'
+html_theme_options = {
+    "navigation_depth": 3,
+}
 
-# The name of an image file (within the static path) to use as favicon of the
-# docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
-# pixels large.
-html_favicon = 'logos/favicon.ico'
-
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = []
-
-# Additional templates that should be rendered to pages, maps page names to
-# template names.
-html_additional_pages = {
-    'index': 'index.html',
-    'documentation': 'documentation.html'}  # redirects to index
+if html_theme == "pydata_sphinx_theme":
+    html_theme_options.update({
+        "show_toc_level": 2,
+        "github_url": "https://github.com/tpeulen/IMP.bff",
+        "switcher": {
+            "json_url": "https://docs.peulen.xyz/bff/switcher.json",
+            "version_match": os.environ.get("DOCS_VERSION", "dev"),
+            "check_switcher": False,
+        },
+        "navbar_end": [
+            "version-switcher", "theme-switcher", "navbar-icon-links",
+        ],
+        "show_version_warning_banner": True,
+    })
+    html_sidebars = {
+        "**": ["search-field.html", "sidebar-nav-bs.html", "sourcelink.html"]
+    }
 
 # If false, no module index is generated.
 html_domain_indices = True
@@ -351,13 +359,10 @@ class PatchedClassDocumenter(ClassDocumenter):
 
 def setup(app):
     app.registry.documenters['class'] = PatchedClassDocumenter
-    # to hide/show the prompt in code examples:
-    app.connect('build-finished', make_carousel_thumbs)
     app.connect('build-finished', filter_search_index)
 
 
 warnings.filterwarnings("ignore", category=UserWarning,
                         message='Matplotlib is currently using agg, which is a'
                                 ' non-GUI backend, so cannot show the figure.')
-
 

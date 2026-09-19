@@ -4,7 +4,7 @@
 Workshop: from a structure to a measured ensemble
 =====================================================
 
-Eight steps, and the question they answer together is the one a FRET
+Seven steps, and the question they answer together is the one a FRET
 experiment has to answer: which residues to label, what they will report, and
 what the measured distances say about the structure.
 
@@ -28,7 +28,6 @@ the single-chain topology, which notebook 07 demonstrates rather than asserts.
 
    README
    01_accessible_volumes
-   02_rotamers
    03_labelizer
    03b_labelizer_pairs
    04_pair_selection_olga
