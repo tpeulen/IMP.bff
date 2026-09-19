@@ -1,0 +1,8 @@
+[
+  {
+    "name": "development",
+    "version": "dev",
+    "url": "https://fluorescence-tools.github.io/imp.bff/dev/",
+    "preferred": false
+  }
+]
