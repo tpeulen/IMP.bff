@@ -73,8 +73,8 @@ says which package is in the interpreter: `"core"` (pip) or `"imp"` (conda).
 | `01_accessible_volumes.ipynb` | Where can the dye be? Label models: accessible volumes (Part A) and explicit rotamers (Part B), with comparison graph. |
 | `03_labelizer.ipynb` | Which residues can carry a dye at all — every term of the label score, not just the total. |
 | `03b_labelizer_pairs.ipynb` | The Labelizer's own pair score, in one state and across two. A companion to step 3. |
-| `04_pair_selection_olga.ipynb` | Which measurement to make first, and when another stops paying (Olga's criterion). |
-| `05_site_selection_homodimer.ipynb` | A homodimer is labelled statistically: choose *sites*, and pay for every pair they imply. |
+| `04_pair_selection_olga.ipynb` | **hGBP1, one polypeptide:** choose individual FRET *pairs* and ask which measurement to make first (Olga's criterion). |
+| `05_site_selection_homodimer.ipynb` | **BmrA, a homodimer:** choose labelling *sites*, because every mutation creates all of the pairs it implies. |
 | `06_docking_homodimer.ipynb` | Given the distances, where does the second protomer sit? |
 | `07_distance_networks.ipynb` | Reading a network: which measurements a model still disagrees with, and what the pattern means. |
 | `08_ensemble_maxent.ipynb` | Not one structure but a population, with as little assumed as the data allow. |
