@@ -31,6 +31,10 @@ committal population consistent with the data. The primary sources are:
   [systematic label-site selection paper](https://doi.org/10.1038/s41467-025-58602-y).
   The score and pair-selection notebooks make the assumptions behind that
   workflow explicit rather than treating a ranking as an answer.
+- **Software used by the workflow** — [Labelizer](https://labelizer.org/) for
+  label-site and pair scoring, [Olga](https://github.com/Fluorescence-Tools/olga)
+  for optimal FRET-assay design, and [FPS](https://www.mpc.hhu.de/software/fps)
+  for accessible-volume and FRET-restrained structural modelling.
 - **High-precision FRET modelling** — Kalinin *et al.*,
   [Nature Methods **9**, 1218–1225 (2012)](https://doi.org/10.1038/nmeth.2222).
   This is the accessible-volume and uncertainty-aware foundation for using
@@ -38,6 +42,10 @@ committal population consistent with the data. The primary sources are:
 - **FRET-assisted integrative modelling** — Dimura *et al.*,
   [Current Opinion in Structural Biology **40**, 163–185 (2016)](https://doi.org/10.1016/j.sbi.2016.11.012).
   It connects experiment design, distance networks and structural modelling.
+- **hGBP1 conformational ensemble** — Peulen *et al.*,
+  [eLife **12**, e79565 (2023)](https://doi.org/10.7554/eLife.79565).
+  This is the primary integrative-dynamics study behind the hGBP1 system used
+  through the single-chain workshop steps.
 - **Maximum-entropy ensembles** — Dittrich *et al.*,
   [Journal of Chemical Theory and Computation **19**, 2389–2409 (2023)](https://doi.org/10.1021/acs.jctc.2c01090).
   The final notebook uses this framing: infer a population and retain the
