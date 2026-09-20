@@ -679,7 +679,7 @@ what each further measurement buys.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><strong>Informative :math:`ne` useful</strong></p></td>
+<tr class="row-even"><td><p><strong>Informative ≠ useful</strong></p></td>
 <td><p>the three individually best pairs are three copies of the same measurement</p></td>
 <td><p>7</p></td>
 </tr>
@@ -694,7 +694,7 @@ what each further measurement buys.</p>
 </tbody>
 </table>
 </div>
-<p>The molecule is <strong>human guanylate-binding protein 1</strong>, and the ensemble is its conformational transition — a real, large, hinged motion, not an interpolation between two crystal forms. The calculation is the one in <code class="docutils literal notranslate"><span class="pre">`examples/labels/plot_pair_selection.py</span></code> &lt;../../examples/labels/plot_pair_selection.py&gt;`__ and <code class="docutils literal notranslate"><span class="pre">`ipynb/example/greedy_pair_selection.ipynb</span></code> &lt;../../ipynb/example/greedy_pair_selection.ipynb&gt;`__, re-told at workshop pace and pushed further.</p>
+<p>The molecule is <strong>human guanylate-binding protein 1</strong>, and the ensemble is its conformational transition — a real, large, hinged motion, not an interpolation between two crystal forms. The calculation is the one in plot_pair_selection.py and greedy_pair_selection.ipynb, re-told at workshop pace and pushed further.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -1801,8 +1801,8 @@ the three best taken one at a time
 <section id="9.-Pairs,-or-labelling-sites?">
 <h2>9. Pairs, or labelling sites?<a class="headerlink" href="#9.-Pairs,-or-labelling-sites?" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">select_probe_pairs</span></code> prices one distance as one experiment. That is right when a distance is what you buy: an intramolecular pair in a monomer is a double cysteine mutant, and the mutant delivers that distance and no other.</p>
-<p>It is not right everywhere. In a homo-oligomer a cysteine at position <em>i</em> exists on every protomer at once, so buying a site delivers a family of distances and you pay for all of them. <code class="docutils literal notranslate"><span class="pre">select_probe_positions</span></code> applies the same criterion per <strong>site</strong>: each greedy step scores a candidate position by the expected RMSD left when every distance the enlarged set implies has been measured. The homodimer case is worked through in
-<code class="docutils literal notranslate"><span class="pre">`05_site_selection_homodimer.ipynb</span></code> &lt;05_site_selection_homodimer.ipynb&gt;`__; running it here, on a monomer whose network happens to be complete, shows what the difference is made of.</p>
+<p>It is not right everywhere. In a homo-oligomer a cysteine at position <em>i</em> exists on every protomer at once, so buying a site delivers a family of distances and you pay for all of them. <code class="docutils literal notranslate"><span class="pre">select_probe_positions</span></code> applies the same criterion per <strong>site</strong>: each greedy step scores a candidate position by the expected RMSD left when every distance the enlarged set implies has been measured. The homodimer case is worked through in notebook 5, <code class="docutils literal notranslate"><span class="pre">05_site_selection_homodimer.ipynb</span></code>; running it here, on a
+monomer whose network happens to be complete, shows what the difference is made of.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">pair_sites</span></code> array is the whole model of the oligomer: it says which two positions each candidate distance connects, and therefore which distances arrive together when a position is bought.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
@@ -2099,9 +2099,9 @@ photophysics. The candidate set is the labelling network somebody already chose;
 <section id="Next">
 <h2>Next<a class="headerlink" href="#Next" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">`ipynb/example/greedy_pair_selection.ipynb</span></code> &lt;../../ipynb/example/greedy_pair_selection.ipynb&gt;`__ and <code class="docutils literal notranslate"><span class="pre">`examples/labels/plot_pair_selection.py</span></code> &lt;../../examples/labels/plot_pair_selection.py&gt;`__ are the shortest versions of this calculation, on a docked T4 lysozyme ensemble.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">`05_site_selection_homodimer.ipynb</span></code> &lt;05_site_selection_homodimer.ipynb&gt;`__ is the site-level question in full, on a homodimer, including what a one-parameter ensemble does to the decay curve.</p></li>
-<li><p>Notebook 6, <code class="docutils literal notranslate"><span class="pre">`07_distance_networks.ipynb</span></code> &lt;07_distance_networks.ipynb&gt;`__, is where the circle plot of section 7 comes from; notebook 7, <code class="docutils literal notranslate"><span class="pre">`08_ensemble_maxent.ipynb</span></code> &lt;08_ensemble_maxent.ipynb&gt;`__, is what you do with the measurements once they have been made.</p></li>
+<li><p>greedy_pair_selection.ipynb and plot_pair_selection.py are the shortest versions of this calculation, on a docked T4 lysozyme ensemble.</p></li>
+<li><p>05_site_selection_homodimer.ipynb is the site-level question in full, on a homodimer, including what a one-parameter ensemble does to the decay curve.</p></li>
+<li><p>Notebook 6, 07_distance_networks.ipynb, is where the circle plot of section 7 comes from; notebook 7, 08_ensemble_maxent.ipynb, is what you do with the measurements once they have been made.</p></li>
 </ul>
 </section>
 </section>
