@@ -356,9 +356,31 @@ class PatchedClassDocumenter(ClassDocumenter):
         return result
 
 
+def inject_molstar_compat(app, exception):
+    """Load the RequireJS/Mol* compatibility shim on pages that embed Mol*."""
+    if exception is not None or app.builder.format != "html":
+        return
+
+    static_dir = Path(app.outdir) / "_static"
+    for page in Path(app.outdir).rglob("*.html"):
+        page_text = page.read_text(encoding="utf-8")
+        if "molstar@" not in page_text or "molstar-compat.js" in page_text:
+            continue
+        shim = os.path.relpath(static_dir / "molstar-compat.js", page.parent)
+        page.write_text(
+            page_text.replace(
+                "</head>",
+                f'    <script src="{shim}"></script>\n</head>',
+                1,
+            ),
+            encoding="utf-8",
+        )
+
+
 def setup(app):
     app.registry.documenters['class'] = PatchedClassDocumenter
     app.connect('build-finished', filter_search_index)
+    app.connect('build-finished', inject_molstar_compat)
 
 
 warnings.filterwarnings("ignore", category=UserWarning,
