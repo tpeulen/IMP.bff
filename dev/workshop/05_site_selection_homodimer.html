@@ -7,19 +7,19 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta property="og:title" content="Which sites to mutate: greedy selection for a homodimer (BmrA)" />
+<meta property="og:title" content="BmrA: which sites to mutate in a homodimer" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="workshop/05_site_selection_homodimer.html" />
 <meta property="og:site_name" content="IMP.bff" />
-<meta property="og:description" content="labelizer_greedy_pipeline.ipynb asks, for a monomer, which FRET pairs to measure. A homo-oligomer asks a different question, and answering the monomer question instead quietly buys the wrong experi..." />
+<meta property="og:description" content="This is the site-selection step for BmrA, a homodimer. The hGBP1 notebook selects individual FRET pairs because hGBP1 is one polypeptide. labelizer_greedy_pipeline.ipynb asks, for a monomer, which ..." />
 <meta property="og:image:width" content="1146" />
 <meta property="og:image:height" content="600" />
-<meta property="og:image" content="_images/social_previews/summary_workshop_05_site_selection_homodimer_242fb4b2.png" />
-<meta property="og:image:alt" content="labelizer_greedy_pipeline.ipynb asks, for a monomer, which FRET pairs to measure. A homo-oligomer asks a different question, and answering the monomer question instead quietly buys the wrong experi..." />
-<meta name="description" content="labelizer_greedy_pipeline.ipynb asks, for a monomer, which FRET pairs to measure. A homo-oligomer asks a different question, and answering the monomer question instead quietly buys the wrong experi..." />
+<meta property="og:image" content="_images/social_previews/summary_workshop_05_site_selection_homodimer_cf768ec5.png" />
+<meta property="og:image:alt" content="This is the site-selection step for BmrA, a homodimer. The hGBP1 notebook selects individual FRET pairs because hGBP1 is one polypeptide. labelizer_greedy_pipeline.ipynb asks, for a monomer, which ..." />
+<meta name="description" content="This is the site-selection step for BmrA, a homodimer. The hGBP1 notebook selects individual FRET pairs because hGBP1 is one polypeptide. labelizer_greedy_pipeline.ipynb asks, for a monomer, which ..." />
 <meta name="twitter:card" content="summary_large_image" />
 
-    <title>Which sites to mutate: greedy selection for a homodimer (BmrA) &#8212; IMP.bff vdev</title>
+    <title>BmrA: which sites to mutate in a homodimer &#8212; IMP.bff vdev</title>
   
   
   
@@ -82,7 +82,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Docking two protomers against a FRET distance network" href="06_docking_homodimer.html" />
-    <link rel="prev" title="4. Which measurement do you make first?" href="04_pair_selection_olga.html" />
+    <link rel="prev" title="4. hGBP1: which FRET pair do you measure first?" href="04_pair_selection_olga.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="dev" />
@@ -586,8 +586,8 @@
 
 <li class="toctree-l1"><a class="reference internal" href="03_labelizer.html">1. Which residues can carry a dye?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="03b_labelizer_pairs.html">2. Which pair should be measured?</a></li>
-<li class="toctree-l1"><a class="reference internal" href="04_pair_selection_olga.html">4. Which measurement do you make first?</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Which <em>sites</em> to mutate: greedy selection for a homodimer (BmrA)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04_pair_selection_olga.html">4. hGBP1: which FRET pair do you measure first?</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">BmrA: which <em>sites</em> to mutate in a homodimer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="06_docking_homodimer.html">Docking two protomers against a FRET distance network</a></li>
 <li class="toctree-l1"><a class="reference internal" href="07_distance_networks.html">Reading a FRET distance network as a picture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="08_ensemble_maxent.html">7 - Maximum entropy: a population of structures, not a structure</a></li>
@@ -634,7 +634,7 @@
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Workshop: from a structure to a measured ensemble</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Which <em>sites</em> to mutate: greedy selection for a homodimer (BmrA)</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">BmrA: which <em>sites</em> to mutate in a homodimer</span></li>
   </ul>
 </nav>
 </div>
@@ -651,9 +651,9 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="Which-sites-to-mutate:-greedy-selection-for-a-homodimer-(BmrA)">
-<h1>Which <em>sites</em> to mutate: greedy selection for a homodimer (BmrA)<a class="headerlink" href="#Which-sites-to-mutate:-greedy-selection-for-a-homodimer-(BmrA)" title="Link to this heading">#</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">labelizer_greedy_pipeline.ipynb</span></code> asks, for a monomer, which FRET pairs to measure. A homo-oligomer asks a different question, and answering the monomer question instead quietly buys the wrong experiment.</p>
+  <section id="BmrA:-which-sites-to-mutate-in-a-homodimer">
+<h1>BmrA: which <em>sites</em> to mutate in a homodimer<a class="headerlink" href="#BmrA:-which-sites-to-mutate-in-a-homodimer" title="Link to this heading">#</a></h1>
+<p>This is the <strong>site-selection</strong> step for BmrA, a homodimer. The hGBP1 notebook selects individual FRET pairs because hGBP1 is one polypeptide. <code class="docutils literal notranslate"><span class="pre">labelizer_greedy_pipeline.ipynb</span></code> asks, for a monomer, which FRET pairs to measure. A homo-oligomer asks a different question, and answering the monomer question instead quietly buys the wrong experiment.</p>
 <p>In a homo-oligomer the labelling mix is <strong>statistical</strong>. Every protomer carries the same sequence, so a cysteine introduced at site 1 exists on <em>all</em> protomers at once, and donor and acceptor end up in every combination the chosen sites allow. Each site is paid for <strong>once</strong>, as one mutation, and the pairs it makes come with it: a dimer labelled at sites 1 and 2 carries 1:1 and 2:2 across the interface, 1–2 within each protomer, and 1–2 across it. So the thing worth choosing is a <strong>set of
 sites</strong>, and the thing worth scoring is the <strong>set of distances that set implies</strong> — all of them, not any single one.</p>
 <p><code class="docutils literal notranslate"><span class="pre">IMP.bff.select_probe_positions</span></code> does exactly that. It applies Olga’s criterion (Dimura <em>et al.</em>, <em>Nat. Commun.</em> <strong>11</strong>, 5394, 2020) per <em>site</em>: each greedy step scores a candidate by the expected RMSD left over when every distance the enlarged site set implies has been measured. <code class="docutils literal notranslate"><span class="pre">select_probe_pairs</span></code>, which adds one pair per step, is the monomer selector — there a pair really is a double mutant, and pairs are the unit you buy. Both are run below on the same data, and the difference between
@@ -1671,7 +1671,7 @@ throughout. The monomer is the special case where each site owns exactly one pai
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">4. Which measurement do you make first?</p>
+        <p class="prev-next-title">4. hGBP1: which FRET pair do you measure first?</p>
       </div>
     </a>
     <a class="right-next"

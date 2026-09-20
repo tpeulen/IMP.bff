@@ -7,19 +7,19 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta property="og:title" content="4. Which measurement do you make first?" />
+<meta property="og:title" content="4. hGBP1: which FRET pair do you measure first?" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="workshop/04_pair_selection_olga.html" />
 <meta property="og:site_name" content="IMP.bff" />
-<meta property="og:description" content="The notebooks before this one asked where a dye can go and which pair of sites is worth the mutations. Those questions were asked about one structure, or about two. This one is asked about a whole ..." />
+<meta property="og:description" content="This is the pair-selection step for hGBP1, which is one polypeptide in this workshop. The notebooks before this one asked where a dye can go and which pair of sites is worth the mutations. Those qu..." />
 <meta property="og:image:width" content="1146" />
 <meta property="og:image:height" content="600" />
-<meta property="og:image" content="_images/social_previews/summary_workshop_04_pair_selection_olga_8506a297.png" />
-<meta property="og:image:alt" content="The notebooks before this one asked where a dye can go and which pair of sites is worth the mutations. Those questions were asked about one structure, or about two. This one is asked about a whole ..." />
-<meta name="description" content="The notebooks before this one asked where a dye can go and which pair of sites is worth the mutations. Those questions were asked about one structure, or about two. This one is asked about a whole ..." />
+<meta property="og:image" content="_images/social_previews/summary_workshop_04_pair_selection_olga_94bee9a7.png" />
+<meta property="og:image:alt" content="This is the pair-selection step for hGBP1, which is one polypeptide in this workshop. The notebooks before this one asked where a dye can go and which pair of sites is worth the mutations. Those qu..." />
+<meta name="description" content="This is the pair-selection step for hGBP1, which is one polypeptide in this workshop. The notebooks before this one asked where a dye can go and which pair of sites is worth the mutations. Those qu..." />
 <meta name="twitter:card" content="summary_large_image" />
 
-    <title>4. Which measurement do you make first? &#8212; IMP.bff vdev</title>
+    <title>4. hGBP1: which FRET pair do you measure first? &#8212; IMP.bff vdev</title>
   
   
   
@@ -81,7 +81,7 @@
     <link rel="author" title="About these documents" href="../about.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Which sites to mutate: greedy selection for a homodimer (BmrA)" href="05_site_selection_homodimer.html" />
+    <link rel="next" title="BmrA: which sites to mutate in a homodimer" href="05_site_selection_homodimer.html" />
     <link rel="prev" title="2. Which pair should be measured?" href="03b_labelizer_pairs.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -586,8 +586,8 @@
 
 <li class="toctree-l1"><a class="reference internal" href="03_labelizer.html">1. Which residues can carry a dye?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="03b_labelizer_pairs.html">2. Which pair should be measured?</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">4. Which measurement do you make first?</a></li>
-<li class="toctree-l1"><a class="reference internal" href="05_site_selection_homodimer.html">Which <em>sites</em> to mutate: greedy selection for a homodimer (BmrA)</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">4. hGBP1: which FRET pair do you measure first?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05_site_selection_homodimer.html">BmrA: which <em>sites</em> to mutate in a homodimer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="06_docking_homodimer.html">Docking two protomers against a FRET distance network</a></li>
 <li class="toctree-l1"><a class="reference internal" href="07_distance_networks.html">Reading a FRET distance network as a picture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="08_ensemble_maxent.html">7 - Maximum entropy: a population of structures, not a structure</a></li>
@@ -634,7 +634,7 @@
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Workshop: from a structure to a measured ensemble</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">4. Which measurement do you make first?</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">4. hGBP1: which FRET pair do you measure first?</span></li>
   </ul>
 </nav>
 </div>
@@ -651,9 +651,9 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="4.-Which-measurement-do-you-make-first?">
-<h1>4. Which measurement do you make first?<a class="headerlink" href="#4.-Which-measurement-do-you-make-first?" title="Link to this heading">#</a></h1>
-<p>The notebooks before this one asked where a dye can go and which pair of sites is worth the mutations. Those questions were asked about one structure, or about two. This one is asked about a whole trajectory of candidate structures at once, and it is the question an experiment actually starts from:</p>
+  <section id="4.-hGBP1:-which-FRET-pair-do-you-measure-first?">
+<h1>4. hGBP1: which FRET pair do you measure first?<a class="headerlink" href="#4.-hGBP1:-which-FRET-pair-do-you-measure-first?" title="Link to this heading">#</a></h1>
+<p>This is the <strong>pair-selection</strong> step for hGBP1, which is one polypeptide in this workshop. The notebooks before this one asked where a dye can go and which pair of sites is worth the mutations. Those questions were asked about one structure, or about two. This one is asked about a whole trajectory of candidate structures at once, and it is the question an experiment actually starts from:</p>
 <blockquote>
 <div><p>My protein moves. I have a network of distances I <em>could</em> measure. Which one do I measure first, and when does buying another stop paying?</p>
 </div></blockquote>
@@ -694,7 +694,7 @@ what each further measurement buys.</p>
 </tbody>
 </table>
 </div>
-<p>The molecule is <strong>human guanylate-binding protein 1</strong>, and the ensemble is its conformational transition — a real, large, hinged motion, not an interpolation between two crystal forms. The calculation is the one in plot_pair_selection.py and greedy_pair_selection.ipynb, re-told at workshop pace and pushed further.</p>
+<p>The molecule is <strong>human guanylate-binding protein 1</strong>, and the ensemble is its conformational transition — a real, large, hinged motion, not an interpolation between two crystal forms. The calculation is the one in plot_pair_selection.py and greedy_pair_selection.ipynb, re-told at workshop pace and pushed further. A pair is the unit this single-chain experiment buys.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -1394,14 +1394,15 @@ most structured profile: 344-481 (complexity 7.27, 8.42 path frames)
 </div>
 </div>
 </section>
-<section id="4.-The-selection">
-<h2>4. The selection<a class="headerlink" href="#4.-The-selection" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">select_probe_pairs</span></code> takes the efficiency matrix, the RMSD matrix and the measurement error, and returns the order and the decay. Two arguments carry assumptions worth naming:</p>
+<section id="4.-Select-hGBP1-pairs">
+<h2>4. Select hGBP1 pairs<a class="headerlink" href="#4.-Select-hGBP1-pairs" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">select_probe_pairs</span></code> takes the hGBP1 efficiency matrix, the RMSD matrix and the measurement error, and returns the order and the decay. Two arguments carry assumptions worth naming:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">unique_only=True</span></code> stops it buying the same measurement twice.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">diag_weight=0.99</span></code> is the weight on the diagonal of the RMSD matrix — the case where the structure the data point at <em>is</em> the true one, contributing zero RMSD. It keeps the expectation from being dominated by a single surviving alternative, and it is the reference’s default.</p></li>
 </ul>
 <p>The prior — the expected RMSD with no data at all — is the same function called with an all-zero <span class="math notranslate nohighlight">\(\chi^2\)</span>, and every number in the decay column is measured against it.</p>
+<p>This selector is deliberately <strong>not</strong> used for BmrA. BmrA is a homodimer: a mutation occurs on both protomers and creates several coupled distances. Notebook 5 uses <code class="docutils literal notranslate"><span class="pre">select_probe_positions</span></code> for that site-selection problem.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
@@ -2271,7 +2272,7 @@ photophysics. The candidate set is the labelling network somebody already chose;
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Which <em>sites</em> to mutate: greedy selection for a homodimer (BmrA)</p>
+        <p class="prev-next-title">BmrA: which <em>sites</em> to mutate in a homodimer</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -2301,7 +2302,7 @@ photophysics. The candidate set is the labelling network somebody already chose;
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#2.-How-many-directions-does-the-ensemble-have?">2. How many directions does the ensemble have?</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#3.-The-candidate-measurements">3. The candidate measurements</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#3b.-FRET-FCS:-a-pair's-correlation-follows-the-path,-not-only-its-range">3b. FRET-FCS: a pair’s correlation follows the path, not only its range</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#4.-The-selection">4. The selection</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#4.-Select-hGBP1-pairs">4. Select hGBP1 pairs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#5.-Where-buying-more-stops-paying">5. Where buying more stops paying</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#6.-Is-the-greedy-order-the-best-order?">6. Is the greedy order the best order?</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#7.-Informative-is-not-the-same-as-useful">7. Informative is not the same as useful</a><ul class="pst-show_toc_level nav section-nav flex-column">

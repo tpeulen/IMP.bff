@@ -582,8 +582,8 @@
 
 <li class="toctree-l1"><a class="reference internal" href="03_labelizer.html">1. Which residues can carry a dye?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="03b_labelizer_pairs.html">2. Which pair should be measured?</a></li>
-<li class="toctree-l1"><a class="reference internal" href="04_pair_selection_olga.html">4. Which measurement do you make first?</a></li>
-<li class="toctree-l1"><a class="reference internal" href="05_site_selection_homodimer.html">Which <em>sites</em> to mutate: greedy selection for a homodimer (BmrA)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04_pair_selection_olga.html">4. hGBP1: which FRET pair do you measure first?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05_site_selection_homodimer.html">BmrA: which <em>sites</em> to mutate in a homodimer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="06_docking_homodimer.html">Docking two protomers against a FRET distance network</a></li>
 <li class="toctree-l1"><a class="reference internal" href="07_distance_networks.html">Reading a FRET distance network as a picture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="08_ensemble_maxent.html">7 - Maximum entropy: a population of structures, not a structure</a></li>
@@ -731,10 +731,10 @@ says which package is in the interpreter: <code class="docutils literal notransl
 <td><p>The Labelizer’s own pair score, in one state and across two. A companion to step 3.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">04_pair_selection_olga.ipynb</span></code></p></td>
-<td><p>Which measurement to make first, and when another stops paying (Olga’s criterion).</p></td>
+<td><p><strong>hGBP1, one polypeptide:</strong> choose individual FRET <em>pairs</em> and ask which measurement to make first (Olga’s criterion).</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">05_site_selection_homodimer.ipynb</span></code></p></td>
-<td><p>A homodimer is labelled statistically: choose <em>sites</em>, and pay for every pair they imply.</p></td>
+<td><p><strong>BmrA, a homodimer:</strong> choose labelling <em>sites</em>, because every mutation creates all of the pairs it implies.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">06_docking_homodimer.ipynb</span></code></p></td>
 <td><p>Given the distances, where does the second protomer sit?</p></td>
