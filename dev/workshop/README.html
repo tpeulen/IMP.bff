@@ -668,6 +668,31 @@ and docking one protomer against the other. Its two states are
 </ul>
 <p>Every notebook is executed against the build before it is published, and the
 numbers printed in them come from those runs.</p>
+<section id="scientific-provenance-and-further-reading">
+<h2>Scientific provenance and further reading<a class="headerlink" href="#scientific-provenance-and-further-reading" title="Link to this heading">#</a></h2>
+<p>The workshop uses the same ideas in a deliberately inspectable order: select
+labelling sites, choose FRET pairs, model an ensemble, then make the least
+committal population consistent with the data. The primary sources are:</p>
+<ul class="simple">
+<li><p><strong>Labelizer</strong> — the <a class="reference external" href="https://labelizer.org/">web application</a> and its
+<a class="reference external" href="https://doi.org/10.1038/s41467-025-58602-y">systematic label-site selection paper</a>.
+The score and pair-selection notebooks make the assumptions behind that
+workflow explicit rather than treating a ranking as an answer.</p></li>
+<li><p><strong>High-precision FRET modelling</strong> — Kalinin <em>et al.</em>,
+<a class="reference external" href="https://doi.org/10.1038/nmeth.2222">Nature Methods <strong>9</strong>, 1218–1225 (2012)</a>.
+This is the accessible-volume and uncertainty-aware foundation for using
+flexible dyes as structural restraints.</p></li>
+<li><p><strong>FRET-assisted integrative modelling</strong> — Dimura <em>et al.</em>,
+<a class="reference external" href="https://doi.org/10.1016/j.sbi.2016.11.012">Current Opinion in Structural Biology <strong>40</strong>, 163–185 (2016)</a>.
+It connects experiment design, distance networks and structural modelling.</p></li>
+<li><p><strong>Maximum-entropy ensembles</strong> — Dittrich <em>et al.</em>,
+<a class="reference external" href="https://doi.org/10.1021/acs.jctc.2c01090">Journal of Chemical Theory and Computation <strong>19</strong>, 2389–2409 (2023)</a>.
+The final notebook uses this framing: infer a population and retain the
+uncertainty the restraints cannot resolve.</p></li>
+</ul>
+<p>The <a class="reference external" href="https://www.peulen.xyz/">Peulen publications page</a> collects these and
+related work, including an author-hosted copy of the maximum-entropy article.</p>
+</section>
 <section id="before-the-room">
 <h2>Before the room<a class="headerlink" href="#before-the-room" title="Link to this heading">#</a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>imp.bff<span class="w">      </span><span class="c1"># the IMP module: needed for the docking step</span>
@@ -793,6 +818,7 @@ two-state model of a continuous motion cannot express.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scientific-provenance-and-further-reading">Scientific provenance and further reading</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#before-the-room">Before the room</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-steps">The steps</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-real-and-what-is-simulated">What is real and what is simulated</a></li>

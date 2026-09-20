@@ -11,12 +11,12 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="workshop/03_labelizer.html" />
 <meta property="og:site_name" content="IMP.bff" />
-<meta property="og:description" content="A FRET experiment starts with a mutation, and the mutation is the part you cannot take back: a dye on the wrong residue reports on the dye, not on the protein. The label score(Dimura et al., Nat. C..." />
+<meta property="og:description" content="A FRET experiment starts with a mutation, and the mutation is the part you cannot take back: a dye on the wrong residue reports on the dye, not on the protein. The label score( Dimura et al., Nat. ..." />
 <meta property="og:image:width" content="1146" />
 <meta property="og:image:height" content="600" />
 <meta property="og:image" content="_images/social_previews/summary_workshop_03_labelizer_620c65f2.png" />
-<meta property="og:image:alt" content="A FRET experiment starts with a mutation, and the mutation is the part you cannot take back: a dye on the wrong residue reports on the dye, not on the protein. The label score(Dimura et al., Nat. C..." />
-<meta name="description" content="A FRET experiment starts with a mutation, and the mutation is the part you cannot take back: a dye on the wrong residue reports on the dye, not on the protein. The label score(Dimura et al., Nat. C..." />
+<meta property="og:image:alt" content="A FRET experiment starts with a mutation, and the mutation is the part you cannot take back: a dye on the wrong residue reports on the dye, not on the protein. The label score( Dimura et al., Nat. ..." />
+<meta name="description" content="A FRET experiment starts with a mutation, and the mutation is the part you cannot take back: a dye on the wrong residue reports on the dye, not on the protein. The label score( Dimura et al., Nat. ..." />
 <meta name="twitter:card" content="summary_large_image" />
 
     <title>1. Which residues can carry a dye? &#8212; IMP.bff vdev</title>
@@ -653,8 +653,9 @@
                   
   <section id="1.-Which-residues-can-carry-a-dye?">
 <h1>1. Which residues can carry a dye?<a class="headerlink" href="#1.-Which-residues-can-carry-a-dye?" title="Link to this heading">#</a></h1>
-<p>A FRET experiment starts with a mutation, and the mutation is the part you cannot take back: a dye on the wrong residue reports on the dye, not on the protein. The <em>label score</em> (Dimura et al., Nat. Commun. 11, 5394, 2020) ranks every residue of a structure by how well it would tolerate one, out of terms that are each a likelihood ratio: how exposed the residue is, whether it looks like a cysteine already, what secondary structure it sits in, how close the nearest tryptophan is (a quencher), the
-local charge, and how conserved it is.</p>
+<p>A FRET experiment starts with a mutation, and the mutation is the part you cannot take back: a dye on the wrong residue reports on the dye, not on the protein. The <em>label score</em> (<a class="reference external" href="https://doi.org/10.1038/s41467-020-19023-1">Dimura et al., Nat. Commun. 11, 5394, 2020</a>) ranks every residue of a structure by how well it would tolerate one, out of terms that are each a likelihood ratio: how exposed the residue is, whether it looks like a cysteine already, what secondary structure it sits in, how
+close the nearest tryptophan is (a quencher), the local charge, and how conserved it is.</p>
+<p>The <a class="reference external" href="https://labelizer.org/">Labelizer web application</a> implements this selection workflow. Its score is a starting point for an assay design, not a substitute for checking the dye volumes that follow.</p>
 <p>The terms <strong>multiply</strong>. That matters here, and it is the first thing this notebook has to deal with.</p>
 <p>The molecule is human guanylate-binding protein 1 (hGBP1): a 570-residue interferon-induced GTPase, a globular G domain with a long helical stalk, and a large conformational change in that stalk. The workshop carries the change as a recorded coarse-grained trajectory; its first and last frames are the two states every number below is computed on.</p>
 <p>One thing to be clear about before any number appears. The trajectory topology is a <strong>monomer</strong>, and its chain labels <code class="docutils literal notranslate"><span class="pre">A</span></code> and <code class="docutils literal notranslate"><span class="pre">B</span></code> are not two protomers: they are residue ranges 1-151 and 152-570 of one polypeptide, split where the coarse-grained model was built. A site is called <code class="docutils literal notranslate"><span class="pre">A63</span></code> or <code class="docutils literal notranslate"><span class="pre">B199</span></code> purely by which range its residue number falls in, and every distance in these notebooks is intramolecular.</p>
