@@ -21,6 +21,31 @@ Two molecules, each where it belongs:
 Every notebook is executed against the build before it is published, and the
 numbers printed in them come from those runs.
 
+## Scientific provenance and further reading
+
+The workshop uses the same ideas in a deliberately inspectable order: select
+labelling sites, choose FRET pairs, model an ensemble, then make the least
+committal population consistent with the data. The primary sources are:
+
+- **Labelizer** — the [web application](https://labelizer.org/) and its
+  [systematic label-site selection paper](https://doi.org/10.1038/s41467-025-58602-y).
+  The score and pair-selection notebooks make the assumptions behind that
+  workflow explicit rather than treating a ranking as an answer.
+- **High-precision FRET modelling** — Kalinin *et al.*,
+  [Nature Methods **9**, 1218–1225 (2012)](https://doi.org/10.1038/nmeth.2222).
+  This is the accessible-volume and uncertainty-aware foundation for using
+  flexible dyes as structural restraints.
+- **FRET-assisted integrative modelling** — Dimura *et al.*,
+  [Current Opinion in Structural Biology **40**, 163–185 (2016)](https://doi.org/10.1016/j.sbi.2016.11.012).
+  It connects experiment design, distance networks and structural modelling.
+- **Maximum-entropy ensembles** — Dittrich *et al.*,
+  [Journal of Chemical Theory and Computation **19**, 2389–2409 (2023)](https://doi.org/10.1021/acs.jctc.2c01090).
+  The final notebook uses this framing: infer a population and retain the
+  uncertainty the restraints cannot resolve.
+
+The [Peulen publications page](https://www.peulen.xyz/) collects these and
+related work, including an author-hosted copy of the maximum-entropy article.
+
 ## Before the room
 
 ```bash
