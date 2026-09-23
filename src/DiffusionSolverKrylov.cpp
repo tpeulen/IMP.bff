@@ -49,6 +49,7 @@
 // IMP_THROW and IMP::ValueException: IMP's real ones in the module build,
 // the standalone definitions otherwise. Both live behind IMPCompatibility.h.
 #include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/internal/TridiagonalEigen.h>
 
 
 #include <algorithm>
@@ -128,49 +129,10 @@ void generator_apply(const double* x, const std::vector<double>& d,
 }
 
 /// Eigenvalues and eigenvectors of a symmetric tridiagonal, QL with implicit shifts.
-/*!
-    `m` is at most a few hundred, so this costs nothing beside the matvecs and
-    saves a LAPACK dependency in a library that does not otherwise have one.
-    `diag` and `off` are consumed; `z` comes in as the identity and leaves as
-    the eigenvectors in columns.
-*/
-void tridiagonal_eigen(std::vector<double>& diag, std::vector<double>& off,
-                       std::vector<double>& z, int m) {
-    off.push_back(0.0);
-    for (int l = 0; l < m; ++l) {
-        for (int iter = 0; iter < 50; ++iter) {
-            int mm = l;
-            for (; mm < m - 1; ++mm) {
-                const double dd = std::fabs(diag[mm]) + std::fabs(diag[mm + 1]);
-                if (std::fabs(off[mm]) <= 1e-300 + 1e-16 * dd) break;
-            }
-            if (mm == l) break;
-            double g = (diag[l + 1] - diag[l]) / (2.0 * off[l]);
-            double r = std::hypot(g, 1.0);
-            g = diag[mm] - diag[l] + off[l] / (g + (g >= 0 ? std::fabs(r) : -std::fabs(r)));
-            double s = 1.0, c = 1.0, p = 0.0;
-            int i = mm - 1;
-            for (; i >= l; --i) {
-                double f = s * off[i], b = c * off[i];
-                r = std::hypot(f, g);
-                off[i + 1] = r;
-                if (r == 0.0) { diag[i + 1] -= p; off[mm] = 0.0; break; }
-                s = f / r; c = g / r;
-                g = diag[i + 1] - p;
-                r = (diag[i] - g) * s + 2.0 * c * b;
-                p = s * r;
-                diag[i + 1] = g + p;
-                g = c * r - b;
-                for (int q = 0; q < m; ++q) {        // Eigenvektoren mitdrehen
-                    f = z[q * m + i + 1];
-                    z[q * m + i + 1] = s * z[q * m + i] + c * f;
-                    z[q * m + i] = c * z[q * m + i] - s * f;
-                }
-            }
-            if (r == 0.0 && i >= l) continue;
-            diag[l] -= p; off[l] = g; off[mm] = 0.0;
-        }
-    }
+/*! Shared with the landscape likelihood; see internal/TridiagonalEigen.h. */
+inline void tridiagonal_eigen(std::vector<double>& diag, std::vector<double>& off,
+                              std::vector<double>& z, int m) {
+    internal::tridiagonal_eigen_ql(diag, off, z, m);
 }
 
 }  // namespace

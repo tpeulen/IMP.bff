@@ -1177,6 +1177,10 @@ IMP_SWIG_VALUE(IMP::bff, MfdbAttribution, MfdbAttributions);
    their amalgamation into the joint generator (PRD-150). */
 %include "IMP_bff.kineticnetwork.i"
 
+/* The photon-by-photon free-energy landscape likelihood (arXiv:2608.21061):
+   SqRA grid, tridiagonal eigensolver, spline landscape, forward filter. */
+%include "IMP_bff.fretlandscape.i"
+
 /* The channels that deactivate an excited dye. They consume `States`, so they
    come after the object that is one. */
 %include "IMP_bff.photophysicsinteractionterms.i"
