@@ -52,6 +52,7 @@
 #include <IMP/bff/IMPCompatibility.h>
 #include <IMP/bff/FRETLandscapeGrid.h>
 
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -185,6 +186,48 @@ class IMPBFFEXPORT FRETLandscapeInitialGuess {
   double bin_width_ = 0.0;
 };
 IMP_VALUES(FRETLandscapeInitialGuess, FRETLandscapeInitialGuesses);
+
+//! Laplace uncertainties at a fitted theta (paper Sec. III E).
+/*! Precision `H = sum_m s_m s_m^T + (-d^2 log p)`, the empirical Fisher
+    information from per-trace scores plus the prior precision, and
+    `Sigma = H^-1`. The landscape is reported with its grid mean removed,
+    and its band from the centred basis, so neither depends on the offset. */
+class IMPBFFEXPORT FRETLandscapeLaplace {
+ public:
+  FRETLandscapeLaplace() {}
+  //! Row-major `P x P`.
+  const std::vector<double>& get_precision() const { return precision_; }
+  const std::vector<double>& get_covariance() const { return covariance_; }
+  //! `u(x_i)` minus its grid mean.
+  const std::vector<double>& get_landscape() const { return landscape_; }
+  //! `sigma_u(x_i)`, Eq. 22.
+  const std::vector<double>& get_landscape_sigma() const { return landscape_sigma_; }
+  //! `u(x_barrier) - u(x_min)` and its standard deviation.
+  double get_barrier() const { return barrier_; }
+  double get_barrier_sigma() const { return barrier_sigma_; }
+  double get_x_min() const { return x_min_; }
+  double get_x_barrier() const { return x_barrier_; }
+  double get_diffusion() const { return diffusion_; }
+  //! Delta method: `D sigma_logD`.
+  double get_diffusion_sigma() const { return diffusion_sigma_; }
+  const std::vector<double>& get_amplitudes() const { return amplitudes_; }
+  const std::vector<double>& get_amplitude_sigmas() const { return amplitude_sigmas_; }
+  const std::vector<double>& get_backgrounds() const { return backgrounds_; }
+  const std::vector<double>& get_background_sigmas() const { return background_sigmas_; }
+
+  IMP_SHOWABLE_INLINE(FRETLandscapeLaplace,
+                      out << "FRETLandscapeLaplace(D " << diffusion_ << " +- "
+                          << diffusion_sigma_ << ", barrier " << barrier_ << " +- "
+                          << barrier_sigma_ << ")");
+
+ private:
+  friend class FRETLandscapeModel;
+  std::vector<double> precision_, covariance_, landscape_, landscape_sigma_, amplitudes_,
+      amplitude_sigmas_, backgrounds_, background_sigmas_;
+  double barrier_ = 0.0, barrier_sigma_ = 0.0, x_min_ = 0.0, x_barrier_ = 0.0,
+         diffusion_ = 0.0, diffusion_sigma_ = 0.0;
+};
+IMP_VALUES(FRETLandscapeLaplace, FRETLandscapeLaplaces);
 
 //! A free-energy landscape over a distance coordinate, scored photon by photon.
 /*! Holds the grid, the spline, the fixed photophysics (Forster radius and
@@ -322,6 +365,16 @@ class IMPBFFEXPORT FRETLandscapeModel {
       the L-BFGS history. */
   FRETLandscapeFit fit(const std::vector<double>& theta0,
                        const FRETLandscapeFitOptions& options = FRETLandscapeFitOptions()) const;
+
+  // --- uncertainty (paper Sec. III E) ------------------------------------------
+  //! Laplace approximation at theta (normally the fit's MAP).
+  /*! \param x_min, x_barrier where the barrier height is measured; when
+             either is NaN (the default), `x_min` is the global minimum of
+             `u` on the grid and `x_barrier` the highest point between it
+             and the deepest other local minimum. */
+  FRETLandscapeLaplace laplace(const std::vector<double>& theta,
+                               double x_min = std::numeric_limits<double>::quiet_NaN(),
+                               double x_barrier = std::numeric_limits<double>::quiet_NaN()) const;
 
   IMP_SHOWABLE_INLINE(FRETLandscapeModel,
                       out << "FRETLandscapeModel(M " << m_ << ", K " << k_

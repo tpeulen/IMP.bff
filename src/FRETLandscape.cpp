@@ -831,4 +831,86 @@ FRETLandscapeFit FRETLandscapeModel::fit(const std::vector<double>& theta0,
 #endif
 }
 
+
+// --- Laplace --------------------------------------------------------------------
+
+FRETLandscapeLaplace FRETLandscapeModel::laplace(const std::vector<double>& theta,
+                                                 double x_min, double x_barrier) const {
+  check_theta(theta);
+  const int P = get_n_parameters(), nt = get_n_traces();
+  const std::vector<double> sc = trace_scores(theta), pp = prior_precision(theta);
+  Eigen::MatrixXd H = Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic,
+                                                     Eigen::RowMajor> >(pp.data(), P, P);
+  const Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> >
+      S(sc.data(), nt, P);
+  H.noalias() += S.transpose() * S;
+  const Eigen::MatrixXd Sig = H.ldlt().solve(Eigen::MatrixXd::Identity(P, P));
+  FRETLandscapeLaplace out;
+  out.precision_.resize(static_cast<std::size_t>(P) * P);
+  out.covariance_.resize(static_cast<std::size_t>(P) * P);
+  for (int i = 0; i < P; ++i)
+    for (int j = 0; j < P; ++j) {
+      out.precision_[static_cast<std::size_t>(i) * P + j] = H(i, j);
+      out.covariance_[static_cast<std::size_t>(i) * P + j] = Sig(i, j);
+    }
+  // centred basis and the band of Eq. 22
+  Eigen::MatrixXd Phi(m_, k_);
+  for (int i = 0; i < m_; ++i)
+    for (int k = 0; k < k_; ++k) Phi(i, k) = phi_[static_cast<std::size_t>(i) * k_ + k];
+  const Eigen::RowVectorXd colmean = Phi.colwise().mean();
+  const Eigen::MatrixXd Pc = Phi.rowwise() - colmean;
+  const Eigen::MatrixXd Smm = Sig.topLeftCorner(k_, k_);
+  const Eigen::MatrixXd PS = Pc * Smm;
+  std::vector<double> u = get_landscape(theta);
+  double umean = 0.0;
+  for (double v : u) umean += v;
+  umean /= m_;
+  out.landscape_.resize(m_);
+  out.landscape_sigma_.resize(m_);
+  for (int i = 0; i < m_; ++i) {
+    out.landscape_[i] = u[i] - umean;
+    out.landscape_sigma_[i] = std::sqrt(std::max(0.0, PS.row(i).dot(Pc.row(i))));
+  }
+  // barrier
+  int imin, ibar;
+  if (std::isnan(x_min) || std::isnan(x_barrier)) {
+    imin = static_cast<int>(std::min_element(u.begin(), u.end()) - u.begin());
+    int other = -1;
+    for (int i = 0; i < m_; ++i) {
+      if (i == imin) continue;
+      const bool lmin = (i == 0 || u[i] < u[i - 1]) && (i == m_ - 1 || u[i] <= u[i + 1]);
+      if (lmin && (other < 0 || u[i] < u[other])) other = i;
+    }
+    if (other < 0) other = imin;
+    const int a = std::min(imin, other), b = std::max(imin, other);
+    ibar = a;
+    for (int i = a; i <= b; ++i)
+      if (u[i] > u[ibar]) ibar = i;
+    out.x_min_ = x_[imin];
+    out.x_barrier_ = x_[ibar];
+  } else {
+    out.x_min_ = x_min;
+    out.x_barrier_ = x_barrier;
+  }
+  const std::vector<double> pts = {out.x_min_, out.x_barrier_};
+  const std::vector<double> b2 = spline_.get_basis(pts);
+  Eigen::VectorXd g(k_);
+  for (int k = 0; k < k_; ++k) g[k] = b2[k_ + k] - b2[k];
+  double bar = 0.0;
+  for (int k = 0; k < k_; ++k) bar += g[k] * theta[k];
+  out.barrier_ = bar;
+  out.barrier_sigma_ = std::sqrt(std::max(0.0, g.dot(Smm * g)));
+  // D and photophysics by the delta method
+  out.diffusion_ = std::exp(theta[k_]);
+  out.diffusion_sigma_ = out.diffusion_ * std::sqrt(std::max(0.0, Sig(k_, k_)));
+  for (int c = 0; c < c_; ++c) {
+    const int ia = k_ + 1 + c, ib = k_ + 1 + c_ + c;
+    out.amplitudes_.push_back(std::exp(theta[ia]));
+    out.amplitude_sigmas_.push_back(std::exp(theta[ia]) * std::sqrt(std::max(0.0, Sig(ia, ia))));
+    out.backgrounds_.push_back(std::exp(theta[ib]));
+    out.background_sigmas_.push_back(std::exp(theta[ib]) * std::sqrt(std::max(0.0, Sig(ib, ib))));
+  }
+  return out;
+}
+
 IMPBFF_END_NAMESPACE

@@ -25,6 +25,7 @@ IMP_SWIG_VALUE(IMP::bff, FRETLandscapeFit, FRETLandscapeFits);
 IMP_SWIG_VALUE(IMP::bff, FRETLandscapePhotons, FRETLandscapePhotonsList);
 IMP_SWIG_VALUE(IMP::bff, FRETLandscapeInitialGuessOptions, FRETLandscapeInitialGuessOptionsList);
 IMP_SWIG_VALUE(IMP::bff, FRETLandscapeInitialGuess, FRETLandscapeInitialGuesses);
+IMP_SWIG_VALUE(IMP::bff, FRETLandscapeLaplace, FRETLandscapeLaplaces);
 IMP_SWIG_VALUE(IMP::bff, FRETLandscapeModel, FRETLandscapeModels);
 %naturalvar IMP::bff::FRETLandscapeInitialGuessOptions::bin_widths;
 %naturalvar IMP::bff::FRETLandscapeInitialGuessOptions::diffusions;
