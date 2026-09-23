@@ -15,3 +15,11 @@ IMP_SWIG_VALUE(IMP::bff, NaturalCubicSpline, NaturalCubicSplines);
 %ignore IMP::bff::NaturalCubicSpline::evaluate_point;
 
 %include "IMP/bff/FRETLandscapeGrid.h"
+
+%{
+#include <IMP/bff/FRETLandscape.h>
+%}
+
+IMP_SWIG_VALUE(IMP::bff, FRETLandscapeModel, FRETLandscapeModels);
+
+%include "IMP/bff/FRETLandscape.h"
