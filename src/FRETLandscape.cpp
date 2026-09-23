@@ -20,6 +20,11 @@
 
 #include <Eigen/Dense>
 
+#if IMP_BFF_HAS_TTTRLIB
+// The optimiser is tttrlib's header-only L-BFGS, not a copy (owner, 2026-09-23).
+#include <tttrlib/i_lbfgs.h>
+#endif
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -548,6 +553,209 @@ std::vector<double> FRETLandscapeModel::log_likelihood_and_gradient(
   const double f = evaluate(theta, fret_landscape_all_traces(get_n_traces()), &g, nullptr);
   g.insert(g.begin(), f);
   return g;
+}
+
+
+// --- priors -------------------------------------------------------------------
+
+void FRETLandscapeModel::set_roughness_weight(double omega) {
+  if (!(omega >= 0.0)) IMP_THROW("set_roughness_weight: must be >= 0", IMP::ValueException);
+  omega_ = omega;
+}
+
+void FRETLandscapeModel::set_anchor_sigma(double sigma) { anchor_ = sigma; }
+
+void FRETLandscapeModel::set_background_prior(const std::vector<double>& modes,
+                                              const std::vector<double>& sds) {
+  if (modes.empty() && sds.empty()) {
+    bg_mode_.clear();
+    bg_sd_.clear();
+    return;
+  }
+  if (static_cast<int>(modes.size()) != c_ || static_cast<int>(sds.size()) != c_)
+    IMP_THROW("set_background_prior: one mode and one width per channel", IMP::ValueException);
+  for (int c = 0; c < c_; ++c)
+    if (sds[c] > 0.0 && !(modes[c] > 0.0))
+      IMP_THROW("set_background_prior: modes must be > 0", IMP::ValueException);
+  bg_mode_ = modes;
+  bg_sd_ = sds;
+}
+
+namespace {
+//! -log p, its gradient and (optionally) its Hessian, in theta.
+double fret_landscape_neg_log_prior(const std::vector<double>& theta, int K, int C, double hs,
+                                    double omega, double anchor,
+                                    const std::vector<double>& bg_mode,
+                                    const std::vector<double>& bg_sd,
+                                    std::vector<double>* grad, std::vector<double>* hess) {
+  const int P = K + 1 + 2 * C;
+  if (grad) grad->assign(P, 0.0);
+  if (hess) hess->assign(static_cast<std::size_t>(P) * P, 0.0);
+  double f = 0.0;
+  if (omega > 0.0 && K >= 3) {
+    const double w = omega / (hs * hs * hs * hs);
+    for (int k = 1; k + 1 < K; ++k) {
+      const double d = theta[k + 1] - 2.0 * theta[k] + theta[k - 1];
+      f += w * d * d;
+      const int idx[3] = {k - 1, k, k + 1};
+      const double cf[3] = {1.0, -2.0, 1.0};
+      for (int a = 0; a < 3; ++a) {
+        if (grad) (*grad)[idx[a]] += 2.0 * w * d * cf[a];
+        if (hess)
+          for (int b = 0; b < 3; ++b)
+            (*hess)[static_cast<std::size_t>(idx[a]) * P + idx[b]] += 2.0 * w * cf[a] * cf[b];
+      }
+    }
+  }
+  if (anchor > 0.0) {
+    double mean = 0.0;
+    for (int k = 0; k < K; ++k) mean += theta[k];
+    mean /= K;
+    const double s2 = anchor * anchor;
+    f += 0.5 * mean * mean / s2;
+    for (int k = 0; k < K; ++k) {
+      if (grad) (*grad)[k] += mean / (s2 * K);
+      if (hess)
+        for (int l = 0; l < K; ++l)
+          (*hess)[static_cast<std::size_t>(k) * P + l] += 1.0 / (s2 * K * K);
+    }
+  }
+  for (int c = 0; c < static_cast<int>(bg_mode.size()); ++c) {
+    if (!(bg_sd[c] > 0.0)) continue;
+    const int i = K + 1 + C + c;
+    const double kk = bg_mode[c] * bg_mode[c] / (bg_sd[c] * bg_sd[c]);
+    const double r = std::exp(theta[i]) / bg_mode[c];
+    f += kk * (r - std::log(r));
+    if (grad) (*grad)[i] += kk * (r - 1.0);
+    if (hess) (*hess)[static_cast<std::size_t>(i) * P + i] += kk * r;
+  }
+  return f;
+}
+}  // namespace
+
+double FRETLandscapeModel::log_prior(const std::vector<double>& theta) const {
+  check_theta(theta);
+  return -fret_landscape_neg_log_prior(theta, k_, c_, spline_.get_knot_spacing(), omega_,
+                                       anchor_, bg_mode_, bg_sd_, nullptr, nullptr);
+}
+
+std::vector<double> FRETLandscapeModel::log_prior_gradient(
+    const std::vector<double>& theta) const {
+  check_theta(theta);
+  std::vector<double> g;
+  fret_landscape_neg_log_prior(theta, k_, c_, spline_.get_knot_spacing(), omega_, anchor_,
+                               bg_mode_, bg_sd_, &g, nullptr);
+  for (double& v : g) v = -v;
+  return g;
+}
+
+std::vector<double> FRETLandscapeModel::prior_precision(const std::vector<double>& theta) const {
+  check_theta(theta);
+  std::vector<double> h;
+  fret_landscape_neg_log_prior(theta, k_, c_, spline_.get_knot_spacing(), omega_, anchor_,
+                               bg_mode_, bg_sd_, nullptr, &h);
+  return h;
+}
+
+double FRETLandscapeModel::log_posterior(const std::vector<double>& theta) const {
+  return log_likelihood(theta) + log_prior(theta);
+}
+
+std::vector<double> FRETLandscapeModel::log_posterior_gradient(
+    const std::vector<double>& theta) const {
+  std::vector<double> g = log_likelihood_gradient(theta);
+  const std::vector<double> gp = log_prior_gradient(theta);
+  for (std::size_t i = 0; i < g.size(); ++i) g[i] += gp[i];
+  return g;
+}
+
+// --- fit ------------------------------------------------------------------------
+
+#if IMP_BFF_HAS_TTTRLIB
+namespace {
+struct FRETLandscapeFitContext {
+  const FRETLandscapeModel* model;
+  int P;
+};
+
+double fret_landscape_fit_target(double* x, void* p) {
+  const FRETLandscapeFitContext* ctx = static_cast<const FRETLandscapeFitContext*>(p);
+  const std::vector<double> th(x, x + ctx->P);
+  const double v = -ctx->model->log_posterior(th);
+  return std::isfinite(v) ? v : std::numeric_limits<double>::infinity();
+}
+
+double fret_landscape_fit_gradient(double* x, double* g, void* p) {
+  const FRETLandscapeFitContext* ctx = static_cast<const FRETLandscapeFitContext*>(p);
+  const std::vector<double> th(x, x + ctx->P);
+  const std::vector<double> fg = ctx->model->log_likelihood_and_gradient(th);
+  const std::vector<double> gp = ctx->model->log_prior_gradient(th);
+  for (int i = 0; i < ctx->P; ++i) g[i] = -(fg[i + 1] + gp[i]);
+  const double v = -(fg[0] + ctx->model->log_prior(th));
+  return std::isfinite(v) ? v : std::numeric_limits<double>::infinity();
+}
+}  // namespace
+#endif
+
+FRETLandscapeFit FRETLandscapeModel::fit(const std::vector<double>& theta0,
+                                         const FRETLandscapeFitOptions& options) const {
+  check_theta(theta0);
+#if !IMP_BFF_HAS_TTTRLIB
+  IMP_THROW("FRETLandscapeModel::fit needs tttrlib's L-BFGS (tttrlib/i_lbfgs.h); this "
+            "IMP.bff was built without tttrlib",
+            IMP::ValueException);
+#else
+  if (options.patience < 1 || options.max_iterations < 1)
+    IMP_THROW("fit: patience and max_iterations must be >= 1", IMP::ValueException);
+  const int P = get_n_parameters();
+  FRETLandscapeFitContext ctx{this, P};
+  bfgs opt(fret_landscape_fit_target, P);
+  opt.set_gradient(fret_landscape_fit_gradient);
+  for (int i : options.fixed) {
+    if (i < 0 || i >= P) IMP_THROW("fit: fixed index " << i << " out of range", IMP::ValueException);
+    opt.fix(i);
+  }
+  FRETLandscapeFit out;
+  std::vector<double> x(theta0);
+  double best = log_posterior(x);
+  out.history_.push_back(best);
+  if (!std::isfinite(best)) {
+    out.theta_ = x;
+    out.log_posterior_ = best;
+    out.log_likelihood_ = log_likelihood(x);
+    out.status_ = "failed";
+    return out;
+  }
+  out.status_ = "max_iterations";
+  int done = 0;
+  while (done < options.max_iterations) {
+    const int n = std::min(options.patience, options.max_iterations - done);
+    opt.maxiter = n;
+    std::vector<double> trial(x);
+    const int info = opt.minimize(trial.data(), &ctx);
+    done += n;
+    const double v = log_posterior(trial);
+    if (std::isfinite(v) && v >= best) x = trial;
+    const double gain = std::isfinite(v) ? v - best : -1.0;
+    if (std::isfinite(v) && v > best) best = v;
+    out.history_.push_back(best);
+    if (info == 1 || info == 2 || info == 4) {
+      // the optimiser stopped by its own test before using its budget
+      out.status_ = gain < options.min_delta ? "converged" : out.status_;
+      if (gain < options.min_delta) break;
+      continue;
+    }
+    if (gain < options.min_delta) {
+      out.status_ = "patience";
+      break;
+    }
+  }
+  out.n_iterations_ = done;
+  out.theta_ = x;
+  out.log_posterior_ = best;
+  out.log_likelihood_ = log_likelihood(x);
+  return out;
+#endif
 }
 
 IMPBFF_END_NAMESPACE

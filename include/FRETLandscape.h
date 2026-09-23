@@ -52,9 +52,58 @@
 #include <IMP/bff/IMPCompatibility.h>
 #include <IMP/bff/FRETLandscapeGrid.h>
 
+#include <string>
 #include <vector>
 
 IMPBFF_BEGIN_NAMESPACE
+
+//! How FRETLandscapeModel::fit() runs its L-BFGS.
+/*! Every field is public and plain. Defaults follow the paper's Table II. */
+class IMPBFFEXPORT FRETLandscapeFitOptions {
+ public:
+  //! Maximum L-BFGS iterations over the whole fit.
+  int max_iterations = 500;
+  //! Stop once the log posterior improved by less than `min_delta` (nats)
+  //! over the last `patience` iterations.
+  int patience = 50;
+  double min_delta = 0.1;
+  //! Indices of theta held at their start values.
+  std::vector<int> fixed;
+
+  IMP_SHOWABLE_INLINE(FRETLandscapeFitOptions,
+                      out << "FRETLandscapeFitOptions(max_iterations " << max_iterations
+                          << ", patience " << patience << ")");
+};
+IMP_VALUES(FRETLandscapeFitOptions, FRETLandscapeFitOptionsList);
+
+//! What FRETLandscapeModel::fit() found.
+class IMPBFFEXPORT FRETLandscapeFit {
+ public:
+  FRETLandscapeFit() {}
+  //! The MAP parameters.
+  const std::vector<double>& get_theta() const { return theta_; }
+  double get_log_posterior() const { return log_posterior_; }
+  double get_log_likelihood() const { return log_likelihood_; }
+  int get_n_iterations() const { return n_iterations_; }
+  //! Log posterior after each block of `patience` iterations (start first).
+  const std::vector<double>& get_history() const { return history_; }
+  //! `patience`: stopped on the improvement criterion; `converged`: the
+  //! optimiser's own test (gradient, step or function change);
+  //! `max_iterations`; or `failed`.
+  const std::string& get_status() const { return status_; }
+
+  IMP_SHOWABLE_INLINE(FRETLandscapeFit,
+                      out << "FRETLandscapeFit(log_posterior " << log_posterior_
+                          << ", iterations " << n_iterations_ << ", " << status_ << ")");
+
+ private:
+  friend class FRETLandscapeModel;
+  std::vector<double> theta_, history_;
+  double log_posterior_ = 0.0, log_likelihood_ = 0.0;
+  int n_iterations_ = 0;
+  std::string status_;
+};
+IMP_VALUES(FRETLandscapeFit, FRETLandscapeFits);
 
 //! A free-energy landscape over a distance coordinate, scored photon by photon.
 /*! Holds the grid, the spline, the fixed photophysics (Forster radius and
@@ -137,6 +186,39 @@ class IMPBFFEXPORT FRETLandscapeModel {
   //! `log L` and its gradient in one pass: `[log L, d/dtheta_0, ...]`.
   std::vector<double> log_likelihood_and_gradient(const std::vector<double>& theta) const;
 
+  // --- priors (paper Sec. III D) ----------------------------------------------
+  //! Roughness weight `omega` of `-log p = omega sum_k ((mu_{k+1} - 2 mu_k +
+  //! mu_{k-1}) / h_s^2)^2`; default 2.15e-4 (paper Table II). 0 disables it.
+  void set_roughness_weight(double omega);
+  double get_roughness_weight() const { return omega_; }
+  //! Width (kT) of the Gaussian anchor on the mean knot height; default 1.
+  //! It fixes the offset the likelihood leaves free. <= 0 disables it.
+  void set_anchor_sigma(double sigma);
+  double get_anchor_sigma() const { return anchor_; }
+  //! Gamma priors on the backgrounds, one mode and width per channel:
+  //! `-log p = (mode/sd)^2 (r - log r)`, `r = beta/mode`. A channel with
+  //! `sd <= 0` has none; empty vectors disable all (the default).
+  void set_background_prior(const std::vector<double>& modes, const std::vector<double>& sds);
+  //! `log p(theta)` up to a constant.
+  double log_prior(const std::vector<double>& theta) const;
+  std::vector<double> log_prior_gradient(const std::vector<double>& theta) const;
+  //! `-d^2 log p / dtheta^2`, row-major `P x P`.
+  std::vector<double> prior_precision(const std::vector<double>& theta) const;
+  //! `log L + log p`.
+  double log_posterior(const std::vector<double>& theta) const;
+  std::vector<double> log_posterior_gradient(const std::vector<double>& theta) const;
+
+  // --- fit ---------------------------------------------------------------------
+  //! Maximise the log posterior from `theta0` with L-BFGS.
+  /*! The optimiser is tttrlib's header-only L-BFGS (`tttrlib/i_lbfgs.h`,
+      two-loop recursion with Armijo backtracking), driven with the exact
+      gradient; it is available when IMP.bff links tttrlib
+      (`IMP_BFF_HAS_TTTRLIB`) and throws otherwise. The patience criterion is
+      applied between blocks of `patience` iterations, each block restarting
+      the L-BFGS history. */
+  FRETLandscapeFit fit(const std::vector<double>& theta0,
+                       const FRETLandscapeFitOptions& options = FRETLandscapeFitOptions()) const;
+
   IMP_SHOWABLE_INLINE(FRETLandscapeModel,
                       out << "FRETLandscapeModel(M " << m_ << ", K " << k_
                           << ", channels " << c_ << ", traces " << get_n_traces()
@@ -155,6 +237,8 @@ class IMPBFFEXPORT FRETLandscapeModel {
   std::vector<double> times_;
   std::vector<int> channels_, offsets_;
   double tau_max_ = 0.0;
+  double omega_ = 2.15e-4, anchor_ = 1.0;
+  std::vector<double> bg_mode_, bg_sd_;
 };
 IMP_VALUES(FRETLandscapeModel, FRETLandscapeModels);
 

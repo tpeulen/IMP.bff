@@ -20,6 +20,9 @@ IMP_SWIG_VALUE(IMP::bff, NaturalCubicSpline, NaturalCubicSplines);
 #include <IMP/bff/FRETLandscape.h>
 %}
 
+IMP_SWIG_VALUE(IMP::bff, FRETLandscapeFitOptions, FRETLandscapeFitOptionsList);
+IMP_SWIG_VALUE(IMP::bff, FRETLandscapeFit, FRETLandscapeFits);
 IMP_SWIG_VALUE(IMP::bff, FRETLandscapeModel, FRETLandscapeModels);
+%naturalvar IMP::bff::FRETLandscapeFitOptions::fixed;
 
 %include "IMP/bff/FRETLandscape.h"
