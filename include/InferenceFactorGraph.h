@@ -68,8 +68,16 @@ enum InferenceFactorKind {
       one the analysis uses. Scope semantics are the others': it couples
       everything it names.
   */
-  INFERENCE_FACTOR_HYPER = 2
+  INFERENCE_FACTOR_HYPER = 2,
+  //! One parameter follows another: its scope is (follower, master).
+  /*! A follower holds no number of its own -- it reads its master -- so it
+      is a variable of size 0 whose only factor is this one, and every
+      likelihood that reads it reads its master instead. The posterior's
+      structure is that of the masters; the link is kept so a view can say
+      "tau of fit 2 follows fit 1" rather than lose it. */
+  INFERENCE_FACTOR_LINK = 3
 };
+
 
 //! One edge of a junction (clique) tree, joining two maximal cliques.
 /*!
@@ -151,6 +159,16 @@ class IMPBFFEXPORT InferenceFactorGraph {
   void add_factor(const std::string& key, InferenceFactorKind kind,
                   const std::vector<std::string>& scope,
                   int fit_index = -1, int size = 0);
+
+  //! Record the held (fixed) variables a factor reads, outside its scope.
+  /*! Evidence: fixed values a factor conditions on. Keeping them out of the
+      scope keeps the moral graph that of the posterior; keeping them at all
+      is what lets a view draw the whole fit. \throws std::invalid_argument
+      for an unknown factor or variable. */
+  void set_factor_evidence(const std::string& factor_key,
+                           const std::vector<std::string>& variable_keys);
+  //! The held variables a factor reads; empty if none or unknown.
+  std::vector<std::string> get_factor_evidence(const std::string& factor_key) const;
 
   //! Drop every cached derived structure (moral graph, orders, cliques).
   void invalidate();
@@ -333,6 +351,7 @@ class IMPBFFEXPORT InferenceFactorGraph {
     std::vector<int> scope;  // variable positions
     int fit_index;
     int size;
+    std::vector<int> evidence;  // held variable positions read, not in scope
   };
 
   //! Adjacency over variable positions; builds and caches the moral graph.

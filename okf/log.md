@@ -2,6 +2,12 @@
 
 ## 2026-09-23
 
+- **A running fit's factor graph, derived**: `get_fit_factor_graph(objective, keys, ports)` reads a fit's factor graph off its node graph.
+  - Roles: each port is a `free` variable (size 1), `fixed` (size 0), or `follower` (size 0, joined to its master by the new `INFERENCE_FACTOR_LINK`).
+  - Factors: each member objective is a likelihood over the free variables its model reads upstream. A link into another node's input shares a value, not that node's model, so the walk doesn't follow it. Fixed parameters a likelihood reads are its evidence (`set/get_factor_evidence`), outside the scope, so treewidth and elimination stay those of the posterior.
+  - JSON round-trips links and evidence. Variables may now hold 0 free numbers.
+  - The same entry records candidate 5 of the action policy: one run of 144 short at budget 4, so it doesn't ship.
+
 - **Action-policy episodes are labelled by selection, and a policy has a temperature**:
   - `generate_policy` now walks each simulated measurement exhaustively once. Every reached structure becomes an episode, labelled with the move towards the best-scoring structure rather than the generating one, because a search is scored on the former.
   - `get_cached_residual` exposes a scored state's residual.

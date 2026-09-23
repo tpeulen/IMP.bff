@@ -49,8 +49,8 @@ void InferenceFactorGraph::add_variable(const std::string& key, const std::strin
   if (variable_index_of_.count(key)) {
     throw std::invalid_argument("duplicate variable key: " + key);
   }
-  if (size < 1) {
-    IMP_THROW("variable '" << key << "' must hold at least one free number",
+  if (size < 0) {
+    IMP_THROW("variable '" << key << "' cannot hold a negative number of free values; a held or following parameter holds 0",
               IMP::ValueException);
   }
   Variable v;
@@ -90,6 +90,34 @@ void InferenceFactorGraph::add_factor(const std::string& key, InferenceFactorKin
   const int fpos = static_cast<int>(factors_.size()) - 1;
   for (int v : f.scope) incidence_[v].push_back(fpos);
   invalidate();
+}
+
+void InferenceFactorGraph::set_factor_evidence(
+    const std::string& factor_key, const std::vector<std::string>& variable_keys) {
+  const auto found = factor_index_of_.find(factor_key);
+  if (found == factor_index_of_.end()) {
+    throw std::invalid_argument("unknown factor: " + factor_key);
+  }
+  std::vector<int> evidence;
+  for (const auto& k : variable_keys) {
+    const auto it = variable_index_of_.find(k);
+    if (it == variable_index_of_.end()) {
+      throw std::invalid_argument("unknown evidence variable of " + factor_key + ": " + k);
+    }
+    evidence.push_back(it->second);
+  }
+  factors_[static_cast<std::size_t>(found->second)].evidence = evidence;
+}
+
+std::vector<std::string> InferenceFactorGraph::get_factor_evidence(
+    const std::string& factor_key) const {
+  std::vector<std::string> keys;
+  const auto found = factor_index_of_.find(factor_key);
+  if (found == factor_index_of_.end()) return keys;
+  for (int p : factors_[static_cast<std::size_t>(found->second)].evidence) {
+    keys.push_back(variables_[static_cast<std::size_t>(p)].key);
+  }
+  return keys;
 }
 
 void InferenceFactorGraph::invalidate() {
@@ -757,6 +785,11 @@ std::string InferenceFactorGraph::to_json() const {
     o["scope"] = scope;
     o["fit_index"] = f.fit_index;
     o["size"] = f.size;
+    if (!f.evidence.empty()) {
+      nlohmann::json evidence = nlohmann::json::array();
+      for (int p : f.evidence) evidence.push_back(variables_[p].key);
+      o["evidence"] = evidence;
+    }
     facs.push_back(o);
   }
   j["factors"] = facs;
@@ -791,6 +824,11 @@ void InferenceFactorGraph::from_json(const std::string& json) {
     fresh.add_factor(f.at("key").get<std::string>(),
                      static_cast<InferenceFactorKind>(f.value("kind", 0)), scope,
                      f.value("fit_index", -1), f.value("size", 0));
+    if (f.contains("evidence")) {
+      std::vector<std::string> evidence;
+      for (const auto& e : f.at("evidence")) evidence.push_back(e.get<std::string>());
+      fresh.set_factor_evidence(f.at("key").get<std::string>(), evidence);
+    }
   }
   *this = fresh;
 }

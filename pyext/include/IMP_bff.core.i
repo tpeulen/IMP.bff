@@ -658,6 +658,9 @@ def get_session():
 %shared_ptr(IMP::bff::FitJointChiSquared);
 %include "IMP/bff/FitJointChiSquared.h"
 
+/* The factor graph of a running fit, read off its node graph. */
+%include "IMP/bff/InferenceFactorGraphFromFit.h"
+
 %include "IMP_bff.tcspcdecay.i"
 
 %include "IMP_bff.photophysicslifetimespectrumnode.i"

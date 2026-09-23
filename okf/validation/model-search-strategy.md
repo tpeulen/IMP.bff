@@ -421,6 +421,14 @@ better), and search evaluations fell 45% at budget 8, but accuracy stayed
 2-3/144 short at budgets 2 and 8 -- the policy stops too early (kinetic scheme,
 pddem). `set_action_policy` takes a temperature for that trade-off.
 
+**Candidate 5** adds block-aware state features (the worst member block of a
+joint residual, profiled on its own), 300 measurements per game: held-out
+move accuracy 0.812 against 0.219 (every family better, the kinetic scheme
+0.854 against 0.247). At temperature 3 the search matched the priors at
+budgets 2 and 8 and was one run short of 144 at budget 4, with 11-26% fewer
+evaluations. The owner kept the strict gate (2026-09-23): no policy ships
+while any budget is behind, even by one run.
+
 Two defects surfaced on the way, both fixed where they live: the worm-like
 chain multiplied a vanishing exponential by a Bessel I0 that overflows first
 (`boost::math::cyl_bessel_i` raised mid-fit for stiff chains; the density is
