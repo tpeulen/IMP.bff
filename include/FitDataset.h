@@ -80,6 +80,12 @@ class IMPBFFEXPORT FitDataset {
                   const std::vector<int>& shape);
   //! A rank-1 dataset: the shape is its length.
   void set_values(const std::vector<double>& values);
+  //! New observations for the same measurement.
+  /*! Keeps the shape, coordinates, mask and stored variance -- what a
+      simulation replaying this measurement must not lose, and what
+      #set_values deliberately discards because its shape may move.
+      \throws IMP::ValueException unless there is one value per point. */
+  void replace_values(const std::vector<double>& values);
 
   //! The values, row-major.
   const std::vector<double>& get_values() const { return values_; }

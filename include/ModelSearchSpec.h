@@ -91,6 +91,10 @@ class IMPBFFEXPORT ModelSearchSpec {
 
   //! The values bound to one measurement slot.
   const std::vector<double>& get_dataset_values(const std::string& name) const;
+  //! A copy of one complete bound measurement, including its axes and noise.
+  /*! Intended for native simulation workflows that replace only the observed
+      values while preserving the exact measurement contract used by a fit. */
+  FitDataset get_dataset(const std::string& name) const;
 
   //! Supply one scalar the description names (a channel width, a period).
   void set_scalar(const std::string& name, double value);

@@ -12,9 +12,12 @@
  *  purely because generic seeds miss the basin. Seeded where the optimiser
  *  can reach it, the answer is right every time.
  *
- *  So the thing worth learning is **where to start the parameters**, not
- *  which action to take. A policy over actions would be learning the part
- *  that already works.
+ *  This class learns both **where to start parameters** from simulated curves
+ *  and which structural action repairs a fitted residual. The latter samples
+ *  a richer child topology, fits its declared parent to that synthetic data,
+ *  and learns from the parent's weighted residual. `FittingModelSearchProblem`
+ *  and `MultiStructureModelSearchProblem` consume the resulting policy in the
+ *  same native C++ process.
  *
  *  The loop needs no new physics and no hand-written simulator, which is the
  *  point: a family is a description, a description can already produce the
@@ -111,6 +114,40 @@ class IMPBFFEXPORT ModelSearchSelfPlay {
       \return one value per canonical parameter, in registry order, ready for
               MultiStructureModelSearchProblem::add_structure_start. */
   std::vector<double> propose(const std::string& network) const;
+
+  //! Simulate structural defects, fit their smaller parent, and record residuals.
+  /*! Each episode draws an action uniformly, then one declared transition
+      carrying it, so an action reachable from many parents does not dominate
+      the labels. A structural episode samples the destination topology,
+      simulates its bound measurements (with matching noise), then fits the
+      transition's parent; a terminal action's episode simulates and fits the
+      same topology, which teaches the policy when to stop. The input is the
+      fitted topology's #get_residual_profile; the one-hot target is the
+      action. Only transitions whose source and destination expose the same
+      measurement curves participate, so a label always means a corrective
+      structural move rather than an artefact of missing data. */
+  void generate_policy(int episodes, unsigned int seed);
+  int get_number_of_policy_episodes() const;
+  int get_number_of_policy_features() const;
+  std::vector<std::string> get_policy_action_keys() const;
+  const std::vector<double>& get_policy_features() const;
+  const std::vector<double>& get_policy_targets() const;
+
+  //! Train a softmax action policy for #set_residual_action_policy.
+  /*! Returns a `NeuralNet` JSON document whose input width is the residual
+      profile width and whose outputs are ordered by #get_policy_action_keys. */
+  /*! `seed` draws the initial weights and the split; a `validation_fraction`
+      of the episodes is held out, never trained on, and scored afterwards. */
+  std::string train_policy(const std::vector<int>& hidden, int epochs,
+                           double learning_rate, unsigned int seed = 67890,
+                           double validation_fraction = 0.0);
+  //! Mean cross-entropy over the training episodes after training.
+  double get_policy_training_loss() const;
+  int get_number_of_policy_validation_episodes() const;
+  //! Mean cross-entropy on the held-out episodes; NaN when none were held out.
+  double get_policy_validation_loss() const;
+  //! Share of held-out episodes whose most probable action is the label.
+  double get_policy_validation_accuracy() const;
 
  private:
   struct Impl;

@@ -5,10 +5,13 @@
 #include <IMP/bff/FitMinimizer.h>
 #include <IMP/bff/GraphNode.h>
 #include <IMP/bff/GraphPort.h>
+#include <IMP/bff/NeuralNet.h>
 
 #include <algorithm>
 #include <atomic>
 #include <cmath>
+#include <cstdlib>
+#include <limits>
 #include <map>
 #include <random>
 #include <set>
@@ -65,7 +68,135 @@ double puct(const TreeNode& child, int parent_visits, double c_puct) {
   return q + u;
 }
 
+//! A network mapping a fitted residual profile to structural-action logits.
+class ResidualActionPolicy {
+ public:
+  void configure(const std::string& network,
+                 const std::vector<std::string>& action_keys) {
+    if (network.empty()) {
+      clear();
+      return;
+    }
+    if (action_keys.empty()) {
+      throw ModelSearchConfigurationError("residual policy requires action keys");
+    }
+    std::map<std::string, int> index;
+    for (std::size_t i = 0; i < action_keys.size(); ++i) {
+      require_key(action_keys[i], "residual policy action");
+      if (!index.insert(std::make_pair(action_keys[i], static_cast<int>(i))).second) {
+        throw ModelSearchConfigurationError("residual policy action keys must be unique");
+      }
+    }
+    std::shared_ptr<NeuralNet> net(new NeuralNet(network));
+    if (net->get_n_inputs() <= 0 ||
+        net->get_n_outputs() != static_cast<int>(action_keys.size())) {
+      throw ModelSearchConfigurationError(
+          "residual action policy dimensions do not match its action keys");
+    }
+    net_ = net;
+    index_ = index;
+  }
+
+  void clear() {
+    net_.reset();
+    index_.clear();
+  }
+
+  bool active() const { return static_cast<bool>(net_); }
+
+  //! Redistribute the declared prior mass of the actions the network knows.
+  /*! Declared priors are normalised over the actions available here. The
+      network's softmax, restricted to those same actions, then reallocates
+      the mass they jointly hold; an action the network does not name keeps
+      its normalised declared share. The result is one distribution, so PUCT
+      never compares a raw declared weight against a probability. */
+  ModelSearchActions apply(const ModelSearchActions& actions,
+                           const std::vector<double>& residual) const {
+    if (!net_ || actions.empty() || residual.empty()) return actions;
+    std::vector<double> input = get_residual_profile(residual, net_->get_n_inputs());
+    double* view = nullptr;
+    int n_out = 0;
+    net_->predict(input, 1, &view, &n_out);
+    std::vector<double> logits(view, view + n_out);
+    std::free(view);
+    if (n_out != static_cast<int>(index_.size())) {
+      throw ModelSearchConfigurationError("residual action policy output width changed");
+    }
+    double declared_total = 0.0;
+    for (std::size_t i = 0; i < actions.size(); ++i) {
+      declared_total += std::max(0.0, actions[i].get_prior());
+    }
+    std::vector<double> prior(actions.size(), 0.0);
+    std::vector<int> covered;
+    double covered_mass = 0.0;
+    double maximum = -std::numeric_limits<double>::infinity();
+    for (std::size_t i = 0; i < actions.size(); ++i) {
+      prior[i] = declared_total > 0.0
+          ? std::max(0.0, actions[i].get_prior()) / declared_total
+          : 1.0 / static_cast<double>(actions.size());
+      const std::map<std::string, int>::const_iterator found =
+          index_.find(actions[i].get_key());
+      if (found == index_.end()) continue;
+      const double logit = logits[static_cast<std::size_t>(found->second)];
+      if (!std::isfinite(logit)) {
+        throw ModelSearchConfigurationError("residual action policy output is not finite");
+      }
+      covered.push_back(static_cast<int>(i));
+      covered_mass += prior[i];
+      maximum = std::max(maximum, logit);
+    }
+    if (!covered.empty() && covered_mass > 0.0) {
+      std::vector<double> weight(covered.size());
+      double total = 0.0;
+      for (std::size_t c = 0; c < covered.size(); ++c) {
+        const int key = index_.find(actions[covered[c]].get_key())->second;
+        weight[c] = std::exp(logits[static_cast<std::size_t>(key)] - maximum);
+        total += weight[c];
+      }
+      for (std::size_t c = 0; c < covered.size(); ++c) {
+        prior[covered[c]] = covered_mass * weight[c] / total;
+      }
+    }
+    ModelSearchActions adjusted;
+    for (std::size_t i = 0; i < actions.size(); ++i) {
+      adjusted.push_back(ModelSearchAction(actions[i].get_key(),
+                                           actions[i].get_predicted_state_key(),
+                                           prior[i], actions[i].get_terminal()));
+    }
+    return adjusted;
+  }
+
+ private:
+  std::shared_ptr<NeuralNet> net_;
+  std::map<std::string, int> index_;
+};
+
 }  // namespace
+
+std::vector<double> get_residual_profile(const std::vector<double>& residual,
+                                         int width) {
+  if (width <= 0) {
+    throw ModelSearchConfigurationError("residual profile width must be positive");
+  }
+  std::vector<double> profile(static_cast<std::size_t>(width), 0.0);
+  if (residual.empty()) return profile;
+  for (int bucket = 0; bucket < width; ++bucket) {
+    const std::size_t begin = static_cast<std::size_t>(bucket) * residual.size() /
+                              static_cast<std::size_t>(width);
+    const std::size_t end = static_cast<std::size_t>(bucket + 1) * residual.size() /
+                            static_cast<std::size_t>(width);
+    double sum = 0.0;
+    int count = 0;
+    for (std::size_t i = begin; i < end; ++i) {
+      if (std::isfinite(residual[i])) {
+        sum += residual[i];
+        ++count;
+      }
+    }
+    if (count) profile[static_cast<std::size_t>(bucket)] = sum / count;
+  }
+  return profile;
+}
 
 ModelSearchState::ModelSearchState()
     : reward_(0.0), acceptable_(false) {}
@@ -210,6 +341,8 @@ class FitSearchCancelObserver : public FitMinimizerObserver {
 struct FitSearchSnapshot {
   std::vector<double> values;
   std::vector<int> fixed;
+  //! The weighted residual of the fitted state, read once when it was scored.
+  std::vector<double> residual;
 };
 
 struct FitSearchGroup {
@@ -234,6 +367,7 @@ struct FittingModelSearchProblem::Impl {
   std::vector<std::shared_ptr<GraphPort> > ports;
   std::map<std::string, FitSearchStructure> structures;
   std::map<std::string, ModelSearchActions> actions;
+  ResidualActionPolicy residual_action_policy;
   std::string initial_structure;
   std::map<std::string, FitSearchSnapshot> snapshots;
   std::map<std::string, std::string> snapshot_structures;
@@ -266,6 +400,15 @@ struct FittingModelSearchProblem::Impl {
       ports[i]->set_fixed(snapshot.fixed[i] != 0);
     }
     if (objective) objective->update();
+  }
+
+  //! #capture plus the residual of the graph as the last update left it.
+  FitSearchSnapshot capture_scored() const {
+    FitSearchSnapshot snapshot = capture();
+    const std::shared_ptr<GraphPort> residual =
+        objective->get_output_port(residual_key);
+    if (residual) snapshot.residual = residual->get_values_ref();
+    return snapshot;
   }
 
   int free_port_count(const std::string& structure_key) const {
@@ -468,6 +611,19 @@ void FittingModelSearchProblem::add_action(
                                          terminal));
 }
 
+void FittingModelSearchProblem::set_residual_action_policy(
+    const std::string& network, const std::vector<std::string>& action_keys) {
+  impl_->residual_action_policy.configure(network, action_keys);
+}
+
+void FittingModelSearchProblem::clear_residual_action_policy() {
+  impl_->residual_action_policy.clear();
+}
+
+bool FittingModelSearchProblem::get_has_residual_action_policy() const {
+  return impl_->residual_action_policy.active();
+}
+
 void FittingModelSearchProblem::set_score_output(const std::string& key) {
   require_key(key, "score output");
   impl_->score_output = key;
@@ -541,7 +697,7 @@ ModelSearchState FittingModelSearchProblem::get_initial_state() {
     }
     const std::pair<double, bool> score = impl_->score_current(
         static_cast<int>(free_ports.size()));
-    impl_->snapshots[impl_->initial_structure] = impl_->capture();
+    impl_->snapshots[impl_->initial_structure] = impl_->capture_scored();
     impl_->snapshot_structures[impl_->initial_structure] =
         impl_->initial_structure;
     return ModelSearchState(impl_->initial_structure,
@@ -555,10 +711,15 @@ ModelSearchState FittingModelSearchProblem::get_initial_state() {
 
 ModelSearchActions FittingModelSearchProblem::get_actions(
     const ModelSearchState& state) {
-  const std::map<std::string, ModelSearchActions>::const_iterator
-      found = impl_->actions.find(state.get_structure_key());
+  const std::map<std::string, ModelSearchActions>::const_iterator found =
+      impl_->actions.find(state.get_structure_key());
   if (found == impl_->actions.end()) return ModelSearchActions();
-  return found->second;
+  if (!impl_->residual_action_policy.active()) return found->second;
+  const std::map<std::string, FitSearchSnapshot>::const_iterator snapshot =
+      impl_->snapshots.find(state.get_key());
+  if (snapshot == impl_->snapshots.end()) return found->second;
+  return impl_->residual_action_policy.apply(found->second,
+                                             snapshot->second.residual);
 }
 
 ModelSearchState FittingModelSearchProblem::evaluate(
@@ -616,7 +777,7 @@ ModelSearchState FittingModelSearchProblem::evaluate(
     std::ostringstream state_key;
     state_key << target << "@" << impl_->next_snapshot++;
     const std::string key = state_key.str();
-    impl_->snapshots[key] = impl_->capture();
+    impl_->snapshots[key] = impl_->capture_scored();
     impl_->snapshot_structures[key] = target;
     return ModelSearchState(key, target, score.first, score.second);
   } catch (const std::exception& error) {
@@ -736,6 +897,7 @@ struct MultiStructureModelSearchProblem::Impl {
   std::map<std::string, MultiStructureRecord> structures;
   std::vector<std::string> structure_order;
   std::map<std::string, ModelSearchActions> actions;
+  ResidualActionPolicy residual_action_policy;
   std::string initial_structure;
   std::string active_structure;
   double last_reduced_chi2 = 0.0;
@@ -816,6 +978,14 @@ struct MultiStructureModelSearchProblem::Impl {
                                            "'");
     }
     return found->second;
+  }
+
+  //! The structure's weighted residual as its objective last evaluated it.
+  std::vector<double> residual_of(const MultiStructureRecord& record) const {
+    if (record.residual_key.empty()) return std::vector<double>();
+    const std::shared_ptr<GraphPort> residual =
+        record.objective->get_output_port(record.residual_key);
+    return residual ? residual->get_values_ref() : std::vector<double>();
   }
 
   FitSearchSnapshot capture() const {
@@ -1326,6 +1496,19 @@ void MultiStructureModelSearchProblem::add_action(
                                       terminal));
 }
 
+void MultiStructureModelSearchProblem::set_residual_action_policy(
+    const std::string& network, const std::vector<std::string>& action_keys) {
+  impl_->residual_action_policy.configure(network, action_keys);
+}
+
+void MultiStructureModelSearchProblem::clear_residual_action_policy() {
+  impl_->residual_action_policy.clear();
+}
+
+bool MultiStructureModelSearchProblem::get_has_residual_action_policy() const {
+  return impl_->residual_action_policy.active();
+}
+
 void MultiStructureModelSearchProblem::set_structure_score_output(
     const std::string& structure_key, const std::string& output_key) {
   require_key(output_key, "score output");
@@ -1473,6 +1656,7 @@ ModelSearchState MultiStructureModelSearchProblem::get_initial_state() {
     selected.objective->update();
     const std::pair<double, bool> score =
         std::make_pair(best_reward, best_acceptable);
+    best_snapshot.residual = impl_->residual_of(selected);
     impl_->snapshots[impl_->initial_structure] = best_snapshot;
     impl_->snapshot_structures[impl_->initial_structure] =
         impl_->initial_structure;
@@ -1491,7 +1675,12 @@ ModelSearchActions MultiStructureModelSearchProblem::get_actions(
   const std::map<std::string, ModelSearchActions>::const_iterator found =
       impl_->actions.find(state.get_structure_key());
   if (found == impl_->actions.end()) return ModelSearchActions();
-  return found->second;
+  if (!impl_->residual_action_policy.active()) return found->second;
+  const std::map<std::string, FitSearchSnapshot>::const_iterator snapshot =
+      impl_->snapshots.find(state.get_key());
+  if (snapshot == impl_->snapshots.end()) return found->second;
+  return impl_->residual_action_policy.apply(found->second,
+                                             snapshot->second.residual);
 }
 
 ModelSearchState MultiStructureModelSearchProblem::evaluate(
@@ -1607,6 +1796,7 @@ ModelSearchState MultiStructureModelSearchProblem::evaluate(
     std::ostringstream state_key;
     state_key << target_key << "@" << impl_->next_snapshot++;
     const std::string key = state_key.str();
+    best_snapshot.residual = impl_->residual_of(target);
     impl_->snapshots[key] = best_snapshot;
     impl_->snapshot_structures[key] = target_key;
     return ModelSearchState(key, target_key, best_reward, best_acceptable);
@@ -2010,6 +2200,18 @@ std::shared_ptr<GraphNode>
 MultiStructureModelSearchProblem::get_active_objective() const {
   if (impl_->active_structure.empty()) return std::shared_ptr<GraphNode>();
   return impl_->structure(impl_->active_structure).objective;
+}
+
+std::vector<double> MultiStructureModelSearchProblem::get_active_residual() {
+  if (impl_->active_structure.empty()) {
+    throw ModelSearchConfigurationError("no model structure is active");
+  }
+  const MultiStructureRecord& selected = impl_->structure(impl_->active_structure);
+  if (selected.residual_key.empty()) {
+    throw ModelSearchConfigurationError("the active structure declares no residual output");
+  }
+  selected.objective->update();
+  return impl_->residual_of(selected);
 }
 
 int MultiStructureModelSearchProblem::get_last_fit_status() const {

@@ -941,6 +941,15 @@ const std::vector<double>& ModelSearchSpec::get_dataset_values(
   return found->second.get_values();
 }
 
+FitDataset ModelSearchSpec::get_dataset(const std::string& name) const {
+  std::map<std::string, FitDataset>::const_iterator found =
+      impl_->datasets.find(name);
+  if (found == impl_->datasets.end()) {
+    refuse("nothing is bound to the measurement '" + name + "'");
+  }
+  return found->second;
+}
+
 void ModelSearchSpec::set_scalar(const std::string& name, double value) {
   std::map<std::string, double>::const_iterator found = impl_->scalars.find(name);
   // Supplying what is already there changes nothing, and must not cost the

@@ -1,6 +1,12 @@
 # Update Log
 
+## 2026-09-23
+
+- **Residual action policy made sound before any training**: expansion now reads the weighted residual stored when a state was scored, so `get_actions` has no side effects and never throws. Declared priors are normalised over the available actions, and the policy softmax, restricted to the available named actions, reallocates only their joint mass. One `ResidualActionPolicy` serves both fitting problems, and `get_residual_profile` is public. Self-play reads `get_active_residual()`, draws actions uniformly, labels terminal actions (stop), and trains with a seed and a validation split. `FitDataset::replace_values` keeps axes, mask and variance, where `set_values` had emptied `curve.axis` and made every policy episode refuse. test/mcts and test/minimizer: 200 passed. No policy is trained or shipped yet. The gate is in `okf/validation/model-search-strategy.md` "What follows" item 0.
+
 ## 2026-09-19
+
+- **MCTS can now learn and use residual shape as a native policy signal**: `ModelSearchSelfPlay.generate_policy()` samples a declared richer transition, simulates its data with the measurement's own noise contract, fits the smaller parent, and records its signed weighted residual against the corrective action. `train_policy()` optimizes cross-entropy over those episodes and writes the ordinary `NeuralNet` JSON. `FittingModelSearchProblem` and `MultiStructureModelSearchProblem` consume that policy plus its action-key ordering: at expansion BFF down-samples the fitted residual without removing sign or position, softmaxes the logits, and supplies state-local weights to PUCT. Model-selection reward remains BIC/AIC (or the declared score), so policy guides exploration rather than deciding which fit wins. ChiSurf's `NativeSearchSettings` only forwards the JSON model and action keys; no Python residual callback or array copy is introduced. Focused BFF and ChiSurf forwarding tests added; local CMake/Python test environments need repair before execution (stale Ninja path / missing PyQt5).
 
 - **PRD-136 Stages 5 & 6 closed (dye-timewarp / TITO): fragment gate, lifetimes, ensemble export, and consumer verification**:
   Completed the remaining analytical stages for the dye-timewarp generative model campaign across T4L, hGBP1, and MalE:

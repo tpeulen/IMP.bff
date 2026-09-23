@@ -107,6 +107,12 @@ IMP_VALUES(ModelSearchAction, ModelSearchActions);
   onto a canonical ancestor.  The tree records its reward, then makes that
   node a dead end so the collapsed structure is not searched repeatedly.
 */
+//! Signed means of a weighted-residual trace over `width` equal buckets.
+/*! The input a residual action policy sees. Non-finite points are skipped and
+    an empty bucket reads 0, so a trace shorter than `width` still maps. */
+IMPBFFEXPORT std::vector<double> get_residual_profile(
+    const std::vector<double>& residual, int width);
+
 class IMPBFFEXPORT ModelSearchProblem {
  public:
   virtual ~ModelSearchProblem();
@@ -197,6 +203,27 @@ class IMPBFFEXPORT FittingModelSearchProblem : public ModelSearchProblem {
                   const std::string& action_key,
                   const std::string& result_structure, double prior = 1.0,
                   bool terminal = false);
+
+  //! Replace static priors with a policy inferred from fitted residual shape.
+  /*! The network receives #get_residual_profile of the weighted residual
+      recorded when the expanded state was scored, so expansion never refits
+      or re-evaluates the graph. Declared priors are normalised over the
+      actions available at that state; the network's softmax, restricted to
+      the available actions named in `action_keys`, reallocates the mass
+      those actions jointly hold, and every other action keeps its normalised
+      declared share. A state scored without a residual keeps its declared
+      priors. This keeps the
+      fitting graph, residual and inference in C++ and makes a policy a hint
+      to PUCT, never a second model-selection score.
+
+      The network must have one output for every action key. Its input width
+      chooses the residual profile resolution, so policies trained at a
+      different resolution remain explicit rather than silently resampled by
+      Python. Passing an empty document disables the policy. */
+  void set_residual_action_policy(const std::string& network,
+                                  const std::vector<std::string>& action_keys);
+  void clear_residual_action_policy();
+  bool get_has_residual_action_policy() const;
 
   //! Use this scalar objective output as reward (higher is better).
   void set_score_output(const std::string& key);
@@ -315,6 +342,15 @@ class IMPBFFEXPORT MultiStructureModelSearchProblem
                   const std::string& action_key,
                   const std::string& result_structure, double prior = 1.0,
                   bool terminal = false);
+
+  //! Replace static priors with a policy inferred from fitted residual shape.
+  /*! See the corresponding FittingModelSearchProblem method. The policy is
+      evaluated only after this topology has been fitted, and supplies a
+      state-local PUCT hint; it does not alter the fitted score. */
+  void set_residual_action_policy(const std::string& network,
+                                  const std::vector<std::string>& action_keys);
+  void clear_residual_action_policy();
+  bool get_has_residual_action_policy() const;
 
   //! Bound the work each candidate's fit may do.
   /*! Zero keeps FitMinimizer's own default of `200 * (n + 1)` residual
@@ -524,6 +560,10 @@ class IMPBFFEXPORT MultiStructureModelSearchProblem
   //! The topology a search starts from, and a new model stands at.
   const std::string& get_initial_structure() const;
   std::shared_ptr<GraphNode> get_active_objective() const;
+  //! The active topology's weighted residual, evaluated now.
+  /*! Read through the residual output the topology declared, so a caller
+      never has to know that port's name. \throws ModelSearchConfigurationError */
+  std::vector<double> get_active_residual();
   int get_last_fit_status() const;
   const std::string& get_last_failure() const;
 

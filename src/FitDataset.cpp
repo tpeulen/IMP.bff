@@ -62,6 +62,14 @@ void FitDataset::set_values(const std::vector<double>& values,
   coordinate_names_.clear();
 }
 
+void FitDataset::replace_values(const std::vector<double>& values) {
+  if (values.size() != values_.size()) {
+    IMP_THROW("replacing " << values_.size() << " values with " << values.size()
+              << " would change the measurement's shape", IMP::ValueException);
+  }
+  values_ = values;
+}
+
 void FitDataset::set_values(const std::vector<double>& values) {
   set_values(values, std::vector<int>(1, static_cast<int>(values.size())));
 }

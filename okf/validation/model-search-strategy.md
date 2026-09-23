@@ -305,8 +305,60 @@ genuine local minimum, so the two failures that looked alike are different
 problems. The anisotropy family needed iterations; FCS needs to start
 somewhere else, which is what the self-play proposer is for.
 
+## A residual action policy, and what it may and may not do (2026-09-23)
+
+The section above argued that learning *which action* repairs a fit learns the
+part that already works. That still holds for selection. A policy can still pay
+for itself on cost, by steering PUCT's early expansions towards the move the
+residual shape asks for, so fewer candidates are fitted before the winner is
+reached. `ModelSearchSelfPlay::generate_policy`/`train_policy` and
+`set_residual_action_policy` on both fitting problems provide this. The reward
+is untouched: BIC/AIC or the declared score still decide.
+
+The first cut of that plumbing had four defects, fixed before anything was
+trained on it:
+
+- **Expansion refitted the graph.** `get_actions` restored the state and
+  re-ran `objective->update()` every time, and threw when the state was not
+  cached. Now the weighted residual is stored on the snapshot when the state
+  is scored. Expansion reads it and has no side effects, and a state without
+  one keeps its declared priors.
+- **Two scales in one distribution.** Actions the network named got softmax
+  probabilities, taken over keys the state might not even offer, while the rest
+  kept raw declared weights. Now the declared priors are normalised over the
+  available actions, and the softmax, restricted to the available named
+  actions, reallocates only the mass those actions jointly hold.
+- **Self-play read a port by convention** (`"residuals"`) and had its own copy
+  of the profile reduction. Now it goes through `get_active_residual()` and
+  the one public `get_residual_profile`.
+- **Biased labels.** Episodes were drawn uniformly over transitions, so an
+  action reachable from many parents dominated, and a terminal action was
+  never a label, so the policy could not learn to stop. Now each episode draws
+  an action first, and terminal actions get episodes that fit the right
+  topology to its own data. `train_policy` takes a seed and a held-out
+  validation fraction and reports validation loss and top-1 accuracy.
+
+Self-play episodes were also silently empty of axes. `FitDataset::set_values`
+clears coordinates, so the simulated dataset lost `curve.axis` and every parent
+fit refused. The new `FitDataset::replace_values` swaps observations and keeps
+the shape, coordinates, mask and variance.
+
+**No trained policy exists yet, and none ships.** Whether one helps is
+unmeasured. The gate is evaluations-to-generating-topology with and without a
+policy, on held-out simulated data per family.
+
 ## What follows
 
+0. **Train and gate residual policies per family** (TCSPC lifetime, FCS,
+   FRET, anisotropy). Generate episodes with `generate_policy`, train with
+   `validation_fraction > 0`, and record validation accuracy. Ship
+   `data/model_search/policies/<family>.json` only where a benchmark shows
+   fewer evaluations to the generating topology at equal selection accuracy.
+   Then make chisurf's `NativeSearchSettings` load the matching one by default
+   (today it defaults to no policy). The parameter-start proposer
+   (`train`/`propose`) needs the same gate before it ships.
+   `ExperimentSelfPlay` (untracked, photon-level scenarios through tttrlib's
+   `SimEngine`) is not wired into `generate_policy`: wire it in or drop it.
 1. **Sorting.** TCSPC component labels permute between slots depending on the
    seeds, because nothing orders a fitted component family.
    `mcts-generalization-cleanup.md` asks for descending characteristic value;
