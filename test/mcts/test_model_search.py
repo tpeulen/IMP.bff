@@ -174,6 +174,9 @@ def test_the_shipped_policy_is_the_gated_one():
         pytest.skip("this build ships no action policy")
     document = json.loads(shipped)
     assert document["format"] == "bff.neural_net" and document["temperature"] > 0
+    # Stored as msgpack (a map: fixmap 0x80-0x8f, map16 0xde, map32 0xdf), not JSON text.
+    stored = open(bff.get_data_path("model_search/policy/action_policy.msgpack"), "rb").read()
+    assert stored[0] in range(0x80, 0x90) or stored[0] in (0xDE, 0xDF)
     benchmark = json.loads(open(bff.get_data_path(
         "model_search/policy/action_policy.benchmark.json")).read())
     assert benchmark["ship"] and benchmark["temperature"] == document["temperature"]

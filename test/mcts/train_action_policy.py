@@ -12,8 +12,8 @@ label. The episodes pool
 into one data set, because the features describe fitted residuals and moves
 rather than any family's names, and one network is trained on all of it.
 
-Writes ``data/model_search/policy/action_policy.json`` (the network the search
-loads), ``action_policy.report.json`` (what it was trained on and how it
+Writes ``data/model_search/policy/action_policy.msgpack`` (the network the search
+loads, a ``bff.neural_net`` document as msgpack), ``action_policy.report.json`` (what it was trained on and how it
 ranks held-out moves against the declared priors alone) and, with
 ``--save-episodes``, the episodes themselves so a retrain need not replay.
 """
@@ -26,6 +26,7 @@ import pathlib
 import sys
 import time
 
+import msgpack
 import IMP.bff as bff
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -61,7 +62,7 @@ def main(argv=None):
     parser.add_argument("--episodes-file", type=pathlib.Path, default=None,
                         help="reuse saved episodes instead of playing")
     parser.add_argument("--save-episodes", type=pathlib.Path, default=None)
-    parser.add_argument("--out", type=pathlib.Path, default=DATA / "action_policy.json")
+    parser.add_argument("--out", type=pathlib.Path, default=DATA / "action_policy.msgpack")
     args = parser.parse_args(argv)
 
     photons = not args.no_photons and bff.PhotonExperiment.get_available()
@@ -94,7 +95,7 @@ def main(argv=None):
     for name in families:
         print(f"  {name:30s} {accuracy[name]:.3f}  priors {baseline[name]:.3f}")
 
-    args.out.write_text(trained.get_network())
+    args.out.write_bytes(msgpack.packb(json.loads(trained.get_network()), use_bin_type=True))
     report = {
         "format": "bff.model_search.action_policy_report.v1",
         "seed": args.seed,

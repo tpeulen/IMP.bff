@@ -15,7 +15,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <fstream>
+#include <iterator>
 #include <limits>
 #include <random>
 #include <set>
@@ -391,15 +393,19 @@ std::vector<double> ModelSearchPolicyTraining::get_family_baseline_accuracy() co
 std::string get_shipped_action_policy() {
   std::string path;
   try {
-    path = get_data_path("model_search/policy/action_policy.json");
+    path = get_data_path("model_search/policy/action_policy.msgpack");
   } catch (...) {
     return std::string();
   }
-  std::ifstream in(path.c_str());
+  std::ifstream in(path.c_str(), std::ios::binary);
   if (!in) return std::string();
-  std::ostringstream text;
-  text << in.rdbuf();
-  return text.str();
+  const std::vector<std::uint8_t> bytes((std::istreambuf_iterator<char>(in)),
+                                        std::istreambuf_iterator<char>());
+  const nlohmann::json doc = nlohmann::json::from_msgpack(bytes, true, false);
+  if (doc.is_discarded())
+    IMP_THROW("get_shipped_action_policy: " << path << " is not a msgpack document",
+              IMP::IOException);
+  return doc.dump();
 }
 
 IMPBFF_END_NAMESPACE

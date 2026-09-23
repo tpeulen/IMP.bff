@@ -1,6 +1,6 @@
 """Does the shipped action policy earn its place? The gate before it ships.
 
-    $E/bin/python test/mcts/bench_action_policy.py --policy data/model_search/policy/action_policy.json
+    $E/bin/python test/mcts/bench_action_policy.py --policy data/model_search/policy/action_policy.msgpack
 
 On fresh measurements -- a seed range training never used, photons recorded by
 TTTRLib where the data are counts -- every game is searched at small budgets
@@ -21,6 +21,7 @@ import pathlib
 import random
 import sys
 
+import msgpack
 import IMP.bff as bff
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -48,7 +49,7 @@ def search(spec, policy, budget, seed, temperature=0.0):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("--policy", type=pathlib.Path, default=DATA / "action_policy.json")
+    parser.add_argument("--policy", type=pathlib.Path, default=DATA / "action_policy.msgpack")
     parser.add_argument("--measurements", type=int, default=12, help="per game")
     parser.add_argument("--budgets", type=int, nargs="*", default=[2, 4, 8])
     parser.add_argument("--seed", type=int, default=91000)
@@ -56,8 +57,9 @@ def main(argv=None):
     parser.add_argument("--temperature", type=float, default=0.0,
                         help="0: the policy document's own (1 when it has none)")
     args = parser.parse_args(argv)
-    policy = args.policy.read_text()
-    effective = args.temperature or float(json.loads(policy).get("temperature", 1.0))
+    document = msgpack.unpackb(args.policy.read_bytes(), raw=False)
+    policy = json.dumps(document)
+    effective = args.temperature or float(document.get("temperature", 1.0))
     photons = bff.PhotonExperiment.get_available()
     rng = random.Random(args.seed)
 

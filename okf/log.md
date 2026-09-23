@@ -2,6 +2,7 @@
 
 ## 2026-09-23
 
+- **The shipped action policy is stored as msgpack**: `data/model_search/policy/action_policy.msgpack` replaces `action_policy.json`. It is the same `bff.neural_net` document, but the float64 weights are stored exactly and compactly (30.9 kB → 13.1 kB). `get_shipped_action_policy()` decodes it with the vendored nlohmann `from_msgpack` and still returns the JSON text that `set_action_policy` reads, so chisurf is unchanged. `train_action_policy.py` writes msgpack and `bench_action_policy.py` reads it; the report and benchmark stay JSON because they are for people. test/mcts: 144 passed; chisurf `test_mcts_*policy*`/`test_mcts_execution`: 6 passed.
 - **bff ships an action policy**: candidate 6 (600 simulated measurements per game, 18 k episodes) passes the strict search gate on 270 fresh runs per budget at temperature 3. It is never behind the declared priors (249=249, 255>253, 267=267 at budgets 2/4/8) with 11-23% fewer structures evaluated; at temperatures 1 and 2 it fails at budget 8. See `okf/validation/model-search-strategy.md`.
   - The policy document carries its temperature (`"temperature": 3.0`), and `set_action_policy(network)` without one uses the document's own; chisurf's default search therefore runs the gated policy.
   - The policy, its training report and benchmark live in `data/model_search/policy/`; the family folder is the family list (`test_the_family_list_matches_what_is_shipped`).
