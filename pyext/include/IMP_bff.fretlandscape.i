@@ -44,5 +44,7 @@ IMP_SWIG_VALUE(IMP::bff, FRETHiddenProcess, FRETHiddenProcesses);
 IMP_SWIG_VALUE(IMP::bff, FRETDye, FRETDyes);
 IMP_SWIG_VALUE(IMP::bff, FRETInstrument, FRETInstruments);
 IMP_SWIG_VALUE(IMP::bff, FRETMeasurement, FRETMeasurements);
+IMP_SWIG_VALUE(IMP::bff, FRETPhotonData, FRETPhotonDataList);
+IMP_SWIG_VALUE(IMP::bff, FRETNetworkModel, FRETNetworkModels);
 
 %include "IMP/bff/FRETNetwork.h"

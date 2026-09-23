@@ -378,6 +378,109 @@ class IMPBFFEXPORT FRETMeasurement {
 };
 IMP_VALUES(FRETMeasurement, FRETMeasurements);
 
+//! How photon arrival times enter a measurement's likelihood.
+enum FRETArrivalModel {
+  //! Killing between photons with `Lambda_tot(s)`: the count rate is
+  //! information. Valid when each state's brightness is constant
+  //! (immobilised molecules, the paper's traces).
+  FRET_ARRIVAL_FULL = 0,
+  //! Arrival times taken as given (Gopich-Szabo / H2MM): between photons the
+  //! generator alone, each photon the normalised probability of its channel
+  //! and microtime, `E_c(t|s) / Lambda_tot(s)`. Insensitive to the brightness
+  //! modulation of a molecule crossing the focus; the default for bursts.
+  FRET_ARRIVAL_CONDITIONAL = 1
+};
+
+//! Photons of one measurement, cut into segments.
+/*! Arrays: macrotime (the rate unit's time), channel, microtime bin (may be
+    empty when the instrument has no microtimes), and segments as inclusive
+    first/last photon indices. A burst selection is one segmentation; a whole
+    immobilised trace, or the whole stream, are others. Each segment is scored
+    independently from the start distribution. */
+class IMPBFFEXPORT FRETPhotonData {
+ public:
+  FRETPhotonData() {}
+  FRETPhotonData(const std::vector<double>& macrotimes, const std::vector<int>& channels,
+                 const std::vector<int>& microtimes, const std::vector<int>& segment_starts,
+                 const std::vector<int>& segment_stops);
+  const std::vector<double>& get_macrotimes() const { return t_; }
+  const std::vector<int>& get_channels() const { return c_; }
+  const std::vector<int>& get_microtimes() const { return b_; }
+  const std::vector<int>& get_segment_starts() const { return start_; }
+  const std::vector<int>& get_segment_stops() const { return stop_; }
+  int get_n_segments() const { return static_cast<int>(start_.size()); }
+  int get_n_photons() const { return static_cast<int>(t_.size()); }
+  //! Longest gap between consecutive photons of one segment.
+  double get_max_gap() const;
+
+  IMP_SHOWABLE_INLINE(FRETPhotonData, out << "FRETPhotonData(" << t_.size() << " photons, "
+                                          << start_.size() << " segments)");
+
+ private:
+  std::vector<double> t_;
+  std::vector<int> c_, b_, start_, stop_;
+};
+IMP_VALUES(FRETPhotonData, FRETPhotonDataList);
+
+//! One hidden process, observed by several FRET measurements.
+/*! The log-likelihood is the sum over measurements and their segments. Each
+    measurement has its own arrival model (default conditional) and start:
+    by default the product start (FRETMeasurement::get_start) weighted by
+    detection, `pi * Lambda_tot` normalised, because a data-selected segment
+    begins with a detection; the plain start is for a segment whose start
+    time the data did not choose. Detection weighting corrects only for the
+    first photon: the burst search's selection of bright, long stretches is a
+    bias the likelihood does not model (it would need the selection rule).
+
+    Between photons the state is propagated by uniformization of the sparse
+    joint generator (adaptive Poisson truncation at 1e-14 tail mass, gaps
+    split into chunks of at most `q tau = 64`), which stays exact for
+    non-symmetric, block-triangular (bleaching) generators. */
+class IMPBFFEXPORT FRETNetworkModel {
+ public:
+  explicit FRETNetworkModel(const FRETHiddenProcess& process = FRETHiddenProcess(2));
+  const FRETHiddenProcess& get_process() const { return process_; }
+  void set_process(const FRETHiddenProcess& process) { process_ = process; }
+
+  //! Add a measurement with its photons; returns its index.
+  int add_measurement(const FRETMeasurement& measurement, const FRETPhotonData& data);
+  int get_n_measurements() const { return static_cast<int>(meas_.size()); }
+  const FRETMeasurement& get_measurement(int i) const { return meas_.at(i); }
+  void set_measurement(int i, const FRETMeasurement& m) { meas_.at(i) = m; }
+  const FRETPhotonData& get_data(int i) const { return data_.at(i); }
+  void set_arrival_model(int i, int model);
+  int get_arrival_model(int i) const { return arrival_.at(i); }
+  void set_detection_weighted_start(int i, bool on) { detection_start_.at(i) = on; }
+  bool get_detection_weighted_start(int i) const { return detection_start_.at(i); }
+  //! Start from the joint generator's stationary distribution instead of the
+  //! product start (no bleaching; see FRETMeasurement::get_joint_stationary).
+  void set_joint_stationary_start(int i, bool on) { joint_start_.at(i) = on; }
+
+  //! Total log-likelihood at the current parameter values.
+  double log_likelihood() const;
+  //! Log-likelihood of each segment of measurement `i`.
+  std::vector<double> segment_log_likelihoods(int i) const;
+  //! Posterior time fractions of `factor` (`hidden`, `donor`, `acceptor`, or
+  //! `joint`) over each segment of measurement `i`, between its first and
+  //! last photon: row-major `n_segments x n_factor_states`, one row per
+  //! segment -- columns a burst companion can hold.
+  std::vector<double> segment_occupancies(int i, const std::string& factor) const;
+  //! Posterior probabilities of the joint state at each photon of segment
+  //! `segment`: row-major `n_photons x n_states`.
+  std::vector<double> photon_posteriors(int i, int segment) const;
+
+  IMP_SHOWABLE_INLINE(FRETNetworkModel, out << "FRETNetworkModel(" << meas_.size()
+                                            << " measurements)");
+
+ private:
+  FRETHiddenProcess process_;
+  std::vector<FRETMeasurement> meas_;
+  std::vector<FRETPhotonData> data_;
+  std::vector<int> arrival_;
+  std::vector<char> detection_start_, joint_start_;
+};
+IMP_VALUES(FRETNetworkModel, FRETNetworkModels);
+
 IMPBFF_END_NAMESPACE
 
 #endif  // IMPBFF_FRETNETWORK_H
