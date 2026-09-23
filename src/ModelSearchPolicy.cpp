@@ -391,7 +391,7 @@ std::vector<double> ModelSearchPolicyTraining::get_family_baseline_accuracy() co
 std::string get_shipped_action_policy() {
   std::string path;
   try {
-    path = get_data_path("model_search/action_policy.json");
+    path = get_data_path("model_search/policy/action_policy.json");
   } catch (...) {
     return std::string();
   }

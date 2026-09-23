@@ -2,6 +2,11 @@
 
 ## 2026-09-23
 
+- **bff ships an action policy**: candidate 6 (600 simulated measurements per game, 18 k episodes) passes the strict search gate on 270 fresh runs per budget at temperature 3. It is never behind the declared priors (249=249, 255>253, 267=267 at budgets 2/4/8) with 11-23% fewer structures evaluated; at temperatures 1 and 2 it fails at budget 8. See `okf/validation/model-search-strategy.md`.
+  - The policy document carries its temperature (`"temperature": 3.0`), and `set_action_policy(network)` without one uses the document's own; chisurf's default search therefore runs the gated policy.
+  - The policy, its training report and benchmark live in `data/model_search/policy/`; the family folder is the family list (`test_the_family_list_matches_what_is_shipped`).
+  - Guards: `test_a_policy_document_carries_the_temperature_it_was_gated_at`, `test_the_shipped_policy_is_the_gated_one`.
+
 - **A running fit's factor graph, derived**: `get_fit_factor_graph(objective, keys, ports)` reads a fit's factor graph off its node graph.
   - Roles: each port is a `free` variable (size 1), `fixed` (size 0), or `follower` (size 0, joined to its master by the new `INFERENCE_FACTOR_LINK`).
   - Factors: each member objective is a likelihood over the free variables its model reads upstream. A link into another node's input shares a value, not that node's model, so the walk doesn't follow it. Fixed parameters a likelihood reads are its evidence (`set/get_factor_evidence`), outside the scope, so treewidth and elimination stay those of the posterior.

@@ -1,0 +1,69 @@
+{
+ "format": "bff.model_search.action_policy_report.v1",
+ "seed": 20260924,
+ "photons": true,
+ "measurements_per_game": 600,
+ "episodes": 18827,
+ "episodes_by_family": {
+  "equations": 1156,
+  "fcs_analytical": 1883,
+  "kinetic_fcs_tcspc": 1800,
+  "tcspc_anisotropy": 3596,
+  "tcspc_fret_discrete": 1723,
+  "tcspc_fret_gaussian": 1733,
+  "tcspc_lifetime": 1787,
+  "tcspc_pddem": 1755,
+  "tcspc_polarized": 3394
+ },
+ "stop_labels": 5318,
+ "hidden": [
+  16
+ ],
+ "epochs": 600,
+ "learning_rate": 0.002,
+ "training_loss": 0.43232624616181653,
+ "training_accuracy": 0.821686015630928,
+ "validation_episodes": 2824,
+ "validation_loss": 0.43410990997755333,
+ "validation_accuracy": 0.8144475920679887,
+ "baseline_accuracy": 0.21246458923512748,
+ "validation_accuracy_by_family": {
+  "equations": 0.7058823529411765,
+  "fcs_analytical": 0.6745762711864407,
+  "kinetic_fcs_tcspc": 0.8641114982578397,
+  "tcspc_anisotropy": 0.814453125,
+  "tcspc_fret_discrete": 0.8677685950413223,
+  "tcspc_fret_gaussian": 0.8909090909090909,
+  "tcspc_lifetime": 0.8540925266903915,
+  "tcspc_pddem": 0.8408163265306122,
+  "tcspc_polarized": 0.806
+ },
+ "baseline_accuracy_by_family": {
+  "equations": 0.5508021390374331,
+  "fcs_analytical": 0.48135593220338985,
+  "kinetic_fcs_tcspc": 0.24041811846689895,
+  "tcspc_anisotropy": 0.169921875,
+  "tcspc_fret_discrete": 0.08677685950413223,
+  "tcspc_fret_gaussian": 0.04363636363636364,
+  "tcspc_lifetime": 0.18149466192170818,
+  "tcspc_pddem": 0.08163265306122448,
+  "tcspc_polarized": 0.19
+ },
+ "baseline_loss": 1.1200616633652307,
+ "best_epoch": 600,
+ "weight_decay": 0.001,
+ "seconds_by_game": {
+  "equations": 0.7,
+  "fcs_analytical": 2.19,
+  "kinetic_fcs_tcspc": 4.59,
+  "tcspc_anisotropy": 1335.12,
+  "tcspc_fret_discrete": 23.29,
+  "tcspc_fret_gaussian": 58.86,
+  "tcspc_fret_ising_chain": 490.93,
+  "tcspc_fret_saw_nu": 5.08,
+  "tcspc_fret_worm_like_chain": 4.34,
+  "tcspc_lifetime": 13.77,
+  "tcspc_pddem": 70.52,
+  "tcspc_polarized": 165.55
+ }
+}

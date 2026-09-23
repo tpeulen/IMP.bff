@@ -151,6 +151,39 @@ def test_a_policy_multiplies_the_declared_priors_by_its_scores():
     assert sum(priors.values()) == pytest.approx(1.0)
 
 
+def test_a_policy_document_carries_the_temperature_it_was_gated_at():
+    """No temperature given: the document's own; given: the caller's."""
+    document = json.loads(_favouring(TERMINAL, 8.0))
+    document["temperature"] = 4.0
+    at_four = 0.1 * np.exp(2.0) / (0.1 * np.exp(2.0) + 0.9)
+
+    problem, _a, _b = _linear_fit_problem()
+    problem.set_action_policy(json.dumps(document))
+    assert _priors(problem, problem.get_initial_state())["stop"] == pytest.approx(at_four)
+
+    problem, _a, _b = _linear_fit_problem()
+    problem.set_action_policy(json.dumps(document), 1.0)
+    at_one = 0.1 * np.exp(8.0) / (0.1 * np.exp(8.0) + 0.9)
+    assert _priors(problem, problem.get_initial_state())["stop"] == pytest.approx(at_one)
+
+
+def test_the_shipped_policy_is_the_gated_one():
+    """bff ships a policy only with the benchmark that let it through."""
+    shipped = bff.get_shipped_action_policy()
+    if not shipped:
+        pytest.skip("this build ships no action policy")
+    document = json.loads(shipped)
+    assert document["format"] == "bff.neural_net" and document["temperature"] > 0
+    benchmark = json.loads(open(bff.get_data_path(
+        "model_search/policy/action_policy.benchmark.json")).read())
+    assert benchmark["ship"] and benchmark["temperature"] == document["temperature"]
+    for per_label in benchmark["overall"].values():
+        assert per_label["policy"]["right"] >= per_label["priors"]["right"]
+    problem, _a, _b = _linear_fit_problem()
+    problem.set_action_policy(shipped)
+    assert problem.get_has_action_policy()
+
+
 def test_a_score_every_move_shares_leaves_the_declared_priors():
     problem, _a, _b = _linear_fit_problem()
     problem.set_action_policy(_row_policy(bias=3.0))

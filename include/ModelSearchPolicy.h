@@ -141,7 +141,7 @@ IMPBFFEXPORT ModelSearchPolicyTraining train_action_policy(
     double validation_fraction = 0.3, double weight_decay = 1e-4);
 
 //! The action policy bff ships, trained on every family it carries.
-/*! `data/model_search/action_policy.json`, read as a `bff.neural_net`
+/*! `data/model_search/policy/action_policy.json`, read as a `bff.neural_net`
     document for FittingModelSearchProblem::set_action_policy; empty when
     this build ships none, which searches on the declared priors alone. */
 IMPBFFEXPORT std::string get_shipped_action_policy();

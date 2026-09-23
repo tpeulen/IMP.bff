@@ -8,6 +8,7 @@
 #include <IMP/bff/GraphNode.h>
 #include <IMP/bff/GraphPort.h>
 #include <IMP/bff/NeuralNet.h>
+#include <IMP/bff/internal/json.h>
 
 #include <algorithm>
 #include <atomic>
@@ -78,8 +79,25 @@ class ActionPolicy {
       net_.reset();
       return;
     }
-    if (!(temperature > 0.0) || !std::isfinite(temperature)) {
+    if (!std::isfinite(temperature) || temperature < 0.0) {
       throw ModelSearchConfigurationError("an action policy's temperature must be positive");
+    }
+    if (temperature == 0.0) {
+      // The document's own: a policy is gated at the temperature it ships
+      // with, and a different one is a different, ungated policy.
+      temperature = 1.0;
+      try {
+        const nlohmann::json doc = nlohmann::json::parse(network);
+        if (doc.is_object() && doc.contains("temperature")) {
+          temperature = doc.at("temperature").get<double>();
+        }
+      } catch (const std::exception&) {
+        // Not JSON: NeuralNet below says what is wrong with it.
+      }
+      if (!(temperature > 0.0) || !std::isfinite(temperature)) {
+        throw ModelSearchConfigurationError(
+            "an action policy document's temperature must be positive");
+      }
     }
     temperature_ = temperature;
     std::shared_ptr<NeuralNet> net(new NeuralNet(network));

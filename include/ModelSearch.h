@@ -282,8 +282,10 @@ class IMPBFFEXPORT FittingModelSearchProblem
       without a residual keeps its declared priors. The policy is a PUCT
       hint; it never changes a score. An empty document removes it.
       `temperature` divides the scores: above 1 the policy leans on the
-      declared priors more and leaves PUCT more to explore. */
-  void set_action_policy(const std::string& network, double temperature = 1.0);
+      declared priors more and leaves PUCT more to explore. Zero, the
+      default, takes the document's own `"temperature"` (1 when it has
+      none): a shipped policy passed its gate at that temperature. */
+  void set_action_policy(const std::string& network, double temperature = 0.0);
   void clear_action_policy();
   bool get_has_action_policy() const;
 

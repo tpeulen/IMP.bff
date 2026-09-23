@@ -1,6 +1,6 @@
 """Does the shipped action policy earn its place? The gate before it ships.
 
-    $E/bin/python test/mcts/bench_action_policy.py --policy data/model_search/action_policy.json
+    $E/bin/python test/mcts/bench_action_policy.py --policy data/model_search/policy/action_policy.json
 
 On fresh measurements -- a seed range training never used, photons recorded by
 TTTRLib where the data are counts -- every game is searched at small budgets
@@ -29,10 +29,10 @@ sys.path.insert(0, str(HERE))
 import _games  # noqa: E402
 from bench_search_strategy import enumerate_all  # noqa: E402
 
-DATA = HERE.parent.parent / "data" / "model_search"
+DATA = HERE.parent.parent / "data" / "model_search" / "policy"
 
 
-def search(spec, policy, budget, seed, temperature=1.0):
+def search(spec, policy, budget, seed, temperature=0.0):
     problem = spec.build()
     if policy:
         problem.set_action_policy(policy, temperature)
@@ -53,9 +53,11 @@ def main(argv=None):
     parser.add_argument("--budgets", type=int, nargs="*", default=[2, 4, 8])
     parser.add_argument("--seed", type=int, default=91000)
     parser.add_argument("--games", nargs="*", default=None)
-    parser.add_argument("--temperature", type=float, default=1.0)
+    parser.add_argument("--temperature", type=float, default=0.0,
+                        help="0: the policy document's own (1 when it has none)")
     args = parser.parse_args(argv)
     policy = args.policy.read_text()
+    effective = args.temperature or float(json.loads(policy).get("temperature", 1.0))
     photons = bff.PhotonExperiment.get_available()
     rng = random.Random(args.seed)
 
@@ -101,7 +103,7 @@ def main(argv=None):
     print("\nverdict:", "ship" if verdict else "do not ship")
     report = {"format": "bff.model_search.action_policy_benchmark.v1",
               "seed": args.seed, "photons": photons, "budgets": args.budgets,
-              "temperature": args.temperature,
+              "temperature": effective,
               "measurements_per_game": args.measurements, "by_game": tally,
               "overall": overall, "ship": verdict}
     args.policy.with_name(args.policy.stem + ".benchmark.json").write_text(

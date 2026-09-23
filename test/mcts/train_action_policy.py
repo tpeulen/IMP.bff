@@ -12,7 +12,7 @@ label. The episodes pool
 into one data set, because the features describe fitted residuals and moves
 rather than any family's names, and one network is trained on all of it.
 
-Writes ``data/model_search/action_policy.json`` (the network the search
+Writes ``data/model_search/policy/action_policy.json`` (the network the search
 loads), ``action_policy.report.json`` (what it was trained on and how it
 ranks held-out moves against the declared priors alone) and, with
 ``--save-episodes``, the episodes themselves so a retrain need not replay.
@@ -33,7 +33,7 @@ sys.path.insert(0, str(HERE))
 
 import _games  # noqa: E402
 
-DATA = HERE.parent.parent / "data" / "model_search"
+DATA = HERE.parent.parent / "data" / "model_search" / "policy"
 
 
 def play(name, episodes, seed, photons):

@@ -429,6 +429,27 @@ budgets 2 and 8 and was one run short of 144 at budget 4, with 11-26% fewer
 evaluations. The owner kept the strict gate (2026-09-23): no policy ships
 while any budget is behind, even by one run.
 
+**Candidate 6 ships** (2026-09-23). The same recipe on twice the data -- 600
+simulated measurements per game, 18 k episodes, saved so later sweeps need not
+regenerate them -- and a gate on 30 fresh measurements per game (270 runs per
+budget) instead of 12, so one run is no longer the whole margin. Held-out move
+accuracy 0.814 against 0.212 for the priors (FCS 0.675 against 0.481, the
+family candidate 5 was weakest on). At temperature 3:
+
+| budget | priors: right / evals | policy: right / evals |
+| --- | --- | --- |
+| 2 | 249/270 / 602 | 249/270 / 462 |
+| 4 | 253/270 / 739 | 255/270 / 656 |
+| 8 | 267/270 / 956 | 267/270 / 735 |
+
+Never behind, 11-23% fewer structures evaluated. At temperatures 1 and 2 it
+was behind at budget 8 (260 and 265), so the temperature is part of what
+passed: the document carries it (`"temperature": 3.0`), and
+`set_action_policy(network)` without a temperature uses the document's own.
+The policy, its training report and its benchmark live in
+`data/model_search/policy/` -- not beside the family specs, whose folder is the
+family list.
+
 Two defects surfaced on the way, both fixed where they live: the worm-like
 chain multiplied a vanishing exponential by a Bessel I0 that overflows first
 (`boost::math::cyl_bessel_i` raised mid-fit for stiff chains; the density is
@@ -440,19 +461,19 @@ now links `tttrlib` optionally, `IMP_BFF_HAS_TTTRLIB`).
 
 ## What follows
 
-0. **Ship an action policy that passes the search gate.** Train more
-   episodes and re-benchmark with enough measurements that one or two runs
-   are not noise (the budget-2 deficit of candidate 1 is 2/72). If budget 2
-   stays behind, the likely cause is the first expansion: with two
-   evaluations the policy's first choice is final, so weight the loss towards
-   the root's move or cap how far the policy may pull a prior. Then write
-   `data/model_search/action_policy.json`; chisurf loads it by default
-   (`NativeSearchSettings.action_policy = "shipped"`), and ships declared
-   priors while the file is absent. Still open from PRD-152: block-aware
-   features (one profile per member of a joint residual, with a modality
-   token), a `request_information` outcome, and full photon-stream scenarios
-   (one `SimEngine` stream reduced to decay *and* correlation) for the
-   kinetic family instead of per-curve pattern recording.
+0. **Improve the shipped policy against the same gate.** Re-train from the
+   saved episodes (`train_action_policy.py --episodes-file`, 600/game; keep
+   the file out of the repo, it is 18 k episodes) and re-bench with
+   `bench_action_policy.py --measurements 30` (about an hour, anisotropy is
+   the slow family); replace `data/model_search/policy/` only on a strict pass.
+   The margin is thin at budgets 2 and 8 (equal, not ahead); the unexploited
+   lever is the first expansion -- weight the loss towards the root's move.
+   Families with a single structure (Ising chain, SAW, worm-like chain)
+   contribute no episodes and are not in the gate. Still open from PRD-152:
+   a modality token in the state, a `request_information` outcome, and full
+   photon-stream scenarios (one `SimEngine` stream reduced to decay *and*
+   correlation) for the kinetic family instead of per-curve pattern
+   recording.
 1. **Sorting.** TCSPC component labels permute between slots depending on the
    seeds, because nothing orders a fitted component family.
    `mcts-generalization-cleanup.md` asks for descending characteristic value;

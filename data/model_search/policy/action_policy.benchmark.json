@@ -1,0 +1,395 @@
+{
+ "format": "bff.model_search.action_policy_benchmark.v1",
+ "seed": 91000,
+ "photons": true,
+ "budgets": [
+  2,
+  4,
+  8
+ ],
+ "temperature": 3.0,
+ "measurements_per_game": 30,
+ "by_game": {
+  "equations": {
+   "2": {
+    "priors": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 60
+    },
+    "policy": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 45
+    }
+   },
+   "4": {
+    "priors": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 60
+    },
+    "policy": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 56
+    }
+   },
+   "8": {
+    "priors": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 60
+    },
+    "policy": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 60
+    }
+   }
+  },
+  "fcs_analytical": {
+   "2": {
+    "priors": {
+     "right": 14,
+     "runs": 30,
+     "evaluations": 88
+    },
+    "policy": {
+     "right": 14,
+     "runs": 30,
+     "evaluations": 79
+    }
+   },
+   "4": {
+    "priors": {
+     "right": 15,
+     "runs": 30,
+     "evaluations": 120
+    },
+    "policy": {
+     "right": 17,
+     "runs": 30,
+     "evaluations": 116
+    }
+   },
+   "8": {
+    "priors": {
+     "right": 27,
+     "runs": 30,
+     "evaluations": 186
+    },
+    "policy": {
+     "right": 27,
+     "runs": 30,
+     "evaluations": 178
+    }
+   }
+  },
+  "kinetic_fcs_tcspc": {
+   "2": {
+    "priors": {
+     "right": 27,
+     "runs": 30,
+     "evaluations": 60
+    },
+    "policy": {
+     "right": 27,
+     "runs": 30,
+     "evaluations": 51
+    }
+   },
+   "4": {
+    "priors": {
+     "right": 29,
+     "runs": 30,
+     "evaluations": 78
+    },
+    "policy": {
+     "right": 29,
+     "runs": 30,
+     "evaluations": 70
+    }
+   },
+   "8": {
+    "priors": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 90
+    },
+    "policy": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 73
+    }
+   }
+  },
+  "tcspc_anisotropy": {
+   "2": {
+    "priors": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 79
+    },
+    "policy": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 54
+    }
+   },
+   "4": {
+    "priors": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 101
+    },
+    "policy": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 87
+    }
+   },
+   "8": {
+    "priors": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 126
+    },
+    "policy": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 90
+    }
+   }
+  },
+  "tcspc_fret_discrete": {
+   "2": {
+    "priors": {
+     "right": 29,
+     "runs": 30,
+     "evaluations": 60
+    },
+    "policy": {
+     "right": 29,
+     "runs": 30,
+     "evaluations": 41
+    }
+   },
+   "4": {
+    "priors": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 68
+    },
+    "policy": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 62
+    }
+   },
+   "8": {
+    "priors": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 89
+    },
+    "policy": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 62
+    }
+   }
+  },
+  "tcspc_fret_gaussian": {
+   "2": {
+    "priors": {
+     "right": 29,
+     "runs": 30,
+     "evaluations": 60
+    },
+    "policy": {
+     "right": 29,
+     "runs": 30,
+     "evaluations": 44
+    }
+   },
+   "4": {
+    "priors": {
+     "right": 29,
+     "runs": 30,
+     "evaluations": 65
+    },
+    "policy": {
+     "right": 29,
+     "runs": 30,
+     "evaluations": 60
+    }
+   },
+   "8": {
+    "priors": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 89
+    },
+    "policy": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 62
+    }
+   }
+  },
+  "tcspc_lifetime": {
+   "2": {
+    "priors": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 60
+    },
+    "policy": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 49
+    }
+   },
+   "4": {
+    "priors": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 76
+    },
+    "policy": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 60
+    }
+   },
+   "8": {
+    "priors": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 90
+    },
+    "policy": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 60
+    }
+   }
+  },
+  "tcspc_pddem": {
+   "2": {
+    "priors": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 60
+    },
+    "policy": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 47
+    }
+   },
+   "4": {
+    "priors": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 65
+    },
+    "policy": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 60
+    }
+   },
+   "8": {
+    "priors": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 90
+    },
+    "policy": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 60
+    }
+   }
+  },
+  "tcspc_polarized": {
+   "2": {
+    "priors": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 75
+    },
+    "policy": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 52
+    }
+   },
+   "4": {
+    "priors": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 106
+    },
+    "policy": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 85
+    }
+   },
+   "8": {
+    "priors": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 136
+    },
+    "policy": {
+     "right": 30,
+     "runs": 30,
+     "evaluations": 90
+    }
+   }
+  }
+ },
+ "overall": {
+  "2": {
+   "priors": {
+    "right": 249,
+    "runs": 270,
+    "evaluations": 602
+   },
+   "policy": {
+    "right": 249,
+    "runs": 270,
+    "evaluations": 462
+   }
+  },
+  "4": {
+   "priors": {
+    "right": 253,
+    "runs": 270,
+    "evaluations": 739
+   },
+   "policy": {
+    "right": 255,
+    "runs": 270,
+    "evaluations": 656
+   }
+  },
+  "8": {
+   "priors": {
+    "right": 267,
+    "runs": 270,
+    "evaluations": 956
+   },
+   "policy": {
+    "right": 267,
+    "runs": 270,
+    "evaluations": 735
+   }
+  }
+ },
+ "ship": true
+}
