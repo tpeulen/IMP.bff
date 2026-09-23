@@ -408,6 +408,19 @@ up to 13% fewer evaluations, but was two runs worse of 72 at budget 2 (one
 FCS, one Gaussian FRET); the pre-registered gate says do not ship, and it was
 withdrawn from `data/model_search/`.
 
+**Candidates 3 and 4.** A prior-share move feature and a minimiser fix
+(starts on a bound, see `okf/log.md`) gave candidate 3: search accuracy equal
+to the priors at budget 2, +5/144 at budget 4, -2/144 at budget 8, 9-18%
+fewer evaluations, every difference in FCS. Training labelled the move
+towards the *generating* structure while the gate scores the structure
+*selection* picks, and on noisy FCS the two differ. Candidate 4 labels by
+selection: each simulated measurement is walked exhaustively once and every
+reached structure becomes an episode towards the best-scoring one. Held-out
+move accuracy rose to 0.788 against 0.217 for the priors (every family
+better), and search evaluations fell 45% at budget 8, but accuracy stayed
+2-3/144 short at budgets 2 and 8 -- the policy stops too early (kinetic scheme,
+pddem). `set_action_policy` takes a temperature for that trade-off.
+
 Two defects surfaced on the way, both fixed where they live: the worm-like
 chain multiplied a vanishing exponential by a Bessel I0 that overflows first
 (`boost::math::cyl_bessel_i` raised mid-fit for stiff chains; the density is

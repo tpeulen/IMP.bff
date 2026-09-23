@@ -2,6 +2,12 @@
 
 ## 2026-09-23
 
+- **Action-policy episodes are labelled by selection, and a policy has a temperature**:
+  - `generate_policy` now walks each simulated measurement exhaustively once. Every reached structure becomes an episode, labelled with the move towards the best-scoring structure rather than the generating one, because a search is scored on the former.
+  - `get_cached_residual` exposes a scored state's residual.
+  - `set_action_policy(network, temperature)`.
+  - Candidate 4: held-out move accuracy 0.788 against 0.217; 45% fewer search evaluations at budget 8, but still 2-3/144 short of the priors at budgets 2 and 8, so it doesn't ship.
+
 - **A fit started on a bound is fitted**: the bound transform is stationary there, so a parameter started exactly on its bound had an all-zero Jacobian column.
   - Effect: a TCSPC fit with its scatter started at 0 stalled at maxfev with chi2 613.8, where the optimum is 568.4. The frozen reference failed the same way once the time-shift box was narrowed.
   - Fix: `FitMinimizer::off_bound_start` moves only such a start by `1e-6 * max(1, |bound|)`, capped at 1e-6 of the box.

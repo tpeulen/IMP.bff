@@ -32,10 +32,10 @@ from bench_search_strategy import enumerate_all  # noqa: E402
 DATA = HERE.parent.parent / "data" / "model_search"
 
 
-def search(spec, policy, budget, seed):
+def search(spec, policy, budget, seed, temperature=1.0):
     problem = spec.build()
     if policy:
-        problem.set_action_policy(policy)
+        problem.set_action_policy(policy, temperature)
     config = bff.ModelSearchConfig()
     config.set_number_of_simulations(budget)
     config.set_seed(seed)
@@ -53,6 +53,7 @@ def main(argv=None):
     parser.add_argument("--budgets", type=int, nargs="*", default=[2, 4, 8])
     parser.add_argument("--seed", type=int, default=91000)
     parser.add_argument("--games", nargs="*", default=None)
+    parser.add_argument("--temperature", type=float, default=1.0)
     args = parser.parse_args(argv)
     policy = args.policy.read_text()
     photons = bff.PhotonExperiment.get_available()
@@ -72,7 +73,8 @@ def main(argv=None):
             optimum = enumerate_all(spec.build)["structure"]
             for budget in args.budgets:
                 for label, network in (("priors", ""), ("policy", policy)):
-                    found, cost = search(spec, network, budget, rng.randrange(2**31))
+                    found, cost = search(spec, network, budget, rng.randrange(2**31),
+                                         args.temperature)
                     cell = tally.setdefault(name, {}).setdefault(str(budget), {}).setdefault(
                         label, {"right": 0, "runs": 0, "evaluations": 0})
                     cell["right"] += int(found == optimum)
@@ -99,6 +101,7 @@ def main(argv=None):
     print("\nverdict:", "ship" if verdict else "do not ship")
     report = {"format": "bff.model_search.action_policy_benchmark.v1",
               "seed": args.seed, "photons": photons, "budgets": args.budgets,
+              "temperature": args.temperature,
               "measurements_per_game": args.measurements, "by_game": tally,
               "overall": overall, "ship": verdict}
     args.policy.with_name(args.policy.stem + ".benchmark.json").write_text(

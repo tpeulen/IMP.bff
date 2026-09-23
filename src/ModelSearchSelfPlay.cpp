@@ -489,57 +489,66 @@ ModelSearchPolicyData ModelSearchSelfPlay::generate_policy(int episodes,
     }
   }
 
-  // A pair is playable when the generator produces every curve the starting
-  // structure is fitted to, and there is a right move to label.
-  std::map<std::string, std::vector<std::string> > sources_of;
-  for (const std::string& target : keys) {
-    const std::vector<std::string> produced = layout->get_structure_curve_datasets(target);
-    const std::set<std::string> have(produced.begin(), produced.end());
-    for (const std::string& source : keys) {
-      const bool labelled = source == target ? terminal.count(source) != 0
-                                             : first[source].count(target) != 0;
-      if (!labelled) continue;
-      const std::vector<std::string> needed = layout->get_structure_curve_datasets(source);
-      if (needed.empty()) continue;
-      bool covered = true;
-      for (const std::string& name : needed) covered = covered && have.count(name) != 0;
-      if (covered) sources_of[target].push_back(source);
-    }
-  }
-  std::vector<std::string> targets;
-  for (const auto& entry : sources_of) targets.push_back(entry.first);
-  if (targets.empty()) {
-    throw std::domain_error("self play: no structure can be reached and labelled");
-  }
-
   ModelSearchPolicyData data;
   const std::string family = impl_->spec.get_family();
   std::mt19937 rng(seed);
-  for (int episode = 0; episode < episodes; ++episode) {
-    const std::string& target = targets[std::uniform_int_distribution<std::size_t>(
-        0, targets.size() - 1)(rng)];
-    const std::vector<std::string>& candidates = sources_of[target];
-    const std::string& source = candidates[std::uniform_int_distribution<std::size_t>(
-        0, candidates.size() - 1)(rng)];
-
-    const ModelSearchActions& offered = moves[source];
-    // One move is no decision; there is nothing in it to learn.
-    if (offered.size() < 2) continue;
+  for (int measurement = 0; measurement < episodes; ++measurement) {
+    const std::string& generating =
+        keys[std::uniform_int_distribution<std::size_t>(0, keys.size() - 1)(rng)];
     const unsigned int simulation_seed = rng();
     try {
-      const ModelSearchSpec simulated = simulate(target, simulation_seed);
-      const std::shared_ptr<FittingModelSearchProblem> fitted = simulated.build();
-      fitted->activate_structure(source);
-      const int status = fitted->fit_active_structure();
-      if (status < 1 || status > 4) continue;
-      std::vector<double> priors;
-      for (std::size_t i = 0; i < offered.size(); ++i) priors.push_back(offered[i].get_prior());
-      const int label = source == target ? terminal[source] : first[source][target];
-      data.add_episode(fitted->get_policy_rows(source, fitted->get_active_residual(), offered),
-                       priors, label, family, source == target);
+      const std::shared_ptr<FittingModelSearchProblem> fitted =
+          simulate(generating, simulation_seed).build();
+      // Every structure reachable from the root, each fitted once from its
+      // declared starts -- what an exhaustive walk sees, so the label is
+      // the structure selection picks on this data, not the one that made it.
+      std::map<std::string, ModelSearchState> states;
+      const ModelSearchState root = fitted->get_initial_state();
+      states[root.get_structure_key()] = root;
+      std::deque<std::string> frontier(1, root.get_structure_key());
+      while (!frontier.empty()) {
+        const std::string at = frontier.front();
+        frontier.pop_front();
+        const ModelSearchActions& out = moves[at];
+        for (std::size_t i = 0; i < out.size(); ++i) {
+          const std::string& next = out[i].get_predicted_state_key();
+          if (out[i].get_terminal() || states.count(next)) continue;
+          const ModelSearchState reached = fitted->evaluate(states[at], out[i]);
+          if (reached.get_structure_key() != next) continue;  // did not converge
+          states[next] = reached;
+          frontier.push_back(next);
+        }
+      }
+      std::string best;
+      double best_reward = -std::numeric_limits<double>::infinity();
+      for (const auto& entry : states) {
+        if (entry.second.get_reward() > best_reward) {
+          best_reward = entry.second.get_reward();
+          best = entry.first;
+        }
+      }
+      for (const auto& entry : states) {
+        const std::string& source = entry.first;
+        const ModelSearchActions& offered = moves[source];
+        // One move is no decision; there is nothing in it to learn.
+        if (offered.size() < 2) continue;
+        int label = -1;
+        if (source == best) {
+          if (terminal.count(source)) label = terminal[source];
+        } else if (first[source].count(best)) {
+          label = first[source][best];
+        }
+        if (label < 0) continue;
+        const std::vector<double> residual = fitted->get_cached_residual(entry.second.get_key());
+        if (residual.empty()) continue;
+        std::vector<double> priors;
+        for (std::size_t i = 0; i < offered.size(); ++i) priors.push_back(offered[i].get_prior());
+        data.add_episode(fitted->get_policy_rows(source, residual, offered), priors, label,
+                         family, source == best);
+      }
     } catch (const std::exception&) {
       // A parameter draw the model cannot evaluate is not a measurement
-      // anyone could have taken; like a fit that does not converge, skip it.
+      // anyone could have taken; skip it.
       continue;
     }
   }

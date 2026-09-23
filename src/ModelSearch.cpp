@@ -72,11 +72,15 @@ double puct(const TreeNode& child, int parent_visits, double c_puct) {
 //! A network scoring (state, action) feature rows; one logit per row.
 class ActionPolicy {
  public:
-  void configure(const std::string& network) {
+  void configure(const std::string& network, double temperature) {
     if (network.empty()) {
       net_.reset();
       return;
     }
+    if (!(temperature > 0.0) || !std::isfinite(temperature)) {
+      throw ModelSearchConfigurationError("an action policy's temperature must be positive");
+    }
+    temperature_ = temperature;
     std::shared_ptr<NeuralNet> net(new NeuralNet(network));
     const int width = get_policy_state_width() + get_policy_action_width();
     if (net->get_n_inputs() != width || net->get_n_outputs() != 1) {
@@ -123,7 +127,7 @@ class ActionPolicy {
       const double declared = declared_total > 0.0
           ? std::max(0.0, actions[i].get_prior()) / declared_total
           : 1.0 / static_cast<double>(actions.size());
-      weight[i] = declared * std::exp(logits[i] - maximum);
+      weight[i] = declared * std::exp((logits[i] - maximum) / temperature_);
       total += weight[i];
     }
     ModelSearchActions adjusted;
@@ -138,6 +142,7 @@ class ActionPolicy {
 
  private:
   std::shared_ptr<NeuralNet> net_;
+  double temperature_ = 1.0;
 };
 
 const int kPolicyResidualBins = 32;
@@ -1020,8 +1025,9 @@ void FittingModelSearchProblem::add_action(
                                       terminal));
 }
 
-void FittingModelSearchProblem::set_action_policy(const std::string& network) {
-  impl_->action_policy.configure(network);
+void FittingModelSearchProblem::set_action_policy(const std::string& network,
+                                                  double temperature) {
+  impl_->action_policy.configure(network, temperature);
 }
 
 void FittingModelSearchProblem::clear_action_policy() {
@@ -1391,6 +1397,13 @@ std::vector<double> FittingModelSearchProblem::get_cached_values(
   return found->second.values;
 }
 
+std::vector<double> FittingModelSearchProblem::get_cached_residual(
+    const std::string& state_key) const {
+  const std::map<std::string, FitSearchSnapshot>::const_iterator found =
+      impl_->snapshots.find(state_key);
+  if (found == impl_->snapshots.end()) return std::vector<double>();
+  return found->second.residual;
+}
 std::vector<int> FittingModelSearchProblem::get_cached_fixed(
     const std::string& state_key) const {
   const std::map<std::string, FitSearchSnapshot>::const_iterator found =

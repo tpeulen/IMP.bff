@@ -131,17 +131,20 @@ class IMPBFFEXPORT ModelSearchSelfPlay {
       not produce keep their bound values. */
   ModelSearchSpec simulate(const std::string& structure_key, unsigned int seed) const;
 
-  //! Play search episodes: which move out of a fitted structure leads to the truth.
-  /*! Each episode draws the generating structure uniformly, then a starting
-      structure uniformly among those with a path to it through the declared
-      moves (the generating one included, when it offers a terminal move).
-      The generator's measurements are simulated, the starting structure is
-      fitted to them, and every move it offers becomes a feature row. The
-      label is the first move of a shortest path to the generating structure,
-      or its terminal move when the two are the same. Episodes whose fit does
-      not converge are skipped, so fewer than asked may come back.
+  //! Play search episodes: which move out of each fitted structure leads to
+  //! the structure selection picks.
+  /*! For each of `measurements`, a generating structure is drawn and its
+      measurement simulated (#simulate); every structure reachable from the
+      root is then fitted once, from its declared starts, exactly as an
+      exhaustive walk would, and the best-scoring one is the target. Each
+      reached structure offering more than one move is an episode: its
+      fitted residual, its moves, and as label the first move of a shortest
+      path to the target -- or its terminal move when it *is* the target.
+      Labelling by selection rather than by the generating structure keeps
+      training on what a search is scored on: on noisy data the two differ.
+      Measurements the model cannot evaluate are skipped.
       \return the episodes, tagged with the family's name */
-  ModelSearchPolicyData generate_policy(int episodes, unsigned int seed);
+  ModelSearchPolicyData generate_policy(int measurements, unsigned int seed);
 
  private:
   struct Impl;

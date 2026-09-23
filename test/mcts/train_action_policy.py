@@ -6,8 +6,9 @@ Run it; it is a generator, like ``generate_golden.py``, not a test:
 
 Every family in ``_games.py`` plays search episodes against itself: a
 generating structure's measurement is simulated -- through TTTRLib's photon
-engine wherever the data are counts -- a starting structure is fitted to it,
-and the move towards the generating structure is the label. The episodes pool
+engine wherever the data are counts -- every reachable structure is fitted to
+it, and from each one the move towards the structure selection picks is the
+label. The episodes pool
 into one data set, because the features describe fitted residuals and moves
 rather than any family's names, and one network is trained on all of it.
 
@@ -46,7 +47,8 @@ def play(name, episodes, seed, photons):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("--episodes", type=int, default=200, help="per game")
+    parser.add_argument("--measurements", type=int, default=200,
+                        help="simulated measurements per game; each yields an episode per structure")
     parser.add_argument("--seed", type=int, default=20260923)
     parser.add_argument("--hidden", type=int, nargs="*", default=[16])
     parser.add_argument("--epochs", type=int, default=600)
@@ -70,7 +72,7 @@ def main(argv=None):
     else:
         pooled = bff.ModelSearchPolicyData()
         for index, name in enumerate(games):
-            data, seconds = play(name, args.episodes, args.seed + index, photons)
+            data, seconds = play(name, args.measurements, args.seed + index, photons)
             timing[name] = round(seconds, 2)
             print(f"{name:30s} {data.get_number_of_episodes():5d} episodes "
                   f"{data.get_number_of_stop_labels():4d} stop  {seconds:7.1f} s", flush=True)
@@ -97,7 +99,7 @@ def main(argv=None):
         "format": "bff.model_search.action_policy_report.v1",
         "seed": args.seed,
         "photons": photons,
-        "episodes_per_game": args.episodes,
+        "measurements_per_game": args.measurements,
         "episodes": pooled.get_number_of_episodes(),
         "episodes_by_family": counts,
         "stop_labels": pooled.get_number_of_stop_labels(),

@@ -276,8 +276,10 @@ class IMPBFFEXPORT FittingModelSearchProblem
       normalised over the available moves, so a declared zero stays zero.
       Expansion never refits or re-evaluates the graph, and a state scored
       without a residual keeps its declared priors. The policy is a PUCT
-      hint; it never changes a score. An empty document removes it. */
-  void set_action_policy(const std::string& network);
+      hint; it never changes a score. An empty document removes it.
+      `temperature` divides the scores: above 1 the policy leans on the
+      declared priors more and leaves PUCT more to explore. */
+  void set_action_policy(const std::string& network, double temperature = 1.0);
   void clear_action_policy();
   bool get_has_action_policy() const;
 
@@ -378,6 +380,8 @@ class IMPBFFEXPORT FittingModelSearchProblem
   bool has_cached_state(const std::string& state_key) const;
   std::vector<double> get_cached_values(const std::string& state_key) const;
   std::vector<int> get_cached_fixed(const std::string& state_key) const;
+  //! The weighted residual recorded when a cached state was scored.
+  std::vector<double> get_cached_residual(const std::string& state_key) const;
   void restore_state(const std::string& state_key);
   //! Make one topology current, with its declared seeds and its fixed mask.
   /*! Evaluating a structure is not the same as selecting it: reading a
