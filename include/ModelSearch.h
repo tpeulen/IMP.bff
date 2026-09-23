@@ -113,13 +113,17 @@ IMPBFFEXPORT int get_policy_state_width();
 IMPBFFEXPORT int get_policy_action_width();
 
 //! A fitted state as an action policy sees it, whatever the family.
-/*! The residual profile, then log10 of the reduced chi-square, the lag-1
-    autocorrelation, the compressed Wald-Wolfowitz runs z-score, the share of
-    positive residuals and log(1 + free parameters). Nothing names a
-    dataset, a node or a parameter, which is what lets one network serve
-    every model family and every kind of measurement. */
+/*! The residual profile, then the profile of the worst-fitting member
+    block (`block_sizes` split a joint residual; empty is one block), then
+    log10 of the reduced chi-square, the lag-1 autocorrelation, the compressed
+    Wald-Wolfowitz runs z-score, the share of positive residuals, log(1 +
+    free parameters), log10 of the worst block's mean squared residual and
+    log of the number of blocks. Nothing names a dataset, a node or a
+    parameter, which is what lets one network serve every model family and
+    every kind of measurement. */
 IMPBFFEXPORT std::vector<double> get_policy_state_features(
-    const std::vector<double>& residual, int n_free);
+    const std::vector<double>& residual, int n_free,
+    const std::vector<int>& block_sizes = std::vector<int>());
 
 //! A candidate move as an action policy sees it, whatever the family.
 /*! Terminal, returns to the same structure, the change in free parameters
@@ -288,9 +292,10 @@ class IMPBFFEXPORT FittingModelSearchProblem
   //! The rows a policy scores for these moves out of this structure.
   /*! `actions.size()` rows of #get_policy_state_width plus
       #get_policy_action_width features, flattened row-major. */
-  std::vector<double> get_policy_rows(const std::string& structure_key,
-                                      const std::vector<double>& residual,
-                                      const ModelSearchActions& actions) const;
+  std::vector<double> get_policy_rows(
+      const std::string& structure_key, const std::vector<double>& residual,
+      const ModelSearchActions& actions,
+      const std::vector<int>& block_sizes = std::vector<int>()) const;
 
   //! Bound the work each candidate's fit may do.
   /*! Zero keeps FitMinimizer's own default of `200 * (n + 1)` residual
@@ -382,6 +387,8 @@ class IMPBFFEXPORT FittingModelSearchProblem
   std::vector<int> get_cached_fixed(const std::string& state_key) const;
   //! The weighted residual recorded when a cached state was scored.
   std::vector<double> get_cached_residual(const std::string& state_key) const;
+  //! Its member block lengths when the objective is joint; empty otherwise.
+  std::vector<int> get_cached_residual_blocks(const std::string& state_key) const;
   void restore_state(const std::string& state_key);
   //! Make one topology current, with its declared seeds and its fixed mask.
   /*! Evaluating a structure is not the same as selecting it: reading a

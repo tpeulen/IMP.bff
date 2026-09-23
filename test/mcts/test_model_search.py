@@ -214,6 +214,18 @@ def test_an_unscored_state_keeps_its_declared_priors():
     assert _priors(problem, stranger) == {"enable-intercept": 0.9, "stop": 0.1}
 
 
+def test_a_joint_residual_also_shows_its_worst_block_on_its_own():
+    rng = np.random.default_rng(2)
+    good = rng.normal(size=300)
+    bad = 3.0 * np.sin(np.linspace(0, 2 * np.pi, 80)) + rng.normal(size=80)
+    joint = list(np.concatenate([good, bad]))
+    features = np.asarray(bff.get_policy_state_features(joint, 3, [300, 80]))
+    np.testing.assert_allclose(features[32:64], bff.get_residual_profile(list(bad), 32))
+    assert features[-1] == pytest.approx(np.log(2))
+    single = np.asarray(bff.get_policy_state_features(list(good), 3))
+    np.testing.assert_allclose(single[32:64], single[:32])
+
+
 def test_the_residual_profile_is_compressed_bucket_z_scores():
     profile = bff.get_residual_profile([1.0, 3.0, float("nan"), 5.0, -2.0, -4.0], 3)
     expected = np.arcsinh([4.0 / np.sqrt(2), 5.0, -6.0 / np.sqrt(2)])
@@ -230,7 +242,7 @@ def test_state_features_see_structure_in_a_residual():
     s = bff.get_policy_state_width()
     w, t = (np.asarray(bff.get_policy_state_features(list(r), 2)) for r in (white, trend))
     assert w.size == t.size == s
-    lag, runs = 33, 34  # after the 32 profile bins and log10 chi2r
+    lag, runs = 65, 66  # after two 32-bin profiles and log10 chi2r
     assert t[lag] > 0.8 > abs(w[lag])
     assert t[runs] < -2.0 < w[runs]
 

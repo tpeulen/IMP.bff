@@ -543,8 +543,10 @@ ModelSearchPolicyData ModelSearchSelfPlay::generate_policy(int episodes,
         if (residual.empty()) continue;
         std::vector<double> priors;
         for (std::size_t i = 0; i < offered.size(); ++i) priors.push_back(offered[i].get_prior());
-        data.add_episode(fitted->get_policy_rows(source, residual, offered), priors, label,
-                         family, source == best);
+        data.add_episode(
+            fitted->get_policy_rows(source, residual, offered,
+                                    fitted->get_cached_residual_blocks(entry.second.get_key())),
+            priors, label, family, source == best);
       }
     } catch (const std::exception&) {
       // A parameter draw the model cannot evaluate is not a measurement

@@ -3,6 +3,7 @@
 
 #include <IMP/bff/SpecialFunctions.h>
 #include <IMP/bff/FitMinimizer.h>
+#include <IMP/bff/FitJointChiSquared.h>
 #include <IMP/bff/FitObjective.h>
 #include <IMP/bff/GraphNode.h>
 #include <IMP/bff/GraphPort.h>
@@ -146,7 +147,7 @@ class ActionPolicy {
 };
 
 const int kPolicyResidualBins = 32;
-const int kPolicyStateStatistics = 5;
+const int kPolicyStateStatistics = 7;
 const int kPolicyActionWidth = 7;
 
 }  // namespace
@@ -178,13 +179,50 @@ std::vector<double> get_residual_profile(const std::vector<double>& residual,
   return profile;
 }
 
-int get_policy_state_width() { return kPolicyResidualBins + kPolicyStateStatistics; }
+int get_policy_state_width() { return 2 * kPolicyResidualBins + kPolicyStateStatistics; }
 
 int get_policy_action_width() { return kPolicyActionWidth; }
 
 std::vector<double> get_policy_state_features(const std::vector<double>& residual,
-                                              int n_free) {
+                                              int n_free,
+                                              const std::vector<int>& block_sizes) {
   std::vector<double> features = get_residual_profile(residual, kPolicyResidualBins);
+  // The worst-fitting block of a joint residual, on its own: laid end to end
+  // the members' scales and lengths blur which measurement the model misses.
+  std::size_t worst_begin = 0, worst_end = residual.size();
+  int n_blocks = 1;
+  std::size_t total = 0;
+  for (int size : block_sizes) total += static_cast<std::size_t>(std::max(0, size));
+  if (block_sizes.size() > 1 && total == residual.size()) {
+    n_blocks = static_cast<int>(block_sizes.size());
+    double worst = -1.0;
+    std::size_t at = 0;
+    for (int size : block_sizes) {
+      const std::size_t end = at + static_cast<std::size_t>(std::max(0, size));
+      double sum = 0.0;
+      int count = 0;
+      for (std::size_t i = at; i < end; ++i) {
+        if (std::isfinite(residual[i])) {
+          sum += residual[i] * residual[i];
+          ++count;
+        }
+      }
+      const double mean = count ? sum / count : 0.0;
+      if (mean > worst) {
+        worst = mean;
+        worst_begin = at;
+        worst_end = end;
+      }
+      at = end;
+    }
+  }
+  const std::vector<double> block(residual.begin() + worst_begin, residual.begin() + worst_end);
+  const std::vector<double> block_profile = get_residual_profile(block, kPolicyResidualBins);
+  features.insert(features.end(), block_profile.begin(), block_profile.end());
+  double block_chi2 = 0.0;
+  for (double r : block) {
+    if (std::isfinite(r)) block_chi2 += r * r;
+  }
   double chi2 = 0.0, lag = 0.0;
   int n = 0, positive = 0, runs = 0, n_pos = 0, n_neg = 0;
   double previous = 0.0;
@@ -217,6 +255,8 @@ std::vector<double> get_policy_state_features(const std::vector<double>& residua
   features.push_back(std::asinh(runs_z));
   features.push_back(n ? static_cast<double>(positive) / n : 0.5);
   features.push_back(std::log1p(static_cast<double>(std::max(0, n_free))));
+  features.push_back(std::log10(std::max(block_chi2 / std::max<double>(1.0, block.size()), 1e-12)));
+  features.push_back(std::log(static_cast<double>(n_blocks)));
   return features;
 }
 
@@ -380,6 +420,8 @@ struct FitSearchSnapshot {
   std::vector<int> fixed;
   //! The weighted residual of the fitted state, read once when it was scored.
   std::vector<double> residual;
+  //! How long each member's block of that residual is; empty for one member.
+  std::vector<int> blocks;
 };
 
 }  // namespace
@@ -534,6 +576,12 @@ struct FittingModelSearchProblem::Impl {
   //! The structure's weighted residual as its objective last evaluated it.
   std::vector<double> residual_of(const StructureRecord& record) const {
     return record.objective->get_residuals();
+  }
+
+  std::vector<int> blocks_of(const StructureRecord& record) const {
+    const std::shared_ptr<FitJointChiSquared> joint =
+        std::dynamic_pointer_cast<FitJointChiSquared>(record.objective);
+    return joint ? joint->get_block_sizes() : std::vector<int>();
   }
 
   FitSearchSnapshot capture() const {
@@ -1050,9 +1098,10 @@ int FittingModelSearchProblem::get_number_of_free_parameters(
 
 std::vector<double> FittingModelSearchProblem::get_policy_rows(
     const std::string& structure_key, const std::vector<double>& residual,
-    const ModelSearchActions& actions) const {
+    const ModelSearchActions& actions, const std::vector<int>& block_sizes) const {
   const int source_free = get_number_of_free_parameters(structure_key);
-  const std::vector<double> state = get_policy_state_features(residual, source_free);
+  const std::vector<double> state =
+      get_policy_state_features(residual, source_free, block_sizes);
   double declared = 0.0;
   for (std::size_t i = 0; i < actions.size(); ++i) declared += std::max(0.0, actions[i].get_prior());
   std::vector<double> rows;
@@ -1214,6 +1263,7 @@ ModelSearchState FittingModelSearchProblem::get_initial_state() {
     const std::pair<double, bool> score =
         std::make_pair(best_reward, best_acceptable);
     best_snapshot.residual = impl_->residual_of(selected);
+    best_snapshot.blocks = impl_->blocks_of(selected);
     impl_->snapshots[impl_->initial_structure] = best_snapshot;
     impl_->snapshot_structures[impl_->initial_structure] =
         impl_->initial_structure;
@@ -1239,8 +1289,8 @@ ModelSearchActions FittingModelSearchProblem::get_actions(
     return found->second;
   }
   return impl_->action_policy.apply(
-      found->second, get_policy_rows(state.get_structure_key(),
-                                     snapshot->second.residual, found->second));
+      found->second, get_policy_rows(state.get_structure_key(), snapshot->second.residual,
+                                     found->second, snapshot->second.blocks));
 }
 
 ModelSearchState FittingModelSearchProblem::evaluate(
@@ -1353,6 +1403,7 @@ ModelSearchState FittingModelSearchProblem::evaluate(
     state_key << target_key << "@" << impl_->next_snapshot++;
     const std::string key = state_key.str();
     best_snapshot.residual = impl_->residual_of(target);
+    best_snapshot.blocks = impl_->blocks_of(target);
     impl_->snapshots[key] = best_snapshot;
     impl_->snapshot_structures[key] = target_key;
     return ModelSearchState(key, target_key, best_reward, best_acceptable);
@@ -1395,6 +1446,14 @@ std::vector<double> FittingModelSearchProblem::get_cached_values(
       impl_->snapshots.find(state_key);
   if (found == impl_->snapshots.end()) return std::vector<double>();
   return found->second.values;
+}
+
+std::vector<int> FittingModelSearchProblem::get_cached_residual_blocks(
+    const std::string& state_key) const {
+  const std::map<std::string, FitSearchSnapshot>::const_iterator found =
+      impl_->snapshots.find(state_key);
+  if (found == impl_->snapshots.end()) return std::vector<int>();
+  return found->second.blocks;
 }
 
 std::vector<double> FittingModelSearchProblem::get_cached_residual(
