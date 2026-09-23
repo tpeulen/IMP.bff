@@ -922,14 +922,10 @@ void TCSPCDecay::evaluate() {
     n0_ = rescale_factor(curve_, data_y_, data_ey_, background_counts, begin, end);
     // Published, because a fit that autoscales still has to report the
     // amplitude it settled on. A port that follows another publishes to what
-    // it follows; the owner is normally held, and a fixed port ignores
-    // writes, so the hold is lifted for the write and restored.
+    // it follows.
     GraphPort* published = n0_port_;
     while (published->get_link()) published = published->get_link().get();
-    const bool held = published->get_fixed();
-    published->set_fixed(false);
     published->set_value(n0_);
-    published->set_fixed(held);
   } else {
     n0_ = n0_port_->get_value();
   }

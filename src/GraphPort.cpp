@@ -293,7 +293,6 @@ void GraphPort::get_value_view(double** out_values, int* n_out_values) const {
 void GraphPort::set_value(double v) { write_value(v, /*input_is_float=*/true); }
 
 void GraphPort::set_value(long long v) {
-  if (fixed_) return;
   const int element = graph_port_value_type_element(value_type_);
   if (element != GRAPH_PORT_INT) {
     // A float port takes it as a float, a bool port as a flag. Accepted,
@@ -355,7 +354,6 @@ std::vector<int> GraphPort::get_value_vector_bool() const {
 }
 
 void GraphPort::set_value_vector_int(const std::vector<long long>& v) {
-  if (fixed_) return;
   const int element = graph_port_value_type_element(value_type_);
   if (element != GRAPH_PORT_INT) {
     write_vector(std::vector<double>(v.begin(), v.end()), false);
@@ -438,7 +436,6 @@ bool GraphPort::is_bool_typed() const {
 }
 
 void GraphPort::write_value(double v, bool input_is_float) {
-  if (fixed_) return;
   // The element type is DECLARED at construction and never changes on a
   // write. A value of another kind is accepted and coerced -- writing 1.5 to
   // an integer port stores 1, it does not turn the port into a float port.
@@ -459,6 +456,8 @@ void GraphPort::write_value(double v, bool input_is_float) {
 }
 
 void GraphPort::copy_from_link(const GraphPort& source) {
+  // A held follower keeps the buffer it had; it still reads through its link
+  // while linked, and after unlinking keeps the value it was held at.
   if (fixed_) return;
   const int element = graph_port_value_type_element(value_type_);
   if (!source.get_is_vector() && source.current_size() == 1) {
@@ -482,7 +481,6 @@ void GraphPort::copy_from_link(const GraphPort& source) {
 }
 
 void GraphPort::write_vector(const std::vector<double>& v, bool input_is_float) {
-  if (fixed_) return;
   // As write_value(): the element type is fixed, only the shape follows the
   // data. Vector-ness is not part of what was declared -- a port that is
   // handed an array becomes an array port of the same element type.
@@ -751,7 +749,8 @@ void GraphPort::propagate_to_followers() {
   // mistake the old mirror made in three other places.
   if (graph_port_value_type_element(value_type_) == GRAPH_PORT_FLOAT) {
     for (const auto& w : linked_to_) {
-      if (std::shared_ptr<GraphPort> f = w.lock()) f->set_value_vector(buffer_);
+      std::shared_ptr<GraphPort> f = w.lock();
+      if (f && !f->fixed_) f->set_value_vector(buffer_);
     }
     return;
   }
@@ -760,7 +759,8 @@ void GraphPort::propagate_to_followers() {
     exact[i] = slot_as_int(buffer_[i]);
   }
   for (const auto& w : linked_to_) {
-    if (std::shared_ptr<GraphPort> f = w.lock()) f->set_value_vector_int(exact);
+    std::shared_ptr<GraphPort> f = w.lock();
+    if (f && !f->fixed_) f->set_value_vector_int(exact);
   }
 }
 

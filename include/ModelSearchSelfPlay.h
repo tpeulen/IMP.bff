@@ -16,12 +16,12 @@
  *  and which structural action repairs a fitted residual. The latter samples
  *  a richer child topology, fits its declared parent to that synthetic data,
  *  and learns from the parent's weighted residual. `FittingModelSearchProblem`
- *  and `MultiStructureModelSearchProblem` consume the resulting policy in the
+ *  and `FittingModelSearchProblem` consume the resulting policy in the
  *  same native C++ process.
  *
  *  The loop needs no new physics and no hand-written simulator, which is the
  *  point: a family is a description, a description can already produce the
- *  curve it predicts (MultiStructureModelSearchProblem::get_structure_output),
+ *  curve it predicts (FittingModelSearchProblem::get_structure_output),
  *  so *any* family -- including one added tomorrow as a file -- can generate
  *  its own training data. Sample parameters, simulate the measurement they
  *  imply, and remember the pair. The features are what a fitter could compute
@@ -112,7 +112,7 @@ class IMPBFFEXPORT ModelSearchSelfPlay {
   //! Ask a trained proposer where to start, given one real measurement.
   /*! \param[in] network the JSON #train returned
       \return one value per canonical parameter, in registry order, ready for
-              MultiStructureModelSearchProblem::add_structure_start. */
+              FittingModelSearchProblem::add_structure_start. */
   std::vector<double> propose(const std::string& network) const;
 
   //! Simulate structural defects, fit their smaller parent, and record residuals.

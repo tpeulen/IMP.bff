@@ -6,6 +6,7 @@
  */
 
 #include <IMP/bff/ModelSearchSpec.h>
+#include <IMP/bff/FitObjective.h>
 
 #include <IMP/bff/GraphExpression.h>
 #include <IMP/bff/GraphNodeRegistry.h>
@@ -740,7 +741,7 @@ struct ModelSearchSpec::Impl {
   std::map<std::string, Override> overrides;
   //! The live model: built on first request, rebuilt over the same parameter
   //! ports when what it was built from changes.
-  std::shared_ptr<MultiStructureModelSearchProblem> model;
+  std::shared_ptr<FittingModelSearchProblem> model;
   bool dirty = true;
   //! A catalogue of equations to expand into structures; see set_equations.
   SpecJson equations;
@@ -1009,16 +1010,16 @@ std::vector<std::string> ModelSearchSpec::get_available_names() {
   return names;
 }
 
-std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build()
+std::shared_ptr<FittingModelSearchProblem> ModelSearchSpec::build()
     const {
-  return build_over(std::shared_ptr<MultiStructureModelSearchProblem>());
+  return build_over(std::shared_ptr<FittingModelSearchProblem>());
 }
 
-std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::get_model() {
+std::shared_ptr<FittingModelSearchProblem> ModelSearchSpec::get_model() {
   if (impl_->model && !impl_->dirty) return impl_->model;
-  const std::shared_ptr<MultiStructureModelSearchProblem> previous =
+  const std::shared_ptr<FittingModelSearchProblem> previous =
       impl_->model;
-  std::shared_ptr<MultiStructureModelSearchProblem> model = build_over(previous);
+  std::shared_ptr<FittingModelSearchProblem> model = build_over(previous);
   if (previous) {
     const std::vector<std::string> ids = model->get_parameter_ids();
     const std::vector<std::string> old_ids = previous->get_parameter_ids();
@@ -1107,8 +1108,8 @@ std::string ModelSearchSpec::get_description_json() const {
   return impl_->document.dump();
 }
 
-std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build_over(
-    const std::shared_ptr<MultiStructureModelSearchProblem>& previous) const {
+std::shared_ptr<FittingModelSearchProblem> ModelSearchSpec::build_over(
+    const std::shared_ptr<FittingModelSearchProblem>& previous) const {
   const SpecJson document = impl_->expanded();
   // Everything the description says it needs has to be here before anything
   // is built. A half-wired graph still evaluates, and fits the wrong thing.
@@ -1153,8 +1154,8 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build_over(
     }
   }
 
-  std::shared_ptr<MultiStructureModelSearchProblem> problem =
-      std::make_shared<MultiStructureModelSearchProblem>();
+  std::shared_ptr<FittingModelSearchProblem> problem =
+      std::make_shared<FittingModelSearchProblem>();
 
   // --- the canonical registry, in document order -------------------------
   const SpecJson& parameters = document["parameters"];
@@ -1408,18 +1409,8 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build_over(
       if (!members_it->is_array()) refuse(node_where + " 'members' must be an array");
       for (SpecJson::const_iterator mit = members_it->begin();
            mit != members_it->end(); ++mit) {
-        std::string member_key;
-        std::string residual_key = "residuals";
-        if (mit->is_string()) {
-          member_key = mit->get<std::string>();
-        } else if (mit->is_object()) {
-          member_key = require_string(*mit, "node", node_where + " member");
-          if (mit->contains("residuals")) {
-            residual_key = (*mit)["residuals"].get<std::string>();
-          }
-        } else {
-          refuse(node_where + " each member is a node name or an object");
-        }
+        if (!mit->is_string()) refuse(node_where + " each member is a node name");
+        const std::string member_key = mit->get<std::string>();
         std::map<std::string, std::shared_ptr<GraphNode> >::const_iterator
             member = built.find(member_key);
         if (member == built.end()) {
@@ -1427,7 +1418,7 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build_over(
                  "', which this structure does not declare");
         }
         try {
-          built[node_order[n]]->add_member_node(member->second, residual_key);
+          built[node_order[n]]->add_member_node(member->second);
         } catch (const std::exception& error) {
           refuse(node_where + ": " + error.what());
         }
@@ -1660,12 +1651,15 @@ std::shared_ptr<MultiStructureModelSearchProblem> ModelSearchSpec::build_over(
       refuse(where + " names the objective '" + objective_key +
              "', which it does not declare");
     }
-    std::string residual_key = "residuals";
-    SpecJson::const_iterator res_it = structure.find("residual_key");
-    if (res_it != structure.end()) residual_key = res_it->get<std::string>();
 
-    problem->add_structure(key, objective->second, ids, owners, initial_values,
-                           fixed_mask, residual_key);
+    const std::shared_ptr<FitObjective> fit_objective =
+        std::dynamic_pointer_cast<FitObjective>(objective->second);
+    if (!fit_objective) {
+      refuse(where + " names the objective '" + objective_key +
+             "', which is not a fit objective");
+    }
+    problem->add_structure(key, fit_objective, ids, owners, initial_values,
+                           fixed_mask);
     problem->set_structure_parameter_uses(
         key, std::vector<std::string>(used_ids.begin(), used_ids.end()));
 

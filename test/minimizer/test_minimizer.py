@@ -66,13 +66,11 @@ def residual_callable(x, y, ey):
     return f
 
 
-class ResidualNode(bff.GraphNode):
+class ResidualNode(bff.FitObjective):
     """A Python objective, the way a model bff cannot represent reaches it.
 
     One crossing per residual evaluation instead of the four or five a
-    numpy-driven loop pays -- the fallback path the port is measured against,
-    and the reason `set_residual_function` is not wrapped: a Python residual
-    is a `GraphNode` director.
+    numpy-driven loop pays -- the fallback path the port is measured against.
     """
 
     def __init__(self, func, names, name="residuals"):
@@ -81,7 +79,6 @@ class ResidualNode(bff.GraphNode):
         self._names = list(names)
         for n in self._names:
             self.add_input_port(n, bff.GraphPort(0.0))
-        self.add_output_port("residuals", bff.GraphPort([0.0], False, True))
         self.calls = 0
         self.visited = []
 
@@ -89,8 +86,7 @@ class ResidualNode(bff.GraphNode):
         p = np.array([self.inputs[n].value for n in self._names])
         self.calls += 1
         self.visited.append(p.copy())
-        self.outputs["residuals"].set_value_vector(
-            list(map(float, self._func(p))))
+        self.set_residuals(list(map(float, self._func(p))))
         self.set_valid(True)
 
     def ports_for(self):
@@ -104,7 +100,7 @@ def build_minimizer(func, start, bounds=None, **options):
         port.value = float(v)
     m = bff.FitMinimizer()
     m.set_parameter_ports(ports)
-    m.set_objective(node, "residuals")
+    m.set_objective(node)
     if bounds is not None:
         m.bounds = bounds
     for k, v in options.items():
@@ -391,12 +387,12 @@ class MinimizerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             m.set_parameter_ports([port])
 
-    def test_an_objective_without_the_residual_port_is_refused(self):
+    def test_a_node_that_is_not_an_objective_is_refused(self):
         node = bff.GraphNode("plain")
         node.add_output_port("chi2", bff.GraphPort(0.0, False, True))
         m = bff.FitMinimizer()
-        with self.assertRaises(ValueError):
-            m.set_objective(node, "residuals")
+        with self.assertRaises(TypeError):
+            m.set_objective(node)
 
 
 # ---------------------------------------------------------------- observer
@@ -520,7 +516,7 @@ class GraphObjectiveTests(unittest.TestCase):
         ports[0].value, ports[1].value = 1.0, 1.0
         m = bff.FitMinimizer()
         m.set_parameter_ports(ports)
-        m.set_objective(chi2, "residuals")
+        m.set_objective(chi2)
         info = m.run()
 
         self.assertIn(info, (1, 2, 3, 4))
@@ -564,7 +560,7 @@ class GraphObjectiveTests(unittest.TestCase):
         port.value = 6.0
         m = bff.FitMinimizer()
         m.set_parameter_ports([port])
-        m.set_objective(chi2, "residuals")
+        m.set_objective(chi2)
         info = m.run()
         self.assertIn(info, (1, 2, 3, 4))
         self.assertAlmostEqual(m.x[0], truth, places=4)
@@ -583,18 +579,6 @@ class GraphObjectiveTests(unittest.TestCase):
         # transport the optimiser reads had to stop sanitising.
         self.assertEqual(chi2.get_output_port("chi2").value,
                          np.finfo(np.float64).max)
-
-    def test_a_node_without_a_residual_port_keeps_working(self):
-        """`FitChiSquared` writes the residuals only when asked; a graph built
-        before this port existed evaluates exactly as it did."""
-        x = np.linspace(0.1, 5.0, 20)
-        y = 2.0 * np.exp(-x / 0.5)
-        expression, chi2, _ = self._graph("a*exp(-x/t)", y, np.ones_like(y), x)
-        # Drop the residual port the fixture adds.
-        chi2.add_output_port("residuals", bff.GraphPort(0.0, False, True))
-        chi2.set_residuals_port_key("not_a_port")
-        chi2.update()
-        self.assertGreaterEqual(chi2.get_output_port("chi2").value, 0.0)
 
 
 # ------------------------------------------------------------- covariance

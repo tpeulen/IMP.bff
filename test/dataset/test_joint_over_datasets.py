@@ -94,8 +94,8 @@ class HeterogeneousGroupTests(unittest.TestCase):
         joint = bff.FitJointChiSquared("joint")
         joint.add_output_port("joint", bff.GraphPort(0.0, False, True))
         joint.add_output_port("residuals", bff.GraphPort([0.0], False, True))
-        joint.add_member(m1, "residuals")
-        joint.add_member(m2, "residuals")
+        joint.add_member(m1)
+        joint.add_member(m2)
         joint._graph = (m1, m2, p1, p2)
         return joint, (m1, m2), (p1, p2)
 
@@ -173,7 +173,7 @@ class HeterogeneousGroupTests(unittest.TestCase):
             port.value = v
         m = bff.FitMinimizer()
         m.set_parameter_ports(free)
-        m.set_objective(joint, "residuals")
+        m.set_objective(joint)
         m._graph = (joint, m1, m2)
         info = m.run()
         self.assertIn(info, (1, 2, 3, 4))

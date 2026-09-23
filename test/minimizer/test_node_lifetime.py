@@ -19,18 +19,16 @@ import numpy as np
 import IMP.bff as bff
 
 
-class Residual(bff.GraphNode):
+class Residual(bff.FitObjective):
     def __init__(self):
         super().__init__("resid")
         self._p = [bff.GraphPort(1.0), bff.GraphPort(2.0)]
         for i, p in enumerate(self._p):
             self.add_input_port("x%d" % i, p)
-        self.add_output_port("residuals", bff.GraphPort([0.0], False, True))
 
     def evaluate(self):
         x = [self.get_input_port("x%d" % i).value for i in range(2)]
-        r = [x[0] - 3.0, x[1] - 5.0, (x[0] - 3.0) * 0.5]
-        self.get_output_port("residuals").set_values_array(np.asarray(r))
+        self.set_residuals([x[0] - 3.0, x[1] - 5.0, (x[0] - 3.0) * 0.5])
 
 
 class TestNodeLifetime(unittest.TestCase):
@@ -39,7 +37,7 @@ class TestNodeLifetime(unittest.TestCase):
         node = Residual()
         m = bff.FitMinimizer()
         m.set_parameter_ports(node._p)
-        m.set_objective(node, "residuals")
+        m.set_objective(node)
         # The exact pattern that lost the proxy: bind to _, rebind _.
         _ = node
         node = None
@@ -65,11 +63,11 @@ class TestNodeLifetime(unittest.TestCase):
         node = Residual()
         m = bff.FitMinimizer()
         m.set_parameter_ports(node._p)
-        m.set_objective(node, "residuals")
+        m.set_objective(node)
         ref = weakref.ref(node)
         replacement = Residual()
         m.set_parameter_ports(replacement._p)
-        m.set_objective(replacement, "residuals")
+        m.set_objective(replacement)
         node = None
         gc.collect()
         self.assertIsNone(ref(), "the replaced proxy must be collectable")

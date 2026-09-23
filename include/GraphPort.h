@@ -183,7 +183,7 @@ class IMPBFFEXPORT GraphPort : public GraphObject,
   //! A scalar port; value_type 0 by default, promoted to 1 for a double.
   /*!
       \param[in] value initial scalar value
-      \param[in] fixed freeze the port against value writes
+      \param[in] fixed exclude the port from optimisation
       \param[in] is_output mark as a node output port
       \param[in] is_reactive re-evaluate the attached node on writes
       \param[in] is_bounded enforce lb/ub on every write
@@ -234,7 +234,7 @@ class IMPBFFEXPORT GraphPort : public GraphObject,
       the link.
   */
   double get_value() const;
-  //! Write a scalar float value (no-op when fixed); marks the node invalid.
+  //! Write a scalar float value; marks the node invalid.
   void set_value(double v);
   //! Write a scalar int value: keeps an integral port integral, and exact.
   /*! Widened from `int` for the reason on the integer constructor. An
@@ -282,7 +282,7 @@ class IMPBFFEXPORT GraphPort : public GraphObject,
   */
   void set_sanitize(bool v) { sanitize_ = v; }
   bool get_sanitize() const { return sanitize_; }
-  //! Write a vector value (no-op when fixed); marks the node invalid.
+  //! Write a vector value; marks the node invalid.
   void set_value_vector(const std::vector<double>& v);
 
 #ifndef SWIG
@@ -347,7 +347,7 @@ class IMPBFFEXPORT GraphPort : public GraphObject,
   //! Ports are always self-consistent: true (chinet compatibility).
   bool is_valid() const;
 
-  //! Fixed flag: a fixed port ignores value writes.
+  //! Fixed flag: a fixed port is held by optimisers, never by writes.
   bool get_fixed() const;
   //! Set the fixed flag.
   void set_fixed(bool v);

@@ -30,10 +30,10 @@
  * *is* -- the joint chi-square -- rather than which application assembles
  * it.
  *
- * The members do not have to be `FitChiSquared` nodes. Anything presenting a
- * residual vector on an output port qualifies, including a Python `GraphNode`
- * director wrapping a model this library cannot represent, so a group may
- * mix representable and unrepresentable members and still take one step.
+ * The members do not have to be `FitChiSquared` nodes. Any `FitObjective`
+ * qualifies, including a Python subclass wrapping a model this library cannot
+ * represent, so a group may mix representable and unrepresentable members and
+ * still take one step.
  *
  * \see FitChiSquared, FitMinimizer, GraphExpression, GraphPort
  *
@@ -50,20 +50,20 @@
 #include <string>
 #include <vector>
 
+#include <IMP/bff/FitObjective.h>
 #include <IMP/bff/GraphNode.h>
 #include <IMP/bff/GraphPort.h>
 
 IMPBFF_BEGIN_NAMESPACE
 
 //! The misfit of several datasets at once: their residuals, end to end.
-class IMPBFFEXPORT FitJointChiSquared : public GraphNode {
+class IMPBFFEXPORT FitJointChiSquared : public FitObjective {
  public:
   explicit FitJointChiSquared(const std::string& name = "joint");
 
-  //! Add a member, linking its residual port to a new input of this node.
+  //! Add a member, linking its residuals to a new input of this node.
   /**
-      \param member the node producing one dataset's residuals
-      \param residual_key the member's output port carrying them
+      \param member the objective of one dataset
       \return the index of the block this member occupies
 
       The member keeps its own data, fit range, mask and noise model -- a
@@ -75,8 +75,7 @@ class IMPBFFEXPORT FitJointChiSquared : public GraphNode {
       residual is in that order, so a caller can map a block back to the
       dataset that produced it.
    */
-  int add_member(std::shared_ptr<GraphNode> member,
-                 const std::string& residual_key = "residuals");
+  int add_member(std::shared_ptr<FitObjective> member);
 
   //! How many members the group holds.
   unsigned int get_number_of_members() const {
@@ -87,7 +86,7 @@ class IMPBFFEXPORT FitJointChiSquared : public GraphNode {
   /** Reached one at a time because `std::vector<std::shared_ptr<GraphNode> >` is
       not a template this module may name (see `IMP_bff.types.i`), and
       wrapping it anyway leaks -- SWIG finds no destructor for it. */
-  std::shared_ptr<GraphNode> get_member(int index) const;
+  std::shared_ptr<FitObjective> get_member(int index) const;
 
   //! The members' names, in the order they were added.
   std::vector<std::string> get_member_names() const;
@@ -102,24 +101,6 @@ class IMPBFFEXPORT FitJointChiSquared : public GraphNode {
   //! Where each member's block starts in the joint residual.
   std::vector<int> get_block_offsets() const;
 
-  //! The key of the output port carrying the concatenated residuals.
-  void set_residuals_port_key(const std::string& key) { residuals_key_ = key; }
-  const std::string& get_residuals_port_key() const { return residuals_key_; }
-
-  //! The joint residuals from the last evaluation.
-  const std::vector<double>& get_weighted_residuals() const { return wres_; }
-
-  //! The sum of the members' chi-squares, from the last evaluation.
-  double get_chi2() const { return chi2_; }
-
-  //! `chi2 / (n_residuals - n_free - 1)`, over the whole group.
-  double get_chi2r(int n_free) const;
-
-  //! Number of residuals the last evaluation produced, over all members.
-  unsigned int get_number_of_residuals() const {
-    return static_cast<unsigned int>(wres_.size());
-  }
-
   //! Read every member's residuals, concatenate, write the sum out.
   void evaluate() override;
 
@@ -127,17 +108,13 @@ class IMPBFFEXPORT FitJointChiSquared : public GraphNode {
 
   std::string get_node_type() const override;
   void configure(const std::string& json_text) override;
-  void add_member_node(std::shared_ptr<GraphNode> member,
-                       const std::string& residual_key) override;
+  void add_member_node(std::shared_ptr<GraphNode> member) override;
 
  private:
-  std::vector<std::shared_ptr<GraphNode> > members_;
+  std::vector<std::shared_ptr<FitObjective> > members_;
   //! This node's input ports, one per member, in member order.
   std::vector<std::shared_ptr<GraphPort> > blocks_;
   std::vector<int> block_sizes_;
-  std::vector<double> wres_;
-  std::string residuals_key_ = "residuals";
-  double chi2_ = 0.0;
 };
 
 IMPBFF_END_NAMESPACE

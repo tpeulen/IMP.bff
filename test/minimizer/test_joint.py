@@ -71,15 +71,15 @@ def build_group(x, y1, y2, ey):
     joint = bff.FitJointChiSquared("joint")
     joint.add_output_port("joint", bff.GraphPort(0.0, False, True))
     joint.add_output_port("residuals", bff.GraphPort([0.0], False, True))
-    joint.add_member(m1, "residuals")
-    joint.add_member(m2, "residuals")
+    joint.add_member(m1)
+    joint.add_member(m2)
 
     free = [p1["a"], p2["a"], p1["t"]]
     for port, v in zip(free, (1.0, 1.0, 1.0)):
         port.value = v
     m = bff.FitMinimizer()
     m.set_parameter_ports(free)
-    m.set_objective(joint, "residuals")
+    m.set_objective(joint)
     m._graph = (m1, m2, joint, p1, p2)
     return m, joint, free, (m1, m2)
 
@@ -116,10 +116,10 @@ class GroupingTests(unittest.TestCase):
         residuals = np.asarray(m.residuals)
         self.assertEqual(residuals.size, 2 * len(x))
         np.testing.assert_allclose(residuals[:len(x)],
-                                   m1.get_weighted_residuals(), rtol=0,
+                                   m1.get_residuals(), rtol=0,
                                    atol=0)
         np.testing.assert_allclose(residuals[len(x):],
-                                   m2.get_weighted_residuals(), rtol=0,
+                                   m2.get_residuals(), rtol=0,
                                    atol=0)
 
     def test_chi2_is_the_sum_of_the_members(self):
@@ -148,12 +148,11 @@ class GroupingTests(unittest.TestCase):
 
         def alone(y):
             member, p = make_member("a*exp(-x/t)", x, y, ey, "solo")
-            member.add_output_port("residuals_solo", bff.GraphPort([0.0], False, True))
             for port in p.values():
                 port.value = 1.0
             one = bff.FitMinimizer()
             one.set_parameter_ports([p["a"], p["t"]])
-            one.set_objective(member, "residuals")
+            one.set_objective(member)
             one._graph = member
             one.run()
             return one.x[1]
@@ -184,28 +183,28 @@ class GroupingTests(unittest.TestCase):
         joint = bff.FitJointChiSquared("joint")
         joint.add_output_port("joint", bff.GraphPort(0.0, False, True))
         joint.add_output_port("residuals", bff.GraphPort([0.0], False, True))
-        joint.add_member(m1, "residuals")
+        joint.add_member(m1)
         for port in p1.values():
             port.value = 1.0
         m = bff.FitMinimizer()
         m.set_parameter_ports([p1["a"], p1["t"]])
-        m.set_objective(joint, "residuals")
+        m.set_objective(joint)
         m._graph = (m1, joint, p1)
         self.assertIn(m.run(), (1, 2, 3, 4))
         self.assertAlmostEqual(m.x[1], 3.0, delta=0.02)
 
-    def test_a_member_without_residuals_is_refused(self):
+    def test_a_member_that_is_not_an_objective_is_refused(self):
         joint = bff.FitJointChiSquared("joint")
         plain = bff.GraphNode("plain")
         plain.add_output_port("chi2", bff.GraphPort(0.0, False, True))
-        with self.assertRaises(ValueError):
-            joint.add_member(plain, "residuals")
+        with self.assertRaises(TypeError):
+            joint.add_member(plain)
 
     def test_a_node_without_its_own_output_port_is_refused(self):
         x, y1, y2, ey = two_datasets()
         m1, _ = make_member("a*exp(-x/t)", x, y1, ey, "d1")
         joint = bff.FitJointChiSquared("joint")
-        joint.add_member(m1, "residuals")
+        joint.add_member(m1)
         with self.assertRaises(ValueError):
             joint.update()
 
@@ -237,8 +236,8 @@ class GroupingTests(unittest.TestCase):
         joint = bff.FitJointChiSquared("joint")
         joint.add_output_port("joint", bff.GraphPort(0.0, False, True))
         joint.add_output_port("residuals", bff.GraphPort([0.0], False, True))
-        joint.add_member(m1, "residuals")
-        joint.add_member(m2, "residuals")
+        joint.add_member(m1)
+        joint.add_member(m2)
 
         p1["a"].value = 10.0          # finite everywhere
         joint.update()

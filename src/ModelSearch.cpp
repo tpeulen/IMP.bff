@@ -3,6 +3,7 @@
 
 #include <IMP/bff/SpecialFunctions.h>
 #include <IMP/bff/FitMinimizer.h>
+#include <IMP/bff/FitObjective.h>
 #include <IMP/bff/GraphNode.h>
 #include <IMP/bff/GraphPort.h>
 #include <IMP/bff/NeuralNet.h>
@@ -345,492 +346,7 @@ struct FitSearchSnapshot {
   std::vector<double> residual;
 };
 
-struct FitSearchGroup {
-  std::vector<std::shared_ptr<GraphPort> > ports;
-  std::vector<double> seeds;
-};
-
-struct FitSearchStructure {
-  std::set<std::string> free_groups;
-};
-
 }  // namespace
-
-struct FittingModelSearchProblem::Impl {
-  std::shared_ptr<GraphNode> objective;
-  std::string residual_key = "residuals";
-  std::string score_output;
-  std::string acceptable_output;
-  double complexity_penalty = 0.0;
-  std::map<std::string, FitSearchGroup> groups;
-  std::vector<std::string> group_order;
-  std::vector<std::shared_ptr<GraphPort> > ports;
-  std::map<std::string, FitSearchStructure> structures;
-  std::map<std::string, ModelSearchActions> actions;
-  ResidualActionPolicy residual_action_policy;
-  std::string initial_structure;
-  std::map<std::string, FitSearchSnapshot> snapshots;
-  std::map<std::string, std::string> snapshot_structures;
-  unsigned long long next_snapshot = 1;
-  std::atomic<bool> cancelled;
-  int last_status = 0;
-  std::string last_failure;
-
-  Impl() : cancelled(false) {}
-
-  FitSearchSnapshot capture() const {
-    FitSearchSnapshot snapshot;
-    snapshot.values.reserve(ports.size());
-    snapshot.fixed.reserve(ports.size());
-    for (std::size_t i = 0; i < ports.size(); ++i) {
-      snapshot.values.push_back(ports[i]->get_value());
-      snapshot.fixed.push_back(ports[i]->get_fixed() ? 1 : 0);
-    }
-    return snapshot;
-  }
-
-  void restore(const FitSearchSnapshot& snapshot) {
-    if (snapshot.values.size() != ports.size() ||
-        snapshot.fixed.size() != ports.size()) {
-      throw ModelSearchConfigurationError("invalid cached fit snapshot");
-    }
-    for (std::size_t i = 0; i < ports.size(); ++i) {
-      ports[i]->set_fixed(false);
-      ports[i]->set_value(snapshot.values[i]);
-      ports[i]->set_fixed(snapshot.fixed[i] != 0);
-    }
-    if (objective) objective->update();
-  }
-
-  //! #capture plus the residual of the graph as the last update left it.
-  FitSearchSnapshot capture_scored() const {
-    FitSearchSnapshot snapshot = capture();
-    const std::shared_ptr<GraphPort> residual =
-        objective->get_output_port(residual_key);
-    if (residual) snapshot.residual = residual->get_values_ref();
-    return snapshot;
-  }
-
-  int free_port_count(const std::string& structure_key) const {
-    const std::map<std::string, FitSearchStructure>::const_iterator structure =
-        structures.find(structure_key);
-    if (structure == structures.end()) {
-      throw ModelSearchConfigurationError("unknown fit structure '" +
-                                             structure_key + "'");
-    }
-    int count = 0;
-    for (std::set<std::string>::const_iterator key =
-             structure->second.free_groups.begin();
-         key != structure->second.free_groups.end(); ++key) {
-      count += static_cast<int>(groups.find(*key)->second.ports.size());
-    }
-    return count;
-  }
-
-  std::vector<std::shared_ptr<GraphPort> > apply_structure(
-      const std::string& parent_structure,
-      const std::string& target_structure) {
-    const FitSearchStructure& parent = structures.find(parent_structure)->second;
-    const FitSearchStructure& target = structures.find(target_structure)->second;
-    std::vector<std::shared_ptr<GraphPort> > free_ports;
-    for (std::size_t gi = 0; gi < group_order.size(); ++gi) {
-      const std::string& key = group_order[gi];
-      FitSearchGroup& group = groups.find(key)->second;
-      const bool was_free = parent.free_groups.count(key) != 0;
-      const bool is_free = target.free_groups.count(key) != 0;
-      if (is_free && !was_free && !group.seeds.empty()) {
-        for (std::size_t pi = 0; pi < group.ports.size(); ++pi) {
-          group.ports[pi]->set_fixed(false);
-          group.ports[pi]->set_value(group.seeds[pi]);
-        }
-      }
-      for (std::size_t pi = 0; pi < group.ports.size(); ++pi) {
-        group.ports[pi]->set_fixed(!is_free);
-        if (is_free) free_ports.push_back(group.ports[pi]);
-      }
-    }
-    return free_ports;
-  }
-
-  std::pair<double, bool> score_current(int n_free) {
-    objective->update();
-    double reward = 0.0;
-    if (!score_output.empty()) {
-      const std::shared_ptr<GraphPort> score =
-          objective->get_output_port(score_output);
-      if (!score) {
-        throw ModelSearchConfigurationError(
-            "objective has no score output '" + score_output + "'");
-      }
-      reward = score->get_value();
-    } else {
-      const std::shared_ptr<GraphPort> residual =
-          objective->get_output_port(residual_key);
-      if (!residual) {
-        throw ModelSearchConfigurationError(
-            "objective has no residual output '" + residual_key + "'");
-      }
-      const std::vector<double>& values = residual->get_values_ref();
-      double chi2 = 0.0;
-      for (std::size_t i = 0; i < values.size(); ++i) {
-        chi2 += values[i] * values[i];
-      }
-      reward = -0.5 * chi2 - complexity_penalty * n_free;
-    }
-    if (!std::isfinite(reward)) {
-      throw ModelSearchConfigurationError("fit reward is not finite");
-    }
-    bool acceptable = false;
-    if (!acceptable_output.empty()) {
-      const std::shared_ptr<GraphPort> port =
-          objective->get_output_port(acceptable_output);
-      if (!port) {
-        throw ModelSearchConfigurationError(
-            "objective has no acceptable output '" + acceptable_output + "'");
-      }
-      acceptable = port->get_value_bool();
-    }
-    return std::make_pair(reward, acceptable);
-  }
-};
-
-FittingModelSearchProblem::FittingModelSearchProblem() : impl_(new Impl) {}
-
-FittingModelSearchProblem::FittingModelSearchProblem(
-    std::shared_ptr<GraphNode> objective, const std::string& residual_key)
-    : impl_(new Impl) {
-  set_objective(std::move(objective), residual_key);
-}
-
-FittingModelSearchProblem::~FittingModelSearchProblem() {}
-
-void FittingModelSearchProblem::set_objective(
-    std::shared_ptr<GraphNode> objective, const std::string& residual_key) {
-  if (!objective) {
-    throw ModelSearchConfigurationError("fit problem objective is null");
-  }
-  require_key(residual_key, "residual output");
-  impl_->objective = std::move(objective);
-  impl_->residual_key = residual_key;
-  impl_->snapshots.clear();
-  impl_->snapshot_structures.clear();
-}
-
-std::shared_ptr<GraphNode> FittingModelSearchProblem::get_objective() const {
-  return impl_->objective;
-}
-
-void FittingModelSearchProblem::add_parameter_group(
-    const std::string& key,
-    const std::vector<std::shared_ptr<GraphPort> >& ports,
-    const std::vector<double>& enable_values) {
-  require_key(key, "parameter group");
-  if (impl_->groups.count(key)) {
-    throw ModelSearchConfigurationError("duplicate parameter group '" + key +
-                                           "'");
-  }
-  if (ports.empty()) {
-    throw ModelSearchConfigurationError("parameter group is empty");
-  }
-  if (!enable_values.empty() && enable_values.size() != ports.size()) {
-    throw ModelSearchConfigurationError(
-        "enable values must match the parameter group size");
-  }
-  std::set<GraphPort*> existing;
-  for (std::size_t i = 0; i < impl_->ports.size(); ++i) {
-    existing.insert(impl_->ports[i].get());
-  }
-  for (std::size_t i = 0; i < ports.size(); ++i) {
-    if (!ports[i]) {
-      throw ModelSearchConfigurationError("parameter group has a null port");
-    }
-    if (ports[i]->get_is_vector()) {
-      throw ModelSearchConfigurationError(
-          "fit model search supports scalar parameter ports only");
-    }
-    if (ports[i]->get_link()) {
-      throw ModelSearchConfigurationError(
-          "fit model search requires canonical owner ports, not linked followers");
-    }
-    if (!existing.insert(ports[i].get()).second) {
-      throw ModelSearchConfigurationError(
-          "a parameter port may belong to only one group");
-    }
-  }
-  FitSearchGroup group;
-  group.ports = ports;
-  group.seeds = enable_values;
-  impl_->groups[key] = group;
-  impl_->group_order.push_back(key);
-  impl_->ports.insert(impl_->ports.end(), ports.begin(), ports.end());
-}
-
-std::vector<std::string>
-FittingModelSearchProblem::get_parameter_group_keys() const {
-  return impl_->group_order;
-}
-
-void FittingModelSearchProblem::add_structure(
-    const std::string& key, const std::vector<std::string>& free_groups) {
-  require_key(key, "fit structure");
-  FitSearchStructure structure;
-  for (std::size_t i = 0; i < free_groups.size(); ++i) {
-    if (!impl_->groups.count(free_groups[i])) {
-      throw ModelSearchConfigurationError("unknown parameter group '" +
-                                             free_groups[i] + "'");
-    }
-    structure.free_groups.insert(free_groups[i]);
-  }
-  impl_->structures[key] = structure;
-}
-
-void FittingModelSearchProblem::set_initial_structure(const std::string& key) {
-  require_key(key, "initial structure");
-  impl_->initial_structure = key;
-}
-
-void FittingModelSearchProblem::add_action(
-    const std::string& parent_structure, const std::string& action_key,
-    const std::string& result_structure, double prior, bool terminal) {
-  require_key(parent_structure, "parent structure");
-  require_key(action_key, "action");
-  require_key(result_structure, "result structure");
-  if (!std::isfinite(prior) || prior < 0.0) {
-    throw ModelSearchConfigurationError(
-        "action prior must be finite and non-negative");
-  }
-  ModelSearchActions& actions =
-      impl_->actions[parent_structure];
-  for (std::size_t i = 0; i < actions.size(); ++i) {
-    if (actions[i].get_key() == action_key) {
-      throw ModelSearchConfigurationError(
-          "action keys must be unique within a structure");
-    }
-  }
-  actions.push_back(ModelSearchAction(action_key, result_structure, prior,
-                                         terminal));
-}
-
-void FittingModelSearchProblem::set_residual_action_policy(
-    const std::string& network, const std::vector<std::string>& action_keys) {
-  impl_->residual_action_policy.configure(network, action_keys);
-}
-
-void FittingModelSearchProblem::clear_residual_action_policy() {
-  impl_->residual_action_policy.clear();
-}
-
-bool FittingModelSearchProblem::get_has_residual_action_policy() const {
-  return impl_->residual_action_policy.active();
-}
-
-void FittingModelSearchProblem::set_score_output(const std::string& key) {
-  require_key(key, "score output");
-  impl_->score_output = key;
-}
-void FittingModelSearchProblem::clear_score_output() {
-  impl_->score_output.clear();
-}
-const std::string& FittingModelSearchProblem::get_score_output() const {
-  return impl_->score_output;
-}
-void FittingModelSearchProblem::set_complexity_penalty(double value) {
-  if (!std::isfinite(value) || value < 0.0) {
-    throw ModelSearchConfigurationError(
-        "complexity penalty must be finite and non-negative");
-  }
-  impl_->complexity_penalty = value;
-}
-double FittingModelSearchProblem::get_complexity_penalty() const {
-  return impl_->complexity_penalty;
-}
-void FittingModelSearchProblem::set_acceptable_output(const std::string& key) {
-  require_key(key, "acceptable output");
-  impl_->acceptable_output = key;
-}
-void FittingModelSearchProblem::clear_acceptable_output() {
-  impl_->acceptable_output.clear();
-}
-
-ModelSearchState FittingModelSearchProblem::get_initial_state() {
-  if (!impl_->objective) {
-    throw ModelSearchConfigurationError("fit problem has no objective");
-  }
-  const std::map<std::string, FitSearchStructure>::const_iterator structure =
-      impl_->structures.find(impl_->initial_structure);
-  if (structure == impl_->structures.end()) {
-    throw ModelSearchConfigurationError(
-        "initial fit structure has not been declared");
-  }
-  for (std::size_t gi = 0; gi < impl_->group_order.size(); ++gi) {
-    const std::string& key = impl_->group_order[gi];
-    const bool should_be_free = structure->second.free_groups.count(key) != 0;
-    const FitSearchGroup& group = impl_->groups.find(key)->second;
-    for (std::size_t pi = 0; pi < group.ports.size(); ++pi) {
-      if (group.ports[pi]->get_fixed() == should_be_free) {
-        throw ModelSearchConfigurationError(
-            "initial structure does not match the live port fixed mask");
-      }
-    }
-  }
-  const FitSearchSnapshot root = impl_->capture();
-  try {
-    std::vector<std::shared_ptr<GraphPort> > free_ports;
-    for (std::size_t gi = 0; gi < impl_->group_order.size(); ++gi) {
-      const FitSearchGroup& group = impl_->groups.find(impl_->group_order[gi])->second;
-      for (std::size_t pi = 0; pi < group.ports.size(); ++pi) {
-        if (!group.ports[pi]->get_fixed()) free_ports.push_back(group.ports[pi]);
-      }
-    }
-    if (!free_ports.empty() && !impl_->cancelled.load()) {
-      FitMinimizer minimizer;
-      minimizer.set_parameter_ports(free_ports);
-      minimizer.set_objective(impl_->objective, impl_->residual_key);
-      impl_->last_status = minimizer.run();
-      if (impl_->last_status < 1 || impl_->last_status > 4) {
-        throw ModelSearchConfigurationError(
-            "initial fit structure did not converge");
-      }
-    } else {
-      impl_->objective->update();
-      impl_->last_status = impl_->cancelled.load() ? -1 : 1;
-    }
-    const std::pair<double, bool> score = impl_->score_current(
-        static_cast<int>(free_ports.size()));
-    impl_->snapshots[impl_->initial_structure] = impl_->capture_scored();
-    impl_->snapshot_structures[impl_->initial_structure] =
-        impl_->initial_structure;
-    return ModelSearchState(impl_->initial_structure,
-                               impl_->initial_structure, score.first,
-                               score.second);
-  } catch (...) {
-    impl_->restore(root);
-    throw;
-  }
-}
-
-ModelSearchActions FittingModelSearchProblem::get_actions(
-    const ModelSearchState& state) {
-  const std::map<std::string, ModelSearchActions>::const_iterator found =
-      impl_->actions.find(state.get_structure_key());
-  if (found == impl_->actions.end()) return ModelSearchActions();
-  if (!impl_->residual_action_policy.active()) return found->second;
-  const std::map<std::string, FitSearchSnapshot>::const_iterator snapshot =
-      impl_->snapshots.find(state.get_key());
-  if (snapshot == impl_->snapshots.end()) return found->second;
-  return impl_->residual_action_policy.apply(found->second,
-                                             snapshot->second.residual);
-}
-
-ModelSearchState FittingModelSearchProblem::evaluate(
-    const ModelSearchState& parent, const ModelSearchAction& action) {
-  impl_->last_status = 0;
-  impl_->last_failure.clear();
-  const std::map<std::string, FitSearchSnapshot>::const_iterator parent_snapshot =
-      impl_->snapshots.find(parent.get_key());
-  if (parent_snapshot == impl_->snapshots.end()) {
-    throw ModelSearchConfigurationError("parent fit snapshot is not cached");
-  }
-  const std::string target = action.get_predicted_state_key();
-  if (!impl_->structures.count(target)) {
-    throw ModelSearchConfigurationError("unknown result structure '" + target +
-                                           "'");
-  }
-  try {
-    impl_->restore(parent_snapshot->second);
-    std::vector<std::shared_ptr<GraphPort> > free_ports =
-        impl_->apply_structure(parent.get_structure_key(), target);
-    if (impl_->cancelled.load()) {
-      impl_->restore(parent_snapshot->second);
-      impl_->last_status = -1;
-      impl_->last_failure = "cancelled before minimization";
-      return parent;
-    }
-    if (!free_ports.empty()) {
-      FitMinimizer minimizer;
-      minimizer.set_parameter_ports(free_ports);
-      minimizer.set_objective(impl_->objective, impl_->residual_key);
-      IMP::Pointer<FitSearchCancelObserver> observer(
-          new FitSearchCancelObserver(&impl_->cancelled));
-      minimizer.set_observer(observer.get());
-      impl_->last_status = minimizer.run();
-      if (minimizer.get_cancelled() || impl_->cancelled.load()) {
-        impl_->restore(parent_snapshot->second);
-        impl_->last_status = -1;
-        impl_->last_failure = "minimization cancelled";
-        return parent;
-      }
-      if (impl_->last_status < 1 || impl_->last_status > 4) {
-        std::ostringstream message;
-        message << "minimizer did not converge (status " << impl_->last_status
-                << ")";
-        impl_->last_failure = message.str();
-        impl_->restore(parent_snapshot->second);
-        return parent;
-      }
-    } else {
-      impl_->objective->update();
-      impl_->last_status = 1;
-    }
-    const std::pair<double, bool> score =
-        impl_->score_current(static_cast<int>(free_ports.size()));
-    std::ostringstream state_key;
-    state_key << target << "@" << impl_->next_snapshot++;
-    const std::string key = state_key.str();
-    impl_->snapshots[key] = impl_->capture_scored();
-    impl_->snapshot_structures[key] = target;
-    return ModelSearchState(key, target, score.first, score.second);
-  } catch (const std::exception& error) {
-    impl_->last_failure = error.what();
-    impl_->last_status = 0;
-    impl_->restore(parent_snapshot->second);
-    return parent;
-  }
-}
-
-void FittingModelSearchProblem::request_cancel() {
-  impl_->cancelled.store(true);
-}
-void FittingModelSearchProblem::clear_cancel() {
-  impl_->cancelled.store(false);
-}
-void FittingModelSearchProblem::activate_state(
-    const ModelSearchState& state) {
-  restore_state(state.get_key());
-}
-bool FittingModelSearchProblem::has_cached_state(
-    const std::string& state_key) const {
-  return impl_->snapshots.count(state_key) != 0;
-}
-std::vector<double> FittingModelSearchProblem::get_cached_values(
-    const std::string& state_key) const {
-  const std::map<std::string, FitSearchSnapshot>::const_iterator found =
-      impl_->snapshots.find(state_key);
-  if (found == impl_->snapshots.end()) return std::vector<double>();
-  return found->second.values;
-}
-std::vector<int> FittingModelSearchProblem::get_cached_fixed(
-    const std::string& state_key) const {
-  const std::map<std::string, FitSearchSnapshot>::const_iterator found =
-      impl_->snapshots.find(state_key);
-  if (found == impl_->snapshots.end()) return std::vector<int>();
-  return found->second.fixed;
-}
-void FittingModelSearchProblem::restore_state(const std::string& state_key) {
-  const std::map<std::string, FitSearchSnapshot>::const_iterator found =
-      impl_->snapshots.find(state_key);
-  if (found == impl_->snapshots.end()) {
-    throw ModelSearchConfigurationError("unknown cached fit state '" +
-                                           state_key + "'");
-  }
-  impl_->restore(found->second);
-}
-int FittingModelSearchProblem::get_last_fit_status() const {
-  return impl_->last_status;
-}
-const std::string& FittingModelSearchProblem::get_last_failure() const {
-  return impl_->last_failure;
-}
 
 namespace {
 
@@ -857,10 +373,9 @@ struct PublishedOutput {
   const GraphPort* source = nullptr;
 };
 
-struct MultiStructureRecord {
-  std::shared_ptr<GraphNode> objective;
+struct StructureRecord {
+  std::shared_ptr<FitObjective> objective;
   std::vector<std::shared_ptr<GraphNode> > graph_nodes;
-  std::string residual_key;
   std::string score_output;
   std::string acceptable_output;
   std::vector<double> initial_values;
@@ -891,10 +406,10 @@ struct MultiStructureRecord {
 
 }  // namespace
 
-struct MultiStructureModelSearchProblem::Impl {
+struct FittingModelSearchProblem::Impl {
   std::map<std::string, std::shared_ptr<GraphPort> > parameters;
   std::vector<std::string> parameter_order;
-  std::map<std::string, MultiStructureRecord> structures;
+  std::map<std::string, StructureRecord> structures;
   std::vector<std::string> structure_order;
   std::map<std::string, ModelSearchActions> actions;
   ResidualActionPolicy residual_action_policy;
@@ -905,7 +420,7 @@ struct MultiStructureModelSearchProblem::Impl {
   std::map<std::string, FitSearchSnapshot> snapshots;
   std::map<std::string, std::string> snapshot_structures;
   unsigned long long next_snapshot = 1;
-  //! See MultiStructureModelSearchProblem::set_warm_start; off by default so
+  //! See FittingModelSearchProblem::set_warm_start; off by default so
   //! a candidate's score belongs to the candidate.
   bool warm_start = false;
   int maxfev = 0;
@@ -915,7 +430,7 @@ struct MultiStructureModelSearchProblem::Impl {
   //! set_parameter_released.
   std::set<std::string> released;
   std::atomic<bool> cancelled;
-  //! See MultiStructureModelSearchProblem::publish_output.
+  //! See FittingModelSearchProblem::publish_output.
   std::map<std::string, PublishedOutput> outputs;
   int last_status = 0;
   std::string last_failure;
@@ -960,8 +475,8 @@ struct MultiStructureModelSearchProblem::Impl {
     }
   }
 
-  const MultiStructureRecord& structure(const std::string& key) const {
-    const std::map<std::string, MultiStructureRecord>::const_iterator found =
+  const StructureRecord& structure(const std::string& key) const {
+    const std::map<std::string, StructureRecord>::const_iterator found =
         structures.find(key);
     if (found == structures.end()) {
       throw ModelSearchConfigurationError("unknown model structure '" + key +
@@ -970,8 +485,8 @@ struct MultiStructureModelSearchProblem::Impl {
     return found->second;
   }
 
-  MultiStructureRecord& structure(const std::string& key) {
-    const std::map<std::string, MultiStructureRecord>::iterator found =
+  StructureRecord& structure(const std::string& key) {
+    const std::map<std::string, StructureRecord>::iterator found =
         structures.find(key);
     if (found == structures.end()) {
       throw ModelSearchConfigurationError("unknown model structure '" + key +
@@ -981,11 +496,8 @@ struct MultiStructureModelSearchProblem::Impl {
   }
 
   //! The structure's weighted residual as its objective last evaluated it.
-  std::vector<double> residual_of(const MultiStructureRecord& record) const {
-    if (record.residual_key.empty()) return std::vector<double>();
-    const std::shared_ptr<GraphPort> residual =
-        record.objective->get_output_port(record.residual_key);
-    return residual ? residual->get_values_ref() : std::vector<double>();
+  std::vector<double> residual_of(const StructureRecord& record) const {
+    return record.objective->get_residuals();
   }
 
   FitSearchSnapshot capture() const {
@@ -1009,14 +521,13 @@ struct MultiStructureModelSearchProblem::Impl {
     for (std::size_t i = 0; i < parameter_order.size(); ++i) {
       const std::shared_ptr<GraphPort>& port =
           parameters.find(parameter_order[i])->second;
-      port->set_fixed(false);
       port->set_value(snapshot.values[i]);
       port->set_fixed(snapshot.fixed[i] != 0);
     }
   }
 
   void select_and_update(const std::string& structure_key) {
-    MultiStructureRecord& selected = structure(structure_key);
+    StructureRecord& selected = structure(structure_key);
     active_structure = structure_key;
     relink_outputs();
     selected.objective->update();
@@ -1025,7 +536,7 @@ struct MultiStructureModelSearchProblem::Impl {
   //! Point every published output at the current topology's port.
   void relink_outputs() {
     if (outputs.empty() || active_structure.empty()) return;
-    const MultiStructureRecord& selected = structure(active_structure);
+    const StructureRecord& selected = structure(active_structure);
     for (std::map<std::string, PublishedOutput>::iterator it = outputs.begin();
          it != outputs.end(); ++it) {
       PublishedOutput& published = it->second;
@@ -1090,7 +601,7 @@ struct MultiStructureModelSearchProblem::Impl {
     }
   }
 
-  void apply_initial(const MultiStructureRecord& target,
+  void apply_initial(const StructureRecord& target,
                      const std::vector<double>& seeds) {
     for (std::size_t i = 0; i < parameter_order.size(); ++i) {
       const std::shared_ptr<GraphPort>& port =
@@ -1100,13 +611,12 @@ struct MultiStructureModelSearchProblem::Impl {
         port->set_fixed(true);
         continue;
       }
-      port->set_fixed(false);
       if (!released.count(parameter_order[i])) port->set_value(seeds[i]);
       port->set_fixed(!is_free(target, i));
     }
   }
 
-  bool uses(const MultiStructureRecord& record, std::size_t i) const {
+  bool uses(const StructureRecord& record, std::size_t i) const {
     return record.uses.empty() ? record.fixed[i] == 0 : record.uses[i] != 0;
   }
 
@@ -1117,7 +627,7 @@ struct MultiStructureModelSearchProblem::Impl {
     return locked.count(id) != 0 || parameters.find(id)->second->get_link();
   }
 
-  bool is_free(const MultiStructureRecord& record, std::size_t i) const {
+  bool is_free(const StructureRecord& record, std::size_t i) const {
     const std::string& id = parameter_order[i];
     if (held(i)) return false;
     if (released.count(id) && uses(record, i)) return true;
@@ -1125,7 +635,7 @@ struct MultiStructureModelSearchProblem::Impl {
   }
 
   //! How many parameters the user's locks and releases add to a topology.
-  double user_complexity_change(const MultiStructureRecord& record) const {
+  double user_complexity_change(const StructureRecord& record) const {
     double change = 0.0;
     for (std::size_t i = 0; i < parameter_order.size(); ++i) {
       const bool declared = record.fixed[i] == 0;
@@ -1137,8 +647,8 @@ struct MultiStructureModelSearchProblem::Impl {
   }
 
   std::vector<std::shared_ptr<GraphPort> > apply_transition(
-      const MultiStructureRecord& parent,
-      const MultiStructureRecord& target,
+      const StructureRecord& parent,
+      const StructureRecord& target,
       const std::vector<double>& seeds) {
     std::vector<std::shared_ptr<GraphPort> > free_ports;
     for (std::size_t i = 0; i < parameter_order.size(); ++i) {
@@ -1150,7 +660,6 @@ struct MultiStructureModelSearchProblem::Impl {
       }
       const bool was_free = this->is_free(parent, i);
       const bool is_free = this->is_free(target, i);
-      port->set_fixed(false);
       // Without warm starting every structure begins from its declared
       // seeds, so its score does not depend on the route that reached it.
       if ((!warm_start || !is_free || !was_free) &&
@@ -1165,7 +674,7 @@ struct MultiStructureModelSearchProblem::Impl {
 
   //! The declared starting points for a structure, primary first.
   std::vector<std::vector<double> > starts_for(
-      const MultiStructureRecord& record) const {
+      const StructureRecord& record) const {
     std::vector<std::vector<double> > starts;
     starts.push_back(record.initial_values);
     for (std::size_t i = 0; i < record.extra_starts.size(); ++i) {
@@ -1175,7 +684,7 @@ struct MultiStructureModelSearchProblem::Impl {
   }
 
   std::pair<double, bool> score_current(
-      const MultiStructureRecord& selected) {
+      const StructureRecord& selected) {
     selected.objective->update();
     double reward = 0.0;
     bool acceptable_from_fit = false;
@@ -1189,18 +698,7 @@ struct MultiStructureModelSearchProblem::Impl {
       }
       reward = score->get_value();
     } else {
-      if (selected.residual_key.empty()) {
-        throw ModelSearchConfigurationError(
-            "structure has neither a residual nor score output");
-      }
-      const std::shared_ptr<GraphPort> residual =
-          selected.objective->get_output_port(selected.residual_key);
-      if (!residual) {
-        throw ModelSearchConfigurationError(
-            "objective has no residual output '" + selected.residual_key +
-            "'");
-      }
-      const std::vector<double>& values = residual->get_values_ref();
+      const std::vector<double>& values = selected.objective->get_residuals();
       double chi2 = 0.0;
       for (std::size_t i = 0; i < values.size(); ++i) {
         chi2 += values[i] * values[i];
@@ -1265,12 +763,12 @@ struct MultiStructureModelSearchProblem::Impl {
   }
 };
 
-MultiStructureModelSearchProblem::MultiStructureModelSearchProblem()
+FittingModelSearchProblem::FittingModelSearchProblem()
     : impl_(new Impl) {}
 
-MultiStructureModelSearchProblem::~MultiStructureModelSearchProblem() {}
+FittingModelSearchProblem::~FittingModelSearchProblem() {}
 
-void MultiStructureModelSearchProblem::add_parameter(
+void FittingModelSearchProblem::add_parameter(
     const std::string& canonical_id, std::shared_ptr<GraphPort> owner) {
   require_key(canonical_id, "canonical parameter");
   if (!impl_->structures.empty()) {
@@ -1310,11 +808,11 @@ void MultiStructureModelSearchProblem::add_parameter(
 }
 
 std::vector<std::string>
-MultiStructureModelSearchProblem::get_parameter_ids() const {
+FittingModelSearchProblem::get_parameter_ids() const {
   return impl_->parameter_order;
 }
 
-std::shared_ptr<GraphPort> MultiStructureModelSearchProblem::get_parameter(
+std::shared_ptr<GraphPort> FittingModelSearchProblem::get_parameter(
     const std::string& canonical_id) const {
   const std::map<std::string, std::shared_ptr<GraphPort> >::const_iterator found =
       impl_->parameters.find(canonical_id);
@@ -1322,12 +820,12 @@ std::shared_ptr<GraphPort> MultiStructureModelSearchProblem::get_parameter(
   return found->second;
 }
 
-void MultiStructureModelSearchProblem::add_structure(
-    const std::string& key, std::shared_ptr<GraphNode> objective,
+void FittingModelSearchProblem::add_structure(
+    const std::string& key, std::shared_ptr<FitObjective> objective,
     const std::vector<std::string>& parameter_ids,
     const std::vector<std::shared_ptr<GraphPort> >& parameter_ports,
     const std::vector<double>& initial_values,
-    const std::vector<int>& fixed_mask, const std::string& residual_key) {
+    const std::vector<int>& fixed_mask) {
   require_key(key, "model structure");
   if (impl_->structures.count(key)) {
     throw ModelSearchConfigurationError("duplicate model structure '" + key +
@@ -1345,9 +843,9 @@ void MultiStructureModelSearchProblem::add_structure(
   }
   std::set<std::string> seen_ids;
   std::set<GraphPort*> seen_ports;
-  MultiStructureRecord record;
+  StructureRecord record;
   record.objective = std::move(objective);
-  record.residual_key = residual_key;
+  record.objective->get_residuals_port();
   record.initial_values.resize(count);
   record.fixed.resize(count);
   for (std::size_t i = 0; i < count; ++i) {
@@ -1393,32 +891,27 @@ void MultiStructureModelSearchProblem::add_structure(
     throw ModelSearchConfigurationError(
         "structure is missing canonical parameter ids");
   }
-  if (!residual_key.empty() &&
-      !record.objective->get_output_port(residual_key)) {
-    throw ModelSearchConfigurationError("objective has no residual output '" +
-                                         residual_key + "'");
-  }
   impl_->structures[key] = record;
   impl_->structure_order.push_back(key);
 }
 
 std::vector<std::string>
-MultiStructureModelSearchProblem::get_structure_keys() const {
+FittingModelSearchProblem::get_structure_keys() const {
   return impl_->structure_order;
 }
 
-std::shared_ptr<GraphNode>
-MultiStructureModelSearchProblem::get_structure_objective(
+std::shared_ptr<FitObjective>
+FittingModelSearchProblem::get_structure_objective(
     const std::string& key) const {
   return impl_->structure(key).objective;
 }
 
-void MultiStructureModelSearchProblem::add_structure_node(
+void FittingModelSearchProblem::add_structure_node(
     const std::string& structure_key, std::shared_ptr<GraphNode> node) {
   if (!node) {
     throw ModelSearchConfigurationError("structure graph node is null");
   }
-  MultiStructureRecord& selected = impl_->structure(structure_key);
+  StructureRecord& selected = impl_->structure(structure_key);
   if (selected.objective.get() == node.get()) {
     throw ModelSearchConfigurationError(
         "the structure objective is retained automatically");
@@ -1432,26 +925,26 @@ void MultiStructureModelSearchProblem::add_structure_node(
   selected.graph_nodes.push_back(std::move(node));
 }
 
-void MultiStructureModelSearchProblem::set_minimizer_maxfev(int value) {
+void FittingModelSearchProblem::set_minimizer_maxfev(int value) {
   impl_->maxfev = value;
 }
 
-int MultiStructureModelSearchProblem::get_minimizer_maxfev() const {
+int FittingModelSearchProblem::get_minimizer_maxfev() const {
   return impl_->maxfev;
 }
 
-void MultiStructureModelSearchProblem::set_warm_start(bool value) {
+void FittingModelSearchProblem::set_warm_start(bool value) {
   impl_->warm_start = value;
 }
 
-bool MultiStructureModelSearchProblem::get_warm_start() const {
+bool FittingModelSearchProblem::get_warm_start() const {
   return impl_->warm_start;
 }
 
-void MultiStructureModelSearchProblem::add_structure_start(
+void FittingModelSearchProblem::add_structure_start(
     const std::string& structure_key,
     const std::vector<double>& initial_values) {
-  MultiStructureRecord& selected = impl_->structure(structure_key);
+  StructureRecord& selected = impl_->structure(structure_key);
   if (initial_values.size() != impl_->parameter_order.size()) {
     throw ModelSearchConfigurationError(
         "a declared start must cover every canonical parameter");
@@ -1465,7 +958,7 @@ void MultiStructureModelSearchProblem::add_structure_start(
   selected.extra_starts.push_back(initial_values);
 }
 
-void MultiStructureModelSearchProblem::set_initial_structure(
+void FittingModelSearchProblem::set_initial_structure(
     const std::string& key) {
   require_key(key, "initial structure");
   if (!impl_->structures.count(key)) {
@@ -1475,7 +968,7 @@ void MultiStructureModelSearchProblem::set_initial_structure(
   impl_->initial_structure = key;
 }
 
-void MultiStructureModelSearchProblem::add_action(
+void FittingModelSearchProblem::add_action(
     const std::string& parent_structure, const std::string& action_key,
     const std::string& result_structure, double prior, bool terminal) {
   require_key(action_key, "action");
@@ -1496,23 +989,23 @@ void MultiStructureModelSearchProblem::add_action(
                                       terminal));
 }
 
-void MultiStructureModelSearchProblem::set_residual_action_policy(
+void FittingModelSearchProblem::set_residual_action_policy(
     const std::string& network, const std::vector<std::string>& action_keys) {
   impl_->residual_action_policy.configure(network, action_keys);
 }
 
-void MultiStructureModelSearchProblem::clear_residual_action_policy() {
+void FittingModelSearchProblem::clear_residual_action_policy() {
   impl_->residual_action_policy.clear();
 }
 
-bool MultiStructureModelSearchProblem::get_has_residual_action_policy() const {
+bool FittingModelSearchProblem::get_has_residual_action_policy() const {
   return impl_->residual_action_policy.active();
 }
 
-void MultiStructureModelSearchProblem::set_structure_score_output(
+void FittingModelSearchProblem::set_structure_score_output(
     const std::string& structure_key, const std::string& output_key) {
   require_key(output_key, "score output");
-  MultiStructureRecord& selected = impl_->structure(structure_key);
+  StructureRecord& selected = impl_->structure(structure_key);
   if (!selected.objective->get_output_port(output_key)) {
     throw ModelSearchConfigurationError("objective has no score output '" +
                                          output_key + "'");
@@ -1520,15 +1013,15 @@ void MultiStructureModelSearchProblem::set_structure_score_output(
   selected.score_output = output_key;
 }
 
-void MultiStructureModelSearchProblem::clear_structure_score_output(
+void FittingModelSearchProblem::clear_structure_score_output(
     const std::string& structure_key) {
   impl_->structure(structure_key).score_output.clear();
 }
 
-void MultiStructureModelSearchProblem::set_structure_acceptable_output(
+void FittingModelSearchProblem::set_structure_acceptable_output(
     const std::string& structure_key, const std::string& output_key) {
   require_key(output_key, "acceptable output");
-  MultiStructureRecord& selected = impl_->structure(structure_key);
+  StructureRecord& selected = impl_->structure(structure_key);
   if (!selected.objective->get_output_port(output_key)) {
     throw ModelSearchConfigurationError(
         "objective has no acceptable output '" + output_key + "'");
@@ -1536,15 +1029,15 @@ void MultiStructureModelSearchProblem::set_structure_acceptable_output(
   selected.acceptable_output = output_key;
 }
 
-void MultiStructureModelSearchProblem::clear_structure_acceptable_output(
+void FittingModelSearchProblem::clear_structure_acceptable_output(
     const std::string& structure_key) {
   impl_->structure(structure_key).acceptable_output.clear();
 }
 
-void MultiStructureModelSearchProblem::set_structure_selection(
+void FittingModelSearchProblem::set_structure_selection(
     const std::string& structure_key, ModelSelectionCriterion criterion,
     double effective_sample_size, double complexity) {
-  MultiStructureRecord& selected = impl_->structure(structure_key);
+  StructureRecord& selected = impl_->structure(structure_key);
   if (!(effective_sample_size > 0.0)) {
     throw ModelSearchConfigurationError(
         "a selection criterion needs a positive number of observations");
@@ -1559,36 +1052,36 @@ void MultiStructureModelSearchProblem::set_structure_selection(
   selected.use_bic = true;
 }
 
-void MultiStructureModelSearchProblem::set_structure_acceptance(
+void FittingModelSearchProblem::set_structure_acceptance(
     const std::string& structure_key, double least_probability) {
   if (least_probability < 0.0 || least_probability > 1.0) {
     throw ModelSearchConfigurationError(
         "an acceptance level is a probability, between zero and one");
   }
-  MultiStructureRecord& selected = impl_->structure(structure_key);
+  StructureRecord& selected = impl_->structure(structure_key);
   selected.acceptance = least_probability;
   selected.has_acceptance = true;
 }
 
-void MultiStructureModelSearchProblem::clear_structure_selection(
+void FittingModelSearchProblem::clear_structure_selection(
     const std::string& structure_key) {
-  MultiStructureRecord& selected = impl_->structure(structure_key);
+  StructureRecord& selected = impl_->structure(structure_key);
   selected.effective_sample_size = 0.0;
   selected.complexity = 0.0;
   selected.use_bic = false;
 }
 
-double MultiStructureModelSearchProblem::get_last_chi2_p_value() const {
+double FittingModelSearchProblem::get_last_chi2_p_value() const {
   return impl_->last_chi2_p_value;
 }
 
-double MultiStructureModelSearchProblem::get_last_reduced_chi2() const {
+double FittingModelSearchProblem::get_last_reduced_chi2() const {
   return impl_->last_reduced_chi2;
 }
 
-ModelSearchState MultiStructureModelSearchProblem::get_initial_state() {
+ModelSearchState FittingModelSearchProblem::get_initial_state() {
   impl_->validate_registry();
-  const MultiStructureRecord& selected =
+  const StructureRecord& selected =
       impl_->structure(impl_->initial_structure);
   const FitSearchSnapshot previous = impl_->capture();
   const std::string previous_structure = impl_->active_structure;
@@ -1614,17 +1107,13 @@ ModelSearchState MultiStructureModelSearchProblem::get_initial_state() {
         if (!port->get_fixed()) free_ports.push_back(port);
       }
       if (!free_ports.empty() && !impl_->cancelled.load()) {
-        if (selected.residual_key.empty()) {
-          throw ModelSearchConfigurationError(
-              "initial structure with free parameters requires residuals");
-        }
         for (std::size_t p = 0; p < free_ports.size(); ++p) {
           impl_->keep_inside(free_ports[p]);
         }
         FitMinimizer minimizer;
         minimizer.set_parameter_ports(free_ports);
         if (impl_->maxfev > 0) minimizer.set_maxfev(impl_->maxfev);
-        minimizer.set_objective(selected.objective, selected.residual_key);
+        minimizer.set_objective(selected.objective);
         impl_->last_status = minimizer.run();
         if (impl_->last_status < 1 || impl_->last_status > 4) {
           if (attempt + 1 < starts.size()) continue;
@@ -1670,7 +1159,7 @@ ModelSearchState MultiStructureModelSearchProblem::get_initial_state() {
   }
 }
 
-ModelSearchActions MultiStructureModelSearchProblem::get_actions(
+ModelSearchActions FittingModelSearchProblem::get_actions(
     const ModelSearchState& state) {
   const std::map<std::string, ModelSearchActions>::const_iterator found =
       impl_->actions.find(state.get_structure_key());
@@ -1683,7 +1172,7 @@ ModelSearchActions MultiStructureModelSearchProblem::get_actions(
                                              snapshot->second.residual);
 }
 
-ModelSearchState MultiStructureModelSearchProblem::evaluate(
+ModelSearchState FittingModelSearchProblem::evaluate(
     const ModelSearchState& parent, const ModelSearchAction& action) {
   impl_->validate_registry();
   impl_->last_status = 0;
@@ -1702,9 +1191,9 @@ ModelSearchState MultiStructureModelSearchProblem::evaluate(
         "parent state structure does not match its cached snapshot");
   }
   const std::string target_key = action.get_predicted_state_key();
-  const MultiStructureRecord& source =
+  const StructureRecord& source =
       impl_->structure(parent.get_structure_key());
-  const MultiStructureRecord& target = impl_->structure(target_key);
+  const StructureRecord& target = impl_->structure(target_key);
   try {
     // Every declared start is tried and the best kept. A topology's score is
     // meant to be the best fit it admits, so one seed that happens to land in
@@ -1735,17 +1224,13 @@ ModelSearchState MultiStructureModelSearchProblem::evaluate(
       }
       int status = 1;
       if (!free_ports.empty()) {
-        if (target.residual_key.empty()) {
-          throw ModelSearchConfigurationError(
-              "a structure with free parameters requires a residual output");
-        }
         for (std::size_t p = 0; p < free_ports.size(); ++p) {
           impl_->keep_inside(free_ports[p]);
         }
         FitMinimizer minimizer;
         minimizer.set_parameter_ports(free_ports);
         if (impl_->maxfev > 0) minimizer.set_maxfev(impl_->maxfev);
-        minimizer.set_objective(target.objective, target.residual_key);
+        minimizer.set_objective(target.objective);
         IMP::Pointer<FitSearchCancelObserver> observer(
             new FitSearchCancelObserver(&impl_->cancelled));
         minimizer.set_observer(observer.get());
@@ -1808,15 +1293,15 @@ ModelSearchState MultiStructureModelSearchProblem::evaluate(
   }
 }
 
-void MultiStructureModelSearchProblem::request_cancel() {
+void FittingModelSearchProblem::request_cancel() {
   impl_->cancelled.store(true);
 }
 
-void MultiStructureModelSearchProblem::clear_cancel() {
+void FittingModelSearchProblem::clear_cancel() {
   impl_->cancelled.store(false);
 }
 
-void MultiStructureModelSearchProblem::activate_state(
+void FittingModelSearchProblem::activate_state(
     const ModelSearchState& state) {
   const std::map<std::string, std::string>::const_iterator found =
       impl_->snapshot_structures.find(state.get_key());
@@ -1828,12 +1313,12 @@ void MultiStructureModelSearchProblem::activate_state(
   restore_state(state.get_key());
 }
 
-bool MultiStructureModelSearchProblem::has_cached_state(
+bool FittingModelSearchProblem::has_cached_state(
     const std::string& state_key) const {
   return impl_->snapshots.count(state_key) != 0;
 }
 
-std::vector<double> MultiStructureModelSearchProblem::get_cached_values(
+std::vector<double> FittingModelSearchProblem::get_cached_values(
     const std::string& state_key) const {
   const std::map<std::string, FitSearchSnapshot>::const_iterator found =
       impl_->snapshots.find(state_key);
@@ -1841,7 +1326,7 @@ std::vector<double> MultiStructureModelSearchProblem::get_cached_values(
   return found->second.values;
 }
 
-std::vector<int> MultiStructureModelSearchProblem::get_cached_fixed(
+std::vector<int> FittingModelSearchProblem::get_cached_fixed(
     const std::string& state_key) const {
   const std::map<std::string, FitSearchSnapshot>::const_iterator found =
       impl_->snapshots.find(state_key);
@@ -1849,7 +1334,7 @@ std::vector<int> MultiStructureModelSearchProblem::get_cached_fixed(
   return found->second.fixed;
 }
 
-void MultiStructureModelSearchProblem::restore_state(
+void FittingModelSearchProblem::restore_state(
     const std::string& state_key) {
   const std::map<std::string, FitSearchSnapshot>::const_iterator found =
       impl_->snapshots.find(state_key);
@@ -1863,16 +1348,16 @@ void MultiStructureModelSearchProblem::restore_state(
   impl_->restore(found->second, structure->second);
 }
 
-void MultiStructureModelSearchProblem::activate_structure(
+void FittingModelSearchProblem::activate_structure(
     const std::string& key) {
-  const MultiStructureRecord& selected = impl_->structure(key);
+  const StructureRecord& selected = impl_->structure(key);
   impl_->apply_initial(selected, selected.initial_values);
   impl_->select_and_update(key);
 }
 
-void MultiStructureModelSearchProblem::select_structure(
+void FittingModelSearchProblem::select_structure(
     const std::string& key) {
-  const MultiStructureRecord& selected = impl_->structure(key);
+  const StructureRecord& selected = impl_->structure(key);
   for (std::size_t i = 0; i < impl_->parameter_order.size(); ++i) {
     const std::shared_ptr<GraphPort>& port =
         impl_->parameters.find(impl_->parameter_order[i])->second;
@@ -1882,9 +1367,9 @@ void MultiStructureModelSearchProblem::select_structure(
 }
 
 std::vector<std::string>
-MultiStructureModelSearchProblem::get_structure_parameter_ids(
+FittingModelSearchProblem::get_structure_parameter_ids(
     const std::string& key) const {
-  const MultiStructureRecord& selected = impl_->structure(key);
+  const StructureRecord& selected = impl_->structure(key);
   std::vector<std::string> ids;
   for (std::size_t i = 0; i < impl_->parameter_order.size(); ++i) {
     if (impl_->uses(selected, i)) ids.push_back(impl_->parameter_order[i]);
@@ -1892,9 +1377,9 @@ MultiStructureModelSearchProblem::get_structure_parameter_ids(
   return ids;
 }
 
-void MultiStructureModelSearchProblem::set_structure_parameter_uses(
+void FittingModelSearchProblem::set_structure_parameter_uses(
     const std::string& key, const std::vector<std::string>& canonical_ids) {
-  MultiStructureRecord& selected = impl_->structure(key);
+  StructureRecord& selected = impl_->structure(key);
   const std::set<std::string> wanted(canonical_ids.begin(),
                                      canonical_ids.end());
   for (std::set<std::string>::const_iterator it = wanted.begin();
@@ -1917,7 +1402,7 @@ void MultiStructureModelSearchProblem::set_structure_parameter_uses(
   }
 }
 
-void MultiStructureModelSearchProblem::set_parameter_locked(
+void FittingModelSearchProblem::set_parameter_locked(
     const std::string& canonical_id, bool locked) {
   if (!impl_->parameters.count(canonical_id)) {
     throw ModelSearchConfigurationError("unknown canonical parameter '" +
@@ -1939,7 +1424,7 @@ void MultiStructureModelSearchProblem::set_parameter_locked(
   }
 }
 
-void MultiStructureModelSearchProblem::set_parameter_released(
+void FittingModelSearchProblem::set_parameter_released(
     const std::string& canonical_id, bool released) {
   if (!impl_->parameters.count(canonical_id)) {
     throw ModelSearchConfigurationError("unknown canonical parameter '" +
@@ -1960,7 +1445,7 @@ void MultiStructureModelSearchProblem::set_parameter_released(
   }
 }
 
-bool MultiStructureModelSearchProblem::get_parameter_released(
+bool FittingModelSearchProblem::get_parameter_released(
     const std::string& canonical_id) const {
   if (!impl_->parameters.count(canonical_id)) {
     throw ModelSearchConfigurationError("unknown canonical parameter '" +
@@ -1969,7 +1454,7 @@ bool MultiStructureModelSearchProblem::get_parameter_released(
   return impl_->released.count(canonical_id) != 0;
 }
 
-bool MultiStructureModelSearchProblem::get_parameter_locked(
+bool FittingModelSearchProblem::get_parameter_locked(
     const std::string& canonical_id) const {
   if (!impl_->parameters.count(canonical_id)) {
     throw ModelSearchConfigurationError("unknown canonical parameter '" +
@@ -1978,14 +1463,14 @@ bool MultiStructureModelSearchProblem::get_parameter_locked(
   return impl_->locked.count(canonical_id) != 0;
 }
 
-int MultiStructureModelSearchProblem::fit_active_structure() {
+int FittingModelSearchProblem::fit_active_structure() {
   impl_->validate_registry();
   if (impl_->active_structure.empty()) {
     throw ModelSearchConfigurationError(
         "no topology is selected; select one before fitting");
   }
   const std::string key = impl_->active_structure;
-  MultiStructureRecord& selected = impl_->structure(key);
+  StructureRecord& selected = impl_->structure(key);
   select_structure(key);
   std::vector<std::shared_ptr<GraphPort> > free_ports;
   for (std::size_t i = 0; i < impl_->parameter_order.size(); ++i) {
@@ -1996,17 +1481,13 @@ int MultiStructureModelSearchProblem::fit_active_structure() {
   impl_->last_failure.clear();
   impl_->last_status = 1;
   if (!free_ports.empty()) {
-    if (selected.residual_key.empty()) {
-      throw ModelSearchConfigurationError(
-          "topology '" + key + "' has free parameters but no residual output");
-    }
     for (std::size_t p = 0; p < free_ports.size(); ++p) {
       impl_->keep_inside(free_ports[p]);
     }
     FitMinimizer minimizer;
     minimizer.set_parameter_ports(free_ports);
     if (impl_->maxfev > 0) minimizer.set_maxfev(impl_->maxfev);
-    minimizer.set_objective(selected.objective, selected.residual_key);
+    minimizer.set_objective(selected.objective);
     impl_->last_status = minimizer.run();
   }
   selected.objective->update();
@@ -2016,10 +1497,10 @@ int MultiStructureModelSearchProblem::fit_active_structure() {
   return impl_->last_status;
 }
 
-void MultiStructureModelSearchProblem::set_structure_curve(
+void FittingModelSearchProblem::set_structure_curve(
     const std::string& structure_key, const std::string& dataset_name,
     const std::string& node_name) {
-  MultiStructureRecord& selected = impl_->structure(structure_key);
+  StructureRecord& selected = impl_->structure(structure_key);
   if (!selected.curves.count(dataset_name)) {
     selected.curve_order.push_back(dataset_name);
   }
@@ -2027,14 +1508,14 @@ void MultiStructureModelSearchProblem::set_structure_curve(
 }
 
 std::vector<std::string>
-MultiStructureModelSearchProblem::get_structure_curve_datasets(
+FittingModelSearchProblem::get_structure_curve_datasets(
     const std::string& structure_key) const {
   return impl_->structure(structure_key).curve_order;
 }
 
-std::string MultiStructureModelSearchProblem::get_structure_curve_node(
+std::string FittingModelSearchProblem::get_structure_curve_node(
     const std::string& structure_key, const std::string& dataset_name) const {
-  const MultiStructureRecord& selected = impl_->structure(structure_key);
+  const StructureRecord& selected = impl_->structure(structure_key);
   const std::map<std::string, std::string>::const_iterator found =
       selected.curves.find(dataset_name);
   if (found == selected.curves.end()) {
@@ -2045,9 +1526,9 @@ std::string MultiStructureModelSearchProblem::get_structure_curve_node(
   return found->second;
 }
 
-std::vector<double> MultiStructureModelSearchProblem::get_structure_output(
+std::vector<double> FittingModelSearchProblem::get_structure_output(
     const std::string& structure_key, const std::string& node_name) {
-  const MultiStructureRecord& selected = impl_->structure(structure_key);
+  const StructureRecord& selected = impl_->structure(structure_key);
   impl_->select_and_update(structure_key);
   std::shared_ptr<GraphNode> found;
   if (selected.objective && selected.objective->get_name() == node_name) {
@@ -2074,7 +1555,7 @@ std::vector<double> MultiStructureModelSearchProblem::get_structure_output(
   return out->get_values_ref();
 }
 
-void MultiStructureModelSearchProblem::publish_output(
+void FittingModelSearchProblem::publish_output(
     const std::string& name, const std::string& node_name,
     const std::string& port_name) {
   if (name.empty() || node_name.empty() || port_name.empty()) {
@@ -2099,7 +1580,7 @@ void MultiStructureModelSearchProblem::publish_output(
   impl_->relink_outputs();
 }
 
-std::shared_ptr<GraphPort> MultiStructureModelSearchProblem::get_output_port(
+std::shared_ptr<GraphPort> FittingModelSearchProblem::get_output_port(
     const std::string& name) const {
   std::map<std::string, PublishedOutput>::const_iterator found =
       impl_->outputs.find(name);
@@ -2117,7 +1598,7 @@ std::shared_ptr<GraphPort> MultiStructureModelSearchProblem::get_output_port(
   return found->second.relay->get_output_port("out");
 }
 
-std::vector<double> MultiStructureModelSearchProblem::get_output(
+std::vector<double> FittingModelSearchProblem::get_output(
     const std::string& name) {
   const std::shared_ptr<GraphPort> port = get_output_port(name);
   const std::shared_ptr<GraphNode> relay = port->get_node();
@@ -2125,7 +1606,7 @@ std::vector<double> MultiStructureModelSearchProblem::get_output(
   return port->get_values_ref();
 }
 
-std::vector<std::string> MultiStructureModelSearchProblem::get_output_names()
+std::vector<std::string> FittingModelSearchProblem::get_output_names()
     const {
   std::vector<std::string> names;
   for (std::map<std::string, PublishedOutput>::const_iterator it =
@@ -2136,8 +1617,8 @@ std::vector<std::string> MultiStructureModelSearchProblem::get_output_names()
   return names;
 }
 
-void MultiStructureModelSearchProblem::adopt_output_ports(
-    const MultiStructureModelSearchProblem& previous) {
+void FittingModelSearchProblem::adopt_output_ports(
+    const FittingModelSearchProblem& previous) {
   for (std::map<std::string, PublishedOutput>::const_iterator it =
            previous.impl_->outputs.begin();
        it != previous.impl_->outputs.end(); ++it) {
@@ -2159,10 +1640,10 @@ void MultiStructureModelSearchProblem::adopt_output_ports(
   impl_->relink_outputs();
 }
 
-std::vector<double> MultiStructureModelSearchProblem::get_structure_port(
+std::vector<double> FittingModelSearchProblem::get_structure_port(
     const std::string& structure_key, const std::string& node_name,
     const std::string& port_name) {
-  const MultiStructureRecord& selected = impl_->structure(structure_key);
+  const StructureRecord& selected = impl_->structure(structure_key);
   impl_->select_and_update(structure_key);
   std::shared_ptr<GraphNode> found;
   if (selected.objective && selected.objective->get_name() == node_name) {
@@ -2186,39 +1667,36 @@ std::vector<double> MultiStructureModelSearchProblem::get_structure_port(
   return out->get_values_ref();
 }
 
-const std::string& MultiStructureModelSearchProblem::get_active_structure()
+const std::string& FittingModelSearchProblem::get_active_structure()
     const {
   return impl_->active_structure;
 }
 
-const std::string& MultiStructureModelSearchProblem::get_initial_structure()
+const std::string& FittingModelSearchProblem::get_initial_structure()
     const {
   return impl_->initial_structure;
 }
 
-std::shared_ptr<GraphNode>
-MultiStructureModelSearchProblem::get_active_objective() const {
-  if (impl_->active_structure.empty()) return std::shared_ptr<GraphNode>();
+std::shared_ptr<FitObjective>
+FittingModelSearchProblem::get_active_objective() const {
+  if (impl_->active_structure.empty()) return std::shared_ptr<FitObjective>();
   return impl_->structure(impl_->active_structure).objective;
 }
 
-std::vector<double> MultiStructureModelSearchProblem::get_active_residual() {
+std::vector<double> FittingModelSearchProblem::get_active_residual() {
   if (impl_->active_structure.empty()) {
     throw ModelSearchConfigurationError("no model structure is active");
   }
-  const MultiStructureRecord& selected = impl_->structure(impl_->active_structure);
-  if (selected.residual_key.empty()) {
-    throw ModelSearchConfigurationError("the active structure declares no residual output");
-  }
+  const StructureRecord& selected = impl_->structure(impl_->active_structure);
   selected.objective->update();
   return impl_->residual_of(selected);
 }
 
-int MultiStructureModelSearchProblem::get_last_fit_status() const {
+int FittingModelSearchProblem::get_last_fit_status() const {
   return impl_->last_status;
 }
 
-const std::string& MultiStructureModelSearchProblem::get_last_failure() const {
+const std::string& FittingModelSearchProblem::get_last_failure() const {
   return impl_->last_failure;
 }
 

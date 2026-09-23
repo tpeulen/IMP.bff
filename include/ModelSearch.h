@@ -100,6 +100,12 @@ class IMPBFFEXPORT ModelSearchAction {
 };
 IMP_VALUES(ModelSearchAction, ModelSearchActions);
 
+//! Signed means of a weighted-residual trace over `width` equal buckets.
+/*! The input a residual action policy sees. Non-finite points are skipped and
+    an empty bucket reads 0, so a trace shorter than `width` still maps. */
+IMPBFFEXPORT std::vector<double> get_residual_profile(
+    const std::vector<double>& residual, int width);
+
 //! Model-specific topology and evaluation, implemented entirely in C++.
 /*!
   `evaluate()` may return a key different from the action's predicted key.
@@ -107,12 +113,6 @@ IMP_VALUES(ModelSearchAction, ModelSearchActions);
   onto a canonical ancestor.  The tree records its reward, then makes that
   node a dead end so the collapsed structure is not searched repeatedly.
 */
-//! Signed means of a weighted-residual trace over `width` equal buckets.
-/*! The input a residual action policy sees. Non-finite points are skipped and
-    an empty bucket reads 0, so a trace shorter than `width` still maps. */
-IMPBFFEXPORT std::vector<double> get_residual_profile(
-    const std::vector<double>& residual, int width);
-
 class IMPBFFEXPORT ModelSearchProblem {
  public:
   virtual ~ModelSearchProblem();
@@ -159,106 +159,7 @@ class IMPBFFEXPORT TabularModelSearchProblem : public ModelSearchProblem {
 
 class GraphNode;
 class GraphPort;
-
-//! A live, callback-free adapter from declarative structures to FitMinimizer.
-/*!
-  Structures name the parameter groups that are free.  Transitions restore
-  their parent's cached snapshot, apply the target fix/free mask and any seed
-  for a newly enabled group, then run #FitMinimizer on the resulting free
-  owner ports.  Every successful state caches its own values and fixed mask.
-
-  The graph is shared and is therefore evaluated sequentially.  There is no
-  graph clone and no hidden parallelism: each transition is a transaction over
-  one graph, and the next transition begins by restoring its own parent.  On
-  cancellation, non-convergence or an exception the parent snapshot is
-  restored and the transition collapses to that parent.
-
-  Ports must be scalar, unlinked canonical owners.  A caller with linked ports
-  supplies each link target once; accepting followers as independent state
-  would make snapshot restoration order-dependent.
-*/
-class IMPBFFEXPORT FittingModelSearchProblem : public ModelSearchProblem {
- public:
-  FittingModelSearchProblem();
-  FittingModelSearchProblem(std::shared_ptr<GraphNode> objective,
-                           const std::string& residual_key = "residuals");
-  ~FittingModelSearchProblem();
-
-  void set_objective(std::shared_ptr<GraphNode> objective,
-                     const std::string& residual_key = "residuals");
-  std::shared_ptr<GraphNode> get_objective() const;
-
-  //! Declare one independently fixable group and optional enable-time seeds.
-  void add_parameter_group(
-      const std::string& key,
-      const std::vector<std::shared_ptr<GraphPort> >& ports,
-      const std::vector<double>& enable_values = std::vector<double>());
-  std::vector<std::string> get_parameter_group_keys() const;
-
-  //! Declare a structure by the groups that are free in it.
-  void add_structure(const std::string& key,
-                     const std::vector<std::string>& free_groups);
-  void set_initial_structure(const std::string& key);
-  void add_action(const std::string& parent_structure,
-                  const std::string& action_key,
-                  const std::string& result_structure, double prior = 1.0,
-                  bool terminal = false);
-
-  //! Replace static priors with a policy inferred from fitted residual shape.
-  /*! The network receives #get_residual_profile of the weighted residual
-      recorded when the expanded state was scored, so expansion never refits
-      or re-evaluates the graph. Declared priors are normalised over the
-      actions available at that state; the network's softmax, restricted to
-      the available actions named in `action_keys`, reallocates the mass
-      those actions jointly hold, and every other action keeps its normalised
-      declared share. A state scored without a residual keeps its declared
-      priors. This keeps the
-      fitting graph, residual and inference in C++ and makes a policy a hint
-      to PUCT, never a second model-selection score.
-
-      The network must have one output for every action key. Its input width
-      chooses the residual profile resolution, so policies trained at a
-      different resolution remain explicit rather than silently resampled by
-      Python. Passing an empty document disables the policy. */
-  void set_residual_action_policy(const std::string& network,
-                                  const std::vector<std::string>& action_keys);
-  void clear_residual_action_policy();
-  bool get_has_residual_action_policy() const;
-
-  //! Use this scalar objective output as reward (higher is better).
-  void set_score_output(const std::string& key);
-  void clear_score_output();
-  const std::string& get_score_output() const;
-  //! Otherwise reward is -chi2/2 - this penalty times the free-port count.
-  void set_complexity_penalty(double value);
-  double get_complexity_penalty() const;
-  //! Optional scalar/bool output defining result.acceptable.
-  void set_acceptable_output(const std::string& key);
-  void clear_acceptable_output();
-
-  ModelSearchState get_initial_state() override;
-  ModelSearchActions get_actions(
-      const ModelSearchState& state) override;
-  ModelSearchState evaluate(const ModelSearchState& parent,
-                               const ModelSearchAction& action) override;
-  void request_cancel() override;
-  void clear_cancel() override;
-  void activate_state(const ModelSearchState& state) override;
-
-  //! Snapshot inspection and explicit winner application.
-  bool has_cached_state(const std::string& state_key) const;
-  std::vector<double> get_cached_values(const std::string& state_key) const;
-  std::vector<int> get_cached_fixed(const std::string& state_key) const;
-  void restore_state(const std::string& state_key);
-  int get_last_fit_status() const;
-  const std::string& get_last_failure() const;
-
- private:
-  struct Impl;
-  std::unique_ptr<Impl> impl_;
-  FittingModelSearchProblem(const FittingModelSearchProblem&) = delete;
-  FittingModelSearchProblem& operator=(const FittingModelSearchProblem&) = delete;
-};
+class FitObjective;
 
 //! A callback-free fitting search whose structures have different graphs.
 /*!
@@ -280,11 +181,11 @@ class IMPBFFEXPORT FittingModelSearchProblem : public ModelSearchProblem {
   score output overrides both.  A #FitJointChiSquared is simply another
   objective graph, so single and joint fits use the same path.
 */
-class IMPBFFEXPORT MultiStructureModelSearchProblem
+class IMPBFFEXPORT FittingModelSearchProblem
     : public ModelSearchProblem {
  public:
-  MultiStructureModelSearchProblem();
-  ~MultiStructureModelSearchProblem();
+  FittingModelSearchProblem();
+  ~FittingModelSearchProblem();
 
   //! Register one stable canonical id and its scalar, unlinked owner port.
   void add_parameter(const std::string& canonical_id,
@@ -301,12 +202,11 @@ class IMPBFFEXPORT MultiStructureModelSearchProblem
     owner already registered for its id.
   */
   void add_structure(
-      const std::string& key, std::shared_ptr<GraphNode> objective,
+      const std::string& key, std::shared_ptr<FitObjective> objective,
       const std::vector<std::string>& parameter_ids,
       const std::vector<std::shared_ptr<GraphPort> >& parameter_ports,
       const std::vector<double>& initial_values,
-      const std::vector<int>& fixed_mask,
-      const std::string& residual_key = "residuals");
+      const std::vector<int>& fixed_mask);
   //! Declare another starting point for a structure, tried alongside its own.
   /*!
       \param[in] structure_key the structure this start belongs to
@@ -326,7 +226,7 @@ class IMPBFFEXPORT MultiStructureModelSearchProblem
   void add_structure_start(const std::string& structure_key,
                            const std::vector<double>& initial_values);
   std::vector<std::string> get_structure_keys() const;
-  std::shared_ptr<GraphNode> get_structure_objective(
+  std::shared_ptr<FitObjective> get_structure_objective(
       const std::string& key) const;
   //! Retain one upstream node that belongs to a structure's complete graph.
   /*!
@@ -508,7 +408,7 @@ class IMPBFFEXPORT MultiStructureModelSearchProblem
   std::vector<std::string> get_output_names() const;
   //! Keep the published output ports of `previous`, which this model replaces.
   /*! Whatever follows them keeps following, now into this model. */
-  void adopt_output_ports(const MultiStructureModelSearchProblem& previous);
+  void adopt_output_ports(const FittingModelSearchProblem& previous);
 
   //! Make a topology current without touching any value.
   /*! What an application does when a user picks a topology: the registry
@@ -559,7 +459,7 @@ class IMPBFFEXPORT MultiStructureModelSearchProblem
   const std::string& get_active_structure() const;
   //! The topology a search starts from, and a new model stands at.
   const std::string& get_initial_structure() const;
-  std::shared_ptr<GraphNode> get_active_objective() const;
+  std::shared_ptr<FitObjective> get_active_objective() const;
   //! The active topology's weighted residual, evaluated now.
   /*! Read through the residual output the topology declared, so a caller
       never has to know that port's name. \throws ModelSearchConfigurationError */
@@ -570,10 +470,10 @@ class IMPBFFEXPORT MultiStructureModelSearchProblem
  private:
   struct Impl;
   std::unique_ptr<Impl> impl_;
-  MultiStructureModelSearchProblem(
-      const MultiStructureModelSearchProblem&) = delete;
-  MultiStructureModelSearchProblem& operator=(
-      const MultiStructureModelSearchProblem&) = delete;
+  FittingModelSearchProblem(
+      const FittingModelSearchProblem&) = delete;
+  FittingModelSearchProblem& operator=(
+      const FittingModelSearchProblem&) = delete;
 };
 
 //! Search controls, independent of any fitting model or data family.

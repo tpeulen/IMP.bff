@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 
+#include <IMP/bff/FitObjective.h>
 #include <IMP/bff/GraphNode.h>
 #include <IMP/bff/GraphPort.h>
 
@@ -51,7 +52,7 @@ enum FitNoiseModel {
  *
  * \see MCMCSampler, GraphNode
  */
-class IMPBFFEXPORT FitChiSquared : public GraphNode {
+class IMPBFFEXPORT FitChiSquared : public FitObjective {
  public:
   explicit FitChiSquared(const std::string& name = "chi2");
 
@@ -114,30 +115,6 @@ class IMPBFFEXPORT FitChiSquared : public GraphNode {
   //! The key of the input port carrying the model curve.
   void set_model_port_key(const std::string& key) { model_key_ = key; }
   const std::string& get_model_port_key() const { return model_key_; }
-
-  //! The key of the output port the residual vector is written to.
-  /** Written by `evaluate()` **only when the node has such a port**, so
-      nothing changes for a graph that only wants chi-square. It exists
-      because `FitMinimizer` needs the residuals rather than their sum, and
-      needs them from *any* objective node -- a `FitChiSquared`, or a Python
-      `GraphNode` director wrapping a model this library cannot represent. A
-      port is the one thing both can present. */
-  void set_residuals_port_key(const std::string& key) { residuals_key_ = key; }
-  const std::string& get_residuals_port_key() const { return residuals_key_; }
-
-  //! Weighted residuals from the last evaluation.
-  const std::vector<double>& get_weighted_residuals() const { return wres_; }
-
-  //! Chi-square from the last evaluation.
-  double get_chi2() const { return chi2_; }
-
-  //! Reduced chi-square, ``chi2 / (n_points - n_free - 1)``.
-  double get_chi2r(int n_free) const;
-
-  //! Number of residuals the last evaluation produced.
-  unsigned int get_number_of_residuals() const {
-    return static_cast<unsigned int>(wres_.size());
-  }
 
   //! Compute the residuals of an explicit model curve without a graph.
   /** The same arithmetic `evaluate()` runs, for callers that hold a model
@@ -206,10 +183,7 @@ class IMPBFFEXPORT FitChiSquared : public GraphNode {
   std::vector<double> data_y_;
   std::vector<double> data_ey_;
   std::vector<double> mask_;
-  std::vector<double> wres_;
   std::string model_key_ = "model";
-  std::string residuals_key_ = "residuals";
-  double chi2_ = 0.0;
   int xmin_ = 0;
   int xmax_ = -1;  //!< -1 means "to the end of the data"
   FitNoiseModel noise_model_ = FIT_NOISE_NEYMAN;

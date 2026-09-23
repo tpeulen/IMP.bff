@@ -8,13 +8,21 @@ so these tests are mostly about the refusals -- a description that misspells
 a setting or borrows one from another node type has to fail where it is read.
 """
 
+import json
+
 import pytest
 
 import IMP.bff as bff
 
 
 def _types():
-    return list(bff.GraphNodeRegistry.get_registered_types())
+    """The types bff ships; other tests register deliberately broken ones."""
+    graph_nodes = json.loads(bff.registry_category_json("graph_node"))
+    return [
+        name
+        for name in bff.GraphNodeRegistry.get_registered_types()
+        if graph_nodes.get(name, {}).get("provider") != "runtime"
+    ]
 
 
 def test_every_registered_type_reports_the_name_it_is_registered_under():

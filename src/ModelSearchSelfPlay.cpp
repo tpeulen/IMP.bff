@@ -39,7 +39,7 @@ const int kPolicyProfile = 32;
 
 bool is_log_scaled(double lower, double upper, double reference);
 
-void sample_ports(const std::shared_ptr<MultiStructureModelSearchProblem>& problem,
+void sample_ports(const std::shared_ptr<FittingModelSearchProblem>& problem,
                   double spread, std::mt19937& rng) {
   const std::vector<std::string> ids = problem->get_parameter_ids();
   std::uniform_real_distribution<double> uniform(-1.0, 1.0);
@@ -221,7 +221,7 @@ void ModelSearchSelfPlay::generate(int episodes, unsigned int seed) {
   if (impl_->structure.empty()) {
     throw std::domain_error("self play: no structure to play");
   }
-  std::shared_ptr<MultiStructureModelSearchProblem> problem = impl_->spec.build();
+  std::shared_ptr<FittingModelSearchProblem> problem = impl_->spec.build();
   const std::vector<std::string> datasets =
       problem->get_structure_curve_datasets(impl_->structure);
   if (datasets.empty()) {
@@ -392,7 +392,7 @@ std::vector<double> ModelSearchSelfPlay::propose(
   if (impl_->target_ids.empty()) {
     throw std::domain_error("self play: generate episodes before proposing");
   }
-  std::shared_ptr<MultiStructureModelSearchProblem> problem =
+  std::shared_ptr<FittingModelSearchProblem> problem =
       impl_->spec.build();
   problem->activate_structure(impl_->structure);
   const std::vector<std::string> datasets =
@@ -425,7 +425,7 @@ std::vector<double> ModelSearchSelfPlay::propose(
 
 void ModelSearchSelfPlay::generate_policy(int episodes, unsigned int seed) {
   if (episodes <= 0) throw std::domain_error("self play: no policy episodes to play");
-  std::shared_ptr<MultiStructureModelSearchProblem> template_problem =
+  std::shared_ptr<FittingModelSearchProblem> template_problem =
       impl_->spec.build();
   struct Transition {
     std::string source, action, target;
@@ -489,7 +489,7 @@ void ModelSearchSelfPlay::generate_policy(int episodes, unsigned int seed) {
         0, static_cast<int>(sources.size()) - 1);
     const Transition& move =
         transitions[sources[static_cast<std::size_t>(pick_source(rng))]];
-    std::shared_ptr<MultiStructureModelSearchProblem> generator = impl_->spec.build();
+    std::shared_ptr<FittingModelSearchProblem> generator = impl_->spec.build();
     generator->activate_structure(move.target);
     sample_ports(generator, impl_->spread, rng);
     ModelSearchSpec simulated(impl_->spec);
@@ -501,7 +501,7 @@ void ModelSearchSelfPlay::generate_policy(int episodes, unsigned int seed) {
       data.replace_values(values);
       simulated.set_dataset(move.datasets[d], data);
     }
-    std::shared_ptr<MultiStructureModelSearchProblem> fitted = simulated.build();
+    std::shared_ptr<FittingModelSearchProblem> fitted = simulated.build();
     fitted->activate_structure(move.source);
     const int status = fitted->fit_active_structure();
     if (status < 1 || status > 4) continue;

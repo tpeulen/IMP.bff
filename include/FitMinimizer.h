@@ -190,29 +190,18 @@ class IMPBFFEXPORT FitMinimizer {
 
   // ------------------------------------------------------------- objective
 
-  //! The node graph producing the residual vector.
+  //! The objective whose residuals are minimised.
   /*!
-      \param[in] node the node to evaluate; `FitChiSquared` is the intended
-                 one, but any node works -- including a Python `GraphNode`
-                 director wrapping a model bff cannot represent
-      \param[in] residual_key the node's output port carrying the residual
-                 vector; empty keeps the current key (default "residuals")
+      \param[in] objective a `FitChiSquared`, a `FitJointChiSquared`, or a
+                 Python `FitObjective` subclass wrapping a model bff cannot
+                 represent
 
       The optimiser writes the trial vector into the parameter ports, calls
-      `GraphNode::update()`, and reads the residuals off that port. Nothing else
+      `GraphNode::update()`, and reads the objective's residuals. Nothing else
       crosses.
   */
-  void set_objective(std::shared_ptr<GraphNode> node,
-                     const std::string& residual_key = "");
-  std::shared_ptr<GraphNode> get_objective() const;
-  void set_residual_port_key(const std::string& key);
-  const std::string& get_residual_port_key() const;
-
-  //! A C++ residual function instead of a graph. Not SWIG-wrapped.
-  /*! The module carries no `std_function.i`, and a Python callable is a
-      `GraphNode` director anyway -- the same division `MCMCSampler` makes. */
-  void set_residual_function(
-      std::function<std::vector<double>(const std::vector<double>&)> f);
+  void set_objective(std::shared_ptr<FitObjective> objective);
+  std::shared_ptr<FitObjective> get_objective() const;
   bool has_objective() const;
 
   //! Where progress is reported and cancellation is asked for.
@@ -475,10 +464,7 @@ class IMPBFFEXPORT FitMinimizer {
   std::string algorithm_ = "leastsq";
 
   std::vector<std::shared_ptr<GraphPort> > parameters_;
-  std::shared_ptr<GraphNode> objective_node_;
-  std::string residual_key_ = "residuals";
-  std::function<std::vector<double>(const std::vector<double>&)>
-      residual_function_;
+  std::shared_ptr<FitObjective> objective_;
   //! Owned, because it outlives the call that set it: a Python observer
   //! held only by a raw pointer would be collected between iterations.
   IMP::Pointer<FitMinimizerObserver> observer_;

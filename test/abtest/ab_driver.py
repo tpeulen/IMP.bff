@@ -5,13 +5,16 @@ That Python is therefore the semantic truth, and bff's C++ port has to match it.
 This module drives both runtimes through identical operation sequences and
 compares every observable after every step.
 
-Two documented deviations are mapped here rather than silently skipped:
+Three documented deviations are mapped here rather than silently skipped:
 
 * **Unbounded bounds.** chinet reports ``(None, None)`` when a port is not
   bounded; bff stores the bounds regardless and reports ``(nan, nan)``. Both
   are normalised to ``(None, None)`` when ``is_bounded`` is false.
 * **Cycle errors.** chinet raises ``LinkCycleError``, bff raises the SWIG
   ``ValueError`` subclass. Both are recorded as ``"cycle-rejected"``.
+* **Writes to a fixed port.** chinet ignores them; in bff ``fixed`` only holds
+  a port from optimisers, so the write lands. Every write lifts the flag for
+  the duration of the write, which is what bff does implicitly.
 
 Anything else that differs is a bug in bff and must be fixed there.
 """
@@ -74,7 +77,12 @@ class PortAdapter:
 
     # -- writes ---------------------------------------------------------
     def set_value(self, value):
+        fixed = bool(_read(self.port, "fixed"))
+        if fixed:
+            _write(self.port, "fixed", False)
         self.port.value = value
+        if fixed:
+            _write(self.port, "fixed", True)
 
     def set_fixed(self, flag):
         _write(self.port, "fixed", bool(flag))

@@ -2,6 +2,13 @@
 
 ## 2026-09-23
 
+- **Fit objective, one fitting search problem, fixed ports that take writes**:
+  - `FitObjective` (`include/FitObjective.h`) is what a fit, a search and a joint fit consume. Its residuals sit on the output port `residuals`, which is created on first use. `FitChiSquared`, `FitJointChiSquared` and Python `FitObjective` subclasses (directors that call `set_residuals`) all implement it.
+  - `FitMinimizer::set_objective`, `FitJointChiSquared::add_member`, `FittingModelSearchProblem::add_structure` and `GraphNode::add_member_node` no longer take a residual port name. `residuals_port_key` and the unused `set_residual_function` are gone. A description's `residual_key` and object-form `members` are gone too.
+  - The old group-based `FittingModelSearchProblem` was deleted. `MultiStructureModelSearchProblem` now carries that name; a single-objective search is several structures over one objective. The complexity penalty became an explicit AIC/BIC selection.
+  - `GraphPort::fixed` means "not optimised". Writes land, so the unfix-write-refix workarounds in ModelSearch, TCSPCDecay and chisurf are deleted. A held follower still ignores its master's pushes (`copy_from_link`, `propagate_to_followers`), which keeps the chinet A/B suite matching; `test/abtest/ab_driver.py` records this as the third documented deviation.
+  - `test/graph/test_node_registry.py` now iterates only shipped node types, because other tests register deliberately broken runtime types.
+  - bff fast suite: 2863 passed. The only failures are missing `data/rotamer_library` files. chisurf `test/fitting`: 1123 passed; the two failures are already listed in known-issues.
 - **Residual action policy made sound before any training**: expansion now reads the weighted residual stored when a state was scored, so `get_actions` has no side effects and never throws. Declared priors are normalised over the available actions, and the policy softmax, restricted to the available named actions, reallocates only their joint mass. One `ResidualActionPolicy` serves both fitting problems, and `get_residual_profile` is public. Self-play reads `get_active_residual()`, draws actions uniformly, labels terminal actions (stop), and trains with a seed and a validation split. `FitDataset::replace_values` keeps axes, mask and variance, where `set_values` had emptied `curve.axis` and made every policy episode refuse. test/mcts and test/minimizer: 200 passed. No policy is trained or shipped yet. The gate is in `okf/validation/model-search-strategy.md` "What follows" item 0.
 
 ## 2026-09-19

@@ -619,6 +619,18 @@ def get_session():
 %apply(double* IN_ARRAY1, int DIM1) {(double* in_mask_a, int n_mask_a)};
 %apply(double* IN_ARRAY1, int DIM1) {(double* in_model_y, int n_model_y)};
 %apply(double** ARGOUTVIEWM_ARRAY1, int* DIM1) {(double** out_wres, int* n_out_wres)};
+/* What a fit, a search and a joint fit consume: a node that evaluates to
+   weighted residuals. A model this library cannot represent is a Python
+   subclass that calls set_residuals() from evaluate(). */
+%shared_ptr(IMP::bff::FitObjective);
+%feature("director") IMP::bff::FitObjective;
+/* The residuals port exists from construction for a Python subclass, whose
+   proxy already owns the node by then, so a sampler or a joint can find it
+   before the first evaluation. */
+%pythonappend IMP::bff::FitObjective::FitObjective %{
+        self.get_residuals_port()
+%}
+%include "IMP/bff/FitObjective.h"
 %shared_ptr(IMP::bff::FitChiSquared);
 /* A dataset of any rank, with its noise family. Its variance and residuals
    are managed views for the same reason the solver's are, and its setters
@@ -697,8 +709,8 @@ def get_session():
  * an IMP::Pointer because it outlives the call that set it -- a progress
  * dialog held only by a raw pointer would be collected mid-fit.
  *
- * set_residual_function is not wrapped: a Python residual is a GraphNode
- * director, which is the same division MCMCSampler makes.
+ * A Python residual is a FitObjective subclass (a director), which is the
+ * same division MCMCSampler makes.
  */
 IMP_SWIG_OBJECT(IMP::bff, FitMinimizerObserver, MinimizerObservers);
 /* IMP_SWIG_DIRECTOR, not a bare %feature("director"): the C++ side holds
@@ -711,7 +723,6 @@ IMP_SWIG_OBJECT(IMP::bff, FitMinimizerObserver, MinimizerObservers);
    argument and cannot outlive its caller's reference; this one can.) */
 IMP_SWIG_DIRECTOR(IMP::bff, FitMinimizerObserver);
 %shared_ptr(IMP::bff::FitMinimizer);
-%ignore IMP::bff::FitMinimizer::set_residual_function;
 /* The GraphNode-director lifetime fix (T-20260901-13; rationale at the GraphNode
    director block above): the C++ side keeps a shared_ptr to the objective
    node for the minimiser's lifetime, so the Python proxy must live as
@@ -719,8 +730,7 @@ IMP_SWIG_DIRECTOR(IMP::bff, FitMinimizerObserver);
    object on the next update. Stashing it on the wrapper is the Python
    mirror of the C++ reference. */
 %pythonappend IMP::bff::FitMinimizer::set_objective %{
-        self.__dict__['_objective_node_keepalive'] = (
-            args[0] if args else kwargs.get('node'))
+        self.__dict__['_objective_node_keepalive'] = objective
 %}
 /* The candidates of compute_objective_batch: one row per candidate, one
    column per free parameter, so a scan hands over its whole grid at once and
@@ -742,7 +752,6 @@ IMP_SWIG_VALUE(IMP::bff, ModelSearchResult, ModelSearchResults);
 %shared_ptr(IMP::bff::ModelSearchProblem);
 %shared_ptr(IMP::bff::TabularModelSearchProblem);
 %shared_ptr(IMP::bff::FittingModelSearchProblem);
-%shared_ptr(IMP::bff::MultiStructureModelSearchProblem);
 %shared_ptr(IMP::bff::ModelSearch);
 %include "IMP/bff/ModelSearch.h"
 // SWIG 4.5 does not infer the vector proxy for this typedef when it first
@@ -751,7 +760,7 @@ IMP_SWIG_VALUE(IMP::bff, ModelSearchResult, ModelSearchResults);
 %template(ModelSearchActions) std::vector<IMP::bff::ModelSearchAction>;
 
 /* A model family read from data rather than compiled in. It hands back the
-   same MultiStructureModelSearchProblem a factory used to build. */
+   same FittingModelSearchProblem a factory used to build. */
 %include "IMP/bff/ModelSearchSpec.h"
 
 /* A family generating its own training data, and the proposer it trains. */
@@ -847,9 +856,6 @@ IMP_SWIG_VALUE(IMP::bff, ModelSearchResult, ModelSearchResults);
                                   lambda self, v: self.set_initial_values(v))
         objective = property(lambda self: self.get_objective(),
                              lambda self, v: self.set_objective(v))
-        residual_port_key = property(
-            lambda self: self.get_residual_port_key(),
-            lambda self, v: self.set_residual_port_key(v))
         observer = property(lambda self: self.get_observer(),
                             lambda self, v: self.set_observer(v))
 

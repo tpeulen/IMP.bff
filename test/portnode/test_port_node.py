@@ -282,12 +282,14 @@ def test_port_fixed():
     p1.fixed = True
     assert p1.fixed is True
     p1.value = 55
-    assert p1.value == pytest.approx(12)  # a fixed port ignores writes
+    # Fixed means "not optimised"; a write still lands, so restoring a saved
+    # state never has to lift the flag first.
+    assert p1.value == pytest.approx(55)
 
     p1.fixed = False
     assert p1.fixed is False
-    p1.value = 55
-    assert p1.value == pytest.approx(55)
+    p1.value = 66
+    assert p1.value == pytest.approx(66)
 
 
 def test_port_reactive():

@@ -50,7 +50,7 @@ double deviance_residual(double y, double mu) {
 
 }  // namespace
 
-FitChiSquared::FitChiSquared(const std::string& name) : GraphNode(name) {}
+FitChiSquared::FitChiSquared(const std::string& name) : FitObjective(name) {}
 
 void FitChiSquared::set_data(const std::vector<double>& y,
                           const std::vector<double>& ey) {
@@ -251,17 +251,10 @@ double FitChiSquared::compute_chi2(const std::vector<double>& model_y) const {
   return chi2;
 }
 
-double FitChiSquared::get_chi2r(int n_free) const {
-  const double dof =
-      static_cast<double>(wres_.size()) - static_cast<double>(n_free) - 1.0;
-  return chi2_ / dof;
-}
-
 void FitChiSquared::update() {
   const std::shared_ptr<GraphPort> model_port = get_input_port(model_key_);
   if (model_port) model_port->set_sanitize(false);
-  const std::shared_ptr<GraphPort> res = get_output_port(residuals_key_);
-  if (res) res->set_sanitize(false);
+  get_residuals_port();
   GraphNode::update();
 }
 
@@ -272,10 +265,7 @@ void FitChiSquared::evaluate() {
         "FitChiSquared '" + get_name() + "': no input port '" + model_key_ +
         "' carrying the model curve");
   }
-  wres_ = compute_weighted_residuals(model_port->get_values_ref());
-  chi2_ = 0.0;
-  for (double r : wres_) chi2_ += r * r;
-  if (std::isnan(chi2_)) chi2_ = std::numeric_limits<double>::infinity();
+  set_residuals(compute_weighted_residuals(model_port->get_values_ref()));
 
   const std::shared_ptr<GraphPort> out = get_output_port(get_name());
   if (!out) {
@@ -284,12 +274,7 @@ void FitChiSquared::evaluate() {
         "' writes chi-square to the output port keyed by its own name, "
         "which this node does not have");
   }
-  out->set_value(chi2_);
-  // The residuals themselves, when the graph asked for them. Absent by
-  // default: a `MCMCSampler` wants the scalar and would otherwise pay for a
-  // copy of the whole residual vector on every move.
-  const std::shared_ptr<GraphPort> res = get_output_port(residuals_key_);
-  if (res) res->set_value_vector(wres_);
+  out->set_value(get_chi2());
   set_valid(true);
 }
 
@@ -299,8 +284,8 @@ std::string FitChiSquared::describe() const {
       << "noise model    : " << get_noise_model_name() << "\n"
       << "fit range      : [" << xmin_ << ", "
       << (xmax_ < 0 ? static_cast<int>(data_y_.size()) : xmax_) << ")\n"
-      << "residuals      : " << wres_.size() << "\n"
-      << "chi2           : " << chi2_ << "\n";
+      << "residuals      : " << get_number_of_residuals() << "\n"
+      << "chi2           : " << get_chi2() << "\n";
   return out.str();
 }
 
@@ -359,9 +344,6 @@ void FitChiSquared::configure(const std::string& json_text) {
   }
   if (config.has("model_port_key")) {
     set_model_port_key(config.get_string("model_port_key"));
-  }
-  if (config.has("residuals_port_key")) {
-    set_residuals_port_key(config.get_string("residuals_port_key"));
   }
   config.apply_common(*this);
   config.require_all_used();

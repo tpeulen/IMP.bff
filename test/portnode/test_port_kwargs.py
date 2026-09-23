@@ -70,8 +70,8 @@ def test_kwargs_ctor_flags():
     assert p.fixed is True
     assert p.is_output is True
     assert p.is_reactive is True
-    p.value = 5.0  # fixed: a no-op
-    assert p.value == 1.0
+    p.value = 5.0  # fixed holds the port from optimisers, not from writes
+    assert p.value == 5.0
 
 
 def test_kwargs_ctor_prior_dict():

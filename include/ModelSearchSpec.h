@@ -79,7 +79,7 @@ class IMPBFFEXPORT ModelSearchSpec {
   void unset_dataset(const std::string& name);
   //! Bind a port of something outside this model to a name the description reads.
   /*! A description input written `$<name>` follows the bound port: another
-      model's published output (MultiStructureModelSearchProblem::get_output_port),
+      model's published output (FittingModelSearchProblem::get_output_port),
       evaluated on demand. A mixture is written this way -- it reads the
       lifetime spectrum of each model it mixes. Rebinding the same port changes
       nothing; binding another rebuilds the model over the same parameters. */
@@ -118,7 +118,7 @@ class IMPBFFEXPORT ModelSearchSpec {
   /*! \throws std::domain_error naming what is missing, unknown or
       inconsistent. A description that cannot be built completely builds
       nothing: a partially wired graph would fit, and fit the wrong thing. */
-  std::shared_ptr<MultiStructureModelSearchProblem> build() const;
+  std::shared_ptr<FittingModelSearchProblem> build() const;
 
   //! The live model this description and its data describe.
   /*! #build makes a new, independent problem every time, which is what a
@@ -132,7 +132,7 @@ class IMPBFFEXPORT ModelSearchSpec {
       over, and anything holding a port keeps holding the live parameter.
       Cached search states do not carry over; they were fitted to other data.
       \throws std::domain_error as #build does. */
-  std::shared_ptr<MultiStructureModelSearchProblem> get_model();
+  std::shared_ptr<FittingModelSearchProblem> get_model();
   //! Whether #get_model would return the model without rebuilding it.
   bool get_model_is_current() const;
 
@@ -163,8 +163,8 @@ class IMPBFFEXPORT ModelSearchSpec {
   std::string get_description_json() const;
 
  private:
-  std::shared_ptr<MultiStructureModelSearchProblem> build_over(
-      const std::shared_ptr<MultiStructureModelSearchProblem>& previous) const;
+  std::shared_ptr<FittingModelSearchProblem> build_over(
+      const std::shared_ptr<FittingModelSearchProblem>& previous) const;
 
   struct Impl;
   std::unique_ptr<Impl> impl_;

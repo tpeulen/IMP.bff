@@ -459,13 +459,10 @@ std::string GraphNode::describe() const {
 
 std::string GraphNode::get_node_type() const { return "GraphNode"; }
 
-void GraphNode::add_member_node(std::shared_ptr<GraphNode> member,
-                                const std::string& residual_key) {
-  (void)member;
-  (void)residual_key;
+void GraphNode::add_member_node(std::shared_ptr<GraphNode> member) {
   throw std::domain_error("node type '" + get_node_type() +
                           "' does not group other nodes, so it takes no "
-                          "member '" + residual_key + "'");
+                          "member '" + (member ? member->get_name() : "") + "'");
 }
 
 void GraphNode::bind_dataset(const std::string& role,

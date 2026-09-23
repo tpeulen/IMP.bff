@@ -421,7 +421,7 @@ class WholeFitTests(unittest.TestCase):
         free[1].value = 0.0
         m = bff.FitMinimizer()
         m.set_parameter_ports(free)
-        m.set_objective(chi2, "residuals")
+        m.set_objective(chi2)
         m._graph = (node, chi2, model_in)
 
         info = m.run()

@@ -15,20 +15,14 @@
 
 IMPBFF_BEGIN_NAMESPACE
 
-FitJointChiSquared::FitJointChiSquared(const std::string& name) : GraphNode(name) {}
+FitJointChiSquared::FitJointChiSquared(const std::string& name) : FitObjective(name) {}
 
-int FitJointChiSquared::add_member(std::shared_ptr<GraphNode> member,
-                                const std::string& residual_key) {
+int FitJointChiSquared::add_member(std::shared_ptr<FitObjective> member) {
   if (!member) {
     throw std::domain_error(
         "FitJointChiSquared::add_member: the member is a null pointer");
   }
-  const std::shared_ptr<GraphPort> source = member->get_output_port(residual_key);
-  if (!source) {
-    throw std::domain_error(
-        "FitJointChiSquared::add_member: member '" + member->get_name() +
-        "' has no output port '" + residual_key + "' carrying its residuals");
-  }
+  const std::shared_ptr<GraphPort> source = member->get_residuals_port();
 
   // The block is an ordinary linked input, so `GraphNode::update()` is what walks
   // the group: it evaluates each member whose node is out of date, copies the
@@ -39,7 +33,6 @@ int FitJointChiSquared::add_member(std::shared_ptr<GraphNode> member,
   std::shared_ptr<GraphPort> block(new GraphPort(std::vector<double>(1, 0.0)));
   // A member's residuals are fit transport: a NaN must survive the copy.
   block->set_sanitize(false);
-  source->set_sanitize(false);
   block->set_link(source);
   add_input_port(key.str(), block);
 
@@ -48,7 +41,7 @@ int FitJointChiSquared::add_member(std::shared_ptr<GraphNode> member,
   return static_cast<int>(members_.size()) - 1;
 }
 
-std::shared_ptr<GraphNode> FitJointChiSquared::get_member(int index) const {
+std::shared_ptr<FitObjective> FitJointChiSquared::get_member(int index) const {
   if (index < 0 || static_cast<std::size_t>(index) >= members_.size()) {
     std::ostringstream m;
     m << "FitJointChiSquared::get_member: index " << index << " of "
@@ -61,7 +54,7 @@ std::shared_ptr<GraphNode> FitJointChiSquared::get_member(int index) const {
 std::vector<std::string> FitJointChiSquared::get_member_names() const {
   std::vector<std::string> names;
   names.reserve(members_.size());
-  for (const std::shared_ptr<GraphNode>& m : members_) names.push_back(m->get_name());
+  for (const std::shared_ptr<FitObjective>& m : members_) names.push_back(m->get_name());
   return names;
 }
 
@@ -76,12 +69,6 @@ std::vector<int> FitJointChiSquared::get_block_offsets() const {
   return offsets;
 }
 
-double FitJointChiSquared::get_chi2r(int n_free) const {
-  const double dof =
-      static_cast<double>(wres_.size()) - static_cast<double>(n_free) - 1.0;
-  return chi2_ / dof;
-}
-
 void FitJointChiSquared::evaluate() {
   block_sizes_.clear();
   block_sizes_.reserve(blocks_.size());
@@ -92,19 +79,15 @@ void FitJointChiSquared::evaluate() {
     total += n;
   }
 
-  wres_.clear();
-  wres_.reserve(total);
+  std::vector<double> joined;
+  joined.reserve(total);
   for (const std::shared_ptr<GraphPort>& block : blocks_) {
     const std::vector<double>& v = block->get_values_ref();
-    wres_.insert(wres_.end(), v.begin(), v.end());
+    joined.insert(joined.end(), v.begin(), v.end());
   }
-
-  chi2_ = 0.0;
-  for (double r : wres_) chi2_ += r * r;
-  // A NaN anywhere makes the whole group infinitely bad, which is
-  // `FitChiSquared`'s convention and what makes a sampler reject rather than
-  // propagate the NaN into the posterior.
-  if (std::isnan(chi2_)) chi2_ = std::numeric_limits<double>::infinity();
+  // A NaN anywhere makes the whole group infinitely bad (get_chi2), which is
+  // what makes a sampler reject rather than propagate it into the posterior.
+  set_residuals(joined);
 
   const std::shared_ptr<GraphPort> out = get_output_port(get_name());
   if (!out) {
@@ -113,16 +96,8 @@ void FitJointChiSquared::evaluate() {
         "' writes chi-square to the output port keyed by its own name, "
         "which this node does not have");
   }
-  out->set_value(chi2_);
+  out->set_value(get_chi2());
 
-  // The concatenated residuals, when the graph asked for them. Absent by
-  // default, exactly as in `FitChiSquared`: a sampler wants the scalar and
-  // would otherwise pay for a copy of every dataset's residuals per move.
-  const std::shared_ptr<GraphPort> res = get_output_port(residuals_key_);
-  if (res) {
-    res->set_sanitize(false);
-    res->set_value_vector(wres_);
-  }
   set_valid(true);
 }
 
@@ -137,8 +112,8 @@ std::string FitJointChiSquared::describe() const {
     }
     out << "\n";
   }
-  out << "residuals      : " << wres_.size() << "\n"
-      << "chi2           : " << chi2_ << "\n";
+  out << "residuals      : " << get_number_of_residuals() << "\n"
+      << "chi2           : " << get_chi2() << "\n";
   return out.str();
 }
 
@@ -148,21 +123,23 @@ std::string FitJointChiSquared::get_node_type() const {
 
 void FitJointChiSquared::configure(const std::string& json_text) {
   internal::NodeConfig config(get_node_type(), json_text);
-  if (config.has("residuals_port_key")) {
-    set_residuals_port_key(config.get_string("residuals_port_key"));
-  }
   // Members are not settings: a member is another node, and a description
   // adds it by naming the graph edge, not by naming a value here.
   config.apply_common(*this);
   config.require_all_used();
 }
 
-void FitJointChiSquared::add_member_node(std::shared_ptr<GraphNode> member,
-                                        const std::string& residual_key) {
+void FitJointChiSquared::add_member_node(std::shared_ptr<GraphNode> member) {
   // Members are evaluated, and their residuals concatenated, in the order
   // they are added -- so the order a description lists them in is the order
   // a caller can map a residual block back to the dataset that produced it.
-  add_member(member, residual_key);
+  const std::shared_ptr<FitObjective> objective =
+      std::dynamic_pointer_cast<FitObjective>(member);
+  if (!objective) {
+    throw std::domain_error("member '" + (member ? member->get_name() : "") +
+                            "' is not a fit objective");
+  }
+  add_member(objective);
 }
 
 IMPBFF_END_NAMESPACE

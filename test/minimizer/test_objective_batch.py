@@ -50,7 +50,7 @@ def decay_fit(n=128):
         port.value = v
     m = bff.FitMinimizer()
     m.set_parameter_ports(free)
-    m.set_objective(chi2, "residuals")
+    m.set_objective(chi2)
     m._graph = (chi2, curve, ports)
     return m, chi2, free
 
