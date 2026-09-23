@@ -33,3 +33,15 @@ IMP_SWIG_VALUE(IMP::bff, FRETLandscapeModel, FRETLandscapeModels);
 %naturalvar IMP::bff::FRETLandscapeFitOptions::fixed;
 
 %include "IMP/bff/FRETLandscape.h"
+
+/* Burstwise, microtime-resolved inference of a hidden conformational process
+   shared by a network of FRET pairs (FRETNetwork.h). */
+%{
+#include <IMP/bff/FRETNetwork.h>
+%}
+
+IMP_SWIG_VALUE(IMP::bff, FRETHiddenProcess, FRETHiddenProcesses);
+IMP_SWIG_VALUE(IMP::bff, FRETDye, FRETDyes);
+IMP_SWIG_VALUE(IMP::bff, FRETMeasurement, FRETMeasurements);
+
+%include "IMP/bff/FRETNetwork.h"
