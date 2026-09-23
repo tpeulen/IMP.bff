@@ -1,12 +1,9 @@
-// Evaluate a tttrlib.neural_net JSON model with imp.bff's vendored headers only
-// (internal/json.h + internal/MlpCore.h) -- the proof that a network trained
-// in tttrlib runs, and differentiates, inside bff without linking tttrlib.
+// Evaluate a bff.neural_net JSON model or an ONNX file with bff's own headers
+// only (internal/json.h + internal/MlpCore.h), and check its derivatives.
 //
 //   mlpcore_eval <model.json | model.onnx> <X.txt>
 // X.txt: first line "n_rows n_cols", then row-major doubles. Prints one line
 // per row with the outputs, then a line "fd_check <max|dL/dparams - FD|>" for
-// the loss L = sum(y) over the batch, then "dx_check <max|dL/dx - FD|>".
-#define TTTRLIB_MLPCORE_NAMESPACE IMP::bff::internal
 #include "IMP/bff/internal/json.h"
 #include "IMP/bff/internal/MlpCore.h"
 
@@ -20,7 +17,7 @@ using IMP::bff::internal::MlpModel;
 
 int main(int argc, char** argv) {
     if (argc < 3) return 2;
-    // .json: the tttrlib.neural_net document; .onnx: straight from any exporter
+    // .json: the bff.neural_net document; .onnx: straight from any exporter
     const std::string path(argv[1]);
     MlpModel m;
     if (path.size() > 5 && path.compare(path.size() - 5, 5, ".onnx") == 0) {

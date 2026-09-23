@@ -100,11 +100,36 @@ class IMPBFFEXPORT ModelSearchAction {
 };
 IMP_VALUES(ModelSearchAction, ModelSearchActions);
 
-//! Signed means of a weighted-residual trace over `width` equal buckets.
-/*! The input a residual action policy sees. Non-finite points are skipped and
-    an empty bucket reads 0, so a trace shorter than `width` still maps. */
+//! A weighted-residual trace as `width` bucket z-scores, `asinh`-compressed.
+/*! Each bucket is `asinh(sum / sqrt(count))`, so the profile does not depend
+    on how many points a curve has. Non-finite points are skipped and an empty
+    bucket reads 0, so a trace shorter than `width` still maps. */
 IMPBFFEXPORT std::vector<double> get_residual_profile(
     const std::vector<double>& residual, int width);
+
+//! How many features describe a fitted state to an action policy.
+IMPBFFEXPORT int get_policy_state_width();
+//! How many features describe a candidate move to an action policy.
+IMPBFFEXPORT int get_policy_action_width();
+
+//! A fitted state as an action policy sees it, whatever the family.
+/*! The residual profile, then log10 of the reduced chi-square, the lag-1
+    autocorrelation, the compressed Wald-Wolfowitz runs z-score, the share of
+    positive residuals and log(1 + free parameters). Nothing names a
+    dataset, a node or a parameter, which is what lets one network serve
+    every model family and every kind of measurement. */
+IMPBFFEXPORT std::vector<double> get_policy_state_features(
+    const std::vector<double>& residual, int n_free);
+
+//! A candidate move as an action policy sees it, whatever the family.
+/*! Terminal, returns to the same structure, the change in free parameters
+    (clipped to +/-5 and scaled), whether it adds, whether it removes,
+    log(1 + the target's free parameters), and the log of the move's share of
+    the declared priors -- so a network can learn where a family's own priors
+    are already the better guide, rather than only adding to them. */
+IMPBFFEXPORT std::vector<double> get_policy_action_features(
+    int source_free, int target_free, bool terminal, bool self_loop,
+    double prior_share);
 
 //! Model-specific topology and evaluation, implemented entirely in C++.
 /*!
@@ -243,14 +268,27 @@ class IMPBFFEXPORT FittingModelSearchProblem
                   const std::string& result_structure, double prior = 1.0,
                   bool terminal = false);
 
-  //! Replace static priors with a policy inferred from fitted residual shape.
-  /*! See the corresponding FittingModelSearchProblem method. The policy is
-      evaluated only after this topology has been fitted, and supplies a
-      state-local PUCT hint; it does not alter the fitted score. */
-  void set_residual_action_policy(const std::string& network,
-                                  const std::vector<std::string>& action_keys);
-  void clear_residual_action_policy();
-  bool get_has_residual_action_policy() const;
+  //! Weight the declared move priors by a family-agnostic network.
+  /*! The network scores one row per available move -- the state features of
+      the structure being expanded, from the residual recorded when it was
+      scored, followed by that move's action features -- with one output.
+      A move's prior becomes its declared prior times `exp(score)`,
+      normalised over the available moves, so a declared zero stays zero.
+      Expansion never refits or re-evaluates the graph, and a state scored
+      without a residual keeps its declared priors. The policy is a PUCT
+      hint; it never changes a score. An empty document removes it. */
+  void set_action_policy(const std::string& network);
+  void clear_action_policy();
+  bool get_has_action_policy() const;
+
+  //! Free parameters of a structure after the user's locks and releases.
+  int get_number_of_free_parameters(const std::string& structure_key) const;
+  //! The rows a policy scores for these moves out of this structure.
+  /*! `actions.size()` rows of #get_policy_state_width plus
+      #get_policy_action_width features, flattened row-major. */
+  std::vector<double> get_policy_rows(const std::string& structure_key,
+                                      const std::vector<double>& residual,
+                                      const ModelSearchActions& actions) const;
 
   //! Bound the work each candidate's fit may do.
   /*! Zero keeps FitMinimizer's own default of `200 * (n + 1)` residual

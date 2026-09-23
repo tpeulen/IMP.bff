@@ -1,0 +1,314 @@
+{
+ "schema": "bff.model_search.v1",
+ "family": "kinetic_fcs_tcspc",
+ "title": "Kinetic scheme: TCSPC populations and FCS relaxations",
+ "presentation": {
+  "_comment": "How an application presents this family. Read by applications, ignored by the engine.",
+  "groups": {
+   "states": "States",
+   "kinetics": "Kinetics",
+   "fcs": "FCS",
+   "instrument": "Instrument"
+  },
+  "datasets": {
+   "decay": {
+    "label": "Decay",
+    "primary": true
+   },
+   "response": {
+    "label": "IRF"
+   },
+   "curve": {
+    "label": "Correlation"
+   }
+  }
+ },
+ "datasets": [
+  "decay",
+  "response",
+  "curve"
+ ],
+ "scalars": [
+  "dt",
+  "period"
+ ],
+ "optional_scalars": {
+  "max_states": 3
+ },
+ "axes": {
+  "n": {
+   "from": 1,
+   "to": "max_states"
+  }
+ },
+ "parameters": {
+  "repeat": [
+   {
+    "index": "i",
+    "count": "n_max",
+    "body": {
+     "state.tau.{i}": {
+      "name": "t{i}",
+      "initial": "min(period,max(dt,{i}+1))",
+      "lower": "max(dt*0.01,1e-12)",
+      "upper": "period",
+      "group": "states"
+     }
+    }
+   },
+   {
+    "index": "i",
+    "from": 1,
+    "count": "n_max",
+    "body": {
+     "kinetics.forward.{i}": {
+      "name": "kf{i}",
+      "initial": "10/max(curve_characteristic,1e-12)",
+      "lower": 1e-09,
+      "upper": 1000000000000.0,
+      "group": "kinetics"
+     },
+     "kinetics.backward.{i}": {
+      "name": "kb{i}",
+      "initial": "10/max(curve_characteristic,1e-12)",
+      "lower": 1e-09,
+      "upper": 1000000000000.0,
+      "group": "kinetics"
+     }
+    }
+   }
+  ],
+  "fcs.N": {
+   "name": "N",
+   "initial": "(curve_amplitude>1e-12)*(1/max(curve_amplitude,1e-12))+(curve_amplitude<=1e-12)*1",
+   "lower": 1e-09,
+   "upper": 1000000000000.0,
+   "group": "fcs"
+  },
+  "fcs.baseline": {
+   "name": "b",
+   "initial": "curve_last",
+   "lower": -1000000.0,
+   "upper": 1000000.0,
+   "group": "fcs"
+  },
+  "fcs.diffusion_time": {
+   "name": "td",
+   "initial": "curve_characteristic",
+   "lower": 1e-12,
+   "upper": 1000000000000.0,
+   "group": "fcs"
+  },
+  "instrument.scatter": {
+   "name": "scatter",
+   "initial": 0.0,
+   "free": false,
+   "lower": 0.0,
+   "upper": 1.0,
+   "group": "instrument"
+  },
+  "instrument.background": {
+   "name": "background",
+   "initial": "decay_min",
+   "lower": 0.0,
+   "upper": "decay_max",
+   "group": "instrument"
+  },
+  "instrument.n0": {
+   "name": "n0",
+   "initial": "decay_sum",
+   "lower": 0.0,
+   "upper": "100*decay_sum",
+   "group": "instrument"
+  },
+  "instrument.timeshift": {
+   "name": "timeshift",
+   "initial": 0.0,
+   "lower": "-0.5*decay_size",
+   "upper": "0.5*decay_size",
+   "group": "instrument"
+  }
+ },
+ "initial_axes": {
+  "n": 1
+ },
+ "template": {
+  "key": "kinetic.states.{n}",
+  "nodes": {
+   "kinetics": {
+    "type": "KineticSchemeNode",
+    "config": {
+     "number_of_states": "{n}"
+    },
+    "inputs": {
+     "repeat": [
+      {
+       "index": "i",
+       "count": "n",
+       "body": {
+        "t{i}": "#state.tau.{i}"
+       }
+      },
+      {
+       "index": "i",
+       "from": 1,
+       "count": "n",
+       "body": {
+        "kf{i}": "#kinetics.forward.{i}",
+        "kb{i}": "#kinetics.backward.{i}"
+       }
+      }
+     ],
+     "x": "@curve.axis"
+    },
+    "outputs": {
+     "lifetime_spectrum": "float_vector",
+     "correlation": "float_vector"
+    }
+   },
+   "decay": {
+    "type": "TCSPCDecay",
+    "config": {
+     "instrument_units": "counts",
+     "number_of_lifetimes": "{n}",
+     "spectrum_from_port": true
+    },
+    "config_rules": {
+     "timing": [
+      "dt",
+      "period"
+     ],
+     "convolution_range": [
+      "decay_size",
+      "decay_size"
+     ],
+     "scale_range": [
+      0,
+      "decay_size"
+     ]
+    },
+    "bind": {
+     "response": "response",
+     "data": "decay"
+    },
+    "inputs": {
+     "lifetime_spectrum": "kinetics.lifetime_spectrum",
+     "scatter": "#instrument.scatter",
+     "background": "#instrument.background",
+     "n0": "#instrument.n0",
+     "timeshift": "#instrument.timeshift"
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "decay_fit": {
+    "type": "FitChiSquared",
+    "bind": {
+     "data": "decay"
+    },
+    "inputs": {
+     "model": "decay"
+    },
+    "outputs": {
+     "@name": "float",
+     "residuals": "float_vector"
+    }
+   },
+   "fcs": {
+    "type": "GraphExpression",
+    "config": {
+     "expression": "b+1/abs(N)*((1+x/abs(td))**(-1))*kin"
+    },
+    "inputs": {
+     "x": "@curve.axis",
+     "N": "#fcs.N",
+     "b": "#fcs.baseline",
+     "td": "#fcs.diffusion_time",
+     "kin": "kinetics.correlation"
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "fcs_fit": {
+    "type": "FitChiSquared",
+    "bind": {
+     "data": "curve"
+    },
+    "inputs": {
+     "model": "fcs"
+    },
+    "outputs": {
+     "@name": "float",
+     "residuals": "float_vector"
+    }
+   },
+   "joint": {
+    "type": "FitJointChiSquared",
+    "members": [
+     "decay_fit",
+     "fcs_fit"
+    ],
+    "outputs": {
+     "@name": "float",
+     "residuals": "float_vector"
+    }
+   }
+  },
+  "objective": "joint",
+  "free": [
+   {
+    "each": {
+     "index": "i",
+     "count": "n",
+     "body": "state.tau.{i}"
+    }
+   },
+   {
+    "each": {
+     "index": "i",
+     "from": 1,
+     "count": "n",
+     "body": "kinetics.forward.{i}"
+    }
+   },
+   {
+    "each": {
+     "index": "i",
+     "from": 1,
+     "count": "n",
+     "body": "kinetics.backward.{i}"
+    }
+   },
+   "instrument.background",
+   "instrument.n0",
+   "instrument.timeshift",
+   "fcs.N",
+   "fcs.baseline",
+   "fcs.diffusion_time"
+  ],
+  "ess": "decay_size+curve_size",
+  "selection": "bic",
+  "label": "{n} state(s)"
+ },
+ "moves": [
+  {
+   "action": "stop",
+   "prior": 0.25,
+   "terminal": true
+  },
+  {
+   "action": "add-state",
+   "axis": "n",
+   "delta": 1,
+   "prior": 0.5
+  },
+  {
+   "action": "remove-state",
+   "axis": "n",
+   "delta": -1,
+   "prior": 0.25
+  }
+ ]
+}

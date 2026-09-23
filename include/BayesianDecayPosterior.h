@@ -670,7 +670,7 @@ inline BayesianDecayTkSummary bayesian_decay_tk_mean_rel(const BayesianDecayExpe
 /**
  * \brief A declared start: where a fit begins and how it walks from there.
  *
- * `adam_steps > 0` runs that many Adam steps (tttrlib `adam_update`, Kingma & Ba 2015,
+ * `adam_steps > 0` runs that many Adam steps (`internal::adam_update`, Kingma & Ba 2015,
  * on minus the log posterior with the full gradient, step size `adam_lr`) before the
  * scoring fit. On CBM56 every start without such a phase -- three line-search schedules
  * and ten Fisher-scaled perturbations of the data start -- ends in the posterior's
@@ -722,7 +722,7 @@ inline BayesianDecayMultiFit bayesian_decay_fit_best_of_starts(const BayesianDec
             if (i >= starts.size()) return;
             std::vector<double> th = starts[i].theta;
             if (starts[i].adam_steps > 0) {
-                ::tttrlib::AdamState st;
+                ::IMP::bff::internal::AdamState st;
                 st.reset(dim);
                 std::vector<double> neg(dim);
                 std::vector<double> g_;
@@ -732,7 +732,7 @@ inline BayesianDecayMultiFit bayesian_decay_fit_best_of_starts(const BayesianDec
                     //: Measured on CBM56 (6 histograms, dim 136): 14.5 ms a step against 3.6 ms.
                     bayesian_decay_log_posterior_and_gradient(f, env, th, g_);
                     for (std::size_t a = 0; a < dim; ++a) neg[a] = -g_[a];
-                    ::tttrlib::adam_update(th.data(), neg.data(), dim, st, starts[i].adam_lr);
+                    ::IMP::bff::internal::adam_update(th.data(), neg.data(), dim, st, starts[i].adam_lr);
                 }
             }
             out.fits[i] = bayesian_decay_fit_node(f, env, th, starts[i].line_search_below, max_iter);

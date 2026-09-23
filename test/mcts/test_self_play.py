@@ -141,87 +141,88 @@ def test_a_proposal_is_admissible_as_a_start():
     problem.add_structure_start(STRUCTURE, play.propose(network))
 
 
-def test_described_multi_structure_search_accepts_a_native_residual_policy():
+def _policy_play(seed=13, episodes=40, photons=False):
+    play = bff.ModelSearchSelfPlay(_spec())
+    play.set_spread(0.35)
+    play.set_poisson(False)
+    return play.generate_policy(episodes, seed)
+
+
+def test_a_described_search_takes_a_family_agnostic_policy():
     """ChiSurf's described models use this BFF-native problem directly."""
+    width = bff.get_policy_state_width() + bff.get_policy_action_width()
     problem = _spec().build()
+    problem.set_action_policy(json.dumps({
+        "format": "bff.neural_net",
+        "layers": [{"n_in": width, "n_out": 1, "weight": [0.01] * width,
+                    "bias": [0.0], "activation": "identity"}],
+    }))
     root = problem.get_initial_state()
-    action_keys = [action.get_key() for action in problem.get_actions(root)]
-    policy = json.dumps({
-        "format": "tttrlib.neural_net",
-        "layers": [{
-            "n_in": 1,
-            "n_out": len(action_keys),
-            "weight": [0.0] * len(action_keys),
-            "bias": list(range(len(action_keys))),
-            "activation": "identity",
-        }],
-    })
-    problem.set_residual_action_policy(policy, action_keys)
     priors = [action.get_prior() for action in problem.get_actions(root)]
 
-    assert problem.get_has_residual_action_policy()
+    assert problem.get_has_action_policy()
     assert sum(priors) == pytest.approx(1.0)
 
 
-def test_self_play_simulates_defects_and_trains_a_residual_action_policy():
-    play = bff.ModelSearchSelfPlay(_spec())
-    play.set_spread(0.35)
-    play.set_poisson(False)
-    play.generate_policy(16, seed=13)
+def test_policy_episodes_are_labelled_moves_and_include_stopping():
+    data = _policy_play()
 
-    assert play.get_number_of_policy_episodes() > 0
-    assert play.get_number_of_policy_features() == 32
-    actions = list(play.get_policy_action_keys())
-    features = np.asarray(play.get_policy_features()).reshape(
-        play.get_number_of_policy_episodes(), play.get_number_of_policy_features()
-    )
-    targets = np.asarray(play.get_policy_targets()).reshape(
-        play.get_number_of_policy_episodes(), len(actions)
-    )
-    assert np.isfinite(features).all()
-    assert np.all(targets.sum(axis=1) == 1.0)
-
-    network = play.train_policy([16], 40, 0.02)
-    net = bff.NeuralNet(network)
-    assert net.get_n_inputs() == play.get_number_of_policy_features()
-    assert net.get_n_outputs() == len(actions)
-    assert np.isfinite(play.get_policy_training_loss())
-    assert play.get_number_of_policy_validation_episodes() == 0
-    assert np.isnan(play.get_policy_validation_loss())
+    assert data.get_number_of_episodes() > 20
+    assert data.get_row_width() == (
+        bff.get_policy_state_width() + bff.get_policy_action_width())
+    assert list(data.get_families()) == ["fcs_analytical"]
+    offsets = np.asarray(data.get_offsets())
+    labels = np.asarray(data.get_labels())
+    assert np.all(labels < np.diff(offsets))
+    assert np.isfinite(np.asarray(data.get_rows())).all()
+    # Stopping is a decision the data has to teach, not an afterthought.
+    assert 0 < data.get_number_of_stop_labels() < data.get_number_of_episodes()
 
 
-def test_policy_episodes_teach_stopping_and_balance_actions():
-    """Terminal actions are labels too, and no action swamps the others."""
+def test_policy_data_pools_across_families_and_round_trips():
+    first = _policy_play(seed=1, episodes=10)
+    second = _policy_play(seed=2, episodes=10)
+    pooled = bff.ModelSearchPolicyData()
+    pooled.extend(first)
+    pooled.extend(second)
+
+    assert pooled.get_number_of_episodes() == (
+        first.get_number_of_episodes() + second.get_number_of_episodes())
+    again = bff.ModelSearchPolicyData.from_json(pooled.to_json())
+    assert list(again.get_rows()) == list(pooled.get_rows())
+    assert list(again.get_labels()) == list(pooled.get_labels())
+
+
+def test_training_ranks_held_out_moves_and_replays_from_its_seed():
+    data = _policy_play(seed=9, episodes=60)
+    trained = bff.train_action_policy(data, [16], 200, 0.02, 21, 0.25)
+
+    held = int(0.25 * data.get_number_of_episodes())
+    # Half the held-out episodes choose the epoch; the rest are only scored.
+    assert trained.get_number_of_validation_episodes() == held - held // 2
+    assert 0 <= trained.get_best_epoch() <= 200
+    assert np.isfinite(trained.get_baseline_loss())
+    assert 0.0 <= trained.get_validation_accuracy() <= 1.0
+    assert np.isfinite(trained.get_validation_loss())
+    assert list(trained.get_families()) == ["fcs_analytical"]
+    # The network is what the search reads.
     problem = _spec().build()
-    root = problem.get_initial_state()
-    terminal = {a.get_key() for a in problem.get_actions(root) if a.get_terminal()}
-
-    play = bff.ModelSearchSelfPlay(_spec())
-    play.set_spread(0.35)
-    play.set_poisson(False)
-    play.generate_policy(48, seed=5)
-
-    actions = list(play.get_policy_action_keys())
-    assert terminal & set(actions), "a stop decision must be learnable"
-    targets = np.asarray(play.get_policy_targets()).reshape(-1, len(actions))
-    counts = targets.sum(axis=0)
-    # Uniform over actions: with 48 draws no action should be absent.
-    assert np.all(counts > 0)
-
-
-def test_policy_training_holds_out_a_validation_split():
-    play = bff.ModelSearchSelfPlay(_spec())
-    play.set_spread(0.35)
-    play.set_poisson(False)
-    play.generate_policy(40, seed=9)
-    n = play.get_number_of_policy_episodes()
-
-    first = play.train_policy([8], 30, 0.02, 21, 0.25)
-    held_out = play.get_number_of_policy_validation_episodes()
-    assert held_out == int(0.25 * n)
-    assert np.isfinite(play.get_policy_validation_loss())
-    assert 0.0 <= play.get_policy_validation_accuracy() <= 1.0
-    # The seed decides the weights and the split, so it replays exactly.
-    assert play.train_policy([8], 30, 0.02, 21, 0.25) == first
+    problem.set_action_policy(trained.get_network())
+    again = bff.train_action_policy(data, [16], 200, 0.02, 21, 0.25)
+    assert again.get_network() == trained.get_network()
     with pytest.raises(ValueError):
-        play.train_policy([8], 1, 0.02, 21, 1.0)
+        bff.train_action_policy(data, [8], 1, 0.02, 21, 1.0)
+
+
+@pytest.mark.skipif(not bff.PhotonExperiment.get_available(),
+                    reason="bff was built without TTTRLib")
+def test_counts_are_recorded_by_the_photon_engine():
+    expected = np.exp(-np.arange(64) / 10.0) * 500.0
+    recorded = np.asarray(bff.PhotonExperiment.record_pattern(list(expected), 3))
+
+    assert recorded.size == 64
+    assert np.all(recorded == np.round(recorded)) and np.all(recorded >= 0)
+    assert abs(recorded.sum() - expected.sum()) < 5 * np.sqrt(expected.sum())
+    # Shape follows the pattern: the early channels hold most photons.
+    assert recorded[:10].sum() > recorded[30:40].sum() * 5
+    assert list(bff.PhotonExperiment.record_pattern(list(expected), 3)) == list(recorded)

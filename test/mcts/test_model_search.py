@@ -111,88 +111,92 @@ def _linear_fit_problem():
     return problem, a, b
 
 
-def _residual_policy(width, logits):
-    """A deterministic one-layer policy; softmax belongs to BFF, not this MLP."""
+def _row_policy(weights=None, bias=0.0):
+    """A one-layer move scorer: one weight per feature, one output."""
+    width = bff.get_policy_state_width() + bff.get_policy_action_width()
+    weights = [0.0] * width if weights is None else list(weights)
+    assert len(weights) == width
     return json.dumps({
-        "format": "tttrlib.neural_net",
+        "format": "bff.neural_net",
         "layers": [{
-            "n_in": width,
-            "n_out": len(logits),
-            "weight": [0.0] * (width * len(logits)),
-            "bias": logits,
+            "n_in": width, "n_out": 1, "weight": weights, "bias": [bias],
             "activation": "identity",
         }],
     })
 
 
-def test_fitted_residual_policy_replaces_static_priors_at_expansion():
+def _favouring(action_feature, strength):
+    """A scorer that only reads one action feature."""
+    weights = [0.0] * (bff.get_policy_state_width() + bff.get_policy_action_width())
+    weights[bff.get_policy_state_width() + action_feature] = strength
+    return _row_policy(weights)
+
+
+TERMINAL, SELF_LOOP, DELTA, ADDS, REMOVES, TARGET_FREE, PRIOR_SHARE = range(7)
+
+
+def _priors(problem, state):
+    return {action.get_key(): action.get_prior() for action in problem.get_actions(state)}
+
+
+def test_a_policy_multiplies_the_declared_priors_by_its_scores():
     problem, _a, _b = _linear_fit_problem()
-    problem.set_residual_action_policy(
-        _residual_policy(7, [-2.0, 3.0]), ["enable-intercept", "stop"]
-    )
+    problem.set_action_policy(_favouring(TERMINAL, 8.0))
     root = problem.get_initial_state()
-    actions = {action.get_key(): action.get_prior() for action in problem.get_actions(root)}
+    priors = _priors(problem, root)
 
-    assert problem.get_has_residual_action_policy()
-    assert actions["stop"] > 0.99
-    assert actions["enable-intercept"] < 0.01
-    assert sum(actions.values()) == pytest.approx(1.0)
+    assert problem.get_has_action_policy()
+    # 0.1 * e^8 against 0.9: the terminal move now dominates.
+    assert priors["stop"] == pytest.approx(0.1 * np.exp(8) / (0.1 * np.exp(8) + 0.9))
+    assert sum(priors.values()) == pytest.approx(1.0)
 
 
-def test_residual_policy_receives_the_fitted_weighted_residual():
+def test_a_score_every_move_shares_leaves_the_declared_priors():
+    problem, _a, _b = _linear_fit_problem()
+    problem.set_action_policy(_row_policy(bias=3.0))
+    root = problem.get_initial_state()
+
+    assert _priors(problem, root) == pytest.approx({"enable-intercept": 0.9, "stop": 0.1})
+
+
+def test_the_rows_are_the_state_and_move_features_of_the_fitted_residual():
     problem, _a, _b = _linear_fit_problem()
     root = problem.get_initial_state()
-    residual = np.asarray(problem.get_active_objective().get_residuals())
-    mean_residual = float(residual.mean())
-    # The second logit is exactly the one-bin residual profile mean.
-    policy = json.dumps({
-        "format": "tttrlib.neural_net",
-        "layers": [{
-            "n_in": 1, "n_out": 2, "weight": [0.0, 1.0], "bias": [0.0, 0.0],
-            "activation": "identity",
-        }],
-    })
-    problem.set_residual_action_policy(policy, ["enable-intercept", "stop"])
-    actions = {action.get_key(): action.get_prior() for action in problem.get_actions(root)}
+    residual = list(problem.get_active_objective().get_residuals())
+    actions = problem.get_actions(root)
+    width = bff.get_policy_state_width() + bff.get_policy_action_width()
 
-    assert actions["stop"] == pytest.approx(1.0 / (1.0 + np.exp(-mean_residual)))
+    rows = np.asarray(problem.get_policy_rows("root", residual, actions)).reshape(-1, width)
+
+    state = np.asarray(bff.get_policy_state_features(residual, 1))
+    for row, action in zip(rows, actions):
+        np.testing.assert_allclose(row[: state.size], state)
+        target = action.get_predicted_state_key()
+        expected = bff.get_policy_action_features(
+            1, problem.get_number_of_free_parameters(target), action.get_terminal(),
+            target == "root", action.get_prior())
+        np.testing.assert_allclose(row[state.size:], expected)
 
 
-def test_residual_policy_is_optional_and_validated():
+def test_a_policy_of_the_wrong_shape_is_refused_and_one_can_be_removed():
     problem, _a, _b = _linear_fit_problem()
-    with pytest.raises(ValueError, match="dimensions"):
-        problem.set_residual_action_policy(_residual_policy(3, [0.0]), ["one", "two"])
+    wrong = json.dumps({"format": "bff.neural_net", "layers": [{
+        "n_in": 3, "n_out": 1, "weight": [0.0] * 3, "bias": [0.0],
+        "activation": "identity"}]})
+    with pytest.raises(ValueError, match="features"):
+        problem.set_action_policy(wrong)
 
-    problem.set_residual_action_policy(_residual_policy(3, [0.0, 0.0]), ["one", "two"])
-    assert problem.get_has_residual_action_policy()
-    problem.clear_residual_action_policy()
-    assert not problem.get_has_residual_action_policy()
+    problem.set_action_policy(_row_policy())
+    problem.clear_action_policy()
+    assert not problem.get_has_action_policy()
     root = problem.get_initial_state()
-    actions = {action.get_key(): action.get_prior() for action in problem.get_actions(root)}
-    assert actions == {"enable-intercept": 0.9, "stop": 0.1}
+    assert _priors(problem, root) == {"enable-intercept": 0.9, "stop": 0.1}
 
 
-def test_residual_policy_only_reallocates_among_available_actions():
-    """A key the state does not offer takes no mass; the declared share holds."""
-    problem, _a, _b = _linear_fit_problem()
-    # "elsewhere" is not an action of the root; with only one available
-    # action named, the policy has nothing to reallocate between.
-    problem.set_residual_action_policy(
-        _residual_policy(4, [-5.0, 5.0]), ["enable-intercept", "elsewhere"]
-    )
-    root = problem.get_initial_state()
-    actions = {action.get_key(): action.get_prior() for action in problem.get_actions(root)}
-
-    assert actions["enable-intercept"] == pytest.approx(0.9)
-    assert actions["stop"] == pytest.approx(0.1)
-
-
-def test_residual_policy_expansion_leaves_the_graph_alone():
+def test_expansion_under_a_policy_leaves_the_graph_alone():
     """Expanding a state must not restore or re-evaluate the fit graph."""
     problem, a, b = _linear_fit_problem()
-    problem.set_residual_action_policy(
-        _residual_policy(5, [0.0, 1.0]), ["enable-intercept", "stop"]
-    )
+    problem.set_action_policy(_favouring(ADDS, 1.0))
     root = problem.get_initial_state()
     a.value = 11.0  # a user edit after scoring; b is fixed and stays put
     before = (a.value, b.value, b.fixed)
@@ -202,25 +206,33 @@ def test_residual_policy_expansion_leaves_the_graph_alone():
     assert (a.value, b.value, b.fixed) == before
 
 
-def test_residual_policy_keeps_declared_priors_for_an_unknown_state():
+def test_an_unscored_state_keeps_its_declared_priors():
     problem, _a, _b = _linear_fit_problem()
-    problem.set_residual_action_policy(
-        _residual_policy(3, [9.0, -9.0]), ["enable-intercept", "stop"]
-    )
+    problem.set_action_policy(_favouring(TERMINAL, 9.0))
     stranger = bff.ModelSearchState("root@unscored", "root", 0.0)
-    actions = {
-        action.get_key(): action.get_prior() for action in problem.get_actions(stranger)
-    }
 
-    assert actions == {"enable-intercept": 0.9, "stop": 0.1}
+    assert _priors(problem, stranger) == {"enable-intercept": 0.9, "stop": 0.1}
 
 
-def test_residual_profile_is_bucket_means_that_skip_non_finite_points():
+def test_the_residual_profile_is_compressed_bucket_z_scores():
     profile = bff.get_residual_profile([1.0, 3.0, float("nan"), 5.0, -2.0, -4.0], 3)
-    assert list(profile) == pytest.approx([2.0, 5.0, -3.0])
+    expected = np.arcsinh([4.0 / np.sqrt(2), 5.0, -6.0 / np.sqrt(2)])
+    assert list(profile) == pytest.approx(list(expected))
     assert list(bff.get_residual_profile([], 4)) == [0.0] * 4
     with pytest.raises(ValueError):
         bff.get_residual_profile([1.0], 0)
+
+
+def test_state_features_see_structure_in_a_residual():
+    rng = np.random.default_rng(1)
+    white = rng.normal(size=400)
+    trend = np.sin(np.linspace(0, 3 * np.pi, 400)) * 2 + 0.3 * white
+    s = bff.get_policy_state_width()
+    w, t = (np.asarray(bff.get_policy_state_features(list(r), 2)) for r in (white, trend))
+    assert w.size == t.size == s
+    lag, runs = 33, 34  # after the 32 profile bins and log10 chi2r
+    assert t[lag] > 0.8 > abs(w[lag])
+    assert t[runs] < -2.0 < w[runs]
 
 
 def test_live_fit_adapter_caches_masks_and_activates_the_winner():

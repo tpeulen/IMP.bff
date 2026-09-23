@@ -21,6 +21,7 @@
 #include <IMP/bff/MaxEntSpectrum.h>
 #include <IMP/bff/GraphExpression.h>
 #include <IMP/bff/PhotophysicsAnisotropySpectrumNode.h>
+#include <IMP/bff/KineticSchemeNode.h>
 #include <IMP/bff/PhotophysicsLifetimeSpectrumNode.h>
 #include <IMP/bff/PhotophysicsTransferKineticsNode.h>
 #include <IMP/bff/PolymerDistances.h>
@@ -73,6 +74,7 @@ void install_builtin_types(FactoryMap& factories) {
   factories["MaxEntSpectrum"] = plain<MaxEntSpectrum>;
   factories["PhotophysicsLifetimeSpectrumNode"] =
       plain<PhotophysicsLifetimeSpectrumNode>;
+  factories["KineticSchemeNode"] = plain<KineticSchemeNode>;
   factories["PhotophysicsTransferKineticsNode"] =
       with_ports<PhotophysicsTransferKineticsNode>;
   factories["PhotophysicsAnisotropySpectrumNode"] =
@@ -102,6 +104,7 @@ const int registered_graph_nodes = [] {
     {"TabulatedDistances", R"JSON({"label": "Tabulated distance distributions", "summary": "Given distance distributions on a common axis, mixed by fractions.", "description": "", "params_schema": {}, "api": ["TabulatedDistances"], "factory": "GraphNodeRegistry.create"})JSON"},
     {"SpectrumGrid", R"JSON({"label": "Fixed spectrum grid", "summary": "A fixed grid as a spectrum of unit amplitudes.", "description": "", "params_schema": {}, "api": ["SpectrumGrid"], "factory": "GraphNodeRegistry.create"})JSON"},
     {"MaxEntSpectrum", R"JSON({"label": "Maximum-entropy spectrum", "summary": "Maximum-entropy amplitudes over a decay basis.", "description": "", "params_schema": {}, "api": ["MaxEntSpectrum"], "factory": "GraphNodeRegistry.create"})JSON"},
+    {"KineticSchemeNode", R"JSON({"label": "Kinetic scheme", "summary": "A chain of interconverting states: stationary populations as a lifetime spectrum for TCSPC, and the kinetic correlation factor for FCS.", "description": "", "params_schema": {}, "api": ["KineticSchemeNode"], "factory": "GraphNodeRegistry.create"})JSON"},
     {"PhotophysicsLifetimeSpectrumNode", R"JSON({"label": "Lifetime spectrum", "summary": "Amplitudes and lifetimes of each species as an interleaved lifetime spectrum.", "description": "", "params_schema": {}, "api": ["PhotophysicsLifetimeSpectrumNode"], "factory": "GraphNodeRegistry.create"})JSON"},
     {"PhotophysicsTransferKineticsNode", R"JSON({"label": "Transfer kinetics", "summary": "Energy-transfer kinetics between two chromophores.", "description": "", "params_schema": {}, "api": ["PhotophysicsTransferKineticsNode"], "factory": "GraphNodeRegistry.create"})JSON"},
     {"PhotophysicsAnisotropySpectrumNode", R"JSON({"label": "Anisotropy spectrum", "summary": "A lifetime spectrum split into parallel and perpendicular detection with r0, g, l1, l2 and rotational correlation times.", "description": "", "params_schema": {}, "api": ["PhotophysicsAnisotropySpectrumNode"], "factory": "GraphNodeRegistry.create"})JSON"},

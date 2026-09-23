@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
-#ifndef TTTRLIB_MLPCORE_H
-#define TTTRLIB_MLPCORE_H
+#ifndef IMPBFF_INTERNAL_MLPCORE_H
+#define IMPBFF_INTERNAL_MLPCORE_H
 
 // Validation: A/B-TESTED 2026-08-19 -- forward pass vs sklearn MLPRegressor weights (1e-10,
 //   test/python/test_neural_net.py); every gradient (parameters, inputs, tangents, orders 0-2)
@@ -16,14 +16,9 @@
 // respect to the weights by plain backpropagation.
 //
 // Header-only and std-only on purpose. `NeuralNet` (NeuralNet.h) is the
-// library-facing shell -- training with Adam, JSON round trip, the registry
-// entry, standard scalers -- and it delegates every derivative to this file.
-// imp.bff carries a verbatim copy of this header under its `internal/`
-// directory (the way pcg and nlohmann/json are vendored there) so that a
-// network trained here can be evaluated and differentiated inside a coordinate-
-// space solver without linking tttrlib. Keep this file free of anything that
-// would make that copy diverge: no Mat.h, no json, no registry, no OpenMP
-// beyond a `simd` hint that compiles to nothing without -fopenmp.
+// library-facing shell and delegates every derivative to this file. bff owns
+// it: it began as tttrlib's MlpCore.h and is no longer kept in step with it,
+// so a change here is a bff change and nothing else has to follow.
 //
 // Layout conventions, shared with sklearn's `coefs_` after a transpose:
 //   * `DenseLayer::weight` is row-major `n_out x n_in`, `weight[o*n_in + i]`.
@@ -52,7 +47,7 @@
 // `MlpModel`; `model_predict` / `model_backward` apply the scalers and their
 // chain rule so a caller stays in physical units, and `model_from_json` /
 // `model_to_json` (templated on the JSON type, so still std-only here) read
-// and write the `tttrlib.neural_net` document. That is the complete contract
+// and write the `bff.neural_net` document. That is the complete contract
 // a consumer needs to take a network trained by `NeuralNet::train` or
 // scikit-learn and evaluate and differentiate it elsewhere.
 
@@ -67,17 +62,15 @@
 #include <string>
 #include <vector>
 
-#ifndef TTTRLIB_MLPCORE_NAMESPACE
-#define TTTRLIB_MLPCORE_NAMESPACE tttrlib
-#endif
-
 #if defined(_OPENMP) && !defined(_MSC_VER)
-#define TTTRLIB_MLPCORE_SIMD _Pragma("omp simd")
+#define IMPBFF_MLPCORE_SIMD _Pragma("omp simd")
 #else
-#define TTTRLIB_MLPCORE_SIMD
+#define IMPBFF_MLPCORE_SIMD
 #endif
 
-namespace TTTRLIB_MLPCORE_NAMESPACE {
+namespace IMP {
+namespace bff {
+namespace internal {
 
 /// Elementwise nonlinearity applied after a dense layer.
 ///
@@ -183,7 +176,7 @@ struct StandardScaler {
 };
 
 /// A complete model: the layers plus the input and output scalers a trained
-/// network carries. This is what a `tttrlib.neural_net` JSON document holds,
+/// network carries. This is what a `bff.neural_net` JSON document holds,
 /// and what mlpcore's scaler-aware entry points below operate on -- so a
 /// network trained by `NeuralNet::train` (or scikit-learn) evaluates and
 /// differentiates identically wherever this header is compiled.
@@ -241,7 +234,7 @@ namespace mlpcore {
 // ---------------------------------------------------------------------------
 
 /// `f(z)` for any scalar type providing `exp`, `log`, `tanh`, `sin` and
-/// comparison with `double` (double, and tttrlib::Dual<G>).
+/// comparison with `double` (double, and a forward-mode dual number).
 ///
 /// The sigmoid is written as `1/(1+exp(-z))` -- the same expression Mat.h's
 /// `sigmoid_inplace` uses -- so a network evaluated here and one evaluated by
@@ -336,7 +329,7 @@ inline void act_apply(const double* z, double* a, size_t n, Activation act) {
             if (a != z) std::copy(z, z + n, a);
             return;
         case Activation::ReLU:
-            TTTRLIB_MLPCORE_SIMD
+            IMPBFF_MLPCORE_SIMD
             for (size_t i = 0; i < n; ++i) a[i] = (z[i] > 0.0) ? z[i] : 0.0;
             return;
         case Activation::Tanh:
@@ -370,32 +363,32 @@ inline void act_derivs_n(const double* z, const double* a, size_t n, Activation 
             if (order >= 2) std::fill(f3, f3 + n, 0.0);
             return;
         case Activation::ReLU:
-            TTTRLIB_MLPCORE_SIMD
+            IMPBFF_MLPCORE_SIMD
             for (size_t i = 0; i < n; ++i) f1[i] = (z[i] > 0.0) ? 1.0 : 0.0;
             if (order >= 1) std::fill(f2, f2 + n, 0.0);
             if (order >= 2) std::fill(f3, f3 + n, 0.0);
             return;
         case Activation::Tanh:
-            TTTRLIB_MLPCORE_SIMD
+            IMPBFF_MLPCORE_SIMD
             for (size_t i = 0; i < n; ++i) f1[i] = 1.0 - a[i] * a[i];
             if (order >= 1) {
-                TTTRLIB_MLPCORE_SIMD
+                IMPBFF_MLPCORE_SIMD
                 for (size_t i = 0; i < n; ++i) f2[i] = -2.0 * a[i] * f1[i];
             }
             if (order >= 2) {
-                TTTRLIB_MLPCORE_SIMD
+                IMPBFF_MLPCORE_SIMD
                 for (size_t i = 0; i < n; ++i) f3[i] = -2.0 * f1[i] * (1.0 - 3.0 * a[i] * a[i]);
             }
             return;
         case Activation::Sigmoid:
-            TTTRLIB_MLPCORE_SIMD
+            IMPBFF_MLPCORE_SIMD
             for (size_t i = 0; i < n; ++i) f1[i] = a[i] * (1.0 - a[i]);
             if (order >= 1) {
-                TTTRLIB_MLPCORE_SIMD
+                IMPBFF_MLPCORE_SIMD
                 for (size_t i = 0; i < n; ++i) f2[i] = f1[i] * (1.0 - 2.0 * a[i]);
             }
             if (order >= 2) {
-                TTTRLIB_MLPCORE_SIMD
+                IMPBFF_MLPCORE_SIMD
                 for (size_t i = 0; i < n; ++i) f3[i] = f2[i] * (1.0 - 2.0 * a[i]) - 2.0 * f1[i] * f1[i];
             }
             return;
@@ -431,7 +424,7 @@ struct PortableGemm {
             for (int k = 0; k < K; ++k) {
                 const double aik = arow[k];
                 const double* brow = B + static_cast<size_t>(k) * N;
-                TTTRLIB_MLPCORE_SIMD
+                IMPBFF_MLPCORE_SIMD
                 for (int j = 0; j < N; ++j) crow[j] += aik * brow[j];
             }
         }
@@ -443,7 +436,7 @@ struct PortableGemm {
             for (int j = 0; j < N; ++j) {
                 const double* brow = B + static_cast<size_t>(j) * K;
                 double s = 0.0;
-                TTTRLIB_MLPCORE_SIMD
+                IMPBFF_MLPCORE_SIMD
                 for (int k = 0; k < K; ++k) s += arow[k] * brow[k];
                 crow[j] = s;
             }
@@ -457,7 +450,7 @@ struct PortableGemm {
             for (int i = 0; i < M; ++i) {
                 const double aki = arow[i];
                 double* crow = C + static_cast<size_t>(i) * N;
-                TTTRLIB_MLPCORE_SIMD
+                IMPBFF_MLPCORE_SIMD
                 for (int j = 0; j < N; ++j) crow[j] += aki * brow[j];
             }
         }
@@ -579,7 +572,7 @@ inline void forward(const std::vector<DenseLayer>& layers,
         Gemm::nt(n_rows, ly.n_out, ly.n_in, ws.a[l].data(), ly.weight.data(), ws.z[l].data());
         for (int r = 0; r < n_rows; ++r) {
             double* zr = ws.z[l].data() + static_cast<size_t>(r) * ly.n_out;
-            TTTRLIB_MLPCORE_SIMD
+            IMPBFF_MLPCORE_SIMD
             for (int o = 0; o < ly.n_out; ++o) zr[o] += ly.bias[static_cast<size_t>(o)];
         }
         // a0 = f(z0)
@@ -605,13 +598,13 @@ inline void forward(const std::vector<DenseLayer>& layers,
             const double* f1 = ws.f1.data();
             const double* z1 = ws.z1[l].data();
             double* a1 = ws.a1[l + 1].data();
-            TTTRLIB_MLPCORE_SIMD
+            IMPBFF_MLPCORE_SIMD
             for (size_t i = 0; i < nz; ++i) a1[i] = f1[i] * z1[i];
             if (order >= 2) {
                 const double* f2 = ws.f2.data();
                 const double* z2 = ws.z2[l].data();
                 double* a2 = ws.a2[l + 1].data();
-                TTTRLIB_MLPCORE_SIMD
+                IMPBFF_MLPCORE_SIMD
                 for (size_t i = 0; i < nz; ++i) a2[i] = f2[i] * z1[i] * z1[i] + f1[i] * z2[i];
             }
         }
@@ -694,14 +687,14 @@ inline void backward(const std::vector<DenseLayer>& layers, const Workspace& ws,
             const double* A0 = abar0.data();
             double* Z0 = zbar0.data();
             if (order == 0) {
-                TTTRLIB_MLPCORE_SIMD
+                IMPBFF_MLPCORE_SIMD
                 for (size_t i = 0; i < nz; ++i) Z0[i] = A0[i] * F1[i];
             } else if (order == 1) {
                 const double* F2 = f2.data();
                 const double* A1 = abar1.data();
                 const double* z1 = ws.z1[l].data();
                 double* Z1 = zbar1.data();
-                TTTRLIB_MLPCORE_SIMD
+                IMPBFF_MLPCORE_SIMD
                 for (size_t i = 0; i < nz; ++i) {
                     Z1[i] = A1[i] * F1[i];
                     Z0[i] = A0[i] * F1[i] + A1[i] * F2[i] * z1[i];
@@ -715,7 +708,7 @@ inline void backward(const std::vector<DenseLayer>& layers, const Workspace& ws,
                 const double* z2 = ws.z2[l].data();
                 double* Z1 = zbar1.data();
                 double* Z2 = zbar2.data();
-                TTTRLIB_MLPCORE_SIMD
+                IMPBFF_MLPCORE_SIMD
                 for (size_t i = 0; i < nz; ++i) {
                     Z2[i] = A2[i] * F1[i];
                     Z1[i] = A1[i] * F1[i] + A2[i] * 2.0 * F2[i] * z1[i];
@@ -740,7 +733,7 @@ inline void backward(const std::vector<DenseLayer>& layers, const Workspace& ws,
         }
         for (int r = 0; r < n_rows; ++r) {
             const double* zr = zbar0.data() + static_cast<size_t>(r) * ly.n_out;
-            TTTRLIB_MLPCORE_SIMD
+            IMPBFF_MLPCORE_SIMD
             for (int o = 0; o < ly.n_out; ++o) db[o] += zr[o];
         }
 
@@ -922,14 +915,14 @@ inline void model_backward(const MlpModel& m, const double* X, int n_rows, const
 // JSON round trip, templated on the JSON type
 // ---------------------------------------------------------------------------
 //
-// The document is the `tttrlib.neural_net` format, version 1:
-//   { "format": "tttrlib.neural_net", "version": 1,
+// The document is the `bff.neural_net` format, version 1:
+//   { "format": "bff.neural_net", "version": 1,
 //     "x_scaler": {"mean": [...], "scale": [...]} | {},
 //     "y_scaler": {...},
 //     "layers": [ {"n_in", "n_out", "activation", "weight" (row-major n_out x n_in), "bias"}, ... ] }
 // `Json` is any nlohmann::json-compatible type (`contains`, `at`, `is_array`,
 // `is_number`, `get<T>()`, `push_back`, `Json::array()`, `Json::object()`).
-// Templating on it keeps this header std-only while both tttrlib and imp.bff
+// Templating on it keeps this header std-only while bff
 // deserialise with the nlohmann copy they already vendor.
 
 template <class Json>
@@ -968,13 +961,13 @@ inline Json scaler_to_json(const StandardScaler& s) {
     return j;
 }
 
-/// Parse a `tttrlib.neural_net` document; validates before returning.
+/// Parse a `bff.neural_net` document; validates before returning.
 template <class Json>
 inline MlpModel model_from_json(const Json& j) {
-    if (j.contains("format") && j.at("format").template get<std::string>() != "tttrlib.neural_net")
+    if (j.contains("format") && j.at("format").template get<std::string>() != "bff.neural_net")
         throw std::runtime_error("NeuralNet: unexpected format '" +
                                  j.at("format").template get<std::string>() +
-                                 "', expected 'tttrlib.neural_net'");
+                                 "', expected 'bff.neural_net'");
     if (!j.contains("layers"))
         throw std::runtime_error("NeuralNet: document has no 'layers' array");
     MlpModel m;
@@ -994,11 +987,11 @@ inline MlpModel model_from_json(const Json& j) {
     return m;
 }
 
-/// Serialise to a `tttrlib.neural_net` document.
+/// Serialise to a `bff.neural_net` document.
 template <class Json>
 inline Json model_to_json(const MlpModel& m) {
     Json j = Json::object();
-    j["format"] = "tttrlib.neural_net";
+    j["format"] = "bff.neural_net";
     j["version"] = 1;
     j["x_scaler"] = scaler_to_json<Json>(m.x_scaler);
     j["y_scaler"] = scaler_to_json<Json>(m.y_scaler);
@@ -1435,8 +1428,10 @@ inline MlpModel model_from_safetensors(const unsigned char* data, size_t n,
 
 }  // namespace mlpcore
 #endif  // SWIG
-}  // namespace TTTRLIB_MLPCORE_NAMESPACE
+}  // namespace internal
+}  // namespace bff
+}  // namespace IMP
 
-#undef TTTRLIB_MLPCORE_SIMD
+#undef IMPBFF_MLPCORE_SIMD
 
-#endif  // TTTRLIB_MLPCORE_H
+#endif  // IMPBFF_INTERNAL_MLPCORE_H

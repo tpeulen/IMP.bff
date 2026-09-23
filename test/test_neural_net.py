@@ -29,7 +29,7 @@ def _model(widths, activations, seed=0):
             "bias": rng.normal(0.0, 0.1, n_out).tolist(),
             "activation": activations[k],
         })
-    return json.dumps({"format": "tttrlib.neural_net", "layers": layers})
+    return json.dumps({"format": "bff.neural_net", "layers": layers})
 
 
 def _numpy_forward(spec, X):
@@ -64,7 +64,7 @@ def test_it_refuses_a_document_that_is_not_one():
     with pytest.raises(ValueError):
         IMP.bff.NeuralNet("{not json")
     with pytest.raises(ValueError):
-        IMP.bff.NeuralNet(json.dumps({"format": "tttrlib.neural_net", "layers": []}))
+        IMP.bff.NeuralNet(json.dumps({"format": "bff.neural_net", "layers": []}))
     # layers that do not chain
     bad = json.loads(_model([3, 8, 2], ["relu", "identity"]))
     bad["layers"][1]["n_in"] = 7

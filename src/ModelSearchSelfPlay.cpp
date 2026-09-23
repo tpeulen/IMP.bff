@@ -11,16 +11,14 @@
 #include <IMP/bff/GraphNode.h>
 #include <IMP/bff/GraphPort.h>
 #include <IMP/bff/NeuralNet.h>
-// The vendored kernels are placed in this module's namespace, as
-// NeuralNet.cpp places them -- one copy, one home, and the unity build
-// cannot end up with two opinions about where mlpcore lives.
-#define TTTRLIB_MLPCORE_NAMESPACE IMP::bff::internal
+#include <IMP/bff/PhotonExperiment.h>
 #include <IMP/bff/internal/MlpCore.h>
 #include <IMP/bff/internal/json.h>
 
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <deque>
 #include <map>
 #include <limits>
 #include <random>
@@ -35,7 +33,6 @@ namespace {
 const int kProfile = 16;
 //! Plus its total and its peak position, which carry the scale and the shape.
 const int kPerDataset = kProfile + 2;
-const int kPolicyProfile = 32;
 
 bool is_log_scaled(double lower, double upper, double reference);
 
@@ -161,15 +158,7 @@ struct ModelSearchSelfPlay::Impl {
   std::vector<double> lower;
   std::vector<double> upper;
   std::vector<double> error;
-  int policy_episodes = 0;
-  int policy_features = 0;
-  std::vector<double> policy_x;
-  std::vector<double> policy_y;
-  std::vector<std::string> policy_actions;
-  double policy_loss = 0.0;
-  int policy_validation_rows = 0;
-  double policy_validation_loss = std::numeric_limits<double>::quiet_NaN();
-  double policy_validation_accuracy = std::numeric_limits<double>::quiet_NaN();
+  bool photons = false;
 
   explicit Impl(const ModelSearchSpec& s) : spec(s) {}
 };
@@ -353,9 +342,9 @@ std::string ModelSearchSelfPlay::train(const std::vector<int>& hidden,
 
   std::vector<double> flat;
   internal::mlpcore::flatten(model.layers, flat);
-  // Adam, the one implementation (tttrlib's AdamUpdate.h, vendored): state
+  // Adam, the one implementation (internal/AdamUpdate.h): state
   // reset once, one step per epoch -- its step count is the epoch.
-  tttrlib::AdamState adam;
+  internal::AdamState adam;
   adam.reset(flat.size());
   std::vector<double> prediction, dparams, dX, dV, residual;
   const int rows = impl_->episodes;
@@ -369,7 +358,7 @@ std::string ModelSearchSelfPlay::train(const std::vector<int>& hidden,
     }
     internal::mlpcore::model_backward(model, impl_->features.data(), rows, nullptr,
                              residual.data(), nullptr, nullptr, dparams, dX, dV);
-    tttrlib::adam_update(flat.data(), dparams.data(), flat.size(), adam, learning_rate);
+    internal::adam_update(flat.data(), dparams.data(), flat.size(), adam, learning_rate);
     internal::mlpcore::unflatten(model.layers, flat.data(), flat.size());
   }
 
@@ -423,264 +412,138 @@ std::vector<double> ModelSearchSelfPlay::propose(
   return proposal;
 }
 
-void ModelSearchSelfPlay::generate_policy(int episodes, unsigned int seed) {
+void ModelSearchSelfPlay::set_photon_simulation(bool value) {
+  if (value && !PhotonExperiment::get_available()) {
+    throw std::domain_error(
+        "self play: photon simulation needs a bff build linked with TTTRLib");
+  }
+  impl_->photons = value;
+}
+bool ModelSearchSelfPlay::get_photon_simulation() const { return impl_->photons; }
+
+ModelSearchSpec ModelSearchSelfPlay::simulate(const std::string& structure_key,
+                                              unsigned int seed) const {
+  std::mt19937 rng(seed);
+  const std::shared_ptr<FittingModelSearchProblem> generator = impl_->spec.build();
+  generator->activate_structure(structure_key);
+  sample_ports(generator, impl_->spread, rng);
+  ModelSearchSpec simulated(impl_->spec);
+  for (const std::string& name : generator->get_structure_curve_datasets(structure_key)) {
+    FitDataset measurement = impl_->spec.get_dataset(name);
+    std::vector<double> values = generator->get_structure_output(
+        structure_key, generator->get_structure_curve_node(structure_key, name));
+    if (impl_->photons && measurement.get_noise_family() == FIT_NOISE_FAMILY_POISSON) {
+      values = PhotonExperiment::record_pattern(values, rng());
+    } else {
+      add_matching_noise(measurement, values, impl_->poisson, rng);
+    }
+    measurement.replace_values(values);
+    simulated.set_dataset(name, measurement);
+  }
+  return simulated;
+}
+
+ModelSearchPolicyData ModelSearchSelfPlay::generate_policy(int episodes,
+                                                           unsigned int seed) {
   if (episodes <= 0) throw std::domain_error("self play: no policy episodes to play");
-  std::shared_ptr<FittingModelSearchProblem> template_problem =
-      impl_->spec.build();
-  struct Transition {
-    std::string source, action, target;
-    std::vector<std::string> datasets;
-  };
-  std::vector<Transition> transitions;
-  for (const std::string& source : template_problem->get_structure_keys()) {
-    const std::vector<std::string> source_data =
-        template_problem->get_structure_curve_datasets(source);
-    ModelSearchState state(source, source, 0.0);
-    const ModelSearchActions actions = template_problem->get_actions(state);
-    for (std::size_t i = 0; i < actions.size(); ++i) {
-      if (source_data.empty()) continue;
-      // Stopping is a decision too. Its episode fits the right topology to
-      // its own data, so the policy sees what an adequate residual looks like.
-      if (actions[i].get_terminal()) {
-        transitions.push_back({source, actions[i].get_key(), source, source_data});
-        continue;
+  const std::shared_ptr<FittingModelSearchProblem> layout = impl_->spec.build();
+  const std::vector<std::string> keys = layout->get_structure_keys();
+
+  // The declared moves out of every structure, and where each leads first.
+  std::map<std::string, ModelSearchActions> moves;
+  std::map<std::string, int> terminal;
+  for (const std::string& key : keys) {
+    moves[key] = layout->get_actions(ModelSearchState(key, key, 0.0));
+    for (std::size_t i = 0; i < moves[key].size(); ++i) {
+      if (moves[key][i].get_terminal() && !terminal.count(key)) {
+        terminal[key] = static_cast<int>(i);
       }
-      if (actions[i].get_predicted_state_key() == source) continue;
-      const std::vector<std::string> target_data =
-          template_problem->get_structure_curve_datasets(
-              actions[i].get_predicted_state_key());
-      if (source_data != target_data) continue;
-      transitions.push_back(
-          {source, actions[i].get_key(), actions[i].get_predicted_state_key(), source_data});
     }
   }
-  if (transitions.empty()) {
-    throw std::domain_error("self play: no compatible structural transitions to learn");
-  }
-  impl_->policy_episodes = 0;
-  impl_->policy_features = kPolicyProfile;
-  impl_->policy_x.clear();
-  impl_->policy_y.clear();
-  impl_->policy_actions.clear();
-  std::set<std::string> seen_actions;
-  for (std::size_t i = 0; i < transitions.size(); ++i) {
-    if (seen_actions.insert(transitions[i].action).second) {
-      impl_->policy_actions.push_back(transitions[i].action);
+  //! first[source][target]: the move that starts a shortest path there.
+  std::map<std::string, std::map<std::string, int> > first;
+  for (const std::string& source : keys) {
+    std::map<std::string, int>& reach = first[source];
+    std::deque<std::pair<std::string, int> > frontier;
+    std::set<std::string> seen;
+    seen.insert(source);
+    const ModelSearchActions& out = moves[source];
+    for (std::size_t i = 0; i < out.size(); ++i) {
+      const std::string& next = out[i].get_predicted_state_key();
+      if (out[i].get_terminal() || seen.count(next)) continue;
+      seen.insert(next);
+      reach[next] = static_cast<int>(i);
+      frontier.push_back(std::make_pair(next, static_cast<int>(i)));
     }
-  }
-  std::map<std::string, int> action_index;
-  // An action reachable from many parents must not dominate the labels, so
-  // an episode draws its action uniformly and only then one of its sources.
-  std::vector<std::vector<std::size_t> > by_action(impl_->policy_actions.size());
-  for (std::size_t i = 0; i < impl_->policy_actions.size(); ++i) {
-    action_index[impl_->policy_actions[i]] = static_cast<int>(i);
-  }
-  for (std::size_t i = 0; i < transitions.size(); ++i) {
-    by_action[static_cast<std::size_t>(action_index[transitions[i].action])].push_back(i);
+    while (!frontier.empty()) {
+      const std::pair<std::string, int> at = frontier.front();
+      frontier.pop_front();
+      const ModelSearchActions& onward = moves[at.first];
+      for (std::size_t i = 0; i < onward.size(); ++i) {
+        const std::string& next = onward[i].get_predicted_state_key();
+        if (onward[i].get_terminal() || seen.count(next)) continue;
+        seen.insert(next);
+        reach[next] = at.second;
+        frontier.push_back(std::make_pair(next, at.second));
+      }
+    }
   }
 
+  // A pair is playable when the generator produces every curve the starting
+  // structure is fitted to, and there is a right move to label.
+  std::map<std::string, std::vector<std::string> > sources_of;
+  for (const std::string& target : keys) {
+    const std::vector<std::string> produced = layout->get_structure_curve_datasets(target);
+    const std::set<std::string> have(produced.begin(), produced.end());
+    for (const std::string& source : keys) {
+      const bool labelled = source == target ? terminal.count(source) != 0
+                                             : first[source].count(target) != 0;
+      if (!labelled) continue;
+      const std::vector<std::string> needed = layout->get_structure_curve_datasets(source);
+      if (needed.empty()) continue;
+      bool covered = true;
+      for (const std::string& name : needed) covered = covered && have.count(name) != 0;
+      if (covered) sources_of[target].push_back(source);
+    }
+  }
+  std::vector<std::string> targets;
+  for (const auto& entry : sources_of) targets.push_back(entry.first);
+  if (targets.empty()) {
+    throw std::domain_error("self play: no structure can be reached and labelled");
+  }
+
+  ModelSearchPolicyData data;
+  const std::string family = impl_->spec.get_family();
   std::mt19937 rng(seed);
-  std::uniform_int_distribution<int> pick_action(
-      0, static_cast<int>(by_action.size()) - 1);
   for (int episode = 0; episode < episodes; ++episode) {
-    const std::vector<std::size_t>& sources =
-        by_action[static_cast<std::size_t>(pick_action(rng))];
-    std::uniform_int_distribution<int> pick_source(
-        0, static_cast<int>(sources.size()) - 1);
-    const Transition& move =
-        transitions[sources[static_cast<std::size_t>(pick_source(rng))]];
-    std::shared_ptr<FittingModelSearchProblem> generator = impl_->spec.build();
-    generator->activate_structure(move.target);
-    sample_ports(generator, impl_->spread, rng);
-    ModelSearchSpec simulated(impl_->spec);
-    for (std::size_t d = 0; d < move.datasets.size(); ++d) {
-      FitDataset data = impl_->spec.get_dataset(move.datasets[d]);
-      std::vector<double> values = generator->get_structure_output(
-          move.target, generator->get_structure_curve_node(move.target, move.datasets[d]));
-      add_matching_noise(data, values, impl_->poisson, rng);
-      data.replace_values(values);
-      simulated.set_dataset(move.datasets[d], data);
-    }
-    std::shared_ptr<FittingModelSearchProblem> fitted = simulated.build();
-    fitted->activate_structure(move.source);
-    const int status = fitted->fit_active_structure();
-    if (status < 1 || status > 4) continue;
-    const std::vector<double> profile =
-        get_residual_profile(fitted->get_active_residual(), kPolicyProfile);
-    impl_->policy_x.insert(impl_->policy_x.end(), profile.begin(), profile.end());
-    for (std::size_t a = 0; a < impl_->policy_actions.size(); ++a) {
-      impl_->policy_y.push_back(
-          static_cast<int>(a) == action_index[move.action] ? 1.0 : 0.0);
-    }
-    ++impl_->policy_episodes;
-  }
-  if (impl_->policy_episodes == 0) {
-    throw std::domain_error("self play: no simulated parent fit converged");
-  }
-}
+    const std::string& target = targets[std::uniform_int_distribution<std::size_t>(
+        0, targets.size() - 1)(rng)];
+    const std::vector<std::string>& candidates = sources_of[target];
+    const std::string& source = candidates[std::uniform_int_distribution<std::size_t>(
+        0, candidates.size() - 1)(rng)];
 
-int ModelSearchSelfPlay::get_number_of_policy_episodes() const {
-  return impl_->policy_episodes;
-}
-int ModelSearchSelfPlay::get_number_of_policy_features() const {
-  return impl_->policy_features;
-}
-std::vector<std::string> ModelSearchSelfPlay::get_policy_action_keys() const {
-  return impl_->policy_actions;
-}
-const std::vector<double>& ModelSearchSelfPlay::get_policy_features() const {
-  return impl_->policy_x;
-}
-const std::vector<double>& ModelSearchSelfPlay::get_policy_targets() const {
-  return impl_->policy_y;
-}
-
-namespace {
-
-//! Mean cross-entropy and top-1 accuracy of softmax logits against one-hot rows.
-std::pair<double, double> softmax_scores(const std::vector<double>& logits,
-                                         const std::vector<double>& targets,
-                                         int rows, int n_out) {
-  double loss = 0.0;
-  int correct = 0;
-  for (int row = 0; row < rows; ++row) {
-    const double* z = &logits[static_cast<std::size_t>(row) * n_out];
-    const double* y = &targets[static_cast<std::size_t>(row) * n_out];
-    const int best = static_cast<int>(std::max_element(z, z + n_out) - z);
-    const double maximum = z[best];
-    double total = 0.0;
-    for (int col = 0; col < n_out; ++col) total += std::exp(z[col] - maximum);
-    for (int col = 0; col < n_out; ++col) {
-      if (y[col] > 0.0) {
-        loss -= y[col] * (z[col] - maximum - std::log(total));
-        if (col == best) ++correct;
-      }
+    const ModelSearchActions& offered = moves[source];
+    // One move is no decision; there is nothing in it to learn.
+    if (offered.size() < 2) continue;
+    const unsigned int simulation_seed = rng();
+    try {
+      const ModelSearchSpec simulated = simulate(target, simulation_seed);
+      const std::shared_ptr<FittingModelSearchProblem> fitted = simulated.build();
+      fitted->activate_structure(source);
+      const int status = fitted->fit_active_structure();
+      if (status < 1 || status > 4) continue;
+      std::vector<double> priors;
+      for (std::size_t i = 0; i < offered.size(); ++i) priors.push_back(offered[i].get_prior());
+      const int label = source == target ? terminal[source] : first[source][target];
+      data.add_episode(fitted->get_policy_rows(source, fitted->get_active_residual(), offered),
+                       priors, label, family, source == target);
+    } catch (const std::exception&) {
+      // A parameter draw the model cannot evaluate is not a measurement
+      // anyone could have taken; like a fit that does not converge, skip it.
+      continue;
     }
   }
-  return std::make_pair(loss / rows, static_cast<double>(correct) / rows);
-}
-
-}  // namespace
-
-std::string ModelSearchSelfPlay::train_policy(
-    const std::vector<int>& hidden, int epochs, double learning_rate,
-    unsigned int seed, double validation_fraction) {
-  if (impl_->policy_episodes <= 0 || epochs <= 0 || !(learning_rate > 0.0)) {
-    throw std::domain_error("self play: policy needs episodes, epochs and learning rate");
-  }
-  if (!(validation_fraction >= 0.0) || !(validation_fraction < 1.0)) {
-    throw std::domain_error("self play: validation fraction must lie in [0, 1)");
-  }
-  const int n_in = impl_->policy_features;
-  const int n_out = static_cast<int>(impl_->policy_actions.size());
-  std::mt19937 rng(seed);
-
-  std::vector<int> order(static_cast<std::size_t>(impl_->policy_episodes));
-  for (std::size_t i = 0; i < order.size(); ++i) order[i] = static_cast<int>(i);
-  std::shuffle(order.begin(), order.end(), rng);
-  const int n_valid = static_cast<int>(validation_fraction * impl_->policy_episodes);
-  const int n_train = impl_->policy_episodes - n_valid;
-  if (n_train <= 0) throw std::domain_error("self play: no policy episodes left to train on");
-  std::vector<double> train_x, train_y, valid_x, valid_y;
-  for (int k = 0; k < impl_->policy_episodes; ++k) {
-    const std::size_t row = static_cast<std::size_t>(order[static_cast<std::size_t>(k)]);
-    std::vector<double>& x = k < n_train ? train_x : valid_x;
-    std::vector<double>& y = k < n_train ? train_y : valid_y;
-    x.insert(x.end(), impl_->policy_x.begin() + row * n_in,
-             impl_->policy_x.begin() + (row + 1) * n_in);
-    y.insert(y.end(), impl_->policy_y.begin() + row * n_out,
-             impl_->policy_y.begin() + (row + 1) * n_out);
-  }
-
-  internal::MlpModel model;
-  int previous = n_in;
-  std::vector<int> widths(hidden);
-  widths.push_back(n_out);
-  for (std::size_t l = 0; l < widths.size(); ++l) {
-    internal::DenseLayer layer;
-    layer.n_in = previous;
-    layer.n_out = widths[l];
-    layer.activation = l + 1 == widths.size() ? internal::Activation::Identity
-                                                : internal::Activation::Tanh;
-    const double limit = std::sqrt(6.0 / (layer.n_in + layer.n_out));
-    std::uniform_real_distribution<double> init(-limit, limit);
-    layer.weight.resize(static_cast<std::size_t>(layer.n_in) * layer.n_out);
-    for (double& value : layer.weight) value = init(rng);
-    layer.bias.assign(layer.n_out, 0.0);
-    model.layers.push_back(layer);
-    previous = layer.n_out;
-  }
-  model.x_scaler.mean.assign(n_in, 0.0);
-  model.x_scaler.scale.assign(n_in, 1.0);
-  for (int j = 0; j < n_in; ++j) {
-    double sum = 0.0, variance = 0.0;
-    for (int row = 0; row < n_train; ++row) sum += train_x[row * n_in + j];
-    model.x_scaler.mean[j] = sum / n_train;
-    for (int row = 0; row < n_train; ++row) {
-      const double d = train_x[row * n_in + j] - model.x_scaler.mean[j];
-      variance += d * d;
-    }
-    model.x_scaler.scale[j] = std::sqrt(variance / n_train) + 1e-12;
-  }
-  model.validate();
-  std::vector<double> flat, prediction, dparams, dX, dV, gradient;
-  internal::mlpcore::flatten(model.layers, flat);
-  tttrlib::AdamState adam;
-  adam.reset(flat.size());
-  for (int epoch = 1; epoch <= epochs; ++epoch) {
-    std::vector<double> dy, d2y;
-    internal::mlpcore::model_predict(model, train_x.data(), n_train, 0, nullptr,
-                                     prediction, dy, d2y);
-    gradient.assign(prediction.size(), 0.0);
-    for (int row = 0; row < n_train; ++row) {
-      double maximum = -std::numeric_limits<double>::infinity();
-      for (int col = 0; col < n_out; ++col) maximum = std::max(
-          maximum, prediction[row * n_out + col]);
-      double total = 0.0;
-      for (int col = 0; col < n_out; ++col) {
-        gradient[row * n_out + col] = std::exp(prediction[row * n_out + col] - maximum);
-        total += gradient[row * n_out + col];
-      }
-      for (int col = 0; col < n_out; ++col) {
-        gradient[row * n_out + col] =
-            (gradient[row * n_out + col] / total - train_y[row * n_out + col]) / n_train;
-      }
-    }
-    internal::mlpcore::model_backward(model, train_x.data(), n_train, nullptr,
-                                      gradient.data(), nullptr, nullptr, dparams, dX, dV);
-    tttrlib::adam_update(flat.data(), dparams.data(), flat.size(), adam, learning_rate);
-    internal::mlpcore::unflatten(model.layers, flat.data(), flat.size());
-  }
-  std::vector<double> dy, d2y;
-  internal::mlpcore::model_predict(model, train_x.data(), n_train, 0, nullptr,
-                                   prediction, dy, d2y);
-  impl_->policy_loss = softmax_scores(prediction, train_y, n_train, n_out).first;
-  impl_->policy_validation_rows = n_valid;
-  impl_->policy_validation_loss = std::numeric_limits<double>::quiet_NaN();
-  impl_->policy_validation_accuracy = std::numeric_limits<double>::quiet_NaN();
-  if (n_valid > 0) {
-    internal::mlpcore::model_predict(model, valid_x.data(), n_valid, 0, nullptr,
-                                     prediction, dy, d2y);
-    const std::pair<double, double> scores =
-        softmax_scores(prediction, valid_y, n_valid, n_out);
-    impl_->policy_validation_loss = scores.first;
-    impl_->policy_validation_accuracy = scores.second;
-  }
-  return internal::mlpcore::model_to_json<nlohmann::json>(model).dump();
-}
-
-double ModelSearchSelfPlay::get_policy_training_loss() const {
-  return impl_->policy_loss;
-}
-
-int ModelSearchSelfPlay::get_number_of_policy_validation_episodes() const {
-  return impl_->policy_validation_rows;
-}
-double ModelSearchSelfPlay::get_policy_validation_loss() const {
-  return impl_->policy_validation_loss;
-}
-double ModelSearchSelfPlay::get_policy_validation_accuracy() const {
-  return impl_->policy_validation_accuracy;
+  return data;
 }
 
 IMPBFF_END_NAMESPACE

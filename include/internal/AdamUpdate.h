@@ -3,8 +3,8 @@
  * @brief One Adam step (Kingma & Ba, "Adam: A Method for Stochastic
  *        Optimization", ICLR 2015, Algorithm 1), with its state.
  *
- * Header-only and std-only, so imp.bff carries it as a verbatim copy. The one
- * implementation for every Adam in the stack: network training, the model-search
+ * Header-only and std-only; bff's own, and the one implementation of Adam in
+ * bff: network training, the model-search
  * self-play value model, and a first-order pre-optimiser in front of a
  * Fisher-scoring fit.
  *
@@ -22,14 +22,16 @@
  *
  * Written 2026-09-15.
  */
-#ifndef TTTRLIB_ADAMUPDATE_H
-#define TTTRLIB_ADAMUPDATE_H
+#ifndef IMPBFF_INTERNAL_ADAMUPDATE_H
+#define IMPBFF_INTERNAL_ADAMUPDATE_H
 
 #include <cmath>
 #include <cstddef>
 #include <vector>
 
-namespace tttrlib {
+namespace IMP {
+namespace bff {
+namespace internal {
 
 //! The moments and the step count Adam carries between steps.
 struct AdamState {
@@ -64,6 +66,8 @@ inline void adam_update(double *p, const double *g, std::size_t n, AdamState &st
     }
 }
 
-}  // namespace tttrlib
+}  // namespace internal
+}  // namespace bff
+}  // namespace IMP
 
-#endif  // TTTRLIB_ADAMUPDATE_H
+#endif  // IMPBFF_INTERNAL_ADAMUPDATE_H

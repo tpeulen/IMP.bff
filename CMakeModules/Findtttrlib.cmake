@@ -3,10 +3,10 @@
 # Do not edit - any changes will be lost!
 
 if(DEFINED IMP_NO_TTTRLIB)
- message("tttrlib not found")
+ message("TTTRLib photon simulation not found")
 file(WRITE "${CMAKE_BINARY_DIR}/build_info/tttrlib" "ok=False")
 else(DEFINED IMP_NO_TTTRLIB)
-set(CHECK_COMPILES_BODY "tttrlib::data::ExpressionEngine e; e.compile(\"1+1\");")
+set(CHECK_COMPILES_BODY "std::string s = tttrlib::SimEngine::default_json(); (void)s;")
 
 include(LibFindMacros)
 
@@ -22,14 +22,14 @@ endforeach(pkg)
 
 # Include dir
 find_path("TTTRLIB_INCLUDE_DIR"
-  NAMES tttrlib/ExpressionEngine.h
+  NAMES tttrlib/SimEngine.h
   PATHS ${TTTRLIB_PKGCONF_INCLUDE_DIRS}
 )
 
 # Finally the library itself
 # On Windows CMake does not search the 'lib' prefix, so manually add that;
 # otherwise it will fail to find, e.g. libprotobuf.lib
-foreach(lib )
+foreach(lib tttrlib)
   if(WIN32)
     find_library("${lib}_LIBRARY"
       NAMES ${lib} lib${lib}
@@ -56,15 +56,15 @@ libfind_process(TTTRLIB)
 
 if ("${TTTRLIB_LIBRARY}" MATCHES ".*NOTFOUND.*"
     OR "${TTTRLIB_INCLUDE_DIR}" MATCHES ".*NOTFOUND.*")
-  message("tttrlib not found")
+  message("TTTRLib photon simulation not found")
 file(WRITE "${CMAKE_BINARY_DIR}/build_info/tttrlib" "ok=False")
 else()
-  check_compiles("_found" "tttrlib" "TTTRLIB" "#include <tttrlib/ExpressionEngine.h>" "${TTTRLIB_INCLUDE_DIR}" "${TTTRLIB_LIBRARIES}" TTTRLIB_ok_ok)
+  check_compiles("_found" "tttrlib" "TTTRLIB" "#include <tttrlib/SimEngine.h>" "${TTTRLIB_INCLUDE_DIR}" "${TTTRLIB_LIBRARIES}" TTTRLIB_ok_ok)
   if(${TTTRLIB_ok_ok} MATCHES "1")
-    message(STATUS "Found tttrlib")
+    message(STATUS "Found TTTRLib photon simulation")
     set(IMP_ALL_DEPENDS_VARS ${IMP_ALL_DEPENDS_VARS} "TTTRLIB_INCLUDE_PATH" "TTTRLIB_LIBRARIES" CACHE INTERNAL "" FORCE)
   else()
-    message("tttrlib not found")
+    message("TTTRLib photon simulation not found")
 file(WRITE "${CMAKE_BINARY_DIR}/build_info/tttrlib" "ok=False")
   endif()
 endif()

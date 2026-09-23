@@ -9,7 +9,6 @@
 #include <IMP/bff/ComputeBackend.h>
 #include <IMP/bff/internal/OutputView.h>
 
-#define TTTRLIB_MLPCORE_NAMESPACE IMP::bff::internal
 #include <IMP/bff/internal/MlpCore.h>
 #include <IMP/bff/internal/json.h>
 

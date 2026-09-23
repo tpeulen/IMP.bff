@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <vector>
 
 IMPBFF_BEGIN_NAMESPACE
@@ -28,14 +29,33 @@ using tttrlib::Dual;
 /*  What the kernels need beyond tttrlib's Dual.h: the special functions are
     bff's (SpecialFunctions.h), so their dual forms live beside them here. */
 
-//! Modified Bessel function I0, even: I0'(x) = I1(x).
-inline double bessel_i0(double x) { return boost::math::cyl_bessel_i(0, std::fabs(x)); }
+//! log I0(|x|), finite where I0 itself overflows (from |x| ~ 710).
+/*! Past |x| = 600 the asymptotic series
+    `I0(x) = e^x / sqrt(2 pi x) (1 + 1/(8x) + 9/(128x^2) + 225/(3072x^3))` is
+    exact to double precision, and its log never overflows. */
+inline double log_bessel_i0(double x) {
+  const double ax = std::fabs(x);
+  if (ax < 600.0) return std::log(boost::math::cyl_bessel_i(0, ax));
+  const double inv = 1.0 / ax;
+  return ax - 0.5 * std::log(2.0 * M_PI * ax) +
+         std::log1p(inv / 8.0 + 9.0 * inv * inv / 128.0 + 225.0 * inv * inv * inv / 3072.0);
+}
+//! d/dx log I0(x) = I1(x) / I0(x), odd in x.
+inline double bessel_i1_over_i0(double x) {
+  const double ax = std::fabs(x);
+  double ratio;
+  if (ax < 600.0) {
+    ratio = boost::math::cyl_bessel_i(1, ax) / boost::math::cyl_bessel_i(0, ax);
+  } else {
+    const double inv = 1.0 / ax;
+    ratio = 1.0 - 0.5 * inv - 0.125 * inv * inv - 0.125 * inv * inv * inv;
+  }
+  return x < 0.0 ? -ratio : ratio;
+}
 template <typename G>
-inline Dual<G> bessel_i0(const Dual<G>& a) {
-  // I1 is odd, so the sign of x carries into the slope.
-  const double i1 = boost::math::cyl_bessel_i(1, std::fabs(a.val));
-  Dual<G> r(bessel_i0(a.val), a.grad);
-  r.grad *= a.val < 0.0 ? -i1 : i1;
+inline Dual<G> log_bessel_i0(const Dual<G>& a) {
+  Dual<G> r(log_bessel_i0(a.val), a.grad);
+  r.grad *= bessel_i1_over_i0(a.val);
   return r;
 }
 
@@ -195,25 +215,33 @@ inline std::vector<T> worm_like_chain_t(const std::vector<double>& distances, co
     if (distances[i] >= ad_value(chain_length)) { limit = i; break; }
   }
 
+  // In log space: a stiff chain multiplies a vanishing exponential by an I0
+  // that overflows first, and their product is ordinary. A normalised
+  // density is shifted by its largest log first, which the division undoes.
+  std::vector<T> log_pr(limit, T(0.0));
+  double largest = -std::numeric_limits<double>::infinity();
   for (std::size_t i = 0; i < limit; ++i) {
     const double r = distances[i];
     const T r_n = T(r) / chain_length;
     const T r_n2 = r_n * r_n;
-    T pri = pow((T(1.0) - c * r_n2) / (T(1.0) - r_n2), 2.5);
-    pri *= exp(-d * kappa * T(a) * T(b) * T(1.0 + b) /
-               (T(1.0) - (T(b) * r_n) * (T(b) * r_n)) * r_n2);
+    T log_pri = T(2.5) * log((T(1.0) - c * r_n2) / (T(1.0) - r_n2));
+    log_pri += -d * kappa * T(a) * T(b) * T(1.0 + b) /
+               (T(1.0) - (T(b) * r_n) * (T(b) * r_n)) * r_n2;
     const T r_n4 = r_n2 * r_n2;
     const T r_n6 = r_n4 * r_n2;
     const T g = (T(-0.75) / kappa - T(0.5)) * r_n2 +
                 (T(-0.359375) / kappa + T(1.0625)) * r_n4 +
                 (T(-0.109375) / kappa - T(0.5625)) * r_n6;
-    pri *= exp(g / (T(1.0) - r_n2));
+    log_pri += g / (T(1.0) - r_n2);
     // I0, NOT exp: the argument is negative and I0 is even, so I0(-x) GROWS
     // where exp(-x) decays (see PolymerChain.cpp's history).
-    pri *= bessel_i0(-d * kappa * T(a) * T(1.0 + b) * r_n /
-                     (T(1.0) - (T(b) * r_n) * (T(b) * r_n)));
-    pr[i] = pri;
+    log_pri += log_bessel_i0(-d * kappa * T(a) * T(1.0 + b) * r_n /
+                             (T(1.0) - (T(b) * r_n) * (T(b) * r_n)));
+    log_pr[i] = log_pri;
+    largest = std::max(largest, ad_value(log_pri));
   }
+  const double shift = (normalize && std::isfinite(largest)) ? largest : 0.0;
+  for (std::size_t i = 0; i < limit; ++i) pr[i] = exp(log_pr[i] - T(shift));
   if (distance) {
     for (std::size_t i = 0; i < pr.size(); ++i) pr[i] *= T(distances[i] * distances[i]);
   }

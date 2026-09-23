@@ -104,6 +104,26 @@ def tcspc_lifetime():
     return spec.build()
 
 
+def kinetic_fcs_tcspc_spec():
+    """One chain of states seen by a decay and a correlation curve at once.
+
+    The data bound here only fixes the axes, the instrument and the noise;
+    self-play and the tests replace the values with what a topology predicts.
+    """
+    decay, irf, dt, period = _tcspc_dataset()
+    response = bff.FitDataset()
+    response.set_values_array(np.ascontiguousarray(irf))
+    axis = np.geomspace(1.0e-4, 10.0, 96)
+    curve = fcs_correlation_dataset(axis, fcs_curve_2d(axis, n=2.0, td=0.5), 0.002)
+    spec = bff.ModelSearchSpec.from_name("kinetic_fcs_tcspc")
+    spec.set_dataset("decay", decay)
+    spec.set_dataset("response", response)
+    spec.set_dataset("curve", curve)
+    spec.set_scalar("dt", dt)
+    spec.set_scalar("period", period)
+    return spec
+
+
 #: Golden-record name -> the function that builds its problem.
 FIXTURES = {
     "fcs_analytical": fcs_analytical,

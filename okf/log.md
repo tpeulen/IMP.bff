@@ -2,6 +2,17 @@
 
 ## 2026-09-23
 
+- **One action policy for every game, photons from TTTRLib, bff's own network**:
+  - `set_action_policy` scores each (state, move) row from family-agnostic features (`get_policy_state_features`, `get_policy_action_features`, including the move's share of the declared priors). The prior becomes declared times `exp(score)`.
+  - Search episodes: `ModelSearchSelfPlay::generate_policy`/`simulate`. Episode data: `ModelSearchPolicyData`. Training: `train_action_policy`, with early stopping on half the held-out episodes, weight decay, and per-family baselines. The games are listed in `test/mcts/_games.py`; `train_action_policy.py` and `bench_action_policy.py` are the generator and the gate.
+  - `PhotonExperiment` (was the untracked `ExperimentSelfPlay`) runs `SimEngine`. bff links tttrlib optionally through `dependency/tttrlib` (`IMP_BFF_HAS_TTTRLIB`).
+  - New `KineticSchemeNode` and the `kinetic_fcs_tcspc` family fit one chain of states to a decay and a correlation curve under one joint objective.
+  - `internal/MlpCore.h` and `internal/AdamUpdate.h` are bff's own (`IMP::bff::internal`, `bff.neural_net`); they're no longer vendored or pinned to tttrlib.
+  - The worm-like chain is now formed in log space, because I0 overflowed for stiff chains.
+  - Results:
+    - Candidate 1: 0.582 held-out move accuracy against 0.406 for the priors; it failed the search gate at budget 2 (64 against 66 of 72) and was withdrawn.
+    - 600 episodes per game: 0.580 against 0.447, but below the priors on both FRET families. That prompted the prior-share feature.
+  - No policy ships yet. Details: `okf/validation/model-search-strategy.md`, "One action policy for every game".
 - **Fit objective, one fitting search problem, fixed ports that take writes**:
   - `FitObjective` (`include/FitObjective.h`) is what a fit, a search and a joint fit consume. Its residuals sit on the output port `residuals`, which is created on first use. `FitChiSquared`, `FitJointChiSquared` and Python `FitObjective` subclasses (directors that call `set_residuals`) all implement it.
   - `FitMinimizer::set_objective`, `FitJointChiSquared::add_member`, `FittingModelSearchProblem::add_structure` and `GraphNode::add_member_node` no longer take a residual port name. `residuals_port_key` and the unused `set_residual_function` are gone. A description's `residual_key` and object-form `members` are gone too.

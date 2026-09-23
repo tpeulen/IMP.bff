@@ -307,6 +307,10 @@ somewhere else, which is what the self-play proposer is for.
 
 ## A residual action policy, and what it may and may not do (2026-09-23)
 
+*Superseded the same day by the family-agnostic policy in the next section; the
+keyed API described here (`set_residual_action_policy`) no longer exists. Kept
+for the defects it records.*
+
 The section above argued that learning *which action* repairs a fit learns the
 part that already works. That still holds for selection. A policy can still pay
 for itself on cost, by steering PUCT's early expansions towards the move the
@@ -347,18 +351,87 @@ the shape, coordinates, mask and variance.
 unmeasured. The gate is evaluations-to-generating-topology with and without a
 policy, on held-out simulated data per family.
 
+## One action policy for every game (2026-09-23)
+
+The keyed residual policy above scored a fixed list of action names, so a
+network trained on one family meant nothing to another. What landed instead
+scores *moves by their features*, so one network serves every family and
+every kind of data:
+
+- **State features** (`get_policy_state_features`): the fitted weighted
+  residual as 32 bucket z-scores (`asinh(sum/sqrt(count))`, so a 64-point FCS
+  curve and a 4096-channel decay read alike), log10 of the reduced chi-square,
+  lag-1 autocorrelation, the compressed Wald-Wolfowitz runs z-score, the share
+  of positive residuals and log(1 + free parameters). A joint objective's
+  residual is its members' blocks end to end, so FCS + TCSPC is the same case.
+- **Move features** (`get_policy_action_features`): terminal, returns to the
+  same structure, the change in free parameters, adds/removes, log(1 + target
+  free parameters).
+- **Scoring**: one MLP output per (state, move) row; a move's prior is its
+  declared prior times `exp(score)`, normalised over the available moves
+  (`FittingModelSearchProblem::set_action_policy`). A declared zero stays
+  zero; an untrained (zero-output) network is exactly the declared priors.
+- **Episodes** (`ModelSearchSelfPlay::generate_policy`): draw a generating
+  structure, then a starting structure with a declared path to it; simulate
+  the generator's measurement (`simulate`), fit the start, label the first
+  move of a shortest path (or the terminal move when they coincide). Count
+  data are recorded as photons by TTTRLib's `SimEngine`
+  (`PhotonExperiment::record_pattern`), everything else gets the noise its
+  dataset declares. Episodes with a single move, a failed simulation or an
+  unconverged fit are skipped. `ModelSearchPolicyData` pools families and
+  round-trips JSON.
+- **Training** (`train_action_policy`): listwise softmax of `log(prior) +
+  score`, Adam, weight decay, standardised inputs. Held-out episodes are split
+  in two: one half picks the epoch (early stopping), the other half is the
+  only thing reported, overall and per family against the priors alone.
+- **The games** (`test/mcts/_games.py`): FCS, TCSPC lifetime, polarised,
+  anisotropy, pddem, discrete/Gaussian FRET, equations and the new
+  `kinetic_fcs_tcspc` family -- a chain of 1-3 states whose populations
+  weight the decay (TCSPC) and whose relaxations modulate the correlation
+  (FCS), fitted under one `FitJointChiSquared` (`KineticSchemeNode`).
+  Single-structure families (worm-like chain, SAW, Ising FRET) offer no
+  decision and produce no episodes.
+
+**Measured** (`test/mcts/train_action_policy.py`, 200 episodes per game,
+photons on, 1671 episodes; hidden [16], lr 0.002, weight decay 1e-3):
+held-out top-1 move accuracy 0.582 against 0.406 for the declared priors,
+cross-entropy 0.847 against 0.949, and at least the priors' accuracy in every
+family. A first, unregularised network (hidden [32, 32], lr 0.01) reached 0.96
+on training episodes and 0.52 held out -- memorisation, fixed by early
+stopping and weight decay.
+
+**The gate is the search, not the ranking** (`test/mcts/bench_action_policy.py`):
+fresh simulated measurements, searched at budgets 2/4/8 with and without the
+policy, scored by how often the search ends on the structure an exhaustive
+walk selects. Candidate 1 (above) matched the priors at budgets 4 and 8 with
+up to 13% fewer evaluations, but was two runs worse of 72 at budget 2 (one
+FCS, one Gaussian FRET); the pre-registered gate says do not ship, and it was
+withdrawn from `data/model_search/`.
+
+Two defects surfaced on the way, both fixed where they live: the worm-like
+chain multiplied a vanishing exponential by a Bessel I0 that overflows first
+(`boost::math::cyl_bessel_i` raised mid-fit for stiff chains; the density is
+now formed in log space with an asymptotic `log I0`, guarded by
+`test_a_stiff_chain_does_not_overflow_and_stretches_out`); and the arm64 env's
+tttrlib C++ libraries linked a `libhdf5.200` the env no longer has (rebuilt
+against the env's hdf5 1.14 and reinstalled; bff's `dependency/tttrlib`
+now links `tttrlib` optionally, `IMP_BFF_HAS_TTTRLIB`).
+
 ## What follows
 
-0. **Train and gate residual policies per family** (TCSPC lifetime, FCS,
-   FRET, anisotropy). Generate episodes with `generate_policy`, train with
-   `validation_fraction > 0`, and record validation accuracy. Ship
-   `data/model_search/policies/<family>.json` only where a benchmark shows
-   fewer evaluations to the generating topology at equal selection accuracy.
-   Then make chisurf's `NativeSearchSettings` load the matching one by default
-   (today it defaults to no policy). The parameter-start proposer
-   (`train`/`propose`) needs the same gate before it ships.
-   `ExperimentSelfPlay` (untracked, photon-level scenarios through tttrlib's
-   `SimEngine`) is not wired into `generate_policy`: wire it in or drop it.
+0. **Ship an action policy that passes the search gate.** Train more
+   episodes and re-benchmark with enough measurements that one or two runs
+   are not noise (the budget-2 deficit of candidate 1 is 2/72). If budget 2
+   stays behind, the likely cause is the first expansion: with two
+   evaluations the policy's first choice is final, so weight the loss towards
+   the root's move or cap how far the policy may pull a prior. Then write
+   `data/model_search/action_policy.json`; chisurf loads it by default
+   (`NativeSearchSettings.action_policy = "shipped"`), and ships declared
+   priors while the file is absent. Still open from PRD-152: block-aware
+   features (one profile per member of a joint residual, with a modality
+   token), a `request_information` outcome, and full photon-stream scenarios
+   (one `SimEngine` stream reduced to decay *and* correlation) for the
+   kinetic family instead of per-curve pattern recording.
 1. **Sorting.** TCSPC component labels permute between slots depending on the
    seeds, because nothing orders a fitted component family.
    `mcts-generalization-cleanup.md` asks for descending characteristic value;

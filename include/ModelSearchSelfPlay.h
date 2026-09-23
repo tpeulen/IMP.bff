@@ -12,12 +12,11 @@
  *  purely because generic seeds miss the basin. Seeded where the optimiser
  *  can reach it, the answer is right every time.
  *
- *  This class learns both **where to start parameters** from simulated curves
- *  and which structural action repairs a fitted residual. The latter samples
- *  a richer child topology, fits its declared parent to that synthetic data,
- *  and learns from the parent's weighted residual. `FittingModelSearchProblem`
- *  and `FittingModelSearchProblem` consume the resulting policy in the
- *  same native C++ process.
+ *  This class learns **where to start parameters** from simulated curves, and
+ *  plays search episodes -- fit one structure to data another generated,
+ *  record which move leads back -- for the family-agnostic action policy
+ *  (ModelSearchPolicy.h) that FittingModelSearchProblem::set_action_policy
+ *  consumes.
  *
  *  The loop needs no new physics and no hand-written simulator, which is the
  *  point: a family is a description, a description can already produce the
@@ -40,6 +39,7 @@
 #define IMPBFF_MODELSEARCHSELFPLAY_H
 
 #include <IMP/bff/bff_config.h>
+#include <IMP/bff/ModelSearchPolicy.h>
 #include <IMP/bff/ModelSearchSpec.h>
 
 #include <memory>
@@ -96,7 +96,7 @@ class IMPBFFEXPORT ModelSearchSelfPlay {
       \param[in] hidden units in each hidden layer
       \param[in] epochs passes over the episodes
       \param[in] learning_rate the Adam step
-      \return the trained network as `tttrlib.neural_net` JSON, which
+      \return the trained network as `bff.neural_net` JSON, which
               IMP::bff::NeuralNet reads
 
       Gradients come from the vendored MlpCore backward pass, so this is one
@@ -115,39 +115,33 @@ class IMPBFFEXPORT ModelSearchSelfPlay {
               FittingModelSearchProblem::add_structure_start. */
   std::vector<double> propose(const std::string& network) const;
 
-  //! Simulate structural defects, fit their smaller parent, and record residuals.
-  /*! Each episode draws an action uniformly, then one declared transition
-      carrying it, so an action reachable from many parents does not dominate
-      the labels. A structural episode samples the destination topology,
-      simulates its bound measurements (with matching noise), then fits the
-      transition's parent; a terminal action's episode simulates and fits the
-      same topology, which teaches the policy when to stop. The input is the
-      fitted topology's #get_residual_profile; the one-hot target is the
-      action. Only transitions whose source and destination expose the same
-      measurement curves participate, so a label always means a corrective
-      structural move rather than an artefact of missing data. */
-  void generate_policy(int episodes, unsigned int seed);
-  int get_number_of_policy_episodes() const;
-  int get_number_of_policy_features() const;
-  std::vector<std::string> get_policy_action_keys() const;
-  const std::vector<double>& get_policy_features() const;
-  const std::vector<double>& get_policy_targets() const;
+  //! Simulate count data through TTTRLib's photon engine instead of sampling noise.
+  /*! Applies to every measurement whose noise family is Poisson: the curve
+      the generating topology predicts becomes a micro-time pattern, and the
+      counts are what PhotonExperiment records for it. Refused when this
+      build was made without TTTRLib (PhotonExperiment::get_available). */
+  void set_photon_simulation(bool value);
+  bool get_photon_simulation() const;
 
-  //! Train a softmax action policy for #set_residual_action_policy.
-  /*! Returns a `NeuralNet` JSON document whose input width is the residual
-      profile width and whose outputs are ordered by #get_policy_action_keys. */
-  /*! `seed` draws the initial weights and the split; a `validation_fraction`
-      of the episodes is held out, never trained on, and scored afterwards. */
-  std::string train_policy(const std::vector<int>& hidden, int epochs,
-                           double learning_rate, unsigned int seed = 67890,
-                           double validation_fraction = 0.0);
-  //! Mean cross-entropy over the training episodes after training.
-  double get_policy_training_loss() const;
-  int get_number_of_policy_validation_episodes() const;
-  //! Mean cross-entropy on the held-out episodes; NaN when none were held out.
-  double get_policy_validation_loss() const;
-  //! Share of held-out episodes whose most probable action is the label.
-  double get_policy_validation_accuracy() const;
+  //! The family with a measurement simulated from one of its structures.
+  /*! Parameters are drawn around their declared starts (#set_spread), the
+      structure's curves are computed, and each becomes a measurement with
+      the noise its dataset declares -- recorded as photons through TTTRLib
+      where #set_photon_simulation asks for it. Datasets the structure does
+      not produce keep their bound values. */
+  ModelSearchSpec simulate(const std::string& structure_key, unsigned int seed) const;
+
+  //! Play search episodes: which move out of a fitted structure leads to the truth.
+  /*! Each episode draws the generating structure uniformly, then a starting
+      structure uniformly among those with a path to it through the declared
+      moves (the generating one included, when it offers a terminal move).
+      The generator's measurements are simulated, the starting structure is
+      fitted to them, and every move it offers becomes a feature row. The
+      label is the first move of a shortest path to the generating structure,
+      or its terminal move when the two are the same. Episodes whose fit does
+      not converge are skipped, so fewer than asked may come back.
+      \return the episodes, tagged with the family's name */
+  ModelSearchPolicyData generate_policy(int episodes, unsigned int seed);
 
  private:
   struct Impl;

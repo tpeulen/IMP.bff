@@ -1,0 +1,4 @@
+full_name="TTTRLib photon simulation"
+libraries="tttrlib"
+headers="tttrlib/SimEngine.h"
+body="std::string s = tttrlib::SimEngine::default_json(); (void)s;"

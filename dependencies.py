@@ -18,4 +18,4 @@
 # before it does.
 required_modules = 'container:core:em:atom:rmf:rotamer:kinematics'
 required_dependencies = 'IMP.em'
-optional_dependencies = ''
+optional_dependencies = 'tttrlib'

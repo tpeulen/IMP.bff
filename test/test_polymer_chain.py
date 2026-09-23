@@ -47,6 +47,18 @@ def test_it_is_a_distribution_on_both_sides_of_the_branch(kappa):
     assert pdf.sum() == pytest.approx(1.0)
 
 
+@pytest.mark.parametrize("kappa", [50.0, 500.0, 5000.0])
+def test_a_stiff_chain_does_not_overflow_and_stretches_out(kappa):
+    """I0 of the chain's argument overflows a double long before the density
+    does: a stiff chain once raised from boost mid-fit. The density is formed
+    in log space, so it stays finite, normalised and peaked at the contour."""
+    r = np.linspace(0.5, 99.5, 200)
+    pdf = np.asarray(worm_like_chain(r, kappa, chain_length=100.0))
+    assert np.all(np.isfinite(pdf)) and pdf.min() >= 0.0
+    assert pdf.sum() == pytest.approx(1.0)
+    assert r[int(np.argmax(pdf))] > 95.0
+
+
 def test_the_linker_convolution_runs_and_broadens():
     """The regression: this raised TypingError and nothing noticed."""
     bare = worm_like_chain(R, 0.4)

@@ -661,6 +661,8 @@ def get_session():
 %include "IMP_bff.tcspcdecay.i"
 
 %include "IMP_bff.photophysicslifetimespectrumnode.i"
+%shared_ptr(IMP::bff::KineticSchemeNode);
+%include "IMP/bff/KineticSchemeNode.h"
 %include "IMP_bff.photophysicsanisotropyspectrumnode.i"
 %include "IMP_bff.polymerdistances.i"
 %include "IMP_bff.gaussiandistances.i"
@@ -762,6 +764,11 @@ IMP_SWIG_VALUE(IMP::bff, ModelSearchResult, ModelSearchResults);
 /* A model family read from data rather than compiled in. It hands back the
    same FittingModelSearchProblem a factory used to build. */
 %include "IMP/bff/ModelSearchSpec.h"
+
+/* Episodes for one family-agnostic action policy, and its training. */
+IMP_SWIG_VALUE(IMP::bff, ModelSearchPolicyData, ModelSearchPolicyDatas);
+IMP_SWIG_VALUE(IMP::bff, ModelSearchPolicyTraining, ModelSearchPolicyTrainings);
+%include "IMP/bff/ModelSearchPolicy.h"
 
 /* A family generating its own training data, and the proposer it trains. */
 %include "IMP/bff/ModelSearchSelfPlay.h"
@@ -1223,6 +1230,10 @@ IMP_SWIG_VALUE(IMP::bff, MfdbAttribution, MfdbAttributions);
 /* The parameter tables the coarse-grained potentials read; the potentials
    themselves are IMP restraints, in layer.i. */
 %include "IMP_bff.probepotentialtables.i"
+
+/* TTTRLib's photon simulator, as a model search drives it. */
+IMP_SWIG_VALUE(IMP::bff, PhotonExperimentResult, PhotonExperimentResults);
+%include "IMP/bff/PhotonExperiment.h"
 
 /*
  * The flat user-facing surface: every public name is an attribute of `IMP.bff`

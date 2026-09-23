@@ -2,6 +2,7 @@
  "equations",
  "equations_convolved",
  "fcs_analytical",
+ "kinetic_fcs_tcspc",
  "tcspc_anisotropy",
  "tcspc_fret_acceptor_density",
  "tcspc_fret_discrete",

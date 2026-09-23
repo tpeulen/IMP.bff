@@ -2,8 +2,7 @@
  *  \file IMP/bff/NeuralNet.h
  *  \brief Evaluating a dense network, on the CPU or through the compute door.
  *
- * The kernels are `internal/MlpCore.h`, vendored verbatim from tttrlib so a
- * network trained there evaluates identically here; this header is the face
+ * The kernels are bff's own `internal/MlpCore.h`; this header is the face
  * that bff and its bindings use. What it adds is where the arithmetic runs:
  * `predict()` offers the whole forward pass to whatever
  * `IMP/bff/ComputeBackend.h` has loaded, and runs it on the CPU when nothing is
@@ -28,7 +27,7 @@ IMPBFF_BEGIN_NAMESPACE
 
 //! A dense multilayer perceptron, evaluated in batches.
 /*!
-    Constructed from a `tttrlib.neural_net` JSON document -- the same one
+    Constructed from a `bff.neural_net` JSON document -- the same one
     `NeuralNet::train` writes there and the same one scikit-learn's
     `MLPRegressor` converts to -- so the weights need no bff-specific format.
 
@@ -39,7 +38,7 @@ IMPBFF_BEGIN_NAMESPACE
 */
 class IMPBFFEXPORT NeuralNet {
 public:
-    //! Build from a `tttrlib.neural_net` JSON document.
+    //! Build from a `bff.neural_net` JSON document.
     /*! \throws IMP::ValueException if the document is not one, or if the
         layers do not chain. */
     explicit NeuralNet(const std::string& json);
