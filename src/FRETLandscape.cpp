@@ -17,6 +17,7 @@
  */
 #include <IMP/bff/FRETLandscape.h>
 #include <IMP/bff/States.h>
+#include <IMP/bff/internal/pcg_random.h>
 
 #include <Eigen/Dense>
 
@@ -909,6 +910,105 @@ FRETLandscapeLaplace FRETLandscapeModel::laplace(const std::vector<double>& thet
     out.amplitude_sigmas_.push_back(std::exp(theta[ia]) * std::sqrt(std::max(0.0, Sig(ia, ia))));
     out.backgrounds_.push_back(std::exp(theta[ib]));
     out.background_sigmas_.push_back(std::exp(theta[ib]) * std::sqrt(std::max(0.0, Sig(ib, ib))));
+  }
+  return out;
+}
+
+
+// --- smoothing and backward sampling (Appendix D) ---------------------------------
+
+namespace fret_landscape_detail {
+//! Normalised forward filters v_n (grid, symmetric coordinates) of one trace, N x M.
+Eigen::MatrixXd fret_landscape_forward_trace(const Operator& op, const double* t, const int* ch,
+                                             int N) {
+  const int M = op.M;
+  Eigen::MatrixXd F(N, M);
+  Eigen::VectorXd v = op.lam.col(ch[0]).cwiseProduct(op.s);
+  v /= op.s.dot(v);
+  F.row(0) = v.transpose();
+  for (int n = 1; n < N; ++n) {
+    const Eigen::VectorXd e = (op.nu * (t[n] - t[n - 1])).array().exp().matrix();
+    v = op.lam.col(ch[n]).cwiseProduct(op.Psi * e.cwiseProduct(op.Psi.transpose() * v));
+    v /= op.s.dot(v);
+    F.row(n) = v.transpose();
+  }
+  return F;
+}
+}  // namespace fret_landscape_detail
+
+std::vector<double> FRETLandscapeModel::posterior_marginals(const std::vector<double>& theta,
+                                                            int trace) const {
+  check_theta(theta);
+  if (trace < 0 || trace >= get_n_traces())
+    IMP_THROW("posterior_marginals: no trace " << trace, IMP::ValueException);
+  namespace fl = fret_landscape_detail;
+  const fl::Operator op = fl::fret_landscape_operator(theta, m_, k_, c_, h_, phi_, eff_, dfrac_,
+                                                      afrac_, tau_max_);
+  const int a = offsets_[trace], N = offsets_[trace + 1] - a;
+  std::vector<double> out(static_cast<std::size_t>(N) * m_);
+  if (N == 0) return out;
+  const double* t = times_.data() + a;
+  const int* ch = channels_.data() + a;
+  const Eigen::MatrixXd F = fl::fret_landscape_forward_trace(op, t, ch, N);
+  Eigen::VectorXd rho = op.s;
+  for (int n = N - 1; n >= 0; --n) {
+    Eigen::VectorXd g = rho.cwiseProduct(F.row(n).transpose());
+    g /= g.sum();
+    for (int i = 0; i < m_; ++i) out[static_cast<std::size_t>(n) * m_ + i] = g[i];
+    if (n == 0) break;
+    const Eigen::VectorXd e = (op.nu * (t[n] - t[n - 1])).array().exp().matrix();
+    rho = op.Psi * e.cwiseProduct(op.Psi.transpose() * op.lam.col(ch[n]).cwiseProduct(rho));
+    rho /= rho.cwiseAbs().maxCoeff();
+  }
+  return out;
+}
+
+std::vector<double> FRETLandscapeModel::posterior_mean_trajectory(
+    const std::vector<double>& theta, int trace) const {
+  const std::vector<double> g = posterior_marginals(theta, trace);
+  const int N = static_cast<int>(g.size() / m_);
+  std::vector<double> xm(N, 0.0);
+  for (int n = 0; n < N; ++n)
+    for (int i = 0; i < m_; ++i) xm[n] += g[static_cast<std::size_t>(n) * m_ + i] * x_[i];
+  return xm;
+}
+
+std::vector<double> FRETLandscapeModel::sample_trajectory(const std::vector<double>& theta,
+                                                          int trace, int seed) const {
+  check_theta(theta);
+  if (trace < 0 || trace >= get_n_traces())
+    IMP_THROW("sample_trajectory: no trace " << trace, IMP::ValueException);
+  namespace fl = fret_landscape_detail;
+  const fl::Operator op = fl::fret_landscape_operator(theta, m_, k_, c_, h_, phi_, eff_, dfrac_,
+                                                      afrac_, tau_max_);
+  const int a = offsets_[trace], N = offsets_[trace + 1] - a;
+  std::vector<double> out(N);
+  if (N == 0) return out;
+  const double* t = times_.data() + a;
+  const int* ch = channels_.data() + a;
+  const Eigen::MatrixXd F = fl::fret_landscape_forward_trace(op, t, ch, N);
+  pcg32 rng(static_cast<std::uint64_t>(static_cast<std::uint32_t>(seed)),
+            static_cast<std::uint64_t>(trace));
+  auto draw = [&](const Eigen::VectorXd& w) {
+    double tot = 0.0;
+    for (int i = 0; i < m_; ++i) tot += std::max(0.0, w[i]);
+    double r = (static_cast<double>(rng() >> 5) * 67108864.0 + static_cast<double>(rng() >> 6)) /
+               9007199254740992.0 * tot;
+    for (int i = 0; i < m_; ++i) {
+      r -= std::max(0.0, w[i]);
+      if (r < 0.0) return i;
+    }
+    return m_ - 1;
+  };
+  // last photon: the filter itself is the posterior (the end functional is s)
+  int l = draw(op.s.cwiseProduct(F.row(N - 1).transpose()));
+  out[N - 1] = x_[l];
+  for (int n = N - 2; n >= 0; --n) {
+    // p(i_n = i | i_{n+1} = l) ~ v_n,i [exp(A tau_{n+1})]_il   (Eq. D6, symmetric frame)
+    const Eigen::VectorXd e = (op.nu * (t[n + 1] - t[n])).array().exp().matrix();
+    const Eigen::VectorXd col = op.Psi * e.cwiseProduct(op.Psi.row(l).transpose());
+    l = draw(F.row(n).transpose().cwiseProduct(col));
+    out[n] = x_[l];
   }
   return out;
 }

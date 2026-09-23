@@ -376,6 +376,18 @@ class IMPBFFEXPORT FRETLandscapeModel {
                                double x_min = std::numeric_limits<double>::quiet_NaN(),
                                double x_barrier = std::numeric_limits<double>::quiet_NaN()) const;
 
+  // --- the hidden distance (paper Appendix D) -----------------------------------
+  //! Smoothing marginals `p(x at photon n | whole trace)`, row-major
+  //! `n_photons x M`, from the forward and backward filters (Eq. D5).
+  std::vector<double> posterior_marginals(const std::vector<double>& theta, int trace) const;
+  //! Posterior mean distance at each photon of `trace`.
+  std::vector<double> posterior_mean_trajectory(const std::vector<double>& theta,
+                                                int trace) const;
+  //! One exact draw of the distance at each photon, by forward filtering and
+  //! backward sampling (Eq. D6); values are grid points.
+  std::vector<double> sample_trajectory(const std::vector<double>& theta, int trace,
+                                        int seed = 0) const;
+
   IMP_SHOWABLE_INLINE(FRETLandscapeModel,
                       out << "FRETLandscapeModel(M " << m_ << ", K " << k_
                           << ", channels " << c_ << ", traces " << get_n_traces()
