@@ -14,7 +14,15 @@
 //
 // tttrlib owns the originals, at `modules/util/include/info.h` lines
 // ~136-166 (`safe_getenv`, `is_false_value`, `is_feature_enabled_by_env`).
-#ifndef TTTRLIB_INFO_H
+//
+// When bff links tttrlib (IMP_BFF_HAS_TTTRLIB), tttrlib's own info.h is used
+// instead. Both files share the TTTRLIB_INFO_H guard, so whichever one a
+// translation unit met first would otherwise hide the other -- and the
+// reduced copy lacks the record-type macros tttrlib's TTTR headers need.
+#include <IMP/bff/bff_config.h>
+#if IMP_BFF_HAS_TTTRLIB
+#include <tttrlib/info.h>
+#elif !defined(TTTRLIB_INFO_H)
 #define TTTRLIB_INFO_H
 
 #include <cstdlib>

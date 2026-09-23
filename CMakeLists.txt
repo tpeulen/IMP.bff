@@ -102,4 +102,10 @@ if(TARGET IMP.bff-lib)
   target_link_libraries(IMP.bff-lib ptolib::ptolib)
   install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ptolib/include/ptolib"
           DESTINATION include)
+  # tttrlib's headers are C++17 (std::any, <filesystem>) and
+  # src/HMMSurrogate.cpp includes them, so a bff that links tttrlib compiles
+  # as C++17, as the standalone build always does.
+  if(TTTRLIB_LIBRARIES AND NOT "${TTTRLIB_LIBRARIES}" MATCHES "NOTFOUND")
+    target_compile_features(IMP.bff-lib PRIVATE cxx_std_17)
+  endif()
 endif()

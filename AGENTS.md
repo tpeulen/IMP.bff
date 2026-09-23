@@ -22,6 +22,13 @@ The layering is **tttrlib → imp.bff → imp-tricks → chisurf**; the placemen
 test is *what is the input* (photons/curves → tttrlib, coordinates → imp.bff,
 neither → chisurf). See `../chisurf/okf/prds/prd-93.md`.
 
+One exception to the input test: **learned models and neural nets live in
+imp.bff even when their inputs are photons; tttrlib stays ML-free.** The
+network (`NeuralNet`, `train_neural_net`, `internal/MlpCore.h`) and its
+consumers — `HmmSurrogate`, which reads tttrlib's `HMM` bursts — are bff's;
+a photon-level consumer links tttrlib optionally, gated on
+`IMP_BFF_HAS_TTTRLIB` like `PhotonExperiment` (tpeulen, 2026-09-23).
+
 ## The compute/display line — the rule above the language rule
 
 > **Keep it all in bff and tttrlib. Only the things that get displayed move
