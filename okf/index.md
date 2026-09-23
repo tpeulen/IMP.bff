@@ -39,6 +39,11 @@ shared index.
   are tttrlib's. Together they are the arrangement the three repositories now
   fit with -- **bff builds the network, tttrlib computes the curves, ChiSurf
   is not between them.**
+* [Free-energy landscapes from photons](fret-landscape.md) - `FRETLandscapeModel`:
+  the photon-by-photon likelihood of a diffusive landscape and `D`
+  (Dingeldein & Covino, arXiv:2608.21061), with its exact adjoint gradient,
+  priors, tttrlib-L-BFGS fit, simulator, Laplace bands and FFBS; the
+  two-well validation numbers and where to pick it up.
 * [cgprobe](cgprobe.md) - The explicit-dye layer: what it does, where the physics
   lives (R0/κ² in `fret`), the flat `IMP.bff.*` surface, conventions (CB
   strip), tests and pins.
