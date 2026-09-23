@@ -47,6 +47,7 @@
 #include <IMP/bff/bff_config.h>
 #include <IMP/bff/IMPCompatibility.h>
 #include <IMP/bff/KineticNetwork.h>
+#include <IMP/bff/PhotophysicsCrosstalkMatrix.h>
 
 #include <string>
 #include <vector>
@@ -206,6 +207,80 @@ class IMPBFFEXPORT FRETDye {
 };
 IMP_VALUES(FRETDye, FRETDyes);
 
+//! The light path of one measurement: pulses, channels, microtime axis.
+/*! Built from the two crosstalk matrices (PhotophysicsCrosstalkMatrix.h):
+    the **excitation** matrix, rows = pulses, columns `donor`/`acceptor`,
+    the rate (per macrotime unit) at which a pulse train excites a fully
+    excitable chromophore -- a PIE/ALEX acceptor pulse is a row with an
+    `acceptor` entry; and the **emission** matrix, rows `donor`/`acceptor`,
+    columns = detection channels, the fraction of emitted photons detected in
+    each channel (spectral crosstalk included; quantum yields are per dye
+    state, not here). Per channel a gain (a parameter) multiplies its column.
+
+    Microtimes: `n_bins` bins of `bin_width` ns spanning the excitation
+    period; `n_bins = 1` switches microtimes off (only channel and macrotime
+    are used). Each (pulse, channel) has an instrument response on the bin
+    axis, placed where that pulse arrives (default: all in bin 0); it is
+    taken as uniform within each bin, and decays are integrated exactly over
+    each bin with periodic wrap-around of the tails. Background per channel:
+    a rate and a microtime density (uniform by default).
+
+    Not modelled: pile-up, detector dead time, afterpulsing. The molecule's
+    state is taken as constant within one excitation cycle (ns against
+    us-ms); faster exchange is FRETExchange's domain. */
+class IMPBFFEXPORT FRETInstrument {
+ public:
+  //! One donor pulse (rate 1), channels `green`/`red` with no crosstalk, no
+  //! microtimes.
+  FRETInstrument();
+  FRETInstrument(const PhotophysicsCrosstalkMatrix& excitation,
+                 const PhotophysicsCrosstalkMatrix& emission, int n_bins = 1,
+                 double bin_width = 0.1);
+  int get_n_pulses() const { return static_cast<int>(pulses_.size()); }
+  int get_n_channels() const { return static_cast<int>(channels_.size()); }
+  const std::vector<std::string>& get_pulses() const { return pulses_; }
+  const std::vector<std::string>& get_channels() const { return channels_; }
+  int get_n_bins() const { return n_bins_; }
+  double get_bin_width() const { return bin_width_; }
+  bool get_use_microtime() const { return n_bins_ > 1; }
+  //! `excitation[pulse][chromophore]`, chromophore 0 donor, 1 acceptor.
+  double get_excitation(int pulse, int chromophore) const;
+  //! `emission[chromophore][channel]`.
+  double get_emission(int chromophore, int channel) const;
+
+  //! Instrument response of `pulse` in `channel` (n_bins values, >= 0,
+  //! normalised internally).
+  void set_irf(int pulse, int channel, const std::vector<double>& irf);
+  std::vector<double> get_irf(int pulse, int channel) const;
+  void set_gain(int channel, double gain);
+  double get_gain(int channel) const { return gain_.at(channel); }
+  //! Background rate of `channel` and its microtime density (empty: uniform).
+  void set_background(int channel, double rate,
+                      const std::vector<double>& density = std::vector<double>());
+  double get_background(int channel) const { return bg_.at(channel); }
+  std::vector<double> get_background_density(int channel) const;
+
+  //! Parameters, natural scale: `excitation[pulse,chromophore]`,
+  //! `emission[chromophore,channel]`, `gain[channel]`, `background[channel]`.
+  std::vector<std::string> get_parameter_names() const;
+  std::vector<double> get_parameter_values() const;
+  void set_parameter_values(const std::vector<double>& values);
+
+  IMP_SHOWABLE_INLINE(FRETInstrument,
+                      out << "FRETInstrument(" << pulses_.size() << " pulses, "
+                          << channels_.size() << " channels, " << n_bins_ << " bins)");
+
+ private:
+  std::vector<std::string> pulses_, channels_;
+  std::vector<double> exc_, em_;  // [pulse*2 + chrom], [chrom*C + channel]
+  int n_bins_ = 1;
+  double bin_width_ = 0.1;
+  std::vector<std::vector<double> > irf_;  // [pulse*C + channel]
+  std::vector<double> gain_, bg_;
+  std::vector<std::vector<double> > bg_density_;
+};
+IMP_VALUES(FRETInstrument, FRETInstruments);
+
 //! One FRET label pair measured on the molecule: its dyes, how its distance
 //! follows the hidden state, and (later) its instrument and bursts.
 /*! The map from hidden state to donor-acceptor distance:
@@ -232,6 +307,8 @@ class IMPBFFEXPORT FRETMeasurement {
   //! default (<= 0) the lifetime of the donor's first state.
   void set_reference_lifetime(double tau0) { tau0_ = tau0; }
   double get_reference_lifetime() const;
+  void set_instrument(const FRETInstrument& instrument) { instrument_ = instrument; }
+  const FRETInstrument& get_instrument() const { return instrument_; }
   //! Excitation power multiplying the dyes' light-driven rates (default 1).
   void set_power(double power);
   double get_power() const { return power_; }
@@ -261,6 +338,16 @@ class IMPBFFEXPORT FRETMeasurement {
   //! get_start(); with bleaching it is the all-bleached absorbing state,
   //! which is why a burst does not start from it.
   std::vector<double> get_joint_stationary(const FRETHiddenProcess& process) const;
+  //! Detection rates `lambda_c(s)` per channel and joint state, background
+  //! included, row-major `C x n`: the distance distribution of each hidden
+  //! state is integrated as a mixture over its quadrature.
+  std::vector<double> get_detection_rates(const FRETHiddenProcess& process) const;
+  //! The photon factor `sum_j w_j lambda_c(r_j) f_c(t | r_j) + beta_c b_c(t)`
+  //! per channel, microtime bin and joint state, `C x n_bins x n`: expected
+  //! photons per macrotime unit in that channel and bin (the mixture over
+  //! the distance distribution, not a product of averages). Summed over the
+  //! bins it is get_detection_rates().
+  std::vector<double> get_emission(const FRETHiddenProcess& process) const;
   //! Number of joint states `n_hidden * n_donor * n_acceptor`.
   int get_n_states(const FRETHiddenProcess& process) const;
   //! `(hidden, donor, acceptor)` of joint state `s`.
@@ -280,6 +367,7 @@ class IMPBFFEXPORT FRETMeasurement {
   void check_process(const FRETHiddenProcess& process) const;
   std::string name_;
   FRETDye donor_, acceptor_;
+  FRETInstrument instrument_;
   double r0_ = 52.0, tau0_ = -1.0, power_ = 1.0;
   // discrete map
   std::vector<double> means_;

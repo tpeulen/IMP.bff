@@ -564,6 +564,7 @@ std::vector<std::string> FRETMeasurement::get_parameter_names(
   n.push_back(p + "reference_lifetime");
   for (const std::string& s : donor_.get_parameter_names()) n.push_back(p + s);
   for (const std::string& s : acceptor_.get_parameter_names()) n.push_back(p + s);
+  for (const std::string& s : instrument_.get_parameter_names()) n.push_back(p + s);
   return n;
 }
 
@@ -581,6 +582,7 @@ std::vector<double> FRETMeasurement::get_parameter_values(
   v.push_back(get_reference_lifetime());
   for (double x : donor_.get_parameter_values()) v.push_back(x);
   for (double x : acceptor_.get_parameter_values()) v.push_back(x);
+  for (double x : instrument_.get_parameter_values()) v.push_back(x);
   return v;
 }
 
@@ -601,7 +603,10 @@ void FRETMeasurement::set_parameter_values(const FRETHiddenProcess& process,
   const std::size_t nd = donor_.get_parameter_names().size();
   donor_.set_parameter_values(std::vector<double>(v.begin() + j, v.begin() + j + nd));
   j += nd;
-  acceptor_.set_parameter_values(std::vector<double>(v.begin() + j, v.end()));
+  const std::size_t na = acceptor_.get_parameter_names().size();
+  acceptor_.set_parameter_values(std::vector<double>(v.begin() + j, v.begin() + j + na));
+  j += na;
+  instrument_.set_parameter_values(std::vector<double>(v.begin() + j, v.end()));
 }
 
 std::vector<int> FRETMeasurement::get_parameter_transforms(
@@ -618,6 +623,7 @@ std::vector<int> FRETMeasurement::get_parameter_transforms(
   t.push_back(FRET_TRANSFORM_LOG);
   for (int x : donor_.get_parameter_transforms()) t.push_back(x);
   for (int x : acceptor_.get_parameter_transforms()) t.push_back(x);
+  t.insert(t.end(), instrument_.get_parameter_values().size(), FRET_TRANSFORM_LOG);
   return t;
 }
 
@@ -629,6 +635,7 @@ std::vector<int> FRETMeasurement::get_parameter_kinds(const FRETHiddenProcess& p
   k.push_back(FRET_PARAMETER_EMISSION);
   for (int x : donor_.get_parameter_kinds()) k.push_back(x);
   for (int x : acceptor_.get_parameter_kinds()) k.push_back(x);
+  k.insert(k.end(), instrument_.get_parameter_values().size(), FRET_PARAMETER_EMISSION);
   return k;
 }
 
