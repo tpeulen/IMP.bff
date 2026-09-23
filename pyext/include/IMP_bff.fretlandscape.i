@@ -22,7 +22,13 @@ IMP_SWIG_VALUE(IMP::bff, NaturalCubicSpline, NaturalCubicSplines);
 
 IMP_SWIG_VALUE(IMP::bff, FRETLandscapeFitOptions, FRETLandscapeFitOptionsList);
 IMP_SWIG_VALUE(IMP::bff, FRETLandscapeFit, FRETLandscapeFits);
+IMP_SWIG_VALUE(IMP::bff, FRETLandscapePhotons, FRETLandscapePhotonsList);
+IMP_SWIG_VALUE(IMP::bff, FRETLandscapeInitialGuessOptions, FRETLandscapeInitialGuessOptionsList);
+IMP_SWIG_VALUE(IMP::bff, FRETLandscapeInitialGuess, FRETLandscapeInitialGuesses);
 IMP_SWIG_VALUE(IMP::bff, FRETLandscapeModel, FRETLandscapeModels);
+%naturalvar IMP::bff::FRETLandscapeInitialGuessOptions::bin_widths;
+%naturalvar IMP::bff::FRETLandscapeInitialGuessOptions::diffusions;
+%naturalvar IMP::bff::FRETLandscapeInitialGuessOptions::backgrounds;
 %naturalvar IMP::bff::FRETLandscapeFitOptions::fixed;
 
 %include "IMP/bff/FRETLandscape.h"

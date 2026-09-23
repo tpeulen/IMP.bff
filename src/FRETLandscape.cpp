@@ -671,26 +671,69 @@ std::vector<double> FRETLandscapeModel::log_posterior_gradient(
 
 // --- fit ------------------------------------------------------------------------
 
+std::vector<double> FRETLandscapeModel::trace_scores(const std::vector<double>& theta) const {
+  check_theta(theta);
+  if (offsets_.empty()) IMP_THROW("FRETLandscapeModel: no photons (set_photons)", IMP::ValueException);
+  namespace fl = fret_landscape_detail;
+  const fl::Operator op = fl::fret_landscape_operator(theta, m_, k_, c_, h_, phi_, eff_, dfrac_,
+                                                      afrac_, tau_max_);
+  const int nt = get_n_traces(), P = get_n_parameters();
+  const fl::PhotonView ph{times_.data(), channels_.data(), offsets_.data()};
+  std::vector<double> out(static_cast<std::size_t>(nt) * P, 0.0);
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic)
+#endif
+  for (int m = 0; m < nt; ++m) {
+    fl::Accum acc;
+    acc.init(m_, c_, op.close.size());
+    double ll;
+    const double v = fl::fret_landscape_batch(op, ph, &m, 1, &acc, &ll);
+    if (!std::isfinite(v)) continue;
+    const std::vector<double> g = fl::fret_landscape_chain(op, acc, k_, phi_);
+    std::copy(g.begin(), g.end(), out.begin() + static_cast<std::size_t>(m) * P);
+  }
+  return out;
+}
+
+// --- fit ------------------------------------------------------------------------
+
 #if IMP_BFF_HAS_TTTRLIB
 namespace {
+//! The optimiser sees z, with theta = theta0 + T z on the free indices.
 struct FRETLandscapeFitContext {
   const FRETLandscapeModel* model;
-  int P;
+  std::vector<double> theta0;
+  std::vector<int> free;
+  Eigen::MatrixXd T;
+  std::vector<double> theta_of(const double* z) const {
+    std::vector<double> th(theta0);
+    const int n = static_cast<int>(free.size());
+    for (int i = 0; i < n; ++i) {
+      double v = 0.0;
+      for (int j = 0; j < n; ++j) v += T(i, j) * z[j];
+      th[free[i]] += v;
+    }
+    return th;
+  }
 };
 
-double fret_landscape_fit_target(double* x, void* p) {
+double fret_landscape_fit_target(double* z, void* p) {
   const FRETLandscapeFitContext* ctx = static_cast<const FRETLandscapeFitContext*>(p);
-  const std::vector<double> th(x, x + ctx->P);
-  const double v = -ctx->model->log_posterior(th);
+  const double v = -ctx->model->log_posterior(ctx->theta_of(z));
   return std::isfinite(v) ? v : std::numeric_limits<double>::infinity();
 }
 
-double fret_landscape_fit_gradient(double* x, double* g, void* p) {
+double fret_landscape_fit_gradient(double* z, double* g, void* p) {
   const FRETLandscapeFitContext* ctx = static_cast<const FRETLandscapeFitContext*>(p);
-  const std::vector<double> th(x, x + ctx->P);
+  const std::vector<double> th = ctx->theta_of(z);
   const std::vector<double> fg = ctx->model->log_likelihood_and_gradient(th);
   const std::vector<double> gp = ctx->model->log_prior_gradient(th);
-  for (int i = 0; i < ctx->P; ++i) g[i] = -(fg[i + 1] + gp[i]);
+  const int n = static_cast<int>(ctx->free.size());
+  for (int j = 0; j < n; ++j) {
+    double v = 0.0;
+    for (int i = 0; i < n; ++i) v -= ctx->T(i, j) * (fg[ctx->free[i] + 1] + gp[ctx->free[i]]);
+    g[j] = v;
+  }
   const double v = -(fg[0] + ctx->model->log_prior(th));
   return std::isfinite(v) ? v : std::numeric_limits<double>::infinity();
 }
@@ -708,45 +751,75 @@ FRETLandscapeFit FRETLandscapeModel::fit(const std::vector<double>& theta0,
   if (options.patience < 1 || options.max_iterations < 1)
     IMP_THROW("fit: patience and max_iterations must be >= 1", IMP::ValueException);
   const int P = get_n_parameters();
-  FRETLandscapeFitContext ctx{this, P};
-  bfgs opt(fret_landscape_fit_target, P);
-  opt.set_gradient(fret_landscape_fit_gradient);
+  std::vector<char> is_fixed(P, 0);
   for (int i : options.fixed) {
     if (i < 0 || i >= P) IMP_THROW("fit: fixed index " << i << " out of range", IMP::ValueException);
-    opt.fix(i);
+    is_fixed[i] = 1;
   }
+  FRETLandscapeFitContext ctx;
+  ctx.model = this;
+  for (int i = 0; i < P; ++i)
+    if (!is_fixed[i]) ctx.free.push_back(i);
+  const int n = static_cast<int>(ctx.free.size());
   FRETLandscapeFit out;
   std::vector<double> x(theta0);
   double best = log_posterior(x);
   out.history_.push_back(best);
-  if (!std::isfinite(best)) {
+  if (!std::isfinite(best) || n == 0) {
     out.theta_ = x;
     out.log_posterior_ = best;
     out.log_likelihood_ = log_likelihood(x);
-    out.status_ = "failed";
+    out.status_ = std::isfinite(best) ? "converged" : "failed";
     return out;
   }
   out.status_ = "max_iterations";
   int done = 0;
   while (done < options.max_iterations) {
-    const int n = std::min(options.patience, options.max_iterations - done);
-    opt.maxiter = n;
-    std::vector<double> trial(x);
-    const int info = opt.minimize(trial.data(), &ctx);
-    done += n;
-    const double v = log_posterior(trial);
-    if (std::isfinite(v) && v >= best) x = trial;
-    const double gain = std::isfinite(v) ? v - best : -1.0;
-    if (std::isfinite(v) && v > best) best = v;
-    out.history_.push_back(best);
-    if (info == 1 || info == 2 || info == 4) {
-      // the optimiser stopped by its own test before using its budget
-      out.status_ = gain < options.min_delta ? "converged" : out.status_;
-      if (gain < options.min_delta) break;
-      continue;
+    // Preconditioner: theta = x + T z with T T^T = H^-1, H the empirical
+    // Fisher information plus the prior precision (the Laplace precision of
+    // Sec. III E) at the block's start point. Identity when not requested.
+    ctx.theta0 = x;
+    ctx.T = Eigen::MatrixXd::Identity(n, n);
+    if (options.precondition) {
+      const std::vector<double> sc = trace_scores(x), pp = prior_precision(x);
+      Eigen::MatrixXd H(n, n);
+      const int nt = get_n_traces();
+      for (int i = 0; i < n; ++i)
+        for (int j = 0; j < n; ++j) {
+          double v = pp[static_cast<std::size_t>(ctx.free[i]) * P + ctx.free[j]];
+          for (int m = 0; m < nt; ++m)
+            v += sc[static_cast<std::size_t>(m) * P + ctx.free[i]] *
+                 sc[static_cast<std::size_t>(m) * P + ctx.free[j]];
+          H(i, j) = v;
+        }
+      // Damping: directions the data barely see (a knot on a steep, empty
+      // wall) have almost no curvature, and a Newton step along them is huge
+      // and wrong -- the landscape there is far from quadratic. The floor
+      // caps such a step at about |gradient| / damping.
+      const double ridge = std::max(options.precondition_damping,
+                                    1e-8 * std::max(1.0, H.diagonal().maxCoeff()));
+      for (int i = 0; i < n; ++i) H(i, i) += ridge;
+      Eigen::LLT<Eigen::MatrixXd> llt(H);
+      if (llt.info() == Eigen::Success)
+        ctx.T = llt.matrixU().solve(Eigen::MatrixXd::Identity(n, n));  // U^-1: (U^-1)(U^-1)^T = H^-1
     }
+    const int iters = std::min(options.patience, options.max_iterations - done);
+    bfgs opt(fret_landscape_fit_target, n);
+    opt.set_gradient(fret_landscape_fit_gradient);
+    opt.maxiter = iters;
+    std::vector<double> z(n, 0.0);
+    const int info = opt.minimize(z.data(), &ctx);
+    done += iters;
+    const std::vector<double> trial = ctx.theta_of(z.data());
+    const double v = log_posterior(trial);
+    const double gain = std::isfinite(v) ? v - best : -1.0;
+    if (std::isfinite(v) && v > best) {
+      x = trial;
+      best = v;
+    }
+    out.history_.push_back(best);
     if (gain < options.min_delta) {
-      out.status_ = "patience";
+      out.status_ = (info == 1 || info == 2 || info == 4) ? "converged" : "patience";
       break;
     }
   }

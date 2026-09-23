@@ -69,6 +69,14 @@ class IMPBFFEXPORT FRETLandscapeFitOptions {
   double min_delta = 0.1;
   //! Indices of theta held at their start values.
   std::vector<int> fixed;
+  //! Precondition each block with the Laplace precision (empirical Fisher
+  //! information plus prior precision) at its start point. The parameters
+  //! differ in scale by orders of magnitude, and without this L-BFGS with a
+  //! short history crawls.
+  bool precondition = true;
+  //! Added to the diagonal of that precision (per unit of theta squared),
+  //! so that directions the photons do not constrain take bounded steps.
+  double precondition_damping = 1.0;
 
   IMP_SHOWABLE_INLINE(FRETLandscapeFitOptions,
                       out << "FRETLandscapeFitOptions(max_iterations " << max_iterations
@@ -104,6 +112,79 @@ class IMPBFFEXPORT FRETLandscapeFit {
   std::string status_;
 };
 IMP_VALUES(FRETLandscapeFit, FRETLandscapeFits);
+
+//! A simulated (or loaded) photon record: plain arrays, CSR by trace.
+class IMPBFFEXPORT FRETLandscapePhotons {
+ public:
+  FRETLandscapePhotons() {}
+  FRETLandscapePhotons(const std::vector<double>& times, const std::vector<int>& channels,
+                       const std::vector<int>& offsets)
+      : times_(times), channels_(channels), offsets_(offsets) {}
+  const std::vector<double>& get_times() const { return times_; }
+  const std::vector<int>& get_channels() const { return channels_; }
+  //! Trace `m` is photons `offsets[m] .. offsets[m+1]-1`.
+  const std::vector<int>& get_offsets() const { return offsets_; }
+  int get_n_traces() const { return offsets_.empty() ? 0 : static_cast<int>(offsets_.size()) - 1; }
+  int get_n_photons() const { return static_cast<int>(times_.size()); }
+
+  IMP_SHOWABLE_INLINE(FRETLandscapePhotons,
+                      out << "FRETLandscapePhotons(" << get_n_traces() << " traces, "
+                          << get_n_photons() << " photons)");
+
+ private:
+  friend class FRETLandscapeModel;
+  std::vector<double> times_;
+  std::vector<int> channels_, offsets_;
+};
+IMP_VALUES(FRETLandscapePhotons, FRETLandscapePhotonsList);
+
+//! How FRETLandscapeModel::initial_guess() starts a fit from the data.
+/*! Paper Sec. III C: photon rates from the count rates, backgrounds at their
+    prior means, the landscape by Boltzmann inversion of a kernel density of
+    binned-photon distances, the bin width by held-out likelihood, and `D` by
+    a coarse grid search. */
+class IMPBFFEXPORT FRETLandscapeInitialGuessOptions {
+ public:
+  //! Candidate bin widths (time units) for the binned distances.
+  std::vector<double> bin_widths = {0.5, 1.0, 2.0, 4.0};
+  //! Candidate diffusion coefficients for the grid search.
+  std::vector<double> diffusions = {0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0};
+  //! `D` used while the bin width is chosen.
+  double diffusion = 1.0;
+  //! Background rates per channel; empty for the background prior's modes.
+  std::vector<double> backgrounds;
+  //! Every `holdout_every`-th trace is held out to score the bin widths
+  //! (all traces when there are fewer than two).
+  int holdout_every = 5;
+  //! Density floor, relative to the peak, before Boltzmann inversion.
+  double density_floor = 1e-3;
+
+  IMP_SHOWABLE_INLINE(FRETLandscapeInitialGuessOptions,
+                      out << "FRETLandscapeInitialGuessOptions(" << bin_widths.size()
+                          << " bin widths, " << diffusions.size() << " diffusions)");
+};
+IMP_VALUES(FRETLandscapeInitialGuessOptions, FRETLandscapeInitialGuessOptionsList);
+
+//! What FRETLandscapeModel::initial_guess() chose.
+class IMPBFFEXPORT FRETLandscapeInitialGuess {
+ public:
+  FRETLandscapeInitialGuess() {}
+  const std::vector<double>& get_theta() const { return theta_; }
+  double get_bin_width() const { return bin_width_; }
+  //! Held-out log-likelihood of each candidate bin width.
+  const std::vector<double>& get_bin_scores() const { return bin_scores_; }
+  //! Log-likelihood of each candidate diffusion coefficient.
+  const std::vector<double>& get_diffusion_scores() const { return diffusion_scores_; }
+
+  IMP_SHOWABLE_INLINE(FRETLandscapeInitialGuess,
+                      out << "FRETLandscapeInitialGuess(bin_width " << bin_width_ << ")");
+
+ private:
+  friend class FRETLandscapeModel;
+  std::vector<double> theta_, bin_scores_, diffusion_scores_;
+  double bin_width_ = 0.0;
+};
+IMP_VALUES(FRETLandscapeInitialGuess, FRETLandscapeInitialGuesses);
 
 //! A free-energy landscape over a distance coordinate, scored photon by photon.
 /*! Holds the grid, the spline, the fixed photophysics (Forster radius and
@@ -176,6 +257,26 @@ class IMPBFFEXPORT FRETLandscapeModel {
   void set_batch_size(int b);
   int get_batch_size() const { return batch_; }
 
+  //! Hand over a photon record made by simulate().
+  void set_photons(const FRETLandscapePhotons& photons) {
+    set_photons(photons.times_, photons.channels_, photons.offsets_);
+  }
+  // --- simulation and initial guess (paper Sec. III C, F) ----------------------
+  //! Simulate traces from the model at theta.
+  /*! Overdamped Langevin dynamics on the spline `u(x)` (Euler-Maruyama,
+      analytic spline force, reflecting walls at the grid ends), started from
+      the Boltzmann density; photons are the inhomogeneous Poisson process of
+      rates `lambda_c(x(t))`, drawn exactly for the piecewise-constant path
+      by accumulating unit exponentials. Deterministic for a seed; trace `m`
+      uses its own stream, so traces do not depend on each other.
+      \param n_traces independent traces, each `duration` long
+      \param dt the integration step (paper: 5e-6 ms) */
+  FRETLandscapePhotons simulate(const std::vector<double>& theta, int n_traces,
+                                double duration, double dt, int seed = 0) const;
+  //! Start values for fit() from the photons held by the model.
+  FRETLandscapeInitialGuess initial_guess(
+      const FRETLandscapeInitialGuessOptions& options = FRETLandscapeInitialGuessOptions()) const;
+
   // --- likelihood ------------------------------------------------------------
   //! `log L(theta)` summed over all traces.
   double log_likelihood(const std::vector<double>& theta) const;
@@ -183,6 +284,9 @@ class IMPBFFEXPORT FRETLandscapeModel {
   std::vector<double> trace_log_likelihoods(const std::vector<double>& theta) const;
   //! Exact gradient of log_likelihood() with respect to theta.
   std::vector<double> log_likelihood_gradient(const std::vector<double>& theta) const;
+  //! Per-trace scores `d log L_m / dtheta`, row-major `n_traces x P`.
+  /*! Their outer-product sum is the empirical Fisher information (Eq. 20). */
+  std::vector<double> trace_scores(const std::vector<double>& theta) const;
   //! `log L` and its gradient in one pass: `[log L, d/dtheta_0, ...]`.
   std::vector<double> log_likelihood_and_gradient(const std::vector<double>& theta) const;
 
