@@ -2,6 +2,11 @@
 
 ## 2026-09-23
 
+- **A fit started on a bound is fitted**: the bound transform is stationary there, so a parameter started exactly on its bound had an all-zero Jacobian column.
+  - Effect: a TCSPC fit with its scatter started at 0 stalled at maxfev with chi2 613.8, where the optimum is 568.4. The frozen reference failed the same way once the time-shift box was narrowed.
+  - Fix: `FitMinimizer::off_bound_start` moves only such a start by `1e-6 * max(1, |bound|)`, capped at 1e-6 of the box.
+  - Guard: `test_a_parameter_started_on_its_bound_is_still_fitted`. bff fit and search suites pass, golden records included, and chisurf `test/fitting` passes 1125.
+
 - **HmmSurrogate and network training moved in from tttrlib (T-20260923-nn)**: tttrlib is now free of ML code; learned models live in bff even when their inputs are photons (AGENTS.md placement rule).
   - Training: `train_neural_net` / `train_neural_net_with_history` + `NeuralNetTrainOptions` (`NeuralNetTraining.h`), ported from tttrlib `NeuralNet::train` with the same numerics (Glorot init, half-MSE, L2 on weights, Adam, minibatches, early stopping that keeps the best held-out weights). Built on `internal/MlpCore.h`, `internal/AdamUpdate.h` and pcg32, so one seed gives one network; the output is a `bff.neural_net` document.
   - `HmmSurrogate` (`HMMSurrogate.h`), compiled only with `IMP_BFF_HAS_TTTRLIB`; it links tttrlib's `HMM`/`HmmModel`. Document tag `bff.hmm_surrogate`. It predicts H2MM parameters from burst features and does not seed EM. Python takes arrays (`predict_from_layout`, `predict_from_bursts`) because a `tttrlib.HMM` cannot cross into bff's SWIG module; `predict_model`/`predict_hmm` build a `tttrlib.HmmModel` with tttrlib imported lazily.

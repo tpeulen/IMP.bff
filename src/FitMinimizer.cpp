@@ -730,6 +730,31 @@ double FitMinimizer::fdjac2_step(double xi, unsigned int i, double eps) const {
   return (std::fabs(h_candidate) < std::fabs(h)) ? h_candidate : h;
 }
 
+//! A start exactly on a bound sits where the transform is stationary --
+//! `sin` at +/-pi/2, `sqrt(xi^2 + 1)` at 0 -- so that parameter's Jacobian
+//! column is identically zero and Levenberg-Marquardt can move it only through
+//! rounding. Which optimiser escapes is then luck: on one TCSPC fit with the
+//! scatter fraction started at its lower bound 0, this minimiser stalled at
+//! maxfev (chi2 613.8) while the frozen reference converged (568.4), and with
+//! the time-shift box narrowed the two swapped places. Such a start is moved
+//! `1e-6 * max(1, |bound|)` into the box (at most 1e-6 of a two-sided box):
+//! the column gets a slope, the start moves by nothing a fit could see, and an
+//! optimum that truly lies on the bound stays reachable. Only a start *on* a
+//! bound is moved; one merely near it already has a slope.
+double FitMinimizer::off_bound_start(double xe, unsigned int i) const {
+  const bool lo_free = is_unbounded(lower_[i]);
+  const bool up_free = is_unbounded(upper_[i]);
+  const double width = (lo_free || up_free) ? std::numeric_limits<double>::infinity()
+                                            : upper_[i] - lower_[i];
+  if (!lo_free && xe <= lower_[i]) {
+    return lower_[i] + std::min(1e-6 * std::max(1.0, std::fabs(lower_[i])), 1e-6 * width);
+  }
+  if (!up_free && xe >= upper_[i]) {
+    return upper_[i] - std::min(1e-6 * std::max(1.0, std::fabs(upper_[i])), 1e-6 * width);
+  }
+  return xe;
+}
+
 // ------------------------------------------------------------- evaluation
 
 std::vector<double> FitMinimizer::evaluate_external(
@@ -859,7 +884,7 @@ int FitMinimizer::run() {
 
   std::vector<double> xi(ndim_);
   for (unsigned int i = 0; i < ndim_; ++i)
-    xi[i] = to_internal(initial_values_[i], i);
+    xi[i] = to_internal(off_bound_start(initial_values_[i], i), i);
 
   std::vector<double> fvec;
   status_ = lmdif(&xi, &fvec);

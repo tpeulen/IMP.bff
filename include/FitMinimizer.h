@@ -453,6 +453,8 @@ class IMPBFFEXPORT FitMinimizer {
   double to_external(double xi, unsigned int i) const;
   //! chisurf's `_external2internal_lambda`, one coordinate.
   double to_internal(double xe, unsigned int i) const;
+  //! Move a start that sits exactly on a bound a hair into the box.
+  double off_bound_start(double xe, unsigned int i) const;
   //! chisurf's `_internal2external_grad`, one coordinate.
   double external_gradient(double xi, unsigned int i) const;
   //! The forward-difference step in *internal* coordinates for parameter

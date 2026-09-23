@@ -806,3 +806,59 @@ class CovarianceTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# ------------------------------------------------------ a start on a bound
+
+def test_a_parameter_started_on_its_bound_is_still_fitted():
+    """The bound transform is stationary on a bound, so the Jacobian column of a
+    parameter started there is exactly zero. A TCSPC fit with its scatter
+    fraction started at 0 stalled at maxfev (chi2 613.8, status 5) where the
+    optimum is 568.4; such a start is now moved a hair into the box."""
+    import pytest
+    n, dt, period = 512, 0.032, 12.5
+    x = np.arange(n) * dt
+    irf = 1000.0 * np.exp(-0.5 * ((x - 1.0) / 0.08) ** 2)
+
+    def decay():
+        node = bff.TCSPCDecay("decay")
+        node.set_number_of_lifetimes(1)
+        node.add_output_port("decay", bff.GraphPort([0.0], False, True))
+        node.set_response_array(np.ascontiguousarray(irf))
+        node.set_timing(dt, period)
+        node.set_convolution_range(n, n)
+        node.set_normalize_amplitudes(True)
+        return node
+
+    truth = decay()
+    for key, value in (("t0", 3.1), ("n0", 60000.0), ("background", 2.0), ("scatter", 0.02)):
+        truth.get_input_port(key).value = value
+    truth.update()
+    y = np.random.default_rng(7).poisson(np.asarray(truth.get_output_port("decay").value)).astype(float)
+
+    node = decay()
+    chi2 = bff.FitChiSquared("chi2")
+    data = bff.FitDataset()
+    data.set_values_array(np.ascontiguousarray(y))
+    data.set_noise_family(bff.FIT_NOISE_FAMILY_POISSON)
+    chi2.bind_dataset("data", data)
+    model_in = bff.GraphPort([0.0])
+    model_in.link = node.get_output_port("decay")
+    chi2.add_input_port("model", model_in)
+    chi2.add_output_port("chi2", bff.GraphPort(0.0, False, True))
+    names = ["scatter", "background", "t0", "timeshift", "n0"]
+    start = [0.0, float(y.min()), 4.0, 0.0, float(y.sum())]
+    bounds = [(0.0, 1.0), (0.0, float(y.max())), (0.0003, period), (-0.5 * n, 0.5 * n),
+              (0.0, 100 * y.sum())]
+    ports = [node.get_input_port(k) for k in names]
+    for port, value in zip(ports, start):
+        port.value = value
+    m = bff.FitMinimizer()
+    m.set_parameter_ports(ports)
+    m.set_objective(chi2)
+    m.bounds = bounds
+    m._graph = (node, chi2, model_in)
+
+    assert m.run() in (1, 2, 3, 4)
+    assert float(np.sum(np.asarray(chi2.get_residuals()) ** 2)) == pytest.approx(568.37, abs=0.05)
+    assert m.x[0] == pytest.approx(0.0197, abs=2e-3)
