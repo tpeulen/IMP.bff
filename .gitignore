@@ -33,6 +33,9 @@ pyext/documentation.i
 utility/CMakeLists.txt
 build
 cmake-build-*
+# tools/pyodide/build_wheel.sh: the wheel, and pyodide-build's compiler symlinks
+dist/
+.pyodide_build/
 scratch
 TODO/
 .ipynb_checkpoints

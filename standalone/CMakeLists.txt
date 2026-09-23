@@ -122,11 +122,20 @@ endif()
 # ourselves and pass `-Xclang -fopenmp`, which is what AppleClang wants.
 # `IMP::bff::built_with_openmp()` and `openmp_thread_count()` report the outcome
 # at run time, so a build that silently lost it can be caught from Python.
-find_package(OpenMP QUIET)
+#
+# IMPBFF_WITH_OPENMP=OFF skips the search altogether, for a target that has no
+# threads to run it on (the Pyodide wheel): the pragmas are then comments by
+# design, not by accident, and built_with_openmp() says so.
+option(IMPBFF_WITH_OPENMP "Parallelise the kernels with OpenMP when it is available" ON)
 set(IMPBFF_OPENMP_FLAGS "")
 set(IMPBFF_OPENMP_LIBS "")
 set(IMPBFF_OPENMP_INCLUDE "")
-if(OpenMP_CXX_FOUND AND NOT "${OpenMP_CXX_FLAGS}" STREQUAL "")
+if(IMPBFF_WITH_OPENMP)
+  find_package(OpenMP QUIET)
+endif()
+if(NOT IMPBFF_WITH_OPENMP)
+  message(STATUS "IMP.bff: OpenMP off (IMPBFF_WITH_OPENMP=OFF)")
+elseif(OpenMP_CXX_FOUND AND NOT "${OpenMP_CXX_FLAGS}" STREQUAL "")
   # a string, and `-Xclang -fopenmp` is two arguments: passed whole it
   # reaches the compiler as one unknown option
   separate_arguments(IMPBFF_OPENMP_FLAGS NATIVE_COMMAND "${OpenMP_CXX_FLAGS}")
@@ -233,7 +242,16 @@ if(NOT TARGET ptolib::ptolib)
     add_subdirectory("${IMPBFF_ROOT}/thirdparty/ptolib" "${CMAKE_BINARY_DIR}/ptolib")
   endif()
 endif()
-add_library(imp_bff SHARED ${_cxx_sources} ${_ihm_sources})
+# SHARED everywhere a loader can find a companion library beside the
+# extension. STATIC links the core into _IMP_bff itself: the Pyodide wheel is
+# one wasm side module, not two that the browser's loader would have to pair
+# up (the tttrlib wheel takes the same line, PRD-041 there).
+set(IMPBFF_LIBRARY_TYPE "SHARED" CACHE STRING "How libimp_bff is built: SHARED or STATIC")
+set_property(CACHE IMPBFF_LIBRARY_TYPE PROPERTY STRINGS SHARED STATIC)
+if(NOT IMPBFF_LIBRARY_TYPE MATCHES "^(SHARED|STATIC)$")
+  message(FATAL_ERROR "IMPBFF_LIBRARY_TYPE must be SHARED or STATIC, not '${IMPBFF_LIBRARY_TYPE}'")
+endif()
+add_library(imp_bff ${IMPBFF_LIBRARY_TYPE} ${_cxx_sources} ${_ihm_sources})
 target_link_libraries(imp_bff PUBLIC ptolib::ptolib)
 if(IMPBFF_WITH_TTTRLIB_SIMULATION)
   target_link_libraries(imp_bff PRIVATE tttrlib::tttrlib)
@@ -302,15 +320,21 @@ endif()
 # a main() and a link. A wheel does not install it -- a scripts-dir executable
 # cannot find the library inside site-packages/IMP/bff without a fragile rpath
 # -- and offers the same dispatcher as the `imp_bff` console script instead.
+#
+# IMPBFF_COMMAND_LINE=OFF skips it, for a target with no command line (the
+# Pyodide wheel, where a program would be a .js nobody runs).
+option(IMPBFF_COMMAND_LINE "Build the imp_bff program" ON)
 include(GNUInstallDirs)
-add_executable(imp_bff_exe "${IMPBFF_ROOT}/bin/imp_bff.cpp")
-target_link_libraries(imp_bff_exe PRIVATE imp_bff)
-set_target_properties(imp_bff_exe PROPERTIES OUTPUT_NAME imp_bff
-  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-if(APPLE)
-  set_target_properties(imp_bff_exe PROPERTIES INSTALL_RPATH "@loader_path/../${CMAKE_INSTALL_LIBDIR}")
-elseif(UNIX)
-  set_target_properties(imp_bff_exe PROPERTIES INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
+if(IMPBFF_COMMAND_LINE)
+  add_executable(imp_bff_exe "${IMPBFF_ROOT}/bin/imp_bff.cpp")
+  target_link_libraries(imp_bff_exe PRIVATE imp_bff)
+  set_target_properties(imp_bff_exe PROPERTIES OUTPUT_NAME imp_bff
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+  if(APPLE)
+    set_target_properties(imp_bff_exe PROPERTIES INSTALL_RPATH "@loader_path/../${CMAKE_INSTALL_LIBDIR}")
+  elseif(UNIX)
+    set_target_properties(imp_bff_exe PROPERTIES INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
+  endif()
 endif()
 
 # ---- install, in three components: python (the module and what it loads),
@@ -319,9 +343,12 @@ include(GNUInstallDirs)
 if(IMPBFF_WHEEL)
   set(IMPBFF_PY_PKG_DIR "IMP/bff")
   # (COMPONENT binds to the artifact group it follows, so each group names it)
-  install(TARGETS imp_bff
-    LIBRARY DESTINATION "${IMPBFF_PY_PKG_DIR}" COMPONENT python
-    RUNTIME DESTINATION "${IMPBFF_PY_PKG_DIR}" COMPONENT python)
+  # a STATIC core is inside the extension already; there is nothing to ship
+  if(IMPBFF_LIBRARY_TYPE STREQUAL "SHARED")
+    install(TARGETS imp_bff
+      LIBRARY DESTINATION "${IMPBFF_PY_PKG_DIR}" COMPONENT python
+      RUNTIME DESTINATION "${IMPBFF_PY_PKG_DIR}" COMPONENT python)
+  endif()
   # the small set travels with the wheel; rotamer_library/ and cgprobe/ (62 MB)
   # are listed in data/registry.json and fetched on first use
   install(DIRECTORY "${IMPBFF_ROOT}/data/" DESTINATION "${IMPBFF_PY_PKG_DIR}/data" COMPONENT data
@@ -337,7 +364,9 @@ else()
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT python
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT python)
-  install(TARGETS imp_bff_exe RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT python)
+  if(IMPBFF_COMMAND_LINE)
+    install(TARGETS imp_bff_exe RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT python)
+  endif()
   install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/" DESTINATION include COMPONENT dev)
   install(DIRECTORY "${IMPBFF_GEN_INCLUDE}/" DESTINATION include COMPONENT dev)
   install(DIRECTORY "${IMPBFF_ROOT}/data/" DESTINATION share/IMP/bff/data COMPONENT data)
