@@ -5,7 +5,7 @@ var searchData=
   ['quality_2',['quality',['../struct_probe_rotamer_drot_encoding.html#a7015c3955bd630b19d023ad5fc2d6688',1,'ProbeRotamerDrotEncoding']]],
   ['quantile_3',['quantile',['../namespacemcmc__detail.html#a552568fc4cf24eecba030b2f00f767f0',1,'mcmc_detail::quantile()'],['../class_bayesian_evidence_mixture.html#adce55114d29561953c4b67a9f61d9b0d',1,'BayesianEvidenceMixture::quantile(double p) const']]],
   ['quantile_5fvector_4',['quantile_vector',['../class_bayesian_evidence_mixture.html#a0843317486bc7a13cdabff72cce90de0',1,'BayesianEvidenceMixture']]],
-  ['quantizedneuralnet_5',['quantizedneuralnet',['../class_quantized_neural_net.html#a89804a5848202e5a8c0c1cf0f77cf890',1,'QuantizedNeuralNet::QuantizedNeuralNet()'],['../class_quantized_neural_net.html',1,'QuantizedNeuralNet']]],
+  ['quantizedneuralnet_5',['quantizedneuralnet',['../class_quantized_neural_net.html#ad72ac79da9da38f9797e0896a1103b29',1,'QuantizedNeuralNet::QuantizedNeuralNet()'],['../class_quantized_neural_net.html',1,'QuantizedNeuralNet']]],
   ['quantum_5fyield_6',['quantum_yield',['../struct_probe.html#a63d5058b8f9dc2e635f601a9c2327eab',1,'Probe']]],
   ['quench_5fatoms_7',['quench_atoms',['../struct_residue_quenching.html#a01e82ecdca7c6635c15c118b9a782d40',1,'ResidueQuenching']]],
   ['quench_5fradii_5ffor_5fresidues_8',['quench_radii_for_residues',['../_photophysics_quenching_8h.html#a027f8f3593098a40526ff8eb1a82048d',1,'PhotophysicsQuenching.h']]],

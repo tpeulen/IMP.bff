@@ -3,7 +3,7 @@ var searchData=
   ['quadratic_5fdirection_0',['quadratic_direction',['../class_bayesian_p_spline_prior.html#aa4ffa8680a6d2ca148be4928c5e470b8',1,'BayesianPSplinePrior']]],
   ['quantile_1',['quantile',['../class_bayesian_evidence_mixture.html#adce55114d29561953c4b67a9f61d9b0d',1,'BayesianEvidenceMixture::quantile()'],['../namespacemcmc__detail.html#a552568fc4cf24eecba030b2f00f767f0',1,'mcmc_detail::quantile()']]],
   ['quantile_5fvector_2',['quantile_vector',['../class_bayesian_evidence_mixture.html#a0843317486bc7a13cdabff72cce90de0',1,'BayesianEvidenceMixture']]],
-  ['quantizedneuralnet_3',['QuantizedNeuralNet',['../class_quantized_neural_net.html#a89804a5848202e5a8c0c1cf0f77cf890',1,'QuantizedNeuralNet']]],
+  ['quantizedneuralnet_3',['QuantizedNeuralNet',['../class_quantized_neural_net.html#ad72ac79da9da38f9797e0896a1103b29',1,'QuantizedNeuralNet']]],
   ['quench_5fradii_5ffor_5fresidues_4',['quench_radii_for_residues',['../_photophysics_quenching_8h.html#a027f8f3593098a40526ff8eb1a82048d',1,'PhotophysicsQuenching.h']]],
   ['quenched_5fdecay_5',['quenched_decay',['../_photophysics_photon_simulation_8h.html#ac0062deedeeb4647aea5c9c18d85eb14',1,'PhotophysicsPhotonSimulation.h']]],
   ['quenched_5fdonor_5fphotons_6',['quenched_donor_photons',['../_photophysics_quenching_8h.html#a7f12c8a747626a34a8238a6a7bf604fd',1,'PhotophysicsQuenching.h']]],

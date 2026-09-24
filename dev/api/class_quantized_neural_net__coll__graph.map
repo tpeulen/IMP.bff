@@ -1,3 +1,3 @@
 <map id="QuantizedNeuralNet" name="QuantizedNeuralNet">
-<area shape="rect" id="Node000001" title="A NeuralNet&#39;s forward pass in dynamic&#45;range int8, for deployment." alt="" coords="5,5,187,191"/>
+<area shape="rect" id="Node000001" title="A NeuralNet&#39;s forward pass with quantised weights, for deployment." alt="" coords="5,5,207,331"/>
 </map>

@@ -71,12 +71,13 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="class_quantized_neural_net-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">QuantizedNeuralNet Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>A <a class="el" href="class_neural_net.html" title="A dense multilayer perceptron: evaluated in batches, and differentiable.">NeuralNet</a>'s forward pass in dynamic-range int8, for deployment.  
+<p>A <a class="el" href="class_neural_net.html" title="A dense multilayer perceptron: evaluated in batches, and differentiable.">NeuralNet</a>'s forward pass with quantised weights, for deployment.  
  <a href="class_quantized_neural_net.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_neural_net_8h_source.html">NeuralNet.h</a>&gt;</code></p>
@@ -85,17 +86,26 @@ Collaboration diagram for QuantizedNeuralNet:</div>
 <div class="dyncontent">
 <div class="center"><img src="class_quantized_neural_net__coll__graph.png" border="0" usemap="#a_quantized_neural_net_coll__map" alt="Collaboration graph"/></div>
 <map name="a_quantized_neural_net_coll__map" id="a_quantized_neural_net_coll__map">
-<area shape="rect" title="A NeuralNet&#39;s forward pass in dynamic&#45;range int8, for deployment." alt="" coords="5,5,187,191"/>
+<area shape="rect" title="A NeuralNet&#39;s forward pass with quantised weights, for deployment." alt="" coords="5,5,207,331"/>
 </map>
 </div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a89804a5848202e5a8c0c1cf0f77cf890" id="r_a89804a5848202e5a8c0c1cf0f77cf890"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a89804a5848202e5a8c0c1cf0f77cf890">QuantizedNeuralNet</a> (const <a class="el" href="class_neural_net.html">NeuralNet</a> &amp;net)</td></tr>
-<tr class="memdesc:a89804a5848202e5a8c0c1cf0f77cf890"><td class="mdescLeft">&#160;</td><td class="mdescRight">Quantise <code>net</code> (its current parameters).  <br /></td></tr>
-<tr class="separator:a89804a5848202e5a8c0c1cf0f77cf890"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad72ac79da9da38f9797e0896a1103b29" id="r_ad72ac79da9da38f9797e0896a1103b29"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#ad72ac79da9da38f9797e0896a1103b29">QuantizedNeuralNet</a> (const <a class="el" href="class_neural_net.html">NeuralNet</a> &amp;net, const std::string &amp;format=&quot;int8&quot;, bool quantize_activations=false)</td></tr>
+<tr class="memdesc:ad72ac79da9da38f9797e0896a1103b29"><td class="mdescLeft">&#160;</td><td class="mdescRight">Quantise <code>net</code> (its current parameters) in <code>format</code>.  <br /></td></tr>
+<tr class="separator:ad72ac79da9da38f9797e0896a1103b29"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac71157938cab3bdc84d5d43f63c37583" id="r_ac71157938cab3bdc84d5d43f63c37583"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#ac71157938cab3bdc84d5d43f63c37583">~QuantizedNeuralNet</a> ()</td></tr>
 <tr class="separator:ac71157938cab3bdc84d5d43f63c37583"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5f59ae9ea16a31477645513bf3361f70" id="r_a5f59ae9ea16a31477645513bf3361f70"><td class="memItemLeft" align="right" valign="top"><a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a5f59ae9ea16a31477645513bf3361f70">to_msgpack</a> () const</td></tr>
+<tr class="memdesc:a5f59ae9ea16a31477645513bf3361f70"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <code>bff.quantized_neural_net</code> msgpack document (bit-exact round trip).  <br /></td></tr>
+<tr class="separator:a5f59ae9ea16a31477645513bf3361f70"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a103d3b604d102cf670aefd9e9950ba44" id="r_a103d3b604d102cf670aefd9e9950ba44"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a103d3b604d102cf670aefd9e9950ba44">get_format</a> () const</td></tr>
+<tr class="memdesc:a103d3b604d102cf670aefd9e9950ba44"><td class="mdescLeft">&#160;</td><td class="mdescRight">"int8", "fp4", "mxfp4" or "nvfp4".  <br /></td></tr>
+<tr class="separator:a103d3b604d102cf670aefd9e9950ba44"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a80c6c9526b887b5d62aa3023b040513e" id="r_a80c6c9526b887b5d62aa3023b040513e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a80c6c9526b887b5d62aa3023b040513e">get_quantize_activations</a> () const</td></tr>
+<tr class="memdesc:a80c6c9526b887b5d62aa3023b040513e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether each layer's input is quantised in the weight format (W4A4).  <br /></td></tr>
+<tr class="separator:a80c6c9526b887b5d62aa3023b040513e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7dcdbd8ed37893459721af8feee4aa7c" id="r_a7dcdbd8ed37893459721af8feee4aa7c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a7dcdbd8ed37893459721af8feee4aa7c">get_n_inputs</a> () const</td></tr>
 <tr class="memdesc:a7dcdbd8ed37893459721af8feee4aa7c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inputs the network takes.  <br /></td></tr>
 <tr class="separator:a7dcdbd8ed37893459721af8feee4aa7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -105,20 +115,39 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a80aa836879ac497ef773c3af9ffa6f7f" id="r_a80aa836879ac497ef773c3af9ffa6f7f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a80aa836879ac497ef773c3af9ffa6f7f">get_n_layers</a> () const</td></tr>
 <tr class="memdesc:a80aa836879ac497ef773c3af9ffa6f7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Layers it has.  <br /></td></tr>
 <tr class="separator:a80aa836879ac497ef773c3af9ffa6f7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a23d2dac847231b960118065d44dbd1e7" id="r_a23d2dac847231b960118065d44dbd1e7"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a23d2dac847231b960118065d44dbd1e7">get_n_weights</a> () const</td></tr>
+<tr class="memdesc:a23d2dac847231b960118065d44dbd1e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Weights (the number of multiply-adds a sample).  <br /></td></tr>
+<tr class="separator:a23d2dac847231b960118065d44dbd1e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa721abe188bc1993ea7465dd2d22b42a" id="r_aa721abe188bc1993ea7465dd2d22b42a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#aa721abe188bc1993ea7465dd2d22b42a">get_weight_bytes</a> () const</td></tr>
-<tr class="memdesc:aa721abe188bc1993ea7465dd2d22b42a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bytes the int8 weights occupy: one per weight (a double takes eight).  <br /></td></tr>
 <tr class="separator:aa721abe188bc1993ea7465dd2d22b42a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46c5201c822ca43bfca98c4c744bffbe" id="r_a46c5201c822ca43bfca98c4c744bffbe"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a46c5201c822ca43bfca98c4c744bffbe">get_bits_per_weight</a> () const</td></tr>
+<tr class="separator:a46c5201c822ca43bfca98c4c744bffbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3604c1b41ea37e9f37ee090f73909531" id="r_a3604c1b41ea37e9f37ee090f73909531"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a3604c1b41ea37e9f37ee090f73909531">predict</a> (const std::vector&lt; double &gt; &amp;x, int n_rows, double **out_view, int *n_out_view) const</td></tr>
 <tr class="memdesc:a3604c1b41ea37e9f37ee090f73909531"><td class="mdescLeft">&#160;</td><td class="mdescRight">Evaluate a batch, as <a class="el" href="class_neural_net.html#a4be3c3fa67d10506a45589fd4e6cb3e0" title="Evaluate a batch.">NeuralNet::predict()</a> does.  <br /></td></tr>
 <tr class="separator:a3604c1b41ea37e9f37ee090f73909531"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:ab995598925dd2681eceddcc948a363d3" id="r_ab995598925dd2681eceddcc948a363d3"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_quantized_neural_net.html">QuantizedNeuralNet</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#ab995598925dd2681eceddcc948a363d3">from_msgpack</a> (const <a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp;document)</td></tr>
+<tr class="memdesc:ab995598925dd2681eceddcc948a363d3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a <code>bff.quantized_neural_net</code> msgpack document.  <br /></td></tr>
+<tr class="separator:ab995598925dd2681eceddcc948a363d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1faa21e94d3f19a4ca77215412ad5aca" id="r_a1faa21e94d3f19a4ca77215412ad5aca"><td class="memItemLeft" align="right" valign="top">static std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a1faa21e94d3f19a4ca77215412ad5aca">get_kernel_name</a> ()</td></tr>
+<tr class="separator:a1faa21e94d3f19a4ca77215412ad5aca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A <a class="el" href="class_neural_net.html" title="A dense multilayer perceptron: evaluated in batches, and differentiable.">NeuralNet</a>'s forward pass in dynamic-range int8, for deployment. </p>
-<p>Built from a <a class="el" href="class_neural_net.html" title="A dense multilayer perceptron: evaluated in batches, and differentiable.">NeuralNet</a>; the weights are quantised once (per tensor, symmetric) to int8 &ndash; eight times smaller than the doubles &ndash; and each layer's input is requantised per sample, with int32 accumulation (<code>internal/MlpQuant.h</code> states the scheme and its error bound). The result is an approximation whose error scales with the activations' absolute maximum: a few 1e-3 relative on the networks the tests pin. It is an inference path only &ndash; no derivatives, no training, no accelerator; the source network is not changed.</p>
-<p>A reconstruction.** tttrlib's <code>MlpQuant.h</code> was lost before it was committed; this is rebuilt from its surviving description, not the original code. </p>
+<div class="textblock"><p>A <a class="el" href="class_neural_net.html" title="A dense multilayer perceptron: evaluated in batches, and differentiable.">NeuralNet</a>'s forward pass with quantised weights, for deployment. </p>
+<p>Built from a <a class="el" href="class_neural_net.html" title="A dense multilayer perceptron: evaluated in batches, and differentiable.">NeuralNet</a> in one of four formats (<code>format</code>):</p>
+<ul>
+<li><code>"int8"</code> (default): dynamic-range int8 &ndash; weights quantised once per tensor, symmetric; each layer's input requantised per sample; int32 accumulation (<code>internal/MlpQuant.h</code>). <b>A reconstruction</b>: tttrlib's <code>MlpQuant.h</code> was lost before it was committed; this is rebuilt from its surviving description, not the original code.</li>
+<li><code>"fp4"</code>: FP4 E2M1 weights, one float32 scale per output row.</li>
+<li><code>"mxfp4"</code>: OCP MX v1.0 MXFP4 &ndash; E2M1, blocks of 32 along the input dimension, one E8M0 (power-of-two) scale a block.</li>
+<li><code>"nvfp4"</code>: NVIDIA NVFP4 &ndash; E2M1, blocks of 16, one FP8 E4M3 scale a block and one float32 scale a tensor.</li>
+</ul>
+<p>The exact recipes are in <code>internal/MlpFp4.h</code>. The FP4 weights are held packed (two codes a byte, element 2i in the low nibble &ndash; ONNX FLOAT4E2M1 / PyTorch float4_e2m1fn_x2 order) with their scales, and <a class="el" href="class_quantized_neural_net.html#a3604c1b41ea37e9f37ee090f73909531" title="Evaluate a batch, as NeuralNet::predict() does.">predict()</a> runs integer-SIMD dot products on the codes (<code>internal/MlpFp4Kernels.h</code>, after llama.cpp's MXFP4/NVFP4 kernels): without <code>quantize_activations</code> each layer's input is quantised to int8 per block of 32 (16 for nvfp4) &ndash; W4A8; with it, to FP4 in the same format per row &ndash; W4A4, the arithmetic of NVFP4 GEMMs on Blackwell. CPUs have no FP4 unit: nothing is emulated in float, but the products are int8 products of the E2M1 values' doubles, scaled after. For <code>"int8"</code> the activations are always quantised and <code>quantize_activations</code> is ignored (<a class="el" href="class_quantized_neural_net.html#a80c6c9526b887b5d62aa3023b040513e" title="Whether each layer&#39;s input is quantised in the weight format (W4A4).">get_quantize_activations()</a> returns true).</p>
+<p>Biases, activations and scalers stay double. It is an inference path only &ndash; no derivatives, no training, no accelerator; the source network is not changed. <a class="el" href="class_quantized_neural_net.html#a5f59ae9ea16a31477645513bf3361f70" title="The bff.quantized_neural_net msgpack document (bit-exact round trip).">to_msgpack()</a> / <a class="el" href="class_quantized_neural_net.html#ab995598925dd2681eceddcc948a363d3" title="Load a bff.quantized_neural_net msgpack document.">from_msgpack()</a> store it as a <code>bff.quantized_neural_net</code> msgpack document (codes and scales as bin fields), bit-exact. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a89804a5848202e5a8c0c1cf0f77cf890" name="a89804a5848202e5a8c0c1cf0f77cf890"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a89804a5848202e5a8c0c1cf0f77cf890">&#9670;&#160;</a></span>QuantizedNeuralNet()</h2>
+<a id="ad72ac79da9da38f9797e0896a1103b29" name="ad72ac79da9da38f9797e0896a1103b29"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad72ac79da9da38f9797e0896a1103b29">&#9670;&#160;</a></span>QuantizedNeuralNet()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -130,8 +159,24 @@ Public Member Functions</h2></td></tr>
           <td class="memname">QuantizedNeuralNet::QuantizedNeuralNet </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="class_neural_net.html">NeuralNet</a> &amp;&#160;</td>
-          <td class="paramname"><em>net</em></td><td>)</td>
+          <td class="paramname"><em>net</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>format</em> = <code>&quot;int8&quot;</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>quantize_activations</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -141,7 +186,13 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Quantise <code>net</code> (its current parameters). </p>
+<p>Quantise <code>net</code> (its current parameters) in <code>format</code>. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::ValueException</td><td>for a format other than "int8", "fp4", "mxfp4", "nvfp4" </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -163,6 +214,103 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="ab995598925dd2681eceddcc948a363d3" name="ab995598925dd2681eceddcc948a363d3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab995598925dd2681eceddcc948a363d3">&#9670;&#160;</a></span>from_msgpack()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="class_quantized_neural_net.html">QuantizedNeuralNet</a> QuantizedNeuralNet::from_msgpack </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp;&#160;</td>
+          <td class="paramname"><em>document</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Load a <code>bff.quantized_neural_net</code> msgpack document. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::ValueException</td><td>on a malformed document </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a46c5201c822ca43bfca98c4c744bffbe" name="a46c5201c822ca43bfca98c4c744bffbe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a46c5201c822ca43bfca98c4c744bffbe">&#9670;&#160;</a></span>get_bits_per_weight()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double QuantizedNeuralNet::get_bits_per_weight </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p><code>8 * <a class="el" href="class_quantized_neural_net.html#aa721abe188bc1993ea7465dd2d22b42a">get_weight_bytes()</a> / <a class="el" href="class_quantized_neural_net.html#a23d2dac847231b960118065d44dbd1e7" title="Weights (the number of multiply-adds a sample).">get_n_weights()</a></code>: about 4.25 for mxfp4, 4.5 for nvfp4, 4 + 32 / n_in for fp4, 8 for int8. </p>
+
+</div>
+</div>
+<a id="a103d3b604d102cf670aefd9e9950ba44" name="a103d3b604d102cf670aefd9e9950ba44"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a103d3b604d102cf670aefd9e9950ba44">&#9670;&#160;</a></span>get_format()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string QuantizedNeuralNet::get_format </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>"int8", "fp4", "mxfp4" or "nvfp4". </p>
+
+</div>
+</div>
+<a id="a1faa21e94d3f19a4ca77215412ad5aca" name="a1faa21e94d3f19a4ca77215412ad5aca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1faa21e94d3f19a4ca77215412ad5aca">&#9670;&#160;</a></span>get_kernel_name()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static std::string QuantizedNeuralNet::get_kernel_name </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The FP4 kernel variant this build compiled: "neon-dotprod", "neon", "avx2" or "generic". </p>
+
+</div>
+</div>
 <a id="a7dcdbd8ed37893459721af8feee4aa7c" name="a7dcdbd8ed37893459721af8feee4aa7c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7dcdbd8ed37893459721af8feee4aa7c">&#9670;&#160;</a></span>get_n_inputs()</h2>
 
@@ -220,6 +368,44 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a23d2dac847231b960118065d44dbd1e7" name="a23d2dac847231b960118065d44dbd1e7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a23d2dac847231b960118065d44dbd1e7">&#9670;&#160;</a></span>get_n_weights()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int QuantizedNeuralNet::get_n_weights </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Weights (the number of multiply-adds a sample). </p>
+
+</div>
+</div>
+<a id="a80c6c9526b887b5d62aa3023b040513e" name="a80c6c9526b887b5d62aa3023b040513e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a80c6c9526b887b5d62aa3023b040513e">&#9670;&#160;</a></span>get_quantize_activations()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool QuantizedNeuralNet::get_quantize_activations </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Whether each layer's input is quantised in the weight format (W4A4). </p>
+
+</div>
+</div>
 <a id="aa721abe188bc1993ea7465dd2d22b42a" name="aa721abe188bc1993ea7465dd2d22b42a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa721abe188bc1993ea7465dd2d22b42a">&#9670;&#160;</a></span>get_weight_bytes()</h2>
 
@@ -234,8 +420,7 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Bytes the int8 weights occupy: one per weight (a double takes eight). </p>
+<p>Bytes the quantised weights occupy, scales included: int8 one a weight plus an 8-byte scale a layer; FP4 half a byte a weight (rows padded to 32) plus the scales. A double takes eight a weight. </p>
 
 </div>
 </div>
@@ -289,13 +474,32 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a5f59ae9ea16a31477645513bf3361f70" name="a5f59ae9ea16a31477645513bf3361f70"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5f59ae9ea16a31477645513bf3361f70">&#9670;&#160;</a></span>to_msgpack()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> QuantizedNeuralNet::to_msgpack </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The <code>bff.quantized_neural_net</code> msgpack document (bit-exact round trip). </p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>/home/runner/work/IMP.bff/IMP.bff/include/<a class="el" href="_neural_net_8h_source.html">NeuralNet.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Sep 24 2026 10:19:39 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 24 2026 12:38:45 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

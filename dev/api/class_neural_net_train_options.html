@@ -86,11 +86,11 @@ Collaboration diagram for NeuralNetTrainOptions:</div>
 <div class="dyncontent">
 <div class="center"><img src="class_neural_net_train_options__coll__graph.png" border="0" usemap="#a_neural_net_train_options_coll__map" alt="Collaboration graph"/></div>
 <map name="a_neural_net_train_options_coll__map" id="a_neural_net_train_options_coll__map">
-<area shape="rect" title="Hyper&#45;parameters for train_neural_net()." alt="" coords="59,263,253,548"/>
+<area shape="rect" title="Hyper&#45;parameters for train_neural_net()." alt="" coords="59,277,253,543"/>
 <area shape="rect" title=" " alt="" coords="5,135,136,200"/>
-<area shape="poly" title=" " alt="" coords="71,200,75,238,77,247,72,248,69,239,66,200"/>
+<area shape="poly" title=" " alt="" coords="70,200,71,226,75,253,77,261,72,262,69,254,65,227,65,200"/>
 <area shape="rect" title=" " alt="" coords="202,135,281,200"/>
-<area shape="poly" title=" " alt="" coords="232,201,215,248,210,246,227,199"/>
+<area shape="poly" title=" " alt="" coords="233,201,215,254,212,263,207,261,209,252,228,199"/>
 <area shape="rect" title=" " alt="" coords="176,5,307,85"/>
 <area shape="poly" title=" " alt="" coords="244,99,244,134,239,134,239,99"/>
 </map>
@@ -136,8 +136,19 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:ad3242c211393e6466170579512c7a8ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Minimum improvement of the held-out loss that resets the patience counter.  <br /></td></tr>
 <tr class="separator:ad3242c211393e6466170579512c7a8ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acbb92c0d7fcda658b5c604b6cfda2cd0" id="r_acbb92c0d7fcda658b5c604b6cfda2cd0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net_train_options.html#acbb92c0d7fcda658b5c604b6cfda2cd0">seed</a> = 0</td></tr>
-<tr class="memdesc:acbb92c0d7fcda658b5c604b6cfda2cd0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Seeds the initial weights, the split and the minibatch order.  <br /></td></tr>
 <tr class="separator:acbb92c0d7fcda658b5c604b6cfda2cd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7fbe431ee8d16421531119f2d871a42b" id="r_a7fbe431ee8d16421531119f2d871a42b"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net_train_options.html#a7fbe431ee8d16421531119f2d871a42b">precision</a> = &quot;float64&quot;</td></tr>
+<tr class="separator:a7fbe431ee8d16421531119f2d871a42b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca1e7cc26e1830a746bab7269bd174c2" id="r_aca1e7cc26e1830a746bab7269bd174c2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net_train_options.html#aca1e7cc26e1830a746bab7269bd174c2">fp4_keep_first_layer</a> = true</td></tr>
+<tr class="separator:aca1e7cc26e1830a746bab7269bd174c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad72d557c9f69caa80f268e6ff584bf22" id="r_ad72d557c9f69caa80f268e6ff584bf22"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net_train_options.html#ad72d557c9f69caa80f268e6ff584bf22">fp4_keep_last_layer</a> = true</td></tr>
+<tr class="separator:ad72d557c9f69caa80f268e6ff584bf22"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac2832cc059399b70a843a77caa3ac10b" id="r_ac2832cc059399b70a843a77caa3ac10b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net_train_options.html#ac2832cc059399b70a843a77caa3ac10b">fp4_hadamard</a> = true</td></tr>
+<tr class="memdesc:ac2832cc059399b70a843a77caa3ac10b"><td class="mdescLeft">&#160;</td><td class="mdescRight">FP4 only: the random Hadamard transform of the wgrad inputs.  <br /></td></tr>
+<tr class="separator:ac2832cc059399b70a843a77caa3ac10b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad12540ad5ff30a62471afb160cba49a4" id="r_ad12540ad5ff30a62471afb160cba49a4"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net_train_options.html#ad12540ad5ff30a62471afb160cba49a4">fp4_stochastic_rounding</a> = true</td></tr>
+<tr class="memdesc:ad12540ad5ff30a62471afb160cba49a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">FP4 only: stochastic rounding of the gradients (else round to nearest even).  <br /></td></tr>
+<tr class="separator:ad12540ad5ff30a62471afb160cba49a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Hyper-parameters for <a class="el" href="_neural_net_training_8h.html#a00261999f6d23df6126070953464b6df" title="Fit a network to (X, Y) and return its bff.neural_net msgpack document.">train_neural_net()</a>. </p>
@@ -276,6 +287,67 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="ac2832cc059399b70a843a77caa3ac10b" name="ac2832cc059399b70a843a77caa3ac10b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac2832cc059399b70a843a77caa3ac10b">&#9670;&#160;</a></span>fp4_hadamard</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool NeuralNetTrainOptions::fp4_hadamard = true</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>FP4 only: the random Hadamard transform of the wgrad inputs. </p>
+
+</div>
+</div>
+<a id="aca1e7cc26e1830a746bab7269bd174c2" name="aca1e7cc26e1830a746bab7269bd174c2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aca1e7cc26e1830a746bab7269bd174c2">&#9670;&#160;</a></span>fp4_keep_first_layer</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool NeuralNetTrainOptions::fp4_keep_first_layer = true</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>FP4 only: keep the first / last layer in float64 (the paper keeps a few sensitive layers in higher precision, most of them at the end). </p>
+
+</div>
+</div>
+<a id="ad72d557c9f69caa80f268e6ff584bf22" name="ad72d557c9f69caa80f268e6ff584bf22"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad72d557c9f69caa80f268e6ff584bf22">&#9670;&#160;</a></span>fp4_keep_last_layer</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool NeuralNetTrainOptions::fp4_keep_last_layer = true</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad12540ad5ff30a62471afb160cba49a4" name="ad12540ad5ff30a62471afb160cba49a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad12540ad5ff30a62471afb160cba49a4">&#9670;&#160;</a></span>fp4_stochastic_rounding</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool NeuralNetTrainOptions::fp4_stochastic_rounding = true</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>FP4 only: stochastic rounding of the gradients (else round to nearest even). </p>
+
+</div>
+</div>
 <a id="a84b0c3004d5a3e9ebb98f4dc063f0da3" name="a84b0c3004d5a3e9ebb98f4dc063f0da3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a84b0c3004d5a3e9ebb98f4dc063f0da3">&#9670;&#160;</a></span>hidden_layer_sizes</h2>
 
@@ -338,6 +410,21 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a7fbe431ee8d16421531119f2d871a42b" name="a7fbe431ee8d16421531119f2d871a42b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7fbe431ee8d16421531119f2d871a42b">&#9670;&#160;</a></span>precision</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string NeuralNetTrainOptions::precision = &quot;float64&quot;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Arithmetic of the training GEMMs: <code>"float64"</code> (default), or <code>"nvfp4"</code> / <code>"mxfp4"</code> &ndash; NVIDIA's NVFP4 pretraining recipe (arXiv 2509.25149) on bff's integer FP4 kernels: fprop, dgrad and wgrad of every FP4 layer in FP4, 2-D 16 x 16 weight scaling, a random Hadamard transform on the wgrad inputs, stochastic rounding of the gradients, float64 master weights and Adam state (<code>internal/MlpFp4Train.h</code> states the recipe). The result also carries the FP4 inference network (<a class="el" href="class_neural_net_training.html#adbba3651633e97b708078cb1aa98d0a3">NeuralNetTraining::get_quantized_network()</a>). </p>
+
+</div>
+</div>
 <a id="acbb92c0d7fcda658b5c604b6cfda2cd0" name="acbb92c0d7fcda658b5c604b6cfda2cd0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acbb92c0d7fcda658b5c604b6cfda2cd0">&#9670;&#160;</a></span>seed</h2>
 
@@ -349,8 +436,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Seeds the initial weights, the split and the minibatch order. </p>
+<p>Seeds the initial weights, the split and the minibatch order (and, in FP4 training, the stochastic rounding). </p>
 
 </div>
 </div>
@@ -390,7 +476,7 @@ Public Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Sep 24 2026 10:19:39 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 24 2026 12:38:45 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
