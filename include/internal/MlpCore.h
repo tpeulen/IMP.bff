@@ -46,8 +46,9 @@
 // A whole trained model -- layers plus the input/output StandardScalers -- is
 // `MlpModel`; `model_predict` / `model_backward` apply the scalers and their
 // chain rule so a caller stays in physical units, and `model_from_json` /
-// `model_to_json` (templated on the JSON type, so still std-only here) read
-// and write the `bff.neural_net` document. That is the complete contract
+// `model_to_json` (templated on the JSON type, so still std-only here) map
+// the `bff.neural_net` document tree. On disk and across the bindings that
+// tree is msgpack -- `NetworkDocument.h` is the one encoder/decoder. That is the complete contract
 // a consumer needs to take a network trained by `NeuralNet::train` or
 // scikit-learn and evaluate and differentiate it elsewhere.
 
@@ -176,7 +177,7 @@ struct StandardScaler {
 };
 
 /// A complete model: the layers plus the input and output scalers a trained
-/// network carries. This is what a `bff.neural_net` JSON document holds,
+/// network carries. This is what a `bff.neural_net` (msgpack) document holds,
 /// and what mlpcore's scaler-aware entry points below operate on -- so a
 /// network trained by `NeuralNet::train` (or scikit-learn) evaluates and
 /// differentiates identically wherever this header is compiled.
@@ -912,7 +913,8 @@ inline void model_backward(const MlpModel& m, const double* X, int n_rows, const
 }
 
 // ---------------------------------------------------------------------------
-// JSON round trip, templated on the JSON type
+// Document tree round trip, templated on the JSON type (the in-memory tree;
+// bff encodes it as msgpack, internal/NetworkDocument.h)
 // ---------------------------------------------------------------------------
 //
 // The document is the `bff.neural_net` format, version 1:

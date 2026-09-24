@@ -26,7 +26,6 @@ import pathlib
 import sys
 import time
 
-import msgpack
 import IMP.bff as bff
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -95,7 +94,8 @@ def main(argv=None):
     for name in families:
         print(f"  {name:30s} {accuracy[name]:.3f}  priors {baseline[name]:.3f}")
 
-    args.out.write_bytes(msgpack.packb(json.loads(trained.get_network()), use_bin_type=True))
+    # get_network() is already the msgpack document: written as it is.
+    args.out.write_bytes(trained.get_network())
     report = {
         "format": "bff.model_search.action_policy_report.v1",
         "seed": args.seed,

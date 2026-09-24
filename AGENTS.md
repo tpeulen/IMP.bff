@@ -28,6 +28,10 @@ network (`NeuralNet`, `train_neural_net`, `internal/MlpCore.h`) and its
 consumers — `HmmSurrogate`, which reads tttrlib's `HMM` bursts — are bff's;
 a photon-level consumer links tttrlib optionally, gated on
 `IMP_BFF_HAS_TTTRLIB` like `PhotonExperiment` (tpeulen, 2026-09-23).
+**msgpack is the one format of every network document** (`bff.neural_net`,
+the action policy, `bff.hmm_surrogate`): `IMP::bff::MsgpackBytes`, `bytes` in
+Python, encoded and decoded only by `internal/NetworkDocument.h`. No JSON
+reader, no fallback (tpeulen, 2026-09-24).
 
 ## The compute/display line — the rule above the language rule
 

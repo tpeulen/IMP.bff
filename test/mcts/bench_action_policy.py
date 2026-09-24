@@ -57,8 +57,10 @@ def main(argv=None):
     parser.add_argument("--temperature", type=float, default=0.0,
                         help="0: the policy document's own (1 when it has none)")
     args = parser.parse_args(argv)
-    document = msgpack.unpackb(args.policy.read_bytes(), raw=False)
-    policy = json.dumps(document)
+    # The policy goes to the search as its msgpack bytes; decoded here only
+    # to read the temperature it was gated at.
+    policy = args.policy.read_bytes()
+    document = msgpack.unpackb(policy, raw=False)
     effective = args.temperature or float(document.get("temperature", 1.0))
     photons = bff.PhotonExperiment.get_available()
     rng = random.Random(args.seed)

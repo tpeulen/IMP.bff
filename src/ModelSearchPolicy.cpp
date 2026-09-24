@@ -11,6 +11,7 @@
 #include <IMP/bff/internal/AdamUpdate.h>
 
 #include <IMP/bff/internal/MlpCore.h>
+#include <IMP/bff/internal/NetworkDocument.h>
 #include <IMP/bff/internal/json.h>
 
 #include <algorithm>
@@ -380,7 +381,7 @@ ModelSearchPolicyTraining train_action_policy(const ModelSearchPolicyData& data,
       result.family_baseline_[entry.first] = static_cast<double>(prior.first) / prior.second;
     }
   }
-  result.network_ = internal::mlpcore::model_to_json<nlohmann::json>(model).dump();
+  result.network_ = internal::model_to_msgpack(model);
   return result;
 }
 
@@ -390,22 +391,21 @@ std::vector<double> ModelSearchPolicyTraining::get_family_baseline_accuracy() co
   return values;
 }
 
-std::string get_shipped_action_policy() {
+MsgpackBytes get_shipped_action_policy() {
   std::string path;
   try {
     path = get_data_path("model_search/policy/action_policy.msgpack");
   } catch (...) {
-    return std::string();
+    return MsgpackBytes();
   }
   std::ifstream in(path.c_str(), std::ios::binary);
-  if (!in) return std::string();
-  const std::vector<std::uint8_t> bytes((std::istreambuf_iterator<char>(in)),
-                                        std::istreambuf_iterator<char>());
-  const nlohmann::json doc = nlohmann::json::from_msgpack(bytes, true, false);
-  if (doc.is_discarded())
-    IMP_THROW("get_shipped_action_policy: " << path << " is not a msgpack document",
-              IMP::IOException);
-  return doc.dump();
+  if (!in) return MsgpackBytes();
+  const MsgpackBytes bytes((std::istreambuf_iterator<char>(in)),
+                           std::istreambuf_iterator<char>());
+  // Decoded once so a broken shipped file fails here, by its path, and not
+  // at the first search that reads it.
+  internal::model_from_msgpack(bytes, "get_shipped_action_policy: " + path);
+  return bytes;
 }
 
 IMPBFF_END_NAMESPACE

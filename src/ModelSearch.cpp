@@ -8,7 +8,7 @@
 #include <IMP/bff/GraphNode.h>
 #include <IMP/bff/GraphPort.h>
 #include <IMP/bff/NeuralNet.h>
-#include <IMP/bff/internal/json.h>
+#include <IMP/bff/internal/NetworkDocument.h>
 
 #include <algorithm>
 #include <atomic>
@@ -74,7 +74,7 @@ double puct(const TreeNode& child, int parent_visits, double c_puct) {
 //! A network scoring (state, action) feature rows; one logit per row.
 class ActionPolicy {
  public:
-  void configure(const std::string& network, double temperature) {
+  void configure(const MsgpackBytes& network, double temperature) {
     if (network.empty()) {
       net_.reset();
       return;
@@ -82,17 +82,20 @@ class ActionPolicy {
     if (!std::isfinite(temperature) || temperature < 0.0) {
       throw ModelSearchConfigurationError("an action policy's temperature must be positive");
     }
+    // Decoded here for the temperature (NeuralNet below reads the layers); a
+    // malformed document is an IMP::ValueException naming what is wrong.
+    const nlohmann::json doc =
+        internal::document_from_msgpack(network, "bff.neural_net", "set_action_policy");
     if (temperature == 0.0) {
       // The document's own: a policy is gated at the temperature it ships
       // with, and a different one is a different, ungated policy.
       temperature = 1.0;
-      try {
-        const nlohmann::json doc = nlohmann::json::parse(network);
-        if (doc.is_object() && doc.contains("temperature")) {
-          temperature = doc.at("temperature").get<double>();
+      if (doc.contains("temperature")) {
+        if (!doc.at("temperature").is_number()) {
+          throw ModelSearchConfigurationError(
+              "an action policy document's temperature must be a number");
         }
-      } catch (const std::exception&) {
-        // Not JSON: NeuralNet below says what is wrong with it.
+        temperature = doc.at("temperature").get<double>();
       }
       if (!(temperature > 0.0) || !std::isfinite(temperature)) {
         throw ModelSearchConfigurationError(
@@ -1091,7 +1094,7 @@ void FittingModelSearchProblem::add_action(
                                       terminal));
 }
 
-void FittingModelSearchProblem::set_action_policy(const std::string& network,
+void FittingModelSearchProblem::set_action_policy(const MsgpackBytes& network,
                                                   double temperature) {
   impl_->action_policy.configure(network, temperature);
 }

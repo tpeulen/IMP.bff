@@ -36,7 +36,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest", "scipy", "mrcfile"]
+# msgpack: the tests build and read network documents, which bff speaks
+# only as msgpack (the library itself needs nothing; it vendors the codec).
+test = ["pytest", "scipy", "mrcfile", "msgpack"]
 # What the notebooks in examples/ and doc/manual/ import, so a reader clones the
 # repository and installs one thing. The heavy optional ones stay out: torch
 # (two single-molecule notebooks) and OpenMM (the MD export) are installed by

@@ -11,11 +11,11 @@ standard deviation.
 Skipped when IMP.bff was built without tttrlib (no HmmSurrogate) or tttrlib's
 Python module is missing.
 """
-import json
 import os
 import tempfile
 import unittest
 
+import msgpack
 import numpy as np
 
 import IMP
@@ -316,54 +316,73 @@ class Tests(IMP.test.TestCase):
 
     # --- serialisation -----------------------------------------------------------
 
-    def test_json_round_trip(self):
-        """from_json_string(to_json_string()) predicts identically"""
+    def test_msgpack_round_trip(self):
+        """from_msgpack(to_msgpack()) predicts identically"""
         s = _train_small()
         times, streams = _simulate(20, 50, 2, seed=44)
-        back = IMP.bff.HmmSurrogate.from_json_string(s.to_json_string())
+        data = s.to_msgpack()
+        self.assertIsInstance(data, bytes)
+        back = IMP.bff.HmmSurrogate.from_msgpack(data)
         np.testing.assert_allclose(back.predict_model(times, streams).obs_np,
                                    s.predict_model(times, streams).obs_np,
                                    rtol=0, atol=1e-12)
         self.assertEqual(len(back.get_loss_curve()), 0)
 
-    def test_json_file_round_trip_and_shape(self):
-        """The file holds a bff.hmm_surrogate carrying a bff.neural_net"""
+    def test_file_round_trip_and_shape(self):
+        """The file holds a bff.hmm_surrogate map nesting a bff.neural_net map"""
         s = _train_small()
         with tempfile.TemporaryDirectory() as d:
-            path = os.path.join(d, "surrogate.json")
-            s.to_json_file(path)
-            with open(path) as fh:
-                doc = json.load(fh)
+            path = os.path.join(d, "surrogate.msgpack")
+            s.to_file(path)
+            with open(path, "rb") as fh:
+                raw = fh.read()
+            self.assertEqual(raw, s.to_msgpack())
+            doc = msgpack.unpackb(raw, raw=False)
             self.assertEqual(doc["format"], "bff.hmm_surrogate")
             self.assertEqual((doc["n_states"], doc["n_streams"]), (2, 2))
+            self.assertIsInstance(doc["net"], dict)
             self.assertEqual(doc["net"]["format"], "bff.neural_net")
-            IMP.bff.HmmSurrogate.from_json_file(path)
-            self.assertEqual(json.loads(s.get_net_json())["format"], "bff.neural_net")
+            IMP.bff.HmmSurrogate.from_file(path)
+            net = s.get_net_document()
+            self.assertIsInstance(net, bytes)
+            self.assertEqual(msgpack.unpackb(net, raw=False)["format"], "bff.neural_net")
+
+    def test_constructor_takes_the_net_document(self):
+        """HmmSurrogate(net bytes, n_states, n_streams) wraps a trained net"""
+        s = _train_small()
+        back = IMP.bff.HmmSurrogate(s.get_net_document(), 2, 2)
+        self.assertEqual(back.get_net_document(), s.get_net_document())
 
     def test_stale_features_version_is_rejected(self):
         """A model built for another feature layout fails loudly"""
-        doc = json.loads(_train_small().to_json_string())
+        doc = msgpack.unpackb(_train_small().to_msgpack(), raw=False)
         doc["features_version"] = IMP.bff.HmmSurrogate.FEATURES_VERSION + 1
         with self.assertRaises(IMP.ValueException) as cm:
-            IMP.bff.HmmSurrogate.from_json_string(json.dumps(doc))
+            IMP.bff.HmmSurrogate.from_msgpack(msgpack.packb(doc, use_bin_type=True))
         self.assertIn("features_version", str(cm.exception))
 
     def test_wrong_format_is_rejected(self):
         """Another document tag -- tttrlib's old one included -- is refused"""
         for tag in ("bff.neural_net", "tttrlib.hmm_surrogate"):
-            doc = json.loads(_train_small().to_json_string())
+            doc = msgpack.unpackb(_train_small().to_msgpack(), raw=False)
             doc["format"] = tag
             with self.assertRaises(IMP.ValueException):
-                IMP.bff.HmmSurrogate.from_json_string(json.dumps(doc))
+                IMP.bff.HmmSurrogate.from_msgpack(msgpack.packb(doc, use_bin_type=True))
+
+    def test_malformed_bytes_are_rejected(self):
+        """Bytes that are not msgpack, or text, are refused"""
+        with self.assertRaises(IMP.ValueException):
+            IMP.bff.HmmSurrogate.from_msgpack(b"\xc1")
+        with self.assertRaises(TypeError):
+            IMP.bff.HmmSurrogate.from_msgpack('{"format": "bff.hmm_surrogate"}')
 
     def test_net_output_width_must_match_state_count(self):
         """A net whose output width disagrees with n_states is refused"""
-        doc = json.loads(_train_small().to_json_string())
+        doc = msgpack.unpackb(_train_small().to_msgpack(), raw=False)
         doc["n_states"] = 3
         with self.assertRaises(IMP.ValueException) as cm:
-            IMP.bff.HmmSurrogate.from_json_string(json.dumps(doc))
+            IMP.bff.HmmSurrogate.from_msgpack(msgpack.packb(doc, use_bin_type=True))
         self.assertIn("outputs", str(cm.exception))
-
 
 if __name__ == '__main__':
     IMP.test.main()

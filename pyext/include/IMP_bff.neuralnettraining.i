@@ -1,6 +1,6 @@
 /*
  * Training a dense network: the options, the result with its loss curves,
- * and the two entry points. The document train_neural_net returns is the
+ * and the two entry points. The msgpack document train_neural_net returns is the
  * one IMP.bff.NeuralNet evaluates (IMP_bff.core.i).
  */
 %{
@@ -22,7 +22,7 @@ def train_neural_net_arrays(X, Y, options=None):
 
     A convenience over `train_neural_net`: shapes are read from the arrays
     and a 1D `Y` is one target. Returns the `NeuralNetTraining`, whose
-    `get_network()` is the `bff.neural_net` document.
+    `get_network()` is the `bff.neural_net` msgpack document (`bytes`).
     """
     import numpy as np
     X = np.ascontiguousarray(X, dtype=float)

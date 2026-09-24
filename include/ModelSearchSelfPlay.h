@@ -96,24 +96,24 @@ class IMPBFFEXPORT ModelSearchSelfPlay {
       \param[in] hidden units in each hidden layer
       \param[in] epochs passes over the episodes
       \param[in] learning_rate the Adam step
-      \return the trained network as `bff.neural_net` JSON, which
-              IMP::bff::NeuralNet reads
+      \return the trained network as a `bff.neural_net` msgpack
+              document (bytes in Python), which IMP::bff::NeuralNet reads
 
       Gradients come from the vendored MlpCore backward pass, so this is one
       implementation of the mathematics driven from a second place, not a
       second implementation of it.
   */
-  std::string train(const std::vector<int>& hidden, int epochs,
+  MsgpackBytes train(const std::vector<int>& hidden, int epochs,
                     double learning_rate);
 
   //! Mean squared error per target on the generated episodes, after training.
   std::vector<double> get_training_error() const;
 
   //! Ask a trained proposer where to start, given one real measurement.
-  /*! \param[in] network the JSON #train returned
+  /*! \param[in] network the msgpack document #train returned
       \return one value per canonical parameter, in registry order, ready for
               FittingModelSearchProblem::add_structure_start. */
-  std::vector<double> propose(const std::string& network) const;
+  std::vector<double> propose(const MsgpackBytes& network) const;
 
   //! Simulate count data through TTTRLib's photon engine instead of sampling noise.
   /*! Applies to every measurement whose noise family is Poisson: the curve

@@ -13,7 +13,7 @@ predicts, so it can be run backwards.
 
 from __future__ import annotations
 
-import json
+import msgpack
 import pathlib
 import sys
 
@@ -128,6 +128,8 @@ def test_a_trained_proposer_is_read_back_through_the_ordinary_network():
     """One MLP implementation: trained here, loaded by IMP.bff.NeuralNet."""
     play = _played(64)
     network = play.train([16], 20, 0.02)
+    assert isinstance(network, bytes)
+    assert msgpack.unpackb(network, raw=False)["format"] == "bff.neural_net"
     net = bff.NeuralNet(network)
     assert net.get_n_inputs() == play.get_number_of_features()
     assert net.get_n_outputs() == play.get_number_of_targets()
@@ -152,11 +154,11 @@ def test_a_described_search_takes_a_family_agnostic_policy():
     """ChiSurf's described models use this BFF-native problem directly."""
     width = bff.get_policy_state_width() + bff.get_policy_action_width()
     problem = _spec().build()
-    problem.set_action_policy(json.dumps({
+    problem.set_action_policy(msgpack.packb({
         "format": "bff.neural_net",
         "layers": [{"n_in": width, "n_out": 1, "weight": [0.01] * width,
                     "bias": [0.0], "activation": "identity"}],
-    }))
+    }, use_bin_type=True))
     root = problem.get_initial_state()
     priors = [action.get_prior() for action in problem.get_actions(root)]
 
@@ -205,7 +207,8 @@ def test_training_ranks_held_out_moves_and_replays_from_its_seed():
     assert 0.0 <= trained.get_validation_accuracy() <= 1.0
     assert np.isfinite(trained.get_validation_loss())
     assert list(trained.get_families()) == ["fcs_analytical"]
-    # The network is what the search reads.
+    # The network is what the search reads: msgpack bytes.
+    assert isinstance(trained.get_network(), bytes)
     problem = _spec().build()
     problem.set_action_policy(trained.get_network())
     again = bff.train_action_policy(data, [16], 200, 0.02, 21, 0.25)

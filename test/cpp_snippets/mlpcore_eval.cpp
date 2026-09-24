@@ -1,7 +1,8 @@
-// Evaluate a bff.neural_net JSON model or an ONNX file with bff's own headers
-// only (internal/json.h + internal/MlpCore.h), and check its derivatives.
+// Evaluate a bff.neural_net msgpack document or an ONNX file with bff's own
+// headers only (internal/json.h + internal/MlpCore.h), and check its
+// derivatives.
 //
-//   mlpcore_eval <model.json | model.onnx> <X.txt>
+//   mlpcore_eval <model.msgpack | model.onnx> <X.txt>
 // X.txt: first line "n_rows n_cols", then row-major doubles. Prints one line
 // per row with the outputs, then a line "fd_check <max|dL/dparams - FD|>" for
 #include "IMP/bff/internal/json.h"
@@ -17,7 +18,8 @@ using IMP::bff::internal::MlpModel;
 
 int main(int argc, char** argv) {
     if (argc < 3) return 2;
-    // .json: the bff.neural_net document; .onnx: straight from any exporter
+    // .onnx: straight from any exporter; anything else: the bff.neural_net
+    // msgpack document
     const std::string path(argv[1]);
     MlpModel m;
     if (path.size() > 5 && path.compare(path.size() - 5, 5, ".onnx") == 0) {
@@ -26,9 +28,11 @@ int main(int argc, char** argv) {
         ss << f.rdbuf();
         m = mc::model_from_onnx(ss.str());
     } else {
-        std::ifstream fj(path);
-        nlohmann::json j;
-        fj >> j;
+        std::ifstream f(path, std::ios::binary);
+        std::stringstream ss;
+        ss << f.rdbuf();
+        const nlohmann::json j = nlohmann::json::from_msgpack(ss.str(), true, false);
+        if (j.is_discarded()) return 3;
         m = mc::model_from_json(j);
     }
 

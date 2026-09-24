@@ -3,7 +3,7 @@
  *  \brief Fitting a dense network to data: Adam, minibatches, early stopping.
  *
  * The counterpart of NeuralNet.h: that header evaluates a `bff.neural_net`
- * document, this one writes it. The forward and backward passes are bff's
+ * msgpack document, this one writes it. The forward and backward passes are bff's
  * `internal/MlpCore.h` (the portable GEMM), the optimiser is
  * `internal/AdamUpdate.h`, and the random numbers are the vendored pcg32, so
  * a given seed gives the same network on every platform and build.
@@ -23,6 +23,7 @@
 
 #include <IMP/bff/bff_config.h>
 #include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/NeuralNet.h>
 
 #include <string>
 #include <vector>
@@ -74,8 +75,8 @@ IMP_VALUES(NeuralNetTrainOptions, NeuralNetTrainOptionsList);
 class IMPBFFEXPORT NeuralNetTraining {
  public:
   NeuralNetTraining() {}
-  //! The `bff.neural_net` document; `IMP.bff.NeuralNet(get_network())` loads it.
-  const std::string& get_network() const { return network_; }
+  //! The `bff.neural_net` msgpack document; `IMP.bff.NeuralNet(get_network())` loads it.
+  const MsgpackBytes& get_network() const { return network_; }
   //! Mean half squared error per epoch on the training rows (standardised units).
   const std::vector<double>& get_loss_curve() const { return loss_curve_; }
   //! Half squared error per epoch on the held-out rows; empty without early stopping.
@@ -90,7 +91,7 @@ class IMPBFFEXPORT NeuralNetTraining {
   friend NeuralNetTraining train_neural_net_with_history(
       const std::vector<double>&, int, int, const std::vector<double>&, int,
       const NeuralNetTrainOptions&);
-  std::string network_;
+  MsgpackBytes network_;
   std::vector<double> loss_curve_;
   std::vector<double> validation_curve_;
 };
@@ -113,11 +114,11 @@ IMPBFFEXPORT NeuralNetTraining train_neural_net_with_history(
     const std::vector<double>& Y, int n_targets,
     const NeuralNetTrainOptions& opts = NeuralNetTrainOptions());
 
-//! Fit a network to `(X, Y)` and return its `bff.neural_net` document.
+//! Fit a network to `(X, Y)` and return its `bff.neural_net` msgpack document.
 /*! The same fit as train_neural_net_with_history(), without the curves.
     `IMP.bff.NeuralNet(train_neural_net(...))` evaluates it.
  */
-IMPBFFEXPORT std::string train_neural_net(
+IMPBFFEXPORT MsgpackBytes train_neural_net(
     const std::vector<double>& X, int n_samples, int n_features,
     const std::vector<double>& Y, int n_targets,
     const NeuralNetTrainOptions& opts = NeuralNetTrainOptions());

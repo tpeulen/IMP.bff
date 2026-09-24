@@ -9,6 +9,12 @@
  * loaded, when the backend declines, or when the batch is too small to be
  * worth the trip.
  *
+ * Every network document in bff is **msgpack** (MsgpackBytes below): the
+ * `bff.neural_net` map this constructor reads, what train_neural_net()
+ * writes, the action policy a model search takes and the network nested in
+ * a `bff.hmm_surrogate`. There is no JSON reader; the one encoder and
+ * decoder are `internal/NetworkDocument.h`.
+ *
  * \authors Thomas-Otavio Peulen
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
@@ -25,11 +31,21 @@
 
 IMPBFF_BEGIN_NAMESPACE
 
+//! A msgpack document as raw bytes: bff's native format for networks.
+/*! Binary-safe in C++ (a `std::string` holds any byte, including zero); in
+    Python it is `bytes` both ways -- a bytes, bytearray or memoryview goes
+    in, `bytes` comes out, and a `str` is refused with a TypeError. Build or
+    read one with the `msgpack` package: `msgpack.packb(doc,
+    use_bin_type=True)` / `msgpack.unpackb(data, raw=False)`. */
+typedef std::string MsgpackBytes;
+
 //! A dense multilayer perceptron, evaluated in batches.
 /*!
-    Constructed from a `bff.neural_net` JSON document -- the same one
-    `NeuralNet::train` writes there and the same one scikit-learn's
-    `MLPRegressor` converts to -- so the weights need no bff-specific format.
+    Constructed from a `bff.neural_net` msgpack document -- the one
+    train_neural_net() returns and the one a scikit-learn `MLPRegressor`
+    converts to: a map `{"format": "bff.neural_net", "version": 1,
+    "x_scaler", "y_scaler", "layers": [{"n_in", "n_out", "activation",
+    "weight" (row-major n_out x n_in), "bias"}, ...]}`.
 
     **The batch is the unit.** One `predict()` call crosses the binding once
     and, if an accelerator is loaded, crosses the plugin boundary once, however
@@ -38,10 +54,10 @@ IMPBFF_BEGIN_NAMESPACE
 */
 class IMPBFFEXPORT NeuralNet {
 public:
-    //! Build from a `bff.neural_net` JSON document.
-    /*! \throws IMP::ValueException if the document is not one, or if the
-        layers do not chain. */
-    explicit NeuralNet(const std::string& json);
+    //! Build from a `bff.neural_net` msgpack document.
+    /*! \throws IMP::ValueException if the bytes are not msgpack, not a
+        `bff.neural_net` map, or if the layers do not chain. */
+    explicit NeuralNet(const MsgpackBytes& document);
     ~NeuralNet();
 
     //! Inputs the network takes.

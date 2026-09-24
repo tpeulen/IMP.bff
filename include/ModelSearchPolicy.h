@@ -16,6 +16,7 @@
 
 #include <IMP/bff/bff_config.h>
 #include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/NeuralNet.h>
 
 #include <map>
 #include <string>
@@ -80,8 +81,9 @@ IMP_VALUES(ModelSearchPolicyData, ModelSearchPolicyDatas);
 class IMPBFFEXPORT ModelSearchPolicyTraining {
  public:
   ModelSearchPolicyTraining();
-  //! A `NeuralNet` document for FittingModelSearchProblem::set_action_policy.
-  const std::string& get_network() const { return network_; }
+  //! The `bff.neural_net` msgpack document for
+  //! FittingModelSearchProblem::set_action_policy (bytes in Python).
+  const MsgpackBytes& get_network() const { return network_; }
   double get_training_loss() const { return training_loss_; }
   double get_training_accuracy() const { return training_accuracy_; }
   //! Held-out episodes scored for the report; as many again chose the epoch.
@@ -112,7 +114,7 @@ class IMPBFFEXPORT ModelSearchPolicyTraining {
       const ModelSearchPolicyData&, const std::vector<int>&, int, double,
       unsigned int, double, double);
 #endif
-  std::string network_;
+  MsgpackBytes network_;
   double training_loss_;
   double training_accuracy_;
   int n_validation_;
@@ -142,11 +144,14 @@ IMPBFFEXPORT ModelSearchPolicyTraining train_action_policy(
 
 //! The action policy bff ships, trained on every family it carries.
 /*! `data/model_search/policy/action_policy.msgpack` -- a `bff.neural_net`
-    document stored as msgpack, so the float64 weights are kept exactly and
-    compactly -- returned as the JSON text
-    FittingModelSearchProblem::set_action_policy reads; empty when
-    this build ships none, which searches on the declared priors alone. */
-IMPBFFEXPORT std::string get_shipped_action_policy();
+    document with its gated `"temperature"`, msgpack like every network
+    document in bff -- returned as the file's bytes (checked by decoding
+    once), ready for FittingModelSearchProblem::set_action_policy; empty
+    bytes when this build ships none, which searches on the declared priors
+    alone.
+    \throws IMP::ValueException if the shipped file is not a valid
+            `bff.neural_net` document. */
+IMPBFFEXPORT MsgpackBytes get_shipped_action_policy();
 
 IMPBFF_END_NAMESPACE
 

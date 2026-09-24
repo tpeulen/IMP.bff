@@ -19,6 +19,7 @@ namespace macro (`TTTRLIB_LATTICE_NAMESPACE`), so a bff source may define it as
 `IMP::bff::internal` before including, as `DiffusionSolver.cpp` does.
 
 The neural network is bff's own, not a copy: `MlpCore.h` (the differentiable
-MLP kernels, the `bff.neural_net` document and ONNX import) and
+MLP kernels, the `bff.neural_net` document tree and ONNX import;
+`NetworkDocument.h` is the one msgpack encoder/decoder of that document) and
 `AdamUpdate.h` (the one Adam step) live in `IMP::bff::internal` and change
 here without following tttrlib.

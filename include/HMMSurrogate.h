@@ -87,8 +87,11 @@ IMP_VALUES(HmmSurrogateEstimate, HmmSurrogateEstimates);
 //! Amortised neural estimator of H2MM parameters from burst features.
 /*! A thin adapter: it owns the feature extractor and the output decoder;
     the network is the domain-agnostic IMP::bff::NeuralNet. Stored as a
-    `bff.hmm_surrogate` JSON document that carries the `bff.neural_net`
-    document of its network.
+    `bff.hmm_surrogate` msgpack document -- a map `{"format":
+    "bff.hmm_surrogate", "version": 1, "features_version", "n_states",
+    "n_streams", "net"}` whose `"net"` is the `bff.neural_net` map of its
+    network, nested as a map (not as bytes). Files hold the same bytes;
+    `.msgpack` is the suggested extension.
 
     The tttrlib-typed members (extract_features, predict, encode, decode
     taking an `HMM`/`HmmModel`) are C++ only: a `tttrlib.HMM` from tttrlib's
@@ -106,21 +109,24 @@ class IMPBFFEXPORT HmmSurrogate {
   //! + 6 autocorrelation lags + 2 gap statistics.
   static const int N_FEATURES = 24;
 
-  //! Wrap a `bff.neural_net` document as a surrogate.
-  /*! \throws IMP::ValueException if the network's width does not match
-      N_FEATURES inputs and n_targets(n_states, n_streams) outputs. */
-  HmmSurrogate(const std::string& net_json, int n_states, int n_streams,
+  //! Wrap a `bff.neural_net` msgpack document as a surrogate.
+  /*! \throws IMP::ValueException if `net` is not a network document, or if
+      the network's width does not match N_FEATURES inputs and
+      n_targets(n_states, n_streams) outputs. */
+  HmmSurrogate(const MsgpackBytes& net, int n_states, int n_streams,
                int features_version = FEATURES_VERSION);
 
   // --- serialisation ------------------------------------------------------
-  //! Parse a `bff.hmm_surrogate` JSON document.
-  static HmmSurrogate from_json_string(const std::string& json);
-  //! Read a `bff.hmm_surrogate` JSON file.
-  static HmmSurrogate from_json_file(const std::string& path);
-  //! Serialise to JSON; `indent < 0` is the compact form.
-  std::string to_json_string(int indent = -1) const;
-  //! Write the JSON document to `path`.
-  void to_json_file(const std::string& path, int indent = 2) const;
+  //! Parse a `bff.hmm_surrogate` msgpack document.
+  /*! \throws IMP::ValueException on malformed bytes, another format, or a
+      stale `features_version`. */
+  static HmmSurrogate from_msgpack(const MsgpackBytes& document);
+  //! Serialise to a `bff.hmm_surrogate` msgpack document.
+  MsgpackBytes to_msgpack() const;
+  //! Read a `bff.hmm_surrogate` msgpack file (suggested extension `.msgpack`).
+  static HmmSurrogate from_file(const std::string& path);
+  //! Write the msgpack document to `path`.
+  void to_file(const std::string& path) const;
 
   // --- features -----------------------------------------------------------
   //! Fixed-length, burst-order-invariant summary of a dataset.
@@ -199,13 +205,13 @@ class IMPBFFEXPORT HmmSurrogate {
 
   // --- introspection ------------------------------------------------------
   const NeuralNet& get_net() const { return net_; }
-  //! The network's `bff.neural_net` document.
-  const std::string& get_net_json() const { return net_json_; }
+  //! The network's `bff.neural_net` msgpack document.
+  const MsgpackBytes& get_net_document() const { return net_document_; }
   int get_n_states() const { return n_states_; }
   int get_n_streams() const { return n_streams_; }
   int get_features_version() const { return features_version_; }
   //! Per-epoch training loss of the train() that made this surrogate;
-  //! empty for one loaded from JSON.
+  //! empty for one loaded from a document.
   const std::vector<double>& get_loss_curve() const { return loss_curve_; }
   //! Per-epoch held-out loss, likewise; empty without early stopping.
   const std::vector<double>& get_validation_curve() const { return validation_curve_; }
@@ -216,7 +222,7 @@ class IMPBFFEXPORT HmmSurrogate {
                           << ", features_version=" << features_version_ << ")");
 
  private:
-  std::string net_json_;
+  MsgpackBytes net_document_;
   NeuralNet net_;
   int n_states_;
   int n_streams_;

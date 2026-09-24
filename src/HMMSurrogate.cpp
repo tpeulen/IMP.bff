@@ -16,6 +16,7 @@
 // bff's json first: tttrlib's headers include nlohmann/json_fwd.hpp, which
 // then finds its guard defined and stays out of the way.
 #include <IMP/bff/internal/json.h>
+#include <IMP/bff/internal/NetworkDocument.h>
 
 #include <IMP/bff/HMMSurrogate.h>
 
@@ -27,6 +28,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
+#include <iterator>
 #include <map>
 #include <numeric>
 #include <sstream>
@@ -329,10 +331,10 @@ inline void build_hmm(tttrlib::HMM& engine,
 // Construction
 // ---------------------------------------------------------------------------
 
-HmmSurrogate::HmmSurrogate(const std::string& net_json, int n_states, int n_streams,
+HmmSurrogate::HmmSurrogate(const MsgpackBytes& net, int n_states, int n_streams,
                            int features_version)
-    : net_json_(net_json),
-      net_(net_json),
+    : net_document_(net),
+      net_(net),
       n_states_(n_states),
       n_streams_(n_streams),
       features_version_(features_version) {
@@ -631,21 +633,18 @@ HmmSurrogate HmmSurrogate::train(int n_states, int n_streams, int n_samples, int
 // Serialisation
 // ---------------------------------------------------------------------------
 
-HmmSurrogate HmmSurrogate::from_json_string(const std::string& text) {
-  nlohmann::json j = nlohmann::json::parse(text, nullptr, false);
-  if (j.is_discarded() || !j.is_object())
-    IMP_THROW("HmmSurrogate: the document is not a JSON object", IMP::ValueException);
+HmmSurrogate HmmSurrogate::from_msgpack(const MsgpackBytes& document) {
+  const nlohmann::json j =
+      internal::document_from_msgpack(document, "bff.hmm_surrogate", "HmmSurrogate");
   int fv = FEATURES_VERSION, n_states = 0, n_streams = 0;
-  std::string net;
+  MsgpackBytes net;
   try {
-    if (j.contains("format") && j.at("format").get<std::string>() != "bff.hmm_surrogate")
-      IMP_THROW("HmmSurrogate: unexpected format '" << j.at("format").get<std::string>()
-                                                    << "', expected 'bff.hmm_surrogate'",
-                IMP::ValueException);
     if (j.contains("features_version")) fv = j.at("features_version").get<int>();
-    if (!j.contains("net"))
-      IMP_THROW("HmmSurrogate: document has no 'net' object", IMP::ValueException);
-    net = j.at("net").dump();
+    if (!j.contains("net") || !j.at("net").is_object())
+      IMP_THROW("HmmSurrogate: document has no 'net' map", IMP::ValueException);
+    // The network is nested as a map; re-encoded, it is the bytes
+    // NeuralNet reads, and NeuralNet checks its format.
+    net = internal::document_to_msgpack(j.at("net"));
     n_states = j.at("n_states").get<int>();
     n_streams = j.at("n_streams").get<int>();
   } catch (const IMP::ValueException&) {
@@ -660,29 +659,31 @@ HmmSurrogate HmmSurrogate::from_json_string(const std::string& text) {
   return HmmSurrogate(net, n_states, n_streams, fv);
 }
 
-HmmSurrogate HmmSurrogate::from_json_file(const std::string& path) {
-  std::ifstream fh(path);
-  if (!fh) IMP_THROW("HmmSurrogate: cannot open '" << path << "'", IMP::IOException);
-  std::stringstream ss;
-  ss << fh.rdbuf();
-  return from_json_string(ss.str());
-}
-
-std::string HmmSurrogate::to_json_string(int indent) const {
+MsgpackBytes HmmSurrogate::to_msgpack() const {
   nlohmann::json j = nlohmann::json::object();
   j["format"] = "bff.hmm_surrogate";
   j["version"] = 1;
   j["features_version"] = features_version_;
   j["n_states"] = n_states_;
   j["n_streams"] = n_streams_;
-  j["net"] = nlohmann::json::parse(net_json_);
-  return j.dump(indent);
+  j["net"] = internal::document_from_msgpack(net_document_, "bff.neural_net", "HmmSurrogate");
+  return internal::document_to_msgpack(j);
 }
 
-void HmmSurrogate::to_json_file(const std::string& path, int indent) const {
-  std::ofstream fh(path);
+HmmSurrogate HmmSurrogate::from_file(const std::string& path) {
+  std::ifstream fh(path.c_str(), std::ios::binary);
+  if (!fh) IMP_THROW("HmmSurrogate: cannot open '" << path << "'", IMP::IOException);
+  const MsgpackBytes bytes((std::istreambuf_iterator<char>(fh)),
+                           std::istreambuf_iterator<char>());
+  return from_msgpack(bytes);
+}
+
+void HmmSurrogate::to_file(const std::string& path) const {
+  const MsgpackBytes bytes = to_msgpack();
+  std::ofstream fh(path.c_str(), std::ios::binary);
   if (!fh) IMP_THROW("HmmSurrogate: cannot write '" << path << "'", IMP::IOException);
-  fh << to_json_string(indent);
+  fh.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+  if (!fh) IMP_THROW("HmmSurrogate: cannot write '" << path << "'", IMP::IOException);
 }
 
 IMPBFF_END_NAMESPACE

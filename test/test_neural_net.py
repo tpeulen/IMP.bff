@@ -9,12 +9,16 @@ answer must be the same either way to the precision it works in.
 mistaken for a CPU one, and the GPU tests below skip where nothing is loaded.
 """
 
-import json
-
+import msgpack
 import numpy as np
 import pytest
 
 import IMP.bff
+
+
+def _pack(doc):
+    """A network document as bff reads it: msgpack bytes."""
+    return msgpack.packb(doc, use_bin_type=True)
 
 
 def _model(widths, activations, seed=0):
@@ -29,13 +33,13 @@ def _model(widths, activations, seed=0):
             "bias": rng.normal(0.0, 0.1, n_out).tolist(),
             "activation": activations[k],
         })
-    return json.dumps({"format": "bff.neural_net", "layers": layers})
+    return _pack({"format": "bff.neural_net", "layers": layers})
 
 
 def _numpy_forward(spec, X):
     """The same network in numpy, so the C++ is checked against something that
     shares no code with it."""
-    m = json.loads(spec)
+    m = msgpack.unpackb(spec, raw=False)
     A = np.asarray(X, dtype=float)
     for layer in m["layers"]:
         W = np.asarray(layer["weight"]).reshape(layer["n_out"], layer["n_in"])
@@ -62,14 +66,27 @@ def test_it_reads_the_shape_off_the_document():
 
 def test_it_refuses_a_document_that_is_not_one():
     with pytest.raises(ValueError):
-        IMP.bff.NeuralNet("{not json")
+        IMP.bff.NeuralNet(b"\xc1 not msgpack")
     with pytest.raises(ValueError):
-        IMP.bff.NeuralNet(json.dumps({"format": "bff.neural_net", "layers": []}))
+        IMP.bff.NeuralNet(b"")
+    with pytest.raises(ValueError):
+        IMP.bff.NeuralNet(_pack({"format": "bff.neural_net", "layers": []}))
+    with pytest.raises(ValueError, match="format"):
+        IMP.bff.NeuralNet(_pack({"format": "something.else", "layers": []}))
     # layers that do not chain
-    bad = json.loads(_model([3, 8, 2], ["relu", "identity"]))
+    bad = msgpack.unpackb(_model([3, 8, 2], ["relu", "identity"]), raw=False)
     bad["layers"][1]["n_in"] = 7
     with pytest.raises(ValueError):
-        IMP.bff.NeuralNet(json.dumps(bad))
+        IMP.bff.NeuralNet(_pack(bad))
+
+
+def test_the_document_is_bytes_not_text():
+    """msgpack is the one format: bytes-like in, a str refused by type."""
+    doc = _model([3, 4, 1], ["relu", "identity"])
+    for form in (doc, bytearray(doc), memoryview(doc)):
+        assert IMP.bff.NeuralNet(form).get_n_inputs() == 3
+    with pytest.raises(TypeError, match="msgpack"):
+        IMP.bff.NeuralNet('{"format": "bff.neural_net", "layers": []}')
 
 
 @pytest.mark.parametrize("activation", ["identity", "relu", "tanh", "logistic",

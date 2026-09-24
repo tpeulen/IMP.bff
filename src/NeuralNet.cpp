@@ -10,7 +10,7 @@
 #include <IMP/bff/internal/OutputView.h>
 
 #include <IMP/bff/internal/MlpCore.h>
-#include <IMP/bff/internal/json.h>
+#include <IMP/bff/internal/NetworkDocument.h>
 
 #include <cstdlib>
 
@@ -27,15 +27,8 @@ struct NeuralNet::Impl {
     mutable std::string last_backend;
 };
 
-NeuralNet::NeuralNet(const std::string& json) : impl_(new Impl) {
-    nlohmann::json j = nlohmann::json::parse(json, nullptr, false);
-    if (j.is_discarded()) IMP_THROW("NeuralNet: the model is not JSON", IMP::ValueException);
-    try {
-        impl_->model = mc::model_from_json(j);
-        impl_->model.validate();
-    } catch (const std::exception& e) {
-        IMP_THROW(e.what(), IMP::ValueException);
-    }
+NeuralNet::NeuralNet(const MsgpackBytes& document) : impl_(new Impl) {
+    impl_->model = internal::model_from_msgpack(document, "NeuralNet");
     for (std::size_t i = 0; i < impl_->model.layers.size(); ++i) {
         const internal::DenseLayer& l = impl_->model.layers[i];
         impl_->n_in.push_back(l.n_in);

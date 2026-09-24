@@ -744,6 +744,74 @@ IMP_SWIG_DIRECTOR(IMP::bff, FitMinimizerObserver);
 %include "IMP/bff/FitMinimizer.h"
 
 /*
+ * msgpack is bff's native format for every network document
+ * (IMP::bff::MsgpackBytes, NeuralNet.h). In C++ it is a binary-safe
+ * std::string; in Python it is `bytes` both ways: bytes, bytearray or
+ * memoryview (anything exposing a contiguous buffer) goes in, `bytes` comes
+ * out -- never `str`, which would decode the payload as UTF-8. A `str` is
+ * refused with a TypeError that says so. The typecheck accepts `str` on
+ * purpose: no overload set offers a text alternative, so a `str` should
+ * reach the in-typemap and its clear message, not SWIG's generic dispatch
+ * failure.
+ */
+%{
+namespace {
+bool bff_msgpack_from_python(PyObject* o, std::string& out) {
+  if (PyUnicode_Check(o) || !PyObject_CheckBuffer(o)) return false;
+  Py_buffer view;
+  if (PyObject_GetBuffer(o, &view, PyBUF_C_CONTIGUOUS) != 0) {
+    PyErr_Clear();
+    return false;
+  }
+  out.assign(static_cast<const char*>(view.buf), static_cast<std::size_t>(view.len));
+  PyBuffer_Release(&view);
+  return true;
+}
+void bff_msgpack_type_error(PyObject* o, const char* where, int argnum) {
+  PyErr_Format(PyExc_TypeError,
+               "%s: argument %d must be a msgpack document as bytes "
+               "(bytes, bytearray or memoryview), not %s%s",
+               where, argnum, Py_TYPE(o)->tp_name,
+               PyUnicode_Check(o) ? " (JSON text is not read; encode the "
+                                    "document with msgpack.packb)" : "");
+}
+}
+%}
+%typemap(in) IMP::bff::MsgpackBytes {
+  if (!bff_msgpack_from_python($input, $1)) {
+    bff_msgpack_type_error($input, "$symname", $argnum);
+    SWIG_fail;
+  }
+}
+%typemap(in) const IMP::bff::MsgpackBytes& (IMP::bff::MsgpackBytes temp) {
+  if (!bff_msgpack_from_python($input, temp)) {
+    bff_msgpack_type_error($input, "$symname", $argnum);
+    SWIG_fail;
+  }
+  $1 = &temp;
+}
+/* std_string.i's freearg (the SWIG_AsPtr res flag) would otherwise reach
+   these through the typedef; the copy above lives in `temp`. */
+%typemap(freearg) IMP::bff::MsgpackBytes, const IMP::bff::MsgpackBytes& ""
+%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING) IMP::bff::MsgpackBytes,
+    const IMP::bff::MsgpackBytes& {
+  $1 = (PyUnicode_Check($input) || PyObject_CheckBuffer($input)) ? 1 : 0;
+}
+%typemap(out) IMP::bff::MsgpackBytes {
+  $result = PyBytes_FromStringAndSize($1.data(), static_cast<Py_ssize_t>($1.size()));
+}
+%typemap(out) const IMP::bff::MsgpackBytes& {
+  $result = PyBytes_FromStringAndSize($1->data(), static_cast<Py_ssize_t>($1->size()));
+}
+
+/* A dense network, evaluated in batches. The outputs are one managed view --
+   `n_rows * n_outputs` of them -- for the same reason the diffusion solver's
+   are: a walked SWIG proxy costs ~340 ns an element. Ahead of the model
+   search, whose action policy is a network document. */
+%apply(double** ARGOUTVIEWM_ARRAY1, int* DIM1) {(double** out_view, int* n_out_view)};
+%include "IMP/bff/NeuralNet.h"
+
+/*
  * Model-structure search over an opaque C++ problem.  There is deliberately
  * no director on ModelSearchProblem: a Python override would put one
  * language crossing back into every lazy state evaluation.  Concrete fitting
@@ -1070,11 +1138,6 @@ IMP_SWIG_VALUE(IMP::bff, ProteinFrame, ProteinFrames);
    not own (see the note in `IMP_bff.types.i`). */
 %apply(double** ARGOUTVIEWM_ARRAY1, int* DIM1) {(double** out_fluorescence, int* n_out_fluorescence)};
 %include "IMP/bff/DiffusionSolver.h"
-/* A dense network, evaluated in batches. The outputs are one managed view --
-   `n_rows * n_outputs` of them -- for the same reason the diffusion solver's
-   are: a walked SWIG proxy costs ~340 ns an element. */
-%apply(double** ARGOUTVIEWM_ARRAY1, int* DIM1) {(double** out_view, int* n_out_view)};
-%include "IMP/bff/NeuralNet.h"
 /* The evaluation graph: labels naming ports, run on demand. GraphNode is a
    director, so a graph of Python-subclassed nodes works here too. The
    provenance helpers that go with it are Python, so they live in their own

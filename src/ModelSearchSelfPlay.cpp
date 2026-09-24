@@ -13,7 +13,7 @@
 #include <IMP/bff/NeuralNet.h>
 #include <IMP/bff/PhotonExperiment.h>
 #include <IMP/bff/internal/MlpCore.h>
-#include <IMP/bff/internal/json.h>
+#include <IMP/bff/internal/NetworkDocument.h>
 
 #include <algorithm>
 #include <cmath>
@@ -292,7 +292,7 @@ void ModelSearchSelfPlay::generate(int episodes, unsigned int seed) {
   }
 }
 
-std::string ModelSearchSelfPlay::train(const std::vector<int>& hidden,
+MsgpackBytes ModelSearchSelfPlay::train(const std::vector<int>& hidden,
                                        int epochs, double learning_rate) {
   if (impl_->episodes <= 0) {
     throw std::domain_error("self play: nothing generated to train on");
@@ -373,11 +373,11 @@ std::string ModelSearchSelfPlay::train(const std::vector<int>& hidden,
     }
   }
 
-  return internal::mlpcore::model_to_json<nlohmann::json>(model).dump();
+  return internal::model_to_msgpack(model);
 }
 
 std::vector<double> ModelSearchSelfPlay::propose(
-    const std::string& network) const {
+    const MsgpackBytes& network) const {
   if (impl_->target_ids.empty()) {
     throw std::domain_error("self play: generate episodes before proposing");
   }

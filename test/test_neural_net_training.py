@@ -1,11 +1,10 @@
 """Training a dense network in IMP.bff: train_neural_net and its options.
 
 Ported from tttrlib's NeuralNet::train (tttrlib keeps no ML code). The
-document it returns is the `bff.neural_net` one IMP.bff.NeuralNet loads, so
+document it returns is the `bff.neural_net` msgpack bytes IMP.bff.NeuralNet loads, so
 every test here ends by evaluating the trained network through NeuralNet.
 """
-import json
-
+import msgpack
 import numpy as np
 
 import IMP
@@ -84,7 +83,8 @@ class Tests(IMP.test.TestCase):
         doc = IMP.bff.train_neural_net(
             X.ravel().tolist(), X.shape[0], X.shape[1],
             Y.ravel().tolist(), Y.shape[1], _options(max_iter=5))
-        d = json.loads(doc)
+        self.assertIsInstance(doc, bytes)
+        d = msgpack.unpackb(doc, raw=False)
         self.assertEqual(d["format"], "bff.neural_net")
         self.assertEqual([l["n_in"] for l in d["layers"]], [3, 32, 32])
         self.assertEqual([l["activation"] for l in d["layers"]],

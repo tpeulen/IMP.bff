@@ -8,7 +8,7 @@
 
 #include <IMP/bff/internal/AdamUpdate.h>
 #include <IMP/bff/internal/MlpCore.h>
-#include <IMP/bff/internal/json.h>
+#include <IMP/bff/internal/NetworkDocument.h>
 #include <IMP/bff/internal/pcg_random.h>
 
 #include <algorithm>
@@ -237,11 +237,11 @@ NeuralNetTraining train_neural_net_with_history(
     IMP_THROW(std::string("train_neural_net: ") + e.what(), IMP::ValueException);
   }
 
-  result.network_ = mc::model_to_json<nlohmann::json>(model).dump();
+  result.network_ = internal::model_to_msgpack(model);
   return result;
 }
 
-std::string train_neural_net(const std::vector<double>& X, int n_samples, int n_features,
+MsgpackBytes train_neural_net(const std::vector<double>& X, int n_samples, int n_features,
                              const std::vector<double>& Y, int n_targets,
                              const NeuralNetTrainOptions& opts) {
   return train_neural_net_with_history(X, n_samples, n_features, Y, n_targets, opts)

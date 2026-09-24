@@ -179,7 +179,7 @@ description can already produce the curve it predicts, so any family -- one
 added tomorrow as a file included -- generates its own episodes with no
 hand-written simulator: sample parameters, simulate the measurement they
 imply, keep the pair. Training uses the vendored MlpCore backward pass and
-writes the JSON `NeuralNet` already reads, so there is one MLP
+writes the msgpack `bff.neural_net` document `NeuralNet` already reads, so there is one MLP
 implementation and tttrlib owns it.
 
 Measured on the two-species FCS curve, learning the five parameters
@@ -446,6 +446,9 @@ Never behind, 11-23% fewer structures evaluated. At temperatures 1 and 2 it
 was behind at budget 8 (260 and 265), so the temperature is part of what
 passed: the document carries it (`"temperature": 3.0`), and
 `set_action_policy(network)` without a temperature uses the document's own.
+The network goes in as its msgpack bytes (2026-09-24: msgpack is the one
+network format; `get_shipped_action_policy()` returns the file's bytes and
+`ModelSearchPolicyTraining.get_network()` is written to it as-is).
 The policy, its training report and its benchmark live in
 `data/model_search/policy/` -- not beside the family specs, whose folder is the
 family list.

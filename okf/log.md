@@ -2,6 +2,11 @@
 
 ## 2026-09-24
 
+- **msgpack is the one format of every network document**: `bff.neural_net`, the action policy and `bff.hmm_surrogate` are msgpack bytes (`IMP::bff::MsgpackBytes`, a binary-safe `std::string`; `bytes` in Python, with bytes/bytearray/memoryview accepted and a `str` refused with a TypeError). `internal/NetworkDocument.h` is the one encoder and decoder (`model_to_msgpack`/`model_from_msgpack`; strict decoding, an IMP::ValueException naming a malformed document or a wrong `"format"`). The JSON path is gone, with no fallback reader.
+  - `NeuralNet(bytes)`; `train_neural_net`, `NeuralNetTraining.get_network`, `ModelSearchPolicyTraining.get_network` and `ModelSearchSelfPlay.train` return bytes; `set_action_policy(bytes, temperature=0)` still reads `"temperature"` from the decoded document; `get_shipped_action_policy()` returns the file's bytes (validated once), or empty bytes.
+  - `HmmSurrogate(net_bytes, n_states, n_streams)`, `from_msgpack`/`to_msgpack`, `from_file`/`to_file` (`.msgpack`) and `get_net_document()` replace the `*_json_*` methods and `get_net_json()`. The net is nested as a map, not as bytes.
+  - Tests, scripts and the example build documents with the `msgpack` package, which is now in `pyproject.toml`'s `test` extra. `ModelSearchPolicyData` episodes stay JSON because they hold data, not a network.
+
 - **A conformational process seen by a network of FRET pairs, from bursts with microtimes**: `FRETNetworkModel` (`FRETNetwork.h`, `FRETNetworkSimulation.h`), concept page [fret-network.md](fret-network.md).
   - One hidden process (conformers or a landscape) is shared by every label pair; dye photophysics are separate factors joined by `KineticNetwork`; emission per photon is rate times microtime density, mixed over the state's distance distribution; PIE; full and conditional arrival models; structure priors on the distance maps.
   - Fast rates on small state spaces use a dense matrix exponential with a Van Loan adjoint (a three-state fit had crawled for minutes). A fit backs off from reducible chains instead of throwing.

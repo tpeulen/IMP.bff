@@ -2,6 +2,7 @@
 
 import json
 
+import msgpack
 import numpy as np
 import pytest
 
@@ -111,12 +112,17 @@ def _linear_fit_problem():
     return problem, a, b
 
 
+def _pack(document):
+    """A network document as bff reads it: msgpack bytes."""
+    return msgpack.packb(document, use_bin_type=True)
+
+
 def _row_policy(weights=None, bias=0.0):
     """A one-layer move scorer: one weight per feature, one output."""
     width = bff.get_policy_state_width() + bff.get_policy_action_width()
     weights = [0.0] * width if weights is None else list(weights)
     assert len(weights) == width
-    return json.dumps({
+    return _pack({
         "format": "bff.neural_net",
         "layers": [{
             "n_in": width, "n_out": 1, "weight": weights, "bias": [bias],
@@ -153,16 +159,16 @@ def test_a_policy_multiplies_the_declared_priors_by_its_scores():
 
 def test_a_policy_document_carries_the_temperature_it_was_gated_at():
     """No temperature given: the document's own; given: the caller's."""
-    document = json.loads(_favouring(TERMINAL, 8.0))
+    document = msgpack.unpackb(_favouring(TERMINAL, 8.0), raw=False)
     document["temperature"] = 4.0
     at_four = 0.1 * np.exp(2.0) / (0.1 * np.exp(2.0) + 0.9)
 
     problem, _a, _b = _linear_fit_problem()
-    problem.set_action_policy(json.dumps(document))
+    problem.set_action_policy(_pack(document))
     assert _priors(problem, problem.get_initial_state())["stop"] == pytest.approx(at_four)
 
     problem, _a, _b = _linear_fit_problem()
-    problem.set_action_policy(json.dumps(document), 1.0)
+    problem.set_action_policy(_pack(document), 1.0)
     at_one = 0.1 * np.exp(8.0) / (0.1 * np.exp(8.0) + 0.9)
     assert _priors(problem, problem.get_initial_state())["stop"] == pytest.approx(at_one)
 
@@ -172,11 +178,12 @@ def test_the_shipped_policy_is_the_gated_one():
     shipped = bff.get_shipped_action_policy()
     if not shipped:
         pytest.skip("this build ships no action policy")
-    document = json.loads(shipped)
-    assert document["format"] == "bff.neural_net" and document["temperature"] > 0
-    # Stored as msgpack (a map: fixmap 0x80-0x8f, map16 0xde, map32 0xdf), not JSON text.
+    # The file's own msgpack bytes, handed over as they are stored.
+    assert isinstance(shipped, bytes)
     stored = open(bff.get_data_path("model_search/policy/action_policy.msgpack"), "rb").read()
-    assert stored[0] in range(0x80, 0x90) or stored[0] in (0xDE, 0xDF)
+    assert shipped == stored
+    document = msgpack.unpackb(shipped, raw=False)
+    assert document["format"] == "bff.neural_net" and document["temperature"] > 0
     benchmark = json.loads(open(bff.get_data_path(
         "model_search/policy/action_policy.benchmark.json")).read())
     assert benchmark["ship"] and benchmark["temperature"] == document["temperature"]
@@ -216,12 +223,21 @@ def test_the_rows_are_the_state_and_move_features_of_the_fitted_residual():
 
 def test_a_policy_of_the_wrong_shape_is_refused_and_one_can_be_removed():
     problem, _a, _b = _linear_fit_problem()
-    wrong = json.dumps({"format": "bff.neural_net", "layers": [{
+    wrong = _pack({"format": "bff.neural_net", "layers": [{
         "n_in": 3, "n_out": 1, "weight": [0.0] * 3, "bias": [0.0],
         "activation": "identity"}]})
     with pytest.raises(ValueError, match="features"):
         problem.set_action_policy(wrong)
 
+    with pytest.raises(TypeError, match="msgpack"):
+        problem.set_action_policy('{"format": "bff.neural_net"}')
+    with pytest.raises(ValueError, match="msgpack"):
+        problem.set_action_policy(b"\xc1")
+
+    problem.set_action_policy(_row_policy())
+    assert problem.get_has_action_policy()
+    problem.set_action_policy(b"")
+    assert not problem.get_has_action_policy()
     problem.set_action_policy(_row_policy())
     problem.clear_action_policy()
     assert not problem.get_has_action_policy()
