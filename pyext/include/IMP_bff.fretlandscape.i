@@ -38,6 +38,7 @@ IMP_SWIG_VALUE(IMP::bff, FRETLandscapeModel, FRETLandscapeModels);
    shared by a network of FRET pairs (FRETNetwork.h). */
 %{
 #include <IMP/bff/FRETNetwork.h>
+#include <IMP/bff/FRETNetworkSimulation.h>
 %}
 
 IMP_SWIG_VALUE(IMP::bff, FRETHiddenProcess, FRETHiddenProcesses);
@@ -47,5 +48,7 @@ IMP_SWIG_VALUE(IMP::bff, FRETMeasurement, FRETMeasurements);
 IMP_SWIG_VALUE(IMP::bff, FRETPhotonData, FRETPhotonDataList);
 IMP_SWIG_VALUE(IMP::bff, FRETNetworkLaplace, FRETNetworkLaplaces);
 IMP_SWIG_VALUE(IMP::bff, FRETNetworkModel, FRETNetworkModels);
+IMP_SWIG_VALUE(IMP::bff, FRETSimulationOptions, FRETSimulationOptionsList);
 
 %include "IMP/bff/FRETNetwork.h"
+%include "IMP/bff/FRETNetworkSimulation.h"
