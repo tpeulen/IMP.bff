@@ -27,7 +27,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const dev = path.join(homedir(), "dev");
 const [
   wheel,
-  tttrlibWheel = path.join(dev, "worktrees", "tttrlib-pyodide", "dist", "pyodide",
+  tttrlibWheel = path.join(dev, "tttrlib", "dist", "pyodide",
                            "tttrlib-0.27.0-cp313-cp313-pyodide_2025_0_wasm32.whl"),
   chisurfDir = path.join(dev, "chisurf"),
 ] = process.argv.slice(2);
