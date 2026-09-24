@@ -22,6 +22,9 @@
 #include <IMP/bff/FRETNetwork.h>
 #include <IMP/bff/internal/FRETNetworkFilter.h>
 
+#include <Eigen/Dense>
+#include <unsupported/Eigen/MatrixFunctions>
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -172,6 +175,26 @@ inline int n_chunks(const NetOp& op, double tau) {
   return std::max(1, static_cast<int>(std::ceil(op.q * tau / kChunk)));
 }
 
+//! Whether a gap is cheaper as a dense matrix exponential.
+/*! The series costs about `nnz * q * tau` multiply-adds, a dense exponential
+    (scaling and squaring, and the doubled Van Loan block in the backward pass)
+    about `8 n^3`. A fast rate -- one an optimiser pushed up along a flat
+    direction, or a genuinely fast exchange -- makes `q tau` large while a
+    small state space keeps `n^3` cheap, and without this switch the series
+    grew linearly with the rate: a three-state fit crawled for minutes. */
+inline bool dense_gap(const NetOp& op, double tau) {
+  const double n = op.n;
+  return op.n <= 96 && 8.0 * n * n * n < static_cast<double>(op.fv.size()) * op.q * tau;
+}
+
+//! The generator A as a dense matrix `A(t, s)`.
+Eigen::MatrixXd dense_generator(const NetOp& op) {
+  Eigen::MatrixXd A = Eigen::MatrixXd::Zero(op.n, op.n);
+  for (int t = 0; t < op.n; ++t)
+    for (int k = op.fp[t]; k < op.fp[t + 1]; ++k) A(t, op.fi[k]) = op.av[k];
+  return A;
+}
+
 //! v <- exp(A tau_c) v for one chunk; returns the log of the renormalisation.
 double propagate_chunk(const NetOp& op, double mu, std::vector<double>& v,
                        std::vector<double>& w, std::vector<double>& tmp,
@@ -217,6 +240,15 @@ double segment_pass(const NetOp& op, const FRETPhotonData& data, int seg, Segmen
   if (back) fwd.resize(N);
   std::vector<double> v(n), w(n), tmp(n), p;
   double logl = 0.0;
+  Eigen::MatrixXd A_dense;
+  bool have_dense = false;
+  auto dense = [&]() -> const Eigen::MatrixXd& {
+    if (!have_dense) {
+      A_dense = dense_generator(op);
+      have_dense = true;
+    }
+    return A_dense;
+  };
   {
     const double* f = fac(a);
     double z = 0.0;
@@ -228,7 +260,14 @@ double segment_pass(const NetOp& op, const FRETPhotonData& data, int seg, Segmen
   }
   for (int i = 1; i < N; ++i) {
     const double tau = T[a + i] - T[a + i - 1];
-    if (tau > 0.0) {
+    if (tau > 0.0 && dense_gap(op, tau)) {
+      const Eigen::VectorXd y = (dense() * tau).exp() * Eigen::Map<Eigen::VectorXd>(v.data(), n);
+      double z = 0.0;
+      for (int s = 0; s < n; ++s) z += (v[s] = std::max(y[s], 0.0));
+      if (!(z > 0.0)) return -std::numeric_limits<double>::infinity();
+      logl += std::log(z);
+      for (double& x : v) x /= z;
+    } else if (tau > 0.0) {
       const int nc = n_chunks(op, tau);
       const double mu = op.q * tau / nc;
       for (int c = 0; c < nc; ++c) logl += propagate_chunk(op, mu, v, w, tmp, p);
@@ -276,7 +315,15 @@ double segment_pass(const NetOp& op, const FRETPhotonData& data, int seg, Segmen
     } else {
       tau = T[a + i] - T[a + i - 1];
       pre = fwd[i - 1];
-      if (tau > 0.0) {
+      if (tau > 0.0 && dense_gap(op, tau)) {
+        starts.push_back(pre);  // the gap's start, for the Van Loan block
+        const Eigen::VectorXd y =
+            (dense() * tau).exp() * Eigen::Map<Eigen::VectorXd>(pre.data(), n);
+        double z = 0.0;
+        for (int s = 0; s < n; ++s) z += (pre[s] = std::max(y[s], 0.0));
+        for (double& x : pre) x /= (z > 0.0 ? z : 1.0);
+        nc = -1;  // marks the dense gap
+      } else if (tau > 0.0) {
         nc = n_chunks(op, tau);
         mu = op.q * tau / nc;
         for (int c = 0; c < nc; ++c) {
@@ -302,6 +349,33 @@ double segment_pass(const NetOp& op, const FRETPhotonData& data, int seg, Segmen
     double bn = 0.0;
     for (int s = 0; s < n; ++s) bn = std::max(bn, bl[s] = f[s] * beta[s]);
     for (double& x : bl) x /= (bn > 0.0 ? bn : 1.0);
+    if (nc == -1) {
+      // Dense gap. With alpha its start and bl its end, Van Loan's block
+      // exp(tau [[A^T, bl alpha^T], [0, A^T]]) holds exp(A^T tau) (upper
+      // left) and G = int_0^tau exp(A^T (tau-u)) bl alpha^T exp(A^T u) du
+      // (upper right): d(bl^T exp(A tau) alpha)/dA_ts = G(t, s), and the
+      // diagonal of G is the time the posterior spends in each state.
+      const Eigen::Map<const Eigen::VectorXd> alpha(starts[0].data(), n);
+      const Eigen::Map<const Eigen::VectorXd> end(bl.data(), n);
+      Eigen::MatrixXd M = Eigen::MatrixXd::Zero(2 * n, 2 * n);
+      M.topLeftCorner(n, n) = dense().transpose();
+      M.bottomRightCorner(n, n) = dense().transpose();
+      M.topRightCorner(n, n) = end * alpha.transpose();
+      const Eigen::MatrixXd E = (M * tau).exp();
+      const Eigen::MatrixXd G = E.topRightCorner(n, n);
+      const Eigen::VectorXd left = E.topLeftCorner(n, n) * end;  // exp(A^T tau) bl
+      const double zc = left.dot(alpha);
+      if (out->want_adjoint && zc > 0.0) {
+        for (int t = 0; t < n; ++t)
+          for (int k = op.fp[t]; k < op.fp[t + 1]; ++k)
+            out->gA[k] += G(t, op.fi[k]) / zc;
+      }
+      if (out->want_occupancy && zc > 0.0)
+        for (int s = 0; s < n; ++s) out->occupancy[s] += G(s, s) / zc;
+      double mx = 0.0;
+      for (int s = 0; s < n; ++s) mx = std::max(mx, left[s]);
+      for (int s = 0; s < n; ++s) bl[s] = std::max(left[s], 0.0) / (mx > 0.0 ? mx : 1.0);
+    }
     for (int c = nc - 1; c >= 0; --c) {
       // chunk c: start alpha = starts[c], end beta = bl
       poisson_weights(mu, p);
