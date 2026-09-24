@@ -1,53 +1,61 @@
 /**
  *  \file IMP/bff/internal/MlpFp4Kernels.h
- *  \brief Integer-SIMD kernels on packed FP4 (E2M1) codes: FP4 x int8 and
- *         FP4 x FP4 dot products and GEMMs, and the fast forward pass.
+ *  \brief Integer-SIMD kernels on packed FP4 (E2M1) codes: the blocked FP4
+ *         GEMM, the vectorised quantisers, and the fast forward pass.
  *
  * **CPUs have no FP4 arithmetic.** "Native" here means every product runs on
- * the packed 4-bit codes through integer SIMD dot products; nothing is
- * dequantised to float first. The approach is llama.cpp/ggml's
- * (`ggml_vec_dot_mxfp4_q8_0`, `ggml_vec_dot_nvfp4_q8_0`), re-expressed for
- * bff's layout:
+ * the 4-bit codes through integer SIMD dot products; nothing is dequantised
+ * to float first. The approach is llama.cpp/ggml's
+ * (`ggml_vec_dot_mxfp4_q8_0`, `ggml_vec_dot_nvfp4_q8_0`), re-expressed as a
+ * register-blocked GEMM:
  *
  * - The E2M1 values times two are the integers
  *   `{0, 1, 2, 3, 4, 6, 8, 12, 0, -1, -2, -3, -4, -6, -8, -12}`
- *   (ggml's `kvalues_mxfp4` / `kvalues_fp4`), so a 16-byte table lookup
- *   turns 16 nibbles into 16 int8 values at once: `vqtbl1q_s8` on ARM NEON,
- *   `_mm_shuffle_epi8` (pshufb) on x86. The factor 1/2 goes into the scales.
- * - The other operand is either int8 (activations quantised per block to
- *   int8 with one float scale a block: 32 elements, or 16 for nvfp4 --
- *   ggml's Q8_0 idea) or FP4 codes looked up through the same table.
- * - The integer dot product runs on `vdotq_s32` (ARMv8.2 dotprod), on
- *   `vmull_s8` + `vmlal_s8` + `vaddlvq_s16` (plain AArch64 NEON), or on
- *   `_mm256_maddubs_epi16` + `_mm256_madd_epi16` with the `_mm256_sign_epi8`
- *   trick for signed x signed (AVX2). One 16-byte group (32 elements) gives
- *   two exact int32 sums, one per 16-element sub-block.
- * - The scales are applied after, in float: per 16-element sub-block,
- *   `sum_int * (scale_a * scale_b)`, with scale = 1/2 x (E8M0 for mxfp4,
- *   E4M3 x float32 tensor scale for nvfp4, the float32 row scale for fp4,
- *   amax/127 for int8). This combination is one shared scalar function,
- *   with four independent accumulators, so every SIMD variant gives
- *   *bit-identical* results to the generic one (the integer part is exact
- *   and the float part is the same code).
+ *   (ggml's `kvalues_mxfp4`), so a 16-byte table lookup turns 16 nibbles
+ *   into 16 int8 values at once: `vqtbl1q_s8` (NEON), `_mm256_shuffle_epi8`
+ *   (AVX2), `_mm512_shuffle_epi8` (AVX-512BW). The factor 1/2 goes into the
+ *   scales.
+ * - The **left operand** (activations, or in training the gradient) is int8
+ *   in natural element order with one float scale per 16-element sub-block:
+ *   W4A8 quantises the activations to int8 per block (32; 16 for nvfp4,
+ *   ggml's Q8_0 idea); W4A4 and training quantise them to FP4 and store the
+ *   codes' values `2 x E2M1` (exact, in [-12, 12]).
+ * - The **right operand** (weights; in wgrad the Hadamard-transformed
+ *   activations) stays packed FP4, repacked once into the micro-kernel's
+ *   tile layout (PackedRight): for a tile of `kNR` output rows and a 16-wide
+ *   sub-block, two chunks of `4 kNR` bytes whose low nibbles are k-quad
+ *   `2p` and high nibbles k-quad `2p + 1` of every row of the tile (byte
+ *   `4 o + j` = row o, element j of the quad). One table lookup of a chunk
+ *   is then exactly the operand of a lane-wise 4-byte dot product:
+ *   `vdotq_laneq_s32` (ARMv8.2 dotprod; plain NEON: `vmull_s8` +
+ *   `vpaddlq_s16`), `_mm256_maddubs_epi16` + `_mm256_madd_epi16` (AVX2),
+ *   `_mm512_dpbusd_epi32` (AVX-512 VNNI) -- each lane is one output row, the
+ *   left operand's 4 bytes broadcast. x86's u8 x s8 instructions take the
+ *   left operand offset by 128 (`a ^ 0x80`) and subtract `128 x` the tile
+ *   row's sub-block sum, precomputed at packing (`corr`); the sums are exact.
+ * - The micro-kernel holds `kMR` left rows x `kNR` right rows (NEON 4 x 4,
+ *   AVX2 2 x 8, AVX-512 4 x 16) and walks the contraction one 16-element
+ *   sub-block at a time: the exact int32 sub-block sums, then in float
+ *   `acc[s % 4] += float(sum) * (scale_left * scale_right)` per output, and
+ *   finally `(acc0 + acc1) + (acc2 + acc3)`. That float sequence is the
+ *   generic `combine()`, done per output lane, and the multiply is kept
+ *   apart from the add (`IMPBFF_FP4_KEEP`, an empty asm that stops GCC and
+ *   Clang contracting it into an FMA), so **every variant, and every
+ *   compiler flag set, gives the generic kernel's bits**.
  *
- * Layout. FP4 rows are bff's standard packing (element 2i in the low
- * nibble, MlpFp4.h), padded to a multiple of 32 elements. A 16-byte group
- * holds elements 0..31: the low nibbles are the even elements, the high
- * nibbles the odd ones. ggml instead packs element j with j + 16; rather
- * than repack the weights, the *int8 activations* are stored permuted
- * within each group of 32 -- `a'[j] = a[2j]`, `a'[16 + j] = a[2j + 1]` for
- * j < 16 -- so that the low-nibble lookup pairs with `a'[0..15]` and the
- * high-nibble lookup with `a'[16..31]`, exactly ggml's loop. For FP4 x FP4
- * both operands use the same packing, so low pairs with low and high with
- * high and no permutation is needed.
+ * Quantisation (the per-call and per-step cost around the GEMMs) is
+ * vectorised the same way: block absmax, the E2M1 threshold network, the
+ * int8 rounding and the stochastic-rounding comparison run on 2 (NEON), 4
+ * (AVX2) or 8 (AVX-512) doubles; the per-block scale codes are scalar but
+ * bit-level (MlpFp4.h). Each vector step performs exactly the scalar
+ * reference's IEEE operations, so the codes are identical.
  *
  * Variants are chosen at **compile time** from the target macros --
- * `__ARM_FEATURE_DOTPROD` (NEON + dotprod), `__ARM_NEON` (NEON), `__AVX2__`
- * -- never by run-time cpuid (under Rosetta 2 cpuid reports no AVX2 while
- * AVX2 instructions execute). `IMPBFF_FP4_NO_SIMD` forces the generic
- * scalar code. `kernel_name()` says which was compiled. There is no
- * AVX-512 VNNI variant (not needed for correctness; this development
- * machine cannot run one).
+ * `__ARM_FEATURE_DOTPROD` (NEON + dotprod), `__ARM_NEON` (NEON),
+ * `__AVX512F__ && __AVX512BW__ && __AVX512VNNI__` (AVX-512 VNNI),
+ * `__AVX2__` -- never by run-time cpuid (under Rosetta 2 cpuid reports no
+ * AVX2 while AVX2 instructions execute). `IMPBFF_FP4_NO_SIMD` forces the
+ * generic scalar code. `kernel_name()` says which was compiled.
  *
  * Derived from llama.cpp / ggml (https://github.com/ggml-org/llama.cpp):
  * ggml/src/ggml-common.h (`kvalues_mxfp4`, `block_mxfp4`, `block_nvfp4`),
@@ -56,7 +64,9 @@
  * ggml/src/ggml-cpu/arch/arm/quants.c (`ggml_vec_dot_mxfp4_q8_0`,
  * `ggml_vec_dot_nvfp4_q8_0`, NEON) and
  * ggml/src/ggml-cpu/arch/x86/quants.c (`ggml_vec_dot_mxfp4_q8_0`,
- * `ggml_vec_dot_nvfp4_q8_0`, AVX2), under this licence:
+ * `ggml_vec_dot_nvfp4_q8_0`, AVX2 / AVX-512: the table lookup through
+ * `shuffle_epi8`, the u8 x s8 `maddubs` / `dpbusd` products), under this
+ * licence:
  *
  *   MIT License
  *
@@ -95,6 +105,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <limits>
 #include <type_traits>
 #include <vector>
@@ -107,10 +118,33 @@
 #else
 #define IMPBFF_FP4_NEON 1
 #endif
+#elif defined(__AVX512F__) && defined(__AVX512BW__) && defined(__AVX512VNNI__)
+#include <immintrin.h>
+#define IMPBFF_FP4_AVX512 1
 #elif defined(__AVX2__)
 #include <immintrin.h>
 #define IMPBFF_FP4_AVX2 1
 #endif
+#endif
+
+// Keep `v` a separately rounded value: an empty asm the optimiser cannot see
+// through, so `acc + v` is never contracted with the multiply that made `v`
+// into a fused multiply-add (GCC contracts across statements by default,
+// -ffp-contract=fast; an FMA rounds once, the generic code twice).
+#if defined(__GNUC__) || defined(__clang__)
+#if defined(__aarch64__)
+#define IMPBFF_FP4_KEEP(v) __asm__("" : "+w"(v))
+#elif defined(__x86_64__) || defined(__i386__)
+#if defined(IMPBFF_FP4_AVX512)
+#define IMPBFF_FP4_KEEP(v) __asm__("" : "+v"(v))
+#else
+#define IMPBFF_FP4_KEEP(v) __asm__("" : "+x"(v))
+#endif
+#else
+#define IMPBFF_FP4_KEEP(v) __asm__("" : "+m"(v))
+#endif
+#else
+#define IMPBFF_FP4_KEEP(v) ((void)0)
 #endif
 
 namespace IMP {
@@ -123,12 +157,25 @@ namespace kern {
 alignas(16) constexpr std::int8_t kValues2[16] = {0, 1, 2, 3, 4, 6, 8, 12,
                                                   0, -1, -2, -3, -4, -6, -8, -12};
 
+#if defined(IMPBFF_FP4_AVX512)
+constexpr int kNR = 16;  //!< right rows (outputs) a micro-kernel tile
+constexpr int kMR = 4;   //!< left rows a micro-kernel tile
+#elif defined(IMPBFF_FP4_AVX2)
+constexpr int kNR = 8;
+constexpr int kMR = 2;
+#else
+constexpr int kNR = 4;
+constexpr int kMR = 4;
+#endif
+
 //! Which variant this translation unit compiled.
 inline const char* kernel_name() {
 #if defined(IMPBFF_FP4_NEON_DOTPROD)
     return "neon-dotprod";
 #elif defined(IMPBFF_FP4_NEON)
     return "neon";
+#elif defined(IMPBFF_FP4_AVX512)
+    return "avx512-vnni";
 #elif defined(IMPBFF_FP4_AVX2)
     return "avx2";
 #else
@@ -136,277 +183,12 @@ inline const char* kernel_name() {
 #endif
 }
 
-// ------------------------------------------------------------------ generic
-
-//! FP4 x int8: for each of `n_groups` 16-byte groups of `w` (32 codes) and
-//! the matching 32 permuted int8 values of `a`, the two sub-block sums
-//! `out[2g]` (elements 0..15) and `out[2g + 1]` (16..31), of 2 x E2M1 x int8.
-inline void isums_q8_generic(const std::uint8_t* w, const std::int8_t* a, int n_groups,
-                             std::int32_t* out) {
-    for (int g = 0; g < n_groups; ++g) {
-        const std::uint8_t* wg = w + 16 * g;
-        const std::int8_t* ag = a + 32 * g;
-        std::int32_t s[2] = {0, 0};
-        for (int j = 0; j < 16; ++j) {
-            s[j / 8] += kValues2[wg[j] & 0x0F] * ag[j] + kValues2[wg[j] >> 4] * ag[16 + j];
-        }
-        out[2 * g] = s[0];
-        out[2 * g + 1] = s[1];
-    }
-}
-
-//! FP4 x FP4: the same sub-block sums for two packed operands, of
-//! (2 x E2M1) x (2 x E2M1).
-inline void isums_fp4_generic(const std::uint8_t* x, const std::uint8_t* y, int n_groups,
-                              std::int32_t* out) {
-    for (int g = 0; g < n_groups; ++g) {
-        const std::uint8_t* xg = x + 16 * g;
-        const std::uint8_t* yg = y + 16 * g;
-        std::int32_t s[2] = {0, 0};
-        for (int j = 0; j < 16; ++j) {
-            s[j / 8] += kValues2[xg[j] & 0x0F] * kValues2[yg[j] & 0x0F] +
-                        kValues2[xg[j] >> 4] * kValues2[yg[j] >> 4];
-        }
-        out[2 * g] = s[0];
-        out[2 * g + 1] = s[1];
-    }
-}
-
-//! The shared float combination: `sum_s is[s] * (sa[s] * sb[s])` over
-//! `n_sub` sub-blocks in four lanes (sub-block s goes to lane s % 4, a
-//! trailing pair to lanes 0 and 1), then `(l0 + l1) + (l2 + l3)`. Separate
-//! statements, so no multiply-add is contracted: the SIMD variants run the
-//! same lanes with vector multiplies and adds and give the same bits.
-inline float combine(const std::int32_t* is, const float* sa, const float* sb, int n_sub) {
-    float acc[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    int s = 0;
-    for (; s + 4 <= n_sub; s += 4)
-        for (int i = 0; i < 4; ++i) {
-            const float sc = sa[s + i] * sb[s + i];
-            const float t = static_cast<float>(is[s + i]) * sc;
-            acc[i] += t;
-        }
-    for (int i = 0; s < n_sub; ++s, ++i) {
-        const float sc = sa[s] * sb[s];
-        const float t = static_cast<float>(is[s]) * sc;
-        acc[i] += t;
-    }
-    const float l01 = acc[0] + acc[1];
-    const float l23 = acc[2] + acc[3];
-    return l01 + l23;
-}
-
-//! Generic FP4 x int8 dot of `n_groups` groups with sub-block scales.
-inline float dot_q8_generic(const std::uint8_t* w, const std::int8_t* a, const float* sa,
-                            const float* sw, int n_groups, std::int32_t* scratch) {
-    isums_q8_generic(w, a, n_groups, scratch);
-    return combine(scratch, sa, sw, 2 * n_groups);
-}
-//! Generic FP4 x FP4 dot.
-inline float dot_fp4_generic(const std::uint8_t* x, const std::uint8_t* y, const float* sx,
-                             const float* sy, int n_groups, std::int32_t* scratch) {
-    isums_fp4_generic(x, y, n_groups, scratch);
-    return combine(scratch, sx, sy, 2 * n_groups);
-}
-
-// ------------------------------------------------------------------ SIMD
-
-// Each SIMD variant supplies, for its native vector types `ivec` (4 x int32)
-// and `fvec` (4 x float): `quad_q8(w, a)` / `quad_fp4(x, y)` -- the four
-// sub-block sums of two groups -- and `pair_q8` / `pair_fp4` -- the two of one
-// group, in lanes 0 and 1 -- plus `accumulate` and `finish`, which do in
-// vectors exactly what combine() does in scalars.
-
-#if defined(IMPBFF_FP4_NEON_DOTPROD) || defined(IMPBFF_FP4_NEON)
-#define IMPBFF_FP4_SIMD 1
-namespace simd {
-using ivec = int32x4_t;
-using fvec = float32x4_t;
-inline fvec fzero() { return vdupq_n_f32(0.0f); }
-inline int8x16_t lut_lo(uint8x16_t v) { return vqtbl1q_s8(vld1q_s8(kValues2), vandq_u8(v, vdupq_n_u8(0x0F))); }
-inline int8x16_t lut_hi(uint8x16_t v) { return vqtbl1q_s8(vld1q_s8(kValues2), vshrq_n_u8(v, 4)); }
-#if defined(IMPBFF_FP4_NEON_DOTPROD)
-//! Lanes 0 + 1 and 2 + 3 of lo . a0 + hi . a1 (vdotq: 4 bytes a lane).
-inline int32x4_t group_dot(int8x16_t lo, int8x16_t a0, int8x16_t hi, int8x16_t a1) {
-    return vdotq_s32(vdotq_s32(vdupq_n_s32(0), lo, a0), hi, a1);
-}
-inline ivec quad(int32x4_t p0, int32x4_t p1) { return vpaddq_s32(p0, p1); }
-inline ivec pair(int32x4_t p0) { return vpaddq_s32(p0, p0); }
-#else
-// Plain AArch64 NEON: widening multiplies; |2 x E2M1 x int8| <= 1524, two of
-// them summed per int16 lane (vmlal) stay below 2^15. Returns the two
-// sub-block sums in lanes 0 and 1.
-inline int32x4_t group_dot(int8x16_t lo, int8x16_t a0, int8x16_t hi, int8x16_t a1) {
-    const int16x8_t p = vmlal_s8(vmull_s8(vget_low_s8(lo), vget_low_s8(a0)), vget_low_s8(hi), vget_low_s8(a1));
-    const int16x8_t q = vmlal_s8(vmull_s8(vget_high_s8(lo), vget_high_s8(a0)), vget_high_s8(hi), vget_high_s8(a1));
-    return vcombine_s32(vpadd_s32(vget_low_s32(vpaddlq_s16(p)), vget_high_s32(vpaddlq_s16(p))),
-                        vpadd_s32(vget_low_s32(vpaddlq_s16(q)), vget_high_s32(vpaddlq_s16(q))));
-}
-inline ivec quad(int32x4_t p0, int32x4_t p1) { return vpaddq_s32(p0, p1); }
-inline ivec pair(int32x4_t p0) { return vpaddq_s32(p0, p0); }
-#endif
-// (plain NEON: group_dot's lanes are [s0a, s0b, s1a, s1b] as well, so
-// quad/pair are the same pairwise adds.)
-inline ivec quad_q8(const std::uint8_t* w, const std::int8_t* a) {
-    const uint8x16_t w0 = vld1q_u8(w), w1 = vld1q_u8(w + 16);
-    return quad(group_dot(lut_lo(w0), vld1q_s8(a), lut_hi(w0), vld1q_s8(a + 16)),
-                group_dot(lut_lo(w1), vld1q_s8(a + 32), lut_hi(w1), vld1q_s8(a + 48)));
-}
-inline ivec pair_q8(const std::uint8_t* w, const std::int8_t* a) {
-    const uint8x16_t w0 = vld1q_u8(w);
-    return pair(group_dot(lut_lo(w0), vld1q_s8(a), lut_hi(w0), vld1q_s8(a + 16)));
-}
-inline ivec quad_fp4(const std::uint8_t* x, const std::uint8_t* y) {
-    const uint8x16_t x0 = vld1q_u8(x), x1 = vld1q_u8(x + 16);
-    const uint8x16_t y0 = vld1q_u8(y), y1 = vld1q_u8(y + 16);
-    return quad(group_dot(lut_lo(x0), lut_lo(y0), lut_hi(x0), lut_hi(y0)),
-                group_dot(lut_lo(x1), lut_lo(y1), lut_hi(x1), lut_hi(y1)));
-}
-inline ivec pair_fp4(const std::uint8_t* x, const std::uint8_t* y) {
-    const uint8x16_t x0 = vld1q_u8(x), y0 = vld1q_u8(y);
-    return pair(group_dot(lut_lo(x0), lut_lo(y0), lut_hi(x0), lut_hi(y0)));
-}
-inline fvec accumulate(fvec acc, ivec s, const float* sa, const float* sb) {
-    const float32x4_t sc = vmulq_f32(vld1q_f32(sa), vld1q_f32(sb));
-    return vaddq_f32(acc, vmulq_f32(vcvtq_f32_s32(s), sc));
-}
-inline void store(fvec v, float* l) { vst1q_f32(l, v); }
-inline void store(ivec v, std::int32_t* l) { vst1q_s32(l, v); }
-}  // namespace simd
-#elif defined(IMPBFF_FP4_AVX2)
-#define IMPBFF_FP4_SIMD 1
-namespace simd {
-using ivec = __m128i;
-using fvec = __m128;
-inline fvec fzero() { return _mm_setzero_ps(); }
-//! The 32 int8 values of one group, low-nibble lookups in the low lane.
-inline __m256i lookup(const std::uint8_t* p) {
-    const __m128i tab = _mm_load_si128(reinterpret_cast<const __m128i*>(kValues2));
-    const __m128i m4 = _mm_set1_epi8(0x0F);
-    const __m128i w = _mm_loadu_si128(reinterpret_cast<const __m128i*>(p));
-    const __m128i lo = _mm_shuffle_epi8(tab, _mm_and_si128(w, m4));
-    const __m128i hi = _mm_shuffle_epi8(tab, _mm_and_si128(_mm_srli_epi16(w, 4), m4));
-    return _mm256_inserti128_si256(_mm256_castsi128_si256(lo), hi, 1);
-}
-//! Signed x signed: |x| (unsigned) times y with x's sign, maddubs then madd
-//! (int16 pairs stay below 2^15). Returns [s0, s1, s0, s1].
-inline __m128i pair(__m256i x, __m256i y) {
-    const __m256i d16 = _mm256_maddubs_epi16(_mm256_sign_epi8(x, x), _mm256_sign_epi8(y, x));
-    const __m256i d32 = _mm256_madd_epi16(d16, _mm256_set1_epi16(1));
-    // lanes 0,1: sub-block 0 of the low-nibble half, 2,3: sub-block 1; 4..7 the high half
-    const __m128i t = _mm_add_epi32(_mm256_castsi256_si128(d32), _mm256_extracti128_si256(d32, 1));
-    return _mm_hadd_epi32(t, t);
-}
-inline __m256i load32(const std::int8_t* a) { return _mm256_loadu_si256(reinterpret_cast<const __m256i*>(a)); }
-inline ivec pair_q8(const std::uint8_t* w, const std::int8_t* a) { return pair(lookup(w), load32(a)); }
-inline ivec quad_q8(const std::uint8_t* w, const std::int8_t* a) {
-    return _mm_unpacklo_epi64(pair_q8(w, a), pair_q8(w + 16, a + 32));
-}
-inline ivec pair_fp4(const std::uint8_t* x, const std::uint8_t* y) { return pair(lookup(x), lookup(y)); }
-inline ivec quad_fp4(const std::uint8_t* x, const std::uint8_t* y) {
-    return _mm_unpacklo_epi64(pair_fp4(x, y), pair_fp4(x + 16, y + 16));
-}
-inline fvec accumulate(fvec acc, ivec s, const float* sa, const float* sb) {
-    const __m128 sc = _mm_mul_ps(_mm_loadu_ps(sa), _mm_loadu_ps(sb));
-    return _mm_add_ps(acc, _mm_mul_ps(_mm_cvtepi32_ps(s), sc));
-}
-inline void store(fvec v, float* l) { _mm_storeu_ps(l, v); }
-inline void store(ivec v, std::int32_t* l) { _mm_storeu_si128(reinterpret_cast<__m128i*>(l), v); }
-}  // namespace simd
-#endif
-
-#if defined(IMPBFF_FP4_SIMD)
-namespace simd {
-//! combine()'s last step: the four lanes plus a trailing pair in lanes 0, 1.
-inline float finish(fvec acc, bool tail, ivec p, const float* sa, const float* sb) {
-    float l[4];
-    store(acc, l);
-    if (tail) {
-        std::int32_t s[4];
-        store(p, s);
-        const float c0 = sa[0] * sb[0], c1 = sa[1] * sb[1];
-        const float t0 = static_cast<float>(s[0]) * c0, t1 = static_cast<float>(s[1]) * c1;
-        l[0] += t0;
-        l[1] += t1;
-    }
-    const float l01 = l[0] + l[1];
-    const float l23 = l[2] + l[3];
-    return l01 + l23;
-}
-//! Four dots of one left row against four right rows (the left operand's
-//! loads are shared). `Quad` / `Pair` are quad_q8/pair_q8 or the fp4 ones.
-template <class L, class R, class Quad, class Pair>
-inline void dot4(const L* a, const float* sa, const R* const* w, const float* const* sw, int ng,
-                 float* out, Quad quad, Pair pair) {
-    fvec acc[4] = {fzero(), fzero(), fzero(), fzero()};
-    const int la = std::is_same<L, std::int8_t>::value ? 32 : 16;  // left elements a group
-    int g = 0;
-    for (; g + 1 < ng; g += 2)
-        for (int i = 0; i < 4; ++i)
-            acc[i] = accumulate(acc[i], quad(w[i] + 16 * g, a + la * g), sa + 2 * g, sw[i] + 2 * g);
-    const bool tail = g < ng;
-    for (int i = 0; i < 4; ++i) {
-        const ivec p = tail ? pair(w[i] + 16 * g, a + la * g) : ivec();
-        out[i] = finish(acc[i], tail, p, sa + 2 * g, sw[i] + 2 * g);
-    }
-}
-template <class L, class R, class Quad, class Pair>
-inline float dot1(const L* a, const float* sa, const R* w, const float* sw, int ng, Quad quad, Pair pair) {
-    fvec acc = fzero();
-    const int la = std::is_same<L, std::int8_t>::value ? 32 : 16;
-    int g = 0;
-    for (; g + 1 < ng; g += 2) acc = accumulate(acc, quad(w + 16 * g, a + la * g), sa + 2 * g, sw + 2 * g);
-    const bool tail = g < ng;
-    return finish(acc, tail, tail ? pair(w + 16 * g, a + la * g) : ivec(), sa + 2 * g, sw + 2 * g);
-}
-}  // namespace simd
-#endif
-
-//! The compiled variant's integer sums (the tests compare them with the
-//! generic ones).
-inline void isums_q8_simd(const std::uint8_t* w, const std::int8_t* a, int n_groups,
-                          std::int32_t* out) {
-#if defined(IMPBFF_FP4_SIMD)
-    for (int g = 0; g < n_groups; ++g) {
-        std::int32_t s[4];
-        simd::store(simd::pair_q8(w + 16 * g, a + 32 * g), s);
-        out[2 * g] = s[0];
-        out[2 * g + 1] = s[1];
-    }
-    for (int g = 0; g + 1 < n_groups; g += 2) {  // the two-group path as well
-        std::int32_t s[4];
-        simd::store(simd::quad_q8(w + 16 * g, a + 32 * g), s);
-        if (s[0] != out[2 * g] || s[1] != out[2 * g + 1] || s[2] != out[2 * g + 2] || s[3] != out[2 * g + 3])
-            out[2 * g] = std::numeric_limits<std::int32_t>::min();  // make the test fail
-    }
-#else
-    isums_q8_generic(w, a, n_groups, out);
-#endif
-}
-inline void isums_fp4_simd(const std::uint8_t* x, const std::uint8_t* y, int n_groups,
-                           std::int32_t* out) {
-#if defined(IMPBFF_FP4_SIMD)
-    for (int g = 0; g < n_groups; ++g) {
-        std::int32_t s[4];
-        simd::store(simd::pair_fp4(x + 16 * g, y + 16 * g), s);
-        out[2 * g] = s[0];
-        out[2 * g + 1] = s[1];
-    }
-    for (int g = 0; g + 1 < n_groups; g += 2) {
-        std::int32_t s[4];
-        simd::store(simd::quad_fp4(x + 16 * g, y + 16 * g), s);
-        if (s[0] != out[2 * g] || s[1] != out[2 * g + 1] || s[2] != out[2 * g + 2] || s[3] != out[2 * g + 3])
-            out[2 * g] = std::numeric_limits<std::int32_t>::min();
-    }
-#else
-    isums_fp4_generic(x, y, n_groups, out);
-#endif
-}
-
 // ------------------------------------------------------------------ operands
 
-//! Rows of int8 values (permuted within groups of 32) with one float scale
-//! per 16-element sub-block; `kp` is the padded row length.
+//! Left operand: `rows` rows of int8 values in natural element order,
+//! padded with zeros to `kp` (a multiple of 32), and one float scale per
+//! 16-element sub-block (`sc`, rows x kp/16). W4A8: activations quantised to
+//! int8; W4A4 / training: `2 x E2M1` of FP4 codes, the scale with the 1/2.
 struct Q8Rows {
     int rows = 0;
     int kp = 0;
@@ -415,9 +197,10 @@ struct Q8Rows {
     int n_sub() const { return kp / 16; }
 };
 
-//! Rows of packed FP4 codes (`stride` bytes apart) with one float scale per
-//! 16-element sub-block that includes the table's factor 1/2. `codes` points
-//! into `own` or into a tensor that outlives the operand.
+//! Rows of packed FP4 codes in bff's standard packing (`stride` bytes
+//! apart) with one float scale per 16-element sub-block that includes the
+//! table's factor 1/2. `codes` points into `own` or into a tensor that
+//! outlives the operand.
 struct Fp4Rows {
     int rows = 0;
     int kp = 0;
@@ -428,39 +211,22 @@ struct Fp4Rows {
     int n_sub() const { return kp / 16; }
 };
 
-//! Position of element `k` of a row in the permuted int8 layout.
-inline int permuted(int k) {
-    const int g = k / 32, j = k % 32;
-    return 32 * g + ((j % 2) ? 16 + j / 2 : j / 2);
-}
+//! Right operand repacked for the micro-kernel (see the file comment):
+//! `nt = ceil(rows / kNR)` tiles, each `ns = kp / 16` sub-blocks of
+//! `8 kNR` code bytes, `kNR` float scales and `kNR` int32 corrections
+//! (`128 x` the row's sub-block sum of `2 x E2M1`). Rows past `rows` are
+//! zero codes with zero scale.
+struct PackedRight {
+    int rows = 0;
+    int kp = 0;
+    int ns = 0;
+    int nt = 0;
+    std::vector<std::uint8_t> codes;
+    std::vector<float> sc;
+    std::vector<std::int32_t> corr;
+};
 
-//! Quantise `rows x K` doubles to int8, one scale a block of `block` (16 or
-//! 32) elements: `d = float(amax / 127)`, `q = round(x / d)`, halves away
-//! from zero, stored permuted (see the file comment).
-inline void quantize_q8(const double* A, int rows, int K, int block, Q8Rows& out) {
-    out.rows = rows;
-    out.kp = padded_cols(K);
-    out.q.assign(static_cast<std::size_t>(rows) * out.kp, 0);
-    out.sc.assign(static_cast<std::size_t>(rows) * out.n_sub(), 0.0f);
-    std::vector<double> x(static_cast<std::size_t>(out.kp), 0.0);
-    for (int r = 0; r < rows; ++r) {
-        std::copy(A + static_cast<std::size_t>(r) * K, A + static_cast<std::size_t>(r + 1) * K, x.begin());
-        std::int8_t* q = out.q.data() + static_cast<std::size_t>(r) * out.kp;
-        float* sc = out.sc.data() + static_cast<std::size_t>(r) * out.n_sub();
-        for (int k0 = 0; k0 < out.kp; k0 += block) {
-            double amax = 0.0;
-            for (int k = k0; k < k0 + block; ++k) amax = std::max(amax, std::abs(x[static_cast<std::size_t>(k)]));
-            const float d = static_cast<float>(amax / 127.0);
-            for (int s = k0 / 16; s < (k0 + block) / 16; ++s) sc[s] = d;
-            const double inv = d > 0.0f ? 1.0 / static_cast<double>(d) : 0.0;
-            for (int k = k0; k < k0 + block; ++k) {
-                const double v = std::max(-127.0, std::min(127.0, x[static_cast<std::size_t>(k)] * inv));
-                const int j = k % 32;
-                q[k - j + ((j & 1) ? 16 + j / 2 : j / 2)] = static_cast<std::int8_t>(v + std::copysign(0.5, v));
-            }
-        }
-    }
-}
+// ------------------------------------------------------------------ scales
 
 namespace kd {
 //! 0.5 x the E4M3 / E8M0 values, as float tables.
@@ -486,6 +252,510 @@ inline float half_scale(Format f, std::uint8_t code, float g) {
 }
 }  // namespace kd
 
+// ------------------------------------------------------------------ vector quantisation primitives
+//
+// Each does, lane by lane, exactly the scalar reference's IEEE operations:
+//   absmax      -- std::max(a, std::abs(x)) from 0 (NaN never wins),
+//   encode_rne  -- e2m1_encode(x / d),
+//   encode_sr   -- e2m1_encode_sr(x / d, u),
+//   round_q8    -- int8(v + copysign(0.5, v)), v = max(-127, min(127, x * inv)).
+
+namespace vq {
+
+inline double absmax_scalar(const double* x, int n) {
+    double a = 0.0;
+    for (int i = 0; i < n; ++i) a = std::max(a, std::abs(x[i]));
+    return a;
+}
+inline std::int8_t round_q8_scalar(double x, double inv) {
+    const double v = std::max(-127.0, std::min(127.0, x * inv));
+    return static_cast<std::int8_t>(v + std::copysign(0.5, v));
+}
+
+//! Whether `d` is a power of two whose reciprocal is normal: then x * (1/d)
+//! is x / d bit for bit (the same exact value, rounded once), and the
+//! encoders multiply instead of divide (every mxfp4 block).
+inline bool pow2_scale(double d) {
+    const std::uint64_t u = detail::bits_of(d);
+    const int be = static_cast<int>((u >> 52) & 0x7FF);
+    return (u & ((1ULL << 52) - 1)) == 0 && be > 1 && be < 2045 && !(u >> 63);
+}
+
+#if defined(IMPBFF_FP4_NEON_DOTPROD) || defined(IMPBFF_FP4_NEON)
+template <bool P2>
+inline float64x2_t quot(float64x2_t x, float64x2_t d, float64x2_t inv) { return P2 ? vmulq_f64(x, inv) : vdivq_f64(x, d); }
+inline double absmax(const double* x, int n) {
+    float64x2_t a0 = vdupq_n_f64(0.0), a1 = vdupq_n_f64(0.0);
+    int i = 0;
+    for (; i + 4 <= n; i += 4) {
+        a0 = vmaxnmq_f64(a0, vabsq_f64(vld1q_f64(x + i)));
+        a1 = vmaxnmq_f64(a1, vabsq_f64(vld1q_f64(x + i + 2)));
+    }
+    double a = vmaxnmvq_f64(vmaxnmq_f64(a0, a1));
+    for (; i < n; ++i) a = std::max(a, std::abs(x[i]));
+    return a;
+}
+//! Codes of two quotients q (NaN -> 0).
+inline uint64x2_t e2m1_codes(float64x2_t q) {
+    const float64x2_t m = vabsq_f64(q);
+    int64x2_t c = vreinterpretq_s64_u64(vcgtq_f64(m, vdupq_n_f64(0.25)));
+    c = vaddq_s64(c, vreinterpretq_s64_u64(vcgeq_f64(m, vdupq_n_f64(0.75))));
+    c = vaddq_s64(c, vreinterpretq_s64_u64(vcgtq_f64(m, vdupq_n_f64(1.25))));
+    c = vaddq_s64(c, vreinterpretq_s64_u64(vcgeq_f64(m, vdupq_n_f64(1.75))));
+    c = vaddq_s64(c, vreinterpretq_s64_u64(vcgtq_f64(m, vdupq_n_f64(2.5))));
+    c = vaddq_s64(c, vreinterpretq_s64_u64(vcgeq_f64(m, vdupq_n_f64(3.5))));
+    c = vaddq_s64(c, vreinterpretq_s64_u64(vcgtq_f64(m, vdupq_n_f64(5.0))));
+    const uint64x2_t sign = vshlq_n_u64(vshrq_n_u64(vreinterpretq_u64_f64(q), 63), 3);
+    return vandq_u64(vorrq_u64(vreinterpretq_u64_s64(vnegq_s64(c)), sign), vceqq_f64(q, q));
+}
+//! Codes of four quotients narrowed to float32 with round-to-odd (FCVTXN):
+//! a double and its round-to-odd float compare alike with every float of
+//! even last mantissa bit -- all seven thresholds -- so the codes are exact.
+inline uint32x4_t e2m1_codes_f32(float32x4_t q) {
+    const float32x4_t m = vabsq_f32(q);
+    int32x4_t c = vreinterpretq_s32_u32(vcgtq_f32(m, vdupq_n_f32(0.25f)));
+    c = vaddq_s32(c, vreinterpretq_s32_u32(vcgeq_f32(m, vdupq_n_f32(0.75f))));
+    c = vaddq_s32(c, vreinterpretq_s32_u32(vcgtq_f32(m, vdupq_n_f32(1.25f))));
+    c = vaddq_s32(c, vreinterpretq_s32_u32(vcgeq_f32(m, vdupq_n_f32(1.75f))));
+    c = vaddq_s32(c, vreinterpretq_s32_u32(vcgtq_f32(m, vdupq_n_f32(2.5f))));
+    c = vaddq_s32(c, vreinterpretq_s32_u32(vcgeq_f32(m, vdupq_n_f32(3.5f))));
+    c = vaddq_s32(c, vreinterpretq_s32_u32(vcgtq_f32(m, vdupq_n_f32(5.0f))));
+    const uint32x4_t sign = vshlq_n_u32(vshrq_n_u32(vreinterpretq_u32_f32(q), 31), 3);
+    return vandq_u32(vorrq_u32(vreinterpretq_u32_s32(vnegq_s32(c)), sign), vceqq_f32(q, q));
+}
+template <bool P2>
+inline void encode_rne_t(const double* x, int n, double d, std::uint8_t* out) {
+    const float64x2_t dv = vdupq_n_f64(d), iv = vdupq_n_f64(1.0 / d);
+    int i = 0;
+    for (; i + 8 <= n; i += 8) {
+        const float32x4_t q0 = vcvtx_high_f32_f64(vcvtx_f32_f64(quot<P2>(vld1q_f64(x + i), dv, iv)),
+                                                  quot<P2>(vld1q_f64(x + i + 2), dv, iv));
+        const float32x4_t q1 = vcvtx_high_f32_f64(vcvtx_f32_f64(quot<P2>(vld1q_f64(x + i + 4), dv, iv)),
+                                                  quot<P2>(vld1q_f64(x + i + 6), dv, iv));
+        const uint16x8_t c = vcombine_u16(vmovn_u32(e2m1_codes_f32(q0)), vmovn_u32(e2m1_codes_f32(q1)));
+        vst1_u8(out + i, vmovn_u16(c));
+    }
+    for (; i + 2 <= n; i += 2) {
+        const uint64x2_t c = e2m1_codes(quot<P2>(vld1q_f64(x + i), dv, iv));
+        out[i] = static_cast<std::uint8_t>(vgetq_lane_u64(c, 0));
+        out[i + 1] = static_cast<std::uint8_t>(vgetq_lane_u64(c, 1));
+    }
+    for (; i < n; ++i) out[i] = e2m1_encode(x[i] / d);
+}
+//! Stochastic rounding of four quotients: the neighbour index, lo and
+//! 1 / (hi - lo) from the round-to-odd float32 copy (thresholds 0.5 .. 6 have
+//! even mantissas, lo and 1/step are small dyadics: exact), the comparison
+//! `u < (m - lo) / step` in double on the original quotients.
+inline uint32x4_t e2m1_codes_sr(float64x2_t qa, float64x2_t qb, const double* u) {
+    const float32x4_t q = vcvtx_high_f32_f64(vcvtx_f32_f64(qa), qb);
+    const float32x4_t m = vabsq_f32(q);
+    const float32x4_t h = vdupq_n_f32(0.5f), one = vdupq_n_f32(1.0f);
+    const uint32x4_t g05 = vcgeq_f32(m, h), g1 = vcgeq_f32(m, one), g15 = vcgeq_f32(m, vdupq_n_f32(1.5f)),
+                     g2 = vcgeq_f32(m, vdupq_n_f32(2.0f)), g3 = vcgeq_f32(m, vdupq_n_f32(3.0f)),
+                     g4 = vcgeq_f32(m, vdupq_n_f32(4.0f)), g6 = vcgeq_f32(m, vdupq_n_f32(6.0f));
+    int32x4_t c = vaddq_s32(vaddq_s32(vreinterpretq_s32_u32(g05), vreinterpretq_s32_u32(g1)),
+                            vaddq_s32(vreinterpretq_s32_u32(g15), vreinterpretq_s32_u32(g2)));
+    c = vaddq_s32(c, vaddq_s32(vreinterpretq_s32_u32(g3), vreinterpretq_s32_u32(g4)));
+    const uint32x4_t hb = vreinterpretq_u32_f32(h), ob = vreinterpretq_u32_f32(one);
+    float32x4_t lo = vaddq_f32(vaddq_f32(vreinterpretq_f32_u32(vandq_u32(g05, hb)), vreinterpretq_f32_u32(vandq_u32(g1, hb))),
+                               vaddq_f32(vreinterpretq_f32_u32(vandq_u32(g15, hb)), vreinterpretq_f32_u32(vandq_u32(g2, hb))));
+    lo = vaddq_f32(lo, vaddq_f32(vreinterpretq_f32_u32(vandq_u32(g3, ob)), vreinterpretq_f32_u32(vandq_u32(g4, ob))));
+    const float32x4_t inv = vsubq_f32(vsubq_f32(vdupq_n_f32(2.0f), vreinterpretq_f32_u32(vandq_u32(g2, ob))),
+                                      vreinterpretq_f32_u32(vandq_u32(g4, hb)));
+    const float64x2_t pa = vmulq_f64(vsubq_f64(vabsq_f64(qa), vcvt_f64_f32(vget_low_f32(lo))), vcvt_f64_f32(vget_low_f32(inv)));
+    const float64x2_t pb = vmulq_f64(vsubq_f64(vabsq_f64(qb), vcvt_high_f64_f32(lo)), vcvt_high_f64_f32(inv));
+    const uint32x4_t up = vcombine_u32(vmovn_u64(vcltq_f64(vld1q_f64(u), pa)), vmovn_u64(vcltq_f64(vld1q_f64(u + 2), pb)));
+    c = vaddq_s32(c, vreinterpretq_s32_u32(up));  // c is -count
+    uint32x4_t code = vbslq_u32(g6, vdupq_n_u32(7), vreinterpretq_u32_s32(vnegq_s32(c)));
+    const uint32x4_t sign = vshlq_n_u32(vshrq_n_u32(vreinterpretq_u32_f32(q), 31), 3);
+    return vandq_u32(vorrq_u32(code, sign), vceqq_f32(q, q));
+}
+template <bool P2>
+inline void encode_sr_t(const double* x, int n, double d, const double* u, std::uint8_t* out) {
+    const float64x2_t dv = vdupq_n_f64(d), iv = vdupq_n_f64(1.0 / d);
+    const float64x2_t h = vdupq_n_f64(0.5), one = vdupq_n_f64(1.0);
+    int i = 0;
+    for (; i + 8 <= n; i += 8) {
+        const uint32x4_t c0 = e2m1_codes_sr(quot<P2>(vld1q_f64(x + i), dv, iv), quot<P2>(vld1q_f64(x + i + 2), dv, iv), u + i);
+        const uint32x4_t c1 = e2m1_codes_sr(quot<P2>(vld1q_f64(x + i + 4), dv, iv), quot<P2>(vld1q_f64(x + i + 6), dv, iv), u + i + 4);
+        vst1_u8(out + i, vmovn_u16(vcombine_u16(vmovn_u32(c0), vmovn_u32(c1))));
+    }
+    for (; i + 2 <= n; i += 2) {
+        const float64x2_t q = quot<P2>(vld1q_f64(x + i), dv, iv);
+        const float64x2_t m = vabsq_f64(q);
+        const uint64x2_t g05 = vcgeq_f64(m, h), g1 = vcgeq_f64(m, one), g15 = vcgeq_f64(m, vdupq_n_f64(1.5)),
+                         g2 = vcgeq_f64(m, vdupq_n_f64(2.0)), g3 = vcgeq_f64(m, vdupq_n_f64(3.0)),
+                         g4 = vcgeq_f64(m, vdupq_n_f64(4.0)), g6 = vcgeq_f64(m, vdupq_n_f64(6.0));
+        int64x2_t c = vaddq_s64(vaddq_s64(vreinterpretq_s64_u64(g05), vreinterpretq_s64_u64(g1)),
+                                vaddq_s64(vreinterpretq_s64_u64(g15), vreinterpretq_s64_u64(g2)));
+        c = vaddq_s64(c, vaddq_s64(vreinterpretq_s64_u64(g3), vreinterpretq_s64_u64(g4)));
+        // lo = kE2M1[i] and 1 / (hi - lo), both exact
+        float64x2_t lo = vaddq_f64(vaddq_f64(vreinterpretq_f64_u64(vandq_u64(g05, vreinterpretq_u64_f64(h))),
+                                             vreinterpretq_f64_u64(vandq_u64(g1, vreinterpretq_u64_f64(h)))),
+                                   vaddq_f64(vreinterpretq_f64_u64(vandq_u64(g15, vreinterpretq_u64_f64(h))),
+                                             vreinterpretq_f64_u64(vandq_u64(g2, vreinterpretq_u64_f64(h)))));
+        lo = vaddq_f64(lo, vaddq_f64(vreinterpretq_f64_u64(vandq_u64(g3, vreinterpretq_u64_f64(one))),
+                                     vreinterpretq_f64_u64(vandq_u64(g4, vreinterpretq_u64_f64(one)))));
+        const float64x2_t inv = vsubq_f64(vsubq_f64(vdupq_n_f64(2.0), vreinterpretq_f64_u64(vandq_u64(g2, vreinterpretq_u64_f64(one)))),
+                                          vreinterpretq_f64_u64(vandq_u64(g4, vreinterpretq_u64_f64(h))));
+        const uint64x2_t up = vcltq_f64(vld1q_f64(u + i), vmulq_f64(vsubq_f64(m, lo), inv));
+        c = vaddq_s64(c, vreinterpretq_s64_u64(up));  // c is -count: add -1 to count one more
+        uint64x2_t code = vreinterpretq_u64_s64(vnegq_s64(c));
+        code = vbslq_u64(g6, vdupq_n_u64(7), code);
+        const uint64x2_t sign = vshlq_n_u64(vshrq_n_u64(vreinterpretq_u64_f64(q), 63), 3);
+        code = vandq_u64(vorrq_u64(code, sign), vceqq_f64(q, q));
+        out[i] = static_cast<std::uint8_t>(vgetq_lane_u64(code, 0));
+        out[i + 1] = static_cast<std::uint8_t>(vgetq_lane_u64(code, 1));
+    }
+    for (; i < n; ++i) out[i] = e2m1_encode_sr(x[i] / d, u[i]);
+}
+inline void round_q8(const double* x, int n, double inv, std::int8_t* out) {
+    const float64x2_t iv = vdupq_n_f64(inv), hi = vdupq_n_f64(127.0), lo = vdupq_n_f64(-127.0);
+    const uint64x2_t sm = vdupq_n_u64(0x8000000000000000ULL), half = vreinterpretq_u64_f64(vdupq_n_f64(0.5));
+    int i = 0;
+    for (; i + 2 <= n; i += 2) {
+        float64x2_t v = vmulq_f64(vld1q_f64(x + i), iv);
+        v = vbslq_f64(vcltq_f64(v, hi), v, hi);  // std::min(127, v)
+        v = vbslq_f64(vcltq_f64(lo, v), v, lo);  // std::max(-127, v)
+        const float64x2_t r = vaddq_f64(v, vreinterpretq_f64_u64(vorrq_u64(vandq_u64(vreinterpretq_u64_f64(v), sm), half)));
+        const int64x2_t t = vcvtq_s64_f64(r);
+        out[i] = static_cast<std::int8_t>(vgetq_lane_s64(t, 0));
+        out[i + 1] = static_cast<std::int8_t>(vgetq_lane_s64(t, 1));
+    }
+    for (; i < n; ++i) out[i] = round_q8_scalar(x[i], inv);
+}
+#elif defined(IMPBFF_FP4_AVX2) || defined(IMPBFF_FP4_AVX512)
+inline double absmax(const double* x, int n) {
+    const __m256d sm = _mm256_castsi256_pd(_mm256_set1_epi64x(0x7FFFFFFFFFFFFFFFLL));
+    __m256d a0 = _mm256_setzero_pd(), a1 = _mm256_setzero_pd();
+    int i = 0;
+    for (; i + 8 <= n; i += 8) {  // max_pd(|x|, acc) returns acc when |x| is NaN
+        a0 = _mm256_max_pd(_mm256_and_pd(_mm256_loadu_pd(x + i), sm), a0);
+        a1 = _mm256_max_pd(_mm256_and_pd(_mm256_loadu_pd(x + i + 4), sm), a1);
+    }
+    double l[8];
+    _mm256_storeu_pd(l, a0);
+    _mm256_storeu_pd(l + 4, a1);
+    double a = 0.0;
+    for (double v : l) a = std::max(a, v);
+    for (; i < n; ++i) a = std::max(a, std::abs(x[i]));
+    return a;
+}
+#if defined(IMPBFF_FP4_AVX512)
+template <bool P2>
+inline __m512d quot(__m512d x, __m512d d, __m512d inv) { return P2 ? _mm512_mul_pd(x, inv) : _mm512_div_pd(x, d); }
+inline __m512i e2m1_codes(__m512d q) {
+    const __m512d m = _mm512_abs_pd(q);
+    const __m512i one = _mm512_set1_epi64(1);
+    __m512i c = _mm512_setzero_si512();
+    c = _mm512_mask_add_epi64(c, _mm512_cmp_pd_mask(m, _mm512_set1_pd(0.25), _CMP_GT_OQ), c, one);
+    c = _mm512_mask_add_epi64(c, _mm512_cmp_pd_mask(m, _mm512_set1_pd(0.75), _CMP_GE_OQ), c, one);
+    c = _mm512_mask_add_epi64(c, _mm512_cmp_pd_mask(m, _mm512_set1_pd(1.25), _CMP_GT_OQ), c, one);
+    c = _mm512_mask_add_epi64(c, _mm512_cmp_pd_mask(m, _mm512_set1_pd(1.75), _CMP_GE_OQ), c, one);
+    c = _mm512_mask_add_epi64(c, _mm512_cmp_pd_mask(m, _mm512_set1_pd(2.5), _CMP_GT_OQ), c, one);
+    c = _mm512_mask_add_epi64(c, _mm512_cmp_pd_mask(m, _mm512_set1_pd(3.5), _CMP_GE_OQ), c, one);
+    c = _mm512_mask_add_epi64(c, _mm512_cmp_pd_mask(m, _mm512_set1_pd(5.0), _CMP_GT_OQ), c, one);
+    const __m512i sign = _mm512_slli_epi64(_mm512_srli_epi64(_mm512_castpd_si512(q), 63), 3);
+    return _mm512_maskz_or_epi64(_mm512_cmp_pd_mask(q, q, _CMP_ORD_Q), c, sign);
+}
+template <bool P2>
+inline void encode_rne_t(const double* x, int n, double d, std::uint8_t* out) {
+    const __m512d dv = _mm512_set1_pd(d), iv = _mm512_set1_pd(1.0 / d);
+    int i = 0;
+    for (; i + 8 <= n; i += 8)
+        _mm_storel_epi64(reinterpret_cast<__m128i*>(out + i),
+                         _mm512_cvtepi64_epi8(e2m1_codes(quot<P2>(_mm512_loadu_pd(x + i), dv, iv))));
+    for (; i < n; ++i) out[i] = e2m1_encode(x[i] / d);
+}
+template <bool P2>
+inline void encode_sr_t(const double* x, int n, double d, const double* u, std::uint8_t* out) {
+    const __m512d iv = _mm512_set1_pd(1.0 / d);
+    const __m512d dv = _mm512_set1_pd(d), h = _mm512_set1_pd(0.5), one = _mm512_set1_pd(1.0);
+    const __m512i ione = _mm512_set1_epi64(1);
+    int i = 0;
+    for (; i + 8 <= n; i += 8) {
+        const __m512d q = quot<P2>(_mm512_loadu_pd(x + i), dv, iv);
+        const __m512d m = _mm512_abs_pd(q);
+        const __mmask8 g05 = _mm512_cmp_pd_mask(m, h, _CMP_GE_OQ), g1 = _mm512_cmp_pd_mask(m, one, _CMP_GE_OQ),
+                       g15 = _mm512_cmp_pd_mask(m, _mm512_set1_pd(1.5), _CMP_GE_OQ),
+                       g2 = _mm512_cmp_pd_mask(m, _mm512_set1_pd(2.0), _CMP_GE_OQ),
+                       g3 = _mm512_cmp_pd_mask(m, _mm512_set1_pd(3.0), _CMP_GE_OQ),
+                       g4 = _mm512_cmp_pd_mask(m, _mm512_set1_pd(4.0), _CMP_GE_OQ),
+                       g6 = _mm512_cmp_pd_mask(m, _mm512_set1_pd(6.0), _CMP_GE_OQ);
+        __m512i c = _mm512_setzero_si512();
+        c = _mm512_mask_add_epi64(c, g05, c, ione);
+        c = _mm512_mask_add_epi64(c, g1, c, ione);
+        c = _mm512_mask_add_epi64(c, g15, c, ione);
+        c = _mm512_mask_add_epi64(c, g2, c, ione);
+        c = _mm512_mask_add_epi64(c, g3, c, ione);
+        c = _mm512_mask_add_epi64(c, g4, c, ione);
+        const __m512d z = _mm512_setzero_pd();
+        __m512d lo = _mm512_add_pd(_mm512_add_pd(_mm512_mask_mov_pd(z, g05, h), _mm512_mask_mov_pd(z, g1, h)),
+                                   _mm512_add_pd(_mm512_mask_mov_pd(z, g15, h), _mm512_mask_mov_pd(z, g2, h)));
+        lo = _mm512_add_pd(lo, _mm512_add_pd(_mm512_mask_mov_pd(z, g3, one), _mm512_mask_mov_pd(z, g4, one)));
+        const __m512d inv = _mm512_sub_pd(_mm512_sub_pd(_mm512_set1_pd(2.0), _mm512_mask_mov_pd(z, g2, one)),
+                                          _mm512_mask_mov_pd(z, g4, h));
+        const __mmask8 up = _mm512_cmp_pd_mask(_mm512_loadu_pd(u + i), _mm512_mul_pd(_mm512_sub_pd(m, lo), inv), _CMP_LT_OQ);
+        c = _mm512_mask_add_epi64(c, up, c, ione);
+        c = _mm512_mask_mov_epi64(c, g6, _mm512_set1_epi64(7));
+        const __m512i sign = _mm512_slli_epi64(_mm512_srli_epi64(_mm512_castpd_si512(q), 63), 3);
+        c = _mm512_maskz_or_epi64(_mm512_cmp_pd_mask(q, q, _CMP_ORD_Q), c, sign);
+        _mm_storel_epi64(reinterpret_cast<__m128i*>(out + i), _mm512_cvtepi64_epi8(c));
+    }
+    for (; i < n; ++i) out[i] = e2m1_encode_sr(x[i] / d, u[i]);
+}
+inline void round_q8(const double* x, int n, double inv, std::int8_t* out) {
+    const __m512d iv = _mm512_set1_pd(inv), hi = _mm512_set1_pd(127.0), lo = _mm512_set1_pd(-127.0);
+    const __m512i sm = _mm512_set1_epi64(static_cast<long long>(0x8000000000000000ULL));
+    const __m512i half = _mm512_castpd_si512(_mm512_set1_pd(0.5));
+    int i = 0;
+    for (; i + 8 <= n; i += 8) {
+        __m512d v = _mm512_mul_pd(_mm512_loadu_pd(x + i), iv);
+        v = _mm512_min_pd(v, hi);  // (v < 127) ? v : 127, NaN -> 127, as std::min(127, v)
+        v = _mm512_max_pd(v, lo);  // (v > -127) ? v : -127, as std::max(-127, v)
+        const __m512d r = _mm512_add_pd(v, _mm512_castsi512_pd(_mm512_or_si512(_mm512_and_si512(_mm512_castpd_si512(v), sm), half)));
+        _mm_storel_epi64(reinterpret_cast<__m128i*>(out + i),
+                         _mm512_cvtepi32_epi8(_mm512_castsi256_si512(_mm512_cvttpd_epi32(r))));
+    }
+    for (; i < n; ++i) out[i] = round_q8_scalar(x[i], inv);
+}
+#else  // AVX2
+template <bool P2>
+inline __m256d quot(__m256d x, __m256d d, __m256d inv) { return P2 ? _mm256_mul_pd(x, inv) : _mm256_div_pd(x, d); }
+inline __m256i e2m1_codes(__m256d q) {
+    const __m256d m = _mm256_and_pd(q, _mm256_castsi256_pd(_mm256_set1_epi64x(0x7FFFFFFFFFFFFFFFLL)));
+    __m256i c = _mm256_castpd_si256(_mm256_cmp_pd(m, _mm256_set1_pd(0.25), _CMP_GT_OQ));
+    c = _mm256_add_epi64(c, _mm256_castpd_si256(_mm256_cmp_pd(m, _mm256_set1_pd(0.75), _CMP_GE_OQ)));
+    c = _mm256_add_epi64(c, _mm256_castpd_si256(_mm256_cmp_pd(m, _mm256_set1_pd(1.25), _CMP_GT_OQ)));
+    c = _mm256_add_epi64(c, _mm256_castpd_si256(_mm256_cmp_pd(m, _mm256_set1_pd(1.75), _CMP_GE_OQ)));
+    c = _mm256_add_epi64(c, _mm256_castpd_si256(_mm256_cmp_pd(m, _mm256_set1_pd(2.5), _CMP_GT_OQ)));
+    c = _mm256_add_epi64(c, _mm256_castpd_si256(_mm256_cmp_pd(m, _mm256_set1_pd(3.5), _CMP_GE_OQ)));
+    c = _mm256_add_epi64(c, _mm256_castpd_si256(_mm256_cmp_pd(m, _mm256_set1_pd(5.0), _CMP_GT_OQ)));
+    c = _mm256_sub_epi64(_mm256_setzero_si256(), c);
+    const __m256i sign = _mm256_slli_epi64(_mm256_srli_epi64(_mm256_castpd_si256(q), 63), 3);
+    return _mm256_and_si256(_mm256_or_si256(c, sign), _mm256_castpd_si256(_mm256_cmp_pd(q, q, _CMP_ORD_Q)));
+}
+//! The low byte of each 64-bit lane, to 4 bytes.
+inline void store4(__m256i c, std::uint8_t* out) {
+    const __m256i b = _mm256_shuffle_epi8(c, _mm256_setr_epi8(0, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+                                                                0, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1));
+    const int lo = _mm_cvtsi128_si32(_mm256_castsi256_si128(b)) & 0xFFFF;
+    const int hi = _mm_cvtsi128_si32(_mm256_extracti128_si256(b, 1)) & 0xFFFF;
+    const std::uint32_t v = static_cast<std::uint32_t>(lo | (hi << 16));
+    std::memcpy(out, &v, 4);
+}
+template <bool P2>
+inline void encode_rne_t(const double* x, int n, double d, std::uint8_t* out) {
+    const __m256d dv = _mm256_set1_pd(d), iv = _mm256_set1_pd(1.0 / d);
+    int i = 0;
+    for (; i + 4 <= n; i += 4) store4(e2m1_codes(quot<P2>(_mm256_loadu_pd(x + i), dv, iv)), out + i);
+    for (; i < n; ++i) out[i] = e2m1_encode(x[i] / d);
+}
+template <bool P2>
+inline void encode_sr_t(const double* x, int n, double d, const double* u, std::uint8_t* out) {
+    const __m256d iv = _mm256_set1_pd(1.0 / d);
+    const __m256d dv = _mm256_set1_pd(d), h = _mm256_set1_pd(0.5), one = _mm256_set1_pd(1.0);
+    const __m256d am = _mm256_castsi256_pd(_mm256_set1_epi64x(0x7FFFFFFFFFFFFFFFLL));
+    int i = 0;
+    for (; i + 4 <= n; i += 4) {
+        const __m256d q = quot<P2>(_mm256_loadu_pd(x + i), dv, iv);
+        const __m256d m = _mm256_and_pd(q, am);
+        const __m256d g05 = _mm256_cmp_pd(m, h, _CMP_GE_OQ), g1 = _mm256_cmp_pd(m, one, _CMP_GE_OQ),
+                      g15 = _mm256_cmp_pd(m, _mm256_set1_pd(1.5), _CMP_GE_OQ),
+                      g2 = _mm256_cmp_pd(m, _mm256_set1_pd(2.0), _CMP_GE_OQ),
+                      g3 = _mm256_cmp_pd(m, _mm256_set1_pd(3.0), _CMP_GE_OQ),
+                      g4 = _mm256_cmp_pd(m, _mm256_set1_pd(4.0), _CMP_GE_OQ),
+                      g6 = _mm256_cmp_pd(m, _mm256_set1_pd(6.0), _CMP_GE_OQ);
+        __m256i c = _mm256_add_epi64(_mm256_add_epi64(_mm256_castpd_si256(g05), _mm256_castpd_si256(g1)),
+                                     _mm256_add_epi64(_mm256_castpd_si256(g15), _mm256_castpd_si256(g2)));
+        c = _mm256_add_epi64(c, _mm256_add_epi64(_mm256_castpd_si256(g3), _mm256_castpd_si256(g4)));
+        __m256d lo = _mm256_add_pd(_mm256_add_pd(_mm256_and_pd(g05, h), _mm256_and_pd(g1, h)),
+                                   _mm256_add_pd(_mm256_and_pd(g15, h), _mm256_and_pd(g2, h)));
+        lo = _mm256_add_pd(lo, _mm256_add_pd(_mm256_and_pd(g3, one), _mm256_and_pd(g4, one)));
+        const __m256d inv = _mm256_sub_pd(_mm256_sub_pd(_mm256_set1_pd(2.0), _mm256_and_pd(g2, one)), _mm256_and_pd(g4, h));
+        const __m256d up = _mm256_cmp_pd(_mm256_loadu_pd(u + i), _mm256_mul_pd(_mm256_sub_pd(m, lo), inv), _CMP_LT_OQ);
+        c = _mm256_add_epi64(c, _mm256_castpd_si256(up));
+        c = _mm256_sub_epi64(_mm256_setzero_si256(), c);
+        c = _mm256_blendv_epi8(c, _mm256_set1_epi64x(7), _mm256_castpd_si256(g6));
+        const __m256i sign = _mm256_slli_epi64(_mm256_srli_epi64(_mm256_castpd_si256(q), 63), 3);
+        c = _mm256_and_si256(_mm256_or_si256(c, sign), _mm256_castpd_si256(_mm256_cmp_pd(q, q, _CMP_ORD_Q)));
+        store4(c, out + i);
+    }
+    for (; i < n; ++i) out[i] = e2m1_encode_sr(x[i] / d, u[i]);
+}
+inline void round_q8(const double* x, int n, double inv, std::int8_t* out) {
+    const __m256d iv = _mm256_set1_pd(inv), hi = _mm256_set1_pd(127.0), lo = _mm256_set1_pd(-127.0);
+    const __m256d sm = _mm256_castsi256_pd(_mm256_set1_epi64x(static_cast<long long>(0x8000000000000000ULL)));
+    const __m256d half = _mm256_set1_pd(0.5);
+    int i = 0;
+    for (; i + 4 <= n; i += 4) {
+        __m256d v = _mm256_mul_pd(_mm256_loadu_pd(x + i), iv);
+        v = _mm256_min_pd(v, hi);  // (v < 127) ? v : 127, as std::min(127, v)
+        v = _mm256_max_pd(v, lo);  // (v > -127) ? v : -127, as std::max(-127, v)
+        const __m256d r = _mm256_add_pd(v, _mm256_or_pd(_mm256_and_pd(v, sm), half));
+        const __m128i t = _mm256_cvttpd_epi32(r);
+        const __m128i b = _mm_shuffle_epi8(t, _mm_setr_epi8(0, 4, 8, 12, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1));
+        const int v4 = _mm_cvtsi128_si32(b);
+        std::memcpy(out + i, &v4, 4);
+    }
+    for (; i < n; ++i) out[i] = round_q8_scalar(x[i], inv);
+}
+#endif
+#endif
+#if defined(IMPBFF_FP4_NEON_DOTPROD) || defined(IMPBFF_FP4_NEON) || defined(IMPBFF_FP4_AVX2) || defined(IMPBFF_FP4_AVX512)
+inline void encode_rne(const double* x, int n, double d, std::uint8_t* out) {
+    if (pow2_scale(d)) encode_rne_t<true>(x, n, d, out);
+    else encode_rne_t<false>(x, n, d, out);
+}
+inline void encode_sr(const double* x, int n, double d, const double* u, std::uint8_t* out) {
+    if (pow2_scale(d)) encode_sr_t<true>(x, n, d, u, out);
+    else encode_sr_t<false>(x, n, d, u, out);
+}
+#else  // generic
+inline double absmax(const double* x, int n) { return absmax_scalar(x, n); }
+inline void encode_rne(const double* x, int n, double d, std::uint8_t* out) {
+    for (int i = 0; i < n; ++i) out[i] = e2m1_encode(x[i] / d);
+}
+inline void encode_sr(const double* x, int n, double d, const double* u, std::uint8_t* out) {
+    for (int i = 0; i < n; ++i) out[i] = e2m1_encode_sr(x[i] / d, u[i]);
+}
+inline void round_q8(const double* x, int n, double inv, std::int8_t* out) {
+    for (int i = 0; i < n; ++i) out[i] = round_q8_scalar(x[i], inv);
+}
+#endif
+
+//! `n` uniforms of a SplitMix64 stream, in order.
+inline void draws(SplitMix64& rng, int n, double* u) {
+    for (int i = 0; i < n; ++i) u[i] = rng.uniform();
+}
+
+//! The 2 x E2M1 value of each of `n` codes.
+inline void codes_to_values(const std::uint8_t* c, int n, std::int8_t* v) {
+    int i = 0;
+#if defined(IMPBFF_FP4_NEON_DOTPROD) || defined(IMPBFF_FP4_NEON)
+    const int8x16_t tab = vld1q_s8(kValues2);
+    for (; i + 16 <= n; i += 16) vst1q_s8(v + i, vqtbl1q_s8(tab, vld1q_u8(c + i)));
+#elif defined(IMPBFF_FP4_AVX2) || defined(IMPBFF_FP4_AVX512)
+    const __m128i tab = _mm_load_si128(reinterpret_cast<const __m128i*>(kValues2));
+    for (; i + 16 <= n; i += 16)
+        _mm_storeu_si128(reinterpret_cast<__m128i*>(v + i),
+                         _mm_shuffle_epi8(tab, _mm_loadu_si128(reinterpret_cast<const __m128i*>(c + i))));
+#endif
+    for (; i < n; ++i) v[i] = kValues2[c[i] & 0x0F];
+}
+}  // namespace vq
+
+// ------------------------------------------------------------------ quantisers
+
+//! Quantise `rows x K` doubles to int8, one scale a block of `block` (16 or
+//! 32) elements: `d = float(amax / 127)`, `q = round(x / d)`, halves away
+//! from zero, in natural order, rows zero padded to padded_cols(K).
+inline void quantize_q8(const double* A, int rows, int K, int block, Q8Rows& out) {
+    out.rows = rows;
+    out.kp = padded_cols(K);
+    out.q.assign(static_cast<std::size_t>(rows) * out.kp, 0);
+    out.sc.assign(static_cast<std::size_t>(rows) * out.n_sub(), 0.0f);
+    for (int r = 0; r < rows; ++r) {
+        const double* x = A + static_cast<std::size_t>(r) * K;
+        std::int8_t* q = out.q.data() + static_cast<std::size_t>(r) * out.kp;
+        float* sc = out.sc.data() + static_cast<std::size_t>(r) * out.n_sub();
+        for (int k0 = 0; k0 < out.kp; k0 += block) {
+            const int n = std::max(0, std::min(block, K - k0));  // the rest of the block is padding (zero)
+            const double amax = n > 0 ? vq::absmax(x + k0, n) : 0.0;
+            const float d = static_cast<float>(amax / 127.0);
+            for (int s = k0 / 16; s < (k0 + block) / 16; ++s) sc[s] = d;
+            const double inv = d > 0.0f ? 1.0 / static_cast<double>(d) : 0.0;
+            if (n > 0) vq::round_q8(x + k0, n, inv, q + k0);
+        }
+    }
+}
+
+//! One row of `cols` doubles to unpacked FP4 codes (`codes`, padded with
+//! zero codes to padded_cols(cols)) and float half scales per 16-element
+//! sub-block (`hsc`): the decisions of encode_row() (MlpFp4.h) -- same
+//! scale codes, same element codes, and for stochastic rounding the same
+//! draws in the same order (one a real element of a block with a non-zero
+//! scale). `g` is nvfp4's global scale; `ubuf` scratch of >= cols doubles.
+inline void encode_row_fast(Format f, const double* x, int cols, float g, std::uint8_t* codes, float* hsc,
+                            Rounding rnd, SplitMix64* rng, double* ubuf, std::uint8_t* scale_codes = nullptr) {
+    const int kp = padded_cols(cols), ns = kp / 16;
+    const bool sr = rnd == Rounding::Stochastic && rng != nullptr;
+    std::fill(codes + cols, codes + kp, std::uint8_t(0));
+    if (f == Format::FP4) {
+        float s = static_cast<float>(vq::absmax(x, cols) / kE2M1Max);
+        if (!(s > 0.0f) || !std::isfinite(s)) s = 1.0f;
+        if (sr) {
+            vq::draws(*rng, cols, ubuf);
+            vq::encode_sr(x, cols, static_cast<double>(s), ubuf, codes);
+        } else {
+            vq::encode_rne(x, cols, static_cast<double>(s), codes);
+        }
+        const float h = static_cast<float>(0.5 * static_cast<double>(s));
+        for (int i = 0; i < ns; ++i) hsc[i] = h;
+        if (scale_codes) detail::put_f32(s, scale_codes);
+        return;
+    }
+    const int block = f == Format::MXFP4 ? 32 : 16, nb = kp / block;
+    // phase 1, the scale of every block (independent: the CPU overlaps them)
+    constexpr int kStack = 64;
+    double dstack[kStack];
+    std::vector<double> dheap;
+    double* dv = dstack;
+    if (nb > kStack) {
+        dheap.resize(static_cast<std::size_t>(nb));
+        dv = dheap.data();
+    }
+    const int per = block / 16;
+    for (int b = 0; b < nb; ++b) {
+        const int k0 = std::min(cols, b * block), k1 = std::min(cols, k0 + block);
+        const std::uint8_t code = block_scale_code(f, k1 > k0 ? vq::absmax(x + k0, k1 - k0) : 0.0, g);
+        if (scale_codes) scale_codes[b] = code;
+        const float h = kd::half_scale(f, code, g);
+        for (int j = 0; j < per; ++j) hsc[b * per + j] = h;
+        dv[b] = block_scale_value(f, code, g);
+    }
+    // phase 2, the elements
+    for (int b = 0; b < nb; ++b) {
+        const int k0 = std::min(cols, b * block), k1 = std::min(cols, k0 + block);
+        if (k1 == k0) break;
+        const double d = dv[b];
+        if (!(d > 0.0)) {
+            std::fill(codes + k0, codes + k1, std::uint8_t(0));
+        } else if (sr) {
+            vq::draws(*rng, k1 - k0, ubuf);
+            vq::encode_sr(x + k0, k1 - k0, d, ubuf, codes + k0);
+        } else {
+            vq::encode_rne(x + k0, k1 - k0, d, codes + k0);
+        }
+    }
+}
+
+//! Scratch for the quantisers (reused across calls).
+struct QuantScratch {
+    std::vector<std::uint8_t> codes;
+    std::vector<double> u;
+    std::vector<std::uint8_t> scodes;
+};
+
+//! Quantise `rows x K` doubles to FP4 per row (nvfp4 with one global scale
+//! a row) and store the codes' values as a left operand (W4A4, training).
+inline void quantize_left(const double* A, int rows, int K, Format f, Rounding rnd, SplitMix64* rng, Q8Rows& out,
+                          QuantScratch& s) {
+    out.rows = rows;
+    out.kp = padded_cols(K);
+    out.q.resize(static_cast<std::size_t>(rows) * out.kp);
+    out.sc.resize(static_cast<std::size_t>(rows) * out.n_sub());
+    s.codes.resize(static_cast<std::size_t>(out.kp));
+    s.u.resize(static_cast<std::size_t>(std::max(1, K)));
+    for (int r = 0; r < rows; ++r) {
+        const double* x = A + static_cast<std::size_t>(r) * K;
+        const float g = f == Format::NVFP4 ? nvfp4_tensor_scale(vq::absmax(x, K)) : 1.0f;
+        encode_row_fast(f, x, K, g, s.codes.data(), out.sc.data() + static_cast<std::size_t>(r) * out.n_sub(), rnd, rng,
+                        s.u.data());
+        vq::codes_to_values(s.codes.data(), out.kp, out.q.data() + static_cast<std::size_t>(r) * out.kp);
+    }
+}
+
 //! Float sub-block scales (with the 1/2) of an Fp4Tensor's rows.
 inline void tensor_subblock_scales(const Fp4Tensor& t, std::vector<float>& sc) {
     const int kp = static_cast<int>(t.padded()), ns = kp / 16;
@@ -497,8 +767,7 @@ inline void tensor_subblock_scales(const Fp4Tensor& t, std::vector<float>& sc) {
             const float v = static_cast<float>(0.5 * static_cast<double>(detail::get_f32(s)));
             for (int i = 0; i < ns; ++i) o[i] = v;
         } else {
-            for (int i = 0; i < ns; ++i)
-                o[i] = kd::half_scale(t.format, s[i * 16 / t.block], t.tensor_scale);
+            for (int i = 0; i < ns; ++i) o[i] = kd::half_scale(t.format, s[i * 16 / t.block], t.tensor_scale);
         }
     }
 }
@@ -516,108 +785,390 @@ inline Fp4Rows rows_of(const Fp4Tensor& t) {
 
 //! Quantise `rows x K` doubles to an FP4 operand, blocks along each row;
 //! nvfp4 takes one global scale per row (so rows are independent).
-inline Fp4Rows quantize_rows(const double* A, int rows, int K, Format f,
-                             Rounding rnd = Rounding::NearestEven, SplitMix64* rng = nullptr) {
+inline Fp4Rows quantize_rows(const double* A, int rows, int K, Format f, Rounding rnd = Rounding::NearestEven,
+                             SplitMix64* rng = nullptr) {
     Fp4Rows out;
     out.rows = rows;
     out.kp = padded_cols(K);
     out.stride = static_cast<std::size_t>(out.kp / 2);
     out.own.assign(static_cast<std::size_t>(rows) * out.stride, 0);
     out.sc.assign(static_cast<std::size_t>(rows) * out.n_sub(), 0.0f);
-    const int block = block_size(f, K);
-    std::vector<std::uint8_t> scales(f == Format::FP4 ? 4 : static_cast<std::size_t>(out.kp / block)), tmp;
+    std::vector<std::uint8_t> codes(static_cast<std::size_t>(out.kp));
+    std::vector<double> u(static_cast<std::size_t>(std::max(1, K)));
     for (int r = 0; r < rows; ++r) {
         const double* x = A + static_cast<std::size_t>(r) * K;
-        const float g = f == Format::NVFP4 ? nvfp4_tensor_scale(detail::absmax(x, static_cast<std::size_t>(K)))
-                                           : 1.0f;
-        encode_row(f, x, K, block, g, out.own.data() + static_cast<std::size_t>(r) * out.stride,
-                   scales.data(), tmp, rnd, rng);
-        float* o = out.sc.data() + static_cast<std::size_t>(r) * out.n_sub();
-        for (int i = 0; i < out.n_sub(); ++i)
-            o[i] = f == Format::FP4 ? static_cast<float>(0.5 * static_cast<double>(detail::get_f32(scales.data())))
-                                    : kd::half_scale(f, scales[i * 16 / block], g);
+        const float g = f == Format::NVFP4 ? nvfp4_tensor_scale(vq::absmax(x, K)) : 1.0f;
+        encode_row_fast(f, x, K, g, codes.data(), out.sc.data() + static_cast<std::size_t>(r) * out.n_sub(), rnd, rng,
+                        u.data());
+        pack_nibbles(codes.data(), codes.size(), out.own.data() + static_cast<std::size_t>(r) * out.stride);
     }
     out.codes = out.own.data();
     return out;
 }
 
-// ------------------------------------------------------------------ GEMMs
+//! The left operand of an FP4 operand (its codes' values).
+inline void left_of(const Fp4Rows& X, Q8Rows& out) {
+    out.rows = X.rows;
+    out.kp = X.kp;
+    out.q.resize(static_cast<std::size_t>(X.rows) * X.kp);
+    out.sc = X.sc;
+    for (int r = 0; r < X.rows; ++r)
+        for (int k = 0; k < X.kp; ++k)
+            out.q[static_cast<std::size_t>(r) * X.kp + k] = kValues2[nibble(X.codes + r * X.stride, static_cast<std::size_t>(k))];
+}
 
-namespace kd {
-//! C (M x N) = L R^T over `ng` groups: left rows `lrow(r)` with scales
-//! `lsc(r)`, right rows `rrow(o)` / `rsc(o)`. Four right rows at a time
-//! through the SIMD dot4 (unless `Generic`), the generic dot otherwise.
-template <bool Generic, class L, class LRow, class RRow, class Quad, class Pair, class GDot>
-inline void gemm(int M, int N, int ng, LRow lrow, const float* lsc, RRow rrow, const float* rsc,
-                 double* C, Quad quad, Pair pair, GDot gdot) {
-    const int ns = 2 * ng;
-#if defined(_OPENMP)
-#pragma omp parallel for schedule(static) if (static_cast<long>(M) * N * ng > (1L << 17))
-#endif
-    for (int r = 0; r < M; ++r) {
-        std::int32_t scratch[4096];
-        std::vector<std::int32_t> big;
-        std::int32_t* is = scratch;
-        if (ns > 4096) { big.resize(static_cast<std::size_t>(ns)); is = big.data(); }
-        const L* a = lrow(r);
-        const float* sa = lsc + static_cast<std::size_t>(r) * ns;
-        double* c = C + static_cast<std::size_t>(r) * N;
-        int o = 0;
-#if defined(IMPBFF_FP4_SIMD)
-        if (!Generic) {
-            for (; o + 4 <= N; o += 4) {
-                const std::uint8_t* w[4] = {rrow(o), rrow(o + 1), rrow(o + 2), rrow(o + 3)};
-                const float* sw[4] = {rsc + static_cast<std::size_t>(o) * ns, rsc + static_cast<std::size_t>(o + 1) * ns,
-                                      rsc + static_cast<std::size_t>(o + 2) * ns, rsc + static_cast<std::size_t>(o + 3) * ns};
-                float out[4];
-                simd::dot4(a, sa, w, sw, ng, out, quad, pair);
-                for (int i = 0; i < 4; ++i) c[o + i] = out[i];
+// ------------------------------------------------------------------ packing the right operand
+
+//! Size `P` for `rows x kp` (codes zeroed).
+inline void pack_right_init(int rows, int kp, PackedRight& P) {
+    P.rows = rows;
+    P.kp = kp;
+    P.ns = kp / 16;
+    P.nt = (rows + kNR - 1) / kNR;
+    const std::size_t nts = static_cast<std::size_t>(P.nt) * P.ns;
+    P.codes.assign(nts * 8 * kNR, 0);
+    P.sc.assign(nts * kNR, 0.0f);
+    P.corr.assign(nts * kNR, 0);
+}
+
+//! Put row `o`'s unpacked codes (`kp` of them) and sub-block half scales.
+inline void pack_right_row(PackedRight& P, int o, const std::uint8_t* codes, const float* hsc) {
+    const int t = o / kNR, ol = o % kNR;
+    for (int s = 0; s < P.ns; ++s) {
+        const std::size_t ts = static_cast<std::size_t>(t) * P.ns + s;
+        std::uint8_t* dst = P.codes.data() + ts * 8 * kNR;
+        const std::uint8_t* c = codes + 16 * s;
+        std::int32_t sum = 0;
+        for (int p = 0; p < 2; ++p)
+            for (int j = 0; j < 4; ++j) {
+                const std::uint8_t lo = c[8 * p + j] & 0x0F, hi = c[8 * p + 4 + j] & 0x0F;
+                dst[p * 4 * kNR + 4 * ol + j] = static_cast<std::uint8_t>(lo | (hi << 4));
+                sum += kValues2[lo] + kValues2[hi];
             }
-            for (; o < N; ++o)
-                c[o] = simd::dot1(a, sa, rrow(o), rsc + static_cast<std::size_t>(o) * ns, ng, quad, pair);
-        }
-#else
-        (void)quad;
-        (void)pair;
-#endif
-        for (; o < N; ++o) c[o] = gdot(rrow(o), a, sa, rsc + static_cast<std::size_t>(o) * ns, ng, is);
+        P.sc[ts * kNR + ol] = hsc[s];
+        P.corr[ts * kNR + ol] = 128 * sum;
     }
 }
-}  // namespace kd
+
+//! Pack an FP4 operand (standard rows) for the micro-kernel.
+inline void pack_right(const Fp4Rows& W, PackedRight& P) {
+    pack_right_init(W.rows, W.kp, P);
+    std::vector<std::uint8_t> codes(static_cast<std::size_t>(W.kp));
+    for (int o = 0; o < W.rows; ++o) {
+        const std::uint8_t* row = W.codes + static_cast<std::size_t>(o) * W.stride;
+        for (int k = 0; k < W.kp; ++k) codes[static_cast<std::size_t>(k)] = nibble(row, static_cast<std::size_t>(k));
+        pack_right_row(P, o, codes.data(), W.sc.data() + static_cast<std::size_t>(o) * (W.kp / 16));
+    }
+}
+
+//! Quantise `rows x K` doubles to FP4 per row (as quantize_left) straight
+//! into a packed right operand (wgrad's activations).
+inline void quantize_right(const double* A, int rows, int K, Format f, Rounding rnd, SplitMix64* rng, PackedRight& P,
+                           QuantScratch& s) {
+    pack_right_init(rows, padded_cols(K), P);
+    s.codes.resize(static_cast<std::size_t>(P.kp));
+    s.u.resize(static_cast<std::size_t>(std::max(1, K)));
+    std::vector<float> hsc(static_cast<std::size_t>(P.ns));
+    for (int r = 0; r < rows; ++r) {
+        const double* x = A + static_cast<std::size_t>(r) * K;
+        const float g = f == Format::NVFP4 ? nvfp4_tensor_scale(vq::absmax(x, K)) : 1.0f;
+        encode_row_fast(f, x, K, g, s.codes.data(), hsc.data(), rnd, rng, s.u.data());
+        pack_right_row(P, r, s.codes.data(), hsc.data());
+    }
+}
+
+// ------------------------------------------------------------------ the reference kernel
+
+//! The shared float combination: `sum_s is[s] * (sa[s] * sb[s])` over
+//! `n_sub` sub-blocks in four lanes (sub-block s goes to lane s % 4), then
+//! `(l0 + l1) + (l2 + l3)`. Every micro-kernel does this per output.
+inline float combine(const std::int32_t* is, const float* sa, const float* sb, int n_sub) {
+    float acc[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    for (int s = 0; s < n_sub; ++s) {
+        const float sc = sa[s] * sb[s];
+        float t = static_cast<float>(is[s]) * sc;
+        IMPBFF_FP4_KEEP(t);
+        acc[s & 3] += t;
+    }
+    const float l01 = acc[0] + acc[1];
+    const float l23 = acc[2] + acc[3];
+    return l01 + l23;
+}
+
+//! Reference: C (A.rows x W.rows) = A W^T element by element (tests).
+inline void gemm_reference(const Q8Rows& A, const Fp4Rows& W, double* C) {
+    const int ns = A.n_sub();
+    std::vector<std::int32_t> is(static_cast<std::size_t>(ns));
+    for (int r = 0; r < A.rows; ++r)
+        for (int o = 0; o < W.rows; ++o) {
+            const std::int8_t* a = A.q.data() + static_cast<std::size_t>(r) * A.kp;
+            const std::uint8_t* w = W.codes + static_cast<std::size_t>(o) * W.stride;
+            for (int s = 0; s < ns; ++s) {
+                std::int32_t sum = 0;
+                for (int k = 16 * s; k < 16 * s + 16; ++k)
+                    sum += kValues2[nibble(w, static_cast<std::size_t>(k))] * a[k];
+                is[static_cast<std::size_t>(s)] = sum;
+            }
+            C[static_cast<std::size_t>(r) * W.rows + o] =
+                    combine(is.data(), A.sc.data() + static_cast<std::size_t>(r) * ns,
+                            W.sc.data() + static_cast<std::size_t>(o) * ns, ns);
+        }
+}
+
+// ------------------------------------------------------------------ micro-kernels
+//
+// tile<R>(a, lda, sa, lsa, wc, ws, wcorr, ns, out): R left rows starting at
+// `a` (stride lda bytes; scales sa, stride lsa) against one packed tile
+// (codes wc, scales ws, corrections wcorr); out[r * kNR + o] the float result.
+
+namespace mk {
+#if defined(IMPBFF_FP4_NEON_DOTPROD) || defined(IMPBFF_FP4_NEON)
+#if defined(IMPBFF_FP4_NEON_DOTPROD)
+template <int L>
+inline int32x4_t dot_lane(int32x4_t acc, int8x16_t w, int8x16_t a) { return vdotq_laneq_s32(acc, w, a, L); }
+#else
+template <int L>
+inline int32x4_t dot_lane(int32x4_t acc, int8x16_t w, int8x16_t a) {
+    const int8x16_t ad = vreinterpretq_s8_s32(vdupq_laneq_s32(vreinterpretq_s32_s8(a), L));
+    const int32x4_t p0 = vpaddlq_s16(vmull_s8(vget_low_s8(w), vget_low_s8(ad)));
+    const int32x4_t p1 = vpaddlq_s16(vmull_high_s8(w, ad));
+    return vaddq_s32(acc, vpaddq_s32(p0, p1));
+}
+#endif
+template <int R>
+inline void tile(const std::int8_t* a, std::size_t lda, const float* sa, std::size_t lsa, const std::uint8_t* wc,
+                 const float* ws, const std::int32_t*, int ns, float* out) {
+    const int8x16_t tab = vld1q_s8(kValues2);
+    const uint8x16_t m4 = vdupq_n_u8(0x0F);
+    float32x4_t f[R][4];
+    for (int r = 0; r < R; ++r)
+        for (int j = 0; j < 4; ++j) f[r][j] = vdupq_n_f32(0.0f);
+    auto step = [&](int s, auto J) {
+        constexpr int j = decltype(J)::value;
+        const uint8x16_t c0 = vld1q_u8(wc + 32 * s), c1 = vld1q_u8(wc + 32 * s + 16);
+        const int8x16_t w0 = vqtbl1q_s8(tab, vandq_u8(c0, m4)), w1 = vqtbl1q_s8(tab, vshrq_n_u8(c0, 4));
+        const int8x16_t w2 = vqtbl1q_s8(tab, vandq_u8(c1, m4)), w3 = vqtbl1q_s8(tab, vshrq_n_u8(c1, 4));
+        const float32x4_t sw = vld1q_f32(ws + 4 * s);
+        for (int r = 0; r < R; ++r) {
+            const int8x16_t av = vld1q_s8(a + r * lda + 16 * s);
+            int32x4_t acc = dot_lane<0>(vdupq_n_s32(0), w0, av);
+            acc = dot_lane<1>(acc, w1, av);
+            acc = dot_lane<2>(acc, w2, av);
+            acc = dot_lane<3>(acc, w3, av);
+            const float32x4_t sc = vmulq_f32(vdupq_n_f32(sa[r * lsa + s]), sw);
+            float32x4_t t = vmulq_f32(vcvtq_f32_s32(acc), sc);
+            IMPBFF_FP4_KEEP(t);
+            f[r][j] = vaddq_f32(f[r][j], t);
+        }
+    };
+    int s = 0;
+    for (; s + 4 <= ns; s += 4) {
+        step(s, std::integral_constant<int, 0>());
+        step(s + 1, std::integral_constant<int, 1>());
+        step(s + 2, std::integral_constant<int, 2>());
+        step(s + 3, std::integral_constant<int, 3>());
+    }
+    if (s < ns) {  // ns is even: a trailing pair into lanes 0, 1
+        step(s, std::integral_constant<int, 0>());
+        step(s + 1, std::integral_constant<int, 1>());
+    }
+    for (int r = 0; r < R; ++r) {
+        const float32x4_t l01 = vaddq_f32(f[r][0], f[r][1]);
+        const float32x4_t l23 = vaddq_f32(f[r][2], f[r][3]);
+        vst1q_f32(out + r * kNR, vaddq_f32(l01, l23));
+    }
+}
+#elif defined(IMPBFF_FP4_AVX512)
+template <int R>
+inline void tile(const std::int8_t* a, std::size_t lda, const float* sa, std::size_t lsa, const std::uint8_t* wc,
+                 const float* ws, const std::int32_t* wcorr, int ns, float* out) {
+    const __m512i tab = _mm512_broadcast_i32x4(_mm_load_si128(reinterpret_cast<const __m128i*>(kValues2)));
+    const __m512i m4 = _mm512_set1_epi8(0x0F), x80 = _mm512_set1_epi8(static_cast<char>(0x80));
+    __m512 f[R][4];
+    for (int r = 0; r < R; ++r)
+        for (int j = 0; j < 4; ++j) f[r][j] = _mm512_setzero_ps();
+    auto step = [&](int s, auto J) {
+        constexpr int j = decltype(J)::value;
+        const __m512i c0 = _mm512_loadu_si512(wc + 128 * s), c1 = _mm512_loadu_si512(wc + 128 * s + 64);
+        const __m512i w0 = _mm512_shuffle_epi8(tab, _mm512_and_si512(c0, m4));
+        const __m512i w1 = _mm512_shuffle_epi8(tab, _mm512_and_si512(_mm512_srli_epi16(c0, 4), m4));
+        const __m512i w2 = _mm512_shuffle_epi8(tab, _mm512_and_si512(c1, m4));
+        const __m512i w3 = _mm512_shuffle_epi8(tab, _mm512_and_si512(_mm512_srli_epi16(c1, 4), m4));
+        const __m512i corr = _mm512_loadu_si512(wcorr + 16 * s);
+        const __m512 sw = _mm512_loadu_ps(ws + 16 * s);
+        for (int r = 0; r < R; ++r) {
+            const std::int8_t* ar = a + r * lda + 16 * s;
+            std::int32_t q[4];
+            std::memcpy(q, ar, 16);
+            __m512i acc = _mm512_dpbusd_epi32(_mm512_setzero_si512(), _mm512_xor_si512(_mm512_set1_epi32(q[0]), x80), w0);
+            acc = _mm512_dpbusd_epi32(acc, _mm512_xor_si512(_mm512_set1_epi32(q[1]), x80), w1);
+            acc = _mm512_dpbusd_epi32(acc, _mm512_xor_si512(_mm512_set1_epi32(q[2]), x80), w2);
+            acc = _mm512_dpbusd_epi32(acc, _mm512_xor_si512(_mm512_set1_epi32(q[3]), x80), w3);
+            acc = _mm512_sub_epi32(acc, corr);
+            const __m512 sc = _mm512_mul_ps(_mm512_set1_ps(sa[r * lsa + s]), sw);
+            __m512 t = _mm512_mul_ps(_mm512_cvtepi32_ps(acc), sc);
+            IMPBFF_FP4_KEEP(t);
+            f[r][j] = _mm512_add_ps(f[r][j], t);
+        }
+    };
+    int s = 0;
+    for (; s + 4 <= ns; s += 4) {
+        step(s, std::integral_constant<int, 0>());
+        step(s + 1, std::integral_constant<int, 1>());
+        step(s + 2, std::integral_constant<int, 2>());
+        step(s + 3, std::integral_constant<int, 3>());
+    }
+    if (s < ns) {
+        step(s, std::integral_constant<int, 0>());
+        step(s + 1, std::integral_constant<int, 1>());
+    }
+    for (int r = 0; r < R; ++r)
+        _mm512_storeu_ps(out + r * kNR, _mm512_add_ps(_mm512_add_ps(f[r][0], f[r][1]), _mm512_add_ps(f[r][2], f[r][3])));
+}
+#elif defined(IMPBFF_FP4_AVX2)
+template <int R>
+inline void tile(const std::int8_t* a, std::size_t lda, const float* sa, std::size_t lsa, const std::uint8_t* wc,
+                 const float* ws, const std::int32_t* wcorr, int ns, float* out) {
+    const __m256i tab = _mm256_broadcastsi128_si256(_mm_load_si128(reinterpret_cast<const __m128i*>(kValues2)));
+    const __m256i m4 = _mm256_set1_epi8(0x0F), x80 = _mm256_set1_epi8(static_cast<char>(0x80));
+    const __m256i ones = _mm256_set1_epi16(1);
+    __m256 f[R][4];
+    for (int r = 0; r < R; ++r)
+        for (int j = 0; j < 4; ++j) f[r][j] = _mm256_setzero_ps();
+    auto step = [&](int s, auto J) {
+        constexpr int j = decltype(J)::value;
+        const __m256i c0 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(wc + 64 * s));
+        const __m256i c1 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(wc + 64 * s + 32));
+        const __m256i w0 = _mm256_shuffle_epi8(tab, _mm256_and_si256(c0, m4));
+        const __m256i w1 = _mm256_shuffle_epi8(tab, _mm256_and_si256(_mm256_srli_epi16(c0, 4), m4));
+        const __m256i w2 = _mm256_shuffle_epi8(tab, _mm256_and_si256(c1, m4));
+        const __m256i w3 = _mm256_shuffle_epi8(tab, _mm256_and_si256(_mm256_srli_epi16(c1, 4), m4));
+        const __m256i corr = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(wcorr + 8 * s));
+        const __m256 sw = _mm256_loadu_ps(ws + 8 * s);
+        for (int r = 0; r < R; ++r) {
+            const std::int8_t* ar = a + r * lda + 16 * s;
+            std::int32_t q[4];
+            std::memcpy(q, ar, 16);
+            // (a + 128) x w in int16 pairs (|.| <= 2 * 255 * 12), four quads summed (<= 24480)
+            const __m256i p = _mm256_add_epi16(
+                    _mm256_add_epi16(_mm256_maddubs_epi16(_mm256_xor_si256(_mm256_set1_epi32(q[0]), x80), w0),
+                                     _mm256_maddubs_epi16(_mm256_xor_si256(_mm256_set1_epi32(q[1]), x80), w1)),
+                    _mm256_add_epi16(_mm256_maddubs_epi16(_mm256_xor_si256(_mm256_set1_epi32(q[2]), x80), w2),
+                                     _mm256_maddubs_epi16(_mm256_xor_si256(_mm256_set1_epi32(q[3]), x80), w3)));
+            const __m256i acc = _mm256_sub_epi32(_mm256_madd_epi16(p, ones), corr);
+            const __m256 sc = _mm256_mul_ps(_mm256_set1_ps(sa[r * lsa + s]), sw);
+            __m256 t = _mm256_mul_ps(_mm256_cvtepi32_ps(acc), sc);
+            IMPBFF_FP4_KEEP(t);
+            f[r][j] = _mm256_add_ps(f[r][j], t);
+        }
+    };
+    int s = 0;
+    for (; s + 4 <= ns; s += 4) {
+        step(s, std::integral_constant<int, 0>());
+        step(s + 1, std::integral_constant<int, 1>());
+        step(s + 2, std::integral_constant<int, 2>());
+        step(s + 3, std::integral_constant<int, 3>());
+    }
+    if (s < ns) {
+        step(s, std::integral_constant<int, 0>());
+        step(s + 1, std::integral_constant<int, 1>());
+    }
+    for (int r = 0; r < R; ++r)
+        _mm256_storeu_ps(out + r * kNR, _mm256_add_ps(_mm256_add_ps(f[r][0], f[r][1]), _mm256_add_ps(f[r][2], f[r][3])));
+}
+#else
+template <int R>
+inline void tile(const std::int8_t* a, std::size_t lda, const float* sa, std::size_t lsa, const std::uint8_t* wc,
+                 const float* ws, const std::int32_t*, int ns, float* out) {
+    float f[R][4][kNR] = {};
+    for (int s = 0; s < ns; ++s) {
+        const std::uint8_t* c = wc + static_cast<std::size_t>(s) * 8 * kNR;
+        for (int r = 0; r < R; ++r) {
+            const std::int8_t* ar = a + r * lda + 16 * s;
+            for (int o = 0; o < kNR; ++o) {
+                std::int32_t sum = 0;
+                for (int p = 0; p < 2; ++p)
+                    for (int j = 0; j < 4; ++j) {
+                        const std::uint8_t b = c[p * 4 * kNR + 4 * o + j];
+                        sum += kValues2[b & 0x0F] * ar[8 * p + j] + kValues2[b >> 4] * ar[8 * p + 4 + j];
+                    }
+                const float sc = sa[r * lsa + s] * ws[static_cast<std::size_t>(s) * kNR + o];
+                float t = static_cast<float>(sum) * sc;
+                IMPBFF_FP4_KEEP(t);
+                f[r][s & 3][o] += t;
+            }
+        }
+    }
+    for (int r = 0; r < R; ++r)
+        for (int o = 0; o < kNR; ++o) {
+            const float l01 = f[r][0][o] + f[r][1][o];
+            const float l23 = f[r][2][o] + f[r][3][o];
+            out[r * kNR + o] = l01 + l23;
+        }
+}
+#endif
+}  // namespace mk
+
+// ------------------------------------------------------------------ GEMMs
+
+//! C (A.rows x P.rows, row-major, `ldc` = P.rows) = A P^T (+ bias per
+//! column when `bias` is given), on the compiled micro-kernel.
+inline void gemm_packed(const Q8Rows& A, const PackedRight& P, double* C, const double* bias = nullptr) {
+    const int M = A.rows, N = P.rows, ns = P.ns, nt = P.nt;
+    if (M <= 0 || N <= 0) return;
+    const std::size_t lda = static_cast<std::size_t>(A.kp), lsa = static_cast<std::size_t>(A.n_sub());
+    const int nrb = (M + kMR - 1) / kMR;
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(static) if (static_cast<long>(M) * N * ns > (1L << 16))
+#endif
+    for (int rb = 0; rb < nrb; ++rb) {
+        float out[kMR * kNR];
+        const int r0 = rb * kMR, mr = std::min(kMR, M - r0);
+        const std::int8_t* a = A.q.data() + static_cast<std::size_t>(r0) * lda;
+        const float* sa = A.sc.data() + static_cast<std::size_t>(r0) * lsa;
+        for (int t = 0; t < nt; ++t) {
+            const std::size_t ts = static_cast<std::size_t>(t) * ns;
+            const std::uint8_t* wc = P.codes.data() + ts * 8 * kNR;
+            const float* ws = P.sc.data() + ts * kNR;
+            const std::int32_t* wk = P.corr.data() + ts * kNR;
+            if (mr == kMR) {
+                mk::tile<kMR>(a, lda, sa, lsa, wc, ws, wk, ns, out);
+            } else {
+                for (int r = 0; r < mr; ++r)
+                    mk::tile<1>(a + r * lda, lda, sa + r * lsa, lsa, wc, ws, wk, ns, out + r * kNR);
+            }
+            const int o0 = t * kNR, no = std::min(kNR, N - o0);
+            for (int r = 0; r < mr; ++r) {
+                double* c = C + static_cast<std::size_t>(r0 + r) * N + o0;
+                const float* v = out + r * kNR;
+                if (bias)
+                    for (int o = 0; o < no; ++o) c[o] = static_cast<double>(v[o]) + bias[o0 + o];
+                else
+                    for (int o = 0; o < no; ++o) c[o] = static_cast<double>(v[o]);
+            }
+        }
+    }
+}
 
 //! C (A.rows x W.rows, row-major) = A W^T, A int8, W FP4. `Generic` picks
-//! the scalar integer kernel (tests); otherwise the compiled SIMD variant.
+//! the element-by-element reference (tests); otherwise the micro-kernel.
 template <bool Generic = false>
 inline void gemm_q8(const Q8Rows& A, const Fp4Rows& W, double* C) {
-    const auto lrow = [&](int r) { return A.q.data() + static_cast<std::size_t>(r) * A.kp; };
-    const auto rrow = [&](int o) { return W.codes + static_cast<std::size_t>(o) * W.stride; };
-    const auto gdot = [](const std::uint8_t* w, const std::int8_t* a, const float* sa, const float* sw, int ng,
-                         std::int32_t* is) { return dot_q8_generic(w, a, sa, sw, ng, is); };
-#if defined(IMPBFF_FP4_SIMD)
-    const auto quad = [](const std::uint8_t* w, const std::int8_t* a) { return simd::quad_q8(w, a); };
-    const auto pair = [](const std::uint8_t* w, const std::int8_t* a) { return simd::pair_q8(w, a); };
-#else
-    const int quad = 0, pair = 0;
-#endif
-    kd::gemm<Generic, std::int8_t>(A.rows, W.rows, A.kp / 32, lrow, A.sc.data(), rrow, W.sc.data(), C,
-                                       quad, pair, gdot);
+    if (Generic) {
+        gemm_reference(A, W, C);
+        return;
+    }
+    PackedRight P;
+    pack_right(W, P);
+    gemm_packed(A, P, C);
 }
 
 //! C (X.rows x Y.rows, row-major) = X Y^T, both FP4.
 template <bool Generic = false>
 inline void gemm_fp4(const Fp4Rows& X, const Fp4Rows& Y, double* C) {
-    const auto lrow = [&](int r) { return X.codes + static_cast<std::size_t>(r) * X.stride; };
-    const auto rrow = [&](int o) { return Y.codes + static_cast<std::size_t>(o) * Y.stride; };
-    const auto gdot = [](const std::uint8_t* y, const std::uint8_t* x, const float* sx, const float* sy, int ng,
-                         std::int32_t* is) { return dot_fp4_generic(x, y, sx, sy, ng, is); };
-#if defined(IMPBFF_FP4_SIMD)
-    const auto quad = [](const std::uint8_t* y, const std::uint8_t* x) { return simd::quad_fp4(x, y); };
-    const auto pair = [](const std::uint8_t* y, const std::uint8_t* x) { return simd::pair_fp4(x, y); };
-#else
-    const int quad = 0, pair = 0;
-#endif
-    kd::gemm<Generic, std::uint8_t>(X.rows, Y.rows, X.kp / 32, lrow, X.sc.data(), rrow, Y.sc.data(), C,
-                                        quad, pair, gdot);
+    Q8Rows L;
+    left_of(X, L);
+    gemm_q8<Generic>(L, Y, C);
 }
 
 // ------------------------------------------------------------------ forward
@@ -625,41 +1176,74 @@ inline void gemm_fp4(const Fp4Rows& X, const Fp4Rows& Y, double* C) {
 //! int8 activation block for a weight format: 16 for nvfp4, else 32.
 inline int q8_block(Format f) { return f == Format::NVFP4 ? 16 : 32; }
 
+//! A model with its FP4 layers packed for the micro-kernel (once).
+struct Prepared {
+    const Fp4Model* model = nullptr;
+    std::vector<PackedRight> w;  //!< one a layer (empty for full-precision layers)
+};
+
+inline Prepared prepare(const Fp4Model& m) {
+    Prepared p;
+    p.model = &m;
+    p.w.resize(m.layers.size());
+    for (std::size_t l = 0; l < m.layers.size(); ++l)
+        if (!m.layers[l].full_precision) pack_right(rows_of(m.layers[l].weight), p.w[l]);
+    return p;
+}
+
+namespace kd {
+struct PredictScratch {
+    std::vector<double> a, z;
+    Q8Rows q8;
+    QuantScratch qs;
+};
+inline PredictScratch& predict_scratch() {
+    static thread_local PredictScratch s;
+    return s;
+}
+}  // namespace kd
+
 //! The forward pass on the packed codes, in the model's physical units.
 /*! Without `quantize_activations` each layer input is quantised to int8
-    per block (W4A8, ggml's scheme) and multiplied by gemm_q8; with it, to
-    FP4 in the model's format per row (W4A4) and multiplied by gemm_fp4.
-    Bias, activation and scalers in double; a full-precision layer runs in
-    double through `Gemm`. */
+    per block (W4A8, ggml's scheme); with it, to FP4 in the model's format
+    per row (W4A4). Bias, activation and scalers in double; a
+    full-precision layer runs in double through `Gemm`. */
 template <class Gemm = mlpcore::PortableGemm>
-inline void predict(const Fp4Model& m, const double* X, int n_rows, std::vector<double>& y) {
+inline void predict(const Prepared& p, const double* X, int n_rows, std::vector<double>& y) {
+    const Fp4Model& m = *p.model;
     y.clear();
     if (n_rows <= 0 || m.layers.empty()) return;
     const std::size_t rows = static_cast<std::size_t>(n_rows);
-    std::vector<double> a(X, X + rows * static_cast<std::size_t>(m.n_inputs())), z;
-    mlpcore::detail::scale_in(a, n_rows, m.n_inputs(), m.x_scaler);
-    Q8Rows q8;
-    for (const Fp4Layer& l : m.layers) {
-        z.resize(rows * static_cast<std::size_t>(l.n_out));
+    kd::PredictScratch& s = kd::predict_scratch();
+    s.a.assign(X, X + rows * static_cast<std::size_t>(m.n_inputs()));
+    mlpcore::detail::scale_in(s.a, n_rows, m.n_inputs(), m.x_scaler);
+    for (std::size_t li = 0; li < m.layers.size(); ++li) {
+        const Fp4Layer& l = m.layers[li];
+        s.z.resize(rows * static_cast<std::size_t>(l.n_out));
         if (l.full_precision) {
-            Gemm::nt(n_rows, l.n_out, l.n_in, a.data(), l.weight_f64.data(), z.data());
-        } else if (m.quantize_activations) {
-            const Fp4Rows W = rows_of(l.weight);
-            gemm_fp4(quantize_rows(a.data(), n_rows, l.n_in, m.format), W, z.data());
+            Gemm::nt(n_rows, l.n_out, l.n_in, s.a.data(), l.weight_f64.data(), s.z.data());
+            for (std::size_t r = 0; r < rows; ++r) {
+                double* zr = s.z.data() + r * static_cast<std::size_t>(l.n_out);
+                for (int o = 0; o < l.n_out; ++o) zr[o] += l.bias[static_cast<std::size_t>(o)];
+            }
         } else {
-            const Fp4Rows W = rows_of(l.weight);
-            quantize_q8(a.data(), n_rows, l.n_in, q8_block(m.format), q8);
-            gemm_q8(q8, W, z.data());
+            if (m.quantize_activations)
+                quantize_left(s.a.data(), n_rows, l.n_in, m.format, Rounding::NearestEven, nullptr, s.q8, s.qs);
+            else
+                quantize_q8(s.a.data(), n_rows, l.n_in, q8_block(m.format), s.q8);
+            gemm_packed(s.q8, p.w[li], s.z.data(), l.bias.data());
         }
-        for (std::size_t r = 0; r < rows; ++r) {
-            double* zr = z.data() + r * static_cast<std::size_t>(l.n_out);
-            for (int o = 0; o < l.n_out; ++o) zr[o] += l.bias[static_cast<std::size_t>(o)];
-        }
-        a.resize(z.size());
-        mlpcore::act_apply(z.data(), a.data(), z.size(), l.activation);
+        s.a.resize(s.z.size());
+        mlpcore::act_apply(s.z.data(), s.a.data(), s.z.size(), l.activation);
     }
-    y.swap(a);
+    y.assign(s.a.begin(), s.a.end());
     mlpcore::detail::unscale_out(y, n_rows, m.n_outputs(), m.y_scaler);
+}
+
+//! predict() for a model not prepared beforehand (packs its weights first).
+template <class Gemm = mlpcore::PortableGemm>
+inline void predict(const Fp4Model& m, const double* X, int n_rows, std::vector<double>& y) {
+    predict<Gemm>(prepare(m), X, n_rows, y);
 }
 
 }  // namespace kern

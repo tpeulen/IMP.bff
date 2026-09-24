@@ -145,11 +145,10 @@ inline std::uint8_t e2m1_encode_sr(double x, double u) {
     const std::uint8_t sign = std::signbit(x) ? 0x08 : 0x00;
     const double m = std::abs(x);
     if (m >= kE2M1Max) return static_cast<std::uint8_t>(sign | 7);
-    std::uint8_t i = 0;
-    while (i < 7 && kE2M1[i + 1] <= m) ++i;  // kE2M1[i] <= m < kE2M1[i + 1]
+    // kE2M1[i] <= m < kE2M1[i + 1], counted branch-free (m < 6 here)
+    const int i = (m >= 0.5) + (m >= 1.0) + (m >= 1.5) + (m >= 2.0) + (m >= 3.0) + (m >= 4.0);
     const double lo = kE2M1[i], hi = kE2M1[i + 1];
-    if (u < (m - lo) / (hi - lo)) ++i;
-    return static_cast<std::uint8_t>(sign | i);
+    return static_cast<std::uint8_t>(sign | (i + (u < (m - lo) / (hi - lo))));
 }
 
 //! Round half to even of a finite non-negative double (independent of fenv).
@@ -172,7 +171,9 @@ inline double e4m3_decode(std::uint8_t code) {
 }
 
 //! Round-to-nearest-even E4M3 code of `x`, saturating to +-448; NaN -> 0x7F.
-inline std::uint8_t e4m3_encode(double x) {
+//! The plain arithmetic version; e4m3_encode() is the same function with a
+//! bit-level fast path (the tests compare them).
+inline std::uint8_t e4m3_encode_reference(double x) {
     if (std::isnan(x)) return 0x7F;
     const std::uint8_t sign = std::signbit(x) ? 0x80 : 0x00;
     const double m = std::abs(x);
@@ -190,6 +191,34 @@ inline std::uint8_t e4m3_encode(double x) {
         code = ((e + 7) << 3) + (q - 8);
     }
     if (code > 0x7E) code = 0x7E;  // cannot happen for m < 448; kept as a guard
+    return static_cast<std::uint8_t>(sign | code);
+}
+
+namespace detail {
+inline std::uint64_t bits_of(double x) {
+    std::uint64_t u;
+    std::memcpy(&u, &x, 8);
+    return u;
+}
+}  // namespace detail
+
+//! Round-to-nearest-even E4M3 code of `x`, saturating to +-448; NaN -> 0x7F.
+/*! Equal to e4m3_encode_reference() for every double. The normal E4M3
+    range (2^-6 <= |x| < 512) is rounded on the bits of the double -- keep
+    the top 3 mantissa bits, round half to even on the other 49, a carry
+    moves into the exponent by itself -- everything else takes the
+    reference path. */
+inline std::uint8_t e4m3_encode(double x) {
+    std::uint64_t u = detail::bits_of(x);
+    const std::uint8_t sign = (u >> 63) ? 0x80 : 0x00;
+    u &= 0x7FFFFFFFFFFFFFFFULL;
+    const int be = static_cast<int>(u >> 52);  // biased exponent
+    if (be < 1023 - 6 || be > 1023 + 8) return e4m3_encode_reference(x);
+    const std::uint64_t mant = u & ((1ULL << 52) - 1);
+    const std::uint64_t rem = mant & ((1ULL << 49) - 1), half = 1ULL << 48;
+    int q = 8 | static_cast<int>(mant >> 49);
+    q += (rem > half || (rem == half && (q & 1))) ? 1 : 0;
+    const int code = std::min(0x7E, ((be - 1023 + 7) << 3) + q - 8);
     return static_cast<std::uint8_t>(sign | code);
 }
 
@@ -330,15 +359,41 @@ inline float nvfp4_tensor_scale(double amax) {
     return (g > 0.0f && std::isfinite(g)) ? g : 1.0f;
 }
 
+//! floor(log2 x) of a positive double, exactly (std::ilogb, with the
+//! exponent field read directly for normal numbers).
+inline int ilogb_fast(double x) {
+    const int be = static_cast<int>((detail::bits_of(x) >> 52) & 0x7FF);
+    return (be > 0 && be < 0x7FF) ? be - 1023 : std::ilogb(x);
+}
+
 //! The scale code of a block of absmax `amax` (mxfp4: E8M0; nvfp4: E4M3).
 inline std::uint8_t block_scale_code(Format f, double amax, float g) {
-    if (f == Format::MXFP4) return e8m0_from_exponent(amax > 0.0 ? std::ilogb(amax) - 2 : -127);
+    if (f == Format::MXFP4) return e8m0_from_exponent(amax > 0.0 ? ilogb_fast(amax) - 2 : -127);
     return amax > 0.0 ? e4m3_encode(amax / (kE2M1Max * static_cast<double>(g))) : e4m3_encode(1.0);
 }
 
+namespace detail {
+//! The decoded E4M3 and E8M0 values of every code, as doubles.
+struct ScaleTables {
+    double e4m3[256];
+    double e8m0[256];
+    ScaleTables() {
+        for (int c = 0; c < 256; ++c) {
+            e4m3[c] = e4m3_decode(static_cast<std::uint8_t>(c));
+            e8m0[c] = e8m0_decode(static_cast<std::uint8_t>(c));
+        }
+    }
+};
+inline const ScaleTables& scale_tables() {
+    static const ScaleTables t;
+    return t;
+}
+}  // namespace detail
+
 //! The decoded multiplier of a block scale code (without the fp4 row case).
 inline double block_scale_value(Format f, std::uint8_t code, float g) {
-    return f == Format::MXFP4 ? e8m0_decode(code) : e4m3_decode(code) * static_cast<double>(g);
+    return f == Format::MXFP4 ? detail::scale_tables().e8m0[code]
+                              : detail::scale_tables().e4m3[code] * static_cast<double>(g);
 }
 
 //! Encode `n` values with decoded scale `d` into (unpacked) codes.

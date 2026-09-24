@@ -65,6 +65,7 @@
 #include <IMP/bff/internal/MlpFp4.h>
 #include <IMP/bff/internal/MlpFp4Kernels.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <vector>
@@ -117,6 +118,97 @@ inline void rht_rows(const double* M, int rows, int K, const Hadamard16& h, std:
         }
 }
 
+//! The transpose of `M` (`rows x n`), each of its `n` columns Hadamard-
+//! transformed tile by tile along `rows` (zero padded to K16): `out` is
+//! `n x K16`, the same values as rht_rows() of the explicit transpose (the
+//! sum over j runs in the same order; the zero padding adds nothing).
+//! Vectorised over the columns.
+inline void rht_transpose(const double* M, int rows, int n, const Hadamard16& h, std::vector<double>& out, int& K16,
+                          std::vector<double>& tile) {
+    K16 = (rows + 15) / 16 * 16;
+    out.resize(static_cast<std::size_t>(n) * K16);
+    tile.resize(static_cast<std::size_t>(16) * n);
+    (void)tile;
+#if defined(IMPBFF_FP4_AVX512)
+    constexpr int kC = 8;  // columns a register block: 8 rows of T x kC accumulators
+#else
+    constexpr int kC = 4;
+#endif
+    (void)kC;
+    for (int r0 = 0; r0 < K16; r0 += 16) {
+        const int nj = std::min(16, rows - r0);
+        int c0 = 0;
+#if defined(IMPBFF_FP4_NEON_DOTPROD) || defined(IMPBFF_FP4_NEON) || defined(IMPBFF_FP4_AVX2) || defined(IMPBFF_FP4_AVX512)
+        for (; c0 + kC <= n; c0 += kC)
+            for (int i0 = 0; i0 < 16; i0 += 8) {
+#if defined(IMPBFF_FP4_NEON_DOTPROD) || defined(IMPBFF_FP4_NEON)
+                float64x2_t acc[8][2];
+                for (int i = 0; i < 8; ++i) acc[i][0] = acc[i][1] = vdupq_n_f64(0.0);
+                for (int j = 0; j < nj; ++j) {
+                    const double* x = M + static_cast<std::size_t>(r0 + j) * n + c0;
+                    const float64x2_t x0 = vld1q_f64(x), x1 = vld1q_f64(x + 2);
+                    // t x is exact (t = +-1/4), so the fused multiply-add rounds as
+                    // acc + t x does (unless t x is subnormal)
+                    for (int i = 0; i < 8; ++i) {
+                        const double t = h.t[i0 + i][j];
+                        acc[i][0] = vfmaq_n_f64(acc[i][0], x0, t);
+                        acc[i][1] = vfmaq_n_f64(acc[i][1], x1, t);
+                    }
+                }
+                double v[8][4];
+                for (int i = 0; i < 8; ++i) {
+                    vst1q_f64(v[i], acc[i][0]);
+                    vst1q_f64(v[i] + 2, acc[i][1]);
+                }
+#elif defined(IMPBFF_FP4_AVX512)
+                __m512d acc[8];
+                for (int i = 0; i < 8; ++i) acc[i] = _mm512_setzero_pd();
+                for (int j = 0; j < nj; ++j) {
+                    const __m512d x0 = _mm512_loadu_pd(M + static_cast<std::size_t>(r0 + j) * n + c0);
+                    for (int i = 0; i < 8; ++i)
+                        acc[i] = _mm512_fmadd_pd(x0, _mm512_set1_pd(h.t[i0 + i][j]), acc[i]);
+                }
+                double v[8][8];
+                for (int i = 0; i < 8; ++i) _mm512_storeu_pd(v[i], acc[i]);
+#else
+                __m256d acc[8];
+                for (int i = 0; i < 8; ++i) acc[i] = _mm256_setzero_pd();
+                for (int j = 0; j < nj; ++j) {
+                    const __m256d x0 = _mm256_loadu_pd(M + static_cast<std::size_t>(r0 + j) * n + c0);
+                    for (int i = 0; i < 8; ++i)
+#if defined(__FMA__)
+                        acc[i] = _mm256_fmadd_pd(x0, _mm256_set1_pd(h.t[i0 + i][j]), acc[i]);
+#else
+                        acc[i] = _mm256_add_pd(acc[i], _mm256_mul_pd(x0, _mm256_set1_pd(h.t[i0 + i][j])));
+#endif
+                }
+                double v[8][4];
+                for (int i = 0; i < 8; ++i) _mm256_storeu_pd(v[i], acc[i]);
+#endif
+                for (int c = 0; c < kC; ++c) {
+                    double* o = out.data() + static_cast<std::size_t>(c0 + c) * K16 + r0 + i0;
+                    for (int i = 0; i < 8; ++i) o[i] = v[i][c];
+                }
+            }
+#endif
+        for (; c0 < n; ++c0) {
+            double* o = out.data() + static_cast<std::size_t>(c0) * K16 + r0;
+            for (int i = 0; i < 16; ++i) {
+                double acc = 0.0;
+                for (int j = 0; j < nj; ++j) acc += h.t[i][j] * M[static_cast<std::size_t>(r0 + j) * n + c0];
+                o[i] = acc;
+            }
+        }
+    }
+}
+
+//! The plain transpose of `M` (`rows x n`) into `out` (`n x rows`).
+inline void transpose(const double* M, int rows, int n, std::vector<double>& out) {
+    out.resize(static_cast<std::size_t>(n) * rows);
+    for (int r = 0; r < rows; ++r)
+        for (int c = 0; c < n; ++c) out[static_cast<std::size_t>(c) * rows + r] = M[static_cast<std::size_t>(r) * n + c];
+}
+
 //! The recipe's switches.
 struct Config {
     Format format = Format::NVFP4;
@@ -134,19 +226,81 @@ struct Config {
 struct Workspace {
     std::vector<std::vector<double>> a;  //!< a[0] input .. a[L] output, bs x width
     std::vector<std::vector<double>> z;  //!< z[l] = pre-activation of layer l
-    std::vector<Fp4Tensor> wq, wqt;
-    std::vector<double> dz, da, f1, dw;
+    //! Each FP4 layer's 2-D quantised weights packed for the kernel, as W
+    //! (fprop) and as its exact transpose W^T (dgrad): one quantisation.
+    std::vector<kern::PackedRight> pw, pwt;
+    std::vector<double> dz, da, f1, dzt, at, tile;
+    std::vector<std::uint8_t> wcodes, tcodes, tilecode;
+    std::vector<float> hsc;
+    kern::Q8Rows left;
+    kern::PackedRight right;
+    kern::QuantScratch qs;
     const std::vector<double>& output() const { return a.back(); }
 };
 
-//! Quantised weights of every FP4 layer (2-D tiles) and their transposes.
+//! quantize_2d() (MlpFp4.h, the reference) of `W` (`rows x cols`), packed
+//! straight into the kernel's W and W^T operands: the same tile scale codes
+//! and element codes, the vectorised encoder.
+inline void quantize_2d_packed(const double* W, int rows, int cols, Format f, Workspace& ws,
+                               kern::PackedRight& pw, kern::PackedRight& pwt) {
+    const int b = block_size(f, cols), kpi = padded_cols(cols), kpo = padded_cols(rows);
+    const int nb = kpi / b, nrt = (rows + b - 1) / b;
+    const float g = f == Format::NVFP4
+                            ? nvfp4_tensor_scale(kern::vq::absmax(W, rows * cols))
+                            : 1.0f;
+    // tile scale codes
+    ws.tilecode.assign(static_cast<std::size_t>(nrt) * nb, 0);
+    for (int rt = 0; rt < nrt; ++rt)
+        for (int kb = 0; kb < nb; ++kb) {
+            const int k0 = std::min(cols, kb * b), k1 = std::min(cols, k0 + b);
+            double amax = 0.0;
+            for (int r = rt * b; r < std::min(rows, rt * b + b); ++r)
+                if (k1 > k0) amax = std::max(amax, kern::vq::absmax(W + static_cast<std::size_t>(r) * cols + k0, k1 - k0));
+            ws.tilecode[static_cast<std::size_t>(rt) * nb + kb] = block_scale_code(f, amax, g);
+        }
+    // element codes, row by row (rows x kpi, unpacked)
+    ws.wcodes.assign(static_cast<std::size_t>(rows) * kpi, 0);
+    ws.hsc.resize(static_cast<std::size_t>(std::max(kpi, kpo) / 16));
+    pw.rows = 0;
+    kern::pack_right_init(rows, kpi, pw);
+    for (int r = 0; r < rows; ++r) {
+        std::uint8_t* cr = ws.wcodes.data() + static_cast<std::size_t>(r) * kpi;
+        const double* x = W + static_cast<std::size_t>(r) * cols;
+        for (int kb = 0; kb < nb; ++kb) {
+            const int k0 = std::min(cols, kb * b), k1 = std::min(cols, k0 + b);
+            const std::uint8_t code = ws.tilecode[static_cast<std::size_t>(r / b) * nb + kb];
+            const double d = block_scale_value(f, code, g);
+            if (k1 > k0 && d > 0.0) kern::vq::encode_rne(x + k0, k1 - k0, d, cr + k0);
+        }
+        for (int s = 0; s < kpi / 16; ++s)
+            ws.hsc[static_cast<std::size_t>(s)] =
+                    kern::kd::half_scale(f, ws.tilecode[static_cast<std::size_t>(r / b) * nb + s * 16 / b], g);
+        kern::pack_right_row(pw, r, cr, ws.hsc.data());
+    }
+    // the transpose: row k holds column k's codes; sub-block s's scale is
+    // the tile (s * 16 / b, k / b), a zero-block code past the last row tile
+    kern::pack_right_init(cols, kpo, pwt);
+    ws.tcodes.assign(static_cast<std::size_t>(kpo), 0);
+    const std::uint8_t zero_code = block_scale_code(f, 0.0, g);
+    for (int k = 0; k < cols; ++k) {
+        for (int r = 0; r < rows; ++r) ws.tcodes[static_cast<std::size_t>(r)] = ws.wcodes[static_cast<std::size_t>(r) * kpi + k];
+        for (int s = 0; s < kpo / 16; ++s) {
+            const int rt = s * 16 / b;
+            ws.hsc[static_cast<std::size_t>(s)] = kern::kd::half_scale(
+                    f, rt * b < rows ? ws.tilecode[static_cast<std::size_t>(rt) * nb + k / b] : zero_code, g);
+        }
+        kern::pack_right_row(pwt, k, ws.tcodes.data(), ws.hsc.data());
+    }
+}
+
+//! Quantised weights of every FP4 layer (2-D tiles), packed as W and W^T.
 inline void quantize_weights(const std::vector<DenseLayer>& layers, const Config& c, Workspace& ws) {
-    ws.wq.assign(layers.size(), Fp4Tensor());
-    ws.wqt.assign(layers.size(), Fp4Tensor());
+    ws.pw.resize(layers.size());
+    ws.pwt.resize(layers.size());
     for (std::size_t l = 0; l < layers.size(); ++l) {
         if (!c.fp4_layer(l, layers.size())) continue;
-        ws.wq[l] = quantize_2d(layers[l].weight.data(), layers[l].n_out, layers[l].n_in, c.format);
-        ws.wqt[l] = transpose_2d(ws.wq[l]);
+        if (c.format == Format::FP4) throw std::runtime_error("FP4: 2-D scaling needs mxfp4 or nvfp4");
+        quantize_2d_packed(layers[l].weight.data(), layers[l].n_out, layers[l].n_in, c.format, ws, ws.pw[l], ws.pwt[l]);
     }
 }
 
@@ -165,13 +319,14 @@ inline void forward(const std::vector<DenseLayer>& layers, const Config& c, cons
         std::vector<double>& z = ws.z[l];
         z.resize(static_cast<std::size_t>(bs) * ly.n_out);
         if (c.fp4_layer(l, L)) {
-            kern::gemm_fp4(kern::quantize_rows(ws.a[l].data(), bs, ly.n_in, c.format), kern::rows_of(ws.wq[l]),
-                           z.data());
+            kern::quantize_left(ws.a[l].data(), bs, ly.n_in, c.format, Rounding::NearestEven, nullptr, ws.left, ws.qs);
+            kern::gemm_packed(ws.left, ws.pw[l], z.data(), ly.bias.data());
         } else {
             Gemm::nt(bs, ly.n_out, ly.n_in, ws.a[l].data(), ly.weight.data(), z.data());
+            for (int r = 0; r < bs; ++r)
+                for (int o = 0; o < ly.n_out; ++o)
+                    z[static_cast<std::size_t>(r) * ly.n_out + o] += ly.bias[static_cast<std::size_t>(o)];
         }
-        for (int r = 0; r < bs; ++r)
-            for (int o = 0; o < ly.n_out; ++o) z[static_cast<std::size_t>(r) * ly.n_out + o] += ly.bias[static_cast<std::size_t>(o)];
         ws.a[l + 1].resize(z.size());
         mlpcore::act_apply(z.data(), ws.a[l + 1].data(), z.size(), ly.activation);
     }
@@ -188,26 +343,31 @@ struct WgradOperands {
 //! quantised along the batch; dZ stochastically rounded when
 //! `c.stochastic`.
 inline void wgrad(const double* dZ, const double* A, int bs, int n_out, int n_in, const Config& c,
-                  SplitMix64& rng, const Hadamard16& h, double* dW, WgradOperands* keep = nullptr) {
-    std::vector<double> dzt(static_cast<std::size_t>(n_out) * bs), at(static_cast<std::size_t>(n_in) * bs);
-    for (int r = 0; r < bs; ++r) {
-        for (int o = 0; o < n_out; ++o) dzt[static_cast<std::size_t>(o) * bs + r] = dZ[static_cast<std::size_t>(r) * n_out + o];
-        for (int k = 0; k < n_in; ++k) at[static_cast<std::size_t>(k) * bs + r] = A[static_cast<std::size_t>(r) * n_in + k];
-    }
+                  SplitMix64& rng, const Hadamard16& h, double* dW, Workspace& ws, WgradOperands* keep = nullptr) {
     int K = bs;
     if (c.hadamard) {
-        std::vector<double> t;
-        rht_rows(dzt.data(), n_out, bs, h, t, K);
-        dzt.swap(t);
-        rht_rows(at.data(), n_in, bs, h, t, K);
-        at.swap(t);
+        rht_transpose(dZ, bs, n_out, h, ws.dzt, K, ws.tile);
+        rht_transpose(A, bs, n_in, h, ws.at, K, ws.tile);
+    } else {
+        transpose(dZ, bs, n_out, ws.dzt);
+        transpose(A, bs, n_in, ws.at);
     }
-    WgradOperands ops;
-    ops.x = kern::quantize_rows(dzt.data(), n_out, K, c.format,
-                                c.stochastic ? Rounding::Stochastic : Rounding::NearestEven, &rng);
-    ops.y = kern::quantize_rows(at.data(), n_in, K, c.format);
-    kern::gemm_fp4(ops.x, ops.y, dW);
-    if (keep != nullptr) *keep = std::move(ops);
+    const Rounding rz = c.stochastic ? Rounding::Stochastic : Rounding::NearestEven;
+    if (keep != nullptr) {  // the same draws: a copy of the stream
+        SplitMix64 r2 = rng;
+        keep->x = kern::quantize_rows(ws.dzt.data(), n_out, K, c.format, rz, &r2);
+        keep->y = kern::quantize_rows(ws.at.data(), n_in, K, c.format);
+    }
+    kern::quantize_left(ws.dzt.data(), n_out, K, c.format, rz, &rng, ws.left, ws.qs);
+    kern::quantize_right(ws.at.data(), n_in, K, c.format, Rounding::NearestEven, nullptr, ws.right, ws.qs);
+    kern::gemm_packed(ws.left, ws.right, dW);
+}
+
+//! wgrad() with its own scratch (tests).
+inline void wgrad(const double* dZ, const double* A, int bs, int n_out, int n_in, const Config& c,
+                  SplitMix64& rng, const Hadamard16& h, double* dW, WgradOperands* keep = nullptr) {
+    Workspace ws;
+    wgrad(dZ, A, bs, n_out, n_in, c, rng, h, dW, ws, keep);
 }
 
 //! Backward pass for `dY` (`bs x n_out`, the loss' adjoint of the output):
@@ -239,16 +399,16 @@ inline void backward(const std::vector<DenseLayer>& layers, const Config& c, Wor
             for (int o = 0; o < ly.n_out; ++o) gb[o] += ws.dz[static_cast<std::size_t>(r) * ly.n_out + o];
         const bool fp4 = c.fp4_layer(li, L);
         if (fp4) {
-            wgrad(ws.dz.data(), ws.a[li].data(), bs, ly.n_out, ly.n_in, c, rng, h, gW);
+            wgrad(ws.dz.data(), ws.a[li].data(), bs, ly.n_out, ly.n_in, c, rng, h, gW, ws);
         } else {
             Gemm::tn(ly.n_out, ly.n_in, bs, ws.dz.data(), ws.a[li].data(), gW);
         }
         if (li == 0) break;
         ws.da.resize(static_cast<std::size_t>(bs) * ly.n_in);
         if (fp4) {
-            kern::gemm_fp4(kern::quantize_rows(ws.dz.data(), bs, ly.n_out, c.format,
-                                               c.stochastic ? Rounding::Stochastic : Rounding::NearestEven, &rng),
-                           kern::rows_of(ws.wqt[li]), ws.da.data());
+            kern::quantize_left(ws.dz.data(), bs, ly.n_out, c.format,
+                                c.stochastic ? Rounding::Stochastic : Rounding::NearestEven, &rng, ws.left, ws.qs);
+            kern::gemm_packed(ws.left, ws.pwt[li], ws.da.data());
         } else {
             Gemm::nn(bs, ly.n_in, ly.n_out, ws.dz.data(), ly.weight.data(), ws.da.data());
         }

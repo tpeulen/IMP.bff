@@ -164,6 +164,21 @@ static void test_e4m3_e8m0() {
         if (f4::e4m3_encode(std::nextafter(mid, 1e9)) != c + 1) ++bad;
     }
     report(bad == 0, "E4M3 midpoints tie to even, neighbours round to nearest", bad, 0);
+    // the bit-level fast path against the plain arithmetic
+    bad = 0;
+    {
+        Lcg r(5);
+        for (int i = 0; i < 400000; ++i) {
+            const double v = std::ldexp(r.uniform(), static_cast<int>(r.next() % 40) - 20);
+            if (f4::e4m3_encode(v) != f4::e4m3_encode_reference(v)) ++bad;
+        }
+        for (int c = 0; c + 1 < 0x7F; ++c) {
+            const double mid = 0.5 * (f4::e4m3_decode(static_cast<std::uint8_t>(c)) + f4::e4m3_decode(static_cast<std::uint8_t>(c + 1)));
+            for (double v : {mid, std::nextafter(mid, 0.0), std::nextafter(mid, 1e9), -mid, 480.0, 511.9, 512.0, 1e300})
+                if (f4::e4m3_encode(v) != f4::e4m3_encode_reference(v)) ++bad;
+        }
+    }
+    report(bad == 0, "E4M3 fast encoder == reference (4e5 random, every midpoint)", bad, 0);
     bad = 0;
     for (int c = 0; c < 255; ++c) {
         if (f4::e8m0_decode(static_cast<std::uint8_t>(c)) != std::ldexp(1.0, c - 127)) ++bad;
@@ -257,35 +272,49 @@ static void test_variants() {
     std::printf("kernel variant '%s' vs generic\n", kn::kernel_name());
     Lcg rng(11);
     int bad = 0;
-    for (int ng = 1; ng <= 9; ++ng) {
-        std::vector<std::uint8_t> w(16 * ng), x(16 * ng);
-        std::vector<std::int8_t> a(32 * ng);
-        for (auto& v : w) v = static_cast<std::uint8_t>(rng.next());
-        for (auto& v : x) v = static_cast<std::uint8_t>(rng.next());
-        for (auto& v : a) v = static_cast<std::int8_t>(static_cast<int>(rng.next() % 255) - 127);
-        std::vector<std::int32_t> s1(2 * ng), s2(2 * ng);
-        kn::isums_q8_generic(w.data(), a.data(), ng, s1.data());
-        kn::isums_q8_simd(w.data(), a.data(), ng, s2.data());
-        if (s1 != s2) ++bad;
-        // the generic sum against a plain element loop
-        for (int s = 0; s < 2 * ng; ++s) {
-            std::int32_t ref = 0;
-            for (int k = 16 * s; k < 16 * s + 16; ++k)
-                ref += static_cast<int>(2.0 * f4::e2m1_decode(f4::nibble(w.data(), k))) * a[kn::permuted(k)];
-            if (ref != s1[s]) ++bad;
-        }
-        kn::isums_fp4_generic(w.data(), x.data(), ng, s1.data());
-        kn::isums_fp4_simd(w.data(), x.data(), ng, s2.data());
-        if (s1 != s2) ++bad;
-        for (int s = 0; s < 2 * ng; ++s) {
-            std::int32_t ref = 0;
-            for (int k = 16 * s; k < 16 * s + 16; ++k)
-                ref += static_cast<int>(4 * f4::e2m1_decode(f4::nibble(w.data(), k)) *
-                                        f4::e2m1_decode(f4::nibble(x.data(), k)));
-            if (ref != s1[s]) ++bad;
-        }
-    }
-    report(bad == 0, "integer sums: SIMD == generic == element loop (FP4 x int8, FP4 x FP4)", bad, 0);
+    // the micro-kernel against the element-by-element reference, on random
+    // codes and int8 values over shapes that exercise every tail (rows not a
+    // multiple of the tile, a trailing pair of sub-blocks, one group)
+    for (int M : {1, 3, 5, 9})
+        for (int N : {1, 7, 17, 33})
+            for (int ng : {1, 2, 3, 5, 8}) {
+                kn::Q8Rows A;
+                A.rows = M;
+                A.kp = 32 * ng;
+                A.q.resize(static_cast<std::size_t>(M) * A.kp);
+                A.sc.resize(static_cast<std::size_t>(M) * A.n_sub());
+                for (auto& v : A.q) v = static_cast<std::int8_t>(static_cast<int>(rng.next() % 255) - 127);
+                for (auto& v : A.sc) v = static_cast<float>(std::ldexp(1.0 + 0.5 * rng.uniform(), static_cast<int>(rng.next() % 9) - 4));
+                kn::Fp4Rows W;
+                W.rows = N;
+                W.kp = A.kp;
+                W.stride = static_cast<std::size_t>(A.kp / 2);
+                W.own.resize(static_cast<std::size_t>(N) * W.stride);
+                for (auto& v : W.own) v = static_cast<std::uint8_t>(rng.next());
+                W.codes = W.own.data();
+                W.sc.resize(static_cast<std::size_t>(N) * W.n_sub());
+                for (auto& v : W.sc) v = static_cast<float>(std::ldexp(1.0 + 0.5 * rng.uniform(), static_cast<int>(rng.next() % 9) - 4));
+                std::vector<double> c1(static_cast<std::size_t>(M) * N), c2(c1.size());
+                kn::gemm_q8<true>(A, W, c1.data());
+                kn::gemm_q8<false>(A, W, c2.data());
+                if (std::memcmp(c1.data(), c2.data(), c1.size() * sizeof(double)) != 0) ++bad;
+                // the reference against a plain double sum per sub-block
+                for (int r = 0; r < M; ++r)
+                    for (int o = 0; o < N; ++o) {
+                        double want = 0.0, amax = 0.0;
+                        for (int s = 0; s < A.n_sub(); ++s) {
+                            std::int32_t is = 0;
+                            for (int k = 16 * s; k < 16 * s + 16; ++k)
+                                is += static_cast<int>(2.0 * f4::e2m1_decode(f4::nibble(W.codes + o * W.stride, k))) *
+                                      A.q[static_cast<std::size_t>(r) * A.kp + k];
+                            const double t = is * static_cast<double>(A.sc[r * A.n_sub() + s]) * W.sc[o * W.n_sub() + s];
+                            want += t;
+                            amax += std::abs(t);
+                        }
+                        if (std::abs(c1[static_cast<std::size_t>(r) * N + o] - want) > 1e-5 * (amax + 1e-30)) ++bad;
+                    }
+            }
+    report(bad == 0, "micro-kernel == element-by-element reference (bit-identical), reference == double sums", bad, 0);
     // GEMMs: bit-identical to the generic, and equal to double on the same operands
     const int M = 37, N = 29, K = 200;
     std::vector<double> A(static_cast<std::size_t>(M) * K), B(static_cast<std::size_t>(N) * K);
@@ -311,7 +340,7 @@ static void test_variants() {
         for (int r = 0; r < M; ++r)
             for (int k = 0; k < K; ++k) {
                 const std::size_t i = static_cast<std::size_t>(r) * K + k;
-                Ad[i] = q8.q[static_cast<std::size_t>(r) * q8.kp + kn::permuted(k)] *
+                Ad[i] = q8.q[static_cast<std::size_t>(r) * q8.kp + k] *
                         static_cast<double>(q8.sc[static_cast<std::size_t>(r) * q8.n_sub() + k / 16]);
                 Xd[i] = f4::e2m1_decode(f4::nibble(X.codes + r * X.stride, k)) * 2.0 *
                         static_cast<double>(X.sc[static_cast<std::size_t>(r) * X.n_sub() + k / 16]);
@@ -469,6 +498,38 @@ static void test_training_pieces() {
         std::vector<double> got(ref.size());
         mc::PortableGemm::nt(n_out, n_in, K16, t1.data(), t2.data(), got.data());
         report(max_rel(got, ref) < 1e-13, "(T dZ)^T (T A) == dZ^T A", max_rel(got, ref), 1e-13);
+    }
+    // the fused transpose + transform equals rht_rows() of the transpose, bit for bit
+    {
+        std::vector<double> dzt(static_cast<std::size_t>(n_out) * bs), t1, t2, tile;
+        for (int r = 0; r < bs; ++r)
+            for (int o = 0; o < n_out; ++o) dzt[static_cast<std::size_t>(o) * bs + r] = dZ[static_cast<std::size_t>(r) * n_out + o];
+        int K1 = 0, K2 = 0;
+        tr::rht_rows(dzt.data(), n_out, bs, h, t1, K1);
+        tr::rht_transpose(dZ.data(), bs, n_out, h, t2, K2, tile);
+        check(K1 == K2 && t1 == t2, "rht_transpose == rht_rows of the transpose (bit-identical)");
+    }
+    // the vectorised quantisers == the scalar recipes of MlpFp4.h
+    {
+        int bad_q = 0;
+        for (f4::Format f : {f4::Format::FP4, f4::Format::MXFP4, f4::Format::NVFP4})
+            for (int K : {5, 16, 40, 100}) {
+                std::vector<double> X(static_cast<std::size_t>(9) * K);
+                for (std::size_t i = 0; i < X.size(); ++i) X[i] = rng.uniform() * (i % 7 ? 1.0 : 1e-7);
+                const f4::Fp4Tensor ref = f4::quantize(X.data(), 9, K, f);
+                const kn::Fp4Rows got = kn::quantize_rows(X.data(), 9, K, f);
+                // nvfp4: quantize() takes one global scale a tensor, quantize_rows one a row -- compare the fp4 / mxfp4 codes only
+                if (f != f4::Format::NVFP4 && !std::equal(ref.codes.begin(), ref.codes.end(), got.codes)) ++bad_q;
+                if (f == f4::Format::FP4) continue;
+                const f4::Fp4Tensor q2 = f4::quantize_2d(X.data(), 9, K, f);
+                tr::Workspace ws;
+                kn::PackedRight pw, pwt, rw, rwt;
+                tr::quantize_2d_packed(X.data(), 9, K, f, ws, pw, pwt);
+                kn::pack_right(kn::rows_of(q2), rw);
+                kn::pack_right(kn::rows_of(f4::transpose_2d(q2)), rwt);
+                if (pw.codes != rw.codes || pw.sc != rw.sc || pwt.codes != rwt.codes || pwt.sc != rwt.sc) ++bad_q;
+            }
+        report(bad_q == 0, "vectorised quantize_rows / 2-D packing == MlpFp4.h recipes", bad_q, 0);
     }
     // wgrad on the kernels == double product of the same quantised operands
     for (f4::Format f : {f4::Format::NVFP4, f4::Format::MXFP4}) {

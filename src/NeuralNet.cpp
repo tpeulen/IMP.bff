@@ -412,7 +412,18 @@ struct QuantizedNeuralNet::Impl {
     bool quantize_activations = false;
     internal::mlpquant::QuantModel int8;
     internal::mlpfp4::Fp4Model fp4;
+    //! fp4's layers packed for the kernels, once (points into `fp4`)
+    internal::mlpfp4::kern::Prepared packed;
     bool is_int8() const { return format == "int8"; }
+    void prepare() {
+        if (!is_int8()) packed = internal::mlpfp4::kern::prepare(fp4);
+    }
+    Impl() = default;
+    Impl(const Impl& o)
+        : format(o.format), quantize_activations(o.quantize_activations), int8(o.int8), fp4(o.fp4) {
+        prepare();
+    }
+    Impl& operator=(const Impl&) = delete;
 };
 
 QuantizedNeuralNet::QuantizedNeuralNet(const NeuralNet& net, const std::string& format,
@@ -433,6 +444,7 @@ QuantizedNeuralNet::QuantizedNeuralNet(const NeuralNet& net, const std::string& 
         try {
             impl_->fp4 = internal::mlpfp4::quantize(m, internal::mlpfp4::format_from_string(format),
                                                     quantize_activations);
+            impl_->prepare();
         } catch (const std::exception& e) {
             IMP_THROW("QuantizedNeuralNet: " << e.what(), IMP::ValueException);
         }
@@ -447,6 +459,7 @@ QuantizedNeuralNet QuantizedNeuralNet::from_msgpack(const MsgpackBytes& document
     q.impl_->format = internal::quantized_from_msgpack(document, q.impl_->quantize_activations,
                                                        q.impl_->int8, q.impl_->fp4);
     if (q.impl_->is_int8()) q.impl_->quantize_activations = true;
+    q.impl_->prepare();
     return q;
 }
 
@@ -496,7 +509,7 @@ void QuantizedNeuralNet::predict(const std::vector<double>& x, int n_rows,
     if (impl_->is_int8())
         internal::mlpquant::predict(impl_->int8, x.data(), n_rows, y);
     else
-        internal::mlpfp4::kern::predict<neural_net_detail::Gemm>(impl_->fp4, x.data(), n_rows, y);
+        internal::mlpfp4::kern::predict<neural_net_detail::Gemm>(impl_->packed, x.data(), n_rows, y);
     internal::copy_to_view(y, out_view, n_out_view);
 }
 
