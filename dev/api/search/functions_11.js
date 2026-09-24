@@ -53,7 +53,7 @@ var searchData=
   ['serialize_50',['serialize',['../class_grid_header.html#ad3a44d06d25ba989182a75d71462d153',1,'GridHeader::serialize()'],['../class_grid_sphere.html#af44b9449b7b072411bac8f8061fa6e13',1,'GridSphere::serialize()']]],
   ['set_5fabsolute_5famplitudes_51',['set_absolute_amplitudes',['../class_t_c_s_p_c_decay.html#a91b3716dad801eb6f93349fc49c05e1f',1,'TCSPCDecay::set_absolute_amplitudes()'],['../class_photophysics_lifetime_spectrum_node.html#a4a97964dd3b1af45f69bd0c41f785c4a',1,'PhotophysicsLifetimeSpectrumNode::set_absolute_amplitudes()']]],
   ['set_5facceptor_52',['set_acceptor',['../class_f_r_e_t_measurement.html#a051985e2bc2fba6a62d58d590e3be347',1,'FRETMeasurement']]],
-  ['set_5faction_5fpolicy_53',['set_action_policy',['../class_fitting_model_search_problem.html#a7f3ab94cefa3ba480cf65279554b046c',1,'FittingModelSearchProblem']]],
+  ['set_5faction_5fpolicy_53',['set_action_policy',['../class_fitting_model_search_problem.html#a985ac5b8a105a96822cae7bc858d40be',1,'FittingModelSearchProblem']]],
   ['set_5falgorithm_54',['set_algorithm',['../class_m_c_m_c_sampler.html#a5c2a71082d1da7a3990d54e6f954e30d',1,'MCMCSampler::set_algorithm()'],['../class_fit_minimizer.html#afdd4d51387be94576c39e0cbdf38824f',1,'FitMinimizer::set_algorithm()']]],
   ['set_5famplitude_5fthreshold_55',['set_amplitude_threshold',['../class_t_c_s_p_c_decay.html#aacfeeb35f40260dfbf2591e6bbfe7ed1',1,'TCSPCDecay']]],
   ['set_5fanchor_5fsigma_56',['set_anchor_sigma',['../class_f_r_e_t_landscape_model.html#abd7148cfa17ff5b50e80d0c9bf961239',1,'FRETLandscapeModel::set_anchor_sigma()'],['../class_f_r_e_t_network_model.html#a3f87c004ef26316c8d28faa759943dcb',1,'FRETNetworkModel::set_anchor_sigma()']]],

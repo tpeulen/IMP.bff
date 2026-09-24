@@ -1,11 +1,13 @@
 <map id="/home/runner/work/IMP.bff/IMP.bff/include/NeuralNetTraining.h" name="/home/runner/work/IMP.bff/IMP.bff/include/NeuralNetTraining.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="221,5,475,45"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="343,5,596,45"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,93,152,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="284,48,132,92,130,87,283,43"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="376,48,150,93,149,88,375,43"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="177,93,370,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="332,47,296,85,292,81,328,44"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="395,93,453,119"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="368,44,405,81,401,85,364,47"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="478,93,541,119"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="388,43,474,85,472,90,385,48"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="423,48,316,91,314,86,421,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="395,93,544,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="472,46,472,79,467,79,467,46"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="568,93,627,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="502,43,568,84,566,88,499,48"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="651,93,714,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="521,43,639,86,637,91,520,48"/>
 </map>

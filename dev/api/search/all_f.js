@@ -259,7 +259,7 @@ var searchData=
   ['product_256',['product',['../class_inference_canonical_form.html#a1a2915ebd3aafe0b8086f2771982a4c2',1,'InferenceCanonicalForm']]],
   ['product_5fstart_257',['product_start',['../class_f_r_e_t_simulation_options.html#a3c000860b68862d00dbd370c8019f1d7',1,'FRETSimulationOptions']]],
   ['propagate_258',['propagate',['../struct_imp_bff_compute_backend.html#a667d4bfe61ebd8e2aa3f64efa6cb78cf',1,'ImpBffComputeBackend']]],
-  ['propose_259',['propose',['../class_model_search_self_play.html#a3c741c074c34a5688343ff4b6f6680a9',1,'ModelSearchSelfPlay']]],
+  ['propose_259',['propose',['../class_model_search_self_play.html#a21e08e09b6cd1b5daf23d1889b4d3b72',1,'ModelSearchSelfPlay']]],
   ['proposed_260',['proposed',['../class_sampler_kernel.html#a0a4c1e8e9ba311dbdc30478f030fbc17',1,'SamplerKernel::proposed()'],['../classinternal_1_1_walker_kernel_base.html#ad3077e8a9b200af9772cc089f1712e51',1,'internal::WalkerKernelBase::proposed() const override']]],
   ['proposed_5f_261',['proposed_',['../classinternal_1_1_walker_kernel_base.html#a764e913544fcc7c56939f874e4fc4eff',1,'internal::WalkerKernelBase']]],
   ['protein_5f1_262',['protein_1',['../struct_cross_link.html#a84b68aa2e818f5f50b95faba36e78173',1,'CrossLink']]],

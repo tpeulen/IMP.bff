@@ -131,9 +131,9 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a12abf5e4e00df2774bb87e0c67e09be9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a622d5437f93cc90f717cf5b5475e1c7b" id="r_a622d5437f93cc90f717cf5b5475e1c7b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a622d5437f93cc90f717cf5b5475e1c7b">add_action</a> (const std::string &amp;parent_structure, const std::string &amp;action_key, const std::string &amp;result_structure, double prior=1.0, bool terminal=false)</td></tr>
 <tr class="separator:a622d5437f93cc90f717cf5b5475e1c7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7f3ab94cefa3ba480cf65279554b046c" id="r_a7f3ab94cefa3ba480cf65279554b046c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a7f3ab94cefa3ba480cf65279554b046c">set_action_policy</a> (const std::string &amp;network, double temperature=0.0)</td></tr>
-<tr class="memdesc:a7f3ab94cefa3ba480cf65279554b046c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Weight the declared move priors by a family-agnostic network.  <br /></td></tr>
-<tr class="separator:a7f3ab94cefa3ba480cf65279554b046c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a985ac5b8a105a96822cae7bc858d40be" id="r_a985ac5b8a105a96822cae7bc858d40be"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a985ac5b8a105a96822cae7bc858d40be">set_action_policy</a> (const <a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp;network, double temperature=0.0)</td></tr>
+<tr class="memdesc:a985ac5b8a105a96822cae7bc858d40be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Weight the declared move priors by a family-agnostic network.  <br /></td></tr>
+<tr class="separator:a985ac5b8a105a96822cae7bc858d40be"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a715d352635d43e814dcd158dc5591c12" id="r_a715d352635d43e814dcd158dc5591c12"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a715d352635d43e814dcd158dc5591c12">clear_action_policy</a> ()</td></tr>
 <tr class="separator:a715d352635d43e814dcd158dc5591c12"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a86f8d09fae53ff143977f9ea1378e633" id="r_a86f8d09fae53ff143977f9ea1378e633"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a86f8d09fae53ff143977f9ea1378e633">get_has_action_policy</a> () const</td></tr>
@@ -1595,8 +1595,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a7f3ab94cefa3ba480cf65279554b046c" name="a7f3ab94cefa3ba480cf65279554b046c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7f3ab94cefa3ba480cf65279554b046c">&#9670;&#160;</a></span>set_action_policy()</h2>
+<a id="a985ac5b8a105a96822cae7bc858d40be" name="a985ac5b8a105a96822cae7bc858d40be"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a985ac5b8a105a96822cae7bc858d40be">&#9670;&#160;</a></span>set_action_policy()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1604,7 +1604,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">void FittingModelSearchProblem::set_action_policy </td>
           <td>(</td>
-          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp;&#160;</td>
           <td class="paramname"><em>network</em>, </td>
         </tr>
         <tr>
@@ -1622,7 +1622,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Weight the declared move priors by a family-agnostic network. </p>
-<p>The network scores one row per available move &ndash; the state features of the structure being expanded, from the residual recorded when it was scored, followed by that move's action features &ndash; with one output. A move's prior becomes its declared prior times <code>exp(score)</code>, normalised over the available moves, so a declared zero stays zero. Expansion never refits or re-evaluates the graph, and a state scored without a residual keeps its declared priors. The policy is a PUCT hint; it never changes a score. An empty document removes it. <code>temperature</code> divides the scores: above 1 the policy leans on the declared priors more and leaves PUCT more to explore. Zero, the default, takes the document's own <code>"temperature"</code> (1 when it has none): a shipped policy passed its gate at that temperature. </p>
+<p>The network scores one row per available move &ndash; the state features of the structure being expanded, from the residual recorded when it was scored, followed by that move's action features &ndash; with one output. A move's prior becomes its declared prior times <code>exp(score)</code>, normalised over the available moves, so a declared zero stays zero. Expansion never refits or re-evaluates the graph, and a state scored without a residual keeps its declared priors. The policy is a PUCT hint; it never changes a score. <code>network</code> is a <code>bff.neural_net</code> msgpack document (bytes in Python, as get_shipped_action_policy and <a class="el" href="class_model_search_policy_training.html#a6215c66398b79671c11c21ccb0a8082a">ModelSearchPolicyTraining::get_network</a> return it); empty bytes remove the policy. <code>temperature</code> divides the scores: above 1 the policy leans on the declared priors more and leaves PUCT more to explore. Zero, the default, takes the document's own <code>"temperature"</code> (1 when it has none): a shipped policy passed its gate at that temperature. </p>
 
 </div>
 </div>
@@ -1969,7 +1969,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Sep 24 2026 05:50:23 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 24 2026 09:32:42 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

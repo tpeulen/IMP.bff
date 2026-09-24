@@ -93,9 +93,8 @@ Collaboration diagram for ModelSearchPolicyTraining:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ac640c5742fc1aedcbe397bcb9cf042e5" id="r_ac640c5742fc1aedcbe397bcb9cf042e5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_policy_training.html#ac640c5742fc1aedcbe397bcb9cf042e5">ModelSearchPolicyTraining</a> ()</td></tr>
 <tr class="separator:ac640c5742fc1aedcbe397bcb9cf042e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4c21b97c543635db88dcffe7300fa8d6" id="r_a4c21b97c543635db88dcffe7300fa8d6"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_policy_training.html#a4c21b97c543635db88dcffe7300fa8d6">get_network</a> () const</td></tr>
-<tr class="memdesc:a4c21b97c543635db88dcffe7300fa8d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <code><a class="el" href="class_neural_net.html" title="A dense multilayer perceptron, evaluated in batches.">NeuralNet</a></code> document for <a class="el" href="class_fitting_model_search_problem.html#a7f3ab94cefa3ba480cf65279554b046c" title="Weight the declared move priors by a family-agnostic network.">FittingModelSearchProblem::set_action_policy</a>.  <br /></td></tr>
-<tr class="separator:a4c21b97c543635db88dcffe7300fa8d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6215c66398b79671c11c21ccb0a8082a" id="r_a6215c66398b79671c11c21ccb0a8082a"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_policy_training.html#a6215c66398b79671c11c21ccb0a8082a">get_network</a> () const</td></tr>
+<tr class="separator:a6215c66398b79671c11c21ccb0a8082a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6f26280169e419aca0367a739b8601c5" id="r_a6f26280169e419aca0367a739b8601c5"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_policy_training.html#a6f26280169e419aca0367a739b8601c5">get_training_loss</a> () const</td></tr>
 <tr class="separator:a6f26280169e419aca0367a739b8601c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4af00d22fd62574666a8ffbeaede22a1" id="r_a4af00d22fd62574666a8ffbeaede22a1"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_policy_training.html#a4af00d22fd62574666a8ffbeaede22a1">get_training_accuracy</a> () const</td></tr>
@@ -283,8 +282,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a4c21b97c543635db88dcffe7300fa8d6" name="a4c21b97c543635db88dcffe7300fa8d6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4c21b97c543635db88dcffe7300fa8d6">&#9670;&#160;</a></span>get_network()</h2>
+<a id="a6215c66398b79671c11c21ccb0a8082a" name="a6215c66398b79671c11c21ccb0a8082a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6215c66398b79671c11c21ccb0a8082a">&#9670;&#160;</a></span>get_network()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -293,7 +292,7 @@ Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const std::string &amp; ModelSearchPolicyTraining::get_network </td>
+          <td class="memname">const <a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp; ModelSearchPolicyTraining::get_network </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -305,8 +304,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>A <code><a class="el" href="class_neural_net.html" title="A dense multilayer perceptron, evaluated in batches.">NeuralNet</a></code> document for <a class="el" href="class_fitting_model_search_problem.html#a7f3ab94cefa3ba480cf65279554b046c" title="Weight the declared move priors by a family-agnostic network.">FittingModelSearchProblem::set_action_policy</a>. </p>
+<p>The <code>bff.neural_net</code> msgpack document for <a class="el" href="class_fitting_model_search_problem.html#a985ac5b8a105a96822cae7bc858d40be" title="Weight the declared move priors by a family-agnostic network.">FittingModelSearchProblem::set_action_policy</a> (bytes in Python). </p>
 
 </div>
 </div>
@@ -473,7 +471,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Sep 24 2026 05:50:23 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 24 2026 09:32:42 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

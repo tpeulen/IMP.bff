@@ -744,12 +744,14 @@ stops improving, so it is usually shorter than <code class="docutils literal not
 </section>
 <section id="save-it">
 <h2>Save it<a class="headerlink" href="#save-it" title="Link to this heading">#</a></h2>
-<p>The model is a <code class="docutils literal notranslate"><span class="pre">bff.hmm_surrogate</span></code> JSON document carrying the
-<code class="docutils literal notranslate"><span class="pre">bff.neural_net</span></code> document of its network: readable, safe to share, and
-loadable wherever IMP.bff is.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="n">path</span> <span class="o">=</span> <a class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function reference external" href="https://docs.python.org/3/library/os.path.html#os.path.join" title="os.path.join"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span></a><span class="p">(</span><a class="sphx-glr-backref-module-tempfile sphx-glr-backref-type-py-function reference external" href="https://docs.python.org/3/library/tempfile.html#tempfile.mkdtemp" title="tempfile.mkdtemp"><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span></a><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s2">hmm_surrogate_2state.json</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
-</span><span class="n">surrogate</span><span class="o">.</span><span class="n">to_json_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="w">
-</span><span class="n">reloaded</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">HmmSurrogate</span><span class="o">.</span><span class="n">from_json_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="w">
+<p>The model is one msgpack document – msgpack is the native format of every
+network in IMP.bff – a surrogate map nesting the map of its network: exact
+float64 weights, compact, safe to share, and loadable wherever IMP.bff is.
+<code class="docutils literal notranslate"><span class="pre">msgpack.unpackb(surrogate.to_msgpack(),</span> <span class="pre">raw=False)</span></code> shows it as a plain
+dict.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="n">path</span> <span class="o">=</span> <a class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function reference external" href="https://docs.python.org/3/library/os.path.html#os.path.join" title="os.path.join"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span></a><span class="p">(</span><a class="sphx-glr-backref-module-tempfile sphx-glr-backref-type-py-function reference external" href="https://docs.python.org/3/library/tempfile.html#tempfile.mkdtemp" title="tempfile.mkdtemp"><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span></a><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="s2">&quot;</span><span class="s2">hmm_surrogate_2state.msgpack</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><span class="n">surrogate</span><span class="o">.</span><span class="n">to_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="w">
+</span><span class="n">reloaded</span> <span class="o">=</span> <span class="n">IMP</span><span class="o">.</span><span class="n">bff</span><span class="o">.</span><span class="n">HmmSurrogate</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
 </section>
 <section id="compare-with-em">

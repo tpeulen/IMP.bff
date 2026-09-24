@@ -7,7 +7,7 @@ var searchData=
   ['name_4',['name',['../class_nuts_kernel.html#abcb59d0bbb89524070d26942fec3d7f5',1,'NutsKernel::name()'],['../class_stretch_kernel.html#a90e325526e52f95a0212da2e9307ed73',1,'StretchKernel::name()'],['../class_ensemble_slice_kernel.html#a1d97f27528e44d9104a78895def83079',1,'EnsembleSliceKernel::name()'],['../class_differential_evolution_kernel.html#a96882f30f802e5f283038712c7bc3c69',1,'DifferentialEvolutionKernel::name()'],['../class_blocked_metropolis_kernel.html#a9dd08a343102b1269f2be7981b445899',1,'BlockedMetropolisKernel::name()'],['../class_sampler_kernel.html#a69e19eb1ed9e735be240c182ea593d74',1,'SamplerKernel::name()']]],
   ['naturalcubicspline_5',['NaturalCubicSpline',['../class_natural_cubic_spline.html#aedeebc9b5f42648e2f166c0e2fb65c26',1,'NaturalCubicSpline']]],
   ['needs_5fgradient_6',['needs_gradient',['../class_nuts_kernel.html#a8bca2e44ddb8eeca9a6d67e754b1ed9c',1,'NutsKernel::needs_gradient()'],['../class_sampler_kernel.html#a52bf90455dd35f7666f215c524f0c312',1,'SamplerKernel::needs_gradient()']]],
-  ['neuralnet_7',['NeuralNet',['../class_neural_net.html#a1337b402a628c38674a75f98384d5022',1,'NeuralNet']]],
+  ['neuralnet_7',['NeuralNet',['../class_neural_net.html#afaa7053a101f53d735cf35608c3d97db',1,'NeuralNet']]],
   ['neuralnettraining_8',['NeuralNetTraining',['../class_neural_net_training.html#a1bbd05ffc7eba40edd9d6a189ed81207',1,'NeuralNetTraining']]],
   ['normal_5fdensity_9',['normal_density',['../_distributions_8h.html#abee59ea26371617783440dd07ef866e6',1,'Distributions.h']]],
   ['normal_5fdistribution_10',['normal_distribution',['../_distributions_8h.html#ab132fce3809cb314458eee3e937d23a0',1,'Distributions.h']]],

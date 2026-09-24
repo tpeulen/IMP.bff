@@ -129,15 +129,15 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a40d89e18bd55148d99edab77a90ebd8b" id="r_a40d89e18bd55148d99edab77a90ebd8b"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_self_play.html#a40d89e18bd55148d99edab77a90ebd8b">get_target_ids</a> () const</td></tr>
 <tr class="memdesc:a40d89e18bd55148d99edab77a90ebd8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The canonical ids the targets are for, in the order they appear.  <br /></td></tr>
 <tr class="separator:a40d89e18bd55148d99edab77a90ebd8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a214365ce9d5fbe0d3eb7c7639354f201" id="r_a214365ce9d5fbe0d3eb7c7639354f201"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_self_play.html#a214365ce9d5fbe0d3eb7c7639354f201">train</a> (const std::vector&lt; int &gt; &amp;hidden, int epochs, double learning_rate)</td></tr>
-<tr class="memdesc:a214365ce9d5fbe0d3eb7c7639354f201"><td class="mdescLeft">&#160;</td><td class="mdescRight">Train a proposer on the generated episodes.  <br /></td></tr>
-<tr class="separator:a214365ce9d5fbe0d3eb7c7639354f201"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a685ba4158b94885c50f5ebe0dc006b9f" id="r_a685ba4158b94885c50f5ebe0dc006b9f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_self_play.html#a685ba4158b94885c50f5ebe0dc006b9f">train</a> (const std::vector&lt; int &gt; &amp;hidden, int epochs, double learning_rate)</td></tr>
+<tr class="memdesc:a685ba4158b94885c50f5ebe0dc006b9f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Train a proposer on the generated episodes.  <br /></td></tr>
+<tr class="separator:a685ba4158b94885c50f5ebe0dc006b9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a38cc36ee10b05e08dca09a82d65dfca8" id="r_a38cc36ee10b05e08dca09a82d65dfca8"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_self_play.html#a38cc36ee10b05e08dca09a82d65dfca8">get_training_error</a> () const</td></tr>
 <tr class="memdesc:a38cc36ee10b05e08dca09a82d65dfca8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mean squared error per target on the generated episodes, after training.  <br /></td></tr>
 <tr class="separator:a38cc36ee10b05e08dca09a82d65dfca8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3c741c074c34a5688343ff4b6f6680a9" id="r_a3c741c074c34a5688343ff4b6f6680a9"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_self_play.html#a3c741c074c34a5688343ff4b6f6680a9">propose</a> (const std::string &amp;network) const</td></tr>
-<tr class="memdesc:a3c741c074c34a5688343ff4b6f6680a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ask a trained proposer where to start, given one real measurement.  <br /></td></tr>
-<tr class="separator:a3c741c074c34a5688343ff4b6f6680a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21e08e09b6cd1b5daf23d1889b4d3b72" id="r_a21e08e09b6cd1b5daf23d1889b4d3b72"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_self_play.html#a21e08e09b6cd1b5daf23d1889b4d3b72">propose</a> (const <a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp;network) const</td></tr>
+<tr class="memdesc:a21e08e09b6cd1b5daf23d1889b4d3b72"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ask a trained proposer where to start, given one real measurement.  <br /></td></tr>
+<tr class="separator:a21e08e09b6cd1b5daf23d1889b4d3b72"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa0202776a3926f87b0d87b935a66ee3f" id="r_aa0202776a3926f87b0d87b935a66ee3f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_self_play.html#aa0202776a3926f87b0d87b935a66ee3f">set_photon_simulation</a> (bool value)</td></tr>
 <tr class="memdesc:aa0202776a3926f87b0d87b935a66ee3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Simulate count data through TTTRLib's photon engine instead of sampling noise.  <br /></td></tr>
 <tr class="separator:aa0202776a3926f87b0d87b935a66ee3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -467,8 +467,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a3c741c074c34a5688343ff4b6f6680a9" name="a3c741c074c34a5688343ff4b6f6680a9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3c741c074c34a5688343ff4b6f6680a9">&#9670;&#160;</a></span>propose()</h2>
+<a id="a21e08e09b6cd1b5daf23d1889b4d3b72" name="a21e08e09b6cd1b5daf23d1889b4d3b72"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a21e08e09b6cd1b5daf23d1889b4d3b72">&#9670;&#160;</a></span>propose()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -476,7 +476,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">std::vector&lt; double &gt; ModelSearchSelfPlay::propose </td>
           <td>(</td>
-          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp;&#160;</td>
           <td class="paramname"><em>network</em></td><td>)</td>
           <td> const</td>
         </tr>
@@ -486,7 +486,7 @@ Public Member Functions</h2></td></tr>
 <p>Ask a trained proposer where to start, given one real measurement. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">network</td><td>the JSON <a class="el" href="class_model_search_self_play.html#a214365ce9d5fbe0d3eb7c7639354f201" title="Train a proposer on the generated episodes.">train</a> returned </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">network</td><td>the msgpack document <a class="el" href="class_model_search_self_play.html#a685ba4158b94885c50f5ebe0dc006b9f" title="Train a proposer on the generated episodes.">train</a> returned </td></tr>
   </table>
   </dd>
 </dl>
@@ -607,14 +607,14 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a214365ce9d5fbe0d3eb7c7639354f201" name="a214365ce9d5fbe0d3eb7c7639354f201"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a214365ce9d5fbe0d3eb7c7639354f201">&#9670;&#160;</a></span>train()</h2>
+<a id="a685ba4158b94885c50f5ebe0dc006b9f" name="a685ba4158b94885c50f5ebe0dc006b9f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a685ba4158b94885c50f5ebe0dc006b9f">&#9670;&#160;</a></span>train()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::string ModelSearchSelfPlay::train </td>
+          <td class="memname"><a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> ModelSearchSelfPlay::train </td>
           <td>(</td>
           <td class="paramtype">const std::vector&lt; int &gt; &amp;&#160;</td>
           <td class="paramname"><em>hidden</em>, </td>
@@ -648,7 +648,7 @@ Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>the trained network as <code>bff.neural_net</code> JSON, which IMP::bff::NeuralNet reads</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>the trained network as a <code>bff.neural_net</code> msgpack document (bytes in Python), which IMP::bff::NeuralNet reads</dd></dl>
 <p>Gradients come from the vendored MlpCore backward pass, so this is one implementation of the mathematics driven from a second place, not a second implementation of it. </p>
 
 </div>
@@ -659,7 +659,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Sep 24 2026 05:50:23 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 24 2026 09:32:42 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

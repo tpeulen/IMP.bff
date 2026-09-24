@@ -87,13 +87,15 @@ fig.tight_layout()
 # %%
 # Save it
 # -------
-# The model is a ``bff.hmm_surrogate`` JSON document carrying the
-# ``bff.neural_net`` document of its network: readable, safe to share, and
-# loadable wherever IMP.bff is.
+# The model is one msgpack document -- msgpack is the native format of every
+# network in IMP.bff -- a surrogate map nesting the map of its network: exact
+# float64 weights, compact, safe to share, and loadable wherever IMP.bff is.
+# ``msgpack.unpackb(surrogate.to_msgpack(), raw=False)`` shows it as a plain
+# dict.
 
-path = os.path.join(tempfile.mkdtemp(), "hmm_surrogate_2state.json")
-surrogate.to_json_file(path)
-reloaded = IMP.bff.HmmSurrogate.from_json_file(path)
+path = os.path.join(tempfile.mkdtemp(), "hmm_surrogate_2state.msgpack")
+surrogate.to_file(path)
+reloaded = IMP.bff.HmmSurrogate.from_file(path)
 
 # %%
 # Compare with EM

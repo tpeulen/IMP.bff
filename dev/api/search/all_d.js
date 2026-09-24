@@ -54,7 +54,7 @@ var searchData=
   ['ndim_5f_51',['ndim_',['../classinternal_1_1_walker_kernel_base.html#a6626135d166ec1779a5d11eb773aca9e',1,'internal::WalkerKernelBase']]],
   ['needs_5fgradient_52',['needs_gradient',['../class_nuts_kernel.html#a8bca2e44ddb8eeca9a6d67e754b1ed9c',1,'NutsKernel::needs_gradient()'],['../class_sampler_kernel.html#a52bf90455dd35f7666f215c524f0c312',1,'SamplerKernel::needs_gradient()']]],
   ['negative_5fatoms_53',['negative_atoms',['../struct_probe.html#a0d938eff233847bee5423ea7078b07a0',1,'Probe::negative_atoms'],['../struct_component_template.html#a4561c90cce8ec3a51d04ab02a5d02a8a',1,'ComponentTemplate::negative_atoms']]],
-  ['neuralnet_54',['neuralnet',['../class_neural_net.html#a1337b402a628c38674a75f98384d5022',1,'NeuralNet::NeuralNet()'],['../class_neural_net.html',1,'NeuralNet']]],
+  ['neuralnet_54',['neuralnet',['../class_neural_net.html#afaa7053a101f53d735cf35608c3d97db',1,'NeuralNet::NeuralNet()'],['../class_neural_net.html',1,'NeuralNet']]],
   ['neuralnet_2eh_55',['NeuralNet.h',['../_neural_net_8h.html',1,'']]],
   ['neuralnettraining_56',['neuralnettraining',['../class_neural_net_training.html#a1bbd05ffc7eba40edd9d6a189ed81207',1,'NeuralNetTraining::NeuralNetTraining()'],['../class_neural_net_training.html',1,'NeuralNetTraining']]],
   ['neuralnettraining_2eh_57',['NeuralNetTraining.h',['../_neural_net_training_8h.html',1,'']]],

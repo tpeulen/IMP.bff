@@ -74,7 +74,8 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Classes</a>  </div>
+<a href="#nested-classes">Classes</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">NeuralNet.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -109,11 +110,35 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html">NeuralNet</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A dense multilayer perceptron, evaluated in batches.  <a href="class_neural_net.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:a33a774d9d60bb570caf1bdd9efc39546" id="r_a33a774d9d60bb570caf1bdd9efc39546"><td class="memItemLeft" align="right" valign="top">IMPBFF_BEGIN_NAMESPACE typedef std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a></td></tr>
+<tr class="memdesc:a33a774d9d60bb570caf1bdd9efc39546"><td class="mdescLeft">&#160;</td><td class="mdescRight">A msgpack document as raw bytes: bff's native format for networks.  <br /></td></tr>
+<tr class="separator:a33a774d9d60bb570caf1bdd9efc39546"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Variable Documentation</h2>
+<a id="a33a774d9d60bb570caf1bdd9efc39546" name="a33a774d9d60bb570caf1bdd9efc39546"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a33a774d9d60bb570caf1bdd9efc39546">&#9670;&#160;</a></span>MsgpackBytes</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">IMPBFF_BEGIN_NAMESPACE typedef std::string MsgpackBytes</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A msgpack document as raw bytes: bff's native format for networks. </p>
+<p>Binary-safe in C++ (a <code>std::string</code> holds any byte, including zero); in Python it is <code>bytes</code> both ways &ndash; a bytes, bytearray or memoryview goes in, <code>bytes</code> comes out, and a <code>str</code> is refused with a TypeError. Build or read one with the <code>msgpack</code> package: <code>msgpack.packb(doc, use_bin_type=True)</code> / <code>msgpack.unpackb(data, raw=False)</code>. </p>
+
+</div>
+</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Sep 24 2026 05:50:23 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 24 2026 09:32:41 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
