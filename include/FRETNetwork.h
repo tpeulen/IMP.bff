@@ -48,6 +48,7 @@
 #include <IMP/bff/IMPCompatibility.h>
 #include <IMP/bff/KineticNetwork.h>
 #include <IMP/bff/PhotophysicsCrosstalkMatrix.h>
+#include <IMP/bff/FRETLandscape.h>
 
 #include <string>
 #include <vector>
@@ -318,6 +319,16 @@ class IMPBFFEXPORT FRETMeasurement {
   void set_state_distance(int state, double mean,
                           const std::vector<double>& offsets = std::vector<double>(),
                           const std::vector<double>& weights = std::vector<double>());
+  //! Discrete map from structure: the distance distribution between two
+  //! label clouds (flat `x, y, z, weight` per point, e.g. accessible
+  //! volumes of the two labels in conformer `state`), histogrammed on the bin
+  //! edges `axis` (cloud_distance_distribution, States.h). The mean becomes
+  //! the state's mean distance (the `RDAMean` convention) and the histogram
+  //! its offset distribution. Returns the mean.
+  double set_state_distance_from_clouds(int state, const std::vector<double>& donor_cloud,
+                                        const std::vector<double>& acceptor_cloud,
+                                        const std::vector<double>& axis,
+                                        int n_samples = 20000, int seed = 0);
   //! Landscape map: knot values of `r(q)` and the linker spread.
   void set_distance_map(const std::vector<double>& knot_values, double spread = 0.0);
   const std::vector<double>& get_state_means() const { return means_; }
@@ -422,6 +433,41 @@ class IMPBFFEXPORT FRETPhotonData {
 };
 IMP_VALUES(FRETPhotonData, FRETPhotonDataList);
 
+//! Laplace approximation of a FRETNetworkModel posterior at a MAP.
+/*! Precision `H = sum_segments s s^T + (-d^2 log p)` over the free
+    parameters (transformed scale), `Sigma = H^-1`; natural-scale sigmas by
+    the delta method. With a landscape process, the band `sigma_u(q)` of the
+    grid-mean-centred landscape (paper Eq. 22); per measurement with a
+    landscape map, the band of `r(q)`. */
+class IMPBFFEXPORT FRETNetworkLaplace {
+ public:
+  FRETNetworkLaplace() {}
+  const std::vector<std::string>& get_names() const { return names_; }
+  const std::vector<double>& get_theta() const { return theta_; }
+  const std::vector<double>& get_precision() const { return precision_; }
+  const std::vector<double>& get_covariance() const { return covariance_; }
+  //! Standard deviations on the transformed scale.
+  const std::vector<double>& get_sigmas() const { return sigmas_; }
+  //! Values and delta-method standard deviations on the natural scale.
+  const std::vector<double>& get_values() const { return values_; }
+  const std::vector<double>& get_natural_sigmas() const { return natural_sigmas_; }
+  const std::vector<double>& get_landscape() const { return landscape_; }
+  const std::vector<double>& get_landscape_sigma() const { return landscape_sigma_; }
+  std::vector<double> get_map(int measurement) const { return maps_.at(measurement); }
+  std::vector<double> get_map_sigma(int measurement) const { return map_sigmas_.at(measurement); }
+
+  IMP_SHOWABLE_INLINE(FRETNetworkLaplace, out << "FRETNetworkLaplace(" << names_.size()
+                                              << " free parameters)");
+
+ private:
+  friend class FRETNetworkModel;
+  std::vector<std::string> names_;
+  std::vector<double> theta_, precision_, covariance_, sigmas_, values_, natural_sigmas_,
+      landscape_, landscape_sigma_;
+  std::vector<std::vector<double> > maps_, map_sigmas_;
+};
+IMP_VALUES(FRETNetworkLaplace, FRETNetworkLaplaces);
+
 //! One hidden process, observed by several FRET measurements.
 /*! The log-likelihood is the sum over measurements and their segments. Each
     measurement has its own arrival model (default conditional) and start:
@@ -446,7 +492,10 @@ class IMPBFFEXPORT FRETNetworkModel {
   int add_measurement(const FRETMeasurement& measurement, const FRETPhotonData& data);
   int get_n_measurements() const { return static_cast<int>(meas_.size()); }
   const FRETMeasurement& get_measurement(int i) const { return meas_.at(i); }
-  void set_measurement(int i, const FRETMeasurement& m) { meas_.at(i) = m; }
+  void set_measurement(int i, const FRETMeasurement& m) {
+    meas_.at(i) = m;
+    rebuild_parameters();
+  }
   const FRETPhotonData& get_data(int i) const { return data_.at(i); }
   void set_arrival_model(int i, int model);
   int get_arrival_model(int i) const { return arrival_.at(i); }
@@ -469,10 +518,78 @@ class IMPBFFEXPORT FRETNetworkModel {
   //! `segment`: row-major `n_photons x n_states`.
   std::vector<double> photon_posteriors(int i, int segment) const;
 
+  // --- parameters -----------------------------------------------------------------------
+  //! Every parameter: the process's (`hidden.*`), then each measurement's
+  //! (`<pair>.*`), natural scale. Free by default: the hidden process, the
+  //! distance maps and the declared dye rates; everything else (lifetimes,
+  //! quantum yields, instrument) is fixed until freed. A parameter whose
+  //! value sits on its transform's boundary (a zero rate or weight, a
+  //! quantum yield of 0 or 1) cannot be freed.
+  std::vector<std::string> get_parameter_names() const;
+  std::vector<double> get_parameter_values() const;
+  double get_parameter_value(const std::string& name) const;
+  void set_parameter_value(const std::string& name, double value);
+  void set_parameter_free(const std::string& name, bool free);
+  bool get_parameter_free(const std::string& name) const;
+  std::vector<std::string> get_free_parameter_names() const;
+  //! The free parameters on their transformed (log/logit/identity) scale.
+  std::vector<double> get_theta() const;
+  void set_theta(const std::vector<double>& theta);
+  //! A Gaussian prior on a parameter's transformed scale (log-normal for a
+  //! rate; Gaussian for a distance -- the structure prior). `sd <= 0` removes it.
+  void set_parameter_prior(const std::string& name, double mean, double sd);
+  //! Landscape roughness (`omega`, as FRETLandscapeModel) and anchor.
+  void set_roughness_weight(double omega) { omega_ = omega; }
+  void set_anchor_sigma(double sigma) { anchor_ = sigma; }
+  //! Roughness of every distance map `r_p(q)`: `omega_map sum ((r_{k+1} -
+  //! 2 r_k + r_{k-1}) / h^2)^2` over its knots (0: off).
+  void set_map_roughness_weight(double omega) { omega_map_ = omega; }
+  //! Structure prior for a landscape map from a transition path: frames at
+  //! path coordinates `path_q` with model distances `path_distances` (e.g.
+  //! `RDAMean` of the frames' label clouds); linearly interpolated at the map
+  //! knots, they become the knot values and Gaussian priors of width `sd`
+  //! (accessible-volume model error plus structural-model error).
+  void set_map_prior_from_path(int measurement, const std::vector<double>& path_q,
+                               const std::vector<double>& path_distances, double sd);
+
+  //! Log-likelihood, prior and posterior at `theta` (free, transformed).
+  double log_likelihood_at(const std::vector<double>& theta) const;
+  double log_prior(const std::vector<double>& theta) const;
+  std::vector<double> log_prior_gradient(const std::vector<double>& theta) const;
+  double log_posterior(const std::vector<double>& theta) const;
+  //! Gradient of the log-likelihood: the exact adjoint w.r.t. generator
+  //! entries, photon factors and start distribution, chained to each
+  //! parameter by central differences of the (photon-free) builders.
+  std::vector<double> log_likelihood_gradient(const std::vector<double>& theta) const;
+  std::vector<double> log_posterior_gradient(const std::vector<double>& theta) const;
+  //! Per-segment scores, row-major `n_segments_total x n_free`, measurements
+  //! in order.
+  std::vector<double> segment_scores(const std::vector<double>& theta) const;
+  //! MAP by tttrlib's L-BFGS (needs IMP_BFF_HAS_TTTRLIB), preconditioned per
+  //! block by the damped Laplace precision, as FRETLandscapeModel::fit.
+  FRETLandscapeFit fit(const std::vector<double>& theta0,
+                       const FRETLandscapeFitOptions& options = FRETLandscapeFitOptions()) const;
+  FRETNetworkLaplace laplace(const std::vector<double>& theta) const;
+
   IMP_SHOWABLE_INLINE(FRETNetworkModel, out << "FRETNetworkModel(" << meas_.size()
                                             << " measurements)");
 
  private:
+  struct Param {
+    int owner, local, transform, kind;
+    std::string name;
+    bool free;
+    double prior_mean, prior_sd;
+  };
+  void rebuild_parameters();
+  int parameter_index(const std::string& name) const;
+  //! Copies of the process and measurements with `theta` applied.
+  void configure(const std::vector<double>& theta, FRETHiddenProcess& process,
+                 std::vector<FRETMeasurement>& meas) const;
+  double evaluate(const std::vector<double>& theta, std::vector<double>* gradient,
+                  std::vector<double>* scores) const;
+  std::vector<Param> params_;
+  double omega_ = 0.0, anchor_ = 1.0, omega_map_ = 0.0;
   FRETHiddenProcess process_;
   std::vector<FRETMeasurement> meas_;
   std::vector<FRETPhotonData> data_;

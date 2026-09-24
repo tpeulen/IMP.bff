@@ -20,6 +20,7 @@
  * `(1/q) sum_m Pois(m+1; q tau) sum_{j+k=m} u_j o (B^T)^k beta`.
  */
 #include <IMP/bff/FRETNetwork.h>
+#include <IMP/bff/internal/FRETNetworkFilter.h>
 
 #include <algorithm>
 #include <cmath>
@@ -64,18 +65,6 @@ double FRETPhotonData::get_max_gap() const {
 
 namespace fret_network_detail {
 
-struct NetOp {
-  int n = 0, C = 0, nb = 1;
-  double q = 1.0;
-  // B = I + A/q as CSR by target (for B v) and by source (for B^T v)
-  std::vector<int> fp, fi, bp, bi;
-  std::vector<double> fv, bv;
-  // nonzero pattern of A, [t, s] pairs in CSR-by-target order (matches fv)
-  std::vector<double> factor;  // [(c*nb + b)*n + s]
-  std::vector<double> ltot, start, pi, emission;
-  bool conditional = false, detection = true;
-};
-
 NetOp build_operator(const FRETHiddenProcess& process, const FRETMeasurement& m, bool conditional,
                      bool detection, bool joint_start) {
   NetOp op;
@@ -108,6 +97,7 @@ NetOp build_operator(const FRETHiddenProcess& process, const FRETMeasurement& m,
       if (t != s && a == 0.0) continue;
       op.fi.push_back(s);
       op.fv.push_back(b);
+      op.av.push_back(a);
     }
     op.fp[t + 1] = static_cast<int>(op.fi.size());
   }
@@ -206,18 +196,6 @@ double propagate_chunk(const NetOp& op, double mu, std::vector<double>& v,
   return std::log(z);
 }
 
-//! What one segment pass collects beyond the log-likelihood.
-struct SegmentOut {
-  bool want_adjoint = false, want_occupancy = false, want_posteriors = false;
-  // adjoint accumulators
-  std::vector<double> gA;       // per nnz of B, dlogL/dA_ts
-  std::vector<double> gfactor;  // [(c*nb+b)*n + s]
-  std::vector<double> gstart;   // n
-  // outputs
-  std::vector<double> occupancy;   // n, time fractions
-  std::vector<double> posteriors;  // N x n
-};
-
 //! Log-likelihood of one segment; fills `out` as asked.
 double segment_pass(const NetOp& op, const FRETPhotonData& data, int seg, SegmentOut* out) {
   const int n = op.n, a = data.get_segment_starts()[seg], b = data.get_segment_stops()[seg];
@@ -313,6 +291,7 @@ double segment_pass(const NetOp& op, const FRETPhotonData& data, int seg, Segmen
     if (out->want_adjoint) {
       const int c = CH[a + i];
       const int bin = op.nb > 1 ? (MB.empty() ? 0 : MB[a + i]) : 0;
+      out->rows.push_back(c * op.nb + bin);
       double* gf = out->gfactor.data() + (static_cast<std::size_t>(c) * op.nb + bin) * n;
       for (int s = 0; s < n; ++s) gf[s] += pre[s] * beta[s] / z;
       if (i == 0)
@@ -377,6 +356,10 @@ double segment_pass(const NetOp& op, const FRETPhotonData& data, int seg, Segmen
     }
     beta = bl;
   }
+  if (out->want_adjoint) {
+    std::sort(out->rows.begin(), out->rows.end());
+    out->rows.erase(std::unique(out->rows.begin(), out->rows.end()), out->rows.end());
+  }
   if (out->want_occupancy && N > 1) {
     const double dur = T[b] - T[a];
     if (dur > 0.0)
@@ -389,7 +372,9 @@ double segment_pass(const NetOp& op, const FRETPhotonData& data, int seg, Segmen
 
 // --- network model ------------------------------------------------------------------------
 
-FRETNetworkModel::FRETNetworkModel(const FRETHiddenProcess& process) : process_(process) {}
+FRETNetworkModel::FRETNetworkModel(const FRETHiddenProcess& process) : process_(process) {
+  rebuild_parameters();
+}
 
 int FRETNetworkModel::add_measurement(const FRETMeasurement& measurement,
                                       const FRETPhotonData& data) {
@@ -400,6 +385,7 @@ int FRETNetworkModel::add_measurement(const FRETMeasurement& measurement,
   arrival_.push_back(FRET_ARRIVAL_CONDITIONAL);
   detection_start_.push_back(1);
   joint_start_.push_back(0);
+  rebuild_parameters();
   return static_cast<int>(meas_.size()) - 1;
 }
 

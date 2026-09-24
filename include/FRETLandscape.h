@@ -58,6 +58,8 @@
 
 IMPBFF_BEGIN_NAMESPACE
 
+class FRETNetworkModel;
+
 //! How FRETLandscapeModel::fit() runs its L-BFGS.
 /*! Every field is public and plain. Defaults follow the paper's Table II. */
 class IMPBFFEXPORT FRETLandscapeFitOptions {
@@ -107,6 +109,7 @@ class IMPBFFEXPORT FRETLandscapeFit {
 
  private:
   friend class FRETLandscapeModel;
+  friend class FRETNetworkModel;
   std::vector<double> theta_, history_;
   double log_posterior_ = 0.0, log_likelihood_ = 0.0;
   int n_iterations_ = 0;
