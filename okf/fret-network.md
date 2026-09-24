@@ -19,23 +19,35 @@ All C++ (`include/FRETNetwork.h`, `include/FRETNetworkSimulation.h`,
    `nnz × q × τ` per gap, and `q` is dominated by the grid hopping `D/dq²`.
    OpenMP is off in the local build (see fret-landscape.md). The dense path
    (below) only pays off for small state spaces.
-2. **A presence/focus factor is planned, not built.** It is a hidden factor
+2. **Diffusing bursts bias the fit unless brightness is modelled (measured
+   2026-09-24).** Bursts simulated by tttrlib had molecules diffusing through
+   a 3-D Gaussian focus, with PIE and tttrlib's burst search. The conditional
+   arrival model, with each state's signal-to-background ratio fixed at the
+   focus centre, overestimates D: 2.10 ± 0.23 (2.25 ms transits) and
+   2.35 ± 0.22 (1 ms), true 1.50. It also puts the barrier ~0.5 kT high and
+   overshoots a distance map by ~10 Å. The C++ and the PyTorch fits agree.
+   A free signal scale per pair fits 0.30: burst photons come, on average,
+   from 30 % of the centre brightness. With it, D = 1.70 ± 0.54 and 100 % of
+   the landscape is within 2σ, but the bands are wide. The evidence is in the
+   local prototype `prototypes/fret_network_landscape/` (`log.md`, scripts
+   01–04, PyTorch). The fix is the next item.
+3. **A presence/focus factor is planned, not built.** It is a hidden factor
    (absent / in focus, optionally 0/1/2 molecules), under which only background
    emits. It lets the whole photon stream be one segment: no burst search and
    no selection bias. The factor machinery (`KineticNetwork` amalgamation,
    per-state emission) takes it without an API change.
-3. **Position-parameterised structure prior.** Today each pair's distance map
+4. **Position-parameterised structure prior.** Today each pair's distance map
    has an independent Gaussian prior from structure
    (`set_map_prior_from_path`, per-state `set_parameter_prior`). The planned
    form gives each hidden state 3-D mean label positions (FPS/NPS), so that one
    state's distances across pairs are geometrically consistent by
    construction; the API was shaped for it.
-4. **The roughness weight is not scale-free.** The penalty is
+5. **The roughness weight is not scale-free.** The penalty is
    `ω Σ (Δ²u/h²)²`. On q ∈ [0, 1] with 5 knots, ω = 1e-2 flattened a 4 kT
    landscape (23 % within 2σ, bands overconfident); 1e-5 recovers it (95 %),
    and 0 gives 100 %. Choose ω by held-out segment likelihood, which
    `segment_log_likelihoods` supports, rather than by default.
-5. **Burst-selection bias is documented, not corrected.** Segments start from
+6. **Burst-selection bias is documented, not corrected.** Segments start from
    the detection-weighted distribution; the threshold's preference for bright
    states is not modelled.
 
@@ -66,8 +78,11 @@ All C++ (`include/FRETNetwork.h`, `include/FRETNetworkSimulation.h`,
   Λ_tot(s), so the count rate is information: valid for constant brightness
   (immobilised molecules). `FRET_ARRIVAL_CONDITIONAL` (Gopich–Szabo / H2MM)
   takes arrival times as given, uses the generator alone between photons, and
-  normalises each photon's factor. It is the default for bursts and is
-  insensitive to the focus modulation of a diffusing molecule.
+  normalises each photon's factor. It is the default for bursts. It is
+  insensitive to the focus modulating the *arrival rate*, but not to the
+  focus modulating the *signal-to-background ratio*: off-centre, background
+  is a larger share of the photons than the per-state factors assume. See
+  "Where to pick this up", item 2.
 - **Propagation between photons** uses uniformization on the sparse joint
   generator: the generator is non-symmetric, block-triangular with bleaching,
   and near-defective, so the landscape model's eigenvector trick is unsafe
