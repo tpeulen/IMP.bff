@@ -3,7 +3,8 @@
  * \brief A dense network: evaluated, differentiated and imported.
  *
  * Every kernel is `internal/MlpCore.h`'s, with the products through
- * `internal/MlpGemm.h`'s MatGemm; the int8 path is `internal/MlpQuant.h`.
+ * `internal/MlpGemm.h`'s MatGemm; the int8 path is `internal/MlpQuant.h`, the
+ * FP4 paths `internal/MlpFp4.h` with the kernels of `internal/MlpFp4Kernels.h`.
  * This file is argument checking, the compute door, and the views.
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
@@ -15,6 +16,8 @@
 
 #include <IMP/bff/internal/MlpCore.h>
 #include <IMP/bff/internal/MlpGemm.h>
+#include <IMP/bff/internal/MlpFp4.h>
+#include <IMP/bff/internal/MlpFp4Kernels.h>
 #include <IMP/bff/internal/MlpQuant.h>
 #include <IMP/bff/internal/NetworkDocument.h>
 
@@ -402,27 +405,84 @@ void NeuralNet::set_parameters(const double* in_params, int n_params) {
     impl_->flatten_for_door();
 }
 
-// ---------------------------------------------------------------- int8
+// ---------------------------------------------------------------- int8 / FP4
 
 struct QuantizedNeuralNet::Impl {
-    internal::mlpquant::QuantModel model;
+    std::string format;
+    bool quantize_activations = false;
+    internal::mlpquant::QuantModel int8;
+    internal::mlpfp4::Fp4Model fp4;
+    bool is_int8() const { return format == "int8"; }
 };
 
-QuantizedNeuralNet::QuantizedNeuralNet(const NeuralNet& net)
+QuantizedNeuralNet::QuantizedNeuralNet(const NeuralNet& net, const std::string& format,
+                                       bool quantize_activations)
     : impl_(std::make_shared<Impl>()) {
-    impl_->model = internal::mlpquant::quantize(
-            internal::model_from_msgpack(net.to_msgpack(), "QuantizedNeuralNet"));
+    if (format != "int8" && format != "fp4" && format != "mxfp4" && format != "nvfp4")
+        IMP_THROW("QuantizedNeuralNet: unknown format '" << format
+                                                         << "' (int8, fp4, mxfp4 or nvfp4)",
+                  IMP::ValueException);
+    const internal::MlpModel m =
+            internal::model_from_msgpack(net.to_msgpack(), "QuantizedNeuralNet");
+    impl_->format = format;
+    if (impl_->is_int8()) {
+        impl_->quantize_activations = true;
+        impl_->int8 = internal::mlpquant::quantize(m);
+    } else {
+        impl_->quantize_activations = quantize_activations;
+        try {
+            impl_->fp4 = internal::mlpfp4::quantize(m, internal::mlpfp4::format_from_string(format),
+                                                    quantize_activations);
+        } catch (const std::exception& e) {
+            IMP_THROW("QuantizedNeuralNet: " << e.what(), IMP::ValueException);
+        }
+    }
 }
 
 QuantizedNeuralNet::~QuantizedNeuralNet() {}
 
-int QuantizedNeuralNet::get_n_inputs() const { return impl_->model.n_inputs(); }
-int QuantizedNeuralNet::get_n_outputs() const { return impl_->model.n_outputs(); }
+QuantizedNeuralNet QuantizedNeuralNet::from_msgpack(const MsgpackBytes& document) {
+    QuantizedNeuralNet q;
+    q.impl_ = std::make_shared<Impl>();
+    q.impl_->format = internal::quantized_from_msgpack(document, q.impl_->quantize_activations,
+                                                       q.impl_->int8, q.impl_->fp4);
+    if (q.impl_->is_int8()) q.impl_->quantize_activations = true;
+    return q;
+}
+
+MsgpackBytes QuantizedNeuralNet::to_msgpack() const {
+    return internal::quantized_to_msgpack(impl_->format, impl_->quantize_activations, impl_->int8,
+                                          impl_->fp4);
+}
+
+std::string QuantizedNeuralNet::get_format() const { return impl_->format; }
+bool QuantizedNeuralNet::get_quantize_activations() const { return impl_->quantize_activations; }
+int QuantizedNeuralNet::get_n_inputs() const {
+    return impl_->is_int8() ? impl_->int8.n_inputs() : impl_->fp4.n_inputs();
+}
+int QuantizedNeuralNet::get_n_outputs() const {
+    return impl_->is_int8() ? impl_->int8.n_outputs() : impl_->fp4.n_outputs();
+}
 int QuantizedNeuralNet::get_n_layers() const {
-    return static_cast<int>(impl_->model.layers.size());
+    return static_cast<int>(impl_->is_int8() ? impl_->int8.layers.size() : impl_->fp4.layers.size());
+}
+int QuantizedNeuralNet::get_n_weights() const {
+    if (!impl_->is_int8()) return static_cast<int>(impl_->fp4.n_weights());
+    std::size_t n = 0;
+    for (const auto& l : impl_->int8.layers) n += l.weight.size();
+    return static_cast<int>(n);
 }
 int QuantizedNeuralNet::get_weight_bytes() const {
-    return static_cast<int>(impl_->model.weight_bytes());
+    if (impl_->is_int8())  // one byte a weight and a double scale a layer
+        return static_cast<int>(impl_->int8.weight_bytes() + sizeof(double) * impl_->int8.layers.size());
+    return static_cast<int>(impl_->fp4.weight_bytes());
+}
+double QuantizedNeuralNet::get_bits_per_weight() const {
+    const int n = get_n_weights();
+    return n > 0 ? 8.0 * get_weight_bytes() / n : 0.0;
+}
+std::string QuantizedNeuralNet::get_kernel_name() {
+    return internal::mlpfp4::kern::kernel_name();
 }
 
 void QuantizedNeuralNet::predict(const std::vector<double>& x, int n_rows,
@@ -433,7 +493,10 @@ void QuantizedNeuralNet::predict(const std::vector<double>& x, int n_rows,
         IMP_THROW("QuantizedNeuralNet::predict: x must be n_rows * n_inputs long",
                   IMP::ValueException);
     std::vector<double> y;
-    internal::mlpquant::predict(impl_->model, x.data(), n_rows, y);
+    if (impl_->is_int8())
+        internal::mlpquant::predict(impl_->int8, x.data(), n_rows, y);
+    else
+        internal::mlpfp4::kern::predict<neural_net_detail::Gemm>(impl_->fp4, x.data(), n_rows, y);
     internal::copy_to_view(y, out_view, n_out_view);
 }
 

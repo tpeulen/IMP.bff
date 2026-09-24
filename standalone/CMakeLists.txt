@@ -308,6 +308,23 @@ if(IMPBFF_OPENMP_FLAGS)
     target_include_directories(imp_bff PRIVATE "${IMPBFF_OPENMP_INCLUDE}")
   endif()
 endif()
+# SIMD for the FP4 kernels (internal/MlpFp4Kernels.h), whose variant is
+# chosen at compile time from the target macros, never by run-time cpuid.
+# Apple Silicon needs nothing: AppleClang's arm64 target already has NEON
+# and dotprod (QuantizedNeuralNet.get_kernel_name() says "neon-dotprod").
+# Elsewhere both are opt-in, because a wheel must run on every CPU of its
+# architecture: IMPBFF_WITH_AVX2 adds -mavx2 -mfma on x86-64 (the "avx2"
+# kernels; also Mat.h's AVX path), IMPBFF_WITH_ARM_DOTPROD adds
+# -march=armv8.2-a+dotprod on AArch64 Linux ("neon-dotprod" instead of
+# "neon"). Off, the kernels are the plain-NEON or generic scalar ones.
+option(IMPBFF_WITH_AVX2 "x86-64: compile with -mavx2 -mfma" OFF)
+option(IMPBFF_WITH_ARM_DOTPROD "AArch64: compile with -march=armv8.2-a+dotprod" OFF)
+if(IMPBFF_WITH_AVX2 AND CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64|amd64")
+  target_compile_options(imp_bff PRIVATE -mavx2 -mfma)
+endif()
+if(IMPBFF_WITH_ARM_DOTPROD AND CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64" AND NOT APPLE)
+  target_compile_options(imp_bff PRIVATE -march=armv8.2-a+dotprod)
+endif()
 if(IMPBFF_WHEEL)
   # one file, no version symlinks: a wheel cannot carry symlinks
   set_target_properties(imp_bff PROPERTIES OUTPUT_NAME imp_bff)

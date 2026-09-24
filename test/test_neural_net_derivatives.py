@@ -520,7 +520,8 @@ def test_int8_error_is_bounded_on_the_fixtures(name):
     exact = _batch(net, X)
     approx = np.asarray(q.predict(X.ravel().tolist(), X.shape[0])).reshape(exact.shape)
     assert _rel_err(approx, exact) <= 0.02, _rel_err(approx, exact)
-    assert q.get_weight_bytes() == _n_weights(net)  # one byte a weight, eight as double
+    # one byte a weight (eight as double) and an 8-byte scale a layer
+    assert q.get_weight_bytes() == _n_weights(net) + 8 * net.get_n_layers()
 
 
 def test_int8_error_is_bounded_on_a_trained_net_and_weights_are_8x_smaller():
@@ -535,8 +536,9 @@ def test_int8_error_is_bounded_on_a_trained_net_and_weights_are_8x_smaller():
     net = IMP.bff.NeuralNet(IMP.bff.train_neural_net_arrays(X, y, opt).get_network())
     q = IMP.bff.QuantizedNeuralNet(net)
     n_w = _n_weights(net)
-    assert q.get_weight_bytes() == n_w                           # int8: one byte a weight
-    assert n_w * np.dtype(float).itemsize == 8 * q.get_weight_bytes()  # 8x under float64
+    n_scales = 8 * net.get_n_layers()                             # one double scale a layer
+    assert q.get_weight_bytes() == n_w + n_scales                 # int8: one byte a weight
+    assert n_w * np.dtype(float).itemsize == 8 * (q.get_weight_bytes() - n_scales)  # 8x under float64
     Xt = rng.uniform(-2, 2, size=(256, 2))
     exact = _batch(net, Xt)
     approx = np.asarray(q.predict(Xt.ravel().tolist(), 256)).reshape(exact.shape)

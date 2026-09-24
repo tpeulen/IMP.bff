@@ -62,8 +62,26 @@ class IMPBFFEXPORT NeuralNetTrainOptions {
   int n_iter_no_change = 10;
   //! Minimum improvement of the held-out loss that resets the patience counter.
   double tol = 1e-4;
-  //! Seeds the initial weights, the split and the minibatch order.
+  //! Seeds the initial weights, the split and the minibatch order (and, in
+  //! FP4 training, the stochastic rounding).
   int seed = 0;
+  //! Arithmetic of the training GEMMs: `"float64"` (default), or `"nvfp4"` /
+  //! `"mxfp4"` -- NVIDIA's NVFP4 pretraining recipe (arXiv 2509.25149) on
+  //! bff's integer FP4 kernels: fprop, dgrad and wgrad of every FP4 layer in
+  //! FP4, 2-D 16 x 16 weight scaling, a random Hadamard transform on the
+  //! wgrad inputs, stochastic rounding of the gradients, float64 master
+  //! weights and Adam state (`internal/MlpFp4Train.h` states the recipe).
+  //! The result also carries the FP4 inference network
+  //! (NeuralNetTraining::get_quantized_network()).
+  std::string precision = "float64";
+  //! FP4 only: keep the first / last layer in float64 (the paper keeps a few
+  //! sensitive layers in higher precision, most of them at the end).
+  bool fp4_keep_first_layer = true;
+  bool fp4_keep_last_layer = true;
+  //! FP4 only: the random Hadamard transform of the wgrad inputs.
+  bool fp4_hadamard = true;
+  //! FP4 only: stochastic rounding of the gradients (else round to nearest even).
+  bool fp4_stochastic_rounding = true;
 
   IMP_SHOWABLE_INLINE(NeuralNetTrainOptions,
                       out << "NeuralNetTrainOptions(max_iter " << max_iter
@@ -83,6 +101,16 @@ class IMPBFFEXPORT NeuralNetTraining {
   const std::vector<double>& get_validation_curve() const { return validation_curve_; }
   //! Epochs run.
   int get_number_of_epochs() const { return static_cast<int>(loss_curve_.size()); }
+  //! The options' precision: "float64", "nvfp4" or "mxfp4".
+  const std::string& get_precision() const { return precision_; }
+  //! FP4 training: the `bff.quantized_neural_net` msgpack document of the
+  //! trained network in its training format -- FP4 layers with exactly the
+  //! weights the forward pass used (2-D scaled) and FP4 activations (W4A4),
+  //! the kept layers in float64 -- so
+  //! `QuantizedNeuralNet.from_msgpack(get_quantized_network())` evaluates
+  //! what training evaluated. Empty for float64 training. get_network() is
+  //! the float64 master weights in either case.
+  const MsgpackBytes& get_quantized_network() const { return quantized_network_; }
 
   IMP_SHOWABLE_INLINE(NeuralNetTraining,
                       out << "NeuralNetTraining(" << loss_curve_.size() << " epochs)");
@@ -92,6 +120,8 @@ class IMPBFFEXPORT NeuralNetTraining {
       const std::vector<double>&, int, int, const std::vector<double>&, int,
       const NeuralNetTrainOptions&);
   MsgpackBytes network_;
+  MsgpackBytes quantized_network_;
+  std::string precision_ = "float64";
   std::vector<double> loss_curve_;
   std::vector<double> validation_curve_;
 };

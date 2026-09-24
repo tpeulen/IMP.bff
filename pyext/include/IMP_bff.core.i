@@ -898,6 +898,18 @@ BFF_BYTES_TYPEMAPS(IMP::bff::SafetensorsBytes, "a safetensors file",
             "->".join(str(d) for d in dims), self.get_n_parameters())
   %}
 }
+/* A quantised network (int8, fp4, mxfp4, nvfp4): predict() is the same
+   managed 1-D view as NeuralNet's; to_msgpack()/from_msgpack() are bytes. */
+%extend IMP::bff::QuantizedNeuralNet {
+  %pythoncode %{
+    def __repr__(self):
+        return "QuantizedNeuralNet(%s%s, %d->%d, %d layers, %.3g bits/weight)" % (
+            self.get_format(),
+            " W4A4" if self.get_quantize_activations() and self.get_format() != "int8" else "",
+            self.get_n_inputs(), self.get_n_outputs(), self.get_n_layers(),
+            self.get_bits_per_weight())
+  %}
+}
 
 /*
  * Model-structure search over an opaque C++ problem.  There is deliberately

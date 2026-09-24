@@ -1,6 +1,7 @@
 /**
  * \file NeuralNetTraining.cpp
- * \brief Fitting a dense network with Adam and explicit backpropagation.
+ * \brief Fitting a dense network with Adam and explicit backpropagation --
+ *        in float64, or in FP4 (internal/MlpFp4Train.h).
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
@@ -8,6 +9,7 @@
 
 #include <IMP/bff/internal/AdamUpdate.h>
 #include <IMP/bff/internal/MlpCore.h>
+#include <IMP/bff/internal/MlpFp4Train.h>
 #include <IMP/bff/internal/MlpGemm.h>
 #include <IMP/bff/internal/NetworkDocument.h>
 #include <IMP/bff/internal/pcg_random.h>
@@ -76,7 +78,27 @@ NeuralNetTraining train_neural_net_with_history(
     IMP_THROW(e.what(), IMP::ValueException);
   }
 
+  namespace f4t = IMP::bff::internal::mlpfp4::train;
+  const bool fp4 = opt.precision != "float64";
+  if (fp4 && opt.precision != "nvfp4" && opt.precision != "mxfp4")
+    IMP_THROW("train_neural_net: precision must be float64, nvfp4 or mxfp4, not '"
+                  << opt.precision << "'",
+              IMP::ValueException);
+  f4t::Config fcfg;
+  fcfg.format = opt.precision == "mxfp4" ? IMP::bff::internal::mlpfp4::Format::MXFP4
+                                         : IMP::bff::internal::mlpfp4::Format::NVFP4;
+  fcfg.hadamard = opt.fp4_hadamard;
+  fcfg.stochastic = opt.fp4_stochastic_rounding;
+  fcfg.keep_first = opt.fp4_keep_first_layer;
+  fcfg.keep_last = opt.fp4_keep_last_layer;
+  const f4t::Hadamard16 hadamard;
+  // the stochastic-rounding stream: its own generator, from the seed
+  IMP::bff::internal::mlpfp4::SplitMix64 sr_rng(
+      0x5352'0000'0000'0000ULL ^ static_cast<std::uint64_t>(static_cast<std::uint32_t>(opt.seed)));
+  f4t::Workspace fws;
+
   NeuralNetTraining result;
+  result.precision_ = opt.precision;
   MlpModel model;
 
   // --- standardise inputs and targets, keeping the scalers with the model
@@ -162,8 +184,13 @@ NeuralNetTraining train_neural_net_with_history(
   auto half_mse = [&](const std::vector<double>& in, const std::vector<double>& target,
                       int n_rows) {
     if (n_rows == 0) return 0.0;
-    mc::forward<d::TrainGemm>(model.layers, in.data(), n_rows, ws, 0);
-    const std::vector<double>& y = ws.output();
+    if (fp4) {
+      f4t::quantize_weights(model.layers, fcfg, fws);
+      f4t::forward<d::TrainGemm>(model.layers, fcfg, in.data(), n_rows, fws);
+    } else {
+      mc::forward<d::TrainGemm>(model.layers, in.data(), n_rows, ws, 0);
+    }
+    const std::vector<double>& y = fp4 ? fws.output() : ws.output();
     double acc = 0.0;
     for (std::size_t i = 0; i < y.size(); ++i) {
       const double r = y[i] - target[i];
@@ -192,8 +219,13 @@ NeuralNetTraining train_neural_net_with_history(
         const std::vector<double> xb = d::gather_rows(Xtr, n_features, batch_order, start, bs);
         const std::vector<double> yb = d::gather_rows(Ytr, n_targets, batch_order, start, bs);
 
-        mc::forward<d::TrainGemm>(model.layers, xb.data(), bs, ws, 0);
-        const std::vector<double>& y = ws.output();
+        if (fp4) {
+          f4t::quantize_weights(model.layers, fcfg, fws);
+          f4t::forward<d::TrainGemm>(model.layers, fcfg, xb.data(), bs, fws);
+        } else {
+          mc::forward<d::TrainGemm>(model.layers, xb.data(), bs, ws, 0);
+        }
+        const std::vector<double>& y = fp4 ? fws.output() : ws.output();
 
         // dL/dy for L = ||y - t||^2 / (2 bs), and the loss itself
         dY.resize(y.size());
@@ -207,7 +239,11 @@ NeuralNetTraining train_neural_net_with_history(
         ++n_batches;
 
         std::fill(grad.begin(), grad.end(), 0.0);
-        mc::backward<d::TrainGemm>(model.layers, ws, dY.data(), nullptr, nullptr, grad.data());
+        if (fp4)
+          f4t::backward<d::TrainGemm>(model.layers, fcfg, fws, dY.data(), bs, sr_rng, hadamard,
+                                      grad.data());
+        else
+          mc::backward<d::TrainGemm>(model.layers, ws, dY.data(), nullptr, nullptr, grad.data());
         if (opt.alpha > 0.0)  // L2 on weights only
           for (std::size_t i = 0; i < n_params; ++i)
             if (!is_bias[i]) grad[i] += opt.alpha * params[i];
@@ -241,6 +277,10 @@ NeuralNetTraining train_neural_net_with_history(
   }
 
   result.network_ = internal::model_to_msgpack(model);
+  if (fp4)
+    result.quantized_network_ = internal::quantized_to_msgpack(
+        opt.precision, true, IMP::bff::internal::mlpquant::QuantModel(),
+        f4t::to_model(model, fcfg));
   return result;
 }
 

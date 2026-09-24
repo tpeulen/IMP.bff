@@ -291,35 +291,77 @@ private:
     std::shared_ptr<Impl> impl_;
 };
 
-//! A NeuralNet's forward pass in dynamic-range int8, for deployment.
+//! A NeuralNet's forward pass with quantised weights, for deployment.
 /*!
-    Built from a NeuralNet; the weights are quantised once (per tensor,
-    symmetric) to int8 -- eight times smaller than the doubles -- and each
-    layer's input is requantised per sample, with int32 accumulation
-    (`internal/MlpQuant.h` states the scheme and its error bound). The
-    result is an approximation whose error scales with the activations'
-    absolute maximum: a few 1e-3 relative on the networks the tests pin. It
-    is an inference path only -- no derivatives, no training, no
-    accelerator; the source network is not changed.
+    Built from a NeuralNet in one of four formats (`format`):
 
-    **A reconstruction.** tttrlib's `MlpQuant.h` was lost before it was
-    committed; this is rebuilt from its surviving description, not the
-    original code.
+    - `"int8"` (default): dynamic-range int8 -- weights quantised once per
+      tensor, symmetric; each layer's input requantised per sample; int32
+      accumulation (`internal/MlpQuant.h`). **A reconstruction**: tttrlib's
+      `MlpQuant.h` was lost before it was committed; this is rebuilt from
+      its surviving description, not the original code.
+    - `"fp4"`: FP4 E2M1 weights, one float32 scale per output row.
+    - `"mxfp4"`: OCP MX v1.0 MXFP4 -- E2M1, blocks of 32 along the input
+      dimension, one E8M0 (power-of-two) scale a block.
+    - `"nvfp4"`: NVIDIA NVFP4 -- E2M1, blocks of 16, one FP8 E4M3 scale a
+      block and one float32 scale a tensor.
+
+    The exact recipes are in `internal/MlpFp4.h`. The FP4 weights are held
+    packed (two codes a byte, element 2i in the low nibble -- ONNX
+    FLOAT4E2M1 / PyTorch float4_e2m1fn_x2 order) with their scales, and
+    predict() runs integer-SIMD dot products on the codes
+    (`internal/MlpFp4Kernels.h`, after llama.cpp's MXFP4/NVFP4 kernels):
+    without `quantize_activations` each layer's input is quantised to int8
+    per block of 32 (16 for nvfp4) -- W4A8; with it, to FP4 in the same
+    format per row -- W4A4, the arithmetic of NVFP4 GEMMs on Blackwell.
+    CPUs have no FP4 unit: nothing is emulated in float, but the products
+    are int8 products of the E2M1 values' doubles, scaled after. For
+    `"int8"` the activations are always quantised and `quantize_activations`
+    is ignored (get_quantize_activations() returns true).
+
+    Biases, activations and scalers stay double. It is an inference path
+    only -- no derivatives, no training, no accelerator; the source network
+    is not changed. to_msgpack() / from_msgpack() store it as a
+    `bff.quantized_neural_net` msgpack document (codes and scales as bin
+    fields), bit-exact.
 */
 class IMPBFFEXPORT QuantizedNeuralNet {
 public:
-    //! Quantise `net` (its current parameters).
-    explicit QuantizedNeuralNet(const NeuralNet& net);
+    //! Quantise `net` (its current parameters) in `format`.
+    /*! \throws IMP::ValueException for a format other than "int8", "fp4",
+                "mxfp4", "nvfp4" */
+    explicit QuantizedNeuralNet(const NeuralNet& net, const std::string& format = "int8",
+                                bool quantize_activations = false);
     ~QuantizedNeuralNet();
 
+    //! Load a `bff.quantized_neural_net` msgpack document.
+    /*! \throws IMP::ValueException on a malformed document */
+    static QuantizedNeuralNet from_msgpack(const MsgpackBytes& document);
+    //! The `bff.quantized_neural_net` msgpack document (bit-exact round trip).
+    MsgpackBytes to_msgpack() const;
+
+    //! "int8", "fp4", "mxfp4" or "nvfp4".
+    std::string get_format() const;
+    //! Whether each layer's input is quantised in the weight format (W4A4).
+    bool get_quantize_activations() const;
     //! Inputs the network takes.
     int get_n_inputs() const;
     //! Outputs it produces.
     int get_n_outputs() const;
     //! Layers it has.
     int get_n_layers() const;
-    //! Bytes the int8 weights occupy: one per weight (a double takes eight).
+    //! Weights (the number of multiply-adds a sample).
+    int get_n_weights() const;
+    //! Bytes the quantised weights occupy, scales included: int8 one a
+    //! weight plus an 8-byte scale a layer; FP4 half a byte a weight (rows
+    //! padded to 32) plus the scales. A double takes eight a weight.
     int get_weight_bytes() const;
+    //! `8 * get_weight_bytes() / get_n_weights()`: about 4.25 for mxfp4,
+    //! 4.5 for nvfp4, 4 + 32 / n_in for fp4, 8 for int8.
+    double get_bits_per_weight() const;
+    //! The FP4 kernel variant this build compiled: "neon-dotprod", "neon",
+    //! "avx2" or "generic".
+    static std::string get_kernel_name();
 
     //! Evaluate a batch, as NeuralNet::predict() does.
     /*!
@@ -332,6 +374,7 @@ public:
 
 private:
     struct Impl;
+    QuantizedNeuralNet() {}
     std::shared_ptr<Impl> impl_;
 };
 
