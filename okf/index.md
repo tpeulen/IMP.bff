@@ -44,6 +44,11 @@ shared index.
   (Dingeldein & Covino, arXiv:2608.21061), with its exact adjoint gradient,
   priors, tttrlib-L-BFGS fit, simulator, Laplace bands and FFBS; the
   two-well validation numbers and where to pick it up.
+* [A conformational process seen by a network of FRET pairs](fret-network.md) -
+  `FRETNetworkModel`: one hidden process (conformers or a landscape) shared by
+  several label pairs, dye photophysics as separate factors, bursts with
+  microtimes and PIE, full and conditional arrival models, structure priors,
+  a simulator with burst search; checks a-d and where to pick it up.
 * [cgprobe](cgprobe.md) - The explicit-dye layer: what it does, where the physics
   lives (R0/κ² in `fret`), the flat `IMP.bff.*` surface, conventions (CB
   strip), tests and pins.

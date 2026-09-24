@@ -1,5 +1,12 @@
 # Update Log
 
+## 2026-09-24
+
+- **A conformational process seen by a network of FRET pairs, from bursts with microtimes**: `FRETNetworkModel` (`FRETNetwork.h`, `FRETNetworkSimulation.h`), concept page [fret-network.md](fret-network.md).
+  - One hidden process (conformers or a landscape) is shared by every label pair; dye photophysics are separate factors joined by `KineticNetwork`; emission per photon is rate times microtime density, mixed over the state's distance distribution; PIE; full and conditional arrival models; structure priors on the distance maps.
+  - Fast rates on small state spaces use a dense matrix exponential with a Van Loan adjoint (a three-state fit had crawled for minutes). A fit backs off from reducible chains instead of throwing.
+  - Checks (`examples/spectroscopy/fret_network_validation.py`): microtimes narrow σ 1.4-2x; with PIE and microtimes a blinking acceptor beats a low-FRET conformer by ΔlogL 16.5 (tie without); the joint two-pair landscape fit puts 95 % within 2σ, D 1.56 ± 0.34 (true 1.50); a focus crossing makes the full arrival model invent 11.8 % donor blinking, the conditional 0.0 %. The roughness weight must scale with the knot spacing (1e-2 flattened the landscape).
+
 ## 2026-09-23
 
 - **Free-energy landscapes and D from photons, photon by photon (Dingeldein & Covino, arXiv:2608.21061)**: `FRETLandscapeModel` (`FRETLandscape.h`, `FRETLandscapeGrid.h`), concept page [fret-landscape.md](fret-landscape.md).
