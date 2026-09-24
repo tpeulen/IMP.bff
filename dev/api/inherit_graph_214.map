@@ -1,0 +1,9 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$class_states.html" title="A weighted set of states of one label." alt="" coords="5,31,68,56"/>
+<area shape="rect" id="Node000001" href="$class_probe_accessible_volume.html" title="States enumerated as a voxel grid, plus the grid itself." alt="" coords="117,5,294,31"/>
+<area shape="poly" id="edge38_Node000000_Node000001" title=" " alt="" coords="81,34,120,28,121,33,82,39"/>
+<area shape="rect" id="Node000003" href="$class_probe_rotamer_ensemble.html" title="A rotamer library placed and screened at one labelling site." alt="" coords="116,55,295,80"/>
+<area shape="poly" id="edge40_Node000000_Node000003" title=" " alt="" coords="82,47,117,52,116,57,81,52"/>
+<area shape="rect" id="Node000002" href="$class_a_c_v.html" title="Accessible contact volume: the cloud split by proximity to a surface." alt="" coords="343,5,392,31"/>
+<area shape="poly" id="edge39_Node000001_Node000002" title=" " alt="" coords="308,15,342,15,342,21,308,21"/>
+</map>

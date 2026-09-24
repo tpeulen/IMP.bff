@@ -1,0 +1,13 @@
+<map id="FitObjective" name="FitObjective">
+<area shape="rect" id="Node000001" title="A node that evaluates to weighted residuals; what fits and searches consume." alt="" coords="85,632,287,837"/>
+<area shape="rect" id="Node000005" href="$class_fit_chi_squared.html" title="The chi&#45;square of a model curve against measured data." alt="" coords="5,895,161,1161"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="148,851,132,896,127,894,143,849"/>
+<area shape="rect" id="Node000006" href="$class_fit_joint_chi_squared.html" title="The misfit of several datasets at once: their residuals, end to end." alt="" coords="186,885,391,1171"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="229,850,241,884,236,886,224,851"/>
+<area shape="rect" id="Node000002" href="$class_graph_node.html" title="A function over named ports, evaluated lazily when its inputs settle." alt="" coords="107,299,265,584"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,598,189,632,183,632,183,598"/>
+<area shape="rect" id="Node000003" href="$class_graph_object.html" title="The identity half of chinet&#39;s GraphObject: a name and a uid." alt="" coords="30,5,161,251"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="137,263,147,298,142,299,132,264"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="185,88,371,168"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="265,182,230,299,225,298,260,180"/>
+</map>

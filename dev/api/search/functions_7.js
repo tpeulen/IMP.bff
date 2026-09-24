@@ -1,7 +1,7 @@
 var searchData=
 [
   ['has_5fav_0',['has_av',['../class_simple_probe_network_restraint.html#a30dbe42c54cb9147563b17f665aa43e2',1,'SimpleProbeNetworkRestraint']]],
-  ['has_5fcached_5fstate_1',['has_cached_state',['../class_fitting_model_search_problem.html#a2760cf9b3589ae6921945f14517ba98d',1,'FittingModelSearchProblem::has_cached_state()'],['../class_multi_structure_model_search_problem.html#a99711b3cc1e76957b1e9e5523448617f',1,'MultiStructureModelSearchProblem::has_cached_state()']]],
+  ['has_5fcached_5fstate_1',['has_cached_state',['../class_fitting_model_search_problem.html#a2760cf9b3589ae6921945f14517ba98d',1,'FittingModelSearchProblem']]],
   ['has_5fcompiled_5fplan_2',['has_compiled_plan',['../class_graph_expression.html#a31dbfa59bb1e622f80183a268fdefc2a',1,'GraphExpression']]],
   ['has_5fenergy_3',['has_energy',['../class_molecular_probe_simulation.html#ad152d08e920141a10d2d5e4ccb29adde',1,'MolecularProbeSimulation::has_energy()'],['../class_probe_simulation.html#a5e0146cfbe5885fc7fd3c3e463163801',1,'ProbeSimulation::has_energy()']]],
   ['has_5fevidence_4',['has_evidence',['../class_inference_gaussian_elimination.html#ac38337a24a8ee7ade3d6e4569fc19058',1,'InferenceGaussianElimination']]],

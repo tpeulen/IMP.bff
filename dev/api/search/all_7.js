@@ -1,7 +1,7 @@
 var searchData=
 [
   ['has_5fav_0',['has_av',['../class_simple_probe_network_restraint.html#a30dbe42c54cb9147563b17f665aa43e2',1,'SimpleProbeNetworkRestraint']]],
-  ['has_5fcached_5fstate_1',['has_cached_state',['../class_fitting_model_search_problem.html#a2760cf9b3589ae6921945f14517ba98d',1,'FittingModelSearchProblem::has_cached_state()'],['../class_multi_structure_model_search_problem.html#a99711b3cc1e76957b1e9e5523448617f',1,'MultiStructureModelSearchProblem::has_cached_state()']]],
+  ['has_5fcached_5fstate_1',['has_cached_state',['../class_fitting_model_search_problem.html#a2760cf9b3589ae6921945f14517ba98d',1,'FittingModelSearchProblem']]],
   ['has_5fcompiled_5fplan_2',['has_compiled_plan',['../class_graph_expression.html#a31dbfa59bb1e622f80183a268fdefc2a',1,'GraphExpression']]],
   ['has_5fenergy_3',['has_energy',['../class_molecular_probe_simulation.html#ad152d08e920141a10d2d5e4ccb29adde',1,'MolecularProbeSimulation::has_energy()'],['../class_probe_simulation.html#a5e0146cfbe5885fc7fd3c3e463163801',1,'ProbeSimulation::has_energy()']]],
   ['has_5fevidence_4',['has_evidence',['../class_inference_gaussian_elimination.html#ac38337a24a8ee7ade3d6e4569fc19058',1,'InferenceGaussianElimination']]],
@@ -21,15 +21,18 @@ var searchData=
   ['hessian_18',['hessian',['../class_bayesian_p_spline_prior.html#ac57e1439bc80032e6e0937636aeb6bcd',1,'BayesianPSplinePrior']]],
   ['hetatm_19',['hetatm',['../struct_selection_atom.html#a21535043f4aa75d883929cf4a0f000bd',1,'SelectionAtom']]],
   ['hi_20',['hi',['../struct_bayesian_logit_transform.html#af4d4b46e1bfa7daeb534dc950a651672',1,'BayesianLogitTransform']]],
-  ['hierarchy_5fatom_5fcoordinates_21',['hierarchy_atom_coordinates',['../_i_m_p_hierarchy_bridge_8h.html#ad5f2064d880259eda92f0b9ebdcd57df',1,'IMPHierarchyBridge.h']]],
-  ['hierarchy_5fatom_5fmetadata_22',['hierarchy_atom_metadata',['../_i_m_p_hierarchy_bridge_8h.html#a851c5670518f19980b8a261e953f59de',1,'IMPHierarchyBridge.h']]],
-  ['hierarchy_5ffrom_5fprotein_5fframe_23',['hierarchy_from_protein_frame',['../_i_m_p_hierarchy_bridge_8h.html#ab9c8de790056bad590a77dd5a84f85ab',1,'IMPHierarchyBridge.h']]],
-  ['hierarchyframe_2eh_24',['HierarchyFrame.h',['../_hierarchy_frame_8h.html',1,'']]],
-  ['hist_25',['hist',['../struct_kappa2_distribution.html#ad2206d57244edfb931855dd67de17ec3',1,'Kappa2Distribution']]],
-  ['histogram_5frda_26',['histogram_rda',['../_states_8h.html#a8dd195cd1df81fd312a40ec7344a1235',1,'States.h']]],
-  ['histograms_27',['histograms',['../struct_poisson_goodness_of_fit.html#aa2f3bac871c9477e6872cdf83ac10af3',1,'PoissonGoodnessOfFit']]],
-  ['hse_5fradius_28',['hse_radius',['../struct_labelizer_options.html#a4a3c3cbe431821f150b7176a57439906',1,'LabelizerOptions']]],
-  ['hydrodynamic_5fradius_29',['hydrodynamic_radius',['../struct_probe.html#a747afdea10ba0cbd1c482112f32d9d08',1,'Probe']]],
-  ['hydrogen_5fmask_30',['hydrogen_mask',['../_rotamer_scoring_8h.html#a85c18715fb6055ea0e054ab001830a36',1,'RotamerScoring.h']]],
-  ['hydrogenbondrestraint_31',['hydrogenbondrestraint',['../class_hydrogen_bond_restraint.html#a90a94b58140d42c04005a76b6a3155e6',1,'HydrogenBondRestraint::HydrogenBondRestraint()'],['../class_hydrogen_bond_restraint.html',1,'HydrogenBondRestraint']]]
+  ['hidden_5flayer_5fsizes_21',['hidden_layer_sizes',['../class_neural_net_train_options.html#a84b0c3004d5a3e9ebb98f4dc063f0da3',1,'NeuralNetTrainOptions']]],
+  ['hierarchy_5fatom_5fcoordinates_22',['hierarchy_atom_coordinates',['../_i_m_p_hierarchy_bridge_8h.html#ad5f2064d880259eda92f0b9ebdcd57df',1,'IMPHierarchyBridge.h']]],
+  ['hierarchy_5fatom_5fmetadata_23',['hierarchy_atom_metadata',['../_i_m_p_hierarchy_bridge_8h.html#a851c5670518f19980b8a261e953f59de',1,'IMPHierarchyBridge.h']]],
+  ['hierarchy_5ffrom_5fprotein_5fframe_24',['hierarchy_from_protein_frame',['../_i_m_p_hierarchy_bridge_8h.html#ab9c8de790056bad590a77dd5a84f85ab',1,'IMPHierarchyBridge.h']]],
+  ['hierarchyframe_2eh_25',['HierarchyFrame.h',['../_hierarchy_frame_8h.html',1,'']]],
+  ['hist_26',['hist',['../struct_kappa2_distribution.html#ad2206d57244edfb931855dd67de17ec3',1,'Kappa2Distribution']]],
+  ['histogram_5frda_27',['histogram_rda',['../_states_8h.html#a8dd195cd1df81fd312a40ec7344a1235',1,'States.h']]],
+  ['histograms_28',['histograms',['../struct_poisson_goodness_of_fit.html#aa2f3bac871c9477e6872cdf83ac10af3',1,'PoissonGoodnessOfFit']]],
+  ['hmmsurrogate_2eh_29',['HMMSurrogate.h',['../_h_m_m_surrogate_8h.html',1,'']]],
+  ['holdout_5fevery_30',['holdout_every',['../class_f_r_e_t_landscape_initial_guess_options.html#a4634051791a9797eb5fc280472fa1364',1,'FRETLandscapeInitialGuessOptions']]],
+  ['hse_5fradius_31',['hse_radius',['../struct_labelizer_options.html#a4a3c3cbe431821f150b7176a57439906',1,'LabelizerOptions']]],
+  ['hydrodynamic_5fradius_32',['hydrodynamic_radius',['../struct_probe.html#a747afdea10ba0cbd1c482112f32d9d08',1,'Probe']]],
+  ['hydrogen_5fmask_33',['hydrogen_mask',['../_rotamer_scoring_8h.html#a85c18715fb6055ea0e054ab001830a36',1,'RotamerScoring.h']]],
+  ['hydrogenbondrestraint_34',['hydrogenbondrestraint',['../class_hydrogen_bond_restraint.html#a90a94b58140d42c04005a76b6a3155e6',1,'HydrogenBondRestraint::HydrogenBondRestraint()'],['../class_hydrogen_bond_restraint.html',1,'HydrogenBondRestraint']]]
 ];

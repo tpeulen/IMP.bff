@@ -644,7 +644,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00722" name="l00722"></a><span class="lineno">  722</span>            <span class="keywordflow">if</span> (i &gt;= starts.size()) <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l00723" name="l00723"></a><span class="lineno">  723</span>            std::vector&lt;double&gt; th = starts[i].theta;</div>
 <div class="line"><a id="l00724" name="l00724"></a><span class="lineno">  724</span>            <span class="keywordflow">if</span> (starts[i].adam_steps &gt; 0) {</div>
-<div class="line"><a id="l00725" name="l00725"></a><span class="lineno">  725</span>                ::tttrlib::AdamState st;</div>
+<div class="line"><a id="l00725" name="l00725"></a><span class="lineno">  725</span>                ::IMP::bff::internal::AdamState st;</div>
 <div class="line"><a id="l00726" name="l00726"></a><span class="lineno">  726</span>                st.reset(dim);</div>
 <div class="line"><a id="l00727" name="l00727"></a><span class="lineno">  727</span>                std::vector&lt;double&gt; neg(dim);</div>
 <div class="line"><a id="l00728" name="l00728"></a><span class="lineno">  728</span>                std::vector&lt;double&gt; g_;</div>
@@ -654,7 +654,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00732" name="l00732"></a><span class="lineno">  732</span>                    <span class="comment">//: Measured on CBM56 (6 histograms, dim 136): 14.5 ms a step against 3.6 ms.</span></div>
 <div class="line"><a id="l00733" name="l00733"></a><span class="lineno">  733</span>                    bayesian_decay_log_posterior_and_gradient(f, env, th, g_);</div>
 <div class="line"><a id="l00734" name="l00734"></a><span class="lineno">  734</span>                    <span class="keywordflow">for</span> (std::size_t a = 0; a &lt; dim; ++a) neg[a] = -g_[a];</div>
-<div class="line"><a id="l00735" name="l00735"></a><span class="lineno">  735</span>                    ::tttrlib::adam_update(th.data(), neg.data(), dim, st, starts[i].adam_lr);</div>
+<div class="line"><a id="l00735" name="l00735"></a><span class="lineno">  735</span>                    ::IMP::bff::internal::adam_update(th.data(), neg.data(), dim, st, starts[i].adam_lr);</div>
 <div class="line"><a id="l00736" name="l00736"></a><span class="lineno">  736</span>                }</div>
 <div class="line"><a id="l00737" name="l00737"></a><span class="lineno">  737</span>            }</div>
 <div class="line"><a id="l00738" name="l00738"></a><span class="lineno">  738</span>            out.fits[i] = bayesian_decay_fit_node(f, env, th, starts[i].line_search_below, max_iter);</div>
@@ -908,7 +908,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Sep 20 2026 07:27:51 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 24 2026 05:50:23 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

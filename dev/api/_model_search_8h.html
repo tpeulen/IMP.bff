@@ -128,10 +128,7 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A callback-free finite problem, useful for persisted/pre-scored graphs.  <a href="class_tabular_model_search_problem.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html">FittingModelSearchProblem</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A live, callback-free adapter from declarative structures to <a class="el" href="class_fit_minimizer.html">FitMinimizer</a>.  <a href="class_fitting_model_search_problem.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_multi_structure_model_search_problem.html">MultiStructureModelSearchProblem</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A callback-free fitting search whose structures have different graphs.  <a href="class_multi_structure_model_search_problem.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A callback-free fitting search whose structures have different graphs.  <a href="class_fitting_model_search_problem.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_config.html">ModelSearchConfig</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Search controls, independent of any fitting model or data family.  <a href="class_model_search_config.html#details">More...</a><br /></td></tr>
@@ -156,6 +153,21 @@ Functions</h2></td></tr>
 <tr class="separator:aa0f95650b6244733911ffd532c827907"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af65b4201b341f4f297d18725231e6ea3" id="r_af65b4201b341f4f297d18725231e6ea3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#af65b4201b341f4f297d18725231e6ea3">IMP_VALUES</a> (<a class="el" href="class_model_search_action.html">ModelSearchAction</a>, ModelSearchActions)</td></tr>
 <tr class="separator:af65b4201b341f4f297d18725231e6ea3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab486cf33b4b0c5d8b94310165f3bdfee" id="r_ab486cf33b4b0c5d8b94310165f3bdfee"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#ab486cf33b4b0c5d8b94310165f3bdfee">get_residual_profile</a> (const std::vector&lt; double &gt; &amp;residual, int width)</td></tr>
+<tr class="memdesc:ab486cf33b4b0c5d8b94310165f3bdfee"><td class="mdescLeft">&#160;</td><td class="mdescRight">A weighted-residual trace as <code>width</code> bucket z-scores, <code>asinh</code>-compressed.  <br /></td></tr>
+<tr class="separator:ab486cf33b4b0c5d8b94310165f3bdfee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a07984f9319a5ba1cbba1bac736fde3c8" id="r_a07984f9319a5ba1cbba1bac736fde3c8"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#a07984f9319a5ba1cbba1bac736fde3c8">get_policy_state_width</a> ()</td></tr>
+<tr class="memdesc:a07984f9319a5ba1cbba1bac736fde3c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">How many features describe a fitted state to an action policy.  <br /></td></tr>
+<tr class="separator:a07984f9319a5ba1cbba1bac736fde3c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acfc957f99ce86356cadb660cac69b7a1" id="r_acfc957f99ce86356cadb660cac69b7a1"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#acfc957f99ce86356cadb660cac69b7a1">get_policy_action_width</a> ()</td></tr>
+<tr class="memdesc:acfc957f99ce86356cadb660cac69b7a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">How many features describe a candidate move to an action policy.  <br /></td></tr>
+<tr class="separator:acfc957f99ce86356cadb660cac69b7a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a29b4f974965478a913505e4439fb43b9" id="r_a29b4f974965478a913505e4439fb43b9"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#a29b4f974965478a913505e4439fb43b9">get_policy_state_features</a> (const std::vector&lt; double &gt; &amp;residual, int n_free, const std::vector&lt; int &gt; &amp;block_sizes=std::vector&lt; int &gt;())</td></tr>
+<tr class="memdesc:a29b4f974965478a913505e4439fb43b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">A fitted state as an action policy sees it, whatever the family.  <br /></td></tr>
+<tr class="separator:a29b4f974965478a913505e4439fb43b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f4da091462a8756d160c3474fd2b2cc" id="r_a7f4da091462a8756d160c3474fd2b2cc"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#a7f4da091462a8756d160c3474fd2b2cc">get_policy_action_features</a> (int source_free, int target_free, bool terminal, bool self_loop, double prior_share)</td></tr>
+<tr class="memdesc:a7f4da091462a8756d160c3474fd2b2cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">A candidate move as an action policy sees it, whatever the family.  <br /></td></tr>
+<tr class="separator:a7f4da091462a8756d160c3474fd2b2cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acfc20df61d5f8c824a72b7bd0d770521" id="r_acfc20df61d5f8c824a72b7bd0d770521"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#acfc20df61d5f8c824a72b7bd0d770521">IMP_VALUES</a> (<a class="el" href="class_model_search_config.html">ModelSearchConfig</a>, ModelSearchConfigs)</td></tr>
 <tr class="separator:acfc20df61d5f8c824a72b7bd0d770521"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac1c39d126b7113998e8dd53d79a04a19" id="r_ac1c39d126b7113998e8dd53d79a04a19"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#ac1c39d126b7113998e8dd53d79a04a19">IMP_VALUES</a> (<a class="el" href="class_model_search_result.html">ModelSearchResult</a>, ModelSearchResults)</td></tr>
@@ -186,6 +198,161 @@ Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a7f4da091462a8756d160c3474fd2b2cc" name="a7f4da091462a8756d160c3474fd2b2cc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7f4da091462a8756d160c3474fd2b2cc">&#9670;&#160;</a></span>get_policy_action_features()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">IMPBFFEXPORT std::vector&lt; double &gt; get_policy_action_features </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>source_free</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>target_free</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>terminal</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>self_loop</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>prior_share</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A candidate move as an action policy sees it, whatever the family. </p>
+<p>Terminal, returns to the same structure, the change in free parameters (clipped to +/-5 and scaled), whether it adds, whether it removes, log(1 + the target's free parameters), and the log of the move's share of the declared priors &ndash; so a network can learn where a family's own priors are already the better guide, rather than only adding to them. </p>
+
+</div>
+</div>
+<a id="acfc957f99ce86356cadb660cac69b7a1" name="acfc957f99ce86356cadb660cac69b7a1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acfc957f99ce86356cadb660cac69b7a1">&#9670;&#160;</a></span>get_policy_action_width()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">IMPBFFEXPORT int get_policy_action_width </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>How many features describe a candidate move to an action policy. </p>
+
+</div>
+</div>
+<a id="a29b4f974965478a913505e4439fb43b9" name="a29b4f974965478a913505e4439fb43b9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a29b4f974965478a913505e4439fb43b9">&#9670;&#160;</a></span>get_policy_state_features()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">IMPBFFEXPORT std::vector&lt; double &gt; get_policy_state_features </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; double &gt; &amp;&#160;</td>
+          <td class="paramname"><em>residual</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_free</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; int &gt; &amp;&#160;</td>
+          <td class="paramname"><em>block_sizes</em> = <code>std::vector&lt;&#160;int&#160;&gt;()</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A fitted state as an action policy sees it, whatever the family. </p>
+<p>The residual profile, then the profile of the worst-fitting member block (<code>block_sizes</code> split a joint residual; empty is one block), then log10 of the reduced chi-square, the lag-1 autocorrelation, the compressed Wald-Wolfowitz runs z-score, the share of positive residuals, log(1 + free parameters), log10 of the worst block's mean squared residual and log of the number of blocks. Nothing names a dataset, a node or a parameter, which is what lets one network serve every model family and every kind of measurement. </p>
+
+</div>
+</div>
+<a id="a07984f9319a5ba1cbba1bac736fde3c8" name="a07984f9319a5ba1cbba1bac736fde3c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a07984f9319a5ba1cbba1bac736fde3c8">&#9670;&#160;</a></span>get_policy_state_width()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">IMPBFFEXPORT int get_policy_state_width </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>How many features describe a fitted state to an action policy. </p>
+
+</div>
+</div>
+<a id="ab486cf33b4b0c5d8b94310165f3bdfee" name="ab486cf33b4b0c5d8b94310165f3bdfee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab486cf33b4b0c5d8b94310165f3bdfee">&#9670;&#160;</a></span>get_residual_profile()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">IMPBFFEXPORT std::vector&lt; double &gt; get_residual_profile </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; double &gt; &amp;&#160;</td>
+          <td class="paramname"><em>residual</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>width</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A weighted-residual trace as <code>width</code> bucket z-scores, <code>asinh</code>-compressed. </p>
+<p>Each bucket is <code>asinh(sum / sqrt(count))</code>, so the profile does not depend on how many points a curve has. Non-finite points are skipped and an empty bucket reads 0, so a trace shorter than <code>width</code> still maps. </p>
+
+</div>
+</div>
 <a id="af65b4201b341f4f297d18725231e6ea3" name="af65b4201b341f4f297d18725231e6ea3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af65b4201b341f4f297d18725231e6ea3">&#9670;&#160;</a></span>IMP_VALUES() <span class="overload">[1/4]</span></h2>
 
@@ -301,7 +468,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Sep 20 2026 07:27:51 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 24 2026 05:50:23 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

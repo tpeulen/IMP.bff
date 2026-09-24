@@ -123,6 +123,7 @@ Enumerations</h2></td></tr>
 <tr class="memitem:a73e50614b291164973defbea56088974" id="r_a73e50614b291164973defbea56088974"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_inference_factor_graph_8h.html#a73e50614b291164973defbea56088974">InferenceFactorKind</a> { <a class="el" href="_inference_factor_graph_8h.html#a73e50614b291164973defbea56088974af9b571a9886bc60bad265c80020b78ab">INFERENCE_FACTOR_PRIOR</a> = 0
 , <a class="el" href="_inference_factor_graph_8h.html#a73e50614b291164973defbea56088974a3fdbc3157960338f80fc300cce4d9fb4">INFERENCE_FACTOR_LIKELIHOOD</a> = 1
 , <a class="el" href="_inference_factor_graph_8h.html#a73e50614b291164973defbea56088974a5fc5a630675002e43befdd96fd76ce56">INFERENCE_FACTOR_HYPER</a> = 2
+, <a class="el" href="_inference_factor_graph_8h.html#a73e50614b291164973defbea56088974a83c732643a13d2d6e872294241bf2a81">INFERENCE_FACTOR_LINK</a> = 3
  }</td></tr>
 <tr class="memdesc:a73e50614b291164973defbea56088974"><td class="mdescLeft">&#160;</td><td class="mdescRight">What a factor is: a dataset likelihood or a per-variable prior.  <a href="_inference_factor_graph_8h.html#a73e50614b291164973defbea56088974">More...</a><br /></td></tr>
 <tr class="separator:a73e50614b291164973defbea56088974"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -152,6 +153,9 @@ Functions</h2></td></tr>
 <tr><td class="fieldname"><a id="a73e50614b291164973defbea56088974a3fdbc3157960338f80fc300cce4d9fb4" name="a73e50614b291164973defbea56088974a3fdbc3157960338f80fc300cce4d9fb4"></a>INFERENCE_FACTOR_LIKELIHOOD&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a73e50614b291164973defbea56088974a5fc5a630675002e43befdd96fd76ce56" name="a73e50614b291164973defbea56088974a5fc5a630675002e43befdd96fd76ce56"></a>INFERENCE_FACTOR_HYPER&#160;</td><td class="fielddoc"><p>A factor over a hyperparameter and the variables it governs. </p>
 <p>Not a prior on one constant: a roughness penalty couples every coefficient of the curve it smooths <em>and</em> the weight that scales it, and integrating that weight out rather than optimising it is what makes such an analysis work. Declared as a INFERENCE_FACTOR_PRIOR it is indistinguishable from a Gaussian on a scalar, and the elimination order that follows is not the one the analysis uses. Scope semantics are the others': it couples everything it names. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a73e50614b291164973defbea56088974a83c732643a13d2d6e872294241bf2a81" name="a73e50614b291164973defbea56088974a83c732643a13d2d6e872294241bf2a81"></a>INFERENCE_FACTOR_LINK&#160;</td><td class="fielddoc"><p>One parameter follows another: its scope is (follower, master). </p>
+<p>A follower holds no number of its own &ndash; it reads its master &ndash; so it is a variable of size 0 whose only factor is this one, and every likelihood that reads it reads its master instead. The posterior's structure is that of the masters; the link is kept so a view can say "tau of fit 2 follows fit 1" rather than lose it. </p>
 </td></tr>
 </table>
 
@@ -199,7 +203,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Sep 20 2026 07:27:51 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 24 2026 05:50:23 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -133,6 +133,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a68388ddc54ca41bd02f48d2bf8c21a8c" id="r_a68388ddc54ca41bd02f48d2bf8c21a8c"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; double &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_spec.html#a68388ddc54ca41bd02f48d2bf8c21a8c">get_dataset_values</a> (const std::string &amp;name) const</td></tr>
 <tr class="memdesc:a68388ddc54ca41bd02f48d2bf8c21a8c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The values bound to one measurement slot.  <br /></td></tr>
 <tr class="separator:a68388ddc54ca41bd02f48d2bf8c21a8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa459d46fe01a969c5c9a99a0e13d4e5f" id="r_aa459d46fe01a969c5c9a99a0e13d4e5f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_fit_dataset.html">FitDataset</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_spec.html#aa459d46fe01a969c5c9a99a0e13d4e5f">get_dataset</a> (const std::string &amp;name) const</td></tr>
+<tr class="memdesc:aa459d46fe01a969c5c9a99a0e13d4e5f"><td class="mdescLeft">&#160;</td><td class="mdescRight">A copy of one complete bound measurement, including its axes and noise.  <br /></td></tr>
+<tr class="separator:aa459d46fe01a969c5c9a99a0e13d4e5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a427df0bf5f407b9183417de590220c8d" id="r_a427df0bf5f407b9183417de590220c8d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_spec.html#a427df0bf5f407b9183417de590220c8d">set_scalar</a> (const std::string &amp;name, double value)</td></tr>
 <tr class="memdesc:a427df0bf5f407b9183417de590220c8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Supply one scalar the description names (a channel width, a period).  <br /></td></tr>
 <tr class="separator:a427df0bf5f407b9183417de590220c8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -141,14 +144,14 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a199eee2e0abd7e781954b3a55c64af5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6420c5ac1d40e9218337afa669cdb74e" id="r_a6420c5ac1d40e9218337afa669cdb74e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_spec.html#a6420c5ac1d40e9218337afa669cdb74e">set_parameter_value</a> (const std::string &amp;canonical_id, double initial, bool free)</td></tr>
 <tr class="separator:a6420c5ac1d40e9218337afa669cdb74e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5cdfa03d2df3fd1f4bf7cafefcfbe462" id="r_a5cdfa03d2df3fd1f4bf7cafefcfbe462"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="class_multi_structure_model_search_problem.html">MultiStructureModelSearchProblem</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_spec.html#a5cdfa03d2df3fd1f4bf7cafefcfbe462">build</a> () const</td></tr>
-<tr class="memdesc:a5cdfa03d2df3fd1f4bf7cafefcfbe462"><td class="mdescLeft">&#160;</td><td class="mdescRight">Build the problem this description and the bound data describe.  <br /></td></tr>
-<tr class="separator:a5cdfa03d2df3fd1f4bf7cafefcfbe462"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a44204ac854cffb4013ee67daed704a29" id="r_a44204ac854cffb4013ee67daed704a29"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="class_multi_structure_model_search_problem.html">MultiStructureModelSearchProblem</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_spec.html#a44204ac854cffb4013ee67daed704a29">get_model</a> ()</td></tr>
-<tr class="memdesc:a44204ac854cffb4013ee67daed704a29"><td class="mdescLeft">&#160;</td><td class="mdescRight">The live model this description and its data describe.  <br /></td></tr>
-<tr class="separator:a44204ac854cffb4013ee67daed704a29"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab575137517584fa8ebfc0ec759ba4baf" id="r_ab575137517584fa8ebfc0ec759ba4baf"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="class_fitting_model_search_problem.html">FittingModelSearchProblem</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_spec.html#ab575137517584fa8ebfc0ec759ba4baf">build</a> () const</td></tr>
+<tr class="memdesc:ab575137517584fa8ebfc0ec759ba4baf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Build the problem this description and the bound data describe.  <br /></td></tr>
+<tr class="separator:ab575137517584fa8ebfc0ec759ba4baf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa4efd7845265ca514673780858f4fa58" id="r_aa4efd7845265ca514673780858f4fa58"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="class_fitting_model_search_problem.html">FittingModelSearchProblem</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_spec.html#aa4efd7845265ca514673780858f4fa58">get_model</a> ()</td></tr>
+<tr class="memdesc:aa4efd7845265ca514673780858f4fa58"><td class="mdescLeft">&#160;</td><td class="mdescRight">The live model this description and its data describe.  <br /></td></tr>
+<tr class="separator:aa4efd7845265ca514673780858f4fa58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a942308b8c340f8426e42d5342b63a777" id="r_a942308b8c340f8426e42d5342b63a777"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_spec.html#a942308b8c340f8426e42d5342b63a777">get_model_is_current</a> () const</td></tr>
-<tr class="memdesc:a942308b8c340f8426e42d5342b63a777"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether <a class="el" href="class_model_search_spec.html#a44204ac854cffb4013ee67daed704a29" title="The live model this description and its data describe.">get_model</a> would return the model without rebuilding it.  <br /></td></tr>
+<tr class="memdesc:a942308b8c340f8426e42d5342b63a777"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether <a class="el" href="class_model_search_spec.html#aa4efd7845265ca514673780858f4fa58" title="The live model this description and its data describe.">get_model</a> would return the model without rebuilding it.  <br /></td></tr>
 <tr class="separator:a942308b8c340f8426e42d5342b63a777"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac1e4c704c2093404cb962b766db187c4" id="r_ac1e4c704c2093404cb962b766db187c4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_spec.html#ac1e4c704c2093404cb962b766db187c4">set_equations</a> (const std::string &amp;catalogue_json)</td></tr>
 <tr class="memdesc:ac1e4c704c2093404cb962b766db187c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Supply the catalogue of equations a generic equations family is built from.  <br /></td></tr>
@@ -231,14 +234,14 @@ Static Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a5cdfa03d2df3fd1f4bf7cafefcfbe462" name="a5cdfa03d2df3fd1f4bf7cafefcfbe462"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5cdfa03d2df3fd1f4bf7cafefcfbe462">&#9670;&#160;</a></span>build()</h2>
+<a id="ab575137517584fa8ebfc0ec759ba4baf" name="ab575137517584fa8ebfc0ec759ba4baf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab575137517584fa8ebfc0ec759ba4baf">&#9670;&#160;</a></span>build()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::shared_ptr&lt; <a class="el" href="class_multi_structure_model_search_problem.html">MultiStructureModelSearchProblem</a> &gt; ModelSearchSpec::build </td>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="class_fitting_model_search_problem.html">FittingModelSearchProblem</a> &gt; ModelSearchSpec::build </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -393,6 +396,27 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="aa459d46fe01a969c5c9a99a0e13d4e5f" name="aa459d46fe01a969c5c9a99a0e13d4e5f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa459d46fe01a969c5c9a99a0e13d4e5f">&#9670;&#160;</a></span>get_dataset()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_fit_dataset.html">FitDataset</a> ModelSearchSpec::get_dataset </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>name</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A copy of one complete bound measurement, including its axes and noise. </p>
+<p>Intended for native simulation workflows that replace only the observed values while preserving the exact measurement contract used by a fit. </p>
+
+</div>
+</div>
 <a id="a24efe62392320edf1a354a5396d95d74" name="a24efe62392320edf1a354a5396d95d74"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a24efe62392320edf1a354a5396d95d74">&#9670;&#160;</a></span>get_dataset_names()</h2>
 
@@ -471,14 +495,14 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a44204ac854cffb4013ee67daed704a29" name="a44204ac854cffb4013ee67daed704a29"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a44204ac854cffb4013ee67daed704a29">&#9670;&#160;</a></span>get_model()</h2>
+<a id="aa4efd7845265ca514673780858f4fa58" name="aa4efd7845265ca514673780858f4fa58"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa4efd7845265ca514673780858f4fa58">&#9670;&#160;</a></span>get_model()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::shared_ptr&lt; <a class="el" href="class_multi_structure_model_search_problem.html">MultiStructureModelSearchProblem</a> &gt; ModelSearchSpec::get_model </td>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="class_fitting_model_search_problem.html">FittingModelSearchProblem</a> &gt; ModelSearchSpec::get_model </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -487,9 +511,9 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The live model this description and its data describe. </p>
-<p><a class="el" href="class_model_search_spec.html#a5cdfa03d2df3fd1f4bf7cafefcfbe462" title="Build the problem this description and the bound data describe.">build</a> makes a new, independent problem every time, which is what a comparison or a benchmark wants. An application showing a model wants the opposite: one model that stays the same object while the user works on it. This builds it on first request, standing at the initial topology and its declared seeds. After a measurement, scalar or override changes, the next request rebuilds the graphs <b>over the same parameter ports</b>: values the user has are kept (clipped into bounds re-derived from the new data), locks and the selected topology carry over, and anything holding a port keeps holding the live parameter. Cached search states do not carry over; they were fitted to other data. </p><dl class="exception"><dt>Exceptions</dt><dd>
+<p><a class="el" href="class_model_search_spec.html#ab575137517584fa8ebfc0ec759ba4baf" title="Build the problem this description and the bound data describe.">build</a> makes a new, independent problem every time, which is what a comparison or a benchmark wants. An application showing a model wants the opposite: one model that stays the same object while the user works on it. This builds it on first request, standing at the initial topology and its declared seeds. After a measurement, scalar or override changes, the next request rebuilds the graphs <b>over the same parameter ports</b>: values the user has are kept (clipped into bounds re-derived from the new data), locks and the selected topology carry over, and anything holding a port keeps holding the live parameter. Cached search states do not carry over; they were fitted to other data. </p><dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
-    <tr><td class="paramname">std::domain_error</td><td>as <a class="el" href="class_model_search_spec.html#a5cdfa03d2df3fd1f4bf7cafefcfbe462" title="Build the problem this description and the bound data describe.">build</a> does. </td></tr>
+    <tr><td class="paramname">std::domain_error</td><td>as <a class="el" href="class_model_search_spec.html#ab575137517584fa8ebfc0ec759ba4baf" title="Build the problem this description and the bound data describe.">build</a> does. </td></tr>
   </table>
   </dd>
 </dl>
@@ -511,7 +535,7 @@ Static Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Whether <a class="el" href="class_model_search_spec.html#a44204ac854cffb4013ee67daed704a29" title="The live model this description and its data describe.">get_model</a> would return the model without rebuilding it. </p>
+<p>Whether <a class="el" href="class_model_search_spec.html#aa4efd7845265ca514673780858f4fa58" title="The live model this description and its data describe.">get_model</a> would return the model without rebuilding it. </p>
 
 </div>
 </div>
@@ -777,7 +801,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Bind a port of something outside this model to a name the description reads. </p>
-<p>A description input written <code>$&lt;name&gt;</code> follows the bound port: another model's published output (<a class="el" href="class_multi_structure_model_search_problem.html#addca6eb33861fc82999e46d19a415265" title="The stable port of a published output.">MultiStructureModelSearchProblem::get_output_port</a>), evaluated on demand. A mixture is written this way &ndash; it reads the lifetime spectrum of each model it mixes. Rebinding the same port changes nothing; binding another rebuilds the model over the same parameters. </p>
+<p>A description input written <code>$&lt;name&gt;</code> follows the bound port: another model's published output (<a class="el" href="class_fitting_model_search_problem.html#afb7d3b84292350334a67069284ecdf0c" title="The stable port of a published output.">FittingModelSearchProblem::get_output_port</a>), evaluated on demand. A mixture is written this way &ndash; it reads the lifetime spectrum of each model it mixes. Rebinding the same port changes nothing; binding another rebuilds the model over the same parameters. </p>
 
 </div>
 </div>
@@ -857,7 +881,7 @@ Static Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Sep 20 2026 07:27:52 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 24 2026 05:50:23 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

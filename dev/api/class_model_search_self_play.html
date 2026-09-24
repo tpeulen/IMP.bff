@@ -138,6 +138,16 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a3c741c074c34a5688343ff4b6f6680a9" id="r_a3c741c074c34a5688343ff4b6f6680a9"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_self_play.html#a3c741c074c34a5688343ff4b6f6680a9">propose</a> (const std::string &amp;network) const</td></tr>
 <tr class="memdesc:a3c741c074c34a5688343ff4b6f6680a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ask a trained proposer where to start, given one real measurement.  <br /></td></tr>
 <tr class="separator:a3c741c074c34a5688343ff4b6f6680a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa0202776a3926f87b0d87b935a66ee3f" id="r_aa0202776a3926f87b0d87b935a66ee3f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_self_play.html#aa0202776a3926f87b0d87b935a66ee3f">set_photon_simulation</a> (bool value)</td></tr>
+<tr class="memdesc:aa0202776a3926f87b0d87b935a66ee3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Simulate count data through TTTRLib's photon engine instead of sampling noise.  <br /></td></tr>
+<tr class="separator:aa0202776a3926f87b0d87b935a66ee3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b7031235e6c3f16ea81152575a8cb6b" id="r_a8b7031235e6c3f16ea81152575a8cb6b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_self_play.html#a8b7031235e6c3f16ea81152575a8cb6b">get_photon_simulation</a> () const</td></tr>
+<tr class="separator:a8b7031235e6c3f16ea81152575a8cb6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17403512e2a117bce2c2a26754bfca97" id="r_a17403512e2a117bce2c2a26754bfca97"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_model_search_spec.html">ModelSearchSpec</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_self_play.html#a17403512e2a117bce2c2a26754bfca97">simulate</a> (const std::string &amp;structure_key, unsigned int seed) const</td></tr>
+<tr class="memdesc:a17403512e2a117bce2c2a26754bfca97"><td class="mdescLeft">&#160;</td><td class="mdescRight">The family with a measurement simulated from one of its structures.  <br /></td></tr>
+<tr class="separator:a17403512e2a117bce2c2a26754bfca97"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a265455465c0aa2a942b928e9cc041ca2" id="r_a265455465c0aa2a942b928e9cc041ca2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_model_search_policy_data.html">ModelSearchPolicyData</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_self_play.html#a265455465c0aa2a942b928e9cc041ca2">generate_policy</a> (int measurements, unsigned int seed)</td></tr>
+<tr class="separator:a265455465c0aa2a942b928e9cc041ca2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Episodes a model family generates about itself, and the proposer they train. </p>
@@ -232,6 +242,36 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a265455465c0aa2a942b928e9cc041ca2" name="a265455465c0aa2a942b928e9cc041ca2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a265455465c0aa2a942b928e9cc041ca2">&#9670;&#160;</a></span>generate_policy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_model_search_policy_data.html">ModelSearchPolicyData</a> ModelSearchSelfPlay::generate_policy </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>measurements</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>seed</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Play search episodes: which move out of each fitted structure leads to the structure selection picks.</p>
+<p>For each of <code>measurements</code>, a generating structure is drawn and its measurement simulated (<a class="el" href="class_model_search_self_play.html#a17403512e2a117bce2c2a26754bfca97" title="The family with a measurement simulated from one of its structures.">simulate</a>); every structure reachable from the root is then fitted once, from its declared starts, exactly as an exhaustive walk would, and the best-scoring one is the target. Each reached structure offering more than one move is an episode: its fitted residual, its moves, and as label the first move of a shortest path to the target &ndash; or its terminal move when it <em>is</em> the target. Labelling by selection rather than by the generating structure keeps training on what a search is scored on: on noisy data the two differ. Measurements the model cannot evaluate are skipped. </p><dl class="section return"><dt>Returns</dt><dd>the episodes, tagged with the family's name </dd></dl>
+
+</div>
+</div>
 <a id="a1b932959d6b7b28e99ef2f57940a0473" name="a1b932959d6b7b28e99ef2f57940a0473"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1b932959d6b7b28e99ef2f57940a0473">&#9670;&#160;</a></span>get_features()</h2>
 
@@ -293,6 +333,23 @@ Public Member Functions</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">int ModelSearchSelfPlay::get_number_of_targets </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8b7031235e6c3f16ea81152575a8cb6b" name="a8b7031235e6c3f16ea81152575a8cb6b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b7031235e6c3f16ea81152575a8cb6b">&#9670;&#160;</a></span>get_photon_simulation()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ModelSearchSelfPlay::get_photon_simulation </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -433,7 +490,28 @@ Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>one value per canonical parameter, in registry order, ready for <a class="el" href="class_multi_structure_model_search_problem.html#a60e52d452d3e7c2d772bc53963e0944e" title="Declare another starting point for a structure, tried alongside its own.">MultiStructureModelSearchProblem::add_structure_start</a>. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>one value per canonical parameter, in registry order, ready for <a class="el" href="class_fitting_model_search_problem.html#a6e5e864fb476479c8d8536c195550db0" title="Declare another starting point for a structure, tried alongside its own.">FittingModelSearchProblem::add_structure_start</a>. </dd></dl>
+
+</div>
+</div>
+<a id="aa0202776a3926f87b0d87b935a66ee3f" name="aa0202776a3926f87b0d87b935a66ee3f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa0202776a3926f87b0d87b935a66ee3f">&#9670;&#160;</a></span>set_photon_simulation()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ModelSearchSelfPlay::set_photon_simulation </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Simulate count data through TTTRLib's photon engine instead of sampling noise. </p>
+<p>Applies to every measurement whose noise family is Poisson: the curve the generating topology predicts becomes a micro-time pattern, and the counts are what <a class="el" href="class_photon_experiment.html" title="TTTRLib&#39;s photon simulator, driven from a model search.">PhotonExperiment</a> records for it. Refused when this build was made without TTTRLib (<a class="el" href="class_photon_experiment.html#a3469d068e5c20e04b4528f4fbc4cfbaf" title="True only when this build linked TTTRLib.">PhotonExperiment::get_available</a>). </p>
 
 </div>
 </div>
@@ -498,6 +576,37 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a17403512e2a117bce2c2a26754bfca97" name="a17403512e2a117bce2c2a26754bfca97"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a17403512e2a117bce2c2a26754bfca97">&#9670;&#160;</a></span>simulate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_model_search_spec.html">ModelSearchSpec</a> ModelSearchSelfPlay::simulate </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>seed</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The family with a measurement simulated from one of its structures. </p>
+<p>Parameters are drawn around their declared starts (<a class="el" href="class_model_search_self_play.html#aabc3bce1ac01d54399691f7c0e6a9199" title="How far a sampled parameter may stray from its declared start, in decades.">set_spread</a>), the structure's curves are computed, and each becomes a measurement with the noise its dataset declares &ndash; recorded as photons through TTTRLib where <a class="el" href="class_model_search_self_play.html#aa0202776a3926f87b0d87b935a66ee3f" title="Simulate count data through TTTRLib&#39;s photon engine instead of sampling noise.">set_photon_simulation</a> asks for it. Datasets the structure does not produce keep their bound values. </p>
+
+</div>
+</div>
 <a id="a214365ce9d5fbe0d3eb7c7639354f201" name="a214365ce9d5fbe0d3eb7c7639354f201"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a214365ce9d5fbe0d3eb7c7639354f201">&#9670;&#160;</a></span>train()</h2>
 
@@ -539,7 +648,7 @@ Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>the trained network as <code>tttrlib.neural_net</code> JSON, which IMP::bff::NeuralNet reads</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>the trained network as <code>bff.neural_net</code> JSON, which IMP::bff::NeuralNet reads</dd></dl>
 <p>Gradients come from the vendored MlpCore backward pass, so this is one implementation of the mathematics driven from a second place, not a second implementation of it. </p>
 
 </div>
@@ -550,7 +659,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Sep 20 2026 07:27:52 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 24 2026 05:50:23 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

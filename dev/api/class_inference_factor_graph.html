@@ -100,6 +100,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a275842c234087bd3e215a83b93cdb047" id="r_a275842c234087bd3e215a83b93cdb047"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_inference_factor_graph.html#a275842c234087bd3e215a83b93cdb047">add_factor</a> (const std::string &amp;key, <a class="el" href="_inference_factor_graph_8h.html#a73e50614b291164973defbea56088974">InferenceFactorKind</a> kind, const std::vector&lt; std::string &gt; &amp;scope, int fit_index=-1, int size=0)</td></tr>
 <tr class="memdesc:a275842c234087bd3e215a83b93cdb047"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a factor (a dataset likelihood or a per-variable prior).  <br /></td></tr>
 <tr class="separator:a275842c234087bd3e215a83b93cdb047"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9519a00b5ded68e4aefbe6ae8d5bcdfb" id="r_a9519a00b5ded68e4aefbe6ae8d5bcdfb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_inference_factor_graph.html#a9519a00b5ded68e4aefbe6ae8d5bcdfb">set_factor_evidence</a> (const std::string &amp;factor_key, const std::vector&lt; std::string &gt; &amp;variable_keys)</td></tr>
+<tr class="memdesc:a9519a00b5ded68e4aefbe6ae8d5bcdfb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Record the held (fixed) variables a factor reads, outside its scope.  <br /></td></tr>
+<tr class="separator:a9519a00b5ded68e4aefbe6ae8d5bcdfb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a63628d61feecbd9b085c445af18398ee" id="r_a63628d61feecbd9b085c445af18398ee"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_inference_factor_graph.html#a63628d61feecbd9b085c445af18398ee">get_factor_evidence</a> (const std::string &amp;factor_key) const</td></tr>
+<tr class="memdesc:a63628d61feecbd9b085c445af18398ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">The held variables a factor reads; empty if none or unknown.  <br /></td></tr>
+<tr class="separator:a63628d61feecbd9b085c445af18398ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac0d10f8fd920048e22a43c5a543d5bac" id="r_ac0d10f8fd920048e22a43c5a543d5bac"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_inference_factor_graph.html#ac0d10f8fd920048e22a43c5a543d5bac">invalidate</a> ()</td></tr>
 <tr class="memdesc:ac0d10f8fd920048e22a43c5a543d5bac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Drop every cached derived structure (moral graph, orders, cliques).  <br /></td></tr>
 <tr class="separator:ac0d10f8fd920048e22a43c5a543d5bac"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -551,6 +557,26 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a63628d61feecbd9b085c445af18398ee" name="a63628d61feecbd9b085c445af18398ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a63628d61feecbd9b085c445af18398ee">&#9670;&#160;</a></span>get_factor_evidence()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::string &gt; InferenceFactorGraph::get_factor_evidence </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>factor_key</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The held variables a factor reads; empty if none or unknown. </p>
+
+</div>
+</div>
 <a id="a1c1b113d9c03b3de0fe91d3598304102" name="a1c1b113d9c03b3de0fe91d3598304102"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1c1b113d9c03b3de0fe91d3598304102">&#9670;&#160;</a></span>get_factor_keys()</h2>
 
@@ -925,6 +951,42 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a9519a00b5ded68e4aefbe6ae8d5bcdfb" name="a9519a00b5ded68e4aefbe6ae8d5bcdfb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9519a00b5ded68e4aefbe6ae8d5bcdfb">&#9670;&#160;</a></span>set_factor_evidence()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void InferenceFactorGraph::set_factor_evidence </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>factor_key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&#160;</td>
+          <td class="paramname"><em>variable_keys</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Record the held (fixed) variables a factor reads, outside its scope. </p>
+<p>Evidence: fixed values a factor conditions on. Keeping them out of the scope keeps the moral graph that of the posterior; keeping them at all is what lets a view draw the whole fit. </p><dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::invalid_argument</td><td>for an unknown factor or variable. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="aa0482891049d5c0a479d825c783775d3" name="aa0482891049d5c0a479d825c783775d3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa0482891049d5c0a479d825c783775d3">&#9670;&#160;</a></span>to_json()</h2>
 
@@ -971,7 +1033,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Sep 20 2026 07:27:52 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 24 2026 05:50:23 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

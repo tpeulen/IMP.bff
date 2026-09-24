@@ -1,3 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$class_kinetic_intensity_matrix.html" title="A conditional intensity matrix: rates of one or more variables, given parents." alt="" coords="5,5,172,31"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,5,156,31"/>
+<area shape="rect" id="Node000001" href="$class_probe_accessible_volume_decorator.html" title="A decorator for a particle with accessible volume (AV)." alt="" coords="204,5,445,31"/>
+<area shape="poly" id="edge1_Node000000_Node000001" title=" " alt="" coords="170,15,204,15,204,21,170,21"/>
 </map>

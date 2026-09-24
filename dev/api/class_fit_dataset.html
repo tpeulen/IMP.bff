@@ -100,6 +100,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a0d7100d82b32fa936dc8110e8b6f75e5" id="r_a0d7100d82b32fa936dc8110e8b6f75e5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fit_dataset.html#a0d7100d82b32fa936dc8110e8b6f75e5">set_values</a> (const std::vector&lt; double &gt; &amp;values)</td></tr>
 <tr class="memdesc:a0d7100d82b32fa936dc8110e8b6f75e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">A rank-1 dataset: the shape is its length.  <br /></td></tr>
 <tr class="separator:a0d7100d82b32fa936dc8110e8b6f75e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8810a06787400a6b9dfaa71a2c1ffefc" id="r_a8810a06787400a6b9dfaa71a2c1ffefc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fit_dataset.html#a8810a06787400a6b9dfaa71a2c1ffefc">replace_values</a> (const std::vector&lt; double &gt; &amp;values)</td></tr>
+<tr class="memdesc:a8810a06787400a6b9dfaa71a2c1ffefc"><td class="mdescLeft">&#160;</td><td class="mdescRight">New observations for the same measurement.  <br /></td></tr>
+<tr class="separator:a8810a06787400a6b9dfaa71a2c1ffefc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abfb9ce9afed2e75bc6081e753fdc9e24" id="r_abfb9ce9afed2e75bc6081e753fdc9e24"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; double &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fit_dataset.html#abfb9ce9afed2e75bc6081e753fdc9e24">get_values</a> () const</td></tr>
 <tr class="memdesc:abfb9ce9afed2e75bc6081e753fdc9e24"><td class="mdescLeft">&#160;</td><td class="mdescRight">The values, row-major.  <br /></td></tr>
 <tr class="separator:abfb9ce9afed2e75bc6081e753fdc9e24"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -693,6 +696,32 @@ Static Public Member Functions</h2></td></tr>
 
 <p>The family's own objective: Poisson deviance, or chi-square. </p>
 <p>Minimised in both cases, and for Poisson it is twice the difference from the saturated log-likelihood &ndash; so minimising it maximises the likelihood, and the dropped <picture><source srcset="form_106_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$-\log y!$" src="form_106.png"/></picture> cancels in any ratio. </p>
+
+</div>
+</div>
+<a id="a8810a06787400a6b9dfaa71a2c1ffefc" name="a8810a06787400a6b9dfaa71a2c1ffefc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8810a06787400a6b9dfaa71a2c1ffefc">&#9670;&#160;</a></span>replace_values()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FitDataset::replace_values </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; double &gt; &amp;&#160;</td>
+          <td class="paramname"><em>values</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>New observations for the same measurement. </p>
+<p>Keeps the shape, coordinates, mask and stored variance &ndash; what a simulation replaying this measurement must not lose, and what <a class="el" href="class_fit_dataset.html#acb1980879325a231f61ce0fbf0b269be" title="The values, row-major, and their shape.">set_values</a> deliberately discards because its shape may move. </p><dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::ValueException</td><td>unless there is one value per point. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -1307,7 +1336,7 @@ Static Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Sep 20 2026 07:27:52 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 24 2026 05:50:23 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

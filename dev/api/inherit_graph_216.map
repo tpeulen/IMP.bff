@@ -1,0 +1,17 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,127,120,153"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="168,127,287,153"/>
+<area shape="poly" id="edge68_Node000000_Node000001" title=" " alt="" coords="134,137,168,137,168,143,134,143"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="335,127,472,153"/>
+<area shape="poly" id="edge69_Node000001_Node000002" title=" " alt="" coords="300,137,334,137,334,143,300,143"/>
+<area shape="rect" id="Node000003" href="$class_fit_minimizer_configuration_error.html" title=" " alt="" coords="527,5,718,45"/>
+<area shape="poly" id="edge70_Node000002_Node000003" title=" " alt="" coords="428,116,469,85,519,55,547,43,549,48,521,60,472,89,432,120"/>
+<area shape="rect" id="Node000004" href="$class_graph_link_cycle_error.html" title="Raised when linking two ports would create a cycle in the link graph." alt="" coords="545,70,700,95"/>
+<area shape="poly" id="edge71_Node000002_Node000004" title=" " alt="" coords="462,121,519,105,569,93,570,98,521,111,463,126"/>
+<area shape="rect" id="Node000005" href="$class_m_c_m_c_sampler_configuration_error.html" title=" " alt="" coords="520,120,725,160"/>
+<area shape="poly" id="edge72_Node000002_Node000005" title=" " alt="" coords="485,137,520,137,520,143,485,143"/>
+<area shape="rect" id="Node000006" href="$class_model_search_configuration_error.html" title=" " alt="" coords="526,184,719,224"/>
+<area shape="poly" id="edge73_Node000002_Node000006" title=" " alt="" coords="462,154,554,181,553,186,460,159"/>
+<area shape="rect" id="Node000007" href="$class_sampler_configuration_error.html" title=" " alt="" coords="525,249,720,274"/>
+<area shape="poly" id="edge74_Node000002_Node000007" title=" " alt="" coords="427,161,469,198,521,234,554,246,552,251,519,238,465,202,424,164"/>
+</map>

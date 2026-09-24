@@ -128,7 +128,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a70aa1b3c4d6a8be0a90f7df96222e013"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scalar value; follows the link if linked (chinet's .value).  <br /></td></tr>
 <tr class="separator:a70aa1b3c4d6a8be0a90f7df96222e013"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a60ac52030a626957a43db9d3ec3377a7" id="r_a60ac52030a626957a43db9d3ec3377a7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_graph_port.html#a60ac52030a626957a43db9d3ec3377a7">set_value</a> (double v)</td></tr>
-<tr class="memdesc:a60ac52030a626957a43db9d3ec3377a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write a scalar float value (no-op when fixed); marks the node invalid.  <br /></td></tr>
+<tr class="memdesc:a60ac52030a626957a43db9d3ec3377a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write a scalar float value; marks the node invalid.  <br /></td></tr>
 <tr class="separator:a60ac52030a626957a43db9d3ec3377a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af7a576d03356af03f2f75f545c73c9b8" id="r_af7a576d03356af03f2f75f545c73c9b8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_graph_port.html#af7a576d03356af03f2f75f545c73c9b8">set_value</a> (long long v)</td></tr>
 <tr class="memdesc:af7a576d03356af03f2f75f545c73c9b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write a scalar int value: keeps an integral port integral, and exact.  <br /></td></tr>
@@ -154,7 +154,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a17a08ff4ca4cc2c85540328e26e6bbb6" id="r_a17a08ff4ca4cc2c85540328e26e6bbb6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_graph_port.html#a17a08ff4ca4cc2c85540328e26e6bbb6">get_sanitize</a> () const</td></tr>
 <tr class="separator:a17a08ff4ca4cc2c85540328e26e6bbb6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2cfdac1e700741e11b7a58b7e7f1e8ac" id="r_a2cfdac1e700741e11b7a58b7e7f1e8ac"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_graph_port.html#a2cfdac1e700741e11b7a58b7e7f1e8ac">set_value_vector</a> (const std::vector&lt; double &gt; &amp;v)</td></tr>
-<tr class="memdesc:a2cfdac1e700741e11b7a58b7e7f1e8ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write a vector value (no-op when fixed); marks the node invalid.  <br /></td></tr>
+<tr class="memdesc:a2cfdac1e700741e11b7a58b7e7f1e8ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write a vector value; marks the node invalid.  <br /></td></tr>
 <tr class="separator:a2cfdac1e700741e11b7a58b7e7f1e8ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5f1603f1c766b6b8eae404601b7b318a" id="r_a5f1603f1c766b6b8eae404601b7b318a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_graph_port.html#a5f1603f1c766b6b8eae404601b7b318a">copy_from_link</a> (const <a class="el" href="class_graph_port.html">GraphPort</a> &amp;source)</td></tr>
 <tr class="memdesc:a5f1603f1c766b6b8eae404601b7b318a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Take a linked source's value without invalidating this port's node.  <br /></td></tr>
@@ -193,7 +193,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a8004c5c987aebfa486333e314fd790f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ports are always self-consistent: true (chinet compatibility).  <br /></td></tr>
 <tr class="separator:a8004c5c987aebfa486333e314fd790f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a88cc8e252b5c9f43890c3fd46946f858" id="r_a88cc8e252b5c9f43890c3fd46946f858"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_graph_port.html#a88cc8e252b5c9f43890c3fd46946f858">get_fixed</a> () const</td></tr>
-<tr class="memdesc:a88cc8e252b5c9f43890c3fd46946f858"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fixed flag: a fixed port ignores value writes.  <br /></td></tr>
+<tr class="memdesc:a88cc8e252b5c9f43890c3fd46946f858"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fixed flag: a fixed port is held by optimisers, never by writes.  <br /></td></tr>
 <tr class="separator:a88cc8e252b5c9f43890c3fd46946f858"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a61673eb1948063c4f0b5b0f2ce8c210b" id="r_a61673eb1948063c4f0b5b0f2ce8c210b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_graph_port.html#a61673eb1948063c4f0b5b0f2ce8c210b">set_fixed</a> (bool v)</td></tr>
 <tr class="memdesc:a61673eb1948063c4f0b5b0f2ce8c210b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the fixed flag.  <br /></td></tr>
@@ -389,7 +389,7 @@ Public Member Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">value</td><td>initial scalar value </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">fixed</td><td>freeze the port against value writes </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">fixed</td><td>exclude the port from optimisation </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">is_output</td><td>mark as a node output port </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">is_reactive</td><td>re-evaluate the attached node on writes </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">is_bounded</td><td>enforce lb/ub on every write </td></tr>
@@ -750,7 +750,7 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Fixed flag: a fixed port ignores value writes. </p>
+<p>Fixed flag: a fixed port is held by optimisers, never by writes. </p>
 
 </div>
 </div>
@@ -1424,7 +1424,7 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Write a scalar float value (no-op when fixed); marks the node invalid. </p>
+<p>Write a scalar float value; marks the node invalid. </p>
 
 </div>
 </div>
@@ -1506,7 +1506,7 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Write a vector value (no-op when fixed); marks the node invalid. </p>
+<p>Write a vector value; marks the node invalid. </p>
 
 </div>
 </div>
@@ -1652,7 +1652,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Sep 20 2026 07:27:52 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 24 2026 05:50:23 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

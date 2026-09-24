@@ -76,7 +76,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>A live, callback-free adapter from declarative structures to <a class="el" href="class_fit_minimizer.html">FitMinimizer</a>.  
+<p>A callback-free fitting search whose structures have different graphs.  
  <a href="class_fitting_model_search_problem.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_model_search_8h_source.html">ModelSearch.h</a>&gt;</code></p>
@@ -85,7 +85,7 @@ Inheritance diagram for FittingModelSearchProblem:</div>
 <div class="dyncontent">
 <div class="center"><img src="class_fitting_model_search_problem__inherit__graph.png" border="0" usemap="#a_fitting_model_search_problem_inherit__map" alt="Inheritance graph"/></div>
 <map name="a_fitting_model_search_problem_inherit__map" id="a_fitting_model_search_problem_inherit__map">
-<area shape="rect" title="A live, callback&#45;free adapter from declarative structures to FitMinimizer." alt="" coords="5,239,235,519"/>
+<area shape="rect" title="A callback&#45;free fitting search whose structures have different graphs." alt="" coords="5,239,235,504"/>
 <area shape="rect" href="class_model_search_problem.html" title="Model&#45;specific topology and evaluation, implemented entirely in C++." alt="" coords="26,5,214,191"/>
 <area shape="poly" title=" " alt="" coords="123,204,123,239,117,239,117,204"/>
 </map>
@@ -95,7 +95,7 @@ Collaboration diagram for FittingModelSearchProblem:</div>
 <div class="dyncontent">
 <div class="center"><img src="class_fitting_model_search_problem__coll__graph.png" border="0" usemap="#a_fitting_model_search_problem_coll__map" alt="Collaboration graph"/></div>
 <map name="a_fitting_model_search_problem_coll__map" id="a_fitting_model_search_problem_coll__map">
-<area shape="rect" title="A live, callback&#45;free adapter from declarative structures to FitMinimizer." alt="" coords="5,239,235,519"/>
+<area shape="rect" title="A callback&#45;free fitting search whose structures have different graphs." alt="" coords="5,239,235,504"/>
 <area shape="rect" href="class_model_search_problem.html" title="Model&#45;specific topology and evaluation, implemented entirely in C++." alt="" coords="26,5,214,191"/>
 <area shape="poly" title=" " alt="" coords="123,204,123,239,117,239,117,204"/>
 </map>
@@ -105,43 +105,78 @@ Collaboration diagram for FittingModelSearchProblem:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ab859af30974bc4dbf71b5d9580b39c4b" id="r_ab859af30974bc4dbf71b5d9580b39c4b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#ab859af30974bc4dbf71b5d9580b39c4b">FittingModelSearchProblem</a> ()</td></tr>
 <tr class="separator:ab859af30974bc4dbf71b5d9580b39c4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a27a6d0a123970b027c4be7bdf20933a8" id="r_a27a6d0a123970b027c4be7bdf20933a8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a27a6d0a123970b027c4be7bdf20933a8">FittingModelSearchProblem</a> (std::shared_ptr&lt; <a class="el" href="class_graph_node.html">GraphNode</a> &gt; objective, const std::string &amp;residual_key=&quot;residuals&quot;)</td></tr>
-<tr class="separator:a27a6d0a123970b027c4be7bdf20933a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6264b45ba8d334c29096b7aca06d4565" id="r_a6264b45ba8d334c29096b7aca06d4565"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a6264b45ba8d334c29096b7aca06d4565">~FittingModelSearchProblem</a> ()</td></tr>
 <tr class="separator:a6264b45ba8d334c29096b7aca06d4565"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab7762e0dd02aa55b9c6fb7c789568498" id="r_ab7762e0dd02aa55b9c6fb7c789568498"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#ab7762e0dd02aa55b9c6fb7c789568498">set_objective</a> (std::shared_ptr&lt; <a class="el" href="class_graph_node.html">GraphNode</a> &gt; objective, const std::string &amp;residual_key=&quot;residuals&quot;)</td></tr>
-<tr class="separator:ab7762e0dd02aa55b9c6fb7c789568498"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aebd6468bb9a7f1fb6b07cf0613028859" id="r_aebd6468bb9a7f1fb6b07cf0613028859"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="class_graph_node.html">GraphNode</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#aebd6468bb9a7f1fb6b07cf0613028859">get_objective</a> () const</td></tr>
-<tr class="separator:aebd6468bb9a7f1fb6b07cf0613028859"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78b89ec76c8daf615ddb3ba3bd9eebe2" id="r_a78b89ec76c8daf615ddb3ba3bd9eebe2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a78b89ec76c8daf615ddb3ba3bd9eebe2">add_parameter_group</a> (const std::string &amp;key, const std::vector&lt; std::shared_ptr&lt; <a class="el" href="class_graph_port.html">GraphPort</a> &gt; &gt; &amp;ports, const std::vector&lt; double &gt; &amp;enable_values=std::vector&lt; double &gt;())</td></tr>
-<tr class="memdesc:a78b89ec76c8daf615ddb3ba3bd9eebe2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Declare one independently fixable group and optional enable-time seeds.  <br /></td></tr>
-<tr class="separator:a78b89ec76c8daf615ddb3ba3bd9eebe2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d69f15e06626749fa39c31937595fe4" id="r_a3d69f15e06626749fa39c31937595fe4"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a3d69f15e06626749fa39c31937595fe4">get_parameter_group_keys</a> () const</td></tr>
-<tr class="separator:a3d69f15e06626749fa39c31937595fe4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6e3bcc13c4ed50a942f4c786546985e5" id="r_a6e3bcc13c4ed50a942f4c786546985e5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a6e3bcc13c4ed50a942f4c786546985e5">add_structure</a> (const std::string &amp;key, const std::vector&lt; std::string &gt; &amp;free_groups)</td></tr>
-<tr class="memdesc:a6e3bcc13c4ed50a942f4c786546985e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Declare a structure by the groups that are free in it.  <br /></td></tr>
-<tr class="separator:a6e3bcc13c4ed50a942f4c786546985e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c1f124f65d2d5a44ed470ef0dd16cef" id="r_a8c1f124f65d2d5a44ed470ef0dd16cef"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a8c1f124f65d2d5a44ed470ef0dd16cef">add_parameter</a> (const std::string &amp;canonical_id, std::shared_ptr&lt; <a class="el" href="class_graph_port.html">GraphPort</a> &gt; owner)</td></tr>
+<tr class="memdesc:a8c1f124f65d2d5a44ed470ef0dd16cef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register one stable canonical id and its scalar, unlinked owner port.  <br /></td></tr>
+<tr class="separator:a8c1f124f65d2d5a44ed470ef0dd16cef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a05fd68a26fc13232cfd09c63cd088082" id="r_a05fd68a26fc13232cfd09c63cd088082"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a05fd68a26fc13232cfd09c63cd088082">get_parameter_ids</a> () const</td></tr>
+<tr class="separator:a05fd68a26fc13232cfd09c63cd088082"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a01e7f83970112778b5de0cfb0a96ccfd" id="r_a01e7f83970112778b5de0cfb0a96ccfd"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="class_graph_port.html">GraphPort</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a01e7f83970112778b5de0cfb0a96ccfd">get_parameter</a> (const std::string &amp;canonical_id) const</td></tr>
+<tr class="separator:a01e7f83970112778b5de0cfb0a96ccfd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa4235c7651cb99c4195f2dd79fc521a1" id="r_aa4235c7651cb99c4195f2dd79fc521a1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#aa4235c7651cb99c4195f2dd79fc521a1">add_structure</a> (const std::string &amp;key, std::shared_ptr&lt; <a class="el" href="class_fit_objective.html">FitObjective</a> &gt; objective, const std::vector&lt; std::string &gt; &amp;parameter_ids, const std::vector&lt; std::shared_ptr&lt; <a class="el" href="class_graph_port.html">GraphPort</a> &gt; &gt; &amp;parameter_ports, const std::vector&lt; double &gt; &amp;initial_values, const std::vector&lt; int &gt; &amp;fixed_mask)</td></tr>
+<tr class="memdesc:aa4235c7651cb99c4195f2dd79fc521a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register a complete native objective topology and parameter state.  <br /></td></tr>
+<tr class="separator:aa4235c7651cb99c4195f2dd79fc521a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6e5e864fb476479c8d8536c195550db0" id="r_a6e5e864fb476479c8d8536c195550db0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a6e5e864fb476479c8d8536c195550db0">add_structure_start</a> (const std::string &amp;structure_key, const std::vector&lt; double &gt; &amp;initial_values)</td></tr>
+<tr class="memdesc:a6e5e864fb476479c8d8536c195550db0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Declare another starting point for a structure, tried alongside its own.  <br /></td></tr>
+<tr class="separator:a6e5e864fb476479c8d8536c195550db0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7a19a7731814021b291814041df08877" id="r_a7a19a7731814021b291814041df08877"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a7a19a7731814021b291814041df08877">get_structure_keys</a> () const</td></tr>
+<tr class="separator:a7a19a7731814021b291814041df08877"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6edb990f11a851cc041d6f5816664606" id="r_a6edb990f11a851cc041d6f5816664606"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="class_fit_objective.html">FitObjective</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a6edb990f11a851cc041d6f5816664606">get_structure_objective</a> (const std::string &amp;key) const</td></tr>
+<tr class="separator:a6edb990f11a851cc041d6f5816664606"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c60709dd390642291d2bc79477f1fbb" id="r_a8c60709dd390642291d2bc79477f1fbb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a8c60709dd390642291d2bc79477f1fbb">add_structure_node</a> (const std::string &amp;structure_key, std::shared_ptr&lt; <a class="el" href="class_graph_node.html">GraphNode</a> &gt; node)</td></tr>
+<tr class="memdesc:a8c60709dd390642291d2bc79477f1fbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retain one upstream node that belongs to a structure's complete graph.  <br /></td></tr>
+<tr class="separator:a8c60709dd390642291d2bc79477f1fbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a12abf5e4e00df2774bb87e0c67e09be9" id="r_a12abf5e4e00df2774bb87e0c67e09be9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a12abf5e4e00df2774bb87e0c67e09be9">set_initial_structure</a> (const std::string &amp;key)</td></tr>
 <tr class="separator:a12abf5e4e00df2774bb87e0c67e09be9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a622d5437f93cc90f717cf5b5475e1c7b" id="r_a622d5437f93cc90f717cf5b5475e1c7b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a622d5437f93cc90f717cf5b5475e1c7b">add_action</a> (const std::string &amp;parent_structure, const std::string &amp;action_key, const std::string &amp;result_structure, double prior=1.0, bool terminal=false)</td></tr>
 <tr class="separator:a622d5437f93cc90f717cf5b5475e1c7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a652c538f2a8e219bbc14bb46a524c70c" id="r_a652c538f2a8e219bbc14bb46a524c70c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a652c538f2a8e219bbc14bb46a524c70c">set_score_output</a> (const std::string &amp;key)</td></tr>
-<tr class="memdesc:a652c538f2a8e219bbc14bb46a524c70c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Use this scalar objective output as reward (higher is better).  <br /></td></tr>
-<tr class="separator:a652c538f2a8e219bbc14bb46a524c70c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a524b991a8c03906a08100518fc689d5c" id="r_a524b991a8c03906a08100518fc689d5c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a524b991a8c03906a08100518fc689d5c">clear_score_output</a> ()</td></tr>
-<tr class="separator:a524b991a8c03906a08100518fc689d5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a463316d6a1b051d147082a14e8966ae7" id="r_a463316d6a1b051d147082a14e8966ae7"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a463316d6a1b051d147082a14e8966ae7">get_score_output</a> () const</td></tr>
-<tr class="separator:a463316d6a1b051d147082a14e8966ae7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3e10a0484f2e2c6b2a4d4538386ce200" id="r_a3e10a0484f2e2c6b2a4d4538386ce200"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a3e10a0484f2e2c6b2a4d4538386ce200">set_complexity_penalty</a> (double value)</td></tr>
-<tr class="memdesc:a3e10a0484f2e2c6b2a4d4538386ce200"><td class="mdescLeft">&#160;</td><td class="mdescRight">Otherwise reward is -chi2/2 - this penalty times the free-port count.  <br /></td></tr>
-<tr class="separator:a3e10a0484f2e2c6b2a4d4538386ce200"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a37db29984b977a118c3417c57592a710" id="r_a37db29984b977a118c3417c57592a710"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a37db29984b977a118c3417c57592a710">get_complexity_penalty</a> () const</td></tr>
-<tr class="separator:a37db29984b977a118c3417c57592a710"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a279aab54ab16d6df9133b24daa5f28f8" id="r_a279aab54ab16d6df9133b24daa5f28f8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a279aab54ab16d6df9133b24daa5f28f8">set_acceptable_output</a> (const std::string &amp;key)</td></tr>
-<tr class="memdesc:a279aab54ab16d6df9133b24daa5f28f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional scalar/bool output defining result.acceptable.  <br /></td></tr>
-<tr class="separator:a279aab54ab16d6df9133b24daa5f28f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afe5f5e18ac00cf48ad1e51ce90a72c69" id="r_afe5f5e18ac00cf48ad1e51ce90a72c69"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#afe5f5e18ac00cf48ad1e51ce90a72c69">clear_acceptable_output</a> ()</td></tr>
-<tr class="separator:afe5f5e18ac00cf48ad1e51ce90a72c69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f3ab94cefa3ba480cf65279554b046c" id="r_a7f3ab94cefa3ba480cf65279554b046c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a7f3ab94cefa3ba480cf65279554b046c">set_action_policy</a> (const std::string &amp;network, double temperature=0.0)</td></tr>
+<tr class="memdesc:a7f3ab94cefa3ba480cf65279554b046c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Weight the declared move priors by a family-agnostic network.  <br /></td></tr>
+<tr class="separator:a7f3ab94cefa3ba480cf65279554b046c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a715d352635d43e814dcd158dc5591c12" id="r_a715d352635d43e814dcd158dc5591c12"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a715d352635d43e814dcd158dc5591c12">clear_action_policy</a> ()</td></tr>
+<tr class="separator:a715d352635d43e814dcd158dc5591c12"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a86f8d09fae53ff143977f9ea1378e633" id="r_a86f8d09fae53ff143977f9ea1378e633"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a86f8d09fae53ff143977f9ea1378e633">get_has_action_policy</a> () const</td></tr>
+<tr class="separator:a86f8d09fae53ff143977f9ea1378e633"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af9c16a28f0728f5f728fff346710752c" id="r_af9c16a28f0728f5f728fff346710752c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#af9c16a28f0728f5f728fff346710752c">get_number_of_free_parameters</a> (const std::string &amp;structure_key) const</td></tr>
+<tr class="memdesc:af9c16a28f0728f5f728fff346710752c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Free parameters of a structure after the user's locks and releases.  <br /></td></tr>
+<tr class="separator:af9c16a28f0728f5f728fff346710752c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5a69fc97d2c4b8dbe882ca72fb9a9fa4" id="r_a5a69fc97d2c4b8dbe882ca72fb9a9fa4"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a5a69fc97d2c4b8dbe882ca72fb9a9fa4">get_policy_rows</a> (const std::string &amp;structure_key, const std::vector&lt; double &gt; &amp;residual, const ModelSearchActions &amp;actions, const std::vector&lt; int &gt; &amp;block_sizes=std::vector&lt; int &gt;()) const</td></tr>
+<tr class="memdesc:a5a69fc97d2c4b8dbe882ca72fb9a9fa4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The rows a policy scores for these moves out of this structure.  <br /></td></tr>
+<tr class="separator:a5a69fc97d2c4b8dbe882ca72fb9a9fa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa7eda913f890b34fad1f1fdf936b60a4" id="r_aa7eda913f890b34fad1f1fdf936b60a4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#aa7eda913f890b34fad1f1fdf936b60a4">set_minimizer_maxfev</a> (int value)</td></tr>
+<tr class="memdesc:aa7eda913f890b34fad1f1fdf936b60a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bound the work each candidate's fit may do.  <br /></td></tr>
+<tr class="separator:aa7eda913f890b34fad1f1fdf936b60a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02864946c29c2fba6eec23d0a11a4796" id="r_a02864946c29c2fba6eec23d0a11a4796"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a02864946c29c2fba6eec23d0a11a4796">get_minimizer_maxfev</a> () const</td></tr>
+<tr class="separator:a02864946c29c2fba6eec23d0a11a4796"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a47e183a997132605a2aab0608b10d75a" id="r_a47e183a997132605a2aab0608b10d75a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a47e183a997132605a2aab0608b10d75a">set_warm_start</a> (bool value)</td></tr>
+<tr class="memdesc:a47e183a997132605a2aab0608b10d75a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Carry a parent's fitted values into the parameters a child also frees.  <br /></td></tr>
+<tr class="separator:a47e183a997132605a2aab0608b10d75a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab26121b40afb4925028b15283df9351" id="r_aab26121b40afb4925028b15283df9351"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#aab26121b40afb4925028b15283df9351">get_warm_start</a> () const</td></tr>
+<tr class="separator:aab26121b40afb4925028b15283df9351"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea049740461b9a27ab27cca6c7ebab10" id="r_aea049740461b9a27ab27cca6c7ebab10"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#aea049740461b9a27ab27cca6c7ebab10">set_structure_score_output</a> (const std::string &amp;structure_key, const std::string &amp;output_key)</td></tr>
+<tr class="memdesc:aea049740461b9a27ab27cca6c7ebab10"><td class="mdescLeft">&#160;</td><td class="mdescRight">Use this structure's scalar output directly as reward.  <br /></td></tr>
+<tr class="separator:aea049740461b9a27ab27cca6c7ebab10"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb55029c40c7f4ad52f0f662f1686b30" id="r_afb55029c40c7f4ad52f0f662f1686b30"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#afb55029c40c7f4ad52f0f662f1686b30">clear_structure_score_output</a> (const std::string &amp;structure_key)</td></tr>
+<tr class="separator:afb55029c40c7f4ad52f0f662f1686b30"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1206020fa3da2ae381c2df05cb7ba452" id="r_a1206020fa3da2ae381c2df05cb7ba452"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a1206020fa3da2ae381c2df05cb7ba452">set_structure_acceptable_output</a> (const std::string &amp;structure_key, const std::string &amp;output_key)</td></tr>
+<tr class="memdesc:a1206020fa3da2ae381c2df05cb7ba452"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional scalar/bool output defining result.acceptable.  <br /></td></tr>
+<tr class="separator:a1206020fa3da2ae381c2df05cb7ba452"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abb108c74423e379ac250edb96d8496d4" id="r_abb108c74423e379ac250edb96d8496d4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#abb108c74423e379ac250edb96d8496d4">clear_structure_acceptable_output</a> (const std::string &amp;structure_key)</td></tr>
+<tr class="separator:abb108c74423e379ac250edb96d8496d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a327ff6632285991acb81502cfcb8dba3" id="r_a327ff6632285991acb81502cfcb8dba3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a327ff6632285991acb81502cfcb8dba3">set_structure_selection</a> (const std::string &amp;structure_key, <a class="el" href="_model_search_8h.html#a2fbe6b8d40befc558afebf9ac767c47f">ModelSelectionCriterion</a> criterion, double effective_sample_size, double complexity)</td></tr>
+<tr class="separator:a327ff6632285991acb81502cfcb8dba3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6dafdee8bac7eaa5a5a1b611cfd660df" id="r_a6dafdee8bac7eaa5a5a1b611cfd660df"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a6dafdee8bac7eaa5a5a1b611cfd660df">clear_structure_selection</a> (const std::string &amp;structure_key)</td></tr>
+<tr class="separator:a6dafdee8bac7eaa5a5a1b611cfd660df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af138bf7ef527bac1b859e63a266e4dc7" id="r_af138bf7ef527bac1b859e63a266e4dc7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#af138bf7ef527bac1b859e63a266e4dc7">set_structure_acceptance</a> (const std::string &amp;structure_key, double least_probability)</td></tr>
+<tr class="memdesc:af138bf7ef527bac1b859e63a266e4dc7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Refuse a structure whose chi-square test falls below this probability.  <br /></td></tr>
+<tr class="separator:af138bf7ef527bac1b859e63a266e4dc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2ff7f67b2061c38d8ffd11914d78b683" id="r_a2ff7f67b2061c38d8ffd11914d78b683"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a2ff7f67b2061c38d8ffd11914d78b683">get_last_chi2_p_value</a> () const</td></tr>
+<tr class="memdesc:a2ff7f67b2061c38d8ffd11914d78b683"><td class="mdescLeft">&#160;</td><td class="mdescRight">Goodness of fit of the last evaluation: P(chi2 &gt;= observed).  <br /></td></tr>
+<tr class="separator:a2ff7f67b2061c38d8ffd11914d78b683"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac185059c51d5683e5820b5c5586a19a2" id="r_ac185059c51d5683e5820b5c5586a19a2"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#ac185059c51d5683e5820b5c5586a19a2">get_last_reduced_chi2</a> () const</td></tr>
+<tr class="memdesc:ac185059c51d5683e5820b5c5586a19a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reduced chi-square of the last evaluation: chi2 / (n - k - 1).  <br /></td></tr>
+<tr class="separator:ac185059c51d5683e5820b5c5586a19a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a53279ce8b7e96487d4495bd25db2d753" id="r_a53279ce8b7e96487d4495bd25db2d753"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_model_search_state.html">ModelSearchState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a53279ce8b7e96487d4495bd25db2d753">get_initial_state</a> () override</td></tr>
 <tr class="separator:a53279ce8b7e96487d4495bd25db2d753"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae32f3b3f2008932c7ed2431242b9733f" id="r_ae32f3b3f2008932c7ed2431242b9733f"><td class="memItemLeft" align="right" valign="top">ModelSearchActions&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#ae32f3b3f2008932c7ed2431242b9733f">get_actions</a> (const <a class="el" href="class_model_search_state.html">ModelSearchState</a> &amp;state) override</td></tr>
@@ -157,14 +192,83 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a2c06612e9d9c72f4ec62dc6d7f857f3e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a cached state current after search (the root when cancelled).  <br /></td></tr>
 <tr class="separator:a2c06612e9d9c72f4ec62dc6d7f857f3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2760cf9b3589ae6921945f14517ba98d" id="r_a2760cf9b3589ae6921945f14517ba98d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a2760cf9b3589ae6921945f14517ba98d">has_cached_state</a> (const std::string &amp;state_key) const</td></tr>
-<tr class="memdesc:a2760cf9b3589ae6921945f14517ba98d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Snapshot inspection and explicit winner application.  <br /></td></tr>
 <tr class="separator:a2760cf9b3589ae6921945f14517ba98d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a482838dc50325ad5ee9f0ead8933868a" id="r_a482838dc50325ad5ee9f0ead8933868a"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a482838dc50325ad5ee9f0ead8933868a">get_cached_values</a> (const std::string &amp;state_key) const</td></tr>
 <tr class="separator:a482838dc50325ad5ee9f0ead8933868a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a29b58f41d7cd5ede571246e195fc16b1" id="r_a29b58f41d7cd5ede571246e195fc16b1"><td class="memItemLeft" align="right" valign="top">std::vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a29b58f41d7cd5ede571246e195fc16b1">get_cached_fixed</a> (const std::string &amp;state_key) const</td></tr>
 <tr class="separator:a29b58f41d7cd5ede571246e195fc16b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab316fa6b84e52cb47d3a8750ba078c95" id="r_ab316fa6b84e52cb47d3a8750ba078c95"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#ab316fa6b84e52cb47d3a8750ba078c95">get_cached_residual</a> (const std::string &amp;state_key) const</td></tr>
+<tr class="memdesc:ab316fa6b84e52cb47d3a8750ba078c95"><td class="mdescLeft">&#160;</td><td class="mdescRight">The weighted residual recorded when a cached state was scored.  <br /></td></tr>
+<tr class="separator:ab316fa6b84e52cb47d3a8750ba078c95"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad6e06b5e476837f30832077d4ac36cff" id="r_ad6e06b5e476837f30832077d4ac36cff"><td class="memItemLeft" align="right" valign="top">std::vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#ad6e06b5e476837f30832077d4ac36cff">get_cached_residual_blocks</a> (const std::string &amp;state_key) const</td></tr>
+<tr class="memdesc:ad6e06b5e476837f30832077d4ac36cff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Its member block lengths when the objective is joint; empty otherwise.  <br /></td></tr>
+<tr class="separator:ad6e06b5e476837f30832077d4ac36cff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af9482bbaaa49174900f8edadae010864" id="r_af9482bbaaa49174900f8edadae010864"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#af9482bbaaa49174900f8edadae010864">restore_state</a> (const std::string &amp;state_key)</td></tr>
 <tr class="separator:af9482bbaaa49174900f8edadae010864"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a336c673c70eec4f1c0a1e6959073df83" id="r_a336c673c70eec4f1c0a1e6959073df83"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a336c673c70eec4f1c0a1e6959073df83">activate_structure</a> (const std::string &amp;key)</td></tr>
+<tr class="memdesc:a336c673c70eec4f1c0a1e6959073df83"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make one topology current, with its declared seeds and its fixed mask.  <br /></td></tr>
+<tr class="separator:a336c673c70eec4f1c0a1e6959073df83"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8bacaf34a3e7fc93d40ec885184cc203" id="r_a8bacaf34a3e7fc93d40ec885184cc203"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a8bacaf34a3e7fc93d40ec885184cc203">set_structure_curve</a> (const std::string &amp;structure_key, const std::string &amp;dataset_name, const std::string &amp;node_name)</td></tr>
+<tr class="memdesc:a8bacaf34a3e7fc93d40ec885184cc203"><td class="mdescLeft">&#160;</td><td class="mdescRight">Record which node produces the curve compared against one measurement.  <br /></td></tr>
+<tr class="separator:a8bacaf34a3e7fc93d40ec885184cc203"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a043d1feb9680a4c1b2d9ddf8ba17a651" id="r_a043d1feb9680a4c1b2d9ddf8ba17a651"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a043d1feb9680a4c1b2d9ddf8ba17a651">get_structure_curve_datasets</a> (const std::string &amp;structure_key) const</td></tr>
+<tr class="memdesc:a043d1feb9680a4c1b2d9ddf8ba17a651"><td class="mdescLeft">&#160;</td><td class="mdescRight">The measurements this structure produces a curve for.  <br /></td></tr>
+<tr class="separator:a043d1feb9680a4c1b2d9ddf8ba17a651"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aba0ea7daed97d1af6205b8dbdffbec0d" id="r_aba0ea7daed97d1af6205b8dbdffbec0d"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#aba0ea7daed97d1af6205b8dbdffbec0d">get_structure_curve_node</a> (const std::string &amp;structure_key, const std::string &amp;dataset_name) const</td></tr>
+<tr class="memdesc:aba0ea7daed97d1af6205b8dbdffbec0d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The node producing the curve for one measurement.  <br /></td></tr>
+<tr class="separator:aba0ea7daed97d1af6205b8dbdffbec0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae6bc2c3e8ef17f0ec04a3469c2014d17" id="r_ae6bc2c3e8ef17f0ec04a3469c2014d17"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#ae6bc2c3e8ef17f0ec04a3469c2014d17">get_structure_output</a> (const std::string &amp;structure_key, const std::string &amp;node_name)</td></tr>
+<tr class="memdesc:ae6bc2c3e8ef17f0ec04a3469c2014d17"><td class="mdescLeft">&#160;</td><td class="mdescRight">Evaluate one topology and read what a node in it produced.  <br /></td></tr>
+<tr class="separator:ae6bc2c3e8ef17f0ec04a3469c2014d17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a42f303f123b1b4eaf2fc36eb4b262c0d" id="r_a42f303f123b1b4eaf2fc36eb4b262c0d"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a42f303f123b1b4eaf2fc36eb4b262c0d">get_structure_port</a> (const std::string &amp;structure_key, const std::string &amp;node_name, const std::string &amp;port_name)</td></tr>
+<tr class="memdesc:a42f303f123b1b4eaf2fc36eb4b262c0d"><td class="mdescLeft">&#160;</td><td class="mdescRight">A named output port of one node of a topology, evaluated now.  <br /></td></tr>
+<tr class="separator:a42f303f123b1b4eaf2fc36eb4b262c0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6f443d015e276d7160bb3812fcb69aee" id="r_a6f443d015e276d7160bb3812fcb69aee"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a6f443d015e276d7160bb3812fcb69aee">publish_output</a> (const std::string &amp;name, const std::string &amp;node_name, const std::string &amp;port_name)</td></tr>
+<tr class="memdesc:a6f443d015e276d7160bb3812fcb69aee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Publish a named output of the model, whichever topology is current.  <br /></td></tr>
+<tr class="separator:a6f443d015e276d7160bb3812fcb69aee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb7d3b84292350334a67069284ecdf0c" id="r_afb7d3b84292350334a67069284ecdf0c"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="class_graph_port.html">GraphPort</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#afb7d3b84292350334a67069284ecdf0c">get_output_port</a> (const std::string &amp;name) const</td></tr>
+<tr class="memdesc:afb7d3b84292350334a67069284ecdf0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The stable port of a published output.  <br /></td></tr>
+<tr class="separator:afb7d3b84292350334a67069284ecdf0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0206a146813d5634f6c352fffbb1f37c" id="r_a0206a146813d5634f6c352fffbb1f37c"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a0206a146813d5634f6c352fffbb1f37c">get_output</a> (const std::string &amp;name)</td></tr>
+<tr class="memdesc:a0206a146813d5634f6c352fffbb1f37c"><td class="mdescLeft">&#160;</td><td class="mdescRight">A published output's values, evaluated now.  <br /></td></tr>
+<tr class="separator:a0206a146813d5634f6c352fffbb1f37c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c81a605f887c2ce38121fe375f6160f" id="r_a0c81a605f887c2ce38121fe375f6160f"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a0c81a605f887c2ce38121fe375f6160f">get_output_names</a> () const</td></tr>
+<tr class="memdesc:a0c81a605f887c2ce38121fe375f6160f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The names of the published outputs.  <br /></td></tr>
+<tr class="separator:a0c81a605f887c2ce38121fe375f6160f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac2fef570455ae73d5309be25edb9987a" id="r_ac2fef570455ae73d5309be25edb9987a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#ac2fef570455ae73d5309be25edb9987a">adopt_output_ports</a> (const <a class="el" href="class_fitting_model_search_problem.html">FittingModelSearchProblem</a> &amp;previous)</td></tr>
+<tr class="memdesc:ac2fef570455ae73d5309be25edb9987a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Keep the published output ports of <code>previous</code>, which this model replaces.  <br /></td></tr>
+<tr class="separator:ac2fef570455ae73d5309be25edb9987a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aad9a871e5df696b10ba42a25aa11dd66" id="r_aad9a871e5df696b10ba42a25aa11dd66"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#aad9a871e5df696b10ba42a25aa11dd66">select_structure</a> (const std::string &amp;key)</td></tr>
+<tr class="memdesc:aad9a871e5df696b10ba42a25aa11dd66"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a topology current without touching any value.  <br /></td></tr>
+<tr class="separator:aad9a871e5df696b10ba42a25aa11dd66"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8946e14ad5bb2ad2349db270ec88bc8c" id="r_a8946e14ad5bb2ad2349db270ec88bc8c"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a8946e14ad5bb2ad2349db270ec88bc8c">get_structure_parameter_ids</a> (const std::string &amp;key) const</td></tr>
+<tr class="memdesc:a8946e14ad5bb2ad2349db270ec88bc8c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The canonical ids a topology's graph reads, in registry order.  <br /></td></tr>
+<tr class="separator:a8946e14ad5bb2ad2349db270ec88bc8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acf7a6d2a341f9267e55c24854e60e368" id="r_acf7a6d2a341f9267e55c24854e60e368"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#acf7a6d2a341f9267e55c24854e60e368">set_structure_parameter_uses</a> (const std::string &amp;key, const std::vector&lt; std::string &gt; &amp;canonical_ids)</td></tr>
+<tr class="memdesc:acf7a6d2a341f9267e55c24854e60e368"><td class="mdescLeft">&#160;</td><td class="mdescRight">Declare which canonical parameters a topology's graph reads.  <br /></td></tr>
+<tr class="separator:acf7a6d2a341f9267e55c24854e60e368"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9e57adc2ec4a341a8fc7118f9184844" id="r_ae9e57adc2ec4a341a8fc7118f9184844"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#ae9e57adc2ec4a341a8fc7118f9184844">set_parameter_locked</a> (const std::string &amp;canonical_id, bool locked)</td></tr>
+<tr class="memdesc:ae9e57adc2ec4a341a8fc7118f9184844"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hold one parameter at its current value in every fit and every search.  <br /></td></tr>
+<tr class="separator:ae9e57adc2ec4a341a8fc7118f9184844"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac3b581bc04ce2aa4170465cf97ed6dd5" id="r_ac3b581bc04ce2aa4170465cf97ed6dd5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#ac3b581bc04ce2aa4170465cf97ed6dd5">get_parameter_locked</a> (const std::string &amp;canonical_id) const</td></tr>
+<tr class="separator:ac3b581bc04ce2aa4170465cf97ed6dd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac7bbd28d840d15c9f6c12bed5d710071" id="r_ac7bbd28d840d15c9f6c12bed5d710071"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#ac7bbd28d840d15c9f6c12bed5d710071">set_parameter_released</a> (const std::string &amp;canonical_id, bool released)</td></tr>
+<tr class="separator:ac7bbd28d840d15c9f6c12bed5d710071"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a322685b8a2f3ed5b0d0a99dc8d4de0b3" id="r_a322685b8a2f3ed5b0d0a99dc8d4de0b3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a322685b8a2f3ed5b0d0a99dc8d4de0b3">get_parameter_released</a> (const std::string &amp;canonical_id) const</td></tr>
+<tr class="separator:a322685b8a2f3ed5b0d0a99dc8d4de0b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a207448856b4fbf0ae6f5839ff3612ead" id="r_a207448856b4fbf0ae6f5839ff3612ead"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a207448856b4fbf0ae6f5839ff3612ead">fit_active_structure</a> ()</td></tr>
+<tr class="memdesc:a207448856b4fbf0ae6f5839ff3612ead"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fit the current topology from the values the registry holds.  <br /></td></tr>
+<tr class="separator:a207448856b4fbf0ae6f5839ff3612ead"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3a9eccbf65127e441488823a471911cd" id="r_a3a9eccbf65127e441488823a471911cd"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a3a9eccbf65127e441488823a471911cd">get_active_structure</a> () const</td></tr>
+<tr class="separator:a3a9eccbf65127e441488823a471911cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d1d5e43f3d744c711c56b86b3245238" id="r_a5d1d5e43f3d744c711c56b86b3245238"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a5d1d5e43f3d744c711c56b86b3245238">get_initial_structure</a> () const</td></tr>
+<tr class="memdesc:a5d1d5e43f3d744c711c56b86b3245238"><td class="mdescLeft">&#160;</td><td class="mdescRight">The topology a search starts from, and a new model stands at.  <br /></td></tr>
+<tr class="separator:a5d1d5e43f3d744c711c56b86b3245238"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a52d4b16bc62fe7abf252ed77ebfed246" id="r_a52d4b16bc62fe7abf252ed77ebfed246"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="class_fit_objective.html">FitObjective</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a52d4b16bc62fe7abf252ed77ebfed246">get_active_objective</a> () const</td></tr>
+<tr class="separator:a52d4b16bc62fe7abf252ed77ebfed246"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac5a30ecad7b7d818a088588d79c191d3" id="r_ac5a30ecad7b7d818a088588d79c191d3"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#ac5a30ecad7b7d818a088588d79c191d3">get_active_residual</a> ()</td></tr>
+<tr class="memdesc:ac5a30ecad7b7d818a088588d79c191d3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The active topology's weighted residual, evaluated now.  <br /></td></tr>
+<tr class="separator:ac5a30ecad7b7d818a088588d79c191d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a033175a333d2be3a0f68546e4966ad0b" id="r_a033175a333d2be3a0f68546e4966ad0b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a033175a333d2be3a0f68546e4966ad0b">get_last_fit_status</a> () const</td></tr>
 <tr class="separator:a033175a333d2be3a0f68546e4966ad0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab4ed2450f027b46fb213417321def27f" id="r_ab4ed2450f027b46fb213417321def27f"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#ab4ed2450f027b46fb213417321def27f">get_last_failure</a> () const</td></tr>
@@ -174,13 +278,13 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a37bf445cefe53243011123f2f753d5e0 inherit pub_methods_class_model_search_problem"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A live, callback-free adapter from declarative structures to <a class="el" href="class_fit_minimizer.html">FitMinimizer</a>. </p>
-<p>Structures name the parameter groups that are free. Transitions restore their parent's cached snapshot, apply the target fix/free mask and any seed for a newly enabled group, then run <a class="el" href="class_fit_minimizer.html">FitMinimizer</a> on the resulting free owner ports. Every successful state caches its own values and fixed mask.</p>
-<p>The graph is shared and is therefore evaluated sequentially. There is no graph clone and no hidden parallelism: each transition is a transaction over one graph, and the next transition begins by restoring its own parent. On cancellation, non-convergence or an exception the parent snapshot is restored and the transition collapses to that parent.</p>
-<p>Ports must be scalar, unlinked canonical owners. A caller with linked ports supplies each link target once; accepting followers as independent state would make snapshot restoration order-dependent. </p>
+<div class="textblock"><p>A callback-free fitting search whose structures have different graphs. </p>
+<p>The problem owns one canonical parameter registry. Every structure names every registered parameter and must supply the exact same owner <a class="el" href="class_graph_port.html" title="A value cell with links, bounds and invalidation-driven evaluation.">GraphPort</a> for that canonical id. A structure may omit a parameter from its objective topology by marking it fixed, but it does not get a private copy. Switching structures therefore selects an objective graph while values, bounds, links, and snapshots remain properties of one shared native parameter state.</p>
+<p>Each structure also declares its starting value and fixed mask. Values of parameters that remain free across a transition are warm-started in place. Newly enabled parameters and fixed structural constants take the target structure's declared starting value. No value is copied between graphs and no parameter is matched by a port or node name.</p>
+<p>The default reward is <code>-chi2/2</code>. Optional BIC metadata changes it to <code>-(chi2 + complexity * log(effective_sample_size))/2</code>; an explicit scalar score output overrides both. A <a class="el" href="class_fit_joint_chi_squared.html" title="The misfit of several datasets at once: their residuals, end to end.">FitJointChiSquared</a> is simply another objective graph, so single and joint fits use the same path. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ab859af30974bc4dbf71b5d9580b39c4b" name="ab859af30974bc4dbf71b5d9580b39c4b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab859af30974bc4dbf71b5d9580b39c4b">&#9670;&#160;</a></span>FittingModelSearchProblem() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ab859af30974bc4dbf71b5d9580b39c4b">&#9670;&#160;</a></span>FittingModelSearchProblem()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -190,34 +294,6 @@ Public Member Functions</h2></td></tr>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a27a6d0a123970b027c4be7bdf20933a8" name="a27a6d0a123970b027c4be7bdf20933a8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a27a6d0a123970b027c4be7bdf20933a8">&#9670;&#160;</a></span>FittingModelSearchProblem() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">FittingModelSearchProblem::FittingModelSearchProblem </td>
-          <td>(</td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="class_graph_node.html">GraphNode</a> &gt;&#160;</td>
-          <td class="paramname"><em>objective</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::string &amp;&#160;</td>
-          <td class="paramname"><em>residual_key</em> = <code>&quot;residuals&quot;</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -272,6 +348,27 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a336c673c70eec4f1c0a1e6959073df83" name="a336c673c70eec4f1c0a1e6959073df83"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a336c673c70eec4f1c0a1e6959073df83">&#9670;&#160;</a></span>activate_structure()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::activate_structure </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>key</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Make one topology current, with its declared seeds and its fixed mask. </p>
+<p>Evaluating a structure is not the same as selecting it: reading a node's output leaves the registry as it stands, while this puts the registry into the state the structure declares &ndash; which is also what says <em>which</em> parameters that topology frees. </p>
+
+</div>
+</div>
 <a id="a622d5437f93cc90f717cf5b5475e1c7b" name="a622d5437f93cc90f717cf5b5475e1c7b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a622d5437f93cc90f717cf5b5475e1c7b">&#9670;&#160;</a></span>add_action()</h2>
 
@@ -318,29 +415,23 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a78b89ec76c8daf615ddb3ba3bd9eebe2" name="a78b89ec76c8daf615ddb3ba3bd9eebe2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a78b89ec76c8daf615ddb3ba3bd9eebe2">&#9670;&#160;</a></span>add_parameter_group()</h2>
+<a id="a8c1f124f65d2d5a44ed470ef0dd16cef" name="a8c1f124f65d2d5a44ed470ef0dd16cef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8c1f124f65d2d5a44ed470ef0dd16cef">&#9670;&#160;</a></span>add_parameter()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void FittingModelSearchProblem::add_parameter_group </td>
+          <td class="memname">void FittingModelSearchProblem::add_parameter </td>
           <td>(</td>
           <td class="paramtype">const std::string &amp;&#160;</td>
-          <td class="paramname"><em>key</em>, </td>
+          <td class="paramname"><em>canonical_id</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::vector&lt; std::shared_ptr&lt; <a class="el" href="class_graph_port.html">GraphPort</a> &gt; &gt; &amp;&#160;</td>
-          <td class="paramname"><em>ports</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::vector&lt; double &gt; &amp;&#160;</td>
-          <td class="paramname"><em>enable_values</em> = <code>std::vector&lt;&#160;double&#160;&gt;()</code>&#160;</td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="class_graph_port.html">GraphPort</a> &gt;&#160;</td>
+          <td class="paramname"><em>owner</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -350,12 +441,12 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Declare one independently fixable group and optional enable-time seeds. </p>
+<p>Register one stable canonical id and its scalar, unlinked owner port. </p>
 
 </div>
 </div>
-<a id="a6e3bcc13c4ed50a942f4c786546985e5" name="a6e3bcc13c4ed50a942f4c786546985e5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6e3bcc13c4ed50a942f4c786546985e5">&#9670;&#160;</a></span>add_structure()</h2>
+<a id="aa4235c7651cb99c4195f2dd79fc521a1" name="aa4235c7651cb99c4195f2dd79fc521a1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa4235c7651cb99c4195f2dd79fc521a1">&#9670;&#160;</a></span>add_structure()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -369,8 +460,32 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="class_fit_objective.html">FitObjective</a> &gt;&#160;</td>
+          <td class="paramname"><em>objective</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&#160;</td>
-          <td class="paramname"><em>free_groups</em>&#160;</td>
+          <td class="paramname"><em>parameter_ids</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; std::shared_ptr&lt; <a class="el" href="class_graph_port.html">GraphPort</a> &gt; &gt; &amp;&#160;</td>
+          <td class="paramname"><em>parameter_ports</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; double &gt; &amp;&#160;</td>
+          <td class="paramname"><em>initial_values</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; int &gt; &amp;&#160;</td>
+          <td class="paramname"><em>fixed_mask</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -380,18 +495,110 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Declare a structure by the groups that are free in it. </p>
+<p>Register a complete native objective topology and parameter state. </p>
+<p><code>parameter_ids</code>, <code>parameter_ports</code>, <code>initial_values</code>, and <code>fixed_mask</code> describe the complete canonical registry. IDs may be in any order, but none may be duplicated or omitted. Every supplied port must be the exact owner already registered for its id. </p>
 
 </div>
 </div>
-<a id="afe5f5e18ac00cf48ad1e51ce90a72c69" name="afe5f5e18ac00cf48ad1e51ce90a72c69"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afe5f5e18ac00cf48ad1e51ce90a72c69">&#9670;&#160;</a></span>clear_acceptable_output()</h2>
+<a id="a8c60709dd390642291d2bc79477f1fbb" name="a8c60709dd390642291d2bc79477f1fbb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8c60709dd390642291d2bc79477f1fbb">&#9670;&#160;</a></span>add_structure_node()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void FittingModelSearchProblem::clear_acceptable_output </td>
+          <td class="memname">void FittingModelSearchProblem::add_structure_node </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="class_graph_node.html">GraphNode</a> &gt;&#160;</td>
+          <td class="paramname"><em>node</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Retain one upstream node that belongs to a structure's complete graph. </p>
+<p>Graph links retain ports while a port retains its attached node weakly. Registering upstream nodes here gives the problem ownership of the full topology. The objective passed to <a class="el" href="class_fitting_model_search_problem.html#aa4235c7651cb99c4195f2dd79fc521a1" title="Register a complete native objective topology and parameter state.">add_structure</a> is retained already. </p>
+
+</div>
+</div>
+<a id="a6e5e864fb476479c8d8536c195550db0" name="a6e5e864fb476479c8d8536c195550db0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6e5e864fb476479c8d8536c195550db0">&#9670;&#160;</a></span>add_structure_start()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::add_structure_start </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; double &gt; &amp;&#160;</td>
+          <td class="paramname"><em>initial_values</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Declare another starting point for a structure, tried alongside its own. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">structure_key</td><td>the structure this start belongs to </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">initial_values</td><td>one value per canonical parameter, in registry order, exactly as <a class="el" href="class_fitting_model_search_problem.html#aa4235c7651cb99c4195f2dd79fc521a1" title="Register a complete native objective topology and parameter state.">add_structure</a> takes them</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>Every declared start is fitted and the best result kept, so a topology's score is the best fit it admits rather than whatever the one seed happened to find. Measured on a two-species FCS curve, the generating topology scores -915 from its declared seed and -12.6 from a good one &ndash; a difference large enough to lose the model selection.</p>
+<p>Because the starts are <em>declared</em>, the best of them still depends only on the model and the data, not on the route the search took to get here. That is the property <a class="el" href="class_fitting_model_search_problem.html#a47e183a997132605a2aab0608b10d75a" title="Carry a parent&#39;s fitted values into the parameters a child also frees.">set_warm_start</a> would otherwise cost. </p>
+
+</div>
+</div>
+<a id="ac2fef570455ae73d5309be25edb9987a" name="ac2fef570455ae73d5309be25edb9987a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac2fef570455ae73d5309be25edb9987a">&#9670;&#160;</a></span>adopt_output_ports()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::adopt_output_ports </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_fitting_model_search_problem.html">FittingModelSearchProblem</a> &amp;&#160;</td>
+          <td class="paramname"><em>previous</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Keep the published output ports of <code>previous</code>, which this model replaces. </p>
+<p>Whatever follows them keeps following, now into this model. </p>
+
+</div>
+</div>
+<a id="a715d352635d43e814dcd158dc5591c12" name="a715d352635d43e814dcd158dc5591c12"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a715d352635d43e814dcd158dc5591c12">&#9670;&#160;</a></span>clear_action_policy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::clear_action_policy </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -428,16 +635,53 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a524b991a8c03906a08100518fc689d5c" name="a524b991a8c03906a08100518fc689d5c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a524b991a8c03906a08100518fc689d5c">&#9670;&#160;</a></span>clear_score_output()</h2>
+<a id="abb108c74423e379ac250edb96d8496d4" name="abb108c74423e379ac250edb96d8496d4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abb108c74423e379ac250edb96d8496d4">&#9670;&#160;</a></span>clear_structure_acceptable_output()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void FittingModelSearchProblem::clear_score_output </td>
+          <td class="memname">void FittingModelSearchProblem::clear_structure_acceptable_output </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afb55029c40c7f4ad52f0f662f1686b30" name="afb55029c40c7f4ad52f0f662f1686b30"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afb55029c40c7f4ad52f0f662f1686b30">&#9670;&#160;</a></span>clear_structure_score_output()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::clear_structure_score_output </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6dafdee8bac7eaa5a5a1b611cfd660df" name="a6dafdee8bac7eaa5a5a1b611cfd660df"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6dafdee8bac7eaa5a5a1b611cfd660df">&#9670;&#160;</a></span>clear_structure_selection()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::clear_structure_selection </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -483,6 +727,26 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a207448856b4fbf0ae6f5839ff3612ead" name="a207448856b4fbf0ae6f5839ff3612ead"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a207448856b4fbf0ae6f5839ff3612ead">&#9670;&#160;</a></span>fit_active_structure()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int FittingModelSearchProblem::fit_active_structure </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Fit the current topology from the values the registry holds. </p>
+<p>The ordinary fit, on the same graph the search uses: the parameters the active topology frees and no lock holds are refined in place. Scores the result when the topology declares a selection criterion, so <a class="el" href="class_fitting_model_search_problem.html#ac185059c51d5683e5820b5c5586a19a2" title="Reduced chi-square of the last evaluation: chi2 / (n - k - 1).">get_last_reduced_chi2</a> and <a class="el" href="class_fitting_model_search_problem.html#a2ff7f67b2061c38d8ffd11914d78b683" title="Goodness of fit of the last evaluation: P(chi2 &gt;= observed).">get_last_chi2_p_value</a> describe it. </p><dl class="section return"><dt>Returns</dt><dd>the minimiser's status (1-4 converged). </dd></dl>
+
+</div>
+</div>
 <a id="ae32f3b3f2008932c7ed2431242b9733f" name="ae32f3b3f2008932c7ed2431242b9733f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae32f3b3f2008932c7ed2431242b9733f">&#9670;&#160;</a></span>get_actions()</h2>
 
@@ -511,6 +775,65 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a52d4b16bc62fe7abf252ed77ebfed246" name="a52d4b16bc62fe7abf252ed77ebfed246"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a52d4b16bc62fe7abf252ed77ebfed246">&#9670;&#160;</a></span>get_active_objective()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="class_fit_objective.html">FitObjective</a> &gt; FittingModelSearchProblem::get_active_objective </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac5a30ecad7b7d818a088588d79c191d3" name="ac5a30ecad7b7d818a088588d79c191d3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac5a30ecad7b7d818a088588d79c191d3">&#9670;&#160;</a></span>get_active_residual()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; double &gt; FittingModelSearchProblem::get_active_residual </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The active topology's weighted residual, evaluated now. </p>
+<p>Read through the residual output the topology declared, so a caller never has to know that port's name. </p><dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="class_model_search_configuration_error.html">ModelSearchConfigurationError</a></td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a3a9eccbf65127e441488823a471911cd" name="a3a9eccbf65127e441488823a471911cd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3a9eccbf65127e441488823a471911cd">&#9670;&#160;</a></span>get_active_structure()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::string &amp; FittingModelSearchProblem::get_active_structure </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a29b58f41d7cd5ede571246e195fc16b1" name="a29b58f41d7cd5ede571246e195fc16b1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a29b58f41d7cd5ede571246e195fc16b1">&#9670;&#160;</a></span>get_cached_fixed()</h2>
 
@@ -526,6 +849,46 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab316fa6b84e52cb47d3a8750ba078c95" name="ab316fa6b84e52cb47d3a8750ba078c95"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab316fa6b84e52cb47d3a8750ba078c95">&#9670;&#160;</a></span>get_cached_residual()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; double &gt; FittingModelSearchProblem::get_cached_residual </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>state_key</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The weighted residual recorded when a cached state was scored. </p>
+
+</div>
+</div>
+<a id="ad6e06b5e476837f30832077d4ac36cff" name="ad6e06b5e476837f30832077d4ac36cff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad6e06b5e476837f30832077d4ac36cff">&#9670;&#160;</a></span>get_cached_residual_blocks()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; int &gt; FittingModelSearchProblem::get_cached_residual_blocks </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>state_key</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Its member block lengths when the objective is joint; empty otherwise. </p>
 
 </div>
 </div>
@@ -547,14 +910,14 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a37db29984b977a118c3417c57592a710" name="a37db29984b977a118c3417c57592a710"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a37db29984b977a118c3417c57592a710">&#9670;&#160;</a></span>get_complexity_penalty()</h2>
+<a id="a86f8d09fae53ff143977f9ea1378e633" name="a86f8d09fae53ff143977f9ea1378e633"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a86f8d09fae53ff143977f9ea1378e633">&#9670;&#160;</a></span>get_has_action_policy()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double FittingModelSearchProblem::get_complexity_penalty </td>
+          <td class="memname">bool FittingModelSearchProblem::get_has_action_policy </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -588,6 +951,45 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Implements <a class="el" href="class_model_search_problem.html#a7d8ef95a3e6c2f17f603b6d1480dbad7">ModelSearchProblem</a>.</p>
+
+</div>
+</div>
+<a id="a5d1d5e43f3d744c711c56b86b3245238" name="a5d1d5e43f3d744c711c56b86b3245238"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d1d5e43f3d744c711c56b86b3245238">&#9670;&#160;</a></span>get_initial_structure()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::string &amp; FittingModelSearchProblem::get_initial_structure </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The topology a search starts from, and a new model stands at. </p>
+
+</div>
+</div>
+<a id="a2ff7f67b2061c38d8ffd11914d78b683" name="a2ff7f67b2061c38d8ffd11914d78b683"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2ff7f67b2061c38d8ffd11914d78b683">&#9670;&#160;</a></span>get_last_chi2_p_value()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double FittingModelSearchProblem::get_last_chi2_p_value </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Goodness of fit of the last evaluation: P(chi2 &gt;= observed). </p>
+<p>The chi-square test, which asks whether the winner describes the data at all &ndash; a question no comparison between candidates answers, because the best of a bad family is still bad. NaN when the fit left no degrees of freedom. </p>
 
 </div>
 </div>
@@ -625,14 +1027,34 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="aebd6468bb9a7f1fb6b07cf0613028859" name="aebd6468bb9a7f1fb6b07cf0613028859"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aebd6468bb9a7f1fb6b07cf0613028859">&#9670;&#160;</a></span>get_objective()</h2>
+<a id="ac185059c51d5683e5820b5c5586a19a2" name="ac185059c51d5683e5820b5c5586a19a2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac185059c51d5683e5820b5c5586a19a2">&#9670;&#160;</a></span>get_last_reduced_chi2()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::shared_ptr&lt; <a class="el" href="class_graph_node.html">GraphNode</a> &gt; FittingModelSearchProblem::get_objective </td>
+          <td class="memname">double FittingModelSearchProblem::get_last_reduced_chi2 </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reduced chi-square of the last evaluation: chi2 / (n - k - 1). </p>
+<p>The goodness-of-fit question, which is separate from the comparison: a model can be the best of a family and still not describe the data. Near one is the expectation. </p>
+
+</div>
+</div>
+<a id="a02864946c29c2fba6eec23d0a11a4796" name="a02864946c29c2fba6eec23d0a11a4796"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a02864946c29c2fba6eec23d0a11a4796">&#9670;&#160;</a></span>get_minimizer_maxfev()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int FittingModelSearchProblem::get_minimizer_maxfev </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -642,14 +1064,123 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a3d69f15e06626749fa39c31937595fe4" name="a3d69f15e06626749fa39c31937595fe4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3d69f15e06626749fa39c31937595fe4">&#9670;&#160;</a></span>get_parameter_group_keys()</h2>
+<a id="af9c16a28f0728f5f728fff346710752c" name="af9c16a28f0728f5f728fff346710752c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af9c16a28f0728f5f728fff346710752c">&#9670;&#160;</a></span>get_number_of_free_parameters()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt; std::string &gt; FittingModelSearchProblem::get_parameter_group_keys </td>
+          <td class="memname">int FittingModelSearchProblem::get_number_of_free_parameters </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Free parameters of a structure after the user's locks and releases. </p>
+
+</div>
+</div>
+<a id="a0206a146813d5634f6c352fffbb1f37c" name="a0206a146813d5634f6c352fffbb1f37c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0206a146813d5634f6c352fffbb1f37c">&#9670;&#160;</a></span>get_output()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; double &gt; FittingModelSearchProblem::get_output </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A published output's values, evaluated now. </p>
+<p>Reading the port alone reads what it last held; this brings it up to date first. </p><dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="class_model_search_configuration_error.html">ModelSearchConfigurationError</a></td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a0c81a605f887c2ce38121fe375f6160f" name="a0c81a605f887c2ce38121fe375f6160f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c81a605f887c2ce38121fe375f6160f">&#9670;&#160;</a></span>get_output_names()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::string &gt; FittingModelSearchProblem::get_output_names </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The names of the published outputs. </p>
+
+</div>
+</div>
+<a id="afb7d3b84292350334a67069284ecdf0c" name="afb7d3b84292350334a67069284ecdf0c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afb7d3b84292350334a67069284ecdf0c">&#9670;&#160;</a></span>get_output_port()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="class_graph_port.html">GraphPort</a> &gt; FittingModelSearchProblem::get_output_port </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>name</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The stable port of a published output. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="class_model_search_configuration_error.html">ModelSearchConfigurationError</a></td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a01e7f83970112778b5de0cfb0a96ccfd" name="a01e7f83970112778b5de0cfb0a96ccfd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a01e7f83970112778b5de0cfb0a96ccfd">&#9670;&#160;</a></span>get_parameter()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="class_graph_port.html">GraphPort</a> &gt; FittingModelSearchProblem::get_parameter </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>canonical_id</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a05fd68a26fc13232cfd09c63cd088082" name="a05fd68a26fc13232cfd09c63cd088082"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a05fd68a26fc13232cfd09c63cd088082">&#9670;&#160;</a></span>get_parameter_ids()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::string &gt; FittingModelSearchProblem::get_parameter_ids </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -659,14 +1190,279 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a463316d6a1b051d147082a14e8966ae7" name="a463316d6a1b051d147082a14e8966ae7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a463316d6a1b051d147082a14e8966ae7">&#9670;&#160;</a></span>get_score_output()</h2>
+<a id="ac3b581bc04ce2aa4170465cf97ed6dd5" name="ac3b581bc04ce2aa4170465cf97ed6dd5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac3b581bc04ce2aa4170465cf97ed6dd5">&#9670;&#160;</a></span>get_parameter_locked()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const std::string &amp; FittingModelSearchProblem::get_score_output </td>
+          <td class="memname">bool FittingModelSearchProblem::get_parameter_locked </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>canonical_id</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a322685b8a2f3ed5b0d0a99dc8d4de0b3" name="a322685b8a2f3ed5b0d0a99dc8d4de0b3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a322685b8a2f3ed5b0d0a99dc8d4de0b3">&#9670;&#160;</a></span>get_parameter_released()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool FittingModelSearchProblem::get_parameter_released </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>canonical_id</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5a69fc97d2c4b8dbe882ca72fb9a9fa4" name="a5a69fc97d2c4b8dbe882ca72fb9a9fa4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5a69fc97d2c4b8dbe882ca72fb9a9fa4">&#9670;&#160;</a></span>get_policy_rows()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; double &gt; FittingModelSearchProblem::get_policy_rows </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; double &gt; &amp;&#160;</td>
+          <td class="paramname"><em>residual</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const ModelSearchActions &amp;&#160;</td>
+          <td class="paramname"><em>actions</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; int &gt; &amp;&#160;</td>
+          <td class="paramname"><em>block_sizes</em> = <code>std::vector&lt;&#160;int&#160;&gt;()</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The rows a policy scores for these moves out of this structure. </p>
+<p><code>actions.size()</code> rows of <a class="el" href="_model_search_8h.html#a07984f9319a5ba1cbba1bac736fde3c8" title="How many features describe a fitted state to an action policy.">get_policy_state_width</a> plus <a class="el" href="_model_search_8h.html#acfc957f99ce86356cadb660cac69b7a1" title="How many features describe a candidate move to an action policy.">get_policy_action_width</a> features, flattened row-major. </p>
+
+</div>
+</div>
+<a id="a043d1feb9680a4c1b2d9ddf8ba17a651" name="a043d1feb9680a4c1b2d9ddf8ba17a651"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a043d1feb9680a4c1b2d9ddf8ba17a651">&#9670;&#160;</a></span>get_structure_curve_datasets()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::string &gt; FittingModelSearchProblem::get_structure_curve_datasets </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The measurements this structure produces a curve for. </p>
+
+</div>
+</div>
+<a id="aba0ea7daed97d1af6205b8dbdffbec0d" name="aba0ea7daed97d1af6205b8dbdffbec0d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aba0ea7daed97d1af6205b8dbdffbec0d">&#9670;&#160;</a></span>get_structure_curve_node()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string FittingModelSearchProblem::get_structure_curve_node </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>dataset_name</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The node producing the curve for one measurement. </p>
+
+</div>
+</div>
+<a id="a7a19a7731814021b291814041df08877" name="a7a19a7731814021b291814041df08877"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7a19a7731814021b291814041df08877">&#9670;&#160;</a></span>get_structure_keys()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::string &gt; FittingModelSearchProblem::get_structure_keys </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6edb990f11a851cc041d6f5816664606" name="a6edb990f11a851cc041d6f5816664606"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6edb990f11a851cc041d6f5816664606">&#9670;&#160;</a></span>get_structure_objective()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="class_fit_objective.html">FitObjective</a> &gt; FittingModelSearchProblem::get_structure_objective </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>key</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae6bc2c3e8ef17f0ec04a3469c2014d17" name="ae6bc2c3e8ef17f0ec04a3469c2014d17"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae6bc2c3e8ef17f0ec04a3469c2014d17">&#9670;&#160;</a></span>get_structure_output()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; double &gt; FittingModelSearchProblem::get_structure_output </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>node_name</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Evaluate one topology and read what a node in it produced. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">structure_key</td><td>the topology to make current and evaluate </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">node_name</td><td>the node's full name, which for a described family is <code>"&lt;structure&gt;.&lt;node&gt;"</code></td></tr>
+  </table>
+  </dd>
+</dl>
+<p>The curve a topology predicts at the parameters currently in the registry. Fitting runs this graph already; this only makes its output readable, which is what turns a model family into its own data generator &ndash; set the parameters, read the curve, and a fixture or a self-play episode has a measurement no hand-written simulator had to reproduce. A hand-written one is a second opinion about the model, and the first one is right here. </p>
+
+</div>
+</div>
+<a id="a8946e14ad5bb2ad2349db270ec88bc8c" name="a8946e14ad5bb2ad2349db270ec88bc8c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8946e14ad5bb2ad2349db270ec88bc8c">&#9670;&#160;</a></span>get_structure_parameter_ids()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::string &gt; FittingModelSearchProblem::get_structure_parameter_ids </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>key</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The canonical ids a topology's graph reads, in registry order. </p>
+<p>What an application shows for that topology: a lifetime row the topology has no component for is not part of it. Locks and releases do not change the answer. Undeclared, it is the ids the topology frees. </p>
+
+</div>
+</div>
+<a id="a42f303f123b1b4eaf2fc36eb4b262c0d" name="a42f303f123b1b4eaf2fc36eb4b262c0d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a42f303f123b1b4eaf2fc36eb4b262c0d">&#9670;&#160;</a></span>get_structure_port()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; double &gt; FittingModelSearchProblem::get_structure_port </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>node_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>port_name</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A named output port of one node of a topology, evaluated now. </p>
+<p><a class="el" href="class_fitting_model_search_problem.html#ae6bc2c3e8ef17f0ec04a3469c2014d17" title="Evaluate one topology and read what a node in it produced.">get_structure_output</a> reads the port keyed by the node's own name; this reads any other a description declared &ndash; a decay's <code>spectrum</code>, say. </p><dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="class_model_search_configuration_error.html">ModelSearchConfigurationError</a></td><td>naming the node or port it lacks. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="aab26121b40afb4925028b15283df9351" name="aab26121b40afb4925028b15283df9351"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aab26121b40afb4925028b15283df9351">&#9670;&#160;</a></span>get_warm_start()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool FittingModelSearchProblem::get_warm_start </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -692,7 +1488,42 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Snapshot inspection and explicit winner application. </p>
+</div>
+</div>
+<a id="a6f443d015e276d7160bb3812fcb69aee" name="a6f443d015e276d7160bb3812fcb69aee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6f443d015e276d7160bb3812fcb69aee">&#9670;&#160;</a></span>publish_output()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::publish_output </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>node_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>port_name</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Publish a named output of the model, whichever topology is current. </p>
+<p><code>node_name</code> is a node of every topology as a description names it (<code>decay</code>, not <code>lifetime.components.2.decay</code>) and <code>port_name</code> one of its outputs. The port <a class="el" href="class_fitting_model_search_problem.html#afb7d3b84292350334a67069284ecdf0c" title="The stable port of a published output.">get_output_port</a> returns stays the same object while the model moves between topologies and while it is rebuilt, so another model's graph can follow it: a mixture reads the lifetime spectrum of each model it mixes this way, evaluated on demand. A topology without that node leaves the output unlinked. </p>
 
 </div>
 </div>
@@ -743,14 +1574,14 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a279aab54ab16d6df9133b24daa5f28f8" name="a279aab54ab16d6df9133b24daa5f28f8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a279aab54ab16d6df9133b24daa5f28f8">&#9670;&#160;</a></span>set_acceptable_output()</h2>
+<a id="aad9a871e5df696b10ba42a25aa11dd66" name="aad9a871e5df696b10ba42a25aa11dd66"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aad9a871e5df696b10ba42a25aa11dd66">&#9670;&#160;</a></span>select_structure()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void FittingModelSearchProblem::set_acceptable_output </td>
+          <td class="memname">void FittingModelSearchProblem::select_structure </td>
           <td>(</td>
           <td class="paramtype">const std::string &amp;&#160;</td>
           <td class="paramname"><em>key</em></td><td>)</td>
@@ -759,27 +1590,39 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Optional scalar/bool output defining result.acceptable. </p>
+<p>Make a topology current without touching any value. </p>
+<p>What an application does when a user picks a topology: the registry keeps the numbers the user sees, and only which of them the topology frees changes. <a class="el" href="class_fitting_model_search_problem.html#a336c673c70eec4f1c0a1e6959073df83" title="Make one topology current, with its declared seeds and its fixed mask.">activate_structure</a> is the search's operation &ndash; it writes the declared seeds &ndash; and is the wrong one under a user. </p>
 
 </div>
 </div>
-<a id="a3e10a0484f2e2c6b2a4d4538386ce200" name="a3e10a0484f2e2c6b2a4d4538386ce200"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3e10a0484f2e2c6b2a4d4538386ce200">&#9670;&#160;</a></span>set_complexity_penalty()</h2>
+<a id="a7f3ab94cefa3ba480cf65279554b046c" name="a7f3ab94cefa3ba480cf65279554b046c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7f3ab94cefa3ba480cf65279554b046c">&#9670;&#160;</a></span>set_action_policy()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void FittingModelSearchProblem::set_complexity_penalty </td>
+          <td class="memname">void FittingModelSearchProblem::set_action_policy </td>
           <td>(</td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>value</em></td><td>)</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>network</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>temperature</em> = <code>0.0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Otherwise reward is -chi2/2 - this penalty times the free-port count. </p>
+<p>Weight the declared move priors by a family-agnostic network. </p>
+<p>The network scores one row per available move &ndash; the state features of the structure being expanded, from the residual recorded when it was scored, followed by that move's action features &ndash; with one output. A move's prior becomes its declared prior times <code>exp(score)</code>, normalised over the available moves, so a declared zero stays zero. Expansion never refits or re-evaluates the graph, and a state scored without a residual keeps its declared priors. The policy is a PUCT hint; it never changes a score. An empty document removes it. <code>temperature</code> divides the scores: above 1 the policy leans on the declared priors more and leaves PUCT more to explore. Zero, the default, takes the document's own <code>"temperature"</code> (1 when it has none): a shipped policy passed its gate at that temperature. </p>
 
 </div>
 </div>
@@ -801,23 +1644,44 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ab7762e0dd02aa55b9c6fb7c789568498" name="ab7762e0dd02aa55b9c6fb7c789568498"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab7762e0dd02aa55b9c6fb7c789568498">&#9670;&#160;</a></span>set_objective()</h2>
+<a id="aa7eda913f890b34fad1f1fdf936b60a4" name="aa7eda913f890b34fad1f1fdf936b60a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa7eda913f890b34fad1f1fdf936b60a4">&#9670;&#160;</a></span>set_minimizer_maxfev()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void FittingModelSearchProblem::set_objective </td>
+          <td class="memname">void FittingModelSearchProblem::set_minimizer_maxfev </td>
           <td>(</td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="class_graph_node.html">GraphNode</a> &gt;&#160;</td>
-          <td class="paramname"><em>objective</em>, </td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Bound the work each candidate's fit may do. </p>
+<p>Zero keeps <a class="el" href="class_fit_minimizer.html">FitMinimizer</a>'s own default of <code>200 * (n + 1)</code> residual evaluations. A search runs one fit per candidate and may run many, so being able to say how long any one of them is allowed to take is the difference between a slow search and one that does not return. </p>
+
+</div>
+</div>
+<a id="ae9e57adc2ec4a341a8fc7118f9184844" name="ae9e57adc2ec4a341a8fc7118f9184844"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae9e57adc2ec4a341a8fc7118f9184844">&#9670;&#160;</a></span>set_parameter_locked()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::set_parameter_locked </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>canonical_id</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::string &amp;&#160;</td>
-          <td class="paramname"><em>residual_key</em> = <code>&quot;residuals&quot;</code>&#160;</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>locked</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -827,25 +1691,275 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Hold one parameter at its current value in every fit and every search. </p>
+<p>A user who fixes a parameter means it for whichever topology is current, and for whichever one a search reaches. A locked parameter is never freed, no seed or start overwrites it, and it does not count towards the complexity a selection criterion charges. Changing a lock discards cached search states, which were scored under the old one. </p>
+
 </div>
 </div>
-<a id="a652c538f2a8e219bbc14bb46a524c70c" name="a652c538f2a8e219bbc14bb46a524c70c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a652c538f2a8e219bbc14bb46a524c70c">&#9670;&#160;</a></span>set_score_output()</h2>
+<a id="ac7bbd28d840d15c9f6c12bed5d710071" name="ac7bbd28d840d15c9f6c12bed5d710071"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac7bbd28d840d15c9f6c12bed5d710071">&#9670;&#160;</a></span>set_parameter_released()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void FittingModelSearchProblem::set_score_output </td>
+          <td class="memname">void FittingModelSearchProblem::set_parameter_released </td>
           <td>(</td>
           <td class="paramtype">const std::string &amp;&#160;</td>
-          <td class="paramname"><em>key</em></td><td>)</td>
+          <td class="paramname"><em>canonical_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>released</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Fit one parameter wherever a topology reads it, though the description holds it.</p>
+<p>The other half of a user's say: an instrument time shift a family leaves alone by default is still the user's to fit. A released parameter keeps the user's value rather than a seed, is charged for where it is fitted, and has no effect on a topology whose graph does not read it. Locking and releasing exclude each other. Changing a release discards cached search states. </p>
+
+</div>
+</div>
+<a id="a1206020fa3da2ae381c2df05cb7ba452" name="a1206020fa3da2ae381c2df05cb7ba452"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1206020fa3da2ae381c2df05cb7ba452">&#9670;&#160;</a></span>set_structure_acceptable_output()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::set_structure_acceptable_output </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>output_key</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Optional scalar/bool output defining result.acceptable. </p>
+
+</div>
+</div>
+<a id="af138bf7ef527bac1b859e63a266e4dc7" name="af138bf7ef527bac1b859e63a266e4dc7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af138bf7ef527bac1b859e63a266e4dc7">&#9670;&#160;</a></span>set_structure_acceptance()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::set_structure_acceptance </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>least_probability</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Refuse a structure whose chi-square test falls below this probability. </p>
+<p>Acceptability then means "describes the data", which is separate from winning the comparison. </p>
+
+</div>
+</div>
+<a id="a8bacaf34a3e7fc93d40ec885184cc203" name="a8bacaf34a3e7fc93d40ec885184cc203"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8bacaf34a3e7fc93d40ec885184cc203">&#9670;&#160;</a></span>set_structure_curve()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::set_structure_curve </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>dataset_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>node_name</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Record which node produces the curve compared against one measurement. </p>
+<p>A described family knows this &ndash; the objective bound to a measurement reads its model from exactly one node &ndash; and it is what lets a family be run backwards, as its own generator, without anyone guessing at a naming convention. </p>
+
+</div>
+</div>
+<a id="acf7a6d2a341f9267e55c24854e60e368" name="acf7a6d2a341f9267e55c24854e60e368"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acf7a6d2a341f9267e55c24854e60e368">&#9670;&#160;</a></span>set_structure_parameter_uses()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::set_structure_parameter_uses </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&#160;</td>
+          <td class="paramname"><em>canonical_ids</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Declare which canonical parameters a topology's graph reads. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="class_model_search_configuration_error.html">ModelSearchConfigurationError</a></td><td>for an unknown id, or when the topology frees a parameter its graph does not read. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="aea049740461b9a27ab27cca6c7ebab10" name="aea049740461b9a27ab27cca6c7ebab10"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea049740461b9a27ab27cca6c7ebab10">&#9670;&#160;</a></span>set_structure_score_output()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::set_structure_score_output </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>output_key</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Use this structure's scalar output directly as reward. </p>
+
+</div>
+</div>
+<a id="a327ff6632285991acb81502cfcb8dba3" name="a327ff6632285991acb81502cfcb8dba3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a327ff6632285991acb81502cfcb8dba3">&#9670;&#160;</a></span>set_structure_selection()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::set_structure_selection </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="_model_search_8h.html#a2fbe6b8d40befc558afebf9ac767c47f">ModelSelectionCriterion</a>&#160;</td>
+          <td class="paramname"><em>criterion</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>effective_sample_size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>complexity</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>How this structure is compared with the others, when it has no explicit score output.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">criterion</td><td>BIC or AIC </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">effective_sample_size</td><td>observations the fit actually used </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">complexity</td><td>free parameters, counted once each</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>A structure must have either this or a score output. There is deliberately no default: scoring by misfit alone is not a comparison between models, it is a preference for the larger one, and a family that forgot to say how it should be judged must fail rather than quietly overfit. </p>
+
+</div>
+</div>
+<a id="a47e183a997132605a2aab0608b10d75a" name="a47e183a997132605a2aab0608b10d75a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a47e183a997132605a2aab0608b10d75a">&#9670;&#160;</a></span>set_warm_start()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::set_warm_start </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Use this scalar objective output as reward (higher is better). </p>
+<p>Carry a parent's fitted values into the parameters a child also frees. </p>
+<p>Off by default, and that default is the important part.</p>
+<p>Warm starting is cheap and usually helps, but it makes a topology inherit whichever optimum its <em>route</em> landed in: the same structure, the same data and the same free parameters score differently depending on the order of the moves that reached them &ndash; measured at 2528.9 in reward across two orderings of two commuting moves (okf/validation/model-search-strategy.md). A candidate that has no score of its own cannot be compared with another, which is the one thing model selection does.</p>
+<p>With warm starting off, every structure is fitted from the seeds it declares, so its score is a property of the model and the data and nothing else. Turn it on only where speed matters more than comparability &ndash; refining a single known topology, not choosing between topologies. </p>
 
 </div>
 </div>
@@ -855,7 +1969,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Sep 20 2026 07:27:52 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 24 2026 05:50:23 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -92,7 +92,7 @@ Collaboration diagram for NeuralNet:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a1337b402a628c38674a75f98384d5022" id="r_a1337b402a628c38674a75f98384d5022"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#a1337b402a628c38674a75f98384d5022">NeuralNet</a> (const std::string &amp;json)</td></tr>
-<tr class="memdesc:a1337b402a628c38674a75f98384d5022"><td class="mdescLeft">&#160;</td><td class="mdescRight">Build from a <code>tttrlib.neural_net</code> JSON document.  <br /></td></tr>
+<tr class="memdesc:a1337b402a628c38674a75f98384d5022"><td class="mdescLeft">&#160;</td><td class="mdescRight">Build from a <code>bff.neural_net</code> JSON document.  <br /></td></tr>
 <tr class="separator:a1337b402a628c38674a75f98384d5022"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd68e306bdf39aaa8c6ef016e4da18a1" id="r_afd68e306bdf39aaa8c6ef016e4da18a1"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#afd68e306bdf39aaa8c6ef016e4da18a1">~NeuralNet</a> ()</td></tr>
 <tr class="separator:afd68e306bdf39aaa8c6ef016e4da18a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -114,7 +114,7 @@ Public Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A dense multilayer perceptron, evaluated in batches. </p>
-<p>Constructed from a <code>tttrlib.neural_net</code> JSON document &ndash; the same one <code>NeuralNet::train</code> writes there and the same one scikit-learn's <code>MLPRegressor</code> converts to &ndash; so the weights need no bff-specific format.</p>
+<p>Constructed from a <code>bff.neural_net</code> JSON document &ndash; the same one <code>NeuralNet::train</code> writes there and the same one scikit-learn's <code>MLPRegressor</code> converts to &ndash; so the weights need no bff-specific format.</p>
 <p>The batch is the unit.** One <code><a class="el" href="class_neural_net.html#a4be3c3fa67d10506a45589fd4e6cb3e0" title="Evaluate a batch.">predict()</a></code> call crosses the binding once and, if an accelerator is loaded, crosses the plugin boundary once, however deep the network. Calling it per row would repeat the mistake that once made the quenching suite forty times slower. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a1337b402a628c38674a75f98384d5022" name="a1337b402a628c38674a75f98384d5022"></a>
@@ -141,7 +141,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Build from a <code>tttrlib.neural_net</code> JSON document. </p>
+<p>Build from a <code>bff.neural_net</code> JSON document. </p>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
     <tr><td class="paramname">IMP::ValueException</td><td>if the document is not one, or if the layers do not chain. </td></tr>
@@ -302,7 +302,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Sep 20 2026 07:27:52 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 24 2026 05:50:23 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -1,7 +1,27 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$class_label_distribution.html" title="Where a dye is, as something that produces states on demand." alt="" coords="5,31,139,56"/>
-<area shape="rect" id="Node000001" href="$class_label_distribution_a_v.html" title="A label whose states come from an accessible&#45;volume search." alt="" coords="203,5,353,31"/>
-<area shape="poly" id="edge26_Node000000_Node000001" title=" " alt="" coords="152,31,202,25,203,30,153,36"/>
-<area shape="rect" id="Node000002" href="$class_probe_distribution_normal.html" title="A label modelled as an isotropic 3&#45;D Gaussian. No structure needed." alt="" coords="187,55,369,80"/>
-<area shape="poly" id="edge27_Node000000_Node000002" title=" " alt="" coords="153,50,187,54,186,59,152,55"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,153,101,179"/>
+<area shape="rect" id="Node000001" href="$class_density_grid.html" title="A regular grid of doubles, with spheres sampled into it." alt="" coords="224,5,323,31"/>
+<area shape="poly" id="edge4_Node000000_Node000001" title=" " alt="" coords="64,139,97,88,120,62,148,40,185,24,223,17,224,22,187,29,151,44,124,65,101,91,69,142"/>
+<area shape="rect" id="Node000003" href="$class_docking_stop.html" title="A cooperative stop for a run that may take minutes." alt="" coords="221,55,325,80"/>
+<area shape="poly" id="edge6_Node000000_Node000003" title=" " alt="" coords="75,141,108,114,148,89,184,76,220,69,221,74,186,82,150,94,111,118,79,146"/>
+<area shape="rect" id="Node000004" href="$class_fit_minimizer_observer.html" title="What a caller is told while a minimisation runs, and how it stops one." alt="" coords="192,104,355,129"/>
+<area shape="poly" id="edge7_Node000000_Node000004" title=" " alt="" coords="112,147,149,138,202,127,203,132,150,143,114,152"/>
+<area shape="rect" id="Node000005" href="$class_interaction_term.html" title="One deactivation channel." alt="" coords="211,153,335,179"/>
+<area shape="poly" id="edge8_Node000000_Node000005" title=" " alt="" coords="116,163,211,163,211,169,116,169"/>
+<area shape="rect" id="Node000009" href="$class_occupancy_grid.html" title="Occupancy counts of atoms, inflated by one extra radius, on the AV lattice." alt="" coords="213,203,333,228"/>
+<area shape="poly" id="edge12_Node000000_Node000009" title=" " alt="" coords="116,179,150,187,214,201,213,206,149,193,114,184"/>
+<area shape="rect" id="Node000011" href="$class_probe_accessible_volume_occupancy_registry.html" title="One AVOccupancyMap per (spacing, extra&#45;radius) class, created on demand." alt="" coords="149,253,397,293"/>
+<area shape="poly" id="edge14_Node000000_Node000011" title=" " alt="" coords="79,187,112,214,151,238,179,250,177,255,148,243,109,218,76,191"/>
+<area shape="rect" id="Node000012" href="$class_r_r_t_collision.html" title="Does this configuration clash?" alt="" coords="222,317,325,343"/>
+<area shape="poly" id="edge15_Node000000_Node000012" title=" " alt="" coords="67,190,99,248,122,278,151,302,185,318,222,326,221,331,184,323,148,307,118,281,94,251,62,193"/>
+<area shape="rect" id="Node000002" href="$class_path_map.html" title=" " alt="" coords="544,5,623,31"/>
+<area shape="poly" id="edge5_Node000001_Node000002" title=" " alt="" coords="336,15,544,15,544,21,336,21"/>
+<area shape="rect" id="Node000006" href="$class_f_r_e_t_term.html" title="2&#45;body: Förster transfer between two dyes." alt="" coords="540,79,627,104"/>
+<area shape="poly" id="edge9_Node000005_Node000006" title=" " alt="" coords="348,152,396,138,420,126,444,113,493,100,539,93,540,98,494,105,446,118,423,130,398,143,350,157"/>
+<area shape="rect" id="Node000007" href="$class_p_e_t_term.html" title="2&#45;body: photoinduced electron transfer between a dye and quencher atoms." alt="" coords="544,128,623,153"/>
+<area shape="poly" id="edge10_Node000005_Node000007" title=" " alt="" coords="349,157,544,141,544,146,349,163"/>
+<area shape="rect" id="Node000008" href="$class_radiative_term.html" title="1&#45;body: the dye&#39;s own decay, ." alt="" coords="525,177,641,203"/>
+<area shape="poly" id="edge11_Node000005_Node000008" title=" " alt="" coords="349,169,525,183,525,188,349,174"/>
+<area shape="rect" id="Node000010" href="$class_probe_accessible_volume_occupancy_map.html" title="The occupancy raster over IMP particles." alt="" coords="445,227,721,252"/>
+<area shape="poly" id="edge13_Node000009_Node000010" title=" " alt="" coords="347,218,445,226,445,231,347,224"/>
 </map>

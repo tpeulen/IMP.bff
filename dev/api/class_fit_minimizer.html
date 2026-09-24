@@ -112,18 +112,11 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a6f556e02989d122a83fd59cefb0eff9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8add4724a36937fa37e01add2e7e28ba" id="r_a8add4724a36937fa37e01add2e7e28ba"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fit_minimizer.html#a8add4724a36937fa37e01add2e7e28ba">get_upper_bounds</a> () const</td></tr>
 <tr class="separator:a8add4724a36937fa37e01add2e7e28ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abd76e34bf42335b0189ad80621544bd1" id="r_abd76e34bf42335b0189ad80621544bd1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fit_minimizer.html#abd76e34bf42335b0189ad80621544bd1">set_objective</a> (std::shared_ptr&lt; <a class="el" href="class_graph_node.html">GraphNode</a> &gt; node, const std::string &amp;residual_key=&quot;&quot;)</td></tr>
-<tr class="memdesc:abd76e34bf42335b0189ad80621544bd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The node graph producing the residual vector.  <br /></td></tr>
-<tr class="separator:abd76e34bf42335b0189ad80621544bd1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a80483641b14f3042a47208bb50bf1a25" id="r_a80483641b14f3042a47208bb50bf1a25"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="class_graph_node.html">GraphNode</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fit_minimizer.html#a80483641b14f3042a47208bb50bf1a25">get_objective</a> () const</td></tr>
-<tr class="separator:a80483641b14f3042a47208bb50bf1a25"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2cc189fd1fae69b60d854e10944b6301" id="r_a2cc189fd1fae69b60d854e10944b6301"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fit_minimizer.html#a2cc189fd1fae69b60d854e10944b6301">set_residual_port_key</a> (const std::string &amp;key)</td></tr>
-<tr class="separator:a2cc189fd1fae69b60d854e10944b6301"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6795baf45489a75527758ccb5ae89a04" id="r_a6795baf45489a75527758ccb5ae89a04"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fit_minimizer.html#a6795baf45489a75527758ccb5ae89a04">get_residual_port_key</a> () const</td></tr>
-<tr class="separator:a6795baf45489a75527758ccb5ae89a04"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab94c983a6674b2bbcc0a1e22e399380a" id="r_ab94c983a6674b2bbcc0a1e22e399380a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fit_minimizer.html#ab94c983a6674b2bbcc0a1e22e399380a">set_residual_function</a> (std::function&lt; std::vector&lt; double &gt;(const std::vector&lt; double &gt; &amp;)&gt; f)</td></tr>
-<tr class="memdesc:ab94c983a6674b2bbcc0a1e22e399380a"><td class="mdescLeft">&#160;</td><td class="mdescRight">A C++ residual function instead of a graph. Not SWIG-wrapped.  <br /></td></tr>
-<tr class="separator:ab94c983a6674b2bbcc0a1e22e399380a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4603743f552b95c039da898fe69febde" id="r_a4603743f552b95c039da898fe69febde"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fit_minimizer.html#a4603743f552b95c039da898fe69febde">set_objective</a> (std::shared_ptr&lt; <a class="el" href="class_fit_objective.html">FitObjective</a> &gt; objective)</td></tr>
+<tr class="memdesc:a4603743f552b95c039da898fe69febde"><td class="mdescLeft">&#160;</td><td class="mdescRight">The objective whose residuals are minimised.  <br /></td></tr>
+<tr class="separator:a4603743f552b95c039da898fe69febde"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a463ccbbd124c9fdcd733e2a6267545de" id="r_a463ccbbd124c9fdcd733e2a6267545de"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="class_fit_objective.html">FitObjective</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fit_minimizer.html#a463ccbbd124c9fdcd733e2a6267545de">get_objective</a> () const</td></tr>
+<tr class="separator:a463ccbbd124c9fdcd733e2a6267545de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad4c7d531254fef86671b769fd749fe49" id="r_ad4c7d531254fef86671b769fd749fe49"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fit_minimizer.html#ad4c7d531254fef86671b769fd749fe49">has_objective</a> () const</td></tr>
 <tr class="separator:ad4c7d531254fef86671b769fd749fe49"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6cc7b6dedc37f1533e46fdf73e0b7f32" id="r_a6cc7b6dedc37f1533e46fdf73e0b7f32"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fit_minimizer.html#a6cc7b6dedc37f1533e46fdf73e0b7f32">set_observer</a> (<a class="el" href="class_fit_minimizer_observer.html">FitMinimizerObserver</a> *observer)</td></tr>
@@ -835,14 +828,14 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a80483641b14f3042a47208bb50bf1a25" name="a80483641b14f3042a47208bb50bf1a25"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a80483641b14f3042a47208bb50bf1a25">&#9670;&#160;</a></span>get_objective()</h2>
+<a id="a463ccbbd124c9fdcd733e2a6267545de" name="a463ccbbd124c9fdcd733e2a6267545de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a463ccbbd124c9fdcd733e2a6267545de">&#9670;&#160;</a></span>get_objective()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::shared_ptr&lt; <a class="el" href="class_graph_node.html">GraphNode</a> &gt; FitMinimizer::get_objective </td>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="class_fit_objective.html">FitObjective</a> &gt; FitMinimizer::get_objective </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -894,23 +887,6 @@ Public Member Functions</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="class_graph_port.html">GraphPort</a> &gt; &gt; FitMinimizer::get_parameter_ports </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a6795baf45489a75527758ccb5ae89a04" name="a6795baf45489a75527758ccb5ae89a04"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6795baf45489a75527758ccb5ae89a04">&#9670;&#160;</a></span>get_residual_port_key()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const std::string &amp; FitMinimizer::get_residual_port_key </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -1257,8 +1233,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="abd76e34bf42335b0189ad80621544bd1" name="abd76e34bf42335b0189ad80621544bd1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abd76e34bf42335b0189ad80621544bd1">&#9670;&#160;</a></span>set_objective()</h2>
+<a id="a4603743f552b95c039da898fe69febde" name="a4603743f552b95c039da898fe69febde"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4603743f552b95c039da898fe69febde">&#9670;&#160;</a></span>set_objective()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1266,32 +1242,21 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">void FitMinimizer::set_objective </td>
           <td>(</td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="class_graph_node.html">GraphNode</a> &gt;&#160;</td>
-          <td class="paramname"><em>node</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="class_fit_objective.html">FitObjective</a> &gt;&#160;</td>
+          <td class="paramname"><em>objective</em></td><td>)</td>
           <td></td>
-          <td class="paramtype">const std::string &amp;&#160;</td>
-          <td class="paramname"><em>residual_key</em> = <code>&quot;&quot;</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>The node graph producing the residual vector. </p>
+<p>The objective whose residuals are minimised. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">node</td><td>the node to evaluate; <code><a class="el" href="class_fit_chi_squared.html" title="The chi-square of a model curve against measured data.">FitChiSquared</a></code> is the intended one, but any node works &ndash; including a Python <code><a class="el" href="class_graph_node.html" title="A function over named ports, evaluated lazily when its inputs settle.">GraphNode</a></code> director wrapping a model bff cannot represent </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">residual_key</td><td>the node's output port carrying the residual vector; empty keeps the current key (default "residuals")</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">objective</td><td>a <code><a class="el" href="class_fit_chi_squared.html" title="The chi-square of a model curve against measured data.">FitChiSquared</a></code>, a <code><a class="el" href="class_fit_joint_chi_squared.html" title="The misfit of several datasets at once: their residuals, end to end.">FitJointChiSquared</a></code>, or a Python <code><a class="el" href="class_fit_objective.html" title="A node that evaluates to weighted residuals; what fits and searches consume.">FitObjective</a></code> subclass wrapping a model bff cannot represent</td></tr>
   </table>
   </dd>
 </dl>
-<p>The optimiser writes the trial vector into the parameter ports, calls <code><a class="el" href="class_graph_node.html#ac80ddcd1618dc4c337fd62507c4d5122" title="Pull linked inputs to their sources&#39; values, evaluating upstream first.">GraphNode::update()</a></code>, and reads the residuals off that port. Nothing else crosses. </p>
+<p>The optimiser writes the trial vector into the parameter ports, calls <code><a class="el" href="class_graph_node.html#ac80ddcd1618dc4c337fd62507c4d5122" title="Pull linked inputs to their sources&#39; values, evaluating upstream first.">GraphNode::update()</a></code>, and reads the objective's residuals. Nothing else crosses. </p>
 
 </div>
 </div>
@@ -1337,45 +1302,6 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ab94c983a6674b2bbcc0a1e22e399380a" name="ab94c983a6674b2bbcc0a1e22e399380a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab94c983a6674b2bbcc0a1e22e399380a">&#9670;&#160;</a></span>set_residual_function()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void FitMinimizer::set_residual_function </td>
-          <td>(</td>
-          <td class="paramtype">std::function&lt; std::vector&lt; double &gt;(const std::vector&lt; double &gt; &amp;)&gt;&#160;</td>
-          <td class="paramname"><em>f</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>A C++ residual function instead of a graph. Not SWIG-wrapped. </p>
-<p>The module carries no <code>std_function.i</code>, and a Python callable is a <code><a class="el" href="class_graph_node.html" title="A function over named ports, evaluated lazily when its inputs settle.">GraphNode</a></code> director anyway &ndash; the same division <code><a class="el" href="class_m_c_m_c_sampler.html">MCMCSampler</a></code> makes. </p>
-
-</div>
-</div>
-<a id="a2cc189fd1fae69b60d854e10944b6301" name="a2cc189fd1fae69b60d854e10944b6301"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2cc189fd1fae69b60d854e10944b6301">&#9670;&#160;</a></span>set_residual_port_key()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void FitMinimizer::set_residual_port_key </td>
-          <td>(</td>
-          <td class="paramtype">const std::string &amp;&#160;</td>
-          <td class="paramname"><em>key</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a024c24c7778c8a656c46a43884cfe3cc" name="a024c24c7778c8a656c46a43884cfe3cc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a024c24c7778c8a656c46a43884cfe3cc">&#9670;&#160;</a></span>set_xtol()</h2>
 
@@ -1402,7 +1328,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Sep 20 2026 07:27:52 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 24 2026 05:50:23 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

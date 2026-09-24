@@ -1,0 +1,17 @@
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/InferenceFactorGraphFromFit.h" name="/home/runner/work/IMP.bff/IMP.bff/include/InferenceFactorGraphFromFit.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="533,5,757,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,152,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="533,54,166,109,165,104,533,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="177,108,338,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="534,61,323,108,322,102,533,56"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="362,108,510,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="582,63,478,105,476,100,580,58"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="534,108,757,133"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="648,60,648,94,643,94,643,60"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="780,108,857,133"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="699,58,784,99,782,104,697,62"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="881,108,940,133"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="727,58,869,103,867,108,726,63"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="965,108,1027,133"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="756,57,952,105,951,110,754,63"/>
+</map>

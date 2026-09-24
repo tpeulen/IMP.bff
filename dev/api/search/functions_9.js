@@ -11,5 +11,7 @@ var searchData=
   ['kinetic_5ftemperature_8',['kinetic_temperature',['../class_molecular_probe_simulation.html#a660c0a22ae283fdcbb97c032d7c362a2',1,'MolecularProbeSimulation::kinetic_temperature()'],['../class_attached_probe_dynamics.html#a494180ba3d91672b9626db673e31f744',1,'AttachedProbeDynamics::kinetic_temperature()']]],
   ['kinetic_5ftransient_5fdistribution_9',['kinetic_transient_distribution',['../_kinetic_network_8h.html#ab332f80052d1940facde0ba1a263f313',1,'KineticNetwork.h']]],
   ['kineticintensitymatrix_10',['kineticintensitymatrix',['../class_kinetic_intensity_matrix.html#ac5be26fdaa261cfa19682aa8a03c0807',1,'KineticIntensityMatrix::KineticIntensityMatrix()'],['../class_kinetic_intensity_matrix.html#aa658117f23224a8ab1925e45724694a5',1,'KineticIntensityMatrix::KineticIntensityMatrix(const std::string &amp;variable, int n_states, const std::vector&lt; std::string &gt; &amp;parents=std::vector&lt; std::string &gt;(), const std::vector&lt; int &gt; &amp;parent_states=std::vector&lt; int &gt;())']]],
-  ['kineticnetwork_11',['KineticNetwork',['../class_kinetic_network.html#a6c2f797d7dbad5ca535b666ea2dfd4d1',1,'KineticNetwork']]]
+  ['kineticnetwork_11',['KineticNetwork',['../class_kinetic_network.html#a6c2f797d7dbad5ca535b666ea2dfd4d1',1,'KineticNetwork']]],
+  ['kineticschemenode_12',['KineticSchemeNode',['../class_kinetic_scheme_node.html#a6a505e0044e5b8f083746c016c373891',1,'KineticSchemeNode']]],
+  ['knot_5fcurvatures_13',['knot_curvatures',['../class_natural_cubic_spline.html#aa3c5194337e417dabcebd1ece9063419',1,'NaturalCubicSpline']]]
 ];

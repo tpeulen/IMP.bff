@@ -37,7 +37,7 @@ var searchData=
   ['bootstrapresult_34',['BootstrapResult',['../struct_bootstrap_result.html#af2ca0e230c3a290eb719b713c3915fa1',1,'BootstrapResult']]],
   ['boundingboxfilter_35',['BoundingBoxFilter',['../class_bounding_box_filter.html#a5b9f409c420278d667d787187f4d7ad6',1,'BoundingBoxFilter']]],
   ['brownian_5fwalk_5fin_5fvolume_36',['brownian_walk_in_volume',['../_brownian_walk_8h.html#ac7239a09ccb919d19a71987dc26605f6',1,'BrownianWalk.h']]],
-  ['build_37',['build',['../class_bounding_box_filter.html#afd256a2aa191dcc553ebe5a9963952d2',1,'BoundingBoxFilter::build()'],['../class_model_search_spec.html#a5cdfa03d2df3fd1f4bf7cafefcfbe462',1,'ModelSearchSpec::build()']]],
+  ['build_37',['build',['../class_bounding_box_filter.html#afd256a2aa191dcc553ebe5a9963952d2',1,'BoundingBoxFilter::build()'],['../class_model_search_spec.html#ab575137517584fa8ebfc0ec759ba4baf',1,'ModelSearchSpec::build()']]],
   ['build_5fports_38',['build_ports',['../class_photophysics_transfer_kinetics_node.html#a50fcc97d871528220eb4cb6a0bbe8b8b',1,'PhotophysicsTransferKineticsNode::build_ports()'],['../class_f_r_e_t_spectrum_node.html#a1b0e30013b4ae88dc1a2fa7bcf25de1d',1,'FRETSpectrumNode::build_ports()'],['../class_f_c_s_saturation_curve.html#aa7217b4a8636506d5e86beba40f393a9',1,'FCSSaturationCurve::build_ports()'],['../class_f_c_s_mdf_curve.html#a5420afb811c2a04c13eccfc9fb10aeba',1,'FCSMdfCurve::build_ports()']]],
   ['build_5fsingle_39',['build_single',['../class_bounding_box_filter.html#a6d38fbff661aa93d1dc5d74b01f6eac4',1,'BoundingBoxFilter']]],
   ['built_5fwith_5fgpu_5fsupport_40',['built_with_gpu_support',['../_compute_backend_8h.html#aa0c1766d99c0b28be2271070cb6ee090',1,'ComputeBackend.h']]],
