@@ -745,18 +745,19 @@ IMP_SWIG_DIRECTOR(IMP::bff, FitMinimizerObserver);
 
 /*
  * msgpack is bff's native format for every network document
- * (IMP::bff::MsgpackBytes, NeuralNet.h). In C++ it is a binary-safe
- * std::string; in Python it is `bytes` both ways: bytes, bytearray or
- * memoryview (anything exposing a contiguous buffer) goes in, `bytes` comes
- * out -- never `str`, which would decode the payload as UTF-8. A `str` is
- * refused with a TypeError that says so. The typecheck accepts `str` on
- * purpose: no overload set offers a text alternative, so a `str` should
- * reach the in-typemap and its clear message, not SWIG's generic dispatch
- * failure.
+ * (IMP::bff::MsgpackBytes, NeuralNet.h); ONNX and safetensors are import
+ * formats (IMP::bff::OnnxBytes, IMP::bff::SafetensorsBytes). All three are
+ * a binary-safe std::string in C++ and `bytes` both ways in Python: bytes,
+ * bytearray or memoryview (anything exposing a contiguous buffer) goes in,
+ * `bytes` comes out -- never `str`, which would decode the payload as
+ * UTF-8. A `str` is refused with a TypeError that names the format. The
+ * typecheck accepts `str` on purpose: no overload set offers a text
+ * alternative, so a `str` should reach the in-typemap and its clear
+ * message, not SWIG's generic dispatch failure.
  */
 %{
 namespace {
-bool bff_msgpack_from_python(PyObject* o, std::string& out) {
+bool bff_bytes_from_python(PyObject* o, std::string& out) {
   if (PyUnicode_Check(o) || !PyObject_CheckBuffer(o)) return false;
   Py_buffer view;
   if (PyObject_GetBuffer(o, &view, PyBUF_C_CONTIGUOUS) != 0) {
@@ -767,49 +768,136 @@ bool bff_msgpack_from_python(PyObject* o, std::string& out) {
   PyBuffer_Release(&view);
   return true;
 }
-void bff_msgpack_type_error(PyObject* o, const char* where, int argnum) {
+void bff_bytes_type_error(PyObject* o, const char* where, int argnum,
+                          const char* what, const char* str_hint) {
   PyErr_Format(PyExc_TypeError,
-               "%s: argument %d must be a msgpack document as bytes "
+               "%s: argument %d must be %s as bytes "
                "(bytes, bytearray or memoryview), not %s%s",
-               where, argnum, Py_TYPE(o)->tp_name,
-               PyUnicode_Check(o) ? " (JSON text is not read; encode the "
-                                    "document with msgpack.packb)" : "");
+               where, argnum, what, Py_TYPE(o)->tp_name,
+               PyUnicode_Check(o) ? str_hint : "");
 }
 }
 %}
-%typemap(in) IMP::bff::MsgpackBytes {
-  if (!bff_msgpack_from_python($input, $1)) {
-    bff_msgpack_type_error($input, "$symname", $argnum);
+/* One typemap set per typedef; WHAT names the format in the TypeError and
+   STR_HINT is appended when a `str` was passed. */
+%define BFF_BYTES_TYPEMAPS(TYPE, WHAT, STR_HINT)
+%typemap(in) TYPE {
+  if (!bff_bytes_from_python($input, $1)) {
+    bff_bytes_type_error($input, "$symname", $argnum, WHAT, STR_HINT);
     SWIG_fail;
   }
 }
-%typemap(in) const IMP::bff::MsgpackBytes& (IMP::bff::MsgpackBytes temp) {
-  if (!bff_msgpack_from_python($input, temp)) {
-    bff_msgpack_type_error($input, "$symname", $argnum);
+%typemap(in) const TYPE& (TYPE temp) {
+  if (!bff_bytes_from_python($input, temp)) {
+    bff_bytes_type_error($input, "$symname", $argnum, WHAT, STR_HINT);
     SWIG_fail;
   }
   $1 = &temp;
 }
 /* std_string.i's freearg (the SWIG_AsPtr res flag) would otherwise reach
    these through the typedef; the copy above lives in `temp`. */
-%typemap(freearg) IMP::bff::MsgpackBytes, const IMP::bff::MsgpackBytes& ""
-%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING) IMP::bff::MsgpackBytes,
-    const IMP::bff::MsgpackBytes& {
+%typemap(freearg) TYPE, const TYPE& ""
+%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING) TYPE, const TYPE& {
   $1 = (PyUnicode_Check($input) || PyObject_CheckBuffer($input)) ? 1 : 0;
 }
-%typemap(out) IMP::bff::MsgpackBytes {
+%typemap(out) TYPE {
   $result = PyBytes_FromStringAndSize($1.data(), static_cast<Py_ssize_t>($1.size()));
 }
-%typemap(out) const IMP::bff::MsgpackBytes& {
+%typemap(out) const TYPE& {
   $result = PyBytes_FromStringAndSize($1->data(), static_cast<Py_ssize_t>($1->size()));
 }
+%enddef
+BFF_BYTES_TYPEMAPS(IMP::bff::MsgpackBytes, "a msgpack document",
+    " (JSON text is not read; encode the document with msgpack.packb)")
+BFF_BYTES_TYPEMAPS(IMP::bff::OnnxBytes, "an ONNX model",
+    " (read the file with open(path, 'rb').read(), or use from_onnx_file)")
+BFF_BYTES_TYPEMAPS(IMP::bff::SafetensorsBytes, "a safetensors file",
+    " (read the file with open(path, 'rb').read(), or use from_safetensors_file)")
 
-/* A dense network, evaluated in batches. The outputs are one managed view --
-   `n_rows * n_outputs` of them -- for the same reason the diffusion solver's
-   are: a walked SWIG proxy costs ~340 ns an element. Ahead of the model
-   search, whose action policy is a network document. */
+/* A dense network, evaluated in batches and differentiated. Every array
+   result is a managed view -- 1-D for predict() (`n_rows * n_outputs`),
+   get_parameters() and dparams; 2-D, shaped, for the derivative entry
+   points and the layer weights -- for the same reason the diffusion
+   solver's are: a walked SWIG proxy costs ~340 ns an element. Batches come
+   in as 2-D arrays (IN_ARRAY2: any array-like, converted to C-contiguous
+   float64). Ahead of the model search, whose action policy is a network
+   document. */
 %apply(double** ARGOUTVIEWM_ARRAY1, int* DIM1) {(double** out_view, int* n_out_view)};
+%apply(double** ARGOUTVIEWM_ARRAY1, int* DIM1) {(double** out_dparams, int* n_out_dparams)};
+%apply(double** ARGOUTVIEWM_ARRAY2, int* DIM1, int* DIM2) {
+    (double** out_matrix, int* n_out_rows, int* n_out_cols),
+    (double** out_y, int* n_out_y1, int* n_out_y2),
+    (double** out_dy_dv, int* n_out_dy_dv1, int* n_out_dy_dv2),
+    (double** out_d2y_dv2, int* n_out_d2y_dv21, int* n_out_d2y_dv22),
+    (double** out_dx, int* n_out_dx1, int* n_out_dx2),
+    (double** out_dv, int* n_out_dv1, int* n_out_dv2)
+};
+%apply(double* IN_ARRAY2, int DIM1, int DIM2) {
+    (const double* in_x, int n_rows, int n_cols),
+    (const double* in_v, int n_rows_v, int n_cols_v),
+    (const double* in_dy, int n_rows_y, int n_cols_y),
+    (const double* in_dy1, int n_rows_y1, int n_cols_y1),
+    (const double* in_dy2, int n_rows_y2, int n_cols_y2)
+};
+%apply(double* IN_ARRAY1, int DIM1) {(const double* in_params, int n_params)};
+/* The two entry points whose optional arguments are Python-side (a missing
+   direction V, missing derivative adjoints, orders above the one asked for
+   returned as None) are wrapped below. */
+%rename(_predict_derivatives) IMP::bff::NeuralNet::predict_derivatives;
+%rename(_backward_derivatives) IMP::bff::NeuralNet::backward_derivatives;
 %include "IMP/bff/NeuralNet.h"
+%extend IMP::bff::NeuralNet {
+  %pythoncode %{
+    def predict_derivatives(self, X, V=None, order=2):
+        """Values and directional derivatives of a batch.
+
+        Each row of `X` is expanded along the direction in the same row of
+        `V`. Returns `(y, dy_dv, d2y_dv2)`, each `(n_rows, n_outputs)`:
+        the value, `J v` and `v^T H v`, in the network's physical units.
+        The orders above `order` are `None`; `V` is not needed for
+        `order=0`.
+        """
+        import numpy as np
+        X = np.ascontiguousarray(np.atleast_2d(np.asarray(X, dtype=float)))
+        order = int(order)
+        if V is None:
+            if order >= 1:
+                raise ValueError("predict_derivatives: order %d needs directions V" % order)
+            V = np.zeros((0, X.shape[1]))
+        else:
+            V = np.ascontiguousarray(np.atleast_2d(np.asarray(V, dtype=float)))
+        y, d1, d2 = self._predict_derivatives(X, V, order)
+        return y, (d1 if order >= 1 else None), (d2 if order >= 2 else None)
+
+    def backward_derivatives(self, X, V, dY, dY1=None, dY2=None):
+        """Reverse pass for a loss on `y`, `J v` (`dY1`) and `v^T H v` (`dY2`).
+
+        `dY`, `dY1`, `dY2` are the loss' adjoints of `y`, `dy_dv` and
+        `d2y_dv2` (`(n_rows, n_outputs)` each; `None` means zero). Returns
+        `(dparams, dx, dv)`: `dparams` flat in get_parameters() layout,
+        `dx` and `dv` `(n_rows, n_inputs)`.
+        """
+        import numpy as np
+        X = np.ascontiguousarray(np.atleast_2d(np.asarray(X, dtype=float)))
+        dY = np.ascontiguousarray(np.atleast_2d(np.asarray(dY, dtype=float)))
+        n_out = self.get_n_outputs()
+        def adjoint(a):
+            if a is None:
+                return np.zeros((0, n_out))
+            return np.ascontiguousarray(np.atleast_2d(np.asarray(a, dtype=float)))
+        if V is None:
+            V = np.zeros((0, X.shape[1]))
+        else:
+            V = np.ascontiguousarray(np.atleast_2d(np.asarray(V, dtype=float)))
+        return self._backward_derivatives(X, V, dY, adjoint(dY1), adjoint(dY2))
+
+    def __repr__(self):
+        dims = [self.get_n_inputs()] + [int(self.get_layer_bias(i).shape[0])
+                                        for i in range(self.get_n_layers())]
+        return "NeuralNet(%s, %d parameters)" % (
+            "->".join(str(d) for d in dims), self.get_n_parameters())
+  %}
+}
 
 /*
  * Model-structure search over an opaque C++ problem.  There is deliberately

@@ -137,8 +137,9 @@ class Tests(IMP.test.TestCase):
 
     def test_bff_loads_an_onnx_model_without_tttrlib(self):
         """bff's own network code reads an ONNX file written by PyTorch --
-        tttrlib's committed fixture, with PyTorch's own outputs -- so a network
-        trained anywhere runs inside bff with nothing but its own header."""
+        the fixtures in test/input/nn (restored from tttrlib's, with PyTorch's
+        own outputs) -- so a network trained anywhere runs inside bff with
+        nothing but its own header."""
         import shutil
         import subprocess
         import tempfile
@@ -149,9 +150,8 @@ class Tests(IMP.test.TestCase):
             self.skipTest("no C++ compiler on PATH")
         here = os.path.dirname(os.path.abspath(__file__))
         repo = os.path.dirname(here)
-        fixtures = os.path.join(os.path.dirname(repo), "tttrlib", "test", "python", "misc", "fixtures", "nn")
-        if not os.path.exists(os.path.join(fixtures, "expected.json")):
-            self.skipTest("../tttrlib fixtures not present")
+        fixtures = os.path.join(here, "input", "nn")
+        self.assertTrue(os.path.exists(os.path.join(fixtures, "expected.json")), fixtures)
         import json
         with open(os.path.join(fixtures, "expected.json")) as fh:
             e = json.load(fh)

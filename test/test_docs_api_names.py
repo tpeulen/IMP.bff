@@ -32,6 +32,11 @@ SKIP = ("build/", "prototypes/", "cmake-build", ".ipynb_checkpoints", "/_data/")
 #: IMP connection layer, and the same documents are read by both builds.
 IMP_LAYER_ONLY = frozenset()
 
+#: `bff.<format>` is also how a network document names its format
+#: (`"format": "bff.neural_net"`): a string in the msgpack map, not an
+#: attribute of the module.
+DOCUMENT_FORMATS = frozenset({"neural_net", "hmm_surrogate"})
+
 
 def documents():
     for pattern in ("ipynb/**/*.ipynb", "doc/**/*.ipynb", "doc/**/*.md",
@@ -50,6 +55,7 @@ def test_the_names_a_document_uses_exist(path):
         if not name.startswith("_")
         and not hasattr(bff, name)
         and name not in IMP_LAYER_ONLY
+        and name not in DOCUMENT_FORMATS
     })
     assert not missing, (
         f"{path.relative_to(ROOT)} names {', '.join(missing)}, which IMP.bff does "

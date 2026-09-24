@@ -49,6 +49,11 @@ shared index.
   several label pairs, dye photophysics as separate factors, bursts with
   microtimes and PIE, full and conditional arrival models, structure priors,
   a simulator with burst search; checks a-d and where to pick it up.
+* [Dense networks](neural-net.md) - `NeuralNet`: evaluation, exact
+  derivatives (Taylor passes, adjoints, Jacobian/Hessian), ONNX/safetensors
+  import, msgpack storage, the MatGemm policy and the int8 path; what came
+  from tttrlib, what was not ported, and the design record of the lost
+  tttrlib `MlpGemm.h`/`MlpQuant.h` work.
 * [cgprobe](cgprobe.md) - The explicit-dye layer: what it does, where the physics
   lives (R0/κ² in `fret`), the flat `IMP.bff.*` surface, conventions (CB
   strip), tests and pins.

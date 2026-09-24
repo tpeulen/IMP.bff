@@ -31,7 +31,12 @@ a photon-level consumer links tttrlib optionally, gated on
 **msgpack is the one format of every network document** (`bff.neural_net`,
 the action policy, `bff.hmm_surrogate`): `IMP::bff::MsgpackBytes`, `bytes` in
 Python, encoded and decoded only by `internal/NetworkDocument.h`. No JSON
-reader, no fallback (tpeulen, 2026-09-24).
+reader, no fallback (tpeulen, 2026-09-24). ONNX (`from_onnx`) and
+safetensors (`from_safetensors`) are import formats only; `to_msgpack()`
+stores an imported network natively. tttrlib's whole `NeuralNet` API
+(derivatives, import, parameters) now lives in bff's `NeuralNet`; its GEMM is
+`internal/MlpGemm.h`'s `MatGemm`, and `QuantizedNeuralNet` is the int8
+deployment path. See `okf/neural-net.md` (tpeulen, 2026-09-24).
 
 ## The compute/display line — the rule above the language rule
 

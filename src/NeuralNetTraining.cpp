@@ -8,6 +8,7 @@
 
 #include <IMP/bff/internal/AdamUpdate.h>
 #include <IMP/bff/internal/MlpCore.h>
+#include <IMP/bff/internal/MlpGemm.h>
 #include <IMP/bff/internal/NetworkDocument.h>
 #include <IMP/bff/internal/pcg_random.h>
 
@@ -24,6 +25,8 @@ IMPBFF_BEGIN_NAMESPACE
 namespace neural_net_training_detail {
 
 namespace mc = IMP::bff::internal::mlpcore;
+// The batch products run through Mat.h's blocked kernels (MlpGemm.h).
+using TrainGemm = IMP::bff::internal::MatGemm;
 
 //! A uniform double in [0, 1) from two pcg32 draws, 53 bits of mantissa.
 inline double uniform01(pcg32& rng) {
@@ -159,7 +162,7 @@ NeuralNetTraining train_neural_net_with_history(
   auto half_mse = [&](const std::vector<double>& in, const std::vector<double>& target,
                       int n_rows) {
     if (n_rows == 0) return 0.0;
-    mc::forward(model.layers, in.data(), n_rows, ws, 0);
+    mc::forward<d::TrainGemm>(model.layers, in.data(), n_rows, ws, 0);
     const std::vector<double>& y = ws.output();
     double acc = 0.0;
     for (std::size_t i = 0; i < y.size(); ++i) {
@@ -189,7 +192,7 @@ NeuralNetTraining train_neural_net_with_history(
         const std::vector<double> xb = d::gather_rows(Xtr, n_features, batch_order, start, bs);
         const std::vector<double> yb = d::gather_rows(Ytr, n_targets, batch_order, start, bs);
 
-        mc::forward(model.layers, xb.data(), bs, ws, 0);
+        mc::forward<d::TrainGemm>(model.layers, xb.data(), bs, ws, 0);
         const std::vector<double>& y = ws.output();
 
         // dL/dy for L = ||y - t||^2 / (2 bs), and the loss itself
@@ -204,7 +207,7 @@ NeuralNetTraining train_neural_net_with_history(
         ++n_batches;
 
         std::fill(grad.begin(), grad.end(), 0.0);
-        mc::backward(model.layers, ws, dY.data(), nullptr, nullptr, grad.data());
+        mc::backward<d::TrainGemm>(model.layers, ws, dY.data(), nullptr, nullptr, grad.data());
         if (opt.alpha > 0.0)  // L2 on weights only
           for (std::size_t i = 0; i < n_params; ++i)
             if (!is_bias[i]) grad[i] += opt.alpha * params[i];
