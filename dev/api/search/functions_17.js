@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['z_5fscale_0',['z_scale',['../namespacemcmc__detail.html#a5df9731a9d65c70a76b483728a43c37c',1,'mcmc_detail']]],
-  ['zmatrix_1',['ZMatrix',['../class_z_matrix.html#ab3021b169a8735ce360f4887722c8437',1,'ZMatrix']]]
+  ['xyz_5find2voxel_0',['xyz_ind2voxel',['../class_density_grid.html#ae4ef01634ea58b19a3bb80a3e6804868',1,'DensityGrid']]],
+  ['xyzpointcloud_1',['XyzPointCloud',['../struct_xyz_point_cloud.html#a489901d14e33610dabec5fa25738d3e4',1,'XyzPointCloud']]]
 ];

@@ -75,6 +75,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">NeuralNet.h File Reference</div></div>
 </div><!--header-->
@@ -108,8 +109,20 @@ Include dependency graph for NeuralNet.h:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html">NeuralNet</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A dense multilayer perceptron, evaluated in batches.  <a href="class_neural_net.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A dense multilayer perceptron: evaluated in batches, and differentiable.  <a href="class_neural_net.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html">QuantizedNeuralNet</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="class_neural_net.html" title="A dense multilayer perceptron: evaluated in batches, and differentiable.">NeuralNet</a>'s forward pass in dynamic-range int8, for deployment.  <a href="class_quantized_neural_net.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:af728b35d06d93bdfd5bda36f18f8bc7c" id="r_af728b35d06d93bdfd5bda36f18f8bc7c"><td class="memItemLeft" align="right" valign="top">typedef std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_neural_net_8h.html#af728b35d06d93bdfd5bda36f18f8bc7c">OnnxBytes</a></td></tr>
+<tr class="memdesc:af728b35d06d93bdfd5bda36f18f8bc7c"><td class="mdescLeft">&#160;</td><td class="mdescRight">An ONNX model (<code>.onnx</code> file contents) as raw bytes; an import format.  <br /></td></tr>
+<tr class="separator:af728b35d06d93bdfd5bda36f18f8bc7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea7353cfa29000bff77d7dc987ebc179" id="r_aea7353cfa29000bff77d7dc987ebc179"><td class="memItemLeft" align="right" valign="top">typedef std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_neural_net_8h.html#aea7353cfa29000bff77d7dc987ebc179">SafetensorsBytes</a></td></tr>
+<tr class="memdesc:aea7353cfa29000bff77d7dc987ebc179"><td class="mdescLeft">&#160;</td><td class="mdescRight">A safetensors file's contents as raw bytes; an import format.  <br /></td></tr>
+<tr class="separator:aea7353cfa29000bff77d7dc987ebc179"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -117,6 +130,41 @@ Variables</h2></td></tr>
 <tr class="memdesc:a33a774d9d60bb570caf1bdd9efc39546"><td class="mdescLeft">&#160;</td><td class="mdescRight">A msgpack document as raw bytes: bff's native format for networks.  <br /></td></tr>
 <tr class="separator:a33a774d9d60bb570caf1bdd9efc39546"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Typedef Documentation</h2>
+<a id="af728b35d06d93bdfd5bda36f18f8bc7c" name="af728b35d06d93bdfd5bda36f18f8bc7c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af728b35d06d93bdfd5bda36f18f8bc7c">&#9670;&#160;</a></span>OnnxBytes</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef std::string <a class="el" href="_neural_net_8h.html#af728b35d06d93bdfd5bda36f18f8bc7c">OnnxBytes</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>An ONNX model (<code>.onnx</code> file contents) as raw bytes; an import format. </p>
+<p>Binary-safe in C++; in Python <code>bytes</code>, <code>bytearray</code> or <code>memoryview</code> &ndash; <code>open(path, "rb").read()</code>. A <code>str</code> is refused with a TypeError. </p>
+
+</div>
+</div>
+<a id="aea7353cfa29000bff77d7dc987ebc179" name="aea7353cfa29000bff77d7dc987ebc179"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea7353cfa29000bff77d7dc987ebc179">&#9670;&#160;</a></span>SafetensorsBytes</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef std::string <a class="el" href="_neural_net_8h.html#aea7353cfa29000bff77d7dc987ebc179">SafetensorsBytes</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A safetensors file's contents as raw bytes; an import format. </p>
+<p>As OnnxBytes: bytes-like in Python, a <code>str</code> refused with a TypeError. </p>
+
+</div>
+</div>
 <h2 class="groupheader">Variable Documentation</h2>
 <a id="a33a774d9d60bb570caf1bdd9efc39546" name="a33a774d9d60bb570caf1bdd9efc39546"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a33a774d9d60bb570caf1bdd9efc39546">&#9670;&#160;</a></span>MsgpackBytes</h2>
@@ -138,7 +186,7 @@ Variables</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Sep 24 2026 09:32:41 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 24 2026 10:19:39 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

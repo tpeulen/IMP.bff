@@ -18,7 +18,7 @@ var searchData=
   ['header_5f_15',['header_',['../class_density_grid.html#a372fc477ed101d7abd0ddfc5e63bbad5',1,'DensityGrid']]],
   ['helmert_5fbasis_16',['helmert_basis',['../struct_bayesian_sum_to_zero_transform.html#aeb7ae72cd9692b801e33738f8096ca6a',1,'BayesianSumToZeroTransform']]],
   ['hermgauss_17',['hermgauss',['../_f_c_s_8h.html#affcc9b90a89573ed4b666f10e9985dbf',1,'FCS.h']]],
-  ['hessian_18',['hessian',['../class_bayesian_p_spline_prior.html#ac57e1439bc80032e6e0937636aeb6bcd',1,'BayesianPSplinePrior']]],
+  ['hessian_18',['hessian',['../class_bayesian_p_spline_prior.html#ac57e1439bc80032e6e0937636aeb6bcd',1,'BayesianPSplinePrior::hessian()'],['../class_neural_net.html#a2a2bf5cc3ba45df65807f7ae804054ff',1,'NeuralNet::hessian()']]],
   ['hetatm_19',['hetatm',['../struct_selection_atom.html#a21535043f4aa75d883929cf4a0f000bd',1,'SelectionAtom']]],
   ['hi_20',['hi',['../struct_bayesian_logit_transform.html#af4d4b46e1bfa7daeb534dc950a651672',1,'BayesianLogitTransform']]],
   ['hidden_5flayer_5fsizes_21',['hidden_layer_sizes',['../class_neural_net_train_options.html#a84b0c3004d5a3e9ebb98f4dc063f0da3',1,'NeuralNetTrainOptions']]],

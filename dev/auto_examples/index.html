@@ -588,6 +588,12 @@
 <li class="toctree-l2"><a class="reference internal" href="labels/plot_fret_restrained_md.html">FRET-restrained molecular dynamics: driving T4L from C2 to C1</a></li>
 </ul>
 </details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="neural_net/index.html">Neural networks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="neural_net/plot_pinn_heat_equation.html">Physics-informed fit: the heat equation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neural_net/plot_neural_net_differentiable.html">A neural network as a differentiable building block</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neural_net/plot_pinn_burgers.html">Physics-informed fit: Burgers’ equation</a></li>
+</ul>
+</details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="spectroscopy/index.html">Fluorescence spectroscopy</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="spectroscopy/plot_hmm_surrogate.html">Training an HMM surrogate (amortised neural estimator)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="spectroscopy/plot_k2_uncertainty.html">Orientation factor</a></li>
@@ -687,6 +693,22 @@
 <p><a class="reference internal" href="labels/plot_fret_restrained_md.html"><span class="doc">FRET-restrained molecular dynamics: driving T4L from C2 to C1</span></a></p>
   <div class="sphx-glr-thumbnail-title">FRET-restrained molecular dynamics: driving T4L from C2 to C1</div>
 </div></div></section>
+<section id="neural-networks">
+<h2>Neural networks<a class="headerlink" href="#neural-networks" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">IMP.bff.NeuralNet</span></code> as a differentiable building block: its exact
+derivatives (<code class="docutils literal notranslate"><span class="pre">backward</span></code>, <code class="docutils literal notranslate"><span class="pre">jacobian</span></code>, <code class="docutils literal notranslate"><span class="pre">hessian</span></code>,
+<code class="docutils literal notranslate"><span class="pre">predict_derivatives</span></code>), a Sobolev fit, and physics-informed fits of the
+heat and Burgers equations.</p>
+<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A physics-informed neural network (PINN; Raissi, Perdikaris &amp; Karniadakis 2019) represents the solution of a differential equation by a network u(x, t) and trains it on the equation itself: the loss is the squared PDE residual at collocation points plus the initial and boundary conditions. Nothing is solved on a grid; the network&#x27;s derivatives with respect to its inputs are the ingredients, and the gradient of the residual loss with respect to the weights is what the optimiser needs."><img alt="" src="../_images/sphx_glr_plot_pinn_heat_equation_thumb.png" />
+<p><a class="reference internal" href="neural_net/plot_pinn_heat_equation.html"><span class="doc">Physics-informed fit: the heat equation</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Physics-informed fit: the heat equation</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="IMP.bff.NeuralNet is a small dense network -- the kind that replaces an expensive fit with a learned map (the HMM surrogate is built on it) or that parametrises an unknown function inside a physical model. This example shows the second use, which is what its derivative API exists for:"><img alt="" src="../_images/sphx_glr_plot_neural_net_differentiable_thumb.png" />
+<p><a class="reference internal" href="neural_net/plot_neural_net_differentiable.html"><span class="doc">A neural network as a differentiable building block</span></a></p>
+  <div class="sphx-glr-thumbnail-title">A neural network as a differentiable building block</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="The canonical PINN benchmark (Raissi, Perdikaris &amp; Karniadakis 2019, Fig. 1): viscous Burgers&#x27; equation"><img alt="" src="../_images/sphx_glr_plot_pinn_burgers_thumb.png" />
+<p><a class="reference internal" href="neural_net/plot_pinn_burgers.html"><span class="doc">Physics-informed fit: Burgers’ equation</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Physics-informed fit: Burgers' equation</div>
+</div></div></section>
 <section id="fluorescence-spectroscopy">
 <h2>Fluorescence spectroscopy<a class="headerlink" href="#fluorescence-spectroscopy" title="Link to this heading">#</a></h2>
 <div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="Photon-by-photon hidden Markov modelling (H2MM) normally recovers a model by iterating Baum-Welch EM on every dataset. A surrogate takes a different route: train a small neural network once on data simulated from the HMM generative model, then estimate the parameters of a dataset in a single forward pass."><img alt="" src="../_images/sphx_glr_plot_hmm_surrogate_thumb.png" />
@@ -767,6 +789,7 @@
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#labelling-simulations">Labelling simulations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#neural-networks">Neural networks</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fluorescence-spectroscopy">Fluorescence spectroscopy</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#structural-modeling">Structural modeling</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#release-highlights">Release Highlights</a></li>

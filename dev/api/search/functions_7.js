@@ -14,7 +14,7 @@ var searchData=
   ['has_5fvariable_11',['has_variable',['../class_inference_canonical_form.html#a1aa9c981c734489197a573ef1b3f9d44',1,'InferenceCanonicalForm']]],
   ['helmert_5fbasis_12',['helmert_basis',['../struct_bayesian_sum_to_zero_transform.html#aeb7ae72cd9692b801e33738f8096ca6a',1,'BayesianSumToZeroTransform']]],
   ['hermgauss_13',['hermgauss',['../_f_c_s_8h.html#affcc9b90a89573ed4b666f10e9985dbf',1,'FCS.h']]],
-  ['hessian_14',['hessian',['../class_bayesian_p_spline_prior.html#ac57e1439bc80032e6e0937636aeb6bcd',1,'BayesianPSplinePrior']]],
+  ['hessian_14',['hessian',['../class_bayesian_p_spline_prior.html#ac57e1439bc80032e6e0937636aeb6bcd',1,'BayesianPSplinePrior::hessian()'],['../class_neural_net.html#a2a2bf5cc3ba45df65807f7ae804054ff',1,'NeuralNet::hessian()']]],
   ['hierarchy_5fatom_5fcoordinates_15',['hierarchy_atom_coordinates',['../_i_m_p_hierarchy_bridge_8h.html#ad5f2064d880259eda92f0b9ebdcd57df',1,'IMPHierarchyBridge.h']]],
   ['hierarchy_5fatom_5fmetadata_16',['hierarchy_atom_metadata',['../_i_m_p_hierarchy_bridge_8h.html#a851c5670518f19980b8a261e953f59de',1,'IMPHierarchyBridge.h']]],
   ['hierarchy_5ffrom_5fprotein_5fframe_17',['hierarchy_from_protein_frame',['../_i_m_p_hierarchy_bridge_8h.html#ab9c8de790056bad590a77dd5a84f85ab',1,'IMPHierarchyBridge.h']]],

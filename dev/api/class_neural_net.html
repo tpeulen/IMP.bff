@@ -76,7 +76,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>A dense multilayer perceptron, evaluated in batches.  
+<p>A dense multilayer perceptron: evaluated in batches, and differentiable.  
  <a href="class_neural_net.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_neural_net_8h_source.html">NeuralNet.h</a>&gt;</code></p>
@@ -85,7 +85,7 @@ Collaboration diagram for NeuralNet:</div>
 <div class="dyncontent">
 <div class="center"><img src="class_neural_net__coll__graph.png" border="0" usemap="#a_neural_net_coll__map" alt="Collaboration graph"/></div>
 <map name="a_neural_net_coll__map" id="a_neural_net_coll__map">
-<area shape="rect" title="A dense multilayer perceptron, evaluated in batches." alt="" coords="5,5,157,191"/>
+<area shape="rect" title="A dense multilayer perceptron: evaluated in batches, and differentiable." alt="" coords="5,5,187,851"/>
 </map>
 </div>
 <table class="memberdecls">
@@ -96,8 +96,13 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:afaa7053a101f53d735cf35608c3d97db"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd68e306bdf39aaa8c6ef016e4da18a1" id="r_afd68e306bdf39aaa8c6ef016e4da18a1"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#afd68e306bdf39aaa8c6ef016e4da18a1">~NeuralNet</a> ()</td></tr>
 <tr class="separator:afd68e306bdf39aaa8c6ef016e4da18a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3ce072cc65e74ff3422f77577bf5c9d2" id="r_a3ce072cc65e74ff3422f77577bf5c9d2"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#a3ce072cc65e74ff3422f77577bf5c9d2">get_last_backend</a> () const</td></tr>
+<tr class="memdesc:a3ce072cc65e74ff3422f77577bf5c9d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Where the last <a class="el" href="class_neural_net.html#a4be3c3fa67d10506a45589fd4e6cb3e0" title="Evaluate a batch.">predict()</a> ran: <code>cpu</code>, or the backend's name.  <br /></td></tr>
+<tr class="separator:a3ce072cc65e74ff3422f77577bf5c9d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Shape</div></td></tr>
+<tr><td colspan="2"><div class="groupText"><p>Inputs the network takes. </p>
+</div></td></tr>
 <tr class="memitem:a1e5bed9d99efaa203b1379a722551570" id="r_a1e5bed9d99efaa203b1379a722551570"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#a1e5bed9d99efaa203b1379a722551570">get_n_inputs</a> () const</td></tr>
-<tr class="memdesc:a1e5bed9d99efaa203b1379a722551570"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inputs the network takes.  <br /></td></tr>
 <tr class="separator:a1e5bed9d99efaa203b1379a722551570"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6549ca35e588e5c2ff6f060b35e71105" id="r_a6549ca35e588e5c2ff6f060b35e71105"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#a6549ca35e588e5c2ff6f060b35e71105">get_n_outputs</a> () const</td></tr>
 <tr class="memdesc:a6549ca35e588e5c2ff6f060b35e71105"><td class="mdescLeft">&#160;</td><td class="mdescRight">Outputs it produces.  <br /></td></tr>
@@ -105,17 +110,72 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:af147070c95e20c188498e640567c30ad" id="r_af147070c95e20c188498e640567c30ad"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#af147070c95e20c188498e640567c30ad">get_n_layers</a> () const</td></tr>
 <tr class="memdesc:af147070c95e20c188498e640567c30ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Layers it has.  <br /></td></tr>
 <tr class="separator:af147070c95e20c188498e640567c30ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3ce072cc65e74ff3422f77577bf5c9d2" id="r_a3ce072cc65e74ff3422f77577bf5c9d2"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#a3ce072cc65e74ff3422f77577bf5c9d2">get_last_backend</a> () const</td></tr>
-<tr class="memdesc:a3ce072cc65e74ff3422f77577bf5c9d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Where the last <a class="el" href="class_neural_net.html#a4be3c3fa67d10506a45589fd4e6cb3e0" title="Evaluate a batch.">predict()</a> ran: <code>cpu</code>, or the backend's name.  <br /></td></tr>
-<tr class="separator:a3ce072cc65e74ff3422f77577bf5c9d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a243a0682358b5fb312b0847a6e10c751" id="r_a243a0682358b5fb312b0847a6e10c751"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#a243a0682358b5fb312b0847a6e10c751">get_n_parameters</a> () const</td></tr>
+<tr class="memdesc:a243a0682358b5fb312b0847a6e10c751"><td class="mdescLeft">&#160;</td><td class="mdescRight">Weights plus biases: the length of <a class="el" href="class_neural_net.html#ae6e7d99d8af52aa9b3248bf79b4e997e" title="All weights and biases as one flat vector.">get_parameters()</a>.  <br /></td></tr>
+<tr class="separator:a243a0682358b5fb312b0847a6e10c751"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a23bda302f06ada30aaefbc8a984b19e1" id="r_a23bda302f06ada30aaefbc8a984b19e1"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#a23bda302f06ada30aaefbc8a984b19e1">get_layer_activation</a> (int layer) const</td></tr>
+<tr class="separator:a23bda302f06ada30aaefbc8a984b19e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a877bbfb62a9c6510c6f5d74fba491e47" id="r_a877bbfb62a9c6510c6f5d74fba491e47"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#a877bbfb62a9c6510c6f5d74fba491e47">get_layer_weights</a> (int layer, double **out_matrix, int *n_out_rows, int *n_out_cols) const</td></tr>
+<tr class="memdesc:a877bbfb62a9c6510c6f5d74fba491e47"><td class="mdescLeft">&#160;</td><td class="mdescRight">Weights of layer <code>layer</code> as an <code>(n_out, n_in)</code> view.  <br /></td></tr>
+<tr class="separator:a877bbfb62a9c6510c6f5d74fba491e47"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3a42c00a64443cda1127dc5393f7f2d" id="r_af3a42c00a64443cda1127dc5393f7f2d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#af3a42c00a64443cda1127dc5393f7f2d">get_layer_bias</a> (int layer, double **out_view, int *n_out_view) const</td></tr>
+<tr class="memdesc:af3a42c00a64443cda1127dc5393f7f2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bias of layer <code>layer</code>, <code>n_out</code> long.  <br /></td></tr>
+<tr class="separator:af3a42c00a64443cda1127dc5393f7f2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Evaluation</div></td></tr>
 <tr class="memitem:a4be3c3fa67d10506a45589fd4e6cb3e0" id="r_a4be3c3fa67d10506a45589fd4e6cb3e0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#a4be3c3fa67d10506a45589fd4e6cb3e0">predict</a> (const std::vector&lt; double &gt; &amp;x, int n_rows, double **out_view, int *n_out_view) const</td></tr>
 <tr class="memdesc:a4be3c3fa67d10506a45589fd4e6cb3e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Evaluate a batch.  <br /></td></tr>
 <tr class="separator:a4be3c3fa67d10506a45589fd4e6cb3e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adaf745ba8ec04447d98ec608f766c70d" id="r_adaf745ba8ec04447d98ec608f766c70d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#adaf745ba8ec04447d98ec608f766c70d">predict</a> (const std::vector&lt; double &gt; &amp;x, double **out_view, int *n_out_view) const</td></tr>
+<tr class="memdesc:adaf745ba8ec04447d98ec608f766c70d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Evaluate one sample: <a class="el" href="class_neural_net.html#a4be3c3fa67d10506a45589fd4e6cb3e0" title="Evaluate a batch.">predict()</a> with <code>n_rows = 1</code>.  <br /></td></tr>
+<tr class="separator:adaf745ba8ec04447d98ec608f766c70d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Derivatives</div></td></tr>
+<tr><td colspan="2"><div class="groupText"><p>Every derivative runs on the CPU, through <code>internal/MlpCore.h</code>. </p>
+</div></td></tr>
+<tr class="memitem:ae4d661888f6e83ac44959334ab05a1e3" id="r_ae4d661888f6e83ac44959334ab05a1e3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#ae4d661888f6e83ac44959334ab05a1e3">predict_derivatives</a> (const double *in_x, int n_rows, int n_cols, const double *in_v, int n_rows_v, int n_cols_v, int order, double **out_y, int *n_out_y1, int *n_out_y2, double **out_dy_dv, int *n_out_dy_dv1, int *n_out_dy_dv2, double **out_d2y_dv2, int *n_out_d2y_dv21, int *n_out_d2y_dv22) const</td></tr>
+<tr class="memdesc:ae4d661888f6e83ac44959334ab05a1e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Values and directional derivatives of a batch.  <br /></td></tr>
+<tr class="separator:ae4d661888f6e83ac44959334ab05a1e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a40d928021e3e01b580bb5c79168b4409" id="r_a40d928021e3e01b580bb5c79168b4409"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#a40d928021e3e01b580bb5c79168b4409">jacobian</a> (const std::vector&lt; double &gt; &amp;x, double **out_matrix, int *n_out_rows, int *n_out_cols) const</td></tr>
+<tr class="memdesc:a40d928021e3e01b580bb5c79168b4409"><td class="mdescLeft">&#160;</td><td class="mdescRight">Jacobian <code>dy/dx</code> at one sample, <code>(n_outputs, n_inputs)</code>.  <br /></td></tr>
+<tr class="separator:a40d928021e3e01b580bb5c79168b4409"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a2bf5cc3ba45df65807f7ae804054ff" id="r_a2a2bf5cc3ba45df65807f7ae804054ff"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#a2a2bf5cc3ba45df65807f7ae804054ff">hessian</a> (const std::vector&lt; double &gt; &amp;x, int output, double **out_matrix, int *n_out_rows, int *n_out_cols) const</td></tr>
+<tr class="separator:a2a2bf5cc3ba45df65807f7ae804054ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a11d2d1dd8c7e76e46ff692eb4be1f918" id="r_a11d2d1dd8c7e76e46ff692eb4be1f918"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#a11d2d1dd8c7e76e46ff692eb4be1f918">backward</a> (const double *in_x, int n_rows, int n_cols, const double *in_dy, int n_rows_y, int n_cols_y, double **out_dparams, int *n_out_dparams, double **out_dx, int *n_out_dx1, int *n_out_dx2) const</td></tr>
+<tr class="memdesc:a11d2d1dd8c7e76e46ff692eb4be1f918"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reverse pass for an arbitrary loss on the outputs.  <br /></td></tr>
+<tr class="separator:a11d2d1dd8c7e76e46ff692eb4be1f918"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab125662f426f5ec527552aacce8d6a32" id="r_ab125662f426f5ec527552aacce8d6a32"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#ab125662f426f5ec527552aacce8d6a32">backward_derivatives</a> (const double *in_x, int n_rows, int n_cols, const double *in_v, int n_rows_v, int n_cols_v, const double *in_dy, int n_rows_y, int n_cols_y, const double *in_dy1, int n_rows_y1, int n_cols_y1, const double *in_dy2, int n_rows_y2, int n_cols_y2, double **out_dparams, int *n_out_dparams, double **out_dx, int *n_out_dx1, int *n_out_dx2, double **out_dv, int *n_out_dv1, int *n_out_dv2) const</td></tr>
+<tr class="memdesc:ab125662f426f5ec527552aacce8d6a32"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reverse pass for a loss that also depends on <code>J v</code> and <code>v^T H v</code>.  <br /></td></tr>
+<tr class="separator:ab125662f426f5ec527552aacce8d6a32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae6e7d99d8af52aa9b3248bf79b4e997e" id="r_ae6e7d99d8af52aa9b3248bf79b4e997e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#ae6e7d99d8af52aa9b3248bf79b4e997e">get_parameters</a> (double **out_view, int *n_out_view) const</td></tr>
+<tr class="memdesc:ae6e7d99d8af52aa9b3248bf79b4e997e"><td class="mdescLeft">&#160;</td><td class="mdescRight">All weights and biases as one flat vector.  <br /></td></tr>
+<tr class="separator:ae6e7d99d8af52aa9b3248bf79b4e997e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec3925cd8f97f954e7ec95a71b794b7c" id="r_aec3925cd8f97f954e7ec95a71b794b7c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#aec3925cd8f97f954e7ec95a71b794b7c">set_parameters</a> (const double *in_params, int n_params)</td></tr>
+<tr class="memdesc:aec3925cd8f97f954e7ec95a71b794b7c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Overwrite the parameters from a flat vector in <a class="el" href="class_neural_net.html#ae6e7d99d8af52aa9b3248bf79b4e997e" title="All weights and biases as one flat vector.">get_parameters()</a> layout.  <br /></td></tr>
+<tr class="separator:aec3925cd8f97f954e7ec95a71b794b7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader">Import</h2></td></tr>
+<tr class="memitem:af05bbcd6919b7e3a8fd41b860c20f918" id="r_af05bbcd6919b7e3a8fd41b860c20f918"><td class="memItemLeft" align="right" valign="top"><a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#af05bbcd6919b7e3a8fd41b860c20f918">to_msgpack</a> () const</td></tr>
+<tr class="memdesc:af05bbcd6919b7e3a8fd41b860c20f918"><td class="mdescLeft">&#160;</td><td class="mdescRight">The network as a <code>bff.neural_net</code> msgpack document.  <br /></td></tr>
+<tr class="separator:af05bbcd6919b7e3a8fd41b860c20f918"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a345d7a50f2b61e9c1d5f57972a837077" id="r_a345d7a50f2b61e9c1d5f57972a837077"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_neural_net.html">NeuralNet</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#a345d7a50f2b61e9c1d5f57972a837077">from_onnx</a> (const <a class="el" href="_neural_net_8h.html#af728b35d06d93bdfd5bda36f18f8bc7c">OnnxBytes</a> &amp;model)</td></tr>
+<tr class="memdesc:a345d7a50f2b61e9c1d5f57972a837077"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read an ONNX model holding a dense network.  <br /></td></tr>
+<tr class="separator:a345d7a50f2b61e9c1d5f57972a837077"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aedd28dbdb13bb62d1f409bc7d21b80ff" id="r_aedd28dbdb13bb62d1f409bc7d21b80ff"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_neural_net.html">NeuralNet</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#aedd28dbdb13bb62d1f409bc7d21b80ff">from_onnx_file</a> (const std::string &amp;path)</td></tr>
+<tr class="memdesc:aedd28dbdb13bb62d1f409bc7d21b80ff"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_neural_net.html#a345d7a50f2b61e9c1d5f57972a837077" title="Read an ONNX model holding a dense network.">from_onnx()</a> on the contents of the file at <code>path</code>.  <br /></td></tr>
+<tr class="separator:aedd28dbdb13bb62d1f409bc7d21b80ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a51acaef1d7a89c8d0e0c8c38f0965281" id="r_a51acaef1d7a89c8d0e0c8c38f0965281"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_neural_net.html">NeuralNet</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#a51acaef1d7a89c8d0e0c8c38f0965281">from_safetensors</a> (const <a class="el" href="_neural_net_8h.html#aea7353cfa29000bff77d7dc987ebc179">SafetensorsBytes</a> &amp;data, const std::string &amp;hidden_activation=&quot;tanh&quot;)</td></tr>
+<tr class="memdesc:a51acaef1d7a89c8d0e0c8c38f0965281"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a safetensors file holding a PyTorch-style <code>state_dict</code>.  <br /></td></tr>
+<tr class="separator:a51acaef1d7a89c8d0e0c8c38f0965281"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aee617fca65c386d8052b2a276f47968d" id="r_aee617fca65c386d8052b2a276f47968d"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_neural_net.html">NeuralNet</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#aee617fca65c386d8052b2a276f47968d">from_safetensors_file</a> (const std::string &amp;path, const std::string &amp;hidden_activation=&quot;tanh&quot;)</td></tr>
+<tr class="memdesc:aee617fca65c386d8052b2a276f47968d"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_neural_net.html#a51acaef1d7a89c8d0e0c8c38f0965281" title="Read a safetensors file holding a PyTorch-style state_dict.">from_safetensors()</a> on the contents of the file at <code>path</code>.  <br /></td></tr>
+<tr class="separator:aee617fca65c386d8052b2a276f47968d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A dense multilayer perceptron, evaluated in batches. </p>
-<p>Constructed from a <code>bff.neural_net</code> msgpack document &ndash; the one <a class="el" href="_neural_net_training_8h.html#a00261999f6d23df6126070953464b6df" title="Fit a network to (X, Y) and return its bff.neural_net msgpack document.">train_neural_net()</a> returns and the one a scikit-learn <code>MLPRegressor</code> converts to: a map <code>{"format": "bff.neural_net", "version": 1, "x_scaler", "y_scaler", "layers": [{"n_in", "n_out", "activation", "weight" (row-major n_out x n_in), "bias"}, ...]}</code>.</p>
-<p>The batch is the unit.** One <code><a class="el" href="class_neural_net.html#a4be3c3fa67d10506a45589fd4e6cb3e0" title="Evaluate a batch.">predict()</a></code> call crosses the binding once and, if an accelerator is loaded, crosses the plugin boundary once, however deep the network. Calling it per row would repeat the mistake that once made the quenching suite forty times slower. </p>
+<div class="textblock"><p>A dense multilayer perceptron: evaluated in batches, and differentiable. </p>
+<p>Constructed from a <code>bff.neural_net</code> msgpack document &ndash; the one <a class="el" href="_neural_net_training_8h.html#a00261999f6d23df6126070953464b6df" title="Fit a network to (X, Y) and return its bff.neural_net msgpack document.">train_neural_net()</a> returns and the one a scikit-learn <code>MLPRegressor</code> converts to: a map <code>{"format": "bff.neural_net", "version": 1, "x_scaler", "y_scaler", "layers": [{"n_in", "n_out", "activation", "weight" (row-major n_out x n_in), "bias"}, ...]}</code> &ndash; or imported with <a class="el" href="class_neural_net.html#a345d7a50f2b61e9c1d5f57972a837077" title="Read an ONNX model holding a dense network.">from_onnx()</a> / <a class="el" href="class_neural_net.html#a51acaef1d7a89c8d0e0c8c38f0965281" title="Read a safetensors file holding a PyTorch-style state_dict.">from_safetensors()</a>.</p>
+<p>The batch is the unit.** One <code><a class="el" href="class_neural_net.html#a4be3c3fa67d10506a45589fd4e6cb3e0" title="Evaluate a batch.">predict()</a></code> call crosses the binding once and, if an accelerator is loaded, crosses the plugin boundary once, however deep the network. Calling it per row would repeat the mistake that once made the quenching suite forty times slower. The derivative entry points take batches for the same reason.</p>
+<p>Units.** Every input and output is in the network's physical (unscaled) units: the stored <code>x_scaler</code> / <code>y_scaler</code> are applied and undone inside, and every derivative includes them in the chain rule.</p>
+<p>Arrays.** Batches come in as <code>(n_rows, n_inputs)</code> arrays (IN_ARRAY2 in Python: any array-like, converted to C-contiguous float64). Results are managed numpy views; in C++ each <code>out_*</code> buffer is <code>malloc</code>-ed and the caller frees it with <code>std::free</code>.</p>
+<p>Copies share their parameters until one of them calls <a class="el" href="class_neural_net.html#aec3925cd8f97f954e7ec95a71b794b7c" title="Overwrite the parameters from a flat vector in get_parameters() layout.">set_parameters()</a>, which gives that copy its own (copy on write). </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="afaa7053a101f53d735cf35608c3d97db" name="afaa7053a101f53d735cf35608c3d97db"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afaa7053a101f53d735cf35608c3d97db">&#9670;&#160;</a></span>NeuralNet()</h2>
@@ -169,6 +229,421 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a11d2d1dd8c7e76e46ff692eb4be1f918" name="a11d2d1dd8c7e76e46ff692eb4be1f918"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a11d2d1dd8c7e76e46ff692eb4be1f918">&#9670;&#160;</a></span>backward()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NeuralNet::backward </td>
+          <td>(</td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>in_x</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_rows</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_cols</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>in_dy</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_rows_y</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_cols_y</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double **&#160;</td>
+          <td class="paramname"><em>out_dparams</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_dparams</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double **&#160;</td>
+          <td class="paramname"><em>out_dx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_dx1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_dx2</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reverse pass for an arbitrary loss on the outputs. </p>
+<p>Given <code>dL/dy</code> for every sample and output, returns <code>dL/dparams</code> and <code>dL/dx</code>. This is the entry point for using the network as one term of a larger differentiable model: the caller's solver produces the adjoint of the network output, this returns the adjoint of the weights. Nothing about the loss is assumed.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">in_x</td><td><code>(n_rows, n_inputs)</code> samples </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">in_dy</td><td><code>(n_rows, n_outputs)</code> adjoint of the outputs </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">out_dparams</td><td><code><a class="el" href="class_neural_net.html#a243a0682358b5fb312b0847a6e10c751" title="Weights plus biases: the length of get_parameters().">get_n_parameters()</a></code> long, in <a class="el" href="class_neural_net.html#ae6e7d99d8af52aa9b3248bf79b4e997e" title="All weights and biases as one flat vector.">get_parameters()</a> layout </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">out_dx</td><td><code>(n_rows, n_inputs)</code> </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ab125662f426f5ec527552aacce8d6a32" name="ab125662f426f5ec527552aacce8d6a32"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab125662f426f5ec527552aacce8d6a32">&#9670;&#160;</a></span>backward_derivatives()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NeuralNet::backward_derivatives </td>
+          <td>(</td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>in_x</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_rows</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_cols</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>in_v</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_rows_v</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_cols_v</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>in_dy</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_rows_y</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_cols_y</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>in_dy1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_rows_y1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_cols_y1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>in_dy2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_rows_y2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_cols_y2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double **&#160;</td>
+          <td class="paramname"><em>out_dparams</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_dparams</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double **&#160;</td>
+          <td class="paramname"><em>out_dx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_dx1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_dx2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double **&#160;</td>
+          <td class="paramname"><em>out_dv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_dv1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_dv2</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reverse pass for a loss that also depends on <code>J v</code> and <code>v^T H v</code>. </p>
+<p>The adjoints <code>dy</code>, <code>dy1</code> (of <code>dy_dv</code>) and <code>dy2</code> (of <code>d2y_dv2</code>) are each <code>(n_rows, n_outputs)</code>; a <code>dy1</code> or <code>dy2</code> with no rows means zero. The Taylor order of the underlying pass is 2 if <code>dy2</code> is given, else 1 if <code>dy1</code> is given, else 0. This is what a physics-informed loss &ndash; a PDE residual in <code>y</code>, its gradient and its Laplacian &ndash; needs to train the weights by gradient descent or L-BFGS.</p>
+<p>In Python: <code>backward_derivatives(X, V, dY, dY1=None, dY2=None)</code> returns <code>(dparams, dx, dv)</code>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">out_dparams</td><td><code><a class="el" href="class_neural_net.html#a243a0682358b5fb312b0847a6e10c751" title="Weights plus biases: the length of get_parameters().">get_n_parameters()</a></code> long </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">out_dx,out_dv</td><td><code>(n_rows, n_inputs)</code> each; <code>dv</code> is zero for an order-0 pass </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a345d7a50f2b61e9c1d5f57972a837077" name="a345d7a50f2b61e9c1d5f57972a837077"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a345d7a50f2b61e9c1d5f57972a837077">&#9670;&#160;</a></span>from_onnx()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="class_neural_net.html">NeuralNet</a> NeuralNet::from_onnx </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="_neural_net_8h.html#af728b35d06d93bdfd5bda36f18f8bc7c">OnnxBytes</a> &amp;&#160;</td>
+          <td class="paramname"><em>model</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read an ONNX model holding a dense network. </p>
+<p>The MLP subset every exporter emits: <code>Gemm</code> (or <code>MatMul</code> + <code>Add</code>) with constant weights, <code>Relu</code> / <code>Tanh</code> / <code>Sigmoid</code> / <code>Softplus</code> / <code>Sin</code> between layers, the <code>Sigmoid</code> + <code>Mul</code> pattern for SiLU, and pass-through reshapes &ndash; PyTorch (both exporters), Keras, JAX, scikit-learn via skl2onnx. No ONNX or protobuf library is involved; the wire format is read directly. The model carries no scalers (an ONNX graph normalises inside or not at all) and a float32 model evaluates as the float32 model it is. </p><dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::ValueException</td><td>naming the unsupported op or the defect </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="aedd28dbdb13bb62d1f409bc7d21b80ff" name="aedd28dbdb13bb62d1f409bc7d21b80ff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aedd28dbdb13bb62d1f409bc7d21b80ff">&#9670;&#160;</a></span>from_onnx_file()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="class_neural_net.html">NeuralNet</a> NeuralNet::from_onnx_file </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p><a class="el" href="class_neural_net.html#a345d7a50f2b61e9c1d5f57972a837077" title="Read an ONNX model holding a dense network.">from_onnx()</a> on the contents of the file at <code>path</code>. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::IOException</td><td>if the file cannot be read </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a51acaef1d7a89c8d0e0c8c38f0965281" name="a51acaef1d7a89c8d0e0c8c38f0965281"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a51acaef1d7a89c8d0e0c8c38f0965281">&#9670;&#160;</a></span>from_safetensors()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="class_neural_net.html">NeuralNet</a> NeuralNet::from_safetensors </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="_neural_net_8h.html#aea7353cfa29000bff77d7dc987ebc179">SafetensorsBytes</a> &amp;&#160;</td>
+          <td class="paramname"><em>data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>hidden_activation</em> = <code>&quot;tanh&quot;</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read a safetensors file holding a PyTorch-style <code>state_dict</code>. </p>
+<p><code>&lt;prefix&gt;.weight</code> of shape <code>(n_out, n_in)</code> with optional <code>&lt;prefix&gt;.bias</code>, layers ordered by the first integer in the prefix; activations from the file's <code>__metadata__</code> (<code>"activations": "tanh,tanh,identity"</code> per layer, or <code>"activation": "tanh"</code> for the hidden layers), else <code>hidden_activation</code>; the output layer is linear. dtypes F32 and F64. </p><dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::ValueException</td><td>on a malformed file or unknown activation </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="aee617fca65c386d8052b2a276f47968d" name="aee617fca65c386d8052b2a276f47968d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aee617fca65c386d8052b2a276f47968d">&#9670;&#160;</a></span>from_safetensors_file()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="class_neural_net.html">NeuralNet</a> NeuralNet::from_safetensors_file </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>path</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>hidden_activation</em> = <code>&quot;tanh&quot;</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p><a class="el" href="class_neural_net.html#a51acaef1d7a89c8d0e0c8c38f0965281" title="Read a safetensors file holding a PyTorch-style state_dict.">from_safetensors()</a> on the contents of the file at <code>path</code>. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::IOException</td><td>if the file cannot be read </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="a3ce072cc65e74ff3422f77577bf5c9d2" name="a3ce072cc65e74ff3422f77577bf5c9d2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3ce072cc65e74ff3422f77577bf5c9d2">&#9670;&#160;</a></span>get_last_backend()</h2>
 
@@ -189,6 +664,103 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a23bda302f06ada30aaefbc8a984b19e1" name="a23bda302f06ada30aaefbc8a984b19e1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a23bda302f06ada30aaefbc8a984b19e1">&#9670;&#160;</a></span>get_layer_activation()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string NeuralNet::get_layer_activation </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>layer</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Activation of layer <code>layer</code> by its document name (<code>relu</code>, <code>tanh</code>, <code>logistic</code>, <code>identity</code>, <code>softplus</code>, <code>silu</code>, <code>sin</code>). </p>
+
+</div>
+</div>
+<a id="af3a42c00a64443cda1127dc5393f7f2d" name="af3a42c00a64443cda1127dc5393f7f2d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3a42c00a64443cda1127dc5393f7f2d">&#9670;&#160;</a></span>get_layer_bias()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NeuralNet::get_layer_bias </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>layer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double **&#160;</td>
+          <td class="paramname"><em>out_view</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_view</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Bias of layer <code>layer</code>, <code>n_out</code> long. </p>
+
+</div>
+</div>
+<a id="a877bbfb62a9c6510c6f5d74fba491e47" name="a877bbfb62a9c6510c6f5d74fba491e47"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a877bbfb62a9c6510c6f5d74fba491e47">&#9670;&#160;</a></span>get_layer_weights()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NeuralNet::get_layer_weights </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>layer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double **&#160;</td>
+          <td class="paramname"><em>out_matrix</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_rows</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_cols</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Weights of layer <code>layer</code> as an <code>(n_out, n_in)</code> view. </p>
+
+</div>
+</div>
 <a id="a1e5bed9d99efaa203b1379a722551570" name="a1e5bed9d99efaa203b1379a722551570"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1e5bed9d99efaa203b1379a722551570">&#9670;&#160;</a></span>get_n_inputs()</h2>
 
@@ -203,8 +775,6 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Inputs the network takes. </p>
 
 </div>
 </div>
@@ -246,8 +816,190 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a243a0682358b5fb312b0847a6e10c751" name="a243a0682358b5fb312b0847a6e10c751"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a243a0682358b5fb312b0847a6e10c751">&#9670;&#160;</a></span>get_n_parameters()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int NeuralNet::get_n_parameters </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Weights plus biases: the length of <a class="el" href="class_neural_net.html#ae6e7d99d8af52aa9b3248bf79b4e997e" title="All weights and biases as one flat vector.">get_parameters()</a>. </p>
+
+</div>
+</div>
+<a id="ae6e7d99d8af52aa9b3248bf79b4e997e" name="ae6e7d99d8af52aa9b3248bf79b4e997e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae6e7d99d8af52aa9b3248bf79b4e997e">&#9670;&#160;</a></span>get_parameters()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NeuralNet::get_parameters </td>
+          <td>(</td>
+          <td class="paramtype">double **&#160;</td>
+          <td class="paramname"><em>out_view</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_view</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>All weights and biases as one flat vector. </p>
+<p>Layers in order, each as its row-major weight matrix followed by its bias: the layout <a class="el" href="class_neural_net.html#a11d2d1dd8c7e76e46ff692eb4be1f918" title="Reverse pass for an arbitrary loss on the outputs.">backward()</a> reports gradients in, and the one an optimiser works on. </p>
+
+</div>
+</div>
+<a id="a2a2bf5cc3ba45df65807f7ae804054ff" name="a2a2bf5cc3ba45df65807f7ae804054ff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a2bf5cc3ba45df65807f7ae804054ff">&#9670;&#160;</a></span>hessian()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NeuralNet::hessian </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; double &gt; &amp;&#160;</td>
+          <td class="paramname"><em>x</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>output</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double **&#160;</td>
+          <td class="paramname"><em>out_matrix</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_rows</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_cols</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Hessian <code>d2 y_k / dx dx</code> of output <code>output</code> at one sample, <code>(n_inputs, n_inputs)</code>; exactly symmetric. </p>
+
+</div>
+</div>
+<a id="a40d928021e3e01b580bb5c79168b4409" name="a40d928021e3e01b580bb5c79168b4409"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a40d928021e3e01b580bb5c79168b4409">&#9670;&#160;</a></span>jacobian()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NeuralNet::jacobian </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; double &gt; &amp;&#160;</td>
+          <td class="paramname"><em>x</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double **&#160;</td>
+          <td class="paramname"><em>out_matrix</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_rows</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_cols</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Jacobian <code>dy/dx</code> at one sample, <code>(n_outputs, n_inputs)</code>. </p>
+
+</div>
+</div>
+<a id="adaf745ba8ec04447d98ec608f766c70d" name="adaf745ba8ec04447d98ec608f766c70d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adaf745ba8ec04447d98ec608f766c70d">&#9670;&#160;</a></span>predict() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NeuralNet::predict </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; double &gt; &amp;&#160;</td>
+          <td class="paramname"><em>x</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double **&#160;</td>
+          <td class="paramname"><em>out_view</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_view</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Evaluate one sample: <a class="el" href="class_neural_net.html#a4be3c3fa67d10506a45589fd4e6cb3e0" title="Evaluate a batch.">predict()</a> with <code>n_rows = 1</code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">x</td><td><code><a class="el" href="class_neural_net.html#a1e5bed9d99efaa203b1379a722551570">get_n_inputs()</a></code> values </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">out_view,n_out_view</td><td><code><a class="el" href="class_neural_net.html#a6549ca35e588e5c2ff6f060b35e71105" title="Outputs it produces.">get_n_outputs()</a></code> values </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="a4be3c3fa67d10506a45589fd4e6cb3e0" name="a4be3c3fa67d10506a45589fd4e6cb3e0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4be3c3fa67d10506a45589fd4e6cb3e0">&#9670;&#160;</a></span>predict()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a4be3c3fa67d10506a45589fd4e6cb3e0">&#9670;&#160;</a></span>predict() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -287,12 +1039,199 @@ Public Member Functions</h2></td></tr>
 <p>Evaluate a batch. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">x</td><td>the batch, row-major, <code>n_rows * <a class="el" href="class_neural_net.html#a1e5bed9d99efaa203b1379a722551570" title="Inputs the network takes.">get_n_inputs()</a></code> long </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">x</td><td>the batch, row-major, <code>n_rows * <a class="el" href="class_neural_net.html#a1e5bed9d99efaa203b1379a722551570">get_n_inputs()</a></code> long </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">n_rows</td><td>rows in the batch </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">out_view,n_out_view</td><td><code>n_rows * <a class="el" href="class_neural_net.html#a6549ca35e588e5c2ff6f060b35e71105" title="Outputs it produces.">get_n_outputs()</a></code>, a managed numpy view; in C++ free it with <code>std::free</code> </td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="ae4d661888f6e83ac44959334ab05a1e3" name="ae4d661888f6e83ac44959334ab05a1e3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae4d661888f6e83ac44959334ab05a1e3">&#9670;&#160;</a></span>predict_derivatives()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NeuralNet::predict_derivatives </td>
+          <td>(</td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>in_x</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_rows</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_cols</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>in_v</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_rows_v</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_cols_v</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>order</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double **&#160;</td>
+          <td class="paramname"><em>out_y</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_y1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_y2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double **&#160;</td>
+          <td class="paramname"><em>out_dy_dv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_dy_dv1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_dy_dv2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double **&#160;</td>
+          <td class="paramname"><em>out_d2y_dv2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_d2y_dv21</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_d2y_dv22</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Values and directional derivatives of a batch. </p>
+<p>Each row of <code>x</code> is expanded along the direction in the same row of <code>v</code>: <code>y</code> is the value, <code>dy_dv</code> the directional derivative <code>J v</code>, and <code>d2y_dv2</code> the directional second derivative <code>v^T H v</code> (per output). A Laplacian is the sum of <code>d2y_dv2</code> over the unit directions; a full Jacobian or Hessian at one sample is <a class="el" href="class_neural_net.html#a40d928021e3e01b580bb5c79168b4409" title="Jacobian dy/dx at one sample, (n_outputs, n_inputs).">jacobian()</a> / <a class="el" href="class_neural_net.html#a2a2bf5cc3ba45df65807f7ae804054ff">hessian()</a>.</p>
+<p>In Python: <code>predict_derivatives(X, V=None, order=2)</code> returns <code>(y, dy_dv, d2y_dv2)</code>, each <code>(n_rows, n_outputs)</code>, with the orders above <code>order</code> as <code>None</code>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">in_x</td><td><code>(n_rows, n_inputs)</code> samples </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">in_v</td><td><code>(n_rows, n_inputs)</code> directions; may have 0 rows (and be null) when <code>order == 0</code> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">order</td><td>0: values only; 1: also <code>J v</code>; 2: also <code>v^T H v</code> </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">out_y,out_dy_dv,out_d2y_dv2</td><td><code>(n_rows, n_outputs)</code> each; the ones above <code>order</code> are <code>(0, n_outputs)</code> </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::ValueException</td><td>on a bad order or shape </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="aec3925cd8f97f954e7ec95a71b794b7c" name="aec3925cd8f97f954e7ec95a71b794b7c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec3925cd8f97f954e7ec95a71b794b7c">&#9670;&#160;</a></span>set_parameters()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NeuralNet::set_parameters </td>
+          <td>(</td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>in_params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_params</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Overwrite the parameters from a flat vector in <a class="el" href="class_neural_net.html#ae6e7d99d8af52aa9b3248bf79b4e997e" title="All weights and biases as one flat vector.">get_parameters()</a> layout. </p>
+<p>The layer shapes are unchanged; later <a class="el" href="class_neural_net.html#a4be3c3fa67d10506a45589fd4e6cb3e0" title="Evaluate a batch.">predict()</a> calls (and a loaded accelerator) see the new values. </p><dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::ValueException</td><td>unless <code>n_params == <a class="el" href="class_neural_net.html#a243a0682358b5fb312b0847a6e10c751" title="Weights plus biases: the length of get_parameters().">get_n_parameters()</a></code> </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="af05bbcd6919b7e3a8fd41b860c20f918" name="af05bbcd6919b7e3a8fd41b860c20f918"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af05bbcd6919b7e3a8fd41b860c20f918">&#9670;&#160;</a></span>to_msgpack()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> NeuralNet::to_msgpack </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The network as a <code>bff.neural_net</code> msgpack document. </p>
+<p><code><a class="el" href="class_neural_net.html" title="A dense multilayer perceptron: evaluated in batches, and differentiable.">NeuralNet</a>(net.to_msgpack())</code> is the same network, bit for bit; this is how an imported network is stored natively or handed on as an action policy. Reflects <a class="el" href="class_neural_net.html#aec3925cd8f97f954e7ec95a71b794b7c" title="Overwrite the parameters from a flat vector in get_parameters() layout.">set_parameters()</a>. </p>
 
 </div>
 </div>
@@ -302,7 +1241,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Sep 24 2026 09:32:42 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Sep 24 2026 10:19:39 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
