@@ -528,23 +528,43 @@ struct FRETNetworkFitContext {
   }
 };
 
+//! The log-posterior, or -inf where the parameters make no valid model.
+/*! A line search probes wherever the step takes it: rates driven to zero can
+    leave the hidden chain reducible (no unique stationary distribution), and
+    the builders then throw. That point is as bad as a zero likelihood, and
+    saying so lets the search back off instead of ending the fit. */
+double fret_network_safe_log_posterior(const FRETNetworkModel& model,
+                                       const std::vector<double>& theta) {
+  try {
+    return model.log_posterior(theta);
+  } catch (const std::exception&) {
+    return -std::numeric_limits<double>::infinity();
+  }
+}
+
 double fret_network_fit_target(double* z, void* p) {
   const FRETNetworkFitContext* c = static_cast<const FRETNetworkFitContext*>(p);
-  const double v = -c->model->log_posterior(c->theta_of(z));
+  const double v = -fret_network_safe_log_posterior(*c->model, c->theta_of(z));
   return std::isfinite(v) ? v : std::numeric_limits<double>::infinity();
 }
 
 double fret_network_fit_gradient(double* z, double* g, void* p) {
   const FRETNetworkFitContext* c = static_cast<const FRETNetworkFitContext*>(p);
   const std::vector<double> th = c->theta_of(z);
-  const std::vector<double> gp = c->model->log_posterior_gradient(th);
   const int n = static_cast<int>(th.size());
+  std::vector<double> gp;
+  try {
+    gp = c->model->log_posterior_gradient(th);
+  } catch (const std::exception&) {
+    std::fill(g, g + n, 0.0);
+    return std::numeric_limits<double>::infinity();
+  }
   for (int j = 0; j < n; ++j) {
     double v = 0.0;
     for (int i = 0; i < n; ++i) v -= c->T(i, j) * gp[i];
     g[j] = v;
   }
-  const double v = -c->model->log_posterior(th);
+  const double v = -fret_network_safe_log_posterior(*c->model, th);
   return std::isfinite(v) ? v : std::numeric_limits<double>::infinity();
 }
 #endif
@@ -599,7 +619,7 @@ FRETLandscapeFit FRETNetworkModel::fit(const std::vector<double>& theta0,
     const int info = opt.minimize(z.data(), &ctx);
     done += iters;
     const std::vector<double> trial = ctx.theta_of(z.data());
-    const double v = log_posterior(trial);
+    const double v = fret_network_safe_log_posterior(*this, trial);
     const double gain = std::isfinite(v) ? v - best : -1.0;
     if (std::isfinite(v) && v > best) {
       x = trial;
