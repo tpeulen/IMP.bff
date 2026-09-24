@@ -111,6 +111,15 @@ _IMP_BFF_WITH_IMP = False
 
 %include "include/IMP_bff.core.i"
 
+/* Network training needs nothing but the core; the HMM surrogate needs
+   tttrlib's HMM, so it is wrapped only where this build links tttrlib (its
+   interface pulls in the training one itself). */
+#if IMP_BFF_HAS_TTTRLIB
+%include "include/IMP_bff.hmmsurrogate.i"
+#else
+%include "include/IMP_bff.neuralnettraining.i"
+#endif
+
 /* The dye roads by file path, where this build links IMP (PRD-139). Their
    signatures name no IMP type, so they need none of IMP's own interfaces --
    see IMP_bff.molecularprobesimulation.i. */
