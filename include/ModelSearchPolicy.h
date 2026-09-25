@@ -77,6 +77,19 @@ class IMPBFFEXPORT ModelSearchPolicyData {
 };
 IMP_VALUES(ModelSearchPolicyData, ModelSearchPolicyDatas);
 
+class ModelSearchPolicyTraining;
+
+#ifndef SWIG
+// Declared (exported) ahead of the class, so the friend declaration inside
+// it names this function: a friend-first declaration has no dllexport, and
+// MSVC then rejects the exported one below (C2375, different linkage).
+// Defaults are added by the documented declaration further down.
+IMPBFFEXPORT ModelSearchPolicyTraining train_action_policy(
+    const ModelSearchPolicyData& data, const std::vector<int>& hidden,
+    int epochs, double learning_rate, unsigned int seed,
+    double validation_fraction, double weight_decay);
+#endif
+
 //! What training produced: the network and how well it ranks held-out moves.
 class IMPBFFEXPORT ModelSearchPolicyTraining {
  public:

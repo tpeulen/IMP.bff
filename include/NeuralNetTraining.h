@@ -89,6 +89,18 @@ class IMPBFFEXPORT NeuralNetTrainOptions {
 };
 IMP_VALUES(NeuralNetTrainOptions, NeuralNetTrainOptionsList);
 
+class NeuralNetTraining;
+
+#ifndef SWIG
+// Declared (exported) ahead of the class, so the friend declaration inside
+// it names this function: a friend-first declaration has no dllexport, and
+// MSVC then rejects the exported one below (C2375, different linkage).
+// Defaults are added by the documented declaration further down.
+IMPBFFEXPORT NeuralNetTraining train_neural_net_with_history(
+    const std::vector<double>& X, int n_samples, int n_features,
+    const std::vector<double>& Y, int n_targets, const NeuralNetTrainOptions& opts);
+#endif
+
 //! What train_neural_net_with_history() produced: the network and its curves.
 class IMPBFFEXPORT NeuralNetTraining {
  public:

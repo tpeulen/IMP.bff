@@ -32,6 +32,10 @@ SKIP = ("build/", "prototypes/", "cmake-build", ".ipynb_checkpoints", "/_data/")
 #: IMP connection layer, and the same documents are read by both builds.
 IMP_LAYER_ONLY = frozenset()
 
+#: Names built only where bff links tttrlib (IMP_BFF_HAS_TTTRLIB): absent from
+#: a build without it, which reads the same documents.
+TTTRLIB_ONLY = frozenset({"HmmSurrogate", "HmmSurrogateEstimate"})
+
 #: `bff.<format>` is also how a network document names its format
 #: (`"format": "bff.neural_net"`): a string in the msgpack map, not an
 #: attribute of the module.
@@ -55,6 +59,7 @@ def test_the_names_a_document_uses_exist(path):
         if not name.startswith("_")
         and not hasattr(bff, name)
         and name not in IMP_LAYER_ONLY
+        and name not in TTTRLIB_ONLY
         and name not in DOCUMENT_FORMATS
     })
     assert not missing, (

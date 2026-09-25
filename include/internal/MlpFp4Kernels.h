@@ -55,7 +55,8 @@
  * `__AVX512F__ && __AVX512BW__ && __AVX512VNNI__` (AVX-512 VNNI),
  * `__AVX2__` -- never by run-time cpuid (under Rosetta 2 cpuid reports no
  * AVX2 while AVX2 instructions execute). `IMPBFF_FP4_NO_SIMD` forces the
- * generic scalar code. `kernel_name()` says which was compiled.
+ * generic scalar code; `IMPBFF_FP4_NO_DOTPROD` forces plain NEON where the
+ * toolchain enables dotprod regardless of `-march`. `kernel_name()` says which was compiled.
  *
  * Derived from llama.cpp / ggml (https://github.com/ggml-org/llama.cpp):
  * ggml/src/ggml-common.h (`kvalues_mxfp4`, `block_mxfp4`, `block_nvfp4`),
@@ -113,7 +114,7 @@
 #if !defined(IMPBFF_FP4_NO_SIMD)
 #if defined(__ARM_NEON) && defined(__aarch64__)
 #include <arm_neon.h>
-#if defined(__ARM_FEATURE_DOTPROD)
+#if defined(__ARM_FEATURE_DOTPROD) && !defined(IMPBFF_FP4_NO_DOTPROD)
 #define IMPBFF_FP4_NEON_DOTPROD 1
 #else
 #define IMPBFF_FP4_NEON 1

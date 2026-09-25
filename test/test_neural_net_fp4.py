@@ -91,7 +91,9 @@ def _variants():
     machine = platform.machine().lower()
     if machine in ("arm64", "aarch64"):
         out.append(("neon-dotprod", [], ["-march=armv8.2-a+dotprod"], "neon-dotprod"))
-        out.append(("neon", [], ["-march=armv8-a"], "neon"))
+        # IMPBFF_FP4_NO_DOTPROD: some toolchains (conda's clang on macOS arm64)
+        # keep dotprod on under -march=armv8-a, so the plain NEON path is forced.
+        out.append(("neon", [], ["-march=armv8-a", "-DIMPBFF_FP4_NO_DOTPROD"], "neon"))
         if sys.platform == "darwin" and shutil.which("arch"):
             out.append(("avx2", ["arch", "-x86_64"], ["-arch", "x86_64", "-mavx2", "-mfma"], "avx2"))
     elif machine in ("x86_64", "amd64"):
@@ -190,6 +192,16 @@ def _decode_weights(fmt, layer):
     return e2m1[codes] * _block_scales(fmt, layer)
 
 
+def _e4m3_decode(codes):
+    """FP8 E4M3 (e4m3fn: bias 7, no infinities, S.1111.111 is NaN) in numpy,
+    so decoding the stored block scales needs no torch."""
+    c = np.asarray(codes, dtype=np.uint8).astype(int)
+    sign = np.where(c & 0x80, -1.0, 1.0)
+    e, m = (c >> 3) & 0xF, c & 0x7
+    val = np.where(e == 0, np.ldexp(m / 8.0, -6), np.ldexp(1.0 + m / 8.0, e - 7))
+    return np.where((c & 0x7F) == 0x7F, np.nan, sign * val)
+
+
 def _block_scales(fmt, layer):
     """bff's decoded scale per (row, element) of a layer, from its document."""
     n_out, n_in, block = layer["n_out"], layer["n_in"], layer["block"]
@@ -202,9 +214,7 @@ def _block_scales(fmt, layer):
     if fmt == "mxfp4":
         d = np.ldexp(1.0, sc.astype(int) - 127)
     else:
-        import torch
-        d = torch.from_numpy(sc.copy()).view(torch.float8_e4m3fn).float().numpy().astype(float)
-        d = d * float(layer["tensor_scale"])
+        d = _e4m3_decode(sc) * float(layer["tensor_scale"])
     return np.repeat(d, block, axis=1)[:, :n_in]
 
 
