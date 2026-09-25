@@ -20,11 +20,14 @@ call; seconds an epoch) for okf/neural-net.md:
   2-16-16-1 net where fixed per-step costs dominate (reported, not a gate).
 
 Both paths run on one thread in the IMP build (no OpenMP there); the
-kernel variant is `QuantizedNeuralNet.get_kernel_name()`. Timings only:
-nothing is asserted.
+kernel variant is `QuantizedNeuralNet.get_kernel_name()`; the machine's
+load average is printed with the results (record it with the numbers).
+Timings only: nothing is asserted. Recorded results: okf/neural-net.md,
+"Speed gates" (2026-09-24) and "Speed gates, third pass" (2026-09-25).
 """
 
 import argparse
+import os
 import platform
 import statistics
 import time
@@ -136,6 +139,8 @@ def main():
     ap.add_argument("--quick", action="store_true")
     a = ap.parse_args()
     print("machine %s, kernel variant %s" % (platform.machine(), IMP.bff.QuantizedNeuralNet.get_kernel_name()))
+    if hasattr(os, "getloadavg"):
+        print("load average %.2f %.2f %.2f" % os.getloadavg())
     bench_inference(a.reps)
     bench_training(a.reps, a.quick)
 

@@ -1,5 +1,12 @@
 # Update Log
 
+## 2026-09-25
+
+- **FP4 training: counter-based stochastic rounding and a faster recipe** ([neural-net.md](neural-net.md), "Training, third pass" and "Speed gates, third pass").
+  - The SplitMix64 SR stream is replaced by a counter-based generator (`SrKey`: `mix32(mix32(n ^ a) ^ b)`, key from seed/step/layer/operand, 16 bits an element) that vectorises in 32-bit lanes; training-only operands use `q = float(x / d via 1/d)` with bit-level SR/RNE on the float. **Every FP4-trained network changes**; inference (W4A8/W4A4, `QuantizedNeuralNet`, fprop activations, 2-D weights) is bit-identical. Accuracy within noise: regression held-out MSE nvfp4 3.04x (was 3.1x), mxfp4 3.10x (3.5x) float64; surrogate MAE 1.04x (1.09x) / 1.07x (1.08x).
+  - Also: Hadamard as butterflies, vectorised nvfp4 block scales, one row quantiser for fprop/W4A4, inlined micro-kernel tiles. A training fingerprint in the snippet is equal on all variants (Mac: generic, neon, neon-dotprod, AVX2 via Rosetta; cordeshub: generic, AVX2, AVX-512 VNNI, sapphirerapids).
+  - G2 (Mac, ms an epoch): surrogate 0.62x / 0.60x float64 (was 0.75/0.74); 64-wide regression 0.91x / 0.89x (was 1.11/1.02) -- target 0.8 not met: at n = 64 the FP4 GEMMs plus quantisation now cost about what float64's GEMMs do, and the shared tanh/float64-layer part sets the ratio. Tiny net 1.27x / 1.20x (was 1.53/1.40). x86 steps under load 15-17: AVX-512 64-wide 1.00/0.92, AVX2 1.11/1.04. G1 unchanged.
+
 ## 2026-09-24
 
 - **FP4 at float64 speed or better: blocked micro-kernels, vectorised quantisation, AVX-512 VNNI** ([neural-net.md](neural-net.md), "Performance design" and "Speed gates").

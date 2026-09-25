@@ -43,10 +43,11 @@ def _train(X, Y, opt):
     return IMP.bff.train_neural_net_arrays(X, Y, opt)
 
 
-# measured 2026-09-24 (okf/neural-net.md): held-out MSE of the FP4-trained
-# network (W4A4 inference) over the float64-trained one on the regression
-# below, nvfp4 3.1x, mxfp4 3.5x (both still < 1 % of the target variance);
-# the bounds leave ~1.6x room
+# measured (okf/neural-net.md): held-out MSE of the FP4-trained network
+# (W4A4 inference) over the float64-trained one on the regression below,
+# nvfp4 3.1x, mxfp4 3.5x with the SplitMix64 SR stream (2026-09-24), 3.04x /
+# 3.10x with the counter-based one (2026-09-25); both < 1 % of the target
+# variance; the bounds leave ~1.6x room
 RATIO_BOUND = {"nvfp4": 5.0, "mxfp4": 6.0}
 
 
@@ -147,6 +148,7 @@ def test_fp4_training_on_the_hmm_surrogate_set():
           % (X.shape, Y.shape, res["float64"], res["nvfp4"], res["mxfp4"]))
     print("  seconds an epoch: float64 %.3f | nvfp4 %.3f | mxfp4 %.3f" % (
         secs["float64"], secs["nvfp4"], secs["mxfp4"]))
-    # measured 2026-09-24: nvfp4 1.09x, mxfp4 1.08x the float64 MAE
+    # measured: nvfp4 1.09x, mxfp4 1.08x the float64 MAE (2026-09-24);
+    # 1.04x / 1.07x with the counter-based SR (2026-09-25)
     assert res["nvfp4"] <= 1.3 * res["float64"], res
     assert res["mxfp4"] <= 1.3 * res["float64"], res

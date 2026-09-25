@@ -277,11 +277,8 @@ and the Python-trained networks' msgpack bytes):
   midpoint compared in the snippet); scale tables are hoisted; block scales
   are computed in a separate pass so the core overlaps them; the nvfp4 row
   scale comes from the block absmaxes.
-- **Stochastic rounding keeps its stream**: SplitMix64 draws in the same
-  order as before (one a real element of a non-zero-scale block), so FP4
-  training results did not change. A NEON-vectorised SplitMix64 (the same
-  counter-based stream, `mix(s0 + n gamma)`) was tried and is slower than
-  the scalar one: NEON has no 64-bit vector multiply.
+- **Stochastic rounding kept its stream** in this pass (SplitMix64, draws
+  in order); the third pass below replaced it.
 - **Training**: `quantize_2d_packed` quantises each FP4 layer's weights once
   a step straight into both packed operands, W (fprop) and W^T (dgrad), with
   the 2-D tile scales -- no `transpose_2d` re-pack; the snippet checks it
@@ -293,6 +290,78 @@ and the Python-trained networks' msgpack bytes):
 - Unchanged by choice: `tanh` (shared by both paths, libm's), MatGemm (the
   float64 baseline; AVX2 on x86 even with AVX-512), threading (none in the
   IMP build; the FP4 GEMM has the same OpenMP opportunity as MatGemm).
+
+### Training, third pass (2026-09-25): counter-based SR, fast operand quantiser
+
+**Every FP4-trained network changed** (by decision: "switch"); inference
+(W4A8 / W4A4 predict, QuantizedNeuralNet, fprop's activations and the 2-D
+weights) is bit-identical to before -- checked on the Python golden hashes
+of every predict variant and by the snippet comparing `quantize_left` with
+the MlpFp4.h recipe.
+
+- **Generator** (`SrKey`, `MlpFp4.h`): counter-based, no state carried from
+  draw to draw. A key `(a, b)` (two 32-bit words) is `fmix64` (SplitMix64's
+  output function) chained over (seed, step, layer, operand) -- operand 0
+  is dgrad's dZ, 1 is wgrad's `(T dZ)^T`; `train::SrStream` advances the
+  step once a backward pass. Word n is `mix32(mix32(n ^ a) ^ b)`, `mix32`
+  a bijective 2-multiply xorshift-multiply mix (Wellons' lowbias32
+  constants `0x21F0AAAD`, `0x735A2D97`): two keyed rounds, an
+  Even-Mansour-style keyed permutation of the counter, so two operands'
+  streams are unrelated permutations, not shifted copies of one sequence.
+  Each element takes **16 bits**: element j of a 16-element group g uses
+  word `8 g + (j & 7)`, low half for j < 8, high half otherwise, the
+  element index being `row * padded_cols + k` -- a 4 / 8 / 16-lane vector
+  of 32-bit words serves whole lanes of elements, and all lanes are 32-bit
+  multiplies (`vmulq_u32`, `_mm256_mullo_epi32`), which NEON has and
+  SplitMix64's 64-bit ones lack. Why 16 bits suffice: SR only needs
+  `P(up) = fraction of the step`; with a centred 16-bit draw that holds to
+  2^-17 of a step for every value (asserted exactly over all 65536 draws),
+  far below E2M1's own step. Tested: that exact bound; the mean of 2^16 and
+  2^22 roundings of six values within 4 sigma (+2^-17) of x (worst 0.44 /
+  0.53 of the bound); chi-square of the top byte over 2^20 draws (248, 255
+  dof); lag-1 correlation 2.6e-3 (bound 4.9e-3); other operand / step keys
+  give other words. Scratch checks (not committed) over 8 keys and 2^22
+  draws: lag-1, same-word low/high halves and lag-16 correlations all
+  within 1.7 sigma.
+- **Element rule for training-only operands** (dgrad's and wgrad's
+  gradients, wgrad's transformed activations; `kern::quantize_train`):
+  block scales exactly as before (same codes), elements
+  `q = float(x * (1 / d))` -- one division a block instead of one an
+  element, the value narrowed to float -- then round-to-nearest-even on
+  the float (`e2m1_encode_f`) or SR on float bits (`e2m1_encode_sr16`):
+  `y = min(|q| + 2, (|q| + 2) / 2 + 3)` puts the E2M1 grid on 2-mantissa-
+  bit boundaries ([0, 2) -> [2, 4), [2, 4) -> [4, 6), [4, 6] -> [6, 7]),
+  the draw `16 + (u << 5)` is added below the kept bits, and the code is
+  `(bits >> 21) - 512` saturated to 7. NaN codes as +-0. On NEON the carry
+  and the RNE threshold compares run in 16-bit lanes (8 at a time).
+  fprop's activations and the weights keep the exact rule (inference must
+  reproduce training's forward), now through the same row quantiser
+  (`quantize_rows_fast`, a 16-element group at a time, division on vector
+  lanes and round-to-odd narrowing as before).
+- **Hadamard as butterflies**: `x_j s_j / 4` (exact) then four add/sub
+  stages, 2 (NEON) / 4 (AVX2) / 8 (generic) columns in registers, fully
+  unrolled -- 2x faster than the second pass's 16 x 16 FMA product on the
+  Mac, 3.4x under Rosetta AVX2. Adds only, so every build rounds alike
+  (`rht_rows` is the same code).
+- **Block scales**: an unrolled 16-element absmax; nvfp4's E4M3 codes,
+  decoded scales and half scales two blocks a NEON op (the bit-level
+  rounding of `e4m3_encode`, the value rebuilt from the code bits), the
+  scalar code outside the normal range; 2-D weight tile scales hoisted;
+  `e4m3_encode_reference` is out of line (cold) so the fast path inlines.
+- **GEMM**: the micro-kernel tiles are always inlined into `gemm_packed`
+  (K = 64 GEMMs 2x faster: the call per 4 x 4 tile dominated) and the
+  store/bias loop has constant trip counts; right-operand packing is SWAR.
+- **Not reused across operands**: dZ goes into dgrad row-wise and into
+  wgrad transposed and Hadamard-transformed; A into fprop row-wise and
+  into wgrad transformed -- different values, so nothing is quantised once
+  for two GEMMs with the recipe's Hadamard on.
+- Bit-identical across variants is now also one committed number:
+  `kTrainingFingerprint` in the snippet hashes the training quantiser (SR
+  and RNE, both formats) and three steps of an all-FP4 ReLU net (no libm,
+  no float64 GEMM); generic, neon, neon-dotprod, AVX2 (Rosetta) and the
+  x86 generic build on the Mac, and generic / AVX2 / AVX-512 VNNI /
+  `-march=sapphirerapids` (g++ 11.4) on cordeshub all give
+  `06b331c979c13fc5`.
 
 ### Speed gates (2026-09-24)
 
@@ -359,10 +428,64 @@ value at n = 64 and ~8 at n = 256. The crossover is n ~ 96 (M1), ~128
 (AVX2), ~96 (AVX-512); below it the recipe's quantisation, not the
 arithmetic, is the cost. The tiny net is fixed per-step overhead (a few
 hundred values a layer, eight quantiser calls a step). Stochastic rounding
-(~1 ns a draw for the scalar SplitMix64, 26 k draws a 64-wide layer-step)
+(~1 ns a draw for the scalar SplitMix64, 26 k draws a 64-wide layer-step;
+replaced by the third pass below)
 and the division by the non-power-of-two nvfp4 scale are the two costs
 left that exactness pins; a different, vectorisable random stream would
 change every trained network and was not taken.
+
+### Speed gates, third pass (2026-09-25)
+
+G2, training, ms an epoch, `test/bench_neural_net_fp4.py` (M1 Pro,
+neon-dotprod, module build, median of 5; load average 4.9 at the start,
+9-11 over the previous 15 min), before (second pass, table above) -> now:
+
+| shape | float64 | nvfp4 | mxfp4 | nvfp4 / f64 | mxfp4 / f64 |
+|---|---|---|---|---|---|
+| surrogate 400 x 24 -> 8, 256-256-128 | 8.73 | 5.38 | 5.24 | 0.75 -> **0.62** | 0.74 -> **0.60** |
+| regression 3000 x 4 -> 2, 64-64-64 | 9.53 | 8.69 | 8.44 | 1.11 -> **0.91** | 1.02 -> **0.89** |
+| tiny 2000 x 2 -> 1, 16-16 (no gate) | 0.63 | 0.80 | 0.76 | 1.53 -> 1.27 | 1.40 -> 1.20 |
+
+The training step in C++ (weights quantisation + forward + backward,
+bs 200, us; `before` is HEAD 48fafb16's headers in the same binary run,
+FP4 / float64 in brackets). Mac: M1 Pro, load 3.5. x86: cordeshub Xeon
+Silver 4416+, g++ 11.4 `-O3`, **load average 15-17 on 24 cores from
+another user** (expect 10-20 % noise; the float64 column moves by that
+much between runs):
+
+| net | M1 f64 | M1 nvfp4 before -> now | M1 mxfp4 before -> now | avx2 f64 | avx2 nvfp4 | avx2 mxfp4 | avx512 f64 | avx512 nvfp4 | avx512 mxfp4 |
+|---|---|---|---|---|---|---|---|---|---|
+| 24-256-256-128-8 | 4350 | 2990 (0.73) -> 2419 (0.56) | 2871 (0.70) -> 2375 (0.55) | 9132 | 7304 (0.81) -> 7318 (0.80) | 6669 (0.74) -> 6289 (0.69) | 9738 | 6305 (0.61) -> 5621 (0.58) | 5759 (0.56) -> 5224 (0.54) |
+| 4-64-64-64-2 | 567 | 677 (1.20) -> 538 (0.95) | 630 (1.12) -> 516 (0.91) | 1366 | 1749 (1.32) -> 1510 (1.11) | 1590 (1.20) -> 1422 (1.04) | 1393 | 2114 (1.54) -> 1391 (1.00) | 1846 (1.34) -> 1288 (0.92) |
+| 4-96-96-96-2 | 1040 | 1113 (1.06) -> 860 (0.83) | 1040 (0.99) -> 839 (0.81) | 2347 | 2754 (1.19) -> 2447 (1.04) | 2506 (1.08) -> 2281 (0.97) | 2391 | 2481 (0.86) -> 2200 (0.92) | 2373 (0.82) -> 2006 (0.84) |
+| 4-128-128-128-2 | 1640 | 1549 (0.93) -> 1246 (0.76) | 1457 (0.87) -> 1226 (0.75) | 3574 | 5114 (1.16) -> 3409 (0.95) | 3740 (0.85) -> 3169 (0.89) | 3652 | 3604 (0.92) -> 3029 (0.83) | 3013 (0.77) -> 2743 (0.75) |
+| 2-16-16-1 | 59 | 96 (1.61) -> 77 (1.30) | 88 (1.48) -> 76 (1.28) | 162 | 236 (1.64) -> 203 (1.25) | 226 (1.57) -> 240 (1.48) | 164 | 206 (1.43) -> 182 (1.11) | 193 (1.34) -> 175 (1.07) |
+
+(x86 "before" is the old headers' binary in the same session, whose own
+float64 column read 1329-1377 / 2316-2889 / 3934-4411 -- the load.)
+
+**The gate is met on the surrogate shape (0.60-0.62 on the Mac) and is not
+met on the 64-wide regression**: 0.89-0.91 an epoch on the Mac (target
+<= 0.8), 0.91-1.11 a step on x86. Where the 64-wide step goes now (M1,
+two FP4 layers, per step): the FP4 GEMMs ~95 us (6 x 14-17 us; their float
+combine -- convert, scale, add per 16-element sub-block and output -- is
+as much work as the int8 dot products at K = 64), quantisation ~120 us
+(fprop exact 2 x 14, dgrad SR 2 x 16, wgrad SR 2 x 14 + RNE 2 x 12, weights
+2 x 6), Hadamard 2 x 9 -- ~235 us against float64's ~250 us for the same
+three GEMMs of both layers; the rest of the step (~300 us: `tanh`, 190 us
+of it, and the float64 first/last layers) is shared. So at n = 64 FP4
+arithmetic and float64 arithmetic cost the same and the ratio is set by
+the shared part; the crossover moved from n ~ 96-128 to n ~ 64, and
+width 96 is now 0.81-0.83 on the Mac. The tiny net's remaining overhead is
+per-call fixed work (eight quantiser calls, block-scale setup, 2-D weight
+packing of 16 x 16 tiles) on a few hundred values -- 77 vs 59 us.
+
+G1, inference, is unchanged in speed (worst FP4 / float64 0.67 on the Mac
+at batch 256; Python table from the bench script: batch 1 7.1-7.6 us vs
+24.8, batch 32 206-214 vs 352-387, batch 256 1623-1729 vs 2534-2833) and
+bit-identical; x86 (C++, load 15-17): avx2 12-13.5 / 629-812 / 5093-5418
+us vs float64 27-28 / 984-1008 / 6064-6518, avx512-vnni 12.3-13.8 /
+585-614 / 4684-4934 vs 26-28 / 977-1003 / 5905-6150.
 
 ### Accuracy and size (2026-09-24)
 
@@ -395,7 +518,8 @@ float64 master weights and Adam state; weights 2-D 16 x 16 scaled so W and
 W^T quantise identically (4.3; `quantize_2d` / `transpose_2d`); a 16 x 16
 random Hadamard transform with one fixed sign vector on the wgrad inputs
 only (4.2); stochastic rounding for the gradient operand of dgrad and wgrad,
-RNE for weights and activations (4.4), SR draws seeded by `options.seed`;
+RNE for weights and activations (4.4), SR draws counter-based, keyed by
+`options.seed`, the step, the layer and the operand;
 first and last layer kept in float64 by default (4.1: "a few sensitive
 linear layers in higher precision ... majority at the end"). Deviations: the
 global NVFP4 scale of activation/gradient operands is per operand row, not
@@ -410,17 +534,23 @@ whose kept layers are float64 (`"precision": "float64"` layer entries).
 
 Checked (C++): Hadamard orthogonal to 1e-16 and `(T dZ)^T (T A) = dZ^T A`;
 wgrad and dgrad equal a float64 GEMM of the same quantised operands to
-7e-8; SR deterministic per seed and unbiased (mean of 2e5 roundings within
-3e-3); one FP4 step bit-reproducible; FP4 gradient cosine 0.98 to the
+7e-8; SR deterministic per key and unbiased (the counter-based draws of the
+third pass: P(up) exact to 2^-17 over all draws, means of 2^16 / 2^22
+roundings within 4 sigma); one FP4 step bit-reproducible and one training
+fingerprint for every variant; FP4 gradient cosine 0.98 to the
 float64 one on a random 6-64-48-32-2 net. Measured (Python):
 
 | task | float64 | nvfp4 | mxfp4 |
 |---|---|---|---|
-| 4-64-64-64-2 tanh regression, held-out MSE (var 0.51) | 8.4e-4 | 2.6e-3 (3.1x) | 3.0e-3 (3.5x) |
-| HMM surrogate set (400 x 24 -> 8), 256-256-128, held-out MAE | 0.0959 | 0.1046 (1.09x) | 0.1036 (1.08x) |
+| 4-64-64-64-2 tanh regression, held-out MSE (var 0.51), SplitMix64 SR (to 2026-09-24) | 8.4e-4 | 2.6e-3 (3.1x) | 3.0e-3 (3.5x) |
+| the same, counter-based SR + training's element rule (2026-09-25) | 8.4e-4 | 2.57e-3 (3.04x) | 2.62e-3 (3.10x) |
+| HMM surrogate set (400 x 24 -> 8), 256-256-128, held-out MAE, SplitMix64 SR | 0.0959 | 0.1046 (1.09x) | 0.1036 (1.08x) |
+| the same, counter-based SR (2026-09-25) | 0.0959 | 0.1002 (1.04x) | 0.1023 (1.07x) |
 | seconds an epoch (surrogate), first pass | 0.011 | 0.020 | 0.017 |
 | ms an epoch (surrogate), second pass (bench script) | 11.0 | 8.2 | 8.1 |
 
-FP4 training's speed: see "Speed gates" above -- since the second pass it is
-faster than float64 on the surrogate shape (0.74x an epoch), at parity
-around 96-128 wide, and slower below.
+New and old accuracy agree within one seed's noise (the bounds in
+`test_neural_net_fp4_training.py` -- 5x / 6x the float64 MSE, 1.3x the
+MAE -- are unchanged). FP4 training's speed: see the third-pass gates
+above -- 0.60-0.62x float64 an epoch on the surrogate shape, 0.89-0.91x at
+64 wide, and slower on the tiny net.
