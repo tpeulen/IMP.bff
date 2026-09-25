@@ -258,7 +258,7 @@ struct Workspace {
     std::vector<kern::PackedRight> pw, pwt;
     std::vector<double> dz, da, f1, dzt, at, tile;
     std::vector<std::uint8_t> wcodes, tcodes, tilecode;
-    std::vector<float> hsc;
+    std::vector<float> hsc, hrow;
     kern::Q8Rows left;
     kern::PackedRight right;
     kern::QuantScratch qs;
@@ -285,38 +285,52 @@ inline void quantize_2d_packed(const double* W, int rows, int cols, Format f, Wo
                 if (k1 > k0) amax = std::max(amax, kern::vq::absmax(W + static_cast<std::size_t>(r) * cols + k0, k1 - k0));
             ws.tilecode[static_cast<std::size_t>(rt) * nb + kb] = block_scale_code(f, amax, g);
         }
+    // every tile's half scale (kd::half_scale), and the zero-block one past the last row tile
+    ws.hsc.resize(static_cast<std::size_t>(nrt) * nb + 1);
+    float* th = ws.hsc.data();
+    for (std::size_t t = 0; t < static_cast<std::size_t>(nrt) * nb; ++t) th[t] = kern::kd::half_scale(f, ws.tilecode[t], g);
+    th[static_cast<std::size_t>(nrt) * nb] = kern::kd::half_scale(f, block_scale_code(f, 0.0, g), g);
+    std::vector<float>& hrow = ws.hrow;
+    hrow.resize(static_cast<std::size_t>(std::max(kpi, kpo) / 16));
     // element codes, row by row (rows x kpi, unpacked)
-    ws.wcodes.assign(static_cast<std::size_t>(rows) * kpi, 0);
-    ws.hsc.resize(static_cast<std::size_t>(std::max(kpi, kpo) / 16));
+    ws.wcodes.resize(static_cast<std::size_t>(rows) * kpi);
     pw.rows = 0;
     kern::pack_right_init(rows, kpi, pw);
     for (int r = 0; r < rows; ++r) {
         std::uint8_t* cr = ws.wcodes.data() + static_cast<std::size_t>(r) * kpi;
+        std::fill(cr + cols, cr + kpi, std::uint8_t(0));
         const double* x = W + static_cast<std::size_t>(r) * cols;
         for (int kb = 0; kb < nb; ++kb) {
             const int k0 = std::min(cols, kb * b), k1 = std::min(cols, k0 + b);
             const std::uint8_t code = ws.tilecode[static_cast<std::size_t>(r / b) * nb + kb];
             const double d = block_scale_value(f, code, g);
-            if (k1 > k0 && d > 0.0) kern::vq::encode_rne(x + k0, k1 - k0, d, cr + k0);
+            if (k1 <= k0) continue;
+            if (!(d > 0.0)) {
+                std::fill(cr + k0, cr + k1, std::uint8_t(0));
+                continue;
+            }
+            int k = k0;
+            const bool p2 = kern::vq::pow2_scale(d);
+            for (; k + 16 <= k1; k += 16) kern::tq::group_exact(x + k, d, p2, cr + k);
+            if (k < k1) kern::vq::encode_rne(x + k, k1 - k, d, cr + k);
         }
-        for (int s = 0; s < kpi / 16; ++s)
-            ws.hsc[static_cast<std::size_t>(s)] =
-                    kern::kd::half_scale(f, ws.tilecode[static_cast<std::size_t>(r / b) * nb + s * 16 / b], g);
-        kern::pack_right_row(pw, r, cr, ws.hsc.data());
+        const float* tr = th + static_cast<std::size_t>(r / b) * nb;
+        for (int s2 = 0; s2 < kpi / 16; ++s2) hrow[static_cast<std::size_t>(s2)] = tr[s2 * 16 / b];
+        kern::pack_right_row(pw, r, cr, hrow.data());
     }
     // the transpose: row k holds column k's codes; sub-block s's scale is
     // the tile (s * 16 / b, k / b), a zero-block code past the last row tile
     kern::pack_right_init(cols, kpo, pwt);
     ws.tcodes.assign(static_cast<std::size_t>(kpo), 0);
-    const std::uint8_t zero_code = block_scale_code(f, 0.0, g);
     for (int k = 0; k < cols; ++k) {
-        for (int r = 0; r < rows; ++r) ws.tcodes[static_cast<std::size_t>(r)] = ws.wcodes[static_cast<std::size_t>(r) * kpi + k];
-        for (int s = 0; s < kpo / 16; ++s) {
-            const int rt = s * 16 / b;
-            ws.hsc[static_cast<std::size_t>(s)] = kern::kd::half_scale(
-                    f, rt * b < rows ? ws.tilecode[static_cast<std::size_t>(rt) * nb + k / b] : zero_code, g);
+        const std::uint8_t* src = ws.wcodes.data() + k;
+        for (int r = 0; r < rows; ++r) ws.tcodes[static_cast<std::size_t>(r)] = src[static_cast<std::size_t>(r) * kpi];
+        for (int s2 = 0; s2 < kpo / 16; ++s2) {
+            const int rt = s2 * 16 / b;
+            hrow[static_cast<std::size_t>(s2)] =
+                    rt * b < rows ? th[static_cast<std::size_t>(rt) * nb + k / b] : th[static_cast<std::size_t>(nrt) * nb];
         }
-        kern::pack_right_row(pwt, k, ws.tcodes.data(), ws.hsc.data());
+        kern::pack_right_row(pwt, k, ws.tcodes.data(), hrow.data());
     }
 }
 

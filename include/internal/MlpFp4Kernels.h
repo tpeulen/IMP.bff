@@ -1005,6 +1005,12 @@ inline void quantize_right(const double* A, int rows, int K, Format f, Rounding 
 // scalar definitions lane by lane (the float ops are single IEEE
 // operations; nothing to contract).
 
+#if defined(__GNUC__) || defined(__clang__)
+#define IMPBFF_FP4_INLINE inline __attribute__((always_inline))
+#else
+#define IMPBFF_FP4_INLINE inline
+#endif
+
 namespace tq {
 //! The 16 codes of one group (16 elements, `x` readable for all 16) at
 //! reciprocal scale `r`; `key` null rounds to nearest even, else the
@@ -1020,7 +1026,7 @@ inline void group_generic(const double* x, double r, const SrKey* key, std::uint
         c[j] = e2m1_encode_sr16(static_cast<float>(x[j] * r), (j & 8) ? (w[j & 7] >> 16) : (w[j & 7] & 0xFFFFu));
 }
 #if defined(IMPBFF_FP4_NEON_DOTPROD) || defined(IMPBFF_FP4_NEON)
-inline uint32x4_t mix32v(uint32x4_t x) {
+IMPBFF_FP4_INLINE uint32x4_t mix32v(uint32x4_t x) {
     x = veorq_u32(x, vshrq_n_u32(x, 16));
     x = vmulq_u32(x, vdupq_n_u32(0x21F0AAADu));
     x = veorq_u32(x, vshrq_n_u32(x, 15));
@@ -1028,7 +1034,7 @@ inline uint32x4_t mix32v(uint32x4_t x) {
     return veorq_u32(x, vshrq_n_u32(x, 15));
 }
 //! The float bits `y + 16` of e2m1_encode_sr16 for four lanes.
-inline uint32x4_t sr_bits(float32x4_t q) {
+IMPBFF_FP4_INLINE uint32x4_t sr_bits(float32x4_t q) {
     const float32x4_t y = vaddq_f32(vmaxnmq_f32(vabsq_f32(q), vdupq_n_f32(0.0f)), vdupq_n_f32(2.0f));
     const float32x4_t y2 = vfmaq_n_f32(vdupq_n_f32(3.0f), y, 0.5f);  // exact product: fused or not alike
     return vaddq_u32(vreinterpretq_u32_f32(vminq_f32(y, y2)), vdupq_n_u32(16));
@@ -1036,7 +1042,7 @@ inline uint32x4_t sr_bits(float32x4_t q) {
 //! e2m1_encode_sr16 of eight lanes (qa, qb) with draws `u`, in 16-bit lanes:
 //! the carry of `(bits & 0x1FFFFF) + (u << 5)` into bit 21 is the carry of
 //! `mid + u`, mid = bits 5..20.
-inline uint8x8_t sr8(float32x4_t qa, float32x4_t qb, uint16x8_t u) {
+IMPBFF_FP4_INLINE uint8x8_t sr8(float32x4_t qa, float32x4_t qb, uint16x8_t u) {
     const uint32x4_t ya = sr_bits(qa), yb = sr_bits(qb);
     const uint16x8_t top = vshrn_high_n_u32(vshrn_n_u32(ya, 16), yb, 16);
     const uint16x8_t mid = vshrn_high_n_u32(vshrn_n_u32(ya, 5), yb, 5);
@@ -1050,7 +1056,7 @@ inline uint8x8_t sr8(float32x4_t qa, float32x4_t qb, uint16x8_t u) {
 //! thresholds t with zero low 16 bits, m >= t iff (bits(m) >> 16) >= (bits(t)
 //! >> 16) and m > t iff ((bits(m) - 1) >> 16) >= (bits(t) >> 16) (m = 0
 //! saturates at 0).
-inline uint8x8_t rne8(float32x4_t qa, float32x4_t qb) {
+IMPBFF_FP4_INLINE uint8x8_t rne8(float32x4_t qa, float32x4_t qb) {
     const uint32x4_t ma = vreinterpretq_u32_f32(vmaxnmq_f32(vabsq_f32(qa), vdupq_n_f32(0.0f)));
     const uint32x4_t mb = vreinterpretq_u32_f32(vmaxnmq_f32(vabsq_f32(qb), vdupq_n_f32(0.0f)));
     const uint32x4_t one = vdupq_n_u32(1);
@@ -1068,10 +1074,10 @@ inline uint8x8_t rne8(float32x4_t qa, float32x4_t qb) {
     const uint16x8_t qs = vshrn_high_n_u32(vshrn_n_u32(vreinterpretq_u32_f32(qa), 16), vreinterpretq_u32_f32(qb), 16);
     return vmovn_u16(vsliq_n_u16(t, vshrq_n_u16(qs, 15), 3));
 }
-inline float32x4_t q4(const double* x, float64x2_t r) {
+IMPBFF_FP4_INLINE float32x4_t q4(const double* x, float64x2_t r) {
     return vcvt_high_f32_f64(vcvt_f32_f64(vmulq_f64(vld1q_f64(x), r)), vmulq_f64(vld1q_f64(x + 2), r));
 }
-inline void group(const double* x, double r, const SrKey* key, std::uint32_t n0, std::uint8_t* c) {
+IMPBFF_FP4_INLINE void group(const double* x, double r, const SrKey* key, std::uint32_t n0, std::uint8_t* c) {
     const float64x2_t rv = vdupq_n_f64(r);
     const float32x4_t q0 = q4(x, rv), q1 = q4(x + 4, rv), q2 = q4(x + 8, rv), q3 = q4(x + 12, rv);
     if (key == nullptr) {
@@ -1090,7 +1096,7 @@ inline void group(const double* x, double r, const SrKey* key, std::uint32_t n0,
 }
 #elif defined(IMPBFF_FP4_AVX2) || defined(IMPBFF_FP4_AVX512)
 //! The group's eight words (lanes j = word n0 + j).
-inline __m256i words8(const SrKey& key, std::uint32_t n0) {
+IMPBFF_FP4_INLINE __m256i words8(const SrKey& key, std::uint32_t n0) {
     auto mix = [](__m256i x) {
         x = _mm256_xor_si256(x, _mm256_srli_epi32(x, 16));
         x = _mm256_mullo_epi32(x, _mm256_set1_epi32(0x21F0AAAD));
@@ -1103,7 +1109,7 @@ inline __m256i words8(const SrKey& key, std::uint32_t n0) {
     return mix(_mm256_xor_si256(mix(_mm256_xor_si256(n, a)), b));
 }
 #if defined(IMPBFF_FP4_AVX512)
-inline void group(const double* x, double r, const SrKey* key, std::uint32_t n0, std::uint8_t* c) {
+IMPBFF_FP4_INLINE void group(const double* x, double r, const SrKey* key, std::uint32_t n0, std::uint8_t* c) {
     const __m512d rv = _mm512_set1_pd(r);
     const __m256 lo = _mm512_cvtpd_ps(_mm512_mul_pd(_mm512_loadu_pd(x), rv));
     const __m256 hi = _mm512_cvtpd_ps(_mm512_mul_pd(_mm512_loadu_pd(x + 8), rv));
@@ -1140,12 +1146,12 @@ inline void group(const double* x, double r, const SrKey* key, std::uint32_t n0,
     _mm_storeu_si128(reinterpret_cast<__m128i*>(c), _mm512_cvtepi32_epi8(t));
 }
 #else  // AVX2
-inline __m256 q8(const double* x, __m256d r) {
+IMPBFF_FP4_INLINE __m256 q8(const double* x, __m256d r) {
     return _mm256_insertf128_ps(_mm256_castps128_ps256(_mm256_cvtpd_ps(_mm256_mul_pd(_mm256_loadu_pd(x), r))),
                                 _mm256_cvtpd_ps(_mm256_mul_pd(_mm256_loadu_pd(x + 4), r)), 1);
 }
 //! Codes of eight lanes: RNE (`r1` unused) or SR with `r1` = 16 + (u << 5).
-inline __m256i codes8(__m256 q, bool sr, __m256i r1) {
+IMPBFF_FP4_INLINE __m256i codes8(__m256 q, bool sr, __m256i r1) {
     const __m256i qb = _mm256_castps_si256(q);
     // |q|, NaN -> 0 (max_ps returns its second operand for a NaN)
     const __m256 m = _mm256_max_ps(_mm256_and_ps(q, _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF))), _mm256_setzero_ps());
@@ -1169,7 +1175,7 @@ inline __m256i codes8(__m256 q, bool sr, __m256i r1) {
     }
     return _mm256_or_si256(t, _mm256_and_si256(_mm256_srli_epi32(qb, 28), _mm256_set1_epi32(8)));
 }
-inline void group(const double* x, double r, const SrKey* key, std::uint32_t n0, std::uint8_t* c) {
+IMPBFF_FP4_INLINE void group(const double* x, double r, const SrKey* key, std::uint32_t n0, std::uint8_t* c) {
     const __m256d rv = _mm256_set1_pd(r);
     __m256i r0 = _mm256_setzero_si256(), r8 = r0;
     if (key != nullptr) {
@@ -1185,13 +1191,13 @@ inline void group(const double* x, double r, const SrKey* key, std::uint32_t n0,
 }
 #endif
 #else
-inline void group(const double* x, double r, const SrKey* key, std::uint32_t n0, std::uint8_t* c) {
+IMPBFF_FP4_INLINE void group(const double* x, double r, const SrKey* key, std::uint32_t n0, std::uint8_t* c) {
     group_generic(x, r, key, n0, c);
 }
 #endif
 //! Inference's exact rule on one group: e2m1_encode(x / d) (a NaN quotient
 //! may come out -0 instead of +0: the same value).
-inline void group_exact(const double* x, double d, bool p2, std::uint8_t* c) {
+IMPBFF_FP4_INLINE void group_exact(const double* x, double d, bool p2, std::uint8_t* c) {
 #if defined(IMPBFF_FP4_NEON_DOTPROD) || defined(IMPBFF_FP4_NEON)
     const float64x2_t dv = vdupq_n_f64(d), iv = vdupq_n_f64(1.0 / d);
     float32x4_t q[4];
