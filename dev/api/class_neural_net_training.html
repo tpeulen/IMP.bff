@@ -106,7 +106,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:af2e262f54f73a7337df589f69d8ceb22"><td class="mdescLeft">&#160;</td><td class="mdescRight">Epochs run.  <br /></td></tr>
 <tr class="separator:af2e262f54f73a7337df589f69d8ceb22"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7b0d542878e4db3e54f0902fc2cacee1" id="r_a7b0d542878e4db3e54f0902fc2cacee1"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net_training.html#a7b0d542878e4db3e54f0902fc2cacee1">get_precision</a> () const</td></tr>
-<tr class="memdesc:a7b0d542878e4db3e54f0902fc2cacee1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The options' precision: "float64", "nvfp4" or "mxfp4".  <br /></td></tr>
+<tr class="memdesc:a7b0d542878e4db3e54f0902fc2cacee1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The options' precision: "float64", "nvfp4", "mxfp4" or "ternary".  <br /></td></tr>
 <tr class="separator:a7b0d542878e4db3e54f0902fc2cacee1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adbba3651633e97b708078cb1aa98d0a3" id="r_adbba3651633e97b708078cb1aa98d0a3"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net_training.html#adbba3651633e97b708078cb1aa98d0a3">get_quantized_network</a> () const</td></tr>
 <tr class="separator:adbba3651633e97b708078cb1aa98d0a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -246,7 +246,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>The options' precision: "float64", "nvfp4" or "mxfp4". </p>
+<p>The options' precision: "float64", "nvfp4", "mxfp4" or "ternary". </p>
 
 </div>
 </div>
@@ -272,7 +272,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>FP4 training: the <code>bff.quantized_neural_net</code> msgpack document of the trained network in its training format &ndash; FP4 layers with exactly the weights the forward pass used (2-D scaled) and FP4 activations (W4A4), the kept layers in float64 &ndash; so <code>QuantizedNeuralNet.from_msgpack(get_quantized_network())</code> evaluates what training evaluated. Empty for float64 training. <a class="el" href="class_neural_net_training.html#aa7ed1539496fb6e4bf9a2610ad8e35bd" title="The bff.neural_net msgpack document; IMP.bff.NeuralNet(get_network()) loads it.">get_network()</a> is the float64 master weights in either case. </p>
+<p>FP4 / ternary training: the <code>bff.quantized_neural_net</code> msgpack document of the trained network in its training format &ndash; FP4 layers with exactly the weights the forward pass used (2-D scaled) and FP4 activations (W4A4), or ternary layers with fprop's trits and int8 activations (W1.58A8), the kept layers in float64 &ndash; so <code>QuantizedNeuralNet.from_msgpack(get_quantized_network())</code> evaluates what training evaluated. Empty for float64 training. <a class="el" href="class_neural_net_training.html#aa7ed1539496fb6e4bf9a2610ad8e35bd" title="The bff.neural_net msgpack document; IMP.bff.NeuralNet(get_network()) loads it.">get_network()</a> is the float64 master weights in either case. </p>
 
 </div>
 </div>
@@ -337,7 +337,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Sep 25 2026 16:48:46 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Sep 25 2026 17:18:19 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

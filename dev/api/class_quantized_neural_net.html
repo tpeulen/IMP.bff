@@ -101,7 +101,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a5f59ae9ea16a31477645513bf3361f70"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <code>bff.quantized_neural_net</code> msgpack document (bit-exact round trip).  <br /></td></tr>
 <tr class="separator:a5f59ae9ea16a31477645513bf3361f70"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a103d3b604d102cf670aefd9e9950ba44" id="r_a103d3b604d102cf670aefd9e9950ba44"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a103d3b604d102cf670aefd9e9950ba44">get_format</a> () const</td></tr>
-<tr class="memdesc:a103d3b604d102cf670aefd9e9950ba44"><td class="mdescLeft">&#160;</td><td class="mdescRight">"int8", "fp4", "mxfp4" or "nvfp4".  <br /></td></tr>
+<tr class="memdesc:a103d3b604d102cf670aefd9e9950ba44"><td class="mdescLeft">&#160;</td><td class="mdescRight">"int8", "fp4", "mxfp4", "nvfp4" or one of the ternary formats.  <br /></td></tr>
 <tr class="separator:a103d3b604d102cf670aefd9e9950ba44"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a80c6c9526b887b5d62aa3023b040513e" id="r_a80c6c9526b887b5d62aa3023b040513e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a80c6c9526b887b5d62aa3023b040513e">get_quantize_activations</a> () const</td></tr>
 <tr class="memdesc:a80c6c9526b887b5d62aa3023b040513e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether each layer's input is quantised in the weight format (W4A4).  <br /></td></tr>
@@ -136,14 +136,15 @@ Static Public Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A <a class="el" href="class_neural_net.html" title="A dense multilayer perceptron: evaluated in batches, and differentiable.">NeuralNet</a>'s forward pass with quantised weights, for deployment. </p>
-<p>Built from a <a class="el" href="class_neural_net.html" title="A dense multilayer perceptron: evaluated in batches, and differentiable.">NeuralNet</a> in one of four formats (<code>format</code>):</p>
+<p>Built from a <a class="el" href="class_neural_net.html" title="A dense multilayer perceptron: evaluated in batches, and differentiable.">NeuralNet</a> in one of these formats (<code>format</code>):</p>
 <ul>
 <li><code>"int8"</code> (default): dynamic-range int8 &ndash; weights quantised once per tensor, symmetric; each layer's input requantised per sample; int32 accumulation (<code>internal/MlpQuant.h</code>). <b>A reconstruction</b>: tttrlib's <code>MlpQuant.h</code> was lost before it was committed; this is rebuilt from its surviving description, not the original code.</li>
 <li><code>"fp4"</code>: FP4 E2M1 weights, one float32 scale per output row.</li>
 <li><code>"mxfp4"</code>: OCP MX v1.0 MXFP4 &ndash; E2M1, blocks of 32 along the input dimension, one E8M0 (power-of-two) scale a block.</li>
 <li><code>"nvfp4"</code>: NVIDIA NVFP4 &ndash; E2M1, blocks of 16, one FP8 E4M3 scale a block and one float32 scale a tensor.</li>
+<li><code>"ternary"</code>: BitNet b1.58 (W1.58A8) &ndash; weights in {-1, 0, +1} times one absmean scale a tensor (<code>round(w / mean|W|)</code> clipped to +-1), stored at 2 bits a weight; every layer input quantised to int8 per row (absmax), whatever <code>quantize_activations</code> says. <code>"ternary_row"</code>: one absmean a weight row (a PTQ option; BitNet is per tensor). <code>"ternary_tq1"</code> / <code>"ternary_tq1_row"</code>: the same, stored five trits a byte (1.6 bits a weight, llama.cpp's TQ1_0 packing) &ndash; only the storage differs. Ternary integer x int8 kernels in <code>internal/MlpTernary.h</code>. Post-training ternary quantisation of a float-trained network is coarse; a network trained with <code><a class="el" href="class_neural_net_train_options.html#a7fbe431ee8d16421531119f2d871a42b">NeuralNetTrainOptions.precision</a> = "ternary"</code> (quantisation-aware) is what this format is for (<a class="el" href="class_neural_net_training.html#adbba3651633e97b708078cb1aa98d0a3">NeuralNetTraining::get_quantized_network()</a>).</li>
 </ul>
-<p>The exact recipes are in <code>internal/MlpFp4.h</code>. The FP4 weights are held packed (two codes a byte, element 2i in the low nibble &ndash; ONNX FLOAT4E2M1 / PyTorch float4_e2m1fn_x2 order) with their scales, and <a class="el" href="class_quantized_neural_net.html#a3604c1b41ea37e9f37ee090f73909531" title="Evaluate a batch, as NeuralNet::predict() does.">predict()</a> runs integer-SIMD dot products on the codes (<code>internal/MlpFp4Kernels.h</code>, after llama.cpp's MXFP4/NVFP4 kernels): without <code>quantize_activations</code> each layer's input is quantised to int8 per block of 32 (16 for nvfp4) &ndash; W4A8; with it, to FP4 in the same format per row &ndash; W4A4, the arithmetic of NVFP4 GEMMs on Blackwell. CPUs have no FP4 unit: nothing is emulated in float, but the products are int8 products of the E2M1 values' doubles, scaled after. For <code>"int8"</code> the activations are always quantised and <code>quantize_activations</code> is ignored (<a class="el" href="class_quantized_neural_net.html#a80c6c9526b887b5d62aa3023b040513e" title="Whether each layer&#39;s input is quantised in the weight format (W4A4).">get_quantize_activations()</a> returns true).</p>
+<p>The exact recipes are in <code>internal/MlpFp4.h</code>. The FP4 weights are held packed (two codes a byte, element 2i in the low nibble &ndash; ONNX FLOAT4E2M1 / PyTorch float4_e2m1fn_x2 order) with their scales, and <a class="el" href="class_quantized_neural_net.html#a3604c1b41ea37e9f37ee090f73909531" title="Evaluate a batch, as NeuralNet::predict() does.">predict()</a> runs integer-SIMD dot products on the codes (<code>internal/MlpFp4Kernels.h</code>, after llama.cpp's MXFP4/NVFP4 kernels): without <code>quantize_activations</code> each layer's input is quantised to int8 per block of 32 (16 for nvfp4) &ndash; W4A8; with it, to FP4 in the same format per row &ndash; W4A4, the arithmetic of NVFP4 GEMMs on Blackwell. CPUs have no FP4 unit: nothing is emulated in float, but the products are int8 products of the E2M1 values' doubles, scaled after. For <code>"int8"</code> and the ternary formats the activations are always quantised and <code>quantize_activations</code> is ignored (<a class="el" href="class_quantized_neural_net.html#a80c6c9526b887b5d62aa3023b040513e" title="Whether each layer&#39;s input is quantised in the weight format (W4A4).">get_quantize_activations()</a> returns true).</p>
 <p>Biases, activations and scalers stay double. It is an inference path only &ndash; no derivatives, no training, no accelerator; the source network is not changed. <a class="el" href="class_quantized_neural_net.html#a5f59ae9ea16a31477645513bf3361f70" title="The bff.quantized_neural_net msgpack document (bit-exact round trip).">to_msgpack()</a> / <a class="el" href="class_quantized_neural_net.html#ab995598925dd2681eceddcc948a363d3" title="Load a bff.quantized_neural_net msgpack document.">from_msgpack()</a> store it as a <code>bff.quantized_neural_net</code> msgpack document (codes and scales as bin fields), bit-exact. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ad72ac79da9da38f9797e0896a1103b29" name="ad72ac79da9da38f9797e0896a1103b29"></a>
@@ -189,7 +190,7 @@ Static Public Member Functions</h2></td></tr>
 <p>Quantise <code>net</code> (its current parameters) in <code>format</code>. </p>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
-    <tr><td class="paramname">IMP::ValueException</td><td>for a format other than "int8", "fp4", "mxfp4", "nvfp4" </td></tr>
+    <tr><td class="paramname">IMP::ValueException</td><td>for a format other than "int8", "fp4", "mxfp4", "nvfp4", "ternary", "ternary_row", "ternary_tq1", "ternary_tq1_row" </td></tr>
   </table>
   </dd>
 </dl>
@@ -262,7 +263,7 @@ Static Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p><code>8 * <a class="el" href="class_quantized_neural_net.html#aa721abe188bc1993ea7465dd2d22b42a">get_weight_bytes()</a> / <a class="el" href="class_quantized_neural_net.html#a23d2dac847231b960118065d44dbd1e7" title="Weights (the number of multiply-adds a sample).">get_n_weights()</a></code>: about 4.25 for mxfp4, 4.5 for nvfp4, 4 + 32 / n_in for fp4, 8 for int8. </p>
+<p><code>8 * <a class="el" href="class_quantized_neural_net.html#aa721abe188bc1993ea7465dd2d22b42a">get_weight_bytes()</a> / <a class="el" href="class_quantized_neural_net.html#a23d2dac847231b960118065d44dbd1e7" title="Weights (the number of multiply-adds a sample).">get_n_weights()</a></code>: about 4.25 for mxfp4, 4.5 for nvfp4, 4 + 32 / n_in for fp4, 8 for int8, 2 for ternary, 1.6 for ternary_tq1. </p>
 
 </div>
 </div>
@@ -281,7 +282,7 @@ Static Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>"int8", "fp4", "mxfp4" or "nvfp4". </p>
+<p>"int8", "fp4", "mxfp4", "nvfp4" or one of the ternary formats. </p>
 
 </div>
 </div>
@@ -307,7 +308,7 @@ Static Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>The FP4 kernel variant this build compiled: "neon-dotprod", "neon", "avx2" or "generic". </p>
+<p>The FP4 (and ternary) kernel variant this build compiled: "neon-dotprod", "neon", "avx512-vnni", "avx2" or "generic". </p>
 
 </div>
 </div>
@@ -420,7 +421,7 @@ Static Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Bytes the quantised weights occupy, scales included: int8 one a weight plus an 8-byte scale a layer; FP4 half a byte a weight (rows padded to 32) plus the scales. A double takes eight a weight. </p>
+<p>Bytes the quantised weights occupy, scales included: int8 one a weight plus an 8-byte scale a layer; FP4 half a byte a weight (rows padded to 32) plus the scales; ternary a quarter byte a weight (rows padded to 4; <code>_tq1</code>: a fifth, rows padded to 5) plus an 8-byte scale a tensor (or row). A double takes eight a weight. </p>
 
 </div>
 </div>
@@ -499,7 +500,7 @@ Static Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Sep 25 2026 16:48:46 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Sep 25 2026 17:18:19 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

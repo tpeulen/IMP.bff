@@ -149,6 +149,10 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ad12540ad5ff30a62471afb160cba49a4" id="r_ad12540ad5ff30a62471afb160cba49a4"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net_train_options.html#ad12540ad5ff30a62471afb160cba49a4">fp4_stochastic_rounding</a> = true</td></tr>
 <tr class="memdesc:ad12540ad5ff30a62471afb160cba49a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">FP4 only: stochastic rounding of the gradients (else round to nearest even).  <br /></td></tr>
 <tr class="separator:ad12540ad5ff30a62471afb160cba49a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0329b667b13694e2fcda0ff141adf790" id="r_a0329b667b13694e2fcda0ff141adf790"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net_train_options.html#a0329b667b13694e2fcda0ff141adf790">ternary_keep_first_layer</a> = true</td></tr>
+<tr class="separator:a0329b667b13694e2fcda0ff141adf790"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac4dabfef471b90ee3f2e8c98a814328f" id="r_ac4dabfef471b90ee3f2e8c98a814328f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net_train_options.html#ac4dabfef471b90ee3f2e8c98a814328f">ternary_keep_last_layer</a> = true</td></tr>
+<tr class="separator:ac4dabfef471b90ee3f2e8c98a814328f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Hyper-parameters for <a class="el" href="_neural_net_training_8h.html#a00261999f6d23df6126070953464b6df" title="Fit a network to (X, Y) and return its bff.neural_net msgpack document.">train_neural_net()</a>. </p>
@@ -421,7 +425,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Arithmetic of the training GEMMs: <code>"float64"</code> (default), or <code>"nvfp4"</code> / <code>"mxfp4"</code> &ndash; NVIDIA's NVFP4 pretraining recipe (arXiv 2509.25149) on bff's integer FP4 kernels: fprop, dgrad and wgrad of every FP4 layer in FP4, 2-D 16 x 16 weight scaling, a random Hadamard transform on the wgrad inputs, stochastic rounding of the gradients, float64 master weights and Adam state (<code>internal/MlpFp4Train.h</code> states the recipe). The result also carries the FP4 inference network (<a class="el" href="class_neural_net_training.html#adbba3651633e97b708078cb1aa98d0a3">NeuralNetTraining::get_quantized_network()</a>). </p>
+<p>Arithmetic of the training GEMMs: <code>"float64"</code> (default), or <code>"nvfp4"</code> / <code>"mxfp4"</code> &ndash; NVIDIA's NVFP4 pretraining recipe (arXiv 2509.25149) on bff's integer FP4 kernels: fprop, dgrad and wgrad of every FP4 layer in FP4, 2-D 16 x 16 weight scaling, a random Hadamard transform on the wgrad inputs, stochastic rounding of the gradients, float64 master weights and Adam state (<code>internal/MlpFp4Train.h</code> states the recipe). The result also carries the FP4 inference network (<a class="el" href="class_neural_net_training.html#adbba3651633e97b708078cb1aa98d0a3">NeuralNetTraining::get_quantized_network()</a>). <code>"ternary"</code>: BitNet b1.58's quantisation-aware training &ndash; every ternary layer's forward pass on ternary weights (absmean per tensor) and int8 activations (absmax per row) through the ternary x int8 kernel, the backward pass by the straight-through estimator in float64, float64 master weights and Adam state (<code>internal/MlpTernaryTrain.h</code>); the result carries the ternary network (format "ternary"). </p>
 
 </div>
 </div>
@@ -437,6 +441,35 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Seeds the initial weights, the split and the minibatch order (and, in FP4 training, the stochastic rounding). </p>
+
+</div>
+</div>
+<a id="a0329b667b13694e2fcda0ff141adf790" name="a0329b667b13694e2fcda0ff141adf790"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0329b667b13694e2fcda0ff141adf790">&#9670;&#160;</a></span>ternary_keep_first_layer</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool NeuralNetTrainOptions::ternary_keep_first_layer = true</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Ternary only: keep the first / last layer in float64 (BitNet keeps its embedding and output head in high precision; here the input layer sees the physical inputs and the last is the regression head). </p>
+
+</div>
+</div>
+<a id="ac4dabfef471b90ee3f2e8c98a814328f" name="ac4dabfef471b90ee3f2e8c98a814328f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac4dabfef471b90ee3f2e8c98a814328f">&#9670;&#160;</a></span>ternary_keep_last_layer</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool NeuralNetTrainOptions::ternary_keep_last_layer = true</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -476,7 +509,7 @@ Public Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Sep 25 2026 16:48:46 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Sep 25 2026 17:18:19 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
