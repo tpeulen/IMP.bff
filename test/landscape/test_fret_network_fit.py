@@ -78,6 +78,9 @@ def test_priors_and_structure_prior_from_a_path():
         net.log_likelihood_at(theta) + net.log_prior(theta))
 
 
+@pytest.mark.skipif(
+    not bff.PhotonExperiment.get_available(), reason="built without tttrlib"
+)
 def test_fit_and_laplace():
     net = _net(False, seed=2)
     # few photons: weak log-normal priors keep the posterior proper

@@ -53,6 +53,9 @@ def test_prior_gradient_and_precision():
     assert lp == pytest.approx(model.log_likelihood(theta) + model.log_prior(theta), rel=1e-12)
 
 
+@pytest.mark.skipif(
+    not bff.PhotonExperiment.get_available(), reason="built without tttrlib"
+)
 def test_fit_climbs_to_a_stationary_point():
     model, theta = _model(1)
     model.set_background_prior([1.6, 4.0], [0.16, 0.4])
@@ -74,6 +77,9 @@ def test_fit_climbs_to_a_stationary_point():
     assert np.all(np.diff(hist) >= 0)
 
 
+@pytest.mark.skipif(
+    not bff.PhotonExperiment.get_available(), reason="built without tttrlib"
+)
 def test_fixed_parameters_stay_put():
     model, theta = _model(2)
     opts = bff.FRETLandscapeFitOptions()
