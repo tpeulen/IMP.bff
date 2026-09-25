@@ -63,6 +63,8 @@
 #include <string>
 #include <vector>
 
+#include <IMP/bff/internal/MlpMath.h>
+
 #if defined(_OPENMP) && !defined(_MSC_VER)
 #define IMPBFF_MLPCORE_SIMD _Pragma("omp simd")
 #else
@@ -267,6 +269,22 @@ inline T act_value(const T& z, Activation a) {
     return z;
 }
 
+/// `f(z)` for a double: tanh, the sigmoid and SiLU through MlpMath.h, the
+/// very operations act_apply() performs on a batch, so a single-sample pass
+/// (`predict_scalar<double>`) and the batch pass give the same bits.
+inline double act_value(const double& z, Activation a) {
+    switch (a) {
+        case Activation::Tanh:
+            return mlpmath::tanh(z);
+        case Activation::Sigmoid:
+            return mlpmath::sigmoid(z);
+        case Activation::SiLU:
+            return mlpmath::silu(z);
+        default:
+            return act_value<double>(z, a);
+    }
+}
+
 /// Derivatives `f'`, `f''`, `f'''` at `z`, given `z` and the cached value
 /// `a = f(z)`. Only the orders up to `order + 1` are meaningful for a pass of
 /// that order (a plain backward needs `f'`, the first-order Taylor adjoint
@@ -283,7 +301,7 @@ inline void act_derivs(double z, double a, Activation act,
             return;
         case Activation::Tanh: {
             const double t = a;
-            f1 = 1.0 - t * t;
+            f1 = mlpmath::one_minus_sq(t);
             f2 = -2.0 * t * f1;
             f3 = -2.0 * f1 * (1.0 - 3.0 * t * t);
             return;
@@ -296,14 +314,14 @@ inline void act_derivs(double z, double a, Activation act,
             return;
         }
         case Activation::Softplus: {
-            const double s = 1.0 / (1.0 + std::exp(-z));
+            const double s = mlpmath::sigmoid(z);
             f1 = s;
             f2 = s * (1.0 - s);
             f3 = f2 * (1.0 - 2.0 * s);
             return;
         }
         case Activation::SiLU: {
-            const double s = 1.0 / (1.0 + std::exp(-z));
+            const double s = mlpmath::sigmoid(z);
             const double s1 = s * (1.0 - s);
             const double s2 = s1 * (1.0 - 2.0 * s);
             const double s3 = s2 * (1.0 - 2.0 * s) - 2.0 * s1 * s1;
@@ -334,17 +352,17 @@ inline void act_apply(const double* z, double* a, size_t n, Activation act) {
             for (size_t i = 0; i < n; ++i) a[i] = (z[i] > 0.0) ? z[i] : 0.0;
             return;
         case Activation::Tanh:
-            for (size_t i = 0; i < n; ++i) a[i] = std::tanh(z[i]);
+            mlpmath::tanh_n(z, a, n);
             return;
         case Activation::Sigmoid:
-            for (size_t i = 0; i < n; ++i) a[i] = 1.0 / (1.0 + std::exp(-z[i]));
+            mlpmath::sigmoid_n(z, a, n);
             return;
         case Activation::Softplus:
             for (size_t i = 0; i < n; ++i)
                 a[i] = (z[i] > 0.0) ? z[i] + std::log(1.0 + std::exp(-z[i])) : std::log(1.0 + std::exp(z[i]));
             return;
         case Activation::SiLU:
-            for (size_t i = 0; i < n; ++i) a[i] = z[i] / (1.0 + std::exp(-z[i]));
+            mlpmath::silu_n(z, a, n);
             return;
         case Activation::Sin:
             for (size_t i = 0; i < n; ++i) a[i] = std::sin(z[i]);
@@ -370,8 +388,9 @@ inline void act_derivs_n(const double* z, const double* a, size_t n, Activation 
             if (order >= 2) std::fill(f3, f3 + n, 0.0);
             return;
         case Activation::Tanh:
-            IMPBFF_MLPCORE_SIMD
-            for (size_t i = 0; i < n; ++i) f1[i] = 1.0 - a[i] * a[i];
+            // 1 - a^2 with the square rounded first on every SIMD variant (no
+            // FMA), so FP4 training's backward is bit-identical across them.
+            mlpmath::one_minus_sq_n(a, f1, n);
             if (order >= 1) {
                 IMPBFF_MLPCORE_SIMD
                 for (size_t i = 0; i < n; ++i) f2[i] = -2.0 * a[i] * f1[i];
@@ -394,7 +413,26 @@ inline void act_derivs_n(const double* z, const double* a, size_t n, Activation 
             }
             return;
         case Activation::Softplus:
-        case Activation::SiLU:
+        case Activation::SiLU: {
+            // The sigmoid, vectorised, into f1; then act_derivs()'s formulas.
+            mlpmath::sigmoid_n(z, f1, n);
+            const bool silu = act == Activation::SiLU;
+            for (size_t i = 0; i < n; ++i) {
+                const double s = f1[i];
+                const double s1 = s * (1.0 - s);
+                const double s2 = s1 * (1.0 - 2.0 * s);
+                if (!silu) {
+                    if (order >= 1) f2[i] = s1;
+                    if (order >= 2) f3[i] = s2;
+                    continue;
+                }
+                const double s3 = s2 * (1.0 - 2.0 * s) - 2.0 * s1 * s1;
+                f1[i] = s + z[i] * s1;
+                if (order >= 1) f2[i] = 2.0 * s1 + z[i] * s2;
+                if (order >= 2) f3[i] = 3.0 * s2 + z[i] * s3;
+            }
+            return;
+        }
         case Activation::Sin:
             for (size_t i = 0; i < n; ++i) {
                 double d1, d2, d3;

@@ -755,8 +755,9 @@ static std::uint64_t fnv(const void* p, std::size_t n, std::uint64_t h) {
 }
 
 // The generic build's value: the training quantiser (SR and RNE) and three
-// FP4 steps of an all-FP4 ReLU net (no libm, no float64 GEMM), both formats.
-constexpr std::uint64_t kTrainingFingerprint = 0x06b331c979c13fc5ULL;
+// FP4 steps of an all-FP4 ReLU net and of an all-FP4 tanh net (MlpMath.h's
+// tanh, no libm, no float64 GEMM), both formats.
+constexpr std::uint64_t kTrainingFingerprint = 0x64407c22cd039ecfULL;
 
 static void test_training_fingerprint() {
     std::printf("FP4 training fingerprint\n");
@@ -774,8 +775,10 @@ static void test_training_fingerprint() {
             kn::quantize_train(X.data(), 11, K, static_cast<std::size_t>(K), f, nullptr, &L, nullptr, qs);
             hsh = fnv(L.q.data(), L.q.size(), fnv(L.sc.data(), L.sc.size() * 4, hsh));
         }
+        for (Activation act : {Activation::ReLU, Activation::Tanh}) {
         MlpModel m = make_model({5, 48, 40, 3}, rng);
-        for (DenseLayer& d : m.layers) d.activation = Activation::ReLU;
+        for (DenseLayer& d : m.layers) d.activation = act;
+        m.layers.back().activation = act == Activation::Tanh ? Activation::Identity : act;
         std::vector<double> X(static_cast<std::size_t>(37) * 5), dY(static_cast<std::size_t>(37) * 3);
         for (auto& v : X) v = rng.uniform();
         for (auto& v : dY) v = 0.1 * rng.uniform();
@@ -793,6 +796,7 @@ static void test_training_fingerprint() {
             hsh = fnv(g.data(), g.size() * sizeof(double), fnv(ws.output().data(), ws.output().size() * sizeof(double), hsh));
             for (DenseLayer& d : m.layers)
                 for (std::size_t i = 0; i < d.weight.size(); ++i) d.weight[i] -= 0.125 * g[i % g.size()];  // exact product: no FMA question
+        }
         }
     }
     std::printf("  ok    training fingerprint %016llx\n", static_cast<unsigned long long>(hsh));

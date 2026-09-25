@@ -3,7 +3,8 @@
 The formats, their recipes and the integer-SIMD kernels are C++
 (internal/MlpFp4.h, internal/MlpFp4Kernels.h). Checked here:
 
-* the C++ snippet cpp_snippets/test_fp4_kernels.cpp -- exhaustive codecs
+* the C++ snippets cpp_snippets/test_fp4_kernels.cpp and test_mlp_math.cpp
+  (the vectorised tanh every path shares) -- exhaustive codecs
   (E2M1, E4M3, E8M0), the block recipes, and every compiled SIMD variant
   against the generic kernel -- built four ways: NEON + dotprod, plain NEON,
   AVX2 (under Rosetta 2 on Apple Silicon, natively on x86) and the generic
@@ -105,10 +106,9 @@ def _variants():
     return out
 
 
-@pytest.mark.parametrize("name,runner,flags,want", _variants(), ids=[v[0] for v in _variants()])
-def test_fp4_kernels_cpp_every_variant(name, runner, flags, want):
-    """Codecs exhaustive, recipes, and the compiled SIMD variant bit-identical
-    to the generic kernel (integer sums exact, float scaling shared)."""
+def _build_and_run(snippet, name, runner, flags):
+    """Compile cpp_snippets/<snippet> with `flags` and run it (under `runner`);
+    skips when the cross toolchain or the emulator is missing."""
     cxx = shutil.which("clang++") or shutil.which("c++") or shutil.which("g++")
     if cxx is None:
         pytest.skip("no C++ compiler on PATH")
@@ -117,12 +117,12 @@ def test_fp4_kernels_cpp_every_variant(name, runner, flags, want):
         inc = os.path.join(tmp, "IMP", "bff")
         os.makedirs(inc)
         os.symlink(os.path.join(repo, "include", "internal"), os.path.join(inc, "internal"))
-        exe = os.path.join(tmp, "test_fp4_kernels")
+        exe = os.path.join(tmp, os.path.splitext(snippet)[0])
         build = subprocess.run([cxx, "-std=c++17", "-O2", *flags, "-I", tmp,
-                                os.path.join(HERE, "cpp_snippets", "test_fp4_kernels.cpp"), "-o", exe],
+                                os.path.join(HERE, "cpp_snippets", snippet), "-o", exe],
                                capture_output=True, text=True)
         if build.returncode != 0:
-            if name in ("avx2",) and runner:
+            if name in ("avx2", "sse2") and runner:
                 pytest.skip("no x86_64 toolchain: " + build.stderr[-300:])
             raise AssertionError(build.stderr)
         try:
@@ -131,7 +131,44 @@ def test_fp4_kernels_cpp_every_variant(name, runner, flags, want):
             pytest.skip("cannot run the %s build: %s" % (name, e))
     if runner and run.returncode != 0 and "variant" not in run.stdout:
         pytest.skip("cannot run the %s build: %s" % (name, run.stderr[-300:]))
+    return run
+
+
+@pytest.mark.parametrize("name,runner,flags,want", _variants(), ids=[v[0] for v in _variants()])
+def test_fp4_kernels_cpp_every_variant(name, runner, flags, want):
+    """Codecs exhaustive, recipes, and the compiled SIMD variant bit-identical
+    to the generic kernel (integer sums exact, float scaling shared)."""
+    run = _build_and_run("test_fp4_kernels.cpp", name, runner, flags)
     print("\n" + "\n".join(l for l in run.stdout.splitlines() if l.startswith("  time")))
+    assert run.stdout.splitlines()[0] == "variant " + want
+    assert run.returncode == 0, run.stdout
+    assert "0 failure(s)" in run.stdout
+
+
+_MATH_VARIANT = {"neon-dotprod": "neon", "neon": "neon", "avx2": "avx2",
+                 "avx512-vnni": "avx512", "generic": "generic"}
+
+
+def _math_variants():
+    """The FP4 builds (their MlpMath.h variant) plus x86-64's baseline build,
+    which MlpMath.h runs on SSE2 (natively on x86, under Rosetta 2 on Apple
+    Silicon)."""
+    out = [(n, r, f, _MATH_VARIANT[w]) for n, r, f, w in _variants()]
+    machine = platform.machine().lower()
+    if machine in ("x86_64", "amd64"):
+        out.append(("sse2", [], [], "sse2"))
+    elif sys.platform == "darwin" and shutil.which("arch"):
+        out.append(("sse2", ["arch", "-x86_64"], ["-arch", "x86_64"], "sse2"))
+    return out
+
+
+@pytest.mark.parametrize("name,runner,flags,want", _math_variants(), ids=[v[0] for v in _math_variants()])
+def test_mlp_math_cpp_every_variant(name, runner, flags, want):
+    """MlpMath.h (the network's tanh / sigmoid / SiLU): <= 2 ulp of libm on
+    a dense grid, every exponent and the edge cases, odd, monotone, and one
+    committed fingerprint for every SIMD variant."""
+    run = _build_and_run("test_mlp_math.cpp", name, runner, flags)
+    print("\n" + "\n".join(l for l in run.stdout.splitlines() if l.startswith("  ")))
     assert run.stdout.splitlines()[0] == "variant " + want
     assert run.returncode == 0, run.stdout
     assert "0 failure(s)" in run.stdout

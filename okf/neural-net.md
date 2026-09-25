@@ -15,6 +15,7 @@ ported in bff's terms.
 
 | Piece | File | What it is |
 |---|---|---|
+| Elementwise math | `include/internal/MlpMath.h` | Vectorised `tanh`, `exp`, sigmoid, SiLU (NEON / SSE2 / AVX2 / AVX-512 / generic, bit-identical), used by every path (below, "Fast tanh"). |
 | Kernels | `include/internal/MlpCore.h` | std-only: activations and their derivatives to order 3, the Taylor-augmented forward pass (`y`, `J v`, `v^T H v`), its exact adjoint, `flatten`/`unflatten`, `MlpModel` with scalers, document tree <-> model, ONNX and safetensors readers. The GEMM is a template policy (`PortableGemm` default). |
 | GEMM policy | `include/internal/MlpGemm.h` | `MatGemm`: MlpCore's `nn`/`nt`/`tn` through the vendored `internal/Mat.h`'s packed, register-blocked kernels (threaded over row tiles with OpenMP). Used by `NeuralNet` and `train_neural_net`. |
 | int8 path | `include/internal/MlpQuant.h` | Dynamic-range int8 inference, **rebuilt from the lost tttrlib spec** (below). |
@@ -287,7 +288,8 @@ and the Python-trained networks' msgpack bytes):
   (8 on AVX-512) columns with FMAs (`t x` is exact, `t = +-1/4`, so the FMA
   rounds as `acc + t x` does; the previous clang arm64 build contracted it
   too); all buffers live in the workspace.
-- Unchanged by choice: `tanh` (shared by both paths, libm's), MatGemm (the
+- Unchanged by choice: `tanh` (shared by both paths, libm's; replaced on
+  2026-09-25, "Fast tanh" below), MatGemm (the
   float64 baseline; AVX2 on x86 even with AVX-512), threading (none in the
   IMP build; the FP4 GEMM has the same OpenMP opportunity as MatGemm).
 
@@ -361,7 +363,9 @@ the MlpFp4.h recipe.
   no float64 GEMM); generic, neon, neon-dotprod, AVX2 (Rosetta) and the
   x86 generic build on the Mac, and generic / AVX2 / AVX-512 VNNI /
   `-march=sapphirerapids` (g++ 11.4) on cordeshub all give
-  `06b331c979c13fc5`.
+  `06b331c979c13fc5`. Since the fast tanh (below) the fingerprint also runs
+  three steps of an all-FP4 **tanh** net and is `64407c22cd039ecf` on the
+  same nine builds.
 
 ### Speed gates (2026-09-24)
 
@@ -486,6 +490,147 @@ at batch 256; Python table from the bench script: batch 1 7.1-7.6 us vs
 bit-identical; x86 (C++, load 15-17): avx2 12-13.5 / 629-812 / 5093-5418
 us vs float64 27-28 / 984-1008 / 6064-6518, avx512-vnni 12.3-13.8 /
 585-614 / 4684-4934 vs 26-28 / 977-1003 / 5905-6150.
+
+### Fast tanh (2026-09-25): `MlpMath.h`
+
+libm's `tanh` was the largest shared cost (above: 190 us of a 64-wide
+training step; at batch 256 most of the 24-256-256-128-8 forward pass on the
+Xeon, where glibc's costs ~20 ns a call). **By decision ("go"), every
+float64 result that goes through tanh, the sigmoid or SiLU changes by
+rounding**: one vectorised implementation now serves every path -- MlpCore's
+batch forward (`act_apply`) and single-sample `act_value<double>`
+(`predict_scalar`), int8 and FP4 inference, FP4 training -- so a
+network's activations are the same bits on every path and every SIMD
+variant. The derivatives MlpCore's Taylor passes need are formulas of the
+value (`tanh' = 1 - t^2`, `tanh'' = -2 t tanh'`, `tanh''' = -2 tanh' (1 -
+3 t^2)`), so they follow; `1 - t^2` is now computed with the square rounded
+first on every variant (`one_minus_sq_n`), which makes FP4 training of tanh
+networks bit-identical across variants too. Softplus's and SiLU's
+derivatives take their sigmoid from the same code. Softplus's value (needs
+`log1p`) and `sin` stay libm's: no default activation, and a vector
+`log1p` / `sin` with argument reduction is a project of its own. Dual.h
+(vendored, SHA-checked) keeps `std::tanh` for forward-mode values; the
+tests comparing it with the reverse pass use tolerances far above 2 ulp.
+
+**Algorithm** (after Cephes `tanh.c`, fdlibm's `exp` reduction; notices in
+the header): `|x| < 0.625`: `x + x (z P(z) / Q(z))`, `z = x^2`, Cephes'
+coefficients; above: `1 - 2 / (e^(2|x|) + 1)` with the argument clamped to
+40. The two branches share one division (`num / den` selected per lane).
+`exp`: Cody-Waite `n ln2_hi + n ln2_lo`, `n` rounded with the 1.5 x 2^52
+shifter, degree-13 Taylor polynomial by Estrin's scheme (the Horner chain
+was latency-bound: 4.2 -> 3.3 ns an element on the M1), `2^n` from
+exponent bits (two factors for the sigmoid's full range [-746, 710]). The
+sign is put back from `x`: exactly odd, `tanh(-0) = -0`, `tanh(+-inf) =
++-1`, NaN passes through. Variants: NEON (2 lanes), **SSE2** (2 lanes, the
+x86-64 baseline: a wheel without `IMPBFF_WITH_AVX2` still vectorises), AVX2
+(4), AVX-512F (8), generic scalar (also every loop's tail); same operations
+in the same order, products kept apart from adds by an empty asm
+(`IMPBFF_MATH_KEEP`, the FP4 convention), selected at compile time
+(`IMPBFF_MATH_NO_SIMD` or `IMPBFF_FP4_NO_SIMD` force generic).
+
+**Accuracy** (`test/cpp_snippets/test_mlp_math.cpp`, run by
+`test_neural_net_fp4.py` for every variant and by CI's `fp4_kernels_x86`):
+probes are a 4e6-point grid on [-20, 20], 8 mantissas of every exponent
+2^-1074 .. 2^110 (both signs), 9 x 80 k consecutive doubles around 0.3,
+0.625, 1, 19, 20, 354, 709, 710 and 745, 1e6 uniform on [-30, 30], 2e5
+random bit patterns, and the edge cases.
+
+| | tanh | sigmoid | SiLU |
+|---|---|---|---|
+| vs Apple libm (arm64; and x86_64 under Rosetta) | 1 ulp | 2 ulp | 2 ulp |
+| vs glibc 2.35 (cordeshub) | 2 ulp (at x = -0.99958) | 2 ulp | 2 ulp |
+| vs the true value (x86 `tanhl`, 64-bit mantissa) | 1 ulp | | |
+
+(sigmoid / SiLU: against `1 / (1 + exp(-z))` with libm's `exp`, on results
+in the normal range; subnormal results round twice.) Also asserted: odd
+bit for bit, `tanh(x) == x` for `|x| < 1e-8`, the edge cases, monotone on
+the grid and on the consecutive-double sweeps across the branch point and
+saturation, vector lanes == the scalar code, and one fingerprint of every
+output, `3f4f1d48f024ef7f`, on the Mac (neon, generic, and under Rosetta
+AVX2, SSE2, generic) and cordeshub (generic, SSE2, AVX2, AVX-512,
+`-march=sapphirerapids`, g++ 11.4).
+
+Numerics tests after the change: sklearn forward parity (1e-10) passes;
+the PyTorch fixtures (tanh, SiLU and softplus layers) are off by
+6.3e-8 (float32 ONNX, tolerance 1e-6) and 1.7e-16 (double ONNX and
+safetensors, tolerance 1e-12) -- no tolerance needed changing; FD and
+Dual-identity derivative checks, FP4 accuracy bounds and the int8 bounds
+pass. The FP4 training fingerprint changed (a tanh net was added to it,
+`64407c22cd039ecf`, equal on all nine builds); the FP4 cross-variant
+golden tests are unchanged.
+
+**Speed**, ns an element (1e6 values on [-4, 4], best of 5):
+
+| machine / variant | tanh | libm tanh | sigmoid | libm `1/(1+exp(-z))` |
+|---|---|---|---|---|
+| M1 Pro, neon | 3.3 | 8.3 | 2.8 | 6.5 |
+| M1 Pro, generic | 9.0 | 8.3 | 8.9 | 6.4 |
+| Xeon 4416+, avx512 | 2.6 | 19.7 | 2.2-2.8 | 5.5-6.5 |
+| Xeon 4416+, avx2 | 3.9 | 19.7 | 3.0 | 5.8 |
+| Xeon 4416+, sse2 (baseline) | 7.4 | 19.6 | 6.1 | 5.8 |
+| Xeon 4416+, generic | 10.9 | 19.7 | 9.7 | 4.9 |
+
+The generic scalar code is slower than libm's `exp` for the sigmoid (and
+on par with Apple's `tanh`); no build selects it unless forced (x86-64
+takes SSE2 at least, AArch64 NEON).
+
+**Gates** (C++ harness, the old and new headers in the same session, us;
+Mac load 5-7, cordeshub load 17-20 on 24 cores from another user, so x86
+cells carry 10-20 % noise):
+
+G1, inference, 24-256-256-128-8, before -> after:
+
+| machine / variant | batch | float64 | fp4 W4A8 | nvfp4 W4A8 | nvfp4 W4A4 |
+|---|---|---|---|---|---|
+| M1 Pro, neon-dotprod | 1 | 22.2 -> 22.1 | 6.0 -> 5.6 | 6.1 -> 5.5 | 5.9 -> 5.5 |
+| M1 Pro, neon-dotprod | 32 | 336 -> 293 | 182 -> 144 | 180 -> 142 | 178 -> 142 |
+| M1 Pro, neon-dotprod | 256 | 2308 -> 1988 | 1473 -> 1165 | 1439 -> 1131 | 1440 -> 1128 |
+| Xeon 4416+, avx2 | 1 | 34.3 -> 22.1 | 12.2 -> 7.1 | 12.7 -> 7.2 | 13.2 -> 7.9 |
+| Xeon 4416+, avx2 | 32 | 970 -> 555 | 625 -> 204 | 633 -> 213 | 657 -> 234 |
+| Xeon 4416+, avx2 | 256 | 5866 -> 2538 | 5074 -> 1650 | 5106 -> 1719 | 5357 -> 1929 |
+| Xeon 4416+, avx512-vnni | 1 | 28.6 -> 21.0 | 13.6 -> 4.8 | 14.5 -> 4.9 | 14.5 -> 5.4 |
+| Xeon 4416+, avx512-vnni | 32 | 999 -> 553 | 595 -> 130 | 591 -> 135 | 609 -> 148 |
+| Xeon 4416+, avx512-vnni | 256 | 5897 -> 2323 | 4706 -> 1043 | 4756 -> 1080 | 4945 -> 1241 |
+| Xeon 4416+, x86-64 baseline (sse2 math, generic FP4) | 1 | 32.9 -> 28.9 | 61.3 -> 58.7 | 61.2 -> 57.7 | 64.0 -> 59.9 |
+| Xeon 4416+, x86-64 baseline | 32 | 1356 -> 1008 | 2331 -> 2015 | 2329 -> 2019 | 2391 -> 2094 |
+| Xeon 4416+, x86-64 baseline | 256 | 8920 -> 6074 | 18630 -> 16031 | 18801 -> 16212 | 19417 -> 16737 |
+
+(The baseline row is a build without `-m` flags, what a wheel without
+`IMPBFF_WITH_AVX2` runs: MlpMath's SSE2 path, but the FP4 kernel's generic
+scalar code -- FP4 there is 2.6x *slower* than float64, before and after;
+its training step 64-wide: float64 2048 -> 1313 us.)
+
+Python (`bench_neural_net_fp4.py`, M1, load 5): float64 25.2 / 318 / 2096
+us at batch 1 / 32 / 256 (third pass: 24.8 / 352-387 / 2534-2833), FP4
+7.2-7.5 / 152-161 / 1207-1303 (7.1-7.6 / 206-214 / 1623-1729); worst FP4 /
+float64 0.30 / 0.51 / 0.62.
+
+G2, training step (bs 200, weights quantisation + forward + backward), us,
+before -> after (FP4 / float64 after):
+
+| net | M1 f64 | M1 nvfp4 | M1 mxfp4 | avx2 f64 | avx2 nvfp4 | avx2 mxfp4 | avx512 f64 | avx512 nvfp4 | avx512 mxfp4 |
+|---|---|---|---|---|---|---|---|---|---|
+| 24-256-256-128-8 | 4179 -> 3943 | 2449 -> 2181 (0.55) | 2389 -> 2152 (0.55) | 9066 -> 6801 | 6695 -> 4234 (0.62) | 6226 -> 3823 (0.56) | 9519 -> 6733 | 5591 -> 3120 (0.46) | 5227 -> 2721 (0.40) |
+| 4-64-64-64-2 | 578 -> 501 | 541 -> 460 (0.92) | 521 -> 438 (0.87) | 1352 -> 640 | 1490 -> 757 (1.18) | 1395 -> 681 (1.06) | 1385 -> 591 | 1401 -> 623 (1.05) | 1296 -> 528 (0.89) |
+| 4-96-96-96-2 | 1060 -> 936 | 885 -> 739 (0.79) | 855 -> 720 (0.77) | 2328 -> 1244 | 2417 -> 1313 (1.06) | 2253 -> 1184 (0.95) | 2379 -> 1256 | 2198 -> 1027 (0.82) | 1997 -> 885 (0.70) |
+| 4-128-128-128-2 | 1674 -> 1498 | 1273 -> 1061 (0.71) | 1213 -> 1028 (0.69) | 3569 -> 2131 | 3364 -> 1907 (0.89) | 3141 -> 1802 (0.85) | 3683 -> 2044 | 3087 -> 1473 (0.72) | 2824 -> 1269 (0.62) |
+| 2-16-16-1 | 60 -> 51 | 76 -> 68 (1.33) | 73 -> 62 (1.21) | 160 -> 64 | 201 -> 112 (1.76) | 187 -> 102 (1.60) | 150 -> 52 | 170 -> 88 (1.68) | 170 -> 73 (1.39) |
+
+Python G2 (M1, ms an epoch, median of 5, load 5): surrogate float64 8.46,
+nvfp4 4.81 (0.57), mxfp4 4.62 (0.55); 64-wide regression 8.22 / 7.46
+(0.91) / 6.59 (0.80); tiny 0.51 / 0.68 / 0.62.
+
+**Where the 64-wide FP4 gate lands: 0.80-0.91 on the Mac (epoch), 0.87-0.92
+a step; 0.89-1.18 on x86** -- not the <= 0.8 target, and the fast tanh
+cannot deliver it: tanh is shared, so removing ~40-60 % of the shared part
+makes both paths faster by the same microseconds and moves the ratio
+*toward* FP4-arithmetic / float64-arithmetic at n = 64, which the third
+pass measured at ~0.94 (M1) and ~1.1 (x86). What the fast tanh does buy is
+absolute: the 64-wide float64 step 2.1x (x86) and 1.15x (M1) faster, FP4
+2.0x / 1.18x, and x86 inference at batch 256 2.3x (float64) and 3.1-4.5x
+(FP4). The remaining FP4 cost at n = 64 is the recipe's quantisation (four
+operands a layer-step, two of them stochastically rounded) and the FP4
+GEMMs' float combine.
 
 ### Accuracy and size (2026-09-24)
 
