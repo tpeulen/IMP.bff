@@ -254,7 +254,7 @@ static void test_formats() {
                 if (a[static_cast<std::size_t>(r) * C + c] != b[static_cast<std::size_t>(c) * R + r]) ++bad;
         report(bad == 0, (f4::format_to_string(f) + " 2-D tiles: W and W^T quantise identically").c_str(), bad, 0);
     }
-    // stochastic rounding is unbiased
+    // stochastic rounding (the reference rule, double draws) is unbiased
     f4::SplitMix64 sm(7);
     for (double x : {0.3, 1.1, -2.6, 4.7}) {
         double mean = 0.0;
@@ -262,6 +262,90 @@ static void test_formats() {
         for (int i = 0; i < n; ++i) mean += f4::e2m1_decode(f4::e2m1_encode_sr(x, sm.uniform()));
         mean /= n;
         report(std::abs(mean - x) < 0.01, "stochastic rounding: mean of 2e5 roundings", std::abs(mean - x), 0.01);
+    }
+}
+
+// --------------------------------------------------------------------------
+// 3b. Training's stochastic rounding: 16-bit counter-based draws
+// --------------------------------------------------------------------------
+static double sr16_step(double m) { return m < 2.0 ? 0.5 : (m < 4.0 ? 1.0 : 2.0); }
+
+static void test_sr16() {
+    std::printf("training stochastic rounding (e2m1_encode_sr16, SrKey)\n");
+    // exact: over all 65536 draws, P(up) is the fraction of the step to 2^-17
+    Lcg rng(17);
+    double worst = 0.0;
+    int bad_grid = 0;
+    for (int t = 0; t < 400; ++t) {
+        const float q = t < 8 ? static_cast<float>(f4::kE2M1[t]) : static_cast<float>(6.5 * std::abs(rng.uniform()));
+        const double m = std::abs(static_cast<double>(q));
+        if (m >= 6.0) continue;
+        // |q| + 2 is rounded to float before the draw: the fraction is of that value
+        const double y = static_cast<double>(static_cast<float>(static_cast<float>(m) + 2.0f)) - 2.0;
+        double lo = 0.0;
+        for (int i = 0; i < 8; ++i)
+            if (f4::kE2M1[i] <= y) lo = f4::kE2M1[i];
+        std::size_t up = 0;
+        for (std::uint32_t u = 0; u < 65536; ++u) {
+            const double v = std::abs(f4::e2m1_decode(f4::e2m1_encode_sr16(q, u)));
+            if (v != lo) ++up;
+            if (v != lo && v != lo + sr16_step(lo)) ++bad_grid;
+        }
+        const double frac = (y - lo) / sr16_step(lo);
+        worst = std::max(worst, std::abs(static_cast<double>(up) / 65536.0 - frac));
+    }
+    check(bad_grid == 0, "sr16 rounds to the two neighbours only");
+    report(worst <= 1.0 / 131072.0 + 1e-12, "sr16: P(up) over all 65536 draws == fraction of the step (<= 2^-17)", worst,
+           1.0 / 131072.0);
+    check(f4::e2m1_encode_sr16(7.0f, 123) == 7 && f4::e2m1_encode_sr16(-100.0f, 65535) == 15 &&
+                  f4::e2m1_encode_sr16(std::numeric_limits<float>::infinity(), 5) == 7 &&
+                  f4::e2m1_encode_sr16(std::numeric_limits<float>::quiet_NaN(), 5) == 0 &&
+                  f4::e2m1_encode_sr16(-0.0f, 65535) == 8,
+          "sr16: saturation, infinity, NaN, -0");
+    // statistical: the mean of n roundings with the counter stream -> x,
+    // within 4 sigma (+ the 2^-17 draw quantisation), tighter as n grows
+    for (int logn : {16, 22}) {
+        const std::size_t n = std::size_t(1) << logn;
+        double worst_z = 0.0;
+        for (double x : {0.3, 1.1, -2.6, 4.7, 0.05, 5.9}) {
+            const f4::SrKey key = f4::SrKey::make(7, static_cast<std::uint64_t>(logn), static_cast<int>(10 * x), 1);
+            double sum = 0.0;
+            for (std::size_t e = 0; e < n; ++e) sum += f4::e2m1_decode(f4::e2m1_encode_sr16(static_cast<float>(x), key.u16(e)));
+            const double mean = sum / static_cast<double>(n), step = sr16_step(std::abs(x));
+            const double p = std::abs(x) / step - std::floor(std::abs(x) / step);
+            const double sigma = step * std::sqrt(p * (1 - p) / static_cast<double>(n));
+            worst_z = std::max(worst_z, std::abs(mean - x) / (4.0 * sigma + step / 131072.0));
+        }
+        char what[128];
+        std::snprintf(what, sizeof what, "sr16: mean of 2^%d roundings within 4 sigma of x (fraction of the bound)", logn);
+        report(worst_z < 1.0, what, worst_z, 1.0);
+    }
+    // the draws: 16-bit halves uniform (chi-square over 256 bins of the top
+    // byte, 2^20 draws) and neighbours uncorrelated
+    {
+        const f4::SrKey key = f4::SrKey::make(1, 2, 3, 0);
+        std::vector<double> bins(256, 0.0);
+        const std::size_t n = std::size_t(1) << 20;
+        double sxy = 0.0, prev = 0.0;
+        for (std::size_t e = 0; e < n; ++e) {
+            const std::uint32_t u = key.u16(e);
+            bins[u >> 8] += 1.0;
+            const double v = (u + 0.5) / 65536.0 - 0.5;
+            if (e) sxy += v * prev;
+            prev = v;
+        }
+        double chi2 = 0.0;
+        const double want = static_cast<double>(n) / 256.0;
+        for (double b : bins) chi2 += (b - want) * (b - want) / want;
+        // 255 degrees of freedom: mean 255, sd 22.6; 400 is > 6 sd
+        report(chi2 < 400.0, "draws: chi-square of the top byte over 256 bins (255 dof)", chi2, 400.0);
+        const double corr = sxy / static_cast<double>(n - 1) * 12.0;
+        report(std::abs(corr) < 5.0 / std::sqrt(static_cast<double>(n)), "draws: lag-1 correlation", std::abs(corr),
+               5.0 / std::sqrt(static_cast<double>(n)));
+        const f4::SrKey k2 = f4::SrKey::make(1, 2, 3, 1), k3 = f4::SrKey::make(1, 3, 3, 0);
+        int same = 0;
+        for (std::uint32_t w = 0; w < 4096; ++w) same += (key.word(w) == k2.word(w)) + (key.word(w) == k3.word(w));
+        check(same == 0, "draws: other operand / step -> other words");
     }
 }
 
@@ -446,16 +530,6 @@ static void test_network() {
 // --------------------------------------------------------------------------
 // 6. FP4 training pieces (MlpFp4Train.h)
 // --------------------------------------------------------------------------
-static std::vector<double> decode_rows(const kn::Fp4Rows& R, int K) {
-    std::vector<double> out(static_cast<std::size_t>(R.rows) * K);
-    for (int r = 0; r < R.rows; ++r)
-        for (int k = 0; k < K; ++k)
-            out[static_cast<std::size_t>(r) * K + k] =
-                    2.0 * f4::e2m1_decode(f4::nibble(R.codes + r * R.stride, k)) *
-                    static_cast<double>(R.sc[static_cast<std::size_t>(r) * R.n_sub() + k / 16]);
-    return out;
-}
-
 static void test_training_pieces() {
     std::printf("FP4 training pieces\n");
     // Hadamard: orthogonal, so the transform is inverted by its transpose
@@ -531,18 +605,54 @@ static void test_training_pieces() {
             }
         report(bad_q == 0, "vectorised quantize_rows / 2-D packing == MlpFp4.h recipes", bad_q, 0);
     }
+    // training's operand quantiser == its scalar definition, element by element
+    {
+        int bad = 0;
+        for (f4::Format f : {f4::Format::NVFP4, f4::Format::MXFP4})
+            for (int K : {5, 16, 40, 100, 208})
+                for (int sr = 0; sr < 2; ++sr) {
+                    const int rows = 7, kp = f4::padded_cols(K), b = f == f4::Format::MXFP4 ? 32 : 16;
+                    std::vector<double> X(static_cast<std::size_t>(rows) * K);
+                    for (std::size_t i = 0; i < X.size(); ++i) X[i] = rng.uniform() * (i % 7 ? 1.0 : 1e-7);
+                    for (int k = 0; k < std::min(K, 16); ++k) X[static_cast<std::size_t>(2) * K + k] = 0.0;
+                    const f4::SrKey key = f4::SrKey::make(3, static_cast<std::uint64_t>(K), sr, 1);
+                    kn::Q8Rows L;
+                    kn::QuantScratch qs;
+                    kn::quantize_train(X.data(), rows, K, static_cast<std::size_t>(K), f, sr ? &key : nullptr, &L,
+                                       nullptr, qs);
+                    for (int r = 0; r < rows; ++r) {
+                        const double* x = X.data() + static_cast<std::size_t>(r) * K;
+                        const float g = f == f4::Format::NVFP4 ? f4::nvfp4_tensor_scale(f4::detail::absmax(x, K)) : 1.0f;
+                        for (int k = 0; k < kp; ++k) {
+                            const int k0 = k / b * b, k1 = std::min(K, k0 + b);
+                            const double amax = k1 > k0 ? f4::detail::absmax(x + k0, static_cast<std::size_t>(k1 - k0)) : 0.0;
+                            const std::uint8_t sc = f4::block_scale_code(f, amax, g);
+                            const double d = f4::block_scale_value(f, sc, g);
+                            std::uint8_t code = 0;
+                            if (k < K && d > 0.0) {
+                                const float q = static_cast<float>(x[k] * (1.0 / d));
+                                code = sr ? f4::e2m1_encode_sr16(q, key.u16(static_cast<std::size_t>(r) * kp + k))
+                                          : f4::e2m1_encode_f(q);
+                            }
+                            if (L.q[static_cast<std::size_t>(r) * kp + k] != kn::kValues2[code]) ++bad;
+                            if (k % 16 == 0 && L.sc[static_cast<std::size_t>(r) * (kp / 16) + k / 16] != kn::kd::half_scale(f, sc, g))
+                                ++bad;
+                        }
+                    }
+                }
+        report(bad == 0, "quantize_train == its scalar definition (RNE and SR, nvfp4 / mxfp4)", bad, 0);
+    }
     // wgrad on the kernels == double product of the same quantised operands
     for (f4::Format f : {f4::Format::NVFP4, f4::Format::MXFP4}) {
         tr::Config c;
         c.format = f;
-        f4::SplitMix64 sr(5);
+        const f4::SrKey key = f4::SrKey::make(5, 0, 1, 1);
         tr::WgradOperands ops;
         std::vector<double> dW(ref.size());
-        tr::wgrad(dZ.data(), A.data(), bs, n_out, n_in, c, sr, h, dW.data(), &ops);
-        const int K = ops.x.kp;
-        const std::vector<double> X = decode_rows(ops.x, K), Y = decode_rows(ops.y, K);
+        tr::wgrad(dZ.data(), A.data(), bs, n_out, n_in, c, key, h, dW.data(), &ops);
+        const int K = ops.kp;
         std::vector<double> want(ref.size());
-        mc::PortableGemm::nt(n_out, n_in, K, X.data(), Y.data(), want.data());
+        mc::PortableGemm::nt(n_out, n_in, K, ops.x.data(), ops.y.data(), want.data());
         const std::string fn = f4::format_to_string(f);
         report(max_rel(dW, want) < 1e-5, (fn + " wgrad == float GEMM of the same quantised operands").c_str(),
                max_rel(dW, want), 1e-5);
@@ -552,14 +662,21 @@ static void test_training_pieces() {
         for (auto& v : W) v = 0.3 * rng.uniform();
         const f4::Fp4Tensor wq = f4::quantize_2d(W.data(), n_out, n_in, f);
         const f4::Fp4Tensor wqt = f4::transpose_2d(wq);
-        f4::SplitMix64 s1(9), s2(9);
-        const kn::Fp4Rows q = kn::quantize_rows(dZ.data(), bs, n_out, f, f4::Rounding::Stochastic, &s1);
+        const f4::SrKey k1 = f4::SrKey::make(9, 0, 1, 0), k2 = f4::SrKey::make(9, 1, 1, 0);
+        kn::Q8Rows q, q2, q3;
+        kn::QuantScratch qs;
+        kn::quantize_train(dZ.data(), bs, n_out, static_cast<std::size_t>(n_out), f, &k1, &q, nullptr, qs);
         std::vector<double> dA(static_cast<std::size_t>(bs) * n_in), dAref(dA.size()), Wd(W.size());
-        kn::gemm_fp4(q, kn::rows_of(wqt), dA.data());
-        const kn::Fp4Rows q2 = kn::quantize_rows(dZ.data(), bs, n_out, f, f4::Rounding::Stochastic, &s2);
-        check(q2.own == q.own, fn + " stochastic rounding is deterministic per seed");
+        kn::gemm_q8(q, kn::rows_of(wqt), dA.data());
+        kn::quantize_train(dZ.data(), bs, n_out, static_cast<std::size_t>(n_out), f, &k1, &q2, nullptr, qs);
+        kn::quantize_train(dZ.data(), bs, n_out, static_cast<std::size_t>(n_out), f, &k2, &q3, nullptr, qs);
+        check(q2.q == q.q && q2.sc == q.sc, fn + " stochastic rounding is deterministic per key");
+        check(q3.q != q.q, fn + " another step's key rounds differently");
         f4::dequantize(wq, Wd.data());
-        const std::vector<double> dzq = decode_rows(q, n_out);
+        const std::vector<double> dzp = tr::decode_left(q);
+        std::vector<double> dzq(static_cast<std::size_t>(bs) * n_out);
+        for (int r = 0; r < bs; ++r)
+            for (int o = 0; o < n_out; ++o) dzq[static_cast<std::size_t>(r) * n_out + o] = dzp[static_cast<std::size_t>(r) * q.kp + o];
         mc::PortableGemm::nn(bs, n_in, n_out, dzq.data(), Wd.data(), dAref.data());
         report(max_rel(dA, dAref) < 1e-5, (fn + " dgrad == float GEMM of Q(dZ) and fprop's Q(W)").c_str(),
                max_rel(dA, dAref), 1e-5);
@@ -574,7 +691,7 @@ static void test_training_pieces() {
     for (std::vector<double>* g : {&g1, &g2}) {
         tr::Config c;
         tr::Workspace ws;
-        f4::SplitMix64 sr(77);
+        tr::SrStream sr(77);
         tr::quantize_weights(m.layers, c, ws);
         tr::forward(m.layers, c, X.data(), 32, ws);
         tr::backward(m.layers, c, ws, dY.data(), 32, sr, h, g->data());
@@ -614,14 +731,73 @@ static void test_training_pieces() {
     }
 }
 
+// --------------------------------------------------------------------------
+// 7. One fingerprint of FP4 training for every variant and platform
+// --------------------------------------------------------------------------
+static std::uint64_t fnv(const void* p, std::size_t n, std::uint64_t h) {
+    const unsigned char* c = static_cast<const unsigned char*>(p);
+    for (std::size_t i = 0; i < n; ++i) {
+        h ^= c[i];
+        h *= 1099511628211ULL;
+    }
+    return h;
+}
+
+// The generic build's value: the training quantiser (SR and RNE) and three
+// FP4 steps of an all-FP4 ReLU net (no libm, no float64 GEMM), both formats.
+constexpr std::uint64_t kTrainingFingerprint = 0x06b331c979c13fc5ULL;
+
+static void test_training_fingerprint() {
+    std::printf("FP4 training fingerprint\n");
+    std::uint64_t hsh = 1469598103934665603ULL;
+    Lcg rng(99);
+    for (f4::Format f : {f4::Format::NVFP4, f4::Format::MXFP4}) {
+        for (int K : {3, 16, 48, 200}) {
+            std::vector<double> X(static_cast<std::size_t>(11) * K);
+            for (std::size_t i = 0; i < X.size(); ++i) X[i] = rng.uniform() * (i % 5 ? 1.0 : 30.0);
+            const f4::SrKey key = f4::SrKey::make(1, static_cast<std::uint64_t>(K), 2, 0);
+            kn::Q8Rows L;
+            kn::QuantScratch qs;
+            kn::quantize_train(X.data(), 11, K, static_cast<std::size_t>(K), f, &key, &L, nullptr, qs);
+            hsh = fnv(L.q.data(), L.q.size(), fnv(L.sc.data(), L.sc.size() * 4, hsh));
+            kn::quantize_train(X.data(), 11, K, static_cast<std::size_t>(K), f, nullptr, &L, nullptr, qs);
+            hsh = fnv(L.q.data(), L.q.size(), fnv(L.sc.data(), L.sc.size() * 4, hsh));
+        }
+        MlpModel m = make_model({5, 48, 40, 3}, rng);
+        for (DenseLayer& d : m.layers) d.activation = Activation::ReLU;
+        std::vector<double> X(static_cast<std::size_t>(37) * 5), dY(static_cast<std::size_t>(37) * 3);
+        for (auto& v : X) v = rng.uniform();
+        for (auto& v : dY) v = 0.1 * rng.uniform();
+        tr::Config c;
+        c.format = f;
+        c.keep_first = c.keep_last = false;
+        tr::Workspace ws;
+        tr::SrStream sr(5);
+        const tr::Hadamard16 h;
+        std::vector<double> g(mc::n_parameters(m.layers));
+        for (int step = 0; step < 3; ++step) {
+            tr::quantize_weights(m.layers, c, ws);
+            tr::forward(m.layers, c, X.data(), 37, ws);
+            tr::backward(m.layers, c, ws, dY.data(), 37, sr, h, g.data());
+            hsh = fnv(g.data(), g.size() * sizeof(double), fnv(ws.output().data(), ws.output().size() * sizeof(double), hsh));
+            for (DenseLayer& d : m.layers)
+                for (std::size_t i = 0; i < d.weight.size(); ++i) d.weight[i] -= 0.125 * g[i % g.size()];  // exact product: no FMA question
+        }
+    }
+    std::printf("  ok    training fingerprint %016llx\n", static_cast<unsigned long long>(hsh));
+    check(hsh == kTrainingFingerprint, "training fingerprint == the generic build's");
+}
+
 int main() {
     std::printf("variant %s\n", kn::kernel_name());
     test_e2m1();
     test_e4m3_e8m0();
     test_formats();
+    test_sr16();
     test_variants();
     test_network();
     test_training_pieces();
+    test_training_fingerprint();
     std::printf("%d failure(s)\n", g_failures);
     return g_failures;
 }

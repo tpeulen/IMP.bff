@@ -32,8 +32,9 @@
  *   rounding "during quantization of high precision values to FP4" of
  *   gradient tensors; round-to-nearest-even for weights and activations):
  *   dZ is stochastically rounded in dgrad and in wgrad; W and A (also A in
- *   wgrad) round to nearest even. The draws come from a SplitMix64 seeded by
- *   the training seed, so training stays deterministic per seed. Block
+ *   wgrad) round to nearest even. The draws are counter-based (SrKey in
+ *   MlpFp4.h: 16 bits an element, keyed by seed, step, layer and operand),
+ *   so training stays deterministic per seed and the draws vectorise. Block
  *   scales are always computed deterministically (RNE of the E4M3 scale).
  * - **Sensitive layers in higher precision** (section 4.1: keep "a few
  *   sensitive linear layers in higher precision ... with the majority of
@@ -335,18 +336,41 @@ inline void forward(const std::vector<DenseLayer>& layers, const Config& c, cons
     }
 }
 
-//! The operands wgrad multiplied, for tests: `x` = Q((T dZ^T)) rows, `y` =
-//! Q((T A^T)) rows.
-struct WgradOperands {
-    kern::Fp4Rows x, y;
+//! The stochastic-rounding stream of a training run: SrKey (MlpFp4.h) of
+//! (seed, step, layer, operand); backward() advances `step` once a call.
+struct SrStream {
+    std::uint64_t seed = 0;
+    std::uint64_t step = 0;
+    explicit SrStream(std::uint64_t s = 0) : seed(s) {}
+    //! operand 0: dgrad's dZ, 1: wgrad's (T dZ)^T.
+    SrKey key(int layer, int operand) const { return SrKey::make(seed, step, layer, operand); }
 };
+
+//! The operands wgrad multiplied, decoded (tests): `x` = Q(T dZ^T) as
+//! `n_out x kp`, `y` = Q(T A^T) as `n_in x kp`.
+struct WgradOperands {
+    int kp = 0;
+    std::vector<double> x, y;
+};
+
+//! The dequantised values of a left operand, `rows x kp`.
+inline std::vector<double> decode_left(const kern::Q8Rows& L) {
+    std::vector<double> out(static_cast<std::size_t>(L.rows) * L.kp);
+    for (int r = 0; r < L.rows; ++r)
+        for (int k = 0; k < L.kp; ++k)
+            out[static_cast<std::size_t>(r) * L.kp + k] =
+                    static_cast<double>(L.q[static_cast<std::size_t>(r) * L.kp + k]) *
+                    static_cast<double>(L.sc[static_cast<std::size_t>(r) * L.n_sub() + k / 16]);
+    return out;
+}
 
 //! wgrad of an FP4 layer: `dW (n_out x n_in) = dZ^T A` over the batch, both
 //! operands (Hadamard-transformed along the batch when `c.hadamard`)
-//! quantised along the batch; dZ stochastically rounded when
+//! quantised along the batch with training's element rule
+//! (kern::quantize_train); dZ stochastically rounded with `key` when
 //! `c.stochastic`.
-inline void wgrad(const double* dZ, const double* A, int bs, int n_out, int n_in, const Config& c,
-                  SplitMix64& rng, const Hadamard16& h, double* dW, Workspace& ws, WgradOperands* keep = nullptr) {
+inline void wgrad(const double* dZ, const double* A, int bs, int n_out, int n_in, const Config& c, const SrKey& key,
+                  const Hadamard16& h, double* dW, Workspace& ws, WgradOperands* keep = nullptr) {
     int K = bs;
     if (c.hadamard) {
         rht_transpose(dZ, bs, n_out, h, ws.dzt, K, ws.tile);
@@ -355,29 +379,32 @@ inline void wgrad(const double* dZ, const double* A, int bs, int n_out, int n_in
         transpose(dZ, bs, n_out, ws.dzt);
         transpose(A, bs, n_in, ws.at);
     }
-    const Rounding rz = c.stochastic ? Rounding::Stochastic : Rounding::NearestEven;
-    if (keep != nullptr) {  // the same draws: a copy of the stream
-        SplitMix64 r2 = rng;
-        keep->x = kern::quantize_rows(ws.dzt.data(), n_out, K, c.format, rz, &r2);
-        keep->y = kern::quantize_rows(ws.at.data(), n_in, K, c.format);
+    const SrKey* k = c.stochastic ? &key : nullptr;
+    kern::quantize_train(ws.dzt.data(), n_out, K, static_cast<std::size_t>(K), c.format, k, &ws.left, nullptr, ws.qs);
+    kern::quantize_train(ws.at.data(), n_in, K, static_cast<std::size_t>(K), c.format, nullptr, nullptr, &ws.right,
+                         ws.qs);
+    if (keep != nullptr) {
+        keep->kp = ws.left.kp;
+        keep->x = decode_left(ws.left);
+        kern::Q8Rows y;
+        kern::quantize_train(ws.at.data(), n_in, K, static_cast<std::size_t>(K), c.format, nullptr, &y, nullptr, ws.qs);
+        keep->y = decode_left(y);
     }
-    kern::quantize_left(ws.dzt.data(), n_out, K, c.format, rz, &rng, ws.left, ws.qs);
-    kern::quantize_right(ws.at.data(), n_in, K, c.format, Rounding::NearestEven, nullptr, ws.right, ws.qs);
     kern::gemm_packed(ws.left, ws.right, dW);
 }
 
 //! wgrad() with its own scratch (tests).
-inline void wgrad(const double* dZ, const double* A, int bs, int n_out, int n_in, const Config& c,
-                  SplitMix64& rng, const Hadamard16& h, double* dW, WgradOperands* keep = nullptr) {
+inline void wgrad(const double* dZ, const double* A, int bs, int n_out, int n_in, const Config& c, const SrKey& key,
+                  const Hadamard16& h, double* dW, WgradOperands* keep = nullptr) {
     Workspace ws;
-    wgrad(dZ, A, bs, n_out, n_in, c, rng, h, dW, ws, keep);
+    wgrad(dZ, A, bs, n_out, n_in, c, key, h, dW, ws, keep);
 }
 
 //! Backward pass for `dY` (`bs x n_out`, the loss' adjoint of the output):
 //! `grad` (flatten() layout) is overwritten.
 template <class Gemm = mlpcore::PortableGemm>
 inline void backward(const std::vector<DenseLayer>& layers, const Config& c, Workspace& ws, const double* dY,
-                     int bs, SplitMix64& rng, const Hadamard16& h, double* grad) {
+                     int bs, SrStream& sr, const Hadamard16& h, double* grad) {
     const std::size_t L = layers.size();
     // offsets of each layer's weights in the flat vector
     std::vector<std::size_t> off(L);
@@ -402,20 +429,22 @@ inline void backward(const std::vector<DenseLayer>& layers, const Config& c, Wor
             for (int o = 0; o < ly.n_out; ++o) gb[o] += ws.dz[static_cast<std::size_t>(r) * ly.n_out + o];
         const bool fp4 = c.fp4_layer(li, L);
         if (fp4) {
-            wgrad(ws.dz.data(), ws.a[li].data(), bs, ly.n_out, ly.n_in, c, rng, h, gW, ws);
+            wgrad(ws.dz.data(), ws.a[li].data(), bs, ly.n_out, ly.n_in, c, sr.key(static_cast<int>(li), 1), h, gW, ws);
         } else {
             Gemm::tn(ly.n_out, ly.n_in, bs, ws.dz.data(), ws.a[li].data(), gW);
         }
         if (li == 0) break;
         ws.da.resize(static_cast<std::size_t>(bs) * ly.n_in);
         if (fp4) {
-            kern::quantize_left(ws.dz.data(), bs, ly.n_out, c.format,
-                                c.stochastic ? Rounding::Stochastic : Rounding::NearestEven, &rng, ws.left, ws.qs);
+            const SrKey key = sr.key(static_cast<int>(li), 0);
+            kern::quantize_train(ws.dz.data(), bs, ly.n_out, static_cast<std::size_t>(ly.n_out), c.format,
+                                 c.stochastic ? &key : nullptr, &ws.left, nullptr, ws.qs);
             kern::gemm_packed(ws.left, ws.pwt[li], ws.da.data());
         } else {
             Gemm::nn(bs, ly.n_in, ly.n_out, ws.dz.data(), ly.weight.data(), ws.da.data());
         }
     }
+    ++sr.step;
 }
 
 //! The inference network of an FP4-trained model: FP4 layers with exactly

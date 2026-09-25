@@ -259,6 +259,98 @@ struct SplitMix64 {
     double uniform() { return static_cast<double>(next() >> 11) * (1.0 / 9007199254740992.0); }
 };
 
+// ------------------------------------------------------------------ training's stochastic rounding
+
+//! SplitMix64's output function (a bijective 64-bit mix).
+inline std::uint64_t fmix64(std::uint64_t z) {
+    z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
+    z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
+    return z ^ (z >> 31);
+}
+
+//! A 32-bit xorshift-multiply mix, bijective (two odd multipliers; the
+//! constants of Wellons' hash-prospector "lowbias32" search).
+inline std::uint32_t mix32(std::uint32_t x) {
+    x ^= x >> 16;
+    x *= 0x21F0AAADu;
+    x ^= x >> 15;
+    x *= 0x735A2D97u;
+    x ^= x >> 15;
+    return x;
+}
+
+//! The key of one stochastically rounded operand: FP4 training's draws are
+//! a counter-based generator, `word(n) = mix32(mix32(n ^ a) ^ b)` -- two
+//! keyed rounds of a bijective 32-bit mix (an Even-Mansour-style keyed
+//! permutation of the counter), so draws depend only on (key, n), never on
+//! the order they are made in, and every SIMD width computes them lane by
+//! lane. (a, b) is fmix64 of (seed, step, layer, operand), so two operands
+//! are unrelated permutations, not shifted copies of one stream.
+struct SrKey {
+    std::uint32_t a = 0, b = 0;
+    static SrKey make(std::uint64_t seed, std::uint64_t step, int layer, int operand) {
+        std::uint64_t h = fmix64(seed ^ 0x5352'4B45'5900'0000ULL);  // "SRKEY"
+        h = fmix64(h ^ step);
+        h = fmix64(h ^ (static_cast<std::uint64_t>(static_cast<std::uint32_t>(layer)) << 8) ^
+                   static_cast<std::uint64_t>(operand & 0xFF));
+        SrKey k;
+        k.a = static_cast<std::uint32_t>(h);
+        k.b = static_cast<std::uint32_t>(h >> 32);
+        return k;
+    }
+    std::uint32_t word(std::uint32_t n) const { return mix32(mix32(n ^ a) ^ b); }
+    //! The 16-bit draw of element `e` (an operand's `row * padded_cols + k`):
+    //! elements come in groups of 16, eight 32-bit words a group; element j
+    //! of group g takes word `8 g + (j & 7)`, its low half for j < 8, its
+    //! high half for j >= 8 (so a 4 / 8 / 16-lane vector of words serves
+    //! whole lanes of elements).
+    std::uint32_t u16(std::size_t e) const {
+        const std::uint32_t w = word(static_cast<std::uint32_t>((e >> 4) * 8 + (e & 7)));
+        return (e & 8) ? (w >> 16) : (w & 0xFFFFu);
+    }
+};
+
+namespace detail {
+inline std::uint32_t bits_of_f(float x) {
+    std::uint32_t u;
+    std::memcpy(&u, &x, 4);
+    return u;
+}
+}  // namespace detail
+
+//! Round-to-nearest-even E2M1 code of a float quotient: e2m1_encode() of
+//! the same value.
+inline std::uint8_t e2m1_encode_f(float q) {
+    if (q != q) return 0;
+    const std::uint8_t sign = (detail::bits_of_f(q) >> 31) ? 0x08 : 0x00;
+    const float m = std::fabs(q);
+    const int i = (m > 0.25f) + (m >= 0.75f) + (m > 1.25f) + (m >= 1.75f) + (m > 2.5f) + (m >= 3.5f) + (m > 5.0f);
+    return static_cast<std::uint8_t>(sign | i);
+}
+
+//! Stochastically rounded E2M1 code of a float quotient `q` for a 16-bit
+//! draw `u` (training's gradients). On `y = |q| + 2` (float, rounded to
+//! nearest), whose float bits put the E2M1 grid on mantissa boundaries --
+//! [0, 2) -> [2, 4) with 2 mantissa bits (step 0.5), [2, 4) -> [4, 6) with
+//! 2 bits (step 1), [4, 6) -> [6, 8) with 1 bit (step 2) -- the draw is
+//! added below the kept bits, `(u << 5) + 16` (`(u << 6) + 32` for
+//! y >= 6), and the carry decides: up with probability `frac` of the step,
+//! to within 2^-17 (the draw's 16 bits, centred). The code is the kept
+//! bits `(y >> 21) - 512`, saturating to 7 (|q| >= 6, inf). NaN -> +0.
+inline std::uint8_t e2m1_encode_sr16(float q, std::uint32_t u) {
+    if (q != q) return 0;
+    const std::uint32_t sign = (detail::bits_of_f(q) >> 28) & 0x08u;
+    float y = std::fabs(q);
+    y += 2.0f;
+    const std::uint32_t yb = detail::bits_of_f(y);
+    const bool one = yb >= 0x40C00000u;  // y >= 6: one mantissa bit
+    const std::uint32_t r = one ? ((u << 6) | 32u) : ((u << 5) | 16u);
+    std::uint32_t t = (yb + r) >> 21;
+    if (one) t &= ~1u;
+    t -= 512u;
+    return static_cast<std::uint8_t>(sign | (t < 7u ? t : 7u));
+}
+
 // ------------------------------------------------------------------ formats
 
 enum class Format { FP4, MXFP4, NVFP4 };

@@ -92,9 +92,10 @@ NeuralNetTraining train_neural_net_with_history(
   fcfg.keep_first = opt.fp4_keep_first_layer;
   fcfg.keep_last = opt.fp4_keep_last_layer;
   const f4t::Hadamard16 hadamard;
-  // the stochastic-rounding stream: its own generator, from the seed
-  IMP::bff::internal::mlpfp4::SplitMix64 sr_rng(
-      0x5352'0000'0000'0000ULL ^ static_cast<std::uint64_t>(static_cast<std::uint32_t>(opt.seed)));
+  // the stochastic-rounding stream: counter-based draws keyed by the seed,
+  // the step, the layer and the operand (MlpFp4.h, SrKey)
+  f4t::SrStream sr_rng(0x5352'0000'0000'0000ULL ^
+                       static_cast<std::uint64_t>(static_cast<std::uint32_t>(opt.seed)));
   f4t::Workspace fws;
 
   NeuralNetTraining result;
