@@ -36,18 +36,32 @@ All C++ (`include/FRETNetwork.h`, `include/FRETNetworkSimulation.h`,
    emits. It lets the whole photon stream be one segment: no burst search and
    no selection bias. The factor machinery (`KineticNetwork` amalgamation,
    per-state emission) takes it without an API change.
-4. **Position-parameterised structure prior.** Today each pair's distance map
+4. **Ensemble (MSM) priors: prototyped in PyTorch, not in C++ (2026-09-25).**
+   `prototypes/fret_network_landscape/ensemble_prior.py` and script 07 build the
+   prior from a conformational ensemble, either time-connected frames (an MSM
+   by counting at a lag) or a given MSM:
+   - log populations and log exchange fluxes of a reversible chain;
+   - per-microstate distances per pair from the frames' label distances.
+
+   Against a force field 4× too slow, the photons recover the relaxation
+   (0.084 ± 0.035 ms, exact 0.075). The prior keeps the populations and the
+   transition-region distances, which a weak prior lets wander.
+   *Trap:* build the MSM at a lag where its implied timescales have converged.
+   At a short lag a coarse MSM underestimates the relaxation (0.042 at 0.05 ms,
+   exact 0.075). The C++ `FRETHiddenProcess` would need the population/flux
+   parametrisation and these priors to take it.
+5. **Position-parameterised structure prior.** Today each pair's distance map
    has an independent Gaussian prior from structure
    (`set_map_prior_from_path`, per-state `set_parameter_prior`). The planned
    form gives each hidden state 3-D mean label positions (FPS/NPS), so that one
    state's distances across pairs are geometrically consistent by
    construction; the API was shaped for it.
-5. **The roughness weight is not scale-free.** The penalty is
+6. **The roughness weight is not scale-free.** The penalty is
    `ω Σ (Δ²u/h²)²`. On q ∈ [0, 1] with 5 knots, ω = 1e-2 flattened a 4 kT
    landscape (23 % within 2σ, bands overconfident); 1e-5 recovers it (95 %),
    and 0 gives 100 %. Choose ω by held-out segment likelihood, which
    `segment_log_likelihoods` supports, rather than by default.
-6. **Burst-selection bias is documented, not corrected.** Segments start from
+7. **Burst-selection bias is documented, not corrected.** Segments start from
    the detection-weighted distribution; the threshold's preference for bright
    states is not modelled.
 
