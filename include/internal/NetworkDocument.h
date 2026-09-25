@@ -21,7 +21,13 @@
  * one little-endian float32 a row; mxfp4: one E8M0 byte a block; nvfp4: one
  * E4M3 byte a block) and, for nvfp4, `"tensor_scale"` (a float32 value);
  * a layer that FP4 training kept in high precision has `"precision":
- * "float64"` and a float64 `"weight"` array instead.
+ * "float64"` and a float64 `"weight"` array instead. Ternary
+ * (`"ternary"`, `"ternary_row"`, `"ternary_tq1"`, `"ternary_tq1_row"`;
+ * `"quantize_activations"` always true, W1.58A8): `"codes"` (the packed
+ * trits, MlpTernary.h: 2 bits a weight, or five trits a byte for `_tq1`)
+ * and `"weight_scale"` (the absmean, a float64 value) or, for `_row`,
+ * `"weight_scales"` (n_out little-endian float64 in a bin); kept layers as
+ * for FP4.
  * Every field round-trips bit-exactly.
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
@@ -37,7 +43,9 @@
 #include <IMP/bff/internal/MlpCore.h>
 #include <IMP/bff/internal/MlpFp4.h>
 #include <IMP/bff/internal/MlpQuant.h>
+#include <IMP/bff/internal/MlpTernary.h>
 
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <exception>
@@ -387,11 +395,58 @@ inline MsgpackBytes quantized_to_msgpack(const std::string& format, bool quantiz
   return MsgpackBytes(o);
 }
 
-//! Parse a `bff.quantized_neural_net` document into `q8` or `f4`; returns
-//! the format and sets `quantize_activations`.
+//! Serialise a ternary network as a `bff.quantized_neural_net` document.
+inline MsgpackBytes ternary_to_msgpack(const mlpternary::TModel& t) {
+  std::string o;
+  mpk::put_map(o, 7);
+  mpk::put_str(o, "format");
+  mpk::put_str(o, "bff.quantized_neural_net");
+  mpk::put_str(o, "version");
+  mpk::put_int(o, 1);
+  mpk::put_str(o, "quantization");
+  mpk::put_str(o, mlpternary::format_name(t.scale, t.storage));
+  mpk::put_str(o, "quantize_activations");
+  mpk::put_bool(o, true);
+  mpk::put_str(o, "x_scaler");
+  mpk::put_scaler(o, t.x_scaler);
+  mpk::put_str(o, "y_scaler");
+  mpk::put_scaler(o, t.y_scaler);
+  mpk::put_str(o, "layers");
+  mpk::put_array(o, t.layers.size());
+  for (const mlpternary::TLayer& l : t.layers) {
+    mpk::put_map(o, 6);
+    mpk::put_str(o, "n_in"); mpk::put_int(o, l.n_in);
+    mpk::put_str(o, "n_out"); mpk::put_int(o, l.n_out);
+    mpk::put_str(o, "activation"); mpk::put_str(o, activation_to_string(l.activation));
+    mpk::put_str(o, "bias"); mpk::put_doubles(o, l.bias);
+    if (l.full_precision) {
+      mpk::put_str(o, "precision"); mpk::put_str(o, "float64");
+      mpk::put_str(o, "weight"); mpk::put_doubles(o, l.weight_f64);
+      continue;
+    }
+    const std::vector<std::uint8_t> codes = mlpternary::pack(l.weight, t.storage);
+    mpk::put_str(o, "codes"); mpk::put_bin(o, codes.data(), codes.size());
+    if (t.scale == mlpternary::Scale::Tensor) {
+      mpk::put_str(o, "weight_scale"); mpk::put_double(o, l.weight.gamma.at(0));
+    } else {
+      std::vector<std::uint8_t> le(8 * l.weight.gamma.size());
+      for (std::size_t i = 0; i < l.weight.gamma.size(); ++i) {
+        std::uint64_t u;
+        std::memcpy(&u, &l.weight.gamma[i], 8);
+        for (int b = 0; b < 8; ++b) le[8 * i + static_cast<std::size_t>(b)] = static_cast<std::uint8_t>(u >> (8 * b));
+      }
+      mpk::put_str(o, "weight_scales"); mpk::put_bin(o, le.data(), le.size());
+    }
+  }
+  return MsgpackBytes(o);
+}
+
+//! Parse a `bff.quantized_neural_net` document into `q8`, `f4` or `tm`;
+//! returns the format and sets `quantize_activations`.
 /*! \throws IMP::ValueException on a malformed document */
 inline std::string quantized_from_msgpack(const MsgpackBytes& bytes, bool& quantize_activations,
                                           mlpquant::QuantModel& q8, mlpfp4::Fp4Model& f4,
+                                          mlpternary::TModel& tm,
                                           const std::string& who = "QuantizedNeuralNet") {
   if (bytes.empty())
     IMP_THROW(who << ": the document is empty (expected msgpack bytes of a "
@@ -411,12 +466,19 @@ inline std::string quantized_from_msgpack(const MsgpackBytes& bytes, bool& quant
     format = doc.at("quantization").str();
     quantize_activations = doc.at("quantize_activations").boolean();
     const bool is_int8 = format == "int8";
+    mlpternary::Scale tsc = mlpternary::Scale::Tensor;
+    mlpternary::Storage tst = mlpternary::Storage::TQ2;
+    const bool is_ter = mlpternary::parse_format(format, tsc, tst);
+    if (is_ter && !quantize_activations) throw std::runtime_error("ternary: quantize_activations must be true");
     mlpfp4::Format ff = mlpfp4::Format::FP4;
-    if (!is_int8) ff = mlpfp4::format_from_string(format);
+    if (!is_int8 && !is_ter) ff = mlpfp4::format_from_string(format);
     const StandardScaler xs = mpk::get_scaler(doc.find("x_scaler"));
     const StandardScaler ys = mpk::get_scaler(doc.find("y_scaler"));
     q8 = mlpquant::QuantModel();
     f4 = mlpfp4::Fp4Model();
+    tm = mlpternary::TModel();
+    tm.scale = tsc;
+    tm.storage = tst;
     f4.format = ff;
     f4.quantize_activations = quantize_activations;
     const mpk::Value& layers = doc.at("layers");
@@ -432,6 +494,45 @@ inline std::string quantized_from_msgpack(const MsgpackBytes& bytes, bool& quant
       std::vector<double> bias = lj.at("bias").doubles();
       if (bias.size() != static_cast<std::size_t>(n_out)) throw std::runtime_error("bias length");
       const std::size_t nw = static_cast<std::size_t>(n_in) * static_cast<std::size_t>(n_out);
+      if (is_ter) {
+        mlpternary::TLayer l;
+        l.n_in = static_cast<int>(n_in);
+        l.n_out = static_cast<int>(n_out);
+        l.activation = act;
+        l.bias = std::move(bias);
+        const mpk::Value* prec = lj.find("precision");
+        if (prec != nullptr) {
+          if (prec->str() != "float64") throw std::runtime_error("unknown layer precision");
+          l.full_precision = true;
+          l.weight_f64 = lj.at("weight").doubles();
+          if (l.weight_f64.size() != nw) throw std::runtime_error("float64 weight length");
+          tm.layers.push_back(std::move(l));
+          continue;
+        }
+        l.weight.rows = l.n_out;
+        l.weight.cols = l.n_in;
+        l.weight.scale = tsc;
+        const std::string& c = lj.at("codes").bin();
+        mlpternary::unpack(reinterpret_cast<const std::uint8_t*>(c.data()), c.size(), tst, l.weight);
+        if (tsc == mlpternary::Scale::Tensor) {
+          l.weight.gamma.assign(1, lj.at("weight_scale").number());
+        } else {
+          const std::string& g = lj.at("weight_scales").bin();
+          if (g.size() != 8 * static_cast<std::size_t>(n_out)) throw std::runtime_error("weight_scales length");
+          for (std::int64_t o = 0; o < n_out; ++o) {
+            std::uint64_t u = 0;
+            for (int b = 0; b < 8; ++b)
+              u |= static_cast<std::uint64_t>(static_cast<std::uint8_t>(g[static_cast<std::size_t>(8 * o + b)])) << (8 * b);
+            double v;
+            std::memcpy(&v, &u, 8);
+            l.weight.gamma.push_back(v);
+          }
+        }
+        for (double v : l.weight.gamma)
+          if (!(v > 0.0) || !std::isfinite(v)) throw std::runtime_error("ternary weight scale not positive");
+        tm.layers.push_back(std::move(l));
+        continue;
+      }
       if (is_int8) {
         mlpquant::QuantLayer l;
         l.n_in = static_cast<int>(n_in);
@@ -471,12 +572,12 @@ inline std::string quantized_from_msgpack(const MsgpackBytes& bytes, bool& quant
         f4.layers.push_back(std::move(l));
       }
     }
-    const int n_in0 = is_int8 ? q8.n_inputs() : f4.n_inputs();
-    const int n_out0 = is_int8 ? q8.n_outputs() : f4.n_outputs();
+    const int n_in0 = is_ter ? tm.n_inputs() : is_int8 ? q8.n_inputs() : f4.n_inputs();
+    const int n_out0 = is_ter ? tm.n_outputs() : is_int8 ? q8.n_outputs() : f4.n_outputs();
     if ((xs.active() && xs.size() != n_in0) || (ys.active() && ys.size() != n_out0))
       throw std::runtime_error("scaler length");
-    q8.x_scaler = f4.x_scaler = xs;
-    q8.y_scaler = f4.y_scaler = ys;
+    q8.x_scaler = f4.x_scaler = tm.x_scaler = xs;
+    q8.y_scaler = f4.y_scaler = tm.y_scaler = ys;
   } catch (const std::exception& e) {
     IMP_THROW(who << ": malformed 'bff.quantized_neural_net' document: " << e.what(),
               IMP::ValueException);

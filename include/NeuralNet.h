@@ -293,7 +293,7 @@ private:
 
 //! A NeuralNet's forward pass with quantised weights, for deployment.
 /*!
-    Built from a NeuralNet in one of four formats (`format`):
+    Built from a NeuralNet in one of these formats (`format`):
 
     - `"int8"` (default): dynamic-range int8 -- weights quantised once per
       tensor, symmetric; each layer's input requantised per sample; int32
@@ -305,6 +305,18 @@ private:
       dimension, one E8M0 (power-of-two) scale a block.
     - `"nvfp4"`: NVIDIA NVFP4 -- E2M1, blocks of 16, one FP8 E4M3 scale a
       block and one float32 scale a tensor.
+    - `"ternary"`: BitNet b1.58 (W1.58A8) -- weights in {-1, 0, +1} times
+      one absmean scale a tensor (`round(w / mean|W|)` clipped to +-1),
+      stored at 2 bits a weight; every layer input quantised to int8 per
+      row (absmax), whatever `quantize_activations` says. `"ternary_row"`:
+      one absmean a weight row (a PTQ option; BitNet is per tensor).
+      `"ternary_tq1"` / `"ternary_tq1_row"`: the same, stored five trits a
+      byte (1.6 bits a weight, llama.cpp's TQ1_0 packing) -- only the
+      storage differs. Ternary integer x int8 kernels in
+      `internal/MlpTernary.h`. Post-training ternary quantisation of a
+      float-trained network is coarse; a network trained with
+      `NeuralNetTrainOptions.precision = "ternary"` (quantisation-aware) is
+      what this format is for (NeuralNetTraining::get_quantized_network()).
 
     The exact recipes are in `internal/MlpFp4.h`. The FP4 weights are held
     packed (two codes a byte, element 2i in the low nibble -- ONNX
@@ -316,8 +328,9 @@ private:
     format per row -- W4A4, the arithmetic of NVFP4 GEMMs on Blackwell.
     CPUs have no FP4 unit: nothing is emulated in float, but the products
     are int8 products of the E2M1 values' doubles, scaled after. For
-    `"int8"` the activations are always quantised and `quantize_activations`
-    is ignored (get_quantize_activations() returns true).
+    `"int8"` and the ternary formats the activations are always quantised
+    and `quantize_activations` is ignored (get_quantize_activations()
+    returns true).
 
     Biases, activations and scalers stay double. It is an inference path
     only -- no derivatives, no training, no accelerator; the source network
@@ -329,7 +342,8 @@ class IMPBFFEXPORT QuantizedNeuralNet {
 public:
     //! Quantise `net` (its current parameters) in `format`.
     /*! \throws IMP::ValueException for a format other than "int8", "fp4",
-                "mxfp4", "nvfp4" */
+                "mxfp4", "nvfp4", "ternary", "ternary_row", "ternary_tq1",
+                "ternary_tq1_row" */
     explicit QuantizedNeuralNet(const NeuralNet& net, const std::string& format = "int8",
                                 bool quantize_activations = false);
     ~QuantizedNeuralNet();
@@ -340,7 +354,7 @@ public:
     //! The `bff.quantized_neural_net` msgpack document (bit-exact round trip).
     MsgpackBytes to_msgpack() const;
 
-    //! "int8", "fp4", "mxfp4" or "nvfp4".
+    //! "int8", "fp4", "mxfp4", "nvfp4" or one of the ternary formats.
     std::string get_format() const;
     //! Whether each layer's input is quantised in the weight format (W4A4).
     bool get_quantize_activations() const;
@@ -354,13 +368,16 @@ public:
     int get_n_weights() const;
     //! Bytes the quantised weights occupy, scales included: int8 one a
     //! weight plus an 8-byte scale a layer; FP4 half a byte a weight (rows
-    //! padded to 32) plus the scales. A double takes eight a weight.
+    //! padded to 32) plus the scales; ternary a quarter byte a weight (rows
+    //! padded to 4; `_tq1`: a fifth, rows padded to 5) plus an 8-byte
+    //! scale a tensor (or row). A double takes eight a weight.
     int get_weight_bytes() const;
     //! `8 * get_weight_bytes() / get_n_weights()`: about 4.25 for mxfp4,
-    //! 4.5 for nvfp4, 4 + 32 / n_in for fp4, 8 for int8.
+    //! 4.5 for nvfp4, 4 + 32 / n_in for fp4, 8 for int8, 2 for ternary,
+    //! 1.6 for ternary_tq1.
     double get_bits_per_weight() const;
-    //! The FP4 kernel variant this build compiled: "neon-dotprod", "neon",
-    //! "avx2" or "generic".
+    //! The FP4 (and ternary) kernel variant this build compiled:
+    //! "neon-dotprod", "neon", "avx512-vnni", "avx2" or "generic".
     static std::string get_kernel_name();
 
     //! Evaluate a batch, as NeuralNet::predict() does.

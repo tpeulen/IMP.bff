@@ -1,4 +1,5 @@
-"""FP4 speed gates: inference and training against float64, through the module.
+"""FP4 and ternary speed gates: inference and training against float64,
+through the module.
 
 Run with the IMP environment (not collected by pytest):
 
@@ -19,11 +20,16 @@ call; seconds an epoch) for okf/neural-net.md:
   64-wide 3-hidden-layer regression (3000 x 4 -> 2), and a tiny
   2-16-16-1 net where fixed per-step costs dominate (reported, not a gate).
 
+* Ternary (BitNet b1.58, W1.58A8): the same two gates for
+  `QuantizedNeuralNet(net, "ternary")` and `precision = "ternary"` (first
+  and last layer float64, the default), on the same shapes.
+
 Both paths run on one thread in the IMP build (no OpenMP there); the
 kernel variant is `QuantizedNeuralNet.get_kernel_name()`; the machine's
 load average is printed with the results (record it with the numbers).
 Timings only: nothing is asserted. Recorded results: okf/neural-net.md,
-"Speed gates" (2026-09-24) and "Speed gates, third pass" (2026-09-25).
+"Speed gates" (2026-09-24), "Speed gates, third pass" (2026-09-25) and
+"Ternary" (2026-09-25).
 """
 
 import argparse
@@ -133,16 +139,48 @@ def bench_training(reps, quick):
     return rows
 
 
+def bench_ternary(reps, quick):
+    print("\n### Ternary G1 inference, us a predict() call (median of %d)\n" % reps)
+    print("| net | batch | float64 | nvfp4 W4A8 | ternary | ternary / float64 |")
+    print("|---|---|---|---|---|---|")
+    net = _net(8)
+    q4, qt = IMP.bff.QuantizedNeuralNet(net, "nvfp4"), IMP.bff.QuantizedNeuralNet(net, "ternary")
+    for b in (1, 32, 256):
+        X = np.random.default_rng(b).normal(size=(b, 24)).ravel().tolist()
+        inner = max(1, 2000 // (b * 8))
+        t = [_median_us(lambda n=n: n.predict(X, b), reps, inner) for n in (net, q4, qt)]
+        print("| 24-256-256-128-8 | %d | %.1f | %.1f | %.1f | %.2f |" % (b, t[0], t[1], t[2], t[2] / t[0]))
+    rng = np.random.default_rng(0)
+    cases = [
+        ("surrogate 400x24->8, 256-256-128", rng.normal(size=(400, 24)), rng.normal(size=(400, 8)),
+         (256, 256, 128), 10 if quick else 40),
+        ("regression 3000x4->2, 64-64-64", rng.uniform(-2, 2, size=(3000, 4)), rng.normal(size=(3000, 2)),
+         (64, 64, 64), 5 if quick else 20),
+        ("tiny 2000x2->1, 16-16 (no gate)", rng.uniform(-2, 2, size=(2000, 2)), rng.normal(size=(2000, 1)),
+         (16, 16), 5 if quick else 20),
+    ]
+    print("\n### Ternary G2 training, ms an epoch (median of %d runs; batch 200)\n" % reps)
+    print("| shape | float64 | ternary | ternary / float64 |")
+    print("|---|---|---|---|")
+    for name, X, Y, hidden, epochs in cases:
+        t64 = _epoch_seconds(X, Y, "float64", hidden, epochs, reps)
+        tt = _epoch_seconds(X, Y, "ternary", hidden, epochs, reps)
+        print("| %s | %.2f | %.2f | %.2f |" % (name, 1e3 * t64, 1e3 * tt, tt / t64))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--reps", type=int, default=7)
     ap.add_argument("--quick", action="store_true")
+    ap.add_argument("--ternary", action="store_true", help="only the ternary gates")
     a = ap.parse_args()
     print("machine %s, kernel variant %s" % (platform.machine(), IMP.bff.QuantizedNeuralNet.get_kernel_name()))
     if hasattr(os, "getloadavg"):
         print("load average %.2f %.2f %.2f" % os.getloadavg())
-    bench_inference(a.reps)
-    bench_training(a.reps, a.quick)
+    if not a.ternary:
+        bench_inference(a.reps)
+        bench_training(a.reps, a.quick)
+    bench_ternary(a.reps, a.quick)
 
 
 if __name__ == "__main__":

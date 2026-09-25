@@ -72,7 +72,7 @@ jobs:
   # status counts failures). The AVX-512 build runs natively when the runner
   # has avx512_vnni, otherwise under Intel SDE (Sapphire Rapids model).
   fp4_kernels_x86:
-    name: FP4 kernels and MlpMath (generic / SSE2 / AVX2 / AVX-512 VNNI)
+    name: FP4 / ternary kernels and MlpMath (generic / SSE2 / AVX2 / AVX-512 VNNI)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -92,6 +92,11 @@ jobs:
           g++ -std=c++17 -O2 -I "$RUNNER_TEMP/inc" $m -o math_sse2
           g++ -std=c++17 -O2 -mavx2 -mfma -I "$RUNNER_TEMP/inc" $m -o math_avx2
           g++ -std=c++17 -O2 -mavx512f -mavx512bw -mavx512vl -mavx512vnni -I "$RUNNER_TEMP/inc" $m -o math_avx512
+          # MlpTernary.h (BitNet b1.58 ternary x int8 kernels): the FP4 flags
+          t=test/cpp_snippets/test_ternary_kernels.cpp
+          g++ -std=c++17 -O2 -DIMPBFF_FP4_NO_SIMD -I "$RUNNER_TEMP/inc" $t -o ternary_generic
+          g++ -std=c++17 -O2 -mavx2 -mfma -I "$RUNNER_TEMP/inc" $t -o ternary_avx2
+          g++ -std=c++17 -O2 -mavx512f -mavx512bw -mavx512vl -mavx512vnni -I "$RUNNER_TEMP/inc" $t -o ternary_avx512
       - name: Run generic and AVX2
         run: |
           ./fp4_generic | tee generic.txt
@@ -101,6 +106,10 @@ jobs:
           for v in generic sse2 avx2; do
             ./math_$v | tee math_$v.txt
             grep -q "^variant $v" math_$v.txt
+          done
+          for v in generic avx2; do
+            ./ternary_$v | tee ternary_$v.txt
+            grep -q "^variant $v" ternary_$v.txt
           done
       - id: cpu
         name: Does the runner have AVX-512 VNNI?
@@ -113,6 +122,8 @@ jobs:
           grep -q "^variant avx512-vnni" avx512.txt
           ./math_avx512 | tee math_avx512.txt
           grep -q "^variant avx512" math_avx512.txt
+          ./ternary_avx512 | tee ternary_avx512.txt
+          grep -q "^variant avx512-vnni" ternary_avx512.txt
       # Intel's SDE download is not always reachable from the runners (it has
       # answered 403). The AVX-512 build above still has to compile, and the
       # variant is run natively on a Sapphire Rapids host outside CI; here an
@@ -130,6 +141,9 @@ jobs:
           grep -q "^0 failure(s)" avx512.txt
           "$SDE_PATH/sde64" -spr -- ./math_avx512 | tee math_avx512.txt
           grep -q "^0 failure(s)" math_avx512.txt
+          "$SDE_PATH/sde64" -spr -- ./ternary_avx512 | tee ternary_avx512.txt
+          grep -q "^variant avx512-vnni" ternary_avx512.txt
+          grep -q "^0 failure(s)" ternary_avx512.txt
       - name: AVX-512 compiled but not run
         if: steps.cpu.outputs.vnni != 'true' && steps.sde.outcome != 'success'
         run: echo "::warning::AVX-512 VNNI variant compiled but not executed (runner has no avx512_vnni, Intel SDE unavailable)"

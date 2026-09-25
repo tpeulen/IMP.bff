@@ -73,6 +73,13 @@ class IMPBFFEXPORT NeuralNetTrainOptions {
   //! weights and Adam state (`internal/MlpFp4Train.h` states the recipe).
   //! The result also carries the FP4 inference network
   //! (NeuralNetTraining::get_quantized_network()).
+  //! `"ternary"`: BitNet b1.58's quantisation-aware training -- every
+  //! ternary layer's forward pass on ternary weights (absmean per tensor)
+  //! and int8 activations (absmax per row) through the ternary x int8
+  //! kernel, the backward pass by the straight-through estimator in
+  //! float64, float64 master weights and Adam state
+  //! (`internal/MlpTernaryTrain.h`); the result carries the ternary
+  //! network (format "ternary").
   std::string precision = "float64";
   //! FP4 only: keep the first / last layer in float64 (the paper keeps a few
   //! sensitive layers in higher precision, most of them at the end).
@@ -82,6 +89,11 @@ class IMPBFFEXPORT NeuralNetTrainOptions {
   bool fp4_hadamard = true;
   //! FP4 only: stochastic rounding of the gradients (else round to nearest even).
   bool fp4_stochastic_rounding = true;
+  //! Ternary only: keep the first / last layer in float64 (BitNet keeps
+  //! its embedding and output head in high precision; here the input layer
+  //! sees the physical inputs and the last is the regression head).
+  bool ternary_keep_first_layer = true;
+  bool ternary_keep_last_layer = true;
 
   IMP_SHOWABLE_INLINE(NeuralNetTrainOptions,
                       out << "NeuralNetTrainOptions(max_iter " << max_iter
@@ -113,12 +125,13 @@ class IMPBFFEXPORT NeuralNetTraining {
   const std::vector<double>& get_validation_curve() const { return validation_curve_; }
   //! Epochs run.
   int get_number_of_epochs() const { return static_cast<int>(loss_curve_.size()); }
-  //! The options' precision: "float64", "nvfp4" or "mxfp4".
+  //! The options' precision: "float64", "nvfp4", "mxfp4" or "ternary".
   const std::string& get_precision() const { return precision_; }
-  //! FP4 training: the `bff.quantized_neural_net` msgpack document of the
-  //! trained network in its training format -- FP4 layers with exactly the
-  //! weights the forward pass used (2-D scaled) and FP4 activations (W4A4),
-  //! the kept layers in float64 -- so
+  //! FP4 / ternary training: the `bff.quantized_neural_net` msgpack
+  //! document of the trained network in its training format -- FP4 layers
+  //! with exactly the weights the forward pass used (2-D scaled) and FP4
+  //! activations (W4A4), or ternary layers with fprop's trits and int8
+  //! activations (W1.58A8), the kept layers in float64 -- so
   //! `QuantizedNeuralNet.from_msgpack(get_quantized_network())` evaluates
   //! what training evaluated. Empty for float64 training. get_network() is
   //! the float64 master weights in either case.

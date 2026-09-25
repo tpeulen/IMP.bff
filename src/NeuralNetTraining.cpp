@@ -1,7 +1,8 @@
 /**
  * \file NeuralNetTraining.cpp
  * \brief Fitting a dense network with Adam and explicit backpropagation --
- *        in float64, or in FP4 (internal/MlpFp4Train.h).
+ *        in float64, in FP4 (internal/MlpFp4Train.h), or ternary
+ *        (internal/MlpTernaryTrain.h).
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
@@ -10,6 +11,7 @@
 #include <IMP/bff/internal/AdamUpdate.h>
 #include <IMP/bff/internal/MlpCore.h>
 #include <IMP/bff/internal/MlpFp4Train.h>
+#include <IMP/bff/internal/MlpTernaryTrain.h>
 #include <IMP/bff/internal/MlpGemm.h>
 #include <IMP/bff/internal/NetworkDocument.h>
 #include <IMP/bff/internal/pcg_random.h>
@@ -79,11 +81,17 @@ NeuralNetTraining train_neural_net_with_history(
   }
 
   namespace f4t = IMP::bff::internal::mlpfp4::train;
-  const bool fp4 = opt.precision != "float64";
+  namespace tnt = IMP::bff::internal::mlpternary::train;
+  const bool ternary = opt.precision == "ternary";
+  const bool fp4 = opt.precision != "float64" && !ternary;
   if (fp4 && opt.precision != "nvfp4" && opt.precision != "mxfp4")
-    IMP_THROW("train_neural_net: precision must be float64, nvfp4 or mxfp4, not '"
+    IMP_THROW("train_neural_net: precision must be float64, nvfp4, mxfp4 or ternary, not '"
                   << opt.precision << "'",
               IMP::ValueException);
+  tnt::Config tcfg;
+  tcfg.keep_first = opt.ternary_keep_first_layer;
+  tcfg.keep_last = opt.ternary_keep_last_layer;
+  tnt::Workspace tws;
   f4t::Config fcfg;
   fcfg.format = opt.precision == "mxfp4" ? IMP::bff::internal::mlpfp4::Format::MXFP4
                                          : IMP::bff::internal::mlpfp4::Format::NVFP4;
@@ -188,10 +196,13 @@ NeuralNetTraining train_neural_net_with_history(
     if (fp4) {
       f4t::quantize_weights(model.layers, fcfg, fws);
       f4t::forward<d::TrainGemm>(model.layers, fcfg, in.data(), n_rows, fws);
+    } else if (ternary) {
+      tnt::quantize_weights(model.layers, tcfg, tws);
+      tnt::forward<d::TrainGemm>(model.layers, tcfg, in.data(), n_rows, tws);
     } else {
       mc::forward<d::TrainGemm>(model.layers, in.data(), n_rows, ws, 0);
     }
-    const std::vector<double>& y = fp4 ? fws.output() : ws.output();
+    const std::vector<double>& y = fp4 ? fws.output() : ternary ? tws.output() : ws.output();
     double acc = 0.0;
     for (std::size_t i = 0; i < y.size(); ++i) {
       const double r = y[i] - target[i];
@@ -223,10 +234,13 @@ NeuralNetTraining train_neural_net_with_history(
         if (fp4) {
           f4t::quantize_weights(model.layers, fcfg, fws);
           f4t::forward<d::TrainGemm>(model.layers, fcfg, xb.data(), bs, fws);
+        } else if (ternary) {
+          tnt::quantize_weights(model.layers, tcfg, tws);
+          tnt::forward<d::TrainGemm>(model.layers, tcfg, xb.data(), bs, tws);
         } else {
           mc::forward<d::TrainGemm>(model.layers, xb.data(), bs, ws, 0);
         }
-        const std::vector<double>& y = fp4 ? fws.output() : ws.output();
+        const std::vector<double>& y = fp4 ? fws.output() : ternary ? tws.output() : ws.output();
 
         // dL/dy for L = ||y - t||^2 / (2 bs), and the loss itself
         dY.resize(y.size());
@@ -243,6 +257,8 @@ NeuralNetTraining train_neural_net_with_history(
         if (fp4)
           f4t::backward<d::TrainGemm>(model.layers, fcfg, fws, dY.data(), bs, sr_rng, hadamard,
                                       grad.data());
+        else if (ternary)
+          tnt::backward<d::TrainGemm>(model.layers, tcfg, tws, dY.data(), bs, grad.data());
         else
           mc::backward<d::TrainGemm>(model.layers, ws, dY.data(), nullptr, nullptr, grad.data());
         if (opt.alpha > 0.0)  // L2 on weights only
@@ -278,6 +294,8 @@ NeuralNetTraining train_neural_net_with_history(
   }
 
   result.network_ = internal::model_to_msgpack(model);
+  if (ternary)
+    result.quantized_network_ = internal::ternary_to_msgpack(tnt::to_model(model, tcfg));
   if (fp4)
     result.quantized_network_ = internal::quantized_to_msgpack(
         opt.precision, true, IMP::bff::internal::mlpquant::QuantModel(),
