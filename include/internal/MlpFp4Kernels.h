@@ -625,6 +625,30 @@ inline void round_q8(const double* x, int n, double inv, std::int8_t* out) {
 }
 #endif
 
+//! absmax() of exactly 16 values, unrolled (the same maxima: exact, NaN
+//! never wins).
+inline double absmax16(const double* x) {
+#if defined(IMPBFF_FP4_NEON_DOTPROD) || defined(IMPBFF_FP4_NEON)
+    float64x2_t a[8];
+    for (int i = 0; i < 8; ++i) a[i] = vabsq_f64(vld1q_f64(x + 2 * i));
+    for (int i = 0; i < 4; ++i) a[i] = vmaxnmq_f64(a[i], a[i + 4]);
+    a[0] = vmaxnmq_f64(vmaxnmq_f64(a[0], a[2]), vmaxnmq_f64(a[1], a[3]));
+    return std::max(0.0, vmaxnmvq_f64(a[0]));
+#elif defined(IMPBFF_FP4_AVX2) || defined(IMPBFF_FP4_AVX512)
+    const __m256d sm = _mm256_castsi256_pd(_mm256_set1_epi64x(0x7FFFFFFFFFFFFFFFLL)), z = _mm256_setzero_pd();
+    // max_pd(|x|, acc) returns acc when |x| is NaN; acc starts at 0
+    __m256d a0 = _mm256_max_pd(_mm256_and_pd(_mm256_loadu_pd(x), sm), z);
+    __m256d a1 = _mm256_max_pd(_mm256_and_pd(_mm256_loadu_pd(x + 4), sm), z);
+    a0 = _mm256_max_pd(_mm256_and_pd(_mm256_loadu_pd(x + 8), sm), a0);
+    a1 = _mm256_max_pd(_mm256_and_pd(_mm256_loadu_pd(x + 12), sm), a1);
+    a0 = _mm256_max_pd(a0, a1);
+    const __m128d h = _mm_max_pd(_mm256_castpd256_pd128(a0), _mm256_extractf128_pd(a0, 1));
+    return std::max(_mm_cvtsd_f64(h), _mm_cvtsd_f64(_mm_unpackhi_pd(h, h)));
+#else
+    return absmax_scalar(x, 16);
+#endif
+}
+
 //! `n` uniforms of a SplitMix64 stream, in order.
 inline void draws(SplitMix64& rng, int n, double* u) {
     for (int i = 0; i < n; ++i) u[i] = rng.uniform();
@@ -671,6 +695,59 @@ inline void quantize_q8(const double* A, int rows, int K, int block, Q8Rows& out
     }
 }
 
+//! nvfp4's block scales of `nb` blocks from their absmaxes (`dv` in):
+//! block_scale_code(NVFP4, amax, g) (`codes`, if given), the half scales
+//! `hsc` = float(0.5 e4m3 g) and decoded scales `dv` = e4m3 g (out). The
+//! normal E4M3 range and zero blocks go 2 / 4 lanes at a time --
+//! e4m3_encode's bit-level rounding, the value rebuilt from the code bits
+//! (exact products) -- the rest through the scalar code and tables.
+inline void nvfp4_block_scales(int nb, float g, std::uint8_t* codes, float* hsc, double* dv) {
+    const double den = kE2M1Max * static_cast<double>(g), gd = static_cast<double>(g);
+    const kd::HalfScaleTables& hs = kd::half_scales();
+    const detail::ScaleTables& st = detail::scale_tables();
+    auto scalar = [&](int b) {
+        const std::uint8_t code = block_scale_code(Format::NVFP4, dv[b], g);
+        if (codes) codes[b] = code;
+        hsc[b] = static_cast<float>(static_cast<double>(hs.e4m3[code]) * gd);
+        dv[b] = st.e4m3[code] * gd;
+    };
+    int b = 0;
+#if defined(IMPBFF_FP4_NEON_DOTPROD) || defined(IMPBFF_FP4_NEON)
+    const float64x2_t dn = vdupq_n_f64(den), gv = vdupq_n_f64(gd), hg = vdupq_n_f64(0.5 * gd);
+    const uint64x2_t m52 = vdupq_n_u64((1ULL << 52) - 1), m49 = vdupq_n_u64((1ULL << 49) - 1), half = vdupq_n_u64(1ULL << 48);
+    for (; b + 2 <= nb; b += 2) {
+        const float64x2_t a = vld1q_f64(dv + b);
+        const uint64x2_t u = vreinterpretq_u64_f64(vdivq_f64(a, dn));
+        const uint64x2_t be = vshrq_n_u64(u, 52);
+        const uint64x2_t zero = vceqq_f64(a, vdupq_n_f64(0.0));  // -> e4m3_encode(1.0) = 0x38
+        const uint64x2_t ok = vorrq_u64(vandq_u64(vcgeq_u64(be, vdupq_n_u64(1017)), vcleq_u64(be, vdupq_n_u64(1031))), zero);
+        if ((vgetq_lane_u64(ok, 0) & vgetq_lane_u64(ok, 1)) == 0) {
+            scalar(b);
+            scalar(b + 1);
+            continue;
+        }
+        const uint64x2_t mant = vandq_u64(u, m52), rem = vandq_u64(mant, m49);
+        const uint64x2_t q = vorrq_u64(vdupq_n_u64(8), vshrq_n_u64(mant, 49));
+        const uint64x2_t up = vorrq_u64(vcgtq_u64(rem, half), vandq_u64(vceqq_u64(rem, half), vtstq_u64(q, vdupq_n_u64(1))));
+        uint64x2_t c = vsubq_u64(vaddq_u64(vshlq_n_u64(vsubq_u64(be, vdupq_n_u64(1016)), 3), q), vdupq_n_u64(8));
+        c = vsubq_u64(c, up);  // up is 0 / all ones
+        c = vbslq_u64(vcgtq_u64(c, vdupq_n_u64(0x7E)), vdupq_n_u64(0x7E), c);
+        c = vbslq_u64(zero, vdupq_n_u64(0x38), c);
+        // the E4M3 value 2^(e - 7) (1 + m / 8), e >= 1 here
+        const float64x2_t val = vreinterpretq_f64_u64(
+                vorrq_u64(vshlq_n_u64(vaddq_u64(vshrq_n_u64(c, 3), vdupq_n_u64(1016)), 52),
+                          vshlq_n_u64(vandq_u64(c, vdupq_n_u64(7)), 49)));
+        vst1q_f64(dv + b, vmulq_f64(val, gv));
+        vst1_f32(hsc + b, vcvt_f32_f64(vmulq_f64(val, hg)));
+        if (codes) {
+            codes[b] = static_cast<std::uint8_t>(vgetq_lane_u64(c, 0));
+            codes[b + 1] = static_cast<std::uint8_t>(vgetq_lane_u64(c, 1));
+        }
+    }
+#endif
+    for (; b < nb; ++b) scalar(b);
+}
+
 //! Phase 1 of encode_row_fast() for mxfp4 / nvfp4: every block's absmax
 //! (and from them the row's, nvfp4's per-row global scale when
 //! `row_scale`), then every block's scale code, half scales `hsc` (one a
@@ -682,7 +759,7 @@ inline void row_block_scales(Format f, const double* x, int cols, float g, bool 
     double row_amax = 0.0;
     for (int b = 0; b < nb; ++b) {  // dv holds the absmaxes first
         const int k0 = std::min(cols, b * block), k1 = std::min(cols, k0 + block);
-        dv[b] = k1 > k0 ? vq::absmax(x + k0, k1 - k0) : 0.0;
+        dv[b] = k1 - k0 == 16 ? vq::absmax16(x + k0) : (k1 > k0 ? vq::absmax(x + k0, k1 - k0) : 0.0);
         row_amax = std::max(row_amax, dv[b]);
     }
     if (row_scale && f == Format::NVFP4) g = nvfp4_tensor_scale(row_amax);
@@ -690,6 +767,10 @@ inline void row_block_scales(Format f, const double* x, int cols, float g, bool 
     const kd::HalfScaleTables& hs = kd::half_scales();
     const detail::ScaleTables& st = detail::scale_tables();
     const double gd = static_cast<double>(g);
+    if (f == Format::NVFP4) {
+        nvfp4_block_scales(nb, g, scale_codes, hsc, dv);
+        return;
+    }
     for (int b = 0; b < nb; ++b) {
         const std::uint8_t code = block_scale_code(f, dv[b], g);
         if (scale_codes) scale_codes[b] = code;
@@ -764,8 +845,14 @@ struct QuantScratch {
 
 //! Quantise `rows x K` doubles to FP4 per row (nvfp4 with one global scale
 //! a row) and store the codes' values as a left operand (W4A4, training).
+inline void quantize_rows_fast(const double* A, int rows, int K, std::size_t ld, Format f, bool exact, const SrKey* key,
+                               Q8Rows* left, PackedRight* right, QuantScratch& s);
 inline void quantize_left(const double* A, int rows, int K, Format f, Rounding rnd, SplitMix64* rng, Q8Rows& out,
                           QuantScratch& s) {
+    if (f != Format::FP4 && (rnd == Rounding::NearestEven || rng == nullptr)) {
+        quantize_rows_fast(A, rows, K, static_cast<std::size_t>(K), f, true, nullptr, &out, nullptr, s);
+        return;
+    }
     out.rows = rows;
     out.kp = padded_cols(K);
     out.q.resize(static_cast<std::size_t>(rows) * out.kp);
@@ -861,13 +948,19 @@ inline void pack_right_row(PackedRight& P, int o, const std::uint8_t* codes, con
         const std::size_t ts = static_cast<std::size_t>(t) * P.ns + s;
         std::uint8_t* dst = P.codes.data() + ts * 8 * kNR;
         const std::uint8_t* c = codes + 16 * s;
+        // byte j of quad p: code 8p + j low, 8p + 4 + j high (four at a time)
+        std::uint32_t q[4];
+        std::memcpy(q, c, 16);
+        const std::uint32_t m = 0x0F0F0F0Fu;
+        const std::uint32_t b0 = (q[0] & m) | ((q[1] & m) << 4), b1 = (q[2] & m) | ((q[3] & m) << 4);
+        std::memcpy(dst + 4 * ol, &b0, 4);
+        std::memcpy(dst + 4 * kNR + 4 * ol, &b1, 4);
+#if defined(IMPBFF_FP4_NEON_DOTPROD) || defined(IMPBFF_FP4_NEON)
+        const std::int32_t sum = vaddlvq_s8(vqtbl1q_s8(vld1q_s8(kValues2), vandq_u8(vld1q_u8(c), vdupq_n_u8(0x0F))));
+#else
         std::int32_t sum = 0;
-        for (int p = 0; p < 2; ++p)
-            for (int j = 0; j < 4; ++j) {
-                const std::uint8_t lo = c[8 * p + j] & 0x0F, hi = c[8 * p + 4 + j] & 0x0F;
-                dst[p * 4 * kNR + 4 * ol + j] = static_cast<std::uint8_t>(lo | (hi << 4));
-                sum += kValues2[lo] + kValues2[hi];
-            }
+        for (int j = 0; j < 16; ++j) sum += kValues2[c[j] & 0x0F];
+#endif
         P.sc[ts * kNR + ol] = hsc[s];
         P.corr[ts * kNR + ol] = 128 * sum;
     }
@@ -934,17 +1027,46 @@ inline uint32x4_t mix32v(uint32x4_t x) {
     x = vmulq_u32(x, vdupq_n_u32(0x735A2D97u));
     return veorq_u32(x, vshrq_n_u32(x, 15));
 }
-//! e2m1_encode_sr16 on four lanes; `r1` = (u << 6) | 32.
-inline uint32x4_t sr4(float32x4_t q, uint32x4_t r1) {
-    const uint32x4_t qb = vreinterpretq_u32_f32(q);
-    const uint32x4_t yb = vreinterpretq_u32_f32(vaddq_f32(vabsq_f32(q), vdupq_n_f32(2.0f)));
-    const uint32x4_t one = vcgeq_u32(yb, vdupq_n_u32(0x40C00000u));
-    const uint32x4_t r = vbslq_u32(one, r1, vshrq_n_u32(r1, 1));
-    uint32x4_t t = vshrq_n_u32(vaddq_u32(yb, r), 21);
-    t = vbicq_u32(t, vandq_u32(one, vdupq_n_u32(1)));
-    t = vminq_u32(vsubq_u32(t, vdupq_n_u32(512)), vdupq_n_u32(7));
-    t = vorrq_u32(t, vandq_u32(vshrq_n_u32(qb, 28), vdupq_n_u32(8)));
-    return vandq_u32(t, vceqq_f32(q, q));
+//! The float bits `y + 16` of e2m1_encode_sr16 for four lanes.
+inline uint32x4_t sr_bits(float32x4_t q) {
+    const float32x4_t y = vaddq_f32(vmaxnmq_f32(vabsq_f32(q), vdupq_n_f32(0.0f)), vdupq_n_f32(2.0f));
+    const float32x4_t y2 = vfmaq_n_f32(vdupq_n_f32(3.0f), y, 0.5f);  // exact product: fused or not alike
+    return vaddq_u32(vreinterpretq_u32_f32(vminq_f32(y, y2)), vdupq_n_u32(16));
+}
+//! e2m1_encode_sr16 of eight lanes (qa, qb) with draws `u`, in 16-bit lanes:
+//! the carry of `(bits & 0x1FFFFF) + (u << 5)` into bit 21 is the carry of
+//! `mid + u`, mid = bits 5..20.
+inline uint8x8_t sr8(float32x4_t qa, float32x4_t qb, uint16x8_t u) {
+    const uint32x4_t ya = sr_bits(qa), yb = sr_bits(qb);
+    const uint16x8_t top = vshrn_high_n_u32(vshrn_n_u32(ya, 16), yb, 16);
+    const uint16x8_t mid = vshrn_high_n_u32(vshrn_n_u32(ya, 5), yb, 5);
+    const uint16x8_t carry = vcltq_u16(vaddq_u16(mid, u), mid);
+    uint16x8_t t = vsubq_u16(vshrq_n_u16(top, 5), carry);
+    t = vminq_u16(vsubq_u16(t, vdupq_n_u16(512)), vdupq_n_u16(7));
+    const uint16x8_t qs = vshrn_high_n_u32(vshrn_n_u32(vreinterpretq_u32_f32(qa), 16), vreinterpretq_u32_f32(qb), 16);
+    return vmovn_u16(vsliq_n_u16(t, vshrq_n_u16(qs, 15), 3));
+}
+//! e2m1_encode_f of eight lanes in 16-bit lanes: for positive floats and
+//! thresholds t with zero low 16 bits, m >= t iff (bits(m) >> 16) >= (bits(t)
+//! >> 16) and m > t iff ((bits(m) - 1) >> 16) >= (bits(t) >> 16) (m = 0
+//! saturates at 0).
+inline uint8x8_t rne8(float32x4_t qa, float32x4_t qb) {
+    const uint32x4_t ma = vreinterpretq_u32_f32(vmaxnmq_f32(vabsq_f32(qa), vdupq_n_f32(0.0f)));
+    const uint32x4_t mb = vreinterpretq_u32_f32(vmaxnmq_f32(vabsq_f32(qb), vdupq_n_f32(0.0f)));
+    const uint32x4_t one = vdupq_n_u32(1);
+    const uint16x8_t ge = vshrn_high_n_u32(vshrn_n_u32(ma, 16), mb, 16);
+    const uint16x8_t gt = vshrn_high_n_u32(vshrn_n_u32(vqsubq_u32(ma, one), 16), vqsubq_u32(mb, one), 16);
+    // 0.25 3E80, 0.75 3F40, 1.25 3FA0, 1.75 3FE0, 2.5 4020, 3.5 4060, 5 40A0
+    uint16x8_t t = vcgeq_u16(gt, vdupq_n_u16(0x3E80));
+    t = vaddq_u16(t, vcgeq_u16(ge, vdupq_n_u16(0x3F40)));
+    t = vaddq_u16(t, vcgeq_u16(gt, vdupq_n_u16(0x3FA0)));
+    t = vaddq_u16(t, vcgeq_u16(ge, vdupq_n_u16(0x3FE0)));
+    t = vaddq_u16(t, vcgeq_u16(gt, vdupq_n_u16(0x4020)));
+    t = vaddq_u16(t, vcgeq_u16(ge, vdupq_n_u16(0x4060)));
+    t = vaddq_u16(t, vcgeq_u16(gt, vdupq_n_u16(0x40A0)));
+    t = vreinterpretq_u16_s16(vnegq_s16(vreinterpretq_s16_u16(t)));
+    const uint16x8_t qs = vshrn_high_n_u32(vshrn_n_u32(vreinterpretq_u32_f32(qa), 16), vreinterpretq_u32_f32(qb), 16);
+    return vmovn_u16(vsliq_n_u16(t, vshrq_n_u16(qs, 15), 3));
 }
 inline float32x4_t q4(const double* x, float64x2_t r) {
     return vcvt_high_f32_f64(vcvt_f32_f64(vmulq_f64(vld1q_f64(x), r)), vmulq_f64(vld1q_f64(x + 2), r));
@@ -952,26 +1074,19 @@ inline float32x4_t q4(const double* x, float64x2_t r) {
 inline void group(const double* x, double r, const SrKey* key, std::uint32_t n0, std::uint8_t* c) {
     const float64x2_t rv = vdupq_n_f64(r);
     const float32x4_t q0 = q4(x, rv), q1 = q4(x + 4, rv), q2 = q4(x + 8, rv), q3 = q4(x + 12, rv);
-    uint32x4_t c0, c1, c2, c3;
     if (key == nullptr) {
-        c0 = vq::e2m1_codes_f32(q0);
-        c1 = vq::e2m1_codes_f32(q1);
-        c2 = vq::e2m1_codes_f32(q2);
-        c3 = vq::e2m1_codes_f32(q3);
-    } else {
-        static const std::uint32_t kLane[4] = {0, 1, 2, 3};
-        const uint32x4_t n = vaddq_u32(vdupq_n_u32(n0), vld1q_u32(kLane));
-        const uint32x4_t a = vdupq_n_u32(key->a), b = vdupq_n_u32(key->b);
-        const uint32x4_t w0 = mix32v(veorq_u32(mix32v(veorq_u32(n, a)), b));
-        const uint32x4_t w1 = mix32v(veorq_u32(mix32v(veorq_u32(vaddq_u32(n, vdupq_n_u32(4)), a)), b));
-        const uint32x4_t lo = vdupq_n_u32(0x3FFFC0u), h = vdupq_n_u32(32);
-        c0 = sr4(q0, vorrq_u32(vandq_u32(vshlq_n_u32(w0, 6), lo), h));   // elements 0-3: low halves of words 0-3
-        c1 = sr4(q1, vorrq_u32(vandq_u32(vshlq_n_u32(w1, 6), lo), h));   // 4-7: low halves of words 4-7
-        c2 = sr4(q2, vorrq_u32(vandq_u32(vshrq_n_u32(w0, 10), lo), h));  // 8-11: high halves of words 0-3
-        c3 = sr4(q3, vorrq_u32(vandq_u32(vshrq_n_u32(w1, 10), lo), h));  // 12-15: high halves of words 4-7
+        vst1q_u8(c, vcombine_u8(rne8(q0, q1), rne8(q2, q3)));
+        return;
     }
-    const uint16x8_t h0 = vcombine_u16(vmovn_u32(c0), vmovn_u32(c1)), h1 = vcombine_u16(vmovn_u32(c2), vmovn_u32(c3));
-    vst1q_u8(c, vcombine_u8(vmovn_u16(h0), vmovn_u16(h1)));
+    static const std::uint32_t kLane[4] = {0, 1, 2, 3};
+    const uint32x4_t n = vaddq_u32(vdupq_n_u32(n0), vld1q_u32(kLane));
+    const uint32x4_t a = vdupq_n_u32(key->a), b = vdupq_n_u32(key->b);
+    const uint32x4_t w0 = mix32v(veorq_u32(mix32v(veorq_u32(n, a)), b));
+    const uint32x4_t w1 = mix32v(veorq_u32(mix32v(veorq_u32(vaddq_u32(n, vdupq_n_u32(4)), a)), b));
+    // elements 0-7: low halves of words 0-7; 8-15: high halves
+    const uint16x8_t ulo = vuzp1q_u16(vreinterpretq_u16_u32(w0), vreinterpretq_u16_u32(w1));
+    const uint16x8_t uhi = vuzp2q_u16(vreinterpretq_u16_u32(w0), vreinterpretq_u16_u32(w1));
+    vst1q_u8(c, vcombine_u8(sr8(q0, q1, ulo), sr8(q2, q3, uhi)));
 }
 #elif defined(IMPBFF_FP4_AVX2) || defined(IMPBFF_FP4_AVX512)
 //! The group's eight words (lanes j = word n0 + j).
@@ -995,8 +1110,7 @@ inline void group(const double* x, double r, const SrKey* key, std::uint32_t n0,
     const __m512 q = _mm512_castpd_ps(
             _mm512_insertf64x4(_mm512_castps_pd(_mm512_castps256_ps512(lo)), _mm256_castps_pd(hi), 1));
     const __m512i qb = _mm512_castps_si512(q);
-    const __m512 m = _mm512_abs_ps(q);
-    const __mmask16 ord = _mm512_cmp_ps_mask(q, q, _CMP_ORD_Q);
+    const __m512 m = _mm512_max_ps(_mm512_abs_ps(q), _mm512_setzero_ps());  // NaN -> 0
     const __m512i sign = _mm512_and_si512(_mm512_srli_epi32(qb, 28), _mm512_set1_epi32(8));
     __m512i t;
     if (key == nullptr) {
@@ -1013,15 +1127,16 @@ inline void group(const double* x, double r, const SrKey* key, std::uint32_t n0,
         const __m256i w = words8(*key, n0);
         const __m512i u = _mm512_inserti64x4(_mm512_castsi256_si512(_mm256_and_si256(w, _mm256_set1_epi32(0xFFFF))),
                                              _mm256_srli_epi32(w, 16), 1);  // elements 0-7 low halves, 8-15 high
-        const __m512i r1 = _mm512_or_si512(_mm512_slli_epi32(u, 6), _mm512_set1_epi32(32));
-        const __m512i yb = _mm512_castps_si512(_mm512_add_ps(m, _mm512_set1_ps(2.0f)));
-        const __mmask16 one = _mm512_cmp_epu32_mask(yb, _mm512_set1_epi32(0x40C00000), _MM_CMPINT_NLT);
-        const __m512i rr = _mm512_mask_blend_epi32(one, _mm512_srli_epi32(r1, 1), r1);
-        t = _mm512_srli_epi32(_mm512_add_epi32(yb, rr), 21);
-        t = _mm512_mask_and_epi32(t, one, t, _mm512_set1_epi32(~1));
+        const __m512i r1 = _mm512_or_si512(_mm512_slli_epi32(u, 5), _mm512_set1_epi32(16));
+        const __m512 y = _mm512_add_ps(m, _mm512_set1_ps(2.0f));
+        const __m512 y2 = _mm512_add_ps(_mm512_mul_ps(y, _mm512_set1_ps(0.5f)), _mm512_set1_ps(3.0f));
+        const __m512i yb = _mm512_castps_si512(_mm512_min_ps(y, y2));
+        t = _mm512_srli_epi32(_mm512_add_epi32(yb, r1), 21);
         t = _mm512_min_epu32(_mm512_sub_epi32(t, _mm512_set1_epi32(512)), _mm512_set1_epi32(7));
+        _mm_storeu_si128(reinterpret_cast<__m128i*>(c), _mm512_cvtepi32_epi8(_mm512_or_si512(t, sign)));
+        return;
     }
-    t = _mm512_maskz_or_epi32(ord, t, sign);
+    t = _mm512_or_si512(t, sign);
     _mm_storeu_si128(reinterpret_cast<__m128i*>(c), _mm512_cvtepi32_epi8(t));
 }
 #else  // AVX2
@@ -1029,10 +1144,11 @@ inline __m256 q8(const double* x, __m256d r) {
     return _mm256_insertf128_ps(_mm256_castps128_ps256(_mm256_cvtpd_ps(_mm256_mul_pd(_mm256_loadu_pd(x), r))),
                                 _mm256_cvtpd_ps(_mm256_mul_pd(_mm256_loadu_pd(x + 4), r)), 1);
 }
-//! Codes of eight lanes: RNE (`r1` unused) or SR with `r1` = (u << 6) | 32.
+//! Codes of eight lanes: RNE (`r1` unused) or SR with `r1` = 16 + (u << 5).
 inline __m256i codes8(__m256 q, bool sr, __m256i r1) {
     const __m256i qb = _mm256_castps_si256(q);
-    const __m256 m = _mm256_and_ps(q, _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF)));
+    // |q|, NaN -> 0 (max_ps returns its second operand for a NaN)
+    const __m256 m = _mm256_max_ps(_mm256_and_ps(q, _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF))), _mm256_setzero_ps());
     __m256i t;
     if (!sr) {
         t = _mm256_castps_si256(_mm256_cmp_ps(m, _mm256_set1_ps(0.25f), _CMP_GT_OQ));
@@ -1044,23 +1160,22 @@ inline __m256i codes8(__m256 q, bool sr, __m256i r1) {
         t = _mm256_add_epi32(t, _mm256_castps_si256(_mm256_cmp_ps(m, _mm256_set1_ps(5.0f), _CMP_GT_OQ)));
         t = _mm256_sub_epi32(_mm256_setzero_si256(), t);
     } else {
-        const __m256i yb = _mm256_castps_si256(_mm256_add_ps(m, _mm256_set1_ps(2.0f)));
-        const __m256i one = _mm256_cmpgt_epi32(yb, _mm256_set1_epi32(0x40BFFFFF));  // y >= 6 (y > 0)
-        const __m256i rr = _mm256_blendv_epi8(_mm256_srli_epi32(r1, 1), r1, one);
-        t = _mm256_srli_epi32(_mm256_add_epi32(yb, rr), 21);
-        t = _mm256_andnot_si256(_mm256_and_si256(one, _mm256_set1_epi32(1)), t);
+        const __m256 y = _mm256_add_ps(m, _mm256_set1_ps(2.0f));
+        const __m256 y2 = _mm256_add_ps(_mm256_mul_ps(y, _mm256_set1_ps(0.5f)), _mm256_set1_ps(3.0f));
+        const __m256i yb = _mm256_castps_si256(_mm256_min_ps(y, y2));
+        t = _mm256_srli_epi32(_mm256_add_epi32(yb, r1), 21);
         t = _mm256_min_epu32(_mm256_sub_epi32(t, _mm256_set1_epi32(512)), _mm256_set1_epi32(7));
+        return _mm256_or_si256(t, _mm256_and_si256(_mm256_srli_epi32(qb, 28), _mm256_set1_epi32(8)));
     }
-    t = _mm256_or_si256(t, _mm256_and_si256(_mm256_srli_epi32(qb, 28), _mm256_set1_epi32(8)));
-    return _mm256_and_si256(t, _mm256_castps_si256(_mm256_cmp_ps(q, q, _CMP_ORD_Q)));
+    return _mm256_or_si256(t, _mm256_and_si256(_mm256_srli_epi32(qb, 28), _mm256_set1_epi32(8)));
 }
 inline void group(const double* x, double r, const SrKey* key, std::uint32_t n0, std::uint8_t* c) {
     const __m256d rv = _mm256_set1_pd(r);
     __m256i r0 = _mm256_setzero_si256(), r8 = r0;
     if (key != nullptr) {
-        const __m256i w = words8(*key, n0), lo = _mm256_set1_epi32(0x3FFFC0), h = _mm256_set1_epi32(32);
-        r0 = _mm256_or_si256(_mm256_and_si256(_mm256_slli_epi32(w, 6), lo), h);   // elements 0-7: low halves
-        r8 = _mm256_or_si256(_mm256_and_si256(_mm256_srli_epi32(w, 10), lo), h);  // 8-15: high halves
+        const __m256i w = words8(*key, n0), lo = _mm256_set1_epi32(0x1FFFE0), h = _mm256_set1_epi32(16);
+        r0 = _mm256_or_si256(_mm256_and_si256(_mm256_slli_epi32(w, 5), lo), h);   // elements 0-7: low halves
+        r8 = _mm256_or_si256(_mm256_and_si256(_mm256_srli_epi32(w, 11), lo), h);  // 8-15: high halves
     }
     const __m256i c0 = codes8(q8(x, rv), key != nullptr, r0), c1 = codes8(q8(x + 8, rv), key != nullptr, r8);
     const __m256i p = _mm256_packus_epi32(c0, c1);  // 16-bit: c0 0-3, c1 0-3 | c0 4-7, c1 4-7
@@ -1074,14 +1189,35 @@ inline void group(const double* x, double r, const SrKey* key, std::uint32_t n0,
     group_generic(x, r, key, n0, c);
 }
 #endif
+//! Inference's exact rule on one group: e2m1_encode(x / d) (a NaN quotient
+//! may come out -0 instead of +0: the same value).
+inline void group_exact(const double* x, double d, bool p2, std::uint8_t* c) {
+#if defined(IMPBFF_FP4_NEON_DOTPROD) || defined(IMPBFF_FP4_NEON)
+    const float64x2_t dv = vdupq_n_f64(d), iv = vdupq_n_f64(1.0 / d);
+    float32x4_t q[4];
+    if (p2)
+        for (int i = 0; i < 4; ++i)
+            q[i] = vcvtx_high_f32_f64(vcvtx_f32_f64(vq::quot<true>(vld1q_f64(x + 4 * i), dv, iv)),
+                                      vq::quot<true>(vld1q_f64(x + 4 * i + 2), dv, iv));
+    else
+        for (int i = 0; i < 4; ++i)
+            q[i] = vcvtx_high_f32_f64(vcvtx_f32_f64(vq::quot<false>(vld1q_f64(x + 4 * i), dv, iv)),
+                                      vq::quot<false>(vld1q_f64(x + 4 * i + 2), dv, iv));
+    // round-to-odd floats compare with the thresholds as the doubles do
+    vst1q_u8(c, vcombine_u8(rne8(q[0], q[1]), rne8(q[2], q[3])));
+#else
+    (void)p2;
+    vq::encode_rne(x, 16, d, c);
+#endif
+}
 }  // namespace tq
 
 //! Quantise `rows x K` doubles (row stride `ld`) to FP4 per row with
 //! training's element rule (above): nvfp4 one global scale a row, codes
 //! into a left operand (their values) or a packed right operand. With
 //! `key`, element (r, k) is stochastically rounded with key->u16(r * kp + k).
-inline void quantize_train(const double* A, int rows, int K, std::size_t ld, Format f, const SrKey* key, Q8Rows* left,
-                           PackedRight* right, QuantScratch& s) {
+inline void quantize_rows_fast(const double* A, int rows, int K, std::size_t ld, Format f, bool exact, const SrKey* key,
+                               Q8Rows* left, PackedRight* right, QuantScratch& s) {
     const int kp = padded_cols(K), ns = kp / 16, k16 = (K + 15) / 16 * 16;
     const int block = f == Format::FP4 ? kp : (f == Format::MXFP4 ? 32 : 16), nb = kp / block;
     if (left) {
@@ -1123,6 +1259,11 @@ inline void quantize_train(const double* A, int rows, int K, std::size_t ld, For
                 std::fill(codes + k0, codes + k1, std::uint8_t(0));
                 continue;
             }
+            if (exact) {
+                const bool p2 = vq::pow2_scale(d);
+                for (int k = k0; k < k1; k += 16) tq::group_exact(x + k, d, p2, codes + k);
+                continue;
+            }
             const double rcp = 1.0 / d;
             for (int k = k0; k < k1; k += 16)
                 tq::group(x + k, rcp, key, nrow + static_cast<std::uint32_t>(k / 2), codes + k);
@@ -1130,6 +1271,12 @@ inline void quantize_train(const double* A, int rows, int K, std::size_t ld, For
         if (left) vq::codes_to_values(codes, kp, left->q.data() + static_cast<std::size_t>(r) * kp);
         if (right) pack_right_row(*right, r, codes, hsc);
     }
+}
+
+//! quantize_rows_fast() with training's element rule.
+inline void quantize_train(const double* A, int rows, int K, std::size_t ld, Format f, const SrKey* key, Q8Rows* left,
+                           PackedRight* right, QuantScratch& s) {
+    quantize_rows_fast(A, rows, K, ld, f, false, key, left, right, s);
 }
 
 // ------------------------------------------------------------------ the reference kernel
@@ -1393,6 +1540,17 @@ inline void gemm_packed(const Q8Rows& A, const PackedRight& P, double* C, const 
                     mk::tile<1>(a + r * lda, lda, sa + r * lsa, lsa, wc, ws, wk, ns, out + r * kNR);
             }
             const int o0 = t * kNR, no = std::min(kNR, N - o0);
+            if (no == kNR) {  // constant trip counts: vectorised stores
+                for (int r = 0; r < mr; ++r) {
+                    double* c = C + static_cast<std::size_t>(r0 + r) * N + o0;
+                    const float* v = out + r * kNR;
+                    if (bias)
+                        for (int o = 0; o < kNR; ++o) c[o] = static_cast<double>(v[o]) + bias[o0 + o];
+                    else
+                        for (int o = 0; o < kNR; ++o) c[o] = static_cast<double>(v[o]);
+                }
+                continue;
+            }
             for (int r = 0; r < mr; ++r) {
                 double* c = C + static_cast<std::size_t>(r0 + r) * N + o0;
                 const float* v = out + r * kNR;

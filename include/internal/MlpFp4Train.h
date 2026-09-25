@@ -80,17 +80,30 @@ namespace internal {
 namespace mlpfp4 {
 namespace train {
 
+#if defined(__clang__)
+#define IMPBFF_FP4_UNROLL _Pragma("clang loop unroll(full)")
+#elif defined(__GNUC__)
+#define IMPBFF_FP4_UNROLL _Pragma("GCC unroll 16")
+#else
+#define IMPBFF_FP4_UNROLL
+#endif
+
 //! The fixed seed of the Hadamard sign vector (shared by all layers).
 constexpr std::uint64_t kHadamardSeed = 0x48616461'6d617264ULL;  // "Hadamard"
 
 //! `T = H_16 diag(s) / 4`: orthogonal (T T^T = I), H the Sylvester Hadamard
-//! matrix (`H_ij = (-1)^popcount(i & j)`), s random signs.
+//! matrix (`H_ij = (-1)^popcount(i & j)`), s random signs. Applied as a fast
+//! Walsh-Hadamard transform: `x_j s_j / 4` (exact), then four butterfly
+//! stages `(a, b) -> (a + b, a - b)` -- adds only, so every build rounds
+//! alike. `t` is the matrix (tests).
 struct Hadamard16 {
     double t[16][16];
+    double sq[16];  //!< s_j / 4
     explicit Hadamard16(std::uint64_t seed = kHadamardSeed) {
         SplitMix64 rng(seed);
         double s[16];
         for (double& v : s) v = (rng.next() >> 63) ? -1.0 : 1.0;
+        for (int j = 0; j < 16; ++j) sq[j] = 0.25 * s[j];
         for (int i = 0; i < 16; ++i)
             for (int j = 0; j < 16; ++j) {
                 int bits = 0;  // popcount(i & j)
@@ -98,13 +111,22 @@ struct Hadamard16 {
                 t[i][j] = ((bits & 1) ? -0.25 : 0.25) * s[j];
             }
     }
+    //! The butterflies on 16 vectors of `W` lanes (`v[i * W + c]`).
+    template <int W>
+    static void butterflies(double* v) {
+        for (int h = 1; h < 16; h <<= 1)
+            for (int i = 0; i < 16; ++i)
+                if (!(i & h))
+                    for (int c = 0; c < W; ++c) {
+                        const double a = v[i * W + c], b = v[(i + h) * W + c];
+                        v[i * W + c] = a + b;
+                        v[(i + h) * W + c] = a - b;
+                    }
+    }
     //! `y = T x` for one 16-vector.
     void apply(const double* x, double* y) const {
-        for (int i = 0; i < 16; ++i) {
-            double acc = 0.0;
-            for (int j = 0; j < 16; ++j) acc += t[i][j] * x[j];
-            y[i] = acc;
-        }
+        for (int j = 0; j < 16; ++j) y[j] = x[j] * sq[j];
+        butterflies<1>(y);
     }
 };
 
@@ -124,83 +146,84 @@ inline void rht_rows(const double* M, int rows, int K, const Hadamard16& h, std:
 
 //! The transpose of `M` (`rows x n`), each of its `n` columns Hadamard-
 //! transformed tile by tile along `rows` (zero padded to K16): `out` is
-//! `n x K16`, the same values as rht_rows() of the explicit transpose (the
-//! sum over j runs in the same order; the zero padding adds nothing).
-//! Vectorised over the columns.
+//! `n x K16`, bit for bit rht_rows() of the explicit transpose (the same
+//! exact products and butterflies, vectorised over 8 columns at a time).
 inline void rht_transpose(const double* M, int rows, int n, const Hadamard16& h, std::vector<double>& out, int& K16,
                           std::vector<double>& tile) {
+    constexpr int kC = 8;
     K16 = (rows + 15) / 16 * 16;
     out.resize(static_cast<std::size_t>(n) * K16);
-    tile.resize(static_cast<std::size_t>(16) * n);
-    (void)tile;
-#if defined(IMPBFF_FP4_AVX512)
-    constexpr int kC = 8;  // columns a register block: 8 rows of T x kC accumulators
-#else
-    constexpr int kC = 4;
-#endif
-    (void)kC;
+    tile.resize(16 * kC);
+    double* v = tile.data();
     for (int r0 = 0; r0 < K16; r0 += 16) {
         const int nj = std::min(16, rows - r0);
         int c0 = 0;
-#if defined(IMPBFF_FP4_NEON_DOTPROD) || defined(IMPBFF_FP4_NEON) || defined(IMPBFF_FP4_AVX2) || defined(IMPBFF_FP4_AVX512)
-        for (; c0 + kC <= n; c0 += kC)
-            for (int i0 = 0; i0 < 16; i0 += 8) {
 #if defined(IMPBFF_FP4_NEON_DOTPROD) || defined(IMPBFF_FP4_NEON)
-                float64x2_t acc[8][2];
-                for (int i = 0; i < 8; ++i) acc[i][0] = acc[i][1] = vdupq_n_f64(0.0);
-                for (int j = 0; j < nj; ++j) {
-                    const double* x = M + static_cast<std::size_t>(r0 + j) * n + c0;
-                    const float64x2_t x0 = vld1q_f64(x), x1 = vld1q_f64(x + 2);
-                    // t x is exact (t = +-1/4), so the fused multiply-add rounds as
-                    // acc + t x does (unless t x is subnormal)
-                    for (int i = 0; i < 8; ++i) {
-                        const double t = h.t[i0 + i][j];
-                        acc[i][0] = vfmaq_n_f64(acc[i][0], x0, t);
-                        acc[i][1] = vfmaq_n_f64(acc[i][1], x1, t);
+        for (; c0 + 2 <= n; c0 += 2) {  // two columns, 16 registers
+            float64x2_t w[16];
+            IMPBFF_FP4_UNROLL
+            for (int j = 0; j < 16; ++j)
+                w[j] = j < nj ? vmulq_n_f64(vld1q_f64(M + static_cast<std::size_t>(r0 + j) * n + c0), h.sq[j])
+                              : vdupq_n_f64(0.0);
+            IMPBFF_FP4_UNROLL
+            for (int hh = 1; hh < 16; hh <<= 1)
+                IMPBFF_FP4_UNROLL
+                for (int i = 0; i < 16; ++i)
+                    if (!(i & hh)) {
+                        const float64x2_t a = w[i], b = w[i + hh];
+                        w[i] = vaddq_f64(a, b);
+                        w[i + hh] = vsubq_f64(a, b);
                     }
-                }
-                double v[8][4];
-                for (int i = 0; i < 8; ++i) {
-                    vst1q_f64(v[i], acc[i][0]);
-                    vst1q_f64(v[i] + 2, acc[i][1]);
-                }
-#elif defined(IMPBFF_FP4_AVX512)
-                __m512d acc[8];
-                for (int i = 0; i < 8; ++i) acc[i] = _mm512_setzero_pd();
-                for (int j = 0; j < nj; ++j) {
-                    const __m512d x0 = _mm512_loadu_pd(M + static_cast<std::size_t>(r0 + j) * n + c0);
-                    for (int i = 0; i < 8; ++i)
-                        acc[i] = _mm512_fmadd_pd(x0, _mm512_set1_pd(h.t[i0 + i][j]), acc[i]);
-                }
-                double v[8][8];
-                for (int i = 0; i < 8; ++i) _mm512_storeu_pd(v[i], acc[i]);
-#else
-                __m256d acc[8];
-                for (int i = 0; i < 8; ++i) acc[i] = _mm256_setzero_pd();
-                for (int j = 0; j < nj; ++j) {
-                    const __m256d x0 = _mm256_loadu_pd(M + static_cast<std::size_t>(r0 + j) * n + c0);
-                    for (int i = 0; i < 8; ++i)
-#if defined(__FMA__)
-                        acc[i] = _mm256_fmadd_pd(x0, _mm256_set1_pd(h.t[i0 + i][j]), acc[i]);
-#else
-                        acc[i] = _mm256_add_pd(acc[i], _mm256_mul_pd(x0, _mm256_set1_pd(h.t[i0 + i][j])));
-#endif
-                }
-                double v[8][4];
-                for (int i = 0; i < 8; ++i) _mm256_storeu_pd(v[i], acc[i]);
-#endif
-                for (int c = 0; c < kC; ++c) {
-                    double* o = out.data() + static_cast<std::size_t>(c0 + c) * K16 + r0 + i0;
-                    for (int i = 0; i < 8; ++i) o[i] = v[i][c];
-                }
+            double* o0 = out.data() + static_cast<std::size_t>(c0) * K16 + r0;
+            double* o1 = o0 + K16;
+            IMPBFF_FP4_UNROLL
+            for (int i = 0; i < 16; i += 2) {
+                vst1q_f64(o0 + i, vzip1q_f64(w[i], w[i + 1]));
+                vst1q_f64(o1 + i, vzip2q_f64(w[i], w[i + 1]));
             }
-#endif
-        for (; c0 < n; ++c0) {
+        }
+#elif defined(IMPBFF_FP4_AVX2) || defined(IMPBFF_FP4_AVX512)
+        for (; c0 + 4 <= n; c0 += 4) {  // four columns
+            __m256d w[16];
+            IMPBFF_FP4_UNROLL
+            for (int j = 0; j < 16; ++j)
+                w[j] = j < nj ? _mm256_mul_pd(_mm256_loadu_pd(M + static_cast<std::size_t>(r0 + j) * n + c0),
+                                              _mm256_set1_pd(h.sq[j]))
+                              : _mm256_setzero_pd();
+            IMPBFF_FP4_UNROLL
+            for (int hh = 1; hh < 16; hh <<= 1)
+                IMPBFF_FP4_UNROLL
+                for (int i = 0; i < 16; ++i)
+                    if (!(i & hh)) {
+                        const __m256d a = w[i], b = w[i + hh];
+                        w[i] = _mm256_add_pd(a, b);
+                        w[i + hh] = _mm256_sub_pd(a, b);
+                    }
             double* o = out.data() + static_cast<std::size_t>(c0) * K16 + r0;
-            for (int i = 0; i < 16; ++i) {
-                double acc = 0.0;
-                for (int j = 0; j < nj; ++j) acc += h.t[i][j] * M[static_cast<std::size_t>(r0 + j) * n + c0];
-                o[i] = acc;
+            IMPBFF_FP4_UNROLL
+            for (int i = 0; i < 16; i += 4) {  // 4 x 4 transposes
+                const __m256d t0 = _mm256_unpacklo_pd(w[i], w[i + 1]), t1 = _mm256_unpackhi_pd(w[i], w[i + 1]);
+                const __m256d t2 = _mm256_unpacklo_pd(w[i + 2], w[i + 3]), t3 = _mm256_unpackhi_pd(w[i + 2], w[i + 3]);
+                _mm256_storeu_pd(o + i, _mm256_permute2f128_pd(t0, t2, 0x20));
+                _mm256_storeu_pd(o + K16 + i, _mm256_permute2f128_pd(t1, t3, 0x20));
+                _mm256_storeu_pd(o + 2 * K16 + i, _mm256_permute2f128_pd(t0, t2, 0x31));
+                _mm256_storeu_pd(o + 3 * K16 + i, _mm256_permute2f128_pd(t1, t3, 0x31));
+            }
+        }
+#endif
+        for (; c0 < n; c0 += kC) {
+            const int nc = std::min(kC, n - c0);
+            for (int j = 0; j < 16; ++j) {
+                const double* x = M + static_cast<std::size_t>(r0 + j) * n + c0;
+                if (j < nj && nc == kC)
+                    for (int c = 0; c < kC; ++c) v[j * kC + c] = x[c] * h.sq[j];
+                else
+                    for (int c = 0; c < kC; ++c) v[j * kC + c] = (j < nj && c < nc) ? x[c] * h.sq[j] : 0.0;
+            }
+            Hadamard16::butterflies<kC>(v);
+            for (int c = 0; c < nc; ++c) {
+                double* o = out.data() + static_cast<std::size_t>(c0 + c) * K16 + r0;
+                for (int i = 0; i < 16; ++i) o[i] = v[i * kC + c];
             }
         }
     }

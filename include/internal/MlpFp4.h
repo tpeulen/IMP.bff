@@ -173,7 +173,12 @@ inline double e4m3_decode(std::uint8_t code) {
 //! Round-to-nearest-even E4M3 code of `x`, saturating to +-448; NaN -> 0x7F.
 //! The plain arithmetic version; e4m3_encode() is the same function with a
 //! bit-level fast path (the tests compare them).
-inline std::uint8_t e4m3_encode_reference(double x) {
+#if defined(__GNUC__) || defined(__clang__)
+#define IMPBFF_FP4_COLD __attribute__((noinline, cold))
+#else
+#define IMPBFF_FP4_COLD
+#endif
+IMPBFF_FP4_COLD inline std::uint8_t e4m3_encode_reference(double x) {
     if (std::isnan(x)) return 0x7F;
     const std::uint8_t sign = std::signbit(x) ? 0x80 : 0x00;
     const double m = std::abs(x);
@@ -319,34 +324,33 @@ inline std::uint32_t bits_of_f(float x) {
 }  // namespace detail
 
 //! Round-to-nearest-even E2M1 code of a float quotient: e2m1_encode() of
-//! the same value.
+//! the same value, except NaN, which is +-0 by its sign bit (as in
+//! e2m1_encode_sr16).
 inline std::uint8_t e2m1_encode_f(float q) {
-    if (q != q) return 0;
     const std::uint8_t sign = (detail::bits_of_f(q) >> 31) ? 0x08 : 0x00;
-    const float m = std::fabs(q);
+    float m = std::fabs(q);
+    if (!(m == m)) m = 0.0f;
     const int i = (m > 0.25f) + (m >= 0.75f) + (m > 1.25f) + (m >= 1.75f) + (m > 2.5f) + (m >= 3.5f) + (m > 5.0f);
     return static_cast<std::uint8_t>(sign | i);
 }
 
 //! Stochastically rounded E2M1 code of a float quotient `q` for a 16-bit
-//! draw `u` (training's gradients). On `y = |q| + 2` (float, rounded to
-//! nearest), whose float bits put the E2M1 grid on mantissa boundaries --
-//! [0, 2) -> [2, 4) with 2 mantissa bits (step 0.5), [2, 4) -> [4, 6) with
-//! 2 bits (step 1), [4, 6) -> [6, 8) with 1 bit (step 2) -- the draw is
-//! added below the kept bits, `(u << 5) + 16` (`(u << 6) + 32` for
-//! y >= 6), and the carry decides: up with probability `frac` of the step,
-//! to within 2^-17 (the draw's 16 bits, centred). The code is the kept
-//! bits `(y >> 21) - 512`, saturating to 7 (|q| >= 6, inf). NaN -> +0.
+//! draw `u` (training's gradients), on float bits: `m = |q|` (NaN -> 0,
+//! the sign kept), `y = min(m + 2, (m + 2) / 2 + 3)` (floats, rounded to
+//! nearest; the product is exact) maps the E2M1 grid onto mantissa
+//! boundaries with two kept bits -- [0, 2) -> [2, 4) (step 0.5), [2, 4) ->
+//! [4, 6) (step 1), [4, 6] -> [6, 7] (step 2 halved) -- and the draw is added
+//! below the kept bits, `16 + (u << 5)` (centred, 16 bits): the carry
+//! rounds up with probability `frac` of the step to within 2^-17. The code
+//! is the kept bits `(bits >> 21) - 512`, saturating to 7 (|q| >= 6, inf).
 inline std::uint8_t e2m1_encode_sr16(float q, std::uint32_t u) {
-    if (q != q) return 0;
-    const std::uint32_t sign = (detail::bits_of_f(q) >> 28) & 0x08u;
-    float y = std::fabs(q);
-    y += 2.0f;
-    const std::uint32_t yb = detail::bits_of_f(y);
-    const bool one = yb >= 0x40C00000u;  // y >= 6: one mantissa bit
-    const std::uint32_t r = one ? ((u << 6) | 32u) : ((u << 5) | 16u);
-    std::uint32_t t = (yb + r) >> 21;
-    if (one) t &= ~1u;
+    const std::uint32_t sign = (detail::bits_of_f(q) >> 31) << 3;
+    float m = std::fabs(q);
+    if (!(m == m)) m = 0.0f;
+    float y = m + 2.0f;
+    const float y2 = y * 0.5f + 3.0f;
+    if (y2 < y) y = y2;
+    std::uint32_t t = (detail::bits_of_f(y) + 16u + (u << 5)) >> 21;
     t -= 512u;
     return static_cast<std::uint8_t>(sign | (t < 7u ? t : 7u));
 }

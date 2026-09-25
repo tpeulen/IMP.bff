@@ -291,7 +291,10 @@ static void test_sr16() {
             if (v != lo) ++up;
             if (v != lo && v != lo + sr16_step(lo)) ++bad_grid;
         }
-        const double frac = (y - lo) / sr16_step(lo);
+        // [4, 6] is rounded once more, as y' = (y + 2) / 2 + 3 in [6, 7]
+        const double frac = lo >= 4.0 && lo < 6.0
+                                    ? static_cast<double>(static_cast<float>(y + 2.0) * 0.5f + 3.0f) - 6.0
+                                    : (y - lo) / sr16_step(lo);
         worst = std::max(worst, std::abs(static_cast<double>(up) / 65536.0 - frac));
     }
     check(bad_grid == 0, "sr16 rounds to the two neighbours only");
@@ -590,10 +593,18 @@ static void test_training_pieces() {
             for (int K : {5, 16, 40, 100}) {
                 std::vector<double> X(static_cast<std::size_t>(9) * K);
                 for (std::size_t i = 0; i < X.size(); ++i) X[i] = rng.uniform() * (i % 7 ? 1.0 : 1e-7);
+                for (int k = 0; k < std::min(K, 16); ++k) X[static_cast<std::size_t>(4) * K + k] = (k % 3) ? 0.0 : -0.0;
                 const f4::Fp4Tensor ref = f4::quantize(X.data(), 9, K, f);
                 const kn::Fp4Rows got = kn::quantize_rows(X.data(), 9, K, f);
                 // nvfp4: quantize() takes one global scale a tensor, quantize_rows one a row -- compare the fp4 / mxfp4 codes only
                 if (f != f4::Format::NVFP4 && !std::equal(ref.codes.begin(), ref.codes.end(), got.codes)) ++bad_q;
+                {  // the row quantiser of W4A4 / fprop == these codes' values
+                    kn::Q8Rows L, R;
+                    kn::QuantScratch qs;
+                    kn::quantize_left(X.data(), 9, K, f, f4::Rounding::NearestEven, nullptr, L, qs);
+                    kn::left_of(got, R);
+                    if (L.q != R.q || L.sc != R.sc) ++bad_q;
+                }
                 if (f == f4::Format::FP4) continue;
                 const f4::Fp4Tensor q2 = f4::quantize_2d(X.data(), 9, K, f);
                 tr::Workspace ws;
