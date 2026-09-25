@@ -148,6 +148,12 @@
 #define IMPBFF_FP4_KEEP(v) ((void)0)
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+#define IMPBFF_FP4_INLINE inline __attribute__((always_inline))
+#else
+#define IMPBFF_FP4_INLINE inline
+#endif
+
 namespace IMP {
 namespace bff {
 namespace internal {
@@ -1005,12 +1011,6 @@ inline void quantize_right(const double* A, int rows, int K, Format f, Rounding 
 // scalar definitions lane by lane (the float ops are single IEEE
 // operations; nothing to contract).
 
-#if defined(__GNUC__) || defined(__clang__)
-#define IMPBFF_FP4_INLINE inline __attribute__((always_inline))
-#else
-#define IMPBFF_FP4_INLINE inline
-#endif
-
 namespace tq {
 //! The 16 codes of one group (16 elements, `x` readable for all 16) at
 //! reciprocal scale `r`; `key` null rounds to nearest even, else the
@@ -1344,7 +1344,7 @@ inline int32x4_t dot_lane(int32x4_t acc, int8x16_t w, int8x16_t a) {
 }
 #endif
 template <int R>
-inline void tile(const std::int8_t* a, std::size_t lda, const float* sa, std::size_t lsa, const std::uint8_t* wc,
+IMPBFF_FP4_INLINE void tile(const std::int8_t* a, std::size_t lda, const float* sa, std::size_t lsa, const std::uint8_t* wc,
                  const float* ws, const std::int32_t*, int ns, float* out) {
     const int8x16_t tab = vld1q_s8(kValues2);
     const uint8x16_t m4 = vdupq_n_u8(0x0F);
@@ -1388,7 +1388,7 @@ inline void tile(const std::int8_t* a, std::size_t lda, const float* sa, std::si
 }
 #elif defined(IMPBFF_FP4_AVX512)
 template <int R>
-inline void tile(const std::int8_t* a, std::size_t lda, const float* sa, std::size_t lsa, const std::uint8_t* wc,
+IMPBFF_FP4_INLINE void tile(const std::int8_t* a, std::size_t lda, const float* sa, std::size_t lsa, const std::uint8_t* wc,
                  const float* ws, const std::int32_t* wcorr, int ns, float* out) {
     const __m512i tab = _mm512_broadcast_i32x4(_mm_load_si128(reinterpret_cast<const __m128i*>(kValues2)));
     const __m512i m4 = _mm512_set1_epi8(0x0F), x80 = _mm512_set1_epi8(static_cast<char>(0x80));
@@ -1435,7 +1435,7 @@ inline void tile(const std::int8_t* a, std::size_t lda, const float* sa, std::si
 }
 #elif defined(IMPBFF_FP4_AVX2)
 template <int R>
-inline void tile(const std::int8_t* a, std::size_t lda, const float* sa, std::size_t lsa, const std::uint8_t* wc,
+IMPBFF_FP4_INLINE void tile(const std::int8_t* a, std::size_t lda, const float* sa, std::size_t lsa, const std::uint8_t* wc,
                  const float* ws, const std::int32_t* wcorr, int ns, float* out) {
     const __m256i tab = _mm256_broadcastsi128_si256(_mm_load_si128(reinterpret_cast<const __m128i*>(kValues2)));
     const __m256i m4 = _mm256_set1_epi8(0x0F), x80 = _mm256_set1_epi8(static_cast<char>(0x80));
@@ -1486,7 +1486,7 @@ inline void tile(const std::int8_t* a, std::size_t lda, const float* sa, std::si
 }
 #else
 template <int R>
-inline void tile(const std::int8_t* a, std::size_t lda, const float* sa, std::size_t lsa, const std::uint8_t* wc,
+IMPBFF_FP4_INLINE void tile(const std::int8_t* a, std::size_t lda, const float* sa, std::size_t lsa, const std::uint8_t* wc,
                  const float* ws, const std::int32_t*, int ns, float* out) {
     float f[R][4][kNR] = {};
     for (int s = 0; s < ns; ++s) {
