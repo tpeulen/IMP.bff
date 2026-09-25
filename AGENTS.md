@@ -37,8 +37,10 @@ stores an imported network natively. tttrlib's whole `NeuralNet` API
 (derivatives, import, parameters) now lives in bff's `NeuralNet`; its GEMM is
 `internal/MlpGemm.h`'s `MatGemm`, and `QuantizedNeuralNet` is the
 deployment path -- int8, or FP4 (`fp4` / `mxfp4` / `nvfp4`, packed E2M1 codes
-run by integer-SIMD kernels after llama.cpp's, `internal/MlpFp4*.h`); training
-can run NVIDIA's NVFP4 recipe (`NeuralNetTrainOptions.precision`). CPUs have
+run by integer-SIMD kernels after llama.cpp's, `internal/MlpFp4*.h`), or
+ternary (BitNet b1.58 W1.58A8: `ternary` / `ternary_tq1`, 2 or 1.6 bits a
+weight, `internal/MlpTernary*.h`); training can run NVIDIA's NVFP4 recipe or
+BitNet's ternary QAT (`NeuralNetTrainOptions.precision`). CPUs have
 no FP4 unit: "native" means integer dot products on the codes, never
 dequantise-to-float. See `okf/neural-net.md` (tpeulen, 2026-09-24).
 

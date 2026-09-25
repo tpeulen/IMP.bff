@@ -22,6 +22,7 @@ ported in bff's terms.
 | FP4 formats | `include/internal/MlpFp4.h` | E2M1 / E4M3 / E8M0 codecs, the `fp4` / `mxfp4` / `nvfp4` block recipes, 2-D (16 x 16) weight scaling, stochastic rounding, the float reference forward pass (tests only). |
 | FP4 kernels | `include/internal/MlpFp4Kernels.h` | Integer-SIMD FP4 x int8 and FP4 x FP4 dot products and GEMMs (after llama.cpp/ggml, MIT), register-blocked micro-kernels for NEON + dotprod / NEON / AVX2 / AVX-512 VNNI / generic, the vectorised quantisers, and the fast forward pass. |
 | FP4 training | `include/internal/MlpFp4Train.h` | NVIDIA's NVFP4 pretraining recipe (and MXFP4) on those kernels. |
+| Ternary | `include/internal/MlpTernary.h`, `MlpTernaryTrain.h` | BitNet b1.58 (W1.58A8): absmean ternary weights, int8 absmax activations, 2-bit (TQ2_0-style) and base-3 (TQ1_0-style) packings, ternary x int8 SIMD kernels on the FP4 kernels' variants, and BitNet's quantisation-aware training (below, "Ternary"). |
 | Documents | `include/internal/NetworkDocument.h` | The one msgpack encoder/decoder (`bff.quantized_neural_net` through its own small msgpack reader/writer, because the vendored nlohmann 3.6.1 has no `bin`). |
 | Face | `include/NeuralNet.h`, `src/NeuralNet.cpp` | `NeuralNet`, `QuantizedNeuralNet`; bindings in `pyext/include/IMP_bff.core.i`. |
 | Training | `include/NeuralNetTraining.h` | Adam + explicit backprop, sklearn's defaults. |
@@ -44,7 +45,8 @@ ported in bff's terms.
   dY1=None, dY2=None)` -> `(dparams, dx, dv)`; `get_parameters()` /
   `set_parameters(p)` (copy on write between copies of a network).
 - Deploy: `QuantizedNeuralNet(net, format="int8", quantize_activations=False)`
-  with `format` in `int8 | fp4 | mxfp4 | nvfp4`; `predict(x, n_rows)`,
+  with `format` in `int8 | fp4 | mxfp4 | nvfp4 | ternary | ternary_row |
+  ternary_tq1 | ternary_tq1_row`; `predict(x, n_rows)`,
   `get_format()`, `get_quantize_activations()`, `get_n_weights()`,
   `get_weight_bytes()` (scales included), `get_bits_per_weight()`,
   `to_msgpack()` / `QuantizedNeuralNet.from_msgpack(bytes)`
@@ -54,6 +56,9 @@ ported in bff's terms.
   `fp4_hadamard`, `fp4_stochastic_rounding`; the result's
   `get_quantized_network()` is the trained FP4 network,
   `get_network()` its float64 master weights.
+- Train ternary: `precision = "ternary"` (BitNet b1.58 QAT), with
+  `ternary_keep_first_layer`, `ternary_keep_last_layer` (both default true);
+  `get_quantized_network()` is the `"ternary"` document.
 
 What of tttrlib's `NeuralNet` was **not** ported: `from_json_string/file`,
 `to_json_string/file` (msgpack is bff's one format: `NeuralNet(bytes)`,
@@ -699,3 +704,163 @@ New and old accuracy agree within one seed's noise (the bounds in
 MAE -- are unchanged). FP4 training's speed: see the third-pass gates
 above -- 0.60-0.62x float64 an epoch on the surrogate shape, 0.89-0.91x at
 64 wide, and slower on the tiny net.
+
+## Ternary: BitNet b1.58 (2026-09-25)
+
+`internal/MlpTernary.h` (formats, quantisers, kernels, forward pass) and
+`internal/MlpTernaryTrain.h` (quantisation-aware training). Sources: Ma et
+al., "The Era of 1-bit LLMs: All Large Language Models are in 1.58 Bits"
+(arXiv 2402.17764) and its "Training Tips, Code and FAQ" (microsoft/unilm,
+`weight_quant`, `activation_quant`, BitLinear); bitnet.cpp's I2_S idea
+(microsoft/BitNet, MIT, no code copied); ggml's TQ1_0 / TQ2_0
+(ggml-org/llama.cpp, MIT: the base-3 fixed-point byte, the `q + 1` codes
+with `sum q a = sum (q + 1) a - sum a`). The MIT notices are in the header.
+
+### Format and quantisers
+
+- Weights: `gamma = max(mean |W|, 1e-5)` over the whole matrix (absmean,
+  per tensor), `q = clamp(round(W / gamma), -1, 1)`, value `q gamma`
+  (computed as `q / (1 / gamma)`, BitNet's form). `round` is
+  round-half-to-even (torch.round, `nearbyint` in the default mode):
+  `W / gamma = +-0.5 -> 0`, `+-1.5 -> +-2 -> +-1`; NaN -> 0. The absmean
+  is summed in a fixed order (8 interleaved partial sums) on every build.
+  `_row` formats: one absmean a weight row (a PTQ option; BitNet is per
+  tensor).
+- Activations: every ternary layer's input per row (token) to int8,
+  `s_a = 127 / max(max |x|, 1e-5)`, `q_a = clamp(round(x s_a), -128, 127)`,
+  ties to even, NaN -> 0 -- W1.58A8 always (`quantize_activations` is
+  ignored). No RMSNorm before the quantiser (BitLinear has one; bff's
+  layer is `W x + b` like the float net).
+- Arithmetic: `z = ((sum_k (q + 1) q_a - sum_k q_a) / s_a) * gamma + b`,
+  the integer sum exact in int32, each double product rounded on its own
+  (the FP4 kernels' unfused combine), so every SIMD variant gives the
+  generic bits.
+- Storage: `ternary` / `ternary_row` 2 bits a weight, four codes `q + 1` a
+  byte (element `4 i + j` in bits `2 j`, rows padded to 4; code 3 is
+  refused on load). `ternary_tq1` / `ternary_tq1_row` five trits a byte,
+  `ceil(v 256 / 243)` with `v = sum_n (q_n + 1) 3^(4 - n)`, decoded as
+  `((byte 3^n) mod 256) 3 >> 8` (ggml's form; element order within the row
+  is bff's, rows padded to 5). Only the storage differs: `_tq1` predicts
+  bit-identically to its 2-bit twin. Document: `bff.quantized_neural_net`,
+  `"quantization": "ternary..."`, layer `"codes"` (bin) and `"weight_scale"`
+  (float64) or `"weight_scales"` (bin of n_out little-endian float64);
+  kept layers `"precision": "float64"` + `"weight"`. Bit-exact round trip.
+- Kernels: weights repacked once into tiles of `kNR` rows, 16-wide
+  sub-blocks whose byte `4 o + j` holds the codes of elements `4 l + j`
+  (`l = 0..3`) in bits `2 l`; `(chunk >> 2 l) & 3` is directly the operand
+  of NEON dotprod `vdotq_laneq_s32` (plain NEON emulates it), AVX2
+  `maddubs` (u8 x s8, |sum| <= 2048, no int16 saturation), AVX-512 VNNI
+  `dpbusd`; generic unpacks a sub-block and runs int8 dot products. Same
+  compile-time selection and switches as FP4 (`IMPBFF_FP4_NO_SIMD`,
+  `IMPBFF_FP4_NO_DOTPROD`); `get_kernel_name()` reports it.
+
+### Training (`precision = "ternary"`)
+
+BitNet's recipe on bff's MLP: float64 master weights and Adam state; every
+step each ternary layer's weights are quantised (absmean, per tensor) and
+packed once; fprop is `Q(A) Q(W)^T + b` on the ternary x int8 kernel --
+the same quantisers and kernel as `QuantizedNeuralNet`, so the result's
+`get_quantized_network()` (ternary layers with fprop's trits and scale,
+kept layers float64) predicts training's forward pass bit for bit
+(checked in C++ with the library's MatGemm and the portable GEMM).
+Backward is the straight-through estimator of both quantisers
+(BitLinear's `x + (quant(x) - x).detach()`): the layer is treated as the
+linear map of the dequantised operands `Â = q_a / s_a`, `Ŵ = q gamma`,
+with the quantisers as the identity, so `dW = dZ^T Â` (reaching every
+master weight, clipped ones included -- no clipping mask), `dA = dZ Ŵ`,
+`db = sum_rows dZ`, and nothing flows into `gamma` or `s_a`. dgrad and
+wgrad run in float64 (MatGemm) on those operands: BitNet keeps gradients
+in high precision. First and last layer float64 by default
+(`ternary_keep_first_layer` / `ternary_keep_last_layer`; BitNet keeps its
+embedding and head in high precision). No randomness beyond
+train_neural_net's: deterministic per seed.
+
+### Accuracy and size (measured 2026-09-25, M1 Pro)
+
+| task | float64 | ternary QAT | ternary QAT, every layer | ternary PTQ | ternary_row PTQ | nvfp4 PTQ (W4A8) | int8 PTQ |
+|---|---|---|---|---|---|---|---|
+| 4-64-64-64-2 tanh regression, held-out MSE (var 0.51) | 8.45e-4 | 1.52e-3 (1.80x) | 1.86e-3 (2.20x) | 0.233 (276x) | 0.206 (244x) | 1.19e-2 (14x) | 8.60e-4 (1.02x) |
+| HMM surrogate set (400 x 24 -> 8), 256-256-128, held-out MAE | 0.0959 | 0.0939 (0.98x) | | 0.173 (1.81x) | | | |
+
+**Post-training ternary quantisation of a float-trained net is not
+usable** (276x the MSE); quantisation-aware training is what makes
+ternary work: 1.8x float64's MSE on the regression (FP4 training: 3.0x)
+and float64's MAE on the surrogate set. Fixture nets under PTQ: max error
+0.41-0.51 of the output absmax per tensor, 0.12-0.40 per row. Test bounds
+(`test_neural_net_ternary.py`): QAT <= 3x float64 (every layer ternary
+4.5x), QAT < 5 % of PTQ, surrogate QAT <= 1.2x float64 and < PTQ.
+
+Sizes, 24-256-256-128-8 (107 k weights): ternary 2.002 bits a weight
+(32x under float64), ternary_tq1 1.630 (39x; the 24-wide rows pad to 25),
+ternary_row 2.393 and ternary_tq1_row 2.021 (a float64 scale a row costs
+2.7 bits a weight on the 24-wide input layer). The QAT regression net
+(8576 weights) with its float64 first and last layer: 4.79 bits a weight,
+5.1 kB against 68.6 kB float64; every layer ternary 2.03 bits.
+
+### Speed gates (2026-09-25)
+
+G1, inference, us a predict() call, 24-256-256-128-8 (float64 = MatGemm):
+
+| machine / variant | batch | float64 | nvfp4 W4A8 | ternary | ternary / float64 |
+|---|---|---|---|---|---|
+| M1 Pro, neon-dotprod (Python, load 7.0) | 1 | 26.1 | 7.7 | 7.8 | 0.30 |
+| M1 Pro, neon-dotprod (Python) | 32 | 300 | 156 | 145 | 0.48 |
+| M1 Pro, neon-dotprod (Python) | 256 | 2052 | 1251 | 1199 | 0.58 |
+| M1 Pro, neon-dotprod (C++, load 5.5) | 1 | 27.9 | 5.7 | 5.6 | 0.20 |
+| M1 Pro, neon-dotprod (C++) | 32 | 278 | 140 | 128 | 0.46 |
+| M1 Pro, neon-dotprod (C++) | 256 | 1914 | 1100 | 1019 | 0.53 |
+| Xeon 4416+, avx2 (C++, load 15-17) | 1 | 20.5 | 7.3 | 5.7 | 0.28 |
+| Xeon 4416+, avx2 (C++) | 32 | 561 | 209 | 164 | 0.29 |
+| Xeon 4416+, avx2 (C++) | 256 | 2506 | 1662 | 1191 | 0.48 |
+| Xeon 4416+, avx512-vnni (C++, load 15-17) | 1 | 19.4 | 5.0 | 6.1 | 0.31 |
+| Xeon 4416+, avx512-vnni (C++) | 32 | 516 | 130 | 129 | 0.25 |
+| Xeon 4416+, avx512-vnni (C++) | 256 | 2410 | 1050 | 928 | 0.39 |
+
+256 x 256 x 256 ternary x int8 GEMM (snippet): M1 dotprod 268 us, plain
+NEON 698 us; Xeon AVX2 294 us, AVX-512 VNNI 231 us (portable double GEMM
+8.9 / 18.6 ms). Activation quantisation is 10-20 % of it (M1 44 us, Xeon
+48-53 us).
+
+G2, training. Python, M1 Pro (neon-dotprod, load 7.0, median of 5), ms an
+epoch, batch 200, first/last layer float64:
+
+| shape | float64 | ternary | ternary / float64 |
+|---|---|---|---|
+| surrogate 400 x 24 -> 8, 256-256-128 | 8.02 | 6.57 | **0.82** |
+| regression 3000 x 4 -> 2, 64-64-64 | 7.50 | 6.92 | **0.92** |
+| tiny 2000 x 2 -> 1, 16-16 (no gate) | 0.51 | 0.53 | 1.03 |
+
+The step in C++ (quantise weights + forward + backward, bs 200, us;
+ternary / float64 in brackets; Xeon under load 14-17 from another user):
+
+| net | M1 f64 | M1 ternary | M1 every layer | avx2 f64 | avx2 ternary | avx512 f64 | avx512 ternary |
+|---|---|---|---|---|---|---|---|
+| 24-256-256-128-8 | 3669 | 3142 (0.86) | 3176 (0.87) | 6123 | 5334 (0.87) | 6495 | 5449 (0.84) |
+| 4-64-64-64-2 | 473 | 474 (1.00) | 458 (0.97) | 637 | 658 (1.03) | 648 | 657 (1.01) |
+| 4-128-128-128-2 | 1514 | 1315 (0.87) | 1294 (0.85) | 2079 | 2084 (1.00) | 2108 | 2103 (1.00) |
+| 2-16-16-1 | 50 | 49 (1.00) | 56 (1.14) | 62 | 67 (1.07) | 55 | 60 (1.09) |
+
+**Inference is the win (0.2-0.6x float64, 0.25-0.5x on the Xeon); ternary
+training costs about what float64 does** (0.82-0.92 an epoch on the Mac,
+0.84-1.03 a step on the Xeon). Only fprop runs on the integer kernel --
+dgrad and wgrad are float64 GEMMs by the recipe, two thirds of float64's
+arithmetic -- and the per-step overheads (absmean, trits and repacking of
+the weights, the int8 activations and `Â` for wgrad) eat most of the fprop
+saving below ~128 wide. An int8 dgrad on the ternary kernel would be
+faster but quantises dZ, which BitNet does not; not taken.
+
+Checked: `cpp_snippets/test_ternary_kernels.cpp` (quantiser ties / clamp /
+NaN, SIMD activation rounding == scalar, TQ2 / TQ1 round trips incl. all
+243 five-trit strings, kernel == element-by-element reference on 150
+shapes and saturating operands, predict == float64 arithmetic on the
+dequantised operands to 4e-16, to_model() == training's forward pass, STE
+gradient cosine 0.86 to float64's on a random all-ternary net, one
+fingerprint `4f6b5c542ab55f36` over kernel outputs, predict and three
+training steps) is bit-identical on the Mac (neon-dotprod, neon, AVX2 under
+Rosetta, generic) and cordeshub (generic, AVX2, AVX-512 VNNI,
+`-march=sapphirerapids`); pytest runs the matrix and CI job
+`fp4_kernels_x86` builds and runs it generic / AVX2 / AVX-512 (native or
+Intel SDE). `test_neural_net_ternary.py`: sizes (exact bytes), msgpack
+round trips, refusals, determinism per seed, the trained ternary layers
+== the quantiser on the master weights, accuracy bounds above.
+`test/bench_neural_net_fp4.py --ternary` prints the Python gates.
