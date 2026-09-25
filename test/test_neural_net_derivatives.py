@@ -16,6 +16,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 
@@ -457,6 +458,8 @@ def test_mlp_core_cpp_checks_pass():
     passes and their adjoint vs central differences and the Dual pass, the
     scaler chain rule, ONNX import, MatGemm vs PortableGemm parity, and the
     int8 path. Timings it prints are reported, not asserted."""
+    if sys.platform == "win32":
+        pytest.skip("standalone C++ snippet compilation not supported on Windows")
     cxx = shutil.which("c++") or shutil.which("clang++") or shutil.which("g++")
     if cxx is None:
         pytest.skip("no C++ compiler on PATH")

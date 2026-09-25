@@ -142,9 +142,12 @@ class Tests(IMP.test.TestCase):
         nothing but its own header."""
         import shutil
         import subprocess
+        import sys
         import tempfile
 
         import numpy as np
+        if sys.platform == "win32":
+            self.skipTest("standalone C++ snippet compilation not supported on Windows")
         cxx = shutil.which("c++") or shutil.which("clang++") or shutil.which("g++")
         if cxx is None:
             self.skipTest("no C++ compiler on PATH")
