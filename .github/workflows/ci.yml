@@ -64,6 +64,53 @@ jobs:
             echo 'wheel_matrix={"include":[{"os":"ubuntu-latest","arch":"x86_64"}]}' >> "$GITHUB_OUTPUT"
           fi
 
+  # ── 0. The FP4 kernel variants, x86 ──────────────────────────────────────
+  #
+  # test/cpp_snippets/test_fp4_kernels.cpp against bff's headers only,
+  # compiled generic, AVX2 and AVX-512 (F + BW + VNNI) and run: every
+  # variant must equal the generic kernel bit for bit (the snippet's exit
+  # status counts failures). The AVX-512 build runs natively when the runner
+  # has avx512_vnni, otherwise under Intel SDE (Sapphire Rapids model).
+  fp4_kernels_x86:
+    name: FP4 kernels (generic / AVX2 / AVX-512 VNNI)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Header tree
+        run: |
+          mkdir -p "$RUNNER_TEMP/inc/IMP/bff"
+          ln -s "$GITHUB_WORKSPACE/include/internal" "$RUNNER_TEMP/inc/IMP/bff/internal"
+      - name: Build the variants
+        run: |
+          src=test/cpp_snippets/test_fp4_kernels.cpp
+          g++ -std=c++17 -O2 -DIMPBFF_FP4_NO_SIMD -I "$RUNNER_TEMP/inc" $src -o fp4_generic
+          g++ -std=c++17 -O2 -mavx2 -mfma -I "$RUNNER_TEMP/inc" $src -o fp4_avx2
+          g++ -std=c++17 -O2 -mavx512f -mavx512bw -mavx512vl -mavx512vnni -I "$RUNNER_TEMP/inc" $src -o fp4_avx512
+      - name: Run generic and AVX2
+        run: |
+          ./fp4_generic | tee generic.txt
+          grep -q "^variant generic" generic.txt
+          ./fp4_avx2 | tee avx2.txt
+          grep -q "^variant avx2" avx2.txt
+      - id: cpu
+        name: Does the runner have AVX-512 VNNI?
+        run: |
+          if grep -q avx512_vnni /proc/cpuinfo; then echo "vnni=true" >> "$GITHUB_OUTPUT"; else echo "vnni=false" >> "$GITHUB_OUTPUT"; fi
+      - name: Run AVX-512 natively
+        if: steps.cpu.outputs.vnni == 'true'
+        run: |
+          ./fp4_avx512 | tee avx512.txt
+          grep -q "^variant avx512-vnni" avx512.txt
+      - name: Install Intel SDE
+        if: steps.cpu.outputs.vnni != 'true'
+        uses: petarpetrovt/setup-sde@v2.4
+      - name: Run AVX-512 under Intel SDE
+        if: steps.cpu.outputs.vnni != 'true'
+        run: |
+          "$SDE_PATH/sde64" -spr -- ./fp4_avx512 | tee avx512.txt
+          grep -q "^variant avx512-vnni" avx512.txt
+          grep -q "^0 failure(s)" avx512.txt
+
   # ── 1. bff as an in-tree IMP module ──────────────────────────────────────
   imp_module:
     name: IMP module (${{ matrix.os }})

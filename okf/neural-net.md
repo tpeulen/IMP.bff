@@ -19,7 +19,7 @@ ported in bff's terms.
 | GEMM policy | `include/internal/MlpGemm.h` | `MatGemm`: MlpCore's `nn`/`nt`/`tn` through the vendored `internal/Mat.h`'s packed, register-blocked kernels (threaded over row tiles with OpenMP). Used by `NeuralNet` and `train_neural_net`. |
 | int8 path | `include/internal/MlpQuant.h` | Dynamic-range int8 inference, **rebuilt from the lost tttrlib spec** (below). |
 | FP4 formats | `include/internal/MlpFp4.h` | E2M1 / E4M3 / E8M0 codecs, the `fp4` / `mxfp4` / `nvfp4` block recipes, 2-D (16 x 16) weight scaling, stochastic rounding, the float reference forward pass (tests only). |
-| FP4 kernels | `include/internal/MlpFp4Kernels.h` | Integer-SIMD FP4 x int8 and FP4 x FP4 dot products and GEMMs (after llama.cpp/ggml, MIT), NEON + dotprod / NEON / AVX2 / generic, and the fast forward pass. |
+| FP4 kernels | `include/internal/MlpFp4Kernels.h` | Integer-SIMD FP4 x int8 and FP4 x FP4 dot products and GEMMs (after llama.cpp/ggml, MIT), register-blocked micro-kernels for NEON + dotprod / NEON / AVX2 / AVX-512 VNNI / generic, the vectorised quantisers, and the fast forward pass. |
 | FP4 training | `include/internal/MlpFp4Train.h` | NVIDIA's NVFP4 pretraining recipe (and MXFP4) on those kernels. |
 | Documents | `include/internal/NetworkDocument.h` | The one msgpack encoder/decoder (`bff.quantized_neural_net` through its own small msgpack reader/writer, because the vendored nlohmann 3.6.1 has no `bin`). |
 | Face | `include/NeuralNet.h`, `src/NeuralNet.cpp` | `NeuralNet`, `QuantizedNeuralNet`; bindings in `pyext/include/IMP_bff.core.i`. |
@@ -198,66 +198,171 @@ itself is not installed; PyTorch cannot cast to `float4_e2m1fn_x2`
 
 Ported from llama.cpp/ggml (MIT; notice in the header):
 `ggml_vec_dot_mxfp4_q8_0` / `ggml_vec_dot_nvfp4_q8_0` (`ggml-cpu/quants.c`,
-`arch/arm/quants.c`, `arch/x86/quants.c`), `kvalues_mxfp4` (`ggml-common.h`).
-ggml packs element j with j + 16 in a byte; bff keeps the standard pair
-order and permutes the int8 activations within each 32-group instead, so
-the weights stay ONNX/PyTorch-compatible. (Upstream llama.cpp now also has a
-NEON NVFP4 kernel; bff's NVFP4 path is the same group kernel with 16-element
-scales.)
+`arch/arm/quants.c`, `arch/x86/quants.c`), `kvalues_mxfp4` (`ggml-common.h`):
+the 16-byte table lookup of `2 x E2M1` and integer dot products, scales
+applied after in float. Since the second pass (below) the dot products run
+as a register-blocked GEMM rather than row-by-row.
 
 - W4A8 (default): activations quantised per block to int8 (32; 16 for nvfp4),
   `d = amax / 127`, round half away from zero. W4A4 (`quantize_activations`):
   activations quantised to FP4 in the same format per row (nvfp4 with a
-  per-row global scale), FP4 x FP4 kernel.
+  per-row global scale); the kernel takes their codes' values `2 x E2M1`
+  (exact int8 in [-12, 12]).
 - Variants at **compile time**: `__ARM_FEATURE_DOTPROD` (neon-dotprod),
-  `__ARM_NEON` (neon: `vmull_s8`/`vmlal_s8`/`vpaddlq`), `__AVX2__` (avx2:
-  pshufb + `_mm256_sign_epi8` + `maddubs` + `madd`), else generic;
-  `-DIMPBFF_FP4_NO_SIMD` forces generic. No run-time cpuid: under Rosetta 2
-  `__builtin_cpu_supports("avx2")` is 0 while AVX2 executes. No AVX-512 VNNI
-  variant. The float scaling is one shared lane-structured routine without
-  contracted multiply-adds, so **every variant is bit-identical to the
-  generic kernel** (checked: integer sums, `gemm_q8`, `gemm_fp4`).
+  `__ARM_NEON` (neon), `__AVX512F__ && __AVX512BW__ && __AVX512VNNI__`
+  (avx512-vnni), `__AVX2__` (avx2), else generic; `-DIMPBFF_FP4_NO_SIMD`
+  forces generic. No run-time cpuid: under Rosetta 2
+  `__builtin_cpu_supports("avx2")` is 0 while AVX2 executes. **Every
+  variant is bit-identical to the generic kernel, under any compiler
+  flags** (see the design below; before, g++ with `-mfma` contracted the
+  float combine into FMAs and an AVX2 build differed from a generic one --
+  measured on cordeshub, 52 of 163 golden lines).
 - `test/test_neural_net_fp4.py` compiles `cpp_snippets/test_fp4_kernels.cpp`
-  four ways and runs each: `-march=armv8.2-a+dotprod`, `-march=armv8-a`,
-  `-arch x86_64 -mavx2 -mfma` under `arch -x86_64` (Rosetta 2; skipped where
-  unavailable, native on x86), and `-DIMPBFF_FP4_NO_SIMD` -- all 0 failures
-  on 2026-09-24. The IMP module build on this Mac compiles `neon-dotprod`
-  (AppleClang's arm64 target has dotprod;
-  `QuantizedNeuralNet.get_kernel_name()`). The standalone/wheel build adds
+  with `-march=armv8.2-a+dotprod`, `-march=armv8-a`, `-arch x86_64 -mavx2
+  -mfma` under `arch -x86_64` (Rosetta 2; native on x86),
+  `-DIMPBFF_FP4_NO_SIMD`, and on an x86 CPU with VNNI `-mavx512f
+  -mavx512bw -mavx512vl -mavx512vnni`. CI (`fp4_kernels_x86` in
+  `.github/workflows/ci.yml`) builds generic / AVX2 / AVX-512 on
+  ubuntu-latest and runs the AVX-512 one natively when the runner has
+  `avx512_vnni`, else under Intel SDE (`sde64 -spr`). The IMP module build
+  on this Mac compiles `neon-dotprod`
+  (`QuantizedNeuralNet.get_kernel_name()`). The standalone/wheel build adds
   opt-in `IMPBFF_WITH_AVX2` (x86-64: `-mavx2 -mfma`) and
   `IMPBFF_WITH_ARM_DOTPROD` (AArch64 Linux), both OFF so a wheel runs on
   every CPU of its architecture.
+- **AVX-512 status**: validated on real hardware (cordeshub, Xeon Silver
+  4416+, Sapphire Rapids; g++ 11.4): the snippet built
+  `-mavx512f -mavx512bw -mavx512vl -mavx512vnni` and `-march=sapphirerapids`
+  reports `avx512-vnni`, 0 failures, and a golden run (quantisers, GEMMs,
+  predict on four nets, four FP4 training steps on three nets x two
+  formats x three recipe configurations) equal to the generic build's.
+  Not runnable on the arm64 Mac (Rosetta has no AVX-512); there it is only
+  compiled (`clang++ -arch x86_64 -mavx512f -mavx512bw -mavx512vnni -c`).
 
-Speed, M-series dev box (loaded; no OpenMP in the IMP build), best of 20:
+### Performance design (second pass, 2026-09-24)
 
-| 256 x 256 x 256 GEMM | us |
-|---|---|
-| double MatGemm `nt` | 1090 |
-| FP4 x int8 `gemm_q8` (neon-dotprod) | 520 |
-| FP4 x FP4 `gemm_fp4` (neon-dotprod) | 578 |
-| FP4 x int8, generic scalar | 32 200 |
-| int8-quantise the 256 x 256 activations | 215 |
+Profiled first (C++ harness, `sample`): the old GEMM re-did the table lookup
+of every weight for every activation row (row x 4 rows dot products), and
+around it the quantisation was scalar with `ilogb`/`ldexp`/`fmod` per
+block scale, allocations per call, and the Hadamard a scalar 16 x 16
+product per tile. What changed, each step checked bit-identical against the
+old headers (golden hashes on the Mac's four variants and cordeshub's four,
+and the Python-trained networks' msgpack bytes):
 
-Whole forward pass, 24-256-256-128-8 tanh net (the HMM surrogate's shape),
-us per call (C++ snippet; "dequant" is the first, dequantise-to-double
-version):
+- **Micro-kernel**: the right operand (weights; wgrad's transformed
+  activations) is repacked once into tiles of `kNR` rows: per 16-wide
+  sub-block, two chunks whose low/high nibbles are k-quads `2p`/`2p + 1`
+  of every tile row. One lookup of a chunk is the operand of a lane-wise
+  4-byte dot: `vdotq_laneq_s32` (NEON dotprod, 4 x 4 tile; plain NEON
+  emulates it with `vmull_s8` + `vpaddlq_s16`), `_mm256_maddubs_epi16` +
+  `_mm256_madd_epi16` (AVX2, 2 x 8), `_mm512_dpbusd_epi32` (AVX-512 VNNI,
+  4 x 16). The x86 u8 x s8 instructions get the left operand offset by 128
+  (`a ^ 0x80`) and subtract `128 x` the row's sub-block sum, precomputed at
+  packing (ggml's unsigned/signed handling; the sums stay exact). The float
+  part is `combine()` per output lane: `acc[s % 4] += float(sum) *
+  (sa * sw)`, then `(a0 + a1) + (a2 + a3)`; the product goes through an
+  empty asm (`IMPBFF_FP4_KEEP`) so no compiler fuses it into an FMA.
+  QuantizedNeuralNet packs its layers once (`kern::prepare`), predict keeps
+  thread-local buffers, and the bias is added in the GEMM's store.
+- **Quantisers**: absmax, the E2M1 threshold network, the int8 rounding and
+  stochastic rounding run on 2 / 4 / 8 doubles with the scalar reference's
+  exact IEEE operations (`std::min`/`std::max` NaN rules via compare-select
+  or x86 `min_pd` operand order). On NEON the quotient is narrowed to float32
+  with **round-to-odd** (`FCVTXN`): a double and its round-to-odd float
+  compare alike with every float of even last mantissa bit, which all E2M1
+  thresholds are, so the codes stay exact on 4 lanes. Power-of-two scales
+  (every mxfp4 block) multiply by the exact reciprocal instead of dividing
+  (the same exact product, rounded once). E4M3 encode has a bit-level fast
+  path (`e4m3_encode_reference` is the old code; 4e5 random values and every
+  midpoint compared in the snippet); scale tables are hoisted; block scales
+  are computed in a separate pass so the core overlaps them; the nvfp4 row
+  scale comes from the block absmaxes.
+- **Stochastic rounding keeps its stream**: SplitMix64 draws in the same
+  order as before (one a real element of a non-zero-scale block), so FP4
+  training results did not change. A NEON-vectorised SplitMix64 (the same
+  counter-based stream, `mix(s0 + n gamma)`) was tried and is slower than
+  the scalar one: NEON has no 64-bit vector multiply.
+- **Training**: `quantize_2d_packed` quantises each FP4 layer's weights once
+  a step straight into both packed operands, W (fprop) and W^T (dgrad), with
+  the 2-D tile scales -- no `transpose_2d` re-pack; the snippet checks it
+  against `quantize_2d` / `transpose_2d`. The Hadamard transform is fused
+  with the transpose (`rht_transpose`), register-blocked over 8 rows of T x 4
+  (8 on AVX-512) columns with FMAs (`t x` is exact, `t = +-1/4`, so the FMA
+  rounds as `acc + t x` does; the previous clang arm64 build contracted it
+  too); all buffers live in the workspace.
+- Unchanged by choice: `tanh` (shared by both paths, libm's), MatGemm (the
+  float64 baseline; AVX2 on x86 even with AVX-512), threading (none in the
+  IMP build; the FP4 GEMM has the same OpenMP opportunity as MatGemm).
 
-| variant | batch | double MatGemm | nvfp4 dequant | nvfp4 W4A8 | nvfp4 W4A4 | fp4 W4A8 | mxfp4 W4A8 |
+### Speed gates (2026-09-24)
+
+`test/bench_neural_net_fp4.py` (through the module, median of 5 runs;
+single-threaded both paths). bff has **no float32 network path**, so float64
+is the only float baseline. The x86 numbers are from an equivalent C++
+harness (the gate code paths without Python; median of 9) on cordeshub,
+**under a load average of ~18-20 on 24 cores from another user** -- expect
+noise of 10-20 %. The Mac was also loaded (load average 8-13 on 8 cores).
+
+G1, inference, us a call, 24-256-256-128-8 (the -15 net, the 3-state
+surrogate, is within a few % of it; full tables in the script output):
+
+| machine / variant | batch | float64 | fp4 W4A8 | mxfp4 W4A8 | nvfp4 W4A8 | nvfp4 W4A4 | before: nvfp4 W4A8 / W4A4 |
 |---|---|---|---|---|---|---|---|
-| neon-dotprod | 1 | 28.4 | 428 | 21.0 | 24.4 | 11.8 | 21.1 |
-| neon-dotprod | 32 | 410 | 812 | 328 | 432 | 329 | 337 |
-| neon-dotprod | 256 | 2901 | 3307 | 2568 | 3395 | 2642 | 2643 |
-| neon (no dotprod) | 256 | 2906 | 3313 | 3306 | 4104 | 3369 | 3383 |
-| generic | 256 | 2921 | 3267 | 53 308 | 56 215 | 54 257 | 53 769 |
-| avx2 under Rosetta 2 | 256 | 7948 | 8813 | 12 648 | 14 064 | 12 598 | 12 580 |
+| M1 Pro, neon-dotprod (Python) | 1 | 31.7 | 10.2 | 10.3 | 10.0 | 10.5 | 24 / 24 (Python) |
+| M1 Pro, neon-dotprod (Python) | 32 | 460 | 276 | 276 | 275 | 283 | |
+| M1 Pro, neon-dotprod (Python) | 256 | 3210 | 2194 | 2189 | 2193 | 2273 | 2722 / 3513 (Python) |
+| M1 Pro, neon-dotprod (C++) | 1 | 28.4 | 7.8 | 7.9 | 7.8 | 8.2 | 21.7 / 24.6 |
+| M1 Pro, neon-dotprod (C++) | 32 | 417 | 241 | 236 | 238 | 246 | 336 / 432 |
+| M1 Pro, neon-dotprod (C++) | 256 | 2970 | 1906 | 1916 | 1888 | 1983 | 2630 / 3411 |
+| Xeon 4416+, avx2 (C++) | 1 | 28.2 | 13.0 | 12.8 | 13.5 | 13.9 | 41.2 / 45.4 |
+| Xeon 4416+, avx2 (C++) | 32 | 977 | 625 | 619 | 628 | 655 | 896 / 999 |
+| Xeon 4416+, avx2 (C++) | 256 | 5865 | 4919 | 4943 | 5041 | 5324 | 7379 / 8500 |
+| Xeon 4416+, avx512-vnni (C++) | 1 | 27.5 | 12.5 | 12.7 | 12.4 | 12.9 | (no variant) |
+| Xeon 4416+, avx512-vnni (C++) | 32 | 990 | 586 | 582 | 586 | 607 | |
+| Xeon 4416+, avx512-vnni (C++) | 256 | 5984 | 4641 | 4642 | 4646 | 4910 | |
 
-The AVX2 row is Rosetta's translation of AVX2 -- a **correctness** run, not
-representative of x86 speed. At batch 256 the GEMMs are ~2x faster than
-double but the pass is dominated by the 164 k `tanh` evaluations and the
-per-call activation quantisation, so the whole pass gains only 1.1x (W4A8);
-at batch 1 FP4 is 1.4-2.4x faster than double. Through the Python binding
-(`test_speed_report_256_256_128`), batch 256: double 3032 us, int8 2441,
-nvfp4 W4A8 2722, W4A4 3513; batch 1: double 32, int8 11, fp4 14, nvfp4 24.
+Every FP4 cell is below float64 (worst FP4/float64: 0.71 Mac, 0.91 x86).
+At batch 256 both paths are dominated by the 164 k `tanh` calls (glibc's
+cost ~20 ns each on the Xeon, 3.3 ms of the 5.9); the FP4 GEMMs themselves:
+256^3 `gemm_packed` 320 us on the Mac (old kernel 520, MatGemm 1070).
+"Before" is the old kernels (the first FP4 commit) in the same harness;
+before, x86 FP4 at batch 256 was 1.1-1.3x *slower* than float64.
+
+G2, training, ms an epoch (Python, batch 200, every recipe feature on:
+2-D weight scales, Hadamard on wgrad, stochastic rounding, first/last layer
+float64; 40 / 20 / 20 epochs, early stopping patience disabled):
+
+| shape | float64 | nvfp4 | mxfp4 | nvfp4 / f64 | mxfp4 / f64 | before (nvfp4 / mxfp4, s an epoch) |
+|---|---|---|---|---|---|---|
+| surrogate 400 x 24 -> 8, 256-256-128 | 11.03 | 8.22 | 8.12 | **0.75** | **0.74** | 0.020 / 0.017 vs 0.011 |
+| regression 3000 x 4 -> 2, 64-64-64 | 12.52 | 13.85 | 12.81 | 1.11 | 1.02 | |
+| tiny 2000 x 2 -> 1, 16-16 (no gate) | 0.81 | 1.25 | 1.14 | 1.53 | 1.40 | |
+
+The same step (weights quantisation + forward + backward, C++, bs 200),
+us, before -> after:
+
+| net | M1 float64 | M1 nvfp4 | M1 mxfp4 | Xeon avx2 f64 | avx2 nvfp4 | avx2 mxfp4 | avx512 f64 | avx512 nvfp4 | avx512 mxfp4 |
+|---|---|---|---|---|---|---|---|---|---|
+| 24-256-256-128-8 | 5270 | 9882 -> 3830 (0.73) | 8278 -> 3626 (0.69) | 9085 | 19723 -> 7263 (0.80) | 18493 -> 6668 (0.73) | 9711 | 6266 (0.65) | 5707 (0.59) |
+| 4-64-64-64-2 | 729 | 2426 -> 875 (1.20) | 2024 -> 820 (1.12) | 1336 | 4190 -> 1745 (1.31) | 3708 -> 1577 (1.18) | 1390 | 1599 (1.15) | 1448 (1.04) |
+| 4-96-96-96-2 | 1354 | 3859 -> 1415 (1.04) | 3254 -> 1317 (0.97) | 2329 | 6772 -> 2749 (1.18) | 6241 -> 2488 (1.07) | 2468 | 2471 (1.00) | 2256 (0.91) |
+| 4-128-128-128-2 | 2138 | 5287 -> 1977 (0.92) | 4453 -> 1893 (0.89) | 3474 | 9230 -> 3968 (1.14) | 8418 -> 3532 (1.02) | 3777 | 3392 (0.90) | 3071 (0.81) |
+| 2-16-16-1 | 75 | 246 -> 121 (1.60) | 197 -> 111 (1.48) | 146 | 406 -> 258 (1.77) | 370 -> 228 (1.56) | 147 | 210 (1.43) | 190 (1.29) |
+
+**G2 holds on the surrogate shape and does not on the 64-wide
+regression.** An FP4 layer of width n quantises about 4 x batch x n values
+a step (A for fprop; dZ for dgrad with stochastic rounding; the
+Hadamard-transformed dZ^T and A^T for wgrad, one stochastically rounded),
+at 1.5-3 ns each here, against 3 x batch x n^2 multiply-adds that float64
+does at ~15 a ns: the FP4 GEMMs save ~2 ns of float64 time per quantised
+value at n = 64 and ~8 at n = 256. The crossover is n ~ 96 (M1), ~128
+(AVX2), ~96 (AVX-512); below it the recipe's quantisation, not the
+arithmetic, is the cost. The tiny net is fixed per-step overhead (a few
+hundred values a layer, eight quantiser calls a step). Stochastic rounding
+(~1 ns a draw for the scalar SplitMix64, 26 k draws a 64-wide layer-step)
+and the division by the non-power-of-two nvfp4 scale are the two costs
+left that exactness pins; a different, vectorisable random stream would
+change every trained network and was not taken.
 
 ### Accuracy and size (2026-09-24)
 
@@ -313,10 +418,9 @@ float64 one on a random 6-64-48-32-2 net. Measured (Python):
 |---|---|---|---|
 | 4-64-64-64-2 tanh regression, held-out MSE (var 0.51) | 8.4e-4 | 2.6e-3 (3.1x) | 3.0e-3 (3.5x) |
 | HMM surrogate set (400 x 24 -> 8), 256-256-128, held-out MAE | 0.0959 | 0.1046 (1.09x) | 0.1036 (1.08x) |
-| seconds an epoch (surrogate) | 0.011 | 0.020 | 0.017 |
+| seconds an epoch (surrogate), first pass | 0.011 | 0.020 | 0.017 |
+| ms an epoch (surrogate), second pass (bench script) | 11.0 | 8.2 | 8.1 |
 
-FP4 training is slower than float64 here: the batches (200) are small, and
-every step re-quantises weights (2-D, plus the transpose), activations,
-gradients and the Hadamard-transformed wgrad operands on one thread. The
-point of the path is fidelity to the hardware recipe and a network that
-deploys in FP4, not CPU training speed.
+FP4 training's speed: see "Speed gates" above -- since the second pass it is
+faster than float64 on the surrogate shape (0.74x an epoch), at parity
+around 96-128 wide, and slower below.

@@ -675,9 +675,11 @@ inline void quantize_q8(const double* A, int rows, int K, int block, Q8Rows& out
 //! sub-block (`hsc`): the decisions of encode_row() (MlpFp4.h) -- same
 //! scale codes, same element codes, and for stochastic rounding the same
 //! draws in the same order (one a real element of a block with a non-zero
-//! scale). `g` is nvfp4's global scale; `ubuf` scratch of >= cols doubles.
+//! scale). `g` is nvfp4's global scale -- or, with `row_scale`, computed from the
+//! row's absmax (one a row); `ubuf` scratch of >= cols doubles.
 inline void encode_row_fast(Format f, const double* x, int cols, float g, std::uint8_t* codes, float* hsc,
-                            Rounding rnd, SplitMix64* rng, double* ubuf, std::uint8_t* scale_codes = nullptr) {
+                            Rounding rnd, SplitMix64* rng, double* ubuf, std::uint8_t* scale_codes = nullptr,
+                            bool row_scale = false) {
     const int kp = padded_cols(cols), ns = kp / 16;
     const bool sr = rnd == Rounding::Stochastic && rng != nullptr;
     std::fill(codes + cols, codes + kp, std::uint8_t(0));
@@ -696,23 +698,38 @@ inline void encode_row_fast(Format f, const double* x, int cols, float g, std::u
         return;
     }
     const int block = f == Format::MXFP4 ? 32 : 16, nb = kp / block;
-    // phase 1, the scale of every block (independent: the CPU overlaps them)
+    // phase 1: every block's absmax (and from them the row's, nvfp4's per-row
+    // global scale when `row_scale`), then every block's scale -- independent
+    // iterations the core overlaps
     constexpr int kStack = 64;
-    double dstack[kStack];
-    std::vector<double> dheap;
+    double dstack[kStack], astack[kStack];
+    std::vector<double> dheap, aheap;
     double* dv = dstack;
+    double* av = astack;
     if (nb > kStack) {
         dheap.resize(static_cast<std::size_t>(nb));
+        aheap.resize(static_cast<std::size_t>(nb));
         dv = dheap.data();
+        av = aheap.data();
     }
-    const int per = block / 16;
+    double row_amax = 0.0;
     for (int b = 0; b < nb; ++b) {
         const int k0 = std::min(cols, b * block), k1 = std::min(cols, k0 + block);
-        const std::uint8_t code = block_scale_code(f, k1 > k0 ? vq::absmax(x + k0, k1 - k0) : 0.0, g);
+        av[b] = k1 > k0 ? vq::absmax(x + k0, k1 - k0) : 0.0;
+        row_amax = std::max(row_amax, av[b]);
+    }
+    if (row_scale && f == Format::NVFP4) g = nvfp4_tensor_scale(row_amax);
+    const int per = block / 16;
+    const kd::HalfScaleTables& hs = kd::half_scales();
+    const detail::ScaleTables& st = detail::scale_tables();
+    const double gd = static_cast<double>(g);
+    for (int b = 0; b < nb; ++b) {
+        const std::uint8_t code = block_scale_code(f, av[b], g);
         if (scale_codes) scale_codes[b] = code;
-        const float h = kd::half_scale(f, code, g);
+        // kd::half_scale() and block_scale_value(), the tables hoisted
+        const float h = f == Format::MXFP4 ? hs.e8m0[code] : static_cast<float>(static_cast<double>(hs.e4m3[code]) * gd);
         for (int j = 0; j < per; ++j) hsc[b * per + j] = h;
-        dv[b] = block_scale_value(f, code, g);
+        dv[b] = f == Format::MXFP4 ? st.e8m0[code] : st.e4m3[code] * gd;
     }
     // phase 2, the elements
     for (int b = 0; b < nb; ++b) {
@@ -749,9 +766,8 @@ inline void quantize_left(const double* A, int rows, int K, Format f, Rounding r
     s.u.resize(static_cast<std::size_t>(std::max(1, K)));
     for (int r = 0; r < rows; ++r) {
         const double* x = A + static_cast<std::size_t>(r) * K;
-        const float g = f == Format::NVFP4 ? nvfp4_tensor_scale(vq::absmax(x, K)) : 1.0f;
-        encode_row_fast(f, x, K, g, s.codes.data(), out.sc.data() + static_cast<std::size_t>(r) * out.n_sub(), rnd, rng,
-                        s.u.data());
+        encode_row_fast(f, x, K, 1.0f, s.codes.data(), out.sc.data() + static_cast<std::size_t>(r) * out.n_sub(), rnd, rng,
+                        s.u.data(), nullptr, true);
         vq::codes_to_values(s.codes.data(), out.kp, out.q.data() + static_cast<std::size_t>(r) * out.kp);
     }
 }
@@ -797,9 +813,8 @@ inline Fp4Rows quantize_rows(const double* A, int rows, int K, Format f, Roundin
     std::vector<double> u(static_cast<std::size_t>(std::max(1, K)));
     for (int r = 0; r < rows; ++r) {
         const double* x = A + static_cast<std::size_t>(r) * K;
-        const float g = f == Format::NVFP4 ? nvfp4_tensor_scale(vq::absmax(x, K)) : 1.0f;
-        encode_row_fast(f, x, K, g, codes.data(), out.sc.data() + static_cast<std::size_t>(r) * out.n_sub(), rnd, rng,
-                        u.data());
+        encode_row_fast(f, x, K, 1.0f, codes.data(), out.sc.data() + static_cast<std::size_t>(r) * out.n_sub(), rnd, rng,
+                        u.data(), nullptr, true);
         pack_nibbles(codes.data(), codes.size(), out.own.data() + static_cast<std::size_t>(r) * out.stride);
     }
     out.codes = out.own.data();
@@ -871,8 +886,7 @@ inline void quantize_right(const double* A, int rows, int K, Format f, Rounding 
     std::vector<float> hsc(static_cast<std::size_t>(P.ns));
     for (int r = 0; r < rows; ++r) {
         const double* x = A + static_cast<std::size_t>(r) * K;
-        const float g = f == Format::NVFP4 ? nvfp4_tensor_scale(vq::absmax(x, K)) : 1.0f;
-        encode_row_fast(f, x, K, g, s.codes.data(), hsc.data(), rnd, rng, s.u.data());
+        encode_row_fast(f, x, K, 1.0f, s.codes.data(), hsc.data(), rnd, rng, s.u.data(), nullptr, true);
         pack_right_row(P, r, s.codes.data(), hsc.data());
     }
 }

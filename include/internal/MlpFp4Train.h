@@ -7,8 +7,9 @@
  * arXiv 2509.25149), section 4 and appendix B, for a dense regressor:
  *
  * - **All three GEMMs of an FP4 layer run in FP4** (section 4.1: "All GEMM
- *   operations quantize their inputs to NVFP4"), on the packed codes through
- *   MlpFp4Kernels.h's FP4 x FP4 kernel -- never dequantised to float:
+ *   operations quantize their inputs to NVFP4"), on the codes through
+ *   MlpFp4Kernels.h's micro-kernel (the left operand as the codes' values
+ *   2 x E2M1, the right packed FP4) -- never dequantised to float:
  *   fprop `Z = Q(A) Q(W)^T`, dgrad `dA = Q(dZ) Q(W)`, wgrad
  *   `dW = Q(dZ)^T Q(A)`, each operand quantised along the GEMM's
  *   contraction dimension (1 x 16 blocks, appendix B; 1 x 32 for mxfp4).
@@ -17,7 +18,9 @@
  * - **Weights use 2-D 16 x 16 block scaling** (section 4.3: "elements are
  *   grouped and scaled in 16x16 blocks"), so W in fprop and W^T in dgrad are
  *   the same quantised values (the chain rule then holds for the function
- *   actually evaluated). `quantize_2d` / `transpose_2d` in MlpFp4.h.
+ *   actually evaluated). One quantisation a step, packed straight into both
+ *   kernel operands (quantize_2d_packed; the reference is `quantize_2d` /
+ *   `transpose_2d` in MlpFp4.h).
  * - **A random Hadamard transform on the wgrad inputs only** (section 4.2:
  *   "we restrict Hadamard transforms to Wgrad inputs"), d = 16, with "a
  *   single random sign vector that is shared across all linear layers

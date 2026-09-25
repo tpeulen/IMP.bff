@@ -7,7 +7,8 @@ The formats, their recipes and the integer-SIMD kernels are C++
   (E2M1, E4M3, E8M0), the block recipes, and every compiled SIMD variant
   against the generic kernel -- built four ways: NEON + dotprod, plain NEON,
   AVX2 (under Rosetta 2 on Apple Silicon, natively on x86) and the generic
-  scalar code;
+  scalar code, plus AVX-512 VNNI on an x86 CPU that has it (CI runs that
+  one under Intel SDE otherwise);
 * an independent cross-check of the E2M1 encoding, the packing and the E4M3
   / E8M0 block scales against PyTorch's own FP4/FP8 utilities (skipped when
   PyTorch is absent);
@@ -75,6 +76,15 @@ def _n_weights(net):
 # The C++ snippet, four ways
 # ---------------------------------------------------------------------------
 
+def _has_avx512_vnni():
+    """AVX-512 VNNI on this CPU (Linux /proc/cpuinfo; elsewhere: unknown, no)."""
+    try:
+        with open("/proc/cpuinfo") as fh:
+            return "avx512_vnni" in fh.read()
+    except OSError:
+        return False
+
+
 def _variants():
     """(name, compiler prefix, flags, expected variant) for this machine."""
     out = []
@@ -86,6 +96,9 @@ def _variants():
             out.append(("avx2", ["arch", "-x86_64"], ["-arch", "x86_64", "-mavx2", "-mfma"], "avx2"))
     elif machine in ("x86_64", "amd64"):
         out.append(("avx2", [], ["-mavx2", "-mfma"], "avx2"))
+        if _has_avx512_vnni():
+            out.append(("avx512-vnni", [], ["-mavx512f", "-mavx512bw", "-mavx512vl", "-mavx512vnni"],
+                        "avx512-vnni"))
     out.append(("generic", [], ["-DIMPBFF_FP4_NO_SIMD"], "generic"))
     return out
 
