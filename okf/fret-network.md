@@ -65,6 +65,29 @@ All C++ (`include/FRETNetwork.h`, `include/FRETNetworkSimulation.h`,
    the detection-weighted distribution; the threshold's preference for bright
    states is not modelled.
 
+## Choosing the pairs
+
+Which pairs to measure is decided by `ProbeNetworkSelection`
+(`include/ProbeNetworkSelection.h`), and this model supplies its dynamics
+term. Each pair is its own double mutant, measured on its own molecules, so
+the pairs of a network share the hidden process's rates but no trajectory.
+`ProbeKineticsTerm` therefore simulates bursts per candidate
+(`simulate_fret_measurement`, `select_bursts`), takes the per-burst scores
+(`segment_scores`) over the log-rates and the pair's state means, and keeps
+the rate information left after the means are paid for, the Schur complement
+`G_p = F_kk − F_kd F_dd⁻¹ F_dk`. The network's information is `F0 + Σ G_p`, and
+the loss `[det F0 / det(F0 + Σ G_p)]^(1/n_k)` is the geometric-mean posterior
+variance of the log-rates relative to their prior. It is mixed by weight with
+Olga's structural resolution (`ProbeResolutionTerm`) and the Labelizer's site
+scores (`ProbeLabellingTerm`).
+
+With three states, any three pairs that separate them resolve the structure,
+so Olga's choice among them is arbitrary for the rates. The mix spends that
+freedom on the rates: on 30 random candidates, the same structural precision
+with a rate variance 2.6x smaller (`examples/labels/plot_network_selection.py`).
+Steady dyes only so far: with blinking dyes the rates of the dyes would have to
+be paid for as well, like the means.
+
 ## The pieces
 
 | piece | what it is |

@@ -1,5 +1,14 @@
 # Update Log
 
+## 2026-09-26
+
+- **Probe network selection mixes structural resolution, dynamics and labelling** (T-20260924-01; [fret-network.md](fret-network.md), "Choosing the pairs").
+  - `ProbeNetworkSelection` (`include/ProbeNetworkSelection.h`): one greedy selector over pairs or labelling sites, minimising a weighted sum of term losses, each in [0, 1] relative to nothing selected. Terms are `IMP::Object`s that score a *set* (a site brings all pairs it completes), so non-additive terms fit without API change.
+  - `ProbeResolutionTerm`: Olga's expected RMSD over the prior RMSD. Alone it reproduces `select_probe_pairs` / `select_probe_positions` exactly (order identical, decay to 1e-13); the chi-squared kernels moved to `internal/ProbePairKernels.h` so both use one copy.
+  - `ProbeKineticsTerm`: per candidate, bursts simulated from the kinetic scheme, per-burst scores of `FRETNetworkModel` over (log-rates, the pair's state means), Fisher information reduced to the rates by a Schur complement. Additive over pairs (separate molecules); loss = geometric-mean posterior variance of the log-rates relative to the prior. A pair whose distance is equal in all states carries exactly none. ~50 ms for 6 candidates x 150 bursts.
+  - `ProbeLabellingTerm`: the Labelizer's combined score per site (fail 1/(1+LS)) plus a cost per mutation, so a reused site is free; unscored sites ineligible.
+  - Three states, 30 random candidates, three pairs: every selection resolves the structure (RMSD loss ~0), resolution-only leaves a rate loss of 0.0076, the mix 0.0029 (`examples/labels/plot_network_selection.py`). Tests: `test/restraints/test_probe_network_selection.py` (14).
+
 ## 2026-09-25
 
 - **Ternary networks: BitNet b1.58 inference and quantisation-aware training** ([neural-net.md](neural-net.md), "Ternary").

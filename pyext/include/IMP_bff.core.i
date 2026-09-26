@@ -1344,6 +1344,12 @@ IMP_SWIG_VALUE(IMP::bff, MfdbAttribution, MfdbAttributions);
    SqRA grid, tridiagonal eigensolver, spline landscape, forward filter. */
 %include "IMP_bff.fretlandscape.i"
 
+/* Greedy selection of a probe network by a weighted mix of scores: Olga's
+   structural resolution, the rate information of a kinetic scheme, and the
+   Labelizer's site scores. After the FRET network, which the kinetics term
+   simulates and scores with, and after the Labelizer. */
+%include "IMP_bff.probenetworkselection.i"
+
 /* The channels that deactivate an excited dye. They consume `States`, so they
    come after the object that is one. */
 %include "IMP_bff.photophysicsinteractionterms.i"

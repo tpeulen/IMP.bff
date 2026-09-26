@@ -44,6 +44,10 @@ FLAT_NAMES = [
     "MCMCSampler",                 # Markov-chain sampling engine
     "select_probe_pairs",           # generic measurement selection
     "select_probe_positions",       # generic position selection
+    "ProbeNetworkSelection",        # greedy selection, weighted term mix
+    "ProbeResolutionTerm",          # structural resolution (Olga)
+    "ProbeKineticsTerm",            # rate information of a kinetic scheme
+    "ProbeLabellingTerm",           # Labelizer site scores, shared sites
     "LabelizerScore",              # labelability score row
     "LabelizerFRETOptions",        # FRET pair-score settings
     "labelizer_score_structure",   # Labelizer entry point
