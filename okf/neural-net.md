@@ -769,8 +769,8 @@ linear map of the dequantised operands `Â = q_a / s_a`, `Ŵ = q gamma`,
 with the quantisers as the identity, so `dW = dZ^T Â` (reaching every
 master weight, clipped ones included -- no clipping mask), `dA = dZ Ŵ`,
 `db = sum_rows dZ`, and nothing flows into `gamma` or `s_a`. dgrad and
-wgrad run in float64 (MatGemm) on those operands: BitNet keeps gradients
-in high precision. First and last layer float64 by default
+wgrad run in float64 (MatGemm) on those operands by default: BitNet keeps
+gradients in high precision (`ternary_backward`, below, runs them in int8). First and last layer float64 by default
 (`ternary_keep_first_layer` / `ternary_keep_last_layer`; BitNet keeps its
 embedding and head in high precision). No randomness beyond
 train_neural_net's: deterministic per seed.
@@ -783,7 +783,11 @@ train_neural_net's: deterministic per seed.
 | HMM surrogate set (400 x 24 -> 8), 256-256-128, held-out MAE | 0.0959 | 0.0939 (0.98x) | | 0.173 (1.81x) | | | |
 
 **Post-training ternary quantisation of a float-trained net is not
-usable** (276x the MSE); quantisation-aware training is what makes
+usable** (276x the MSE) -- BitNet's FAQ says the same ("How about
+post-training quantization?": PTQ only moves weights around the
+full-precision values, 2-bit PTQ loses significant accuracy, and continuing
+to train a 1-bit PTQ checkpoint did not beat training from scratch);
+quantisation-aware training is what makes
 ternary work: 1.8x float64's MSE on the regression (FP4 training: 3.0x)
 and float64's MAE on the surrogate set. Fixture nets under PTQ: max error
 0.41-0.51 of the output absmax per tensor, 0.12-0.40 per row. Test bounds
@@ -847,7 +851,9 @@ dgrad and wgrad are float64 GEMMs by the recipe, two thirds of float64's
 arithmetic -- and the per-step overheads (absmean, trits and repacking of
 the weights, the int8 activations and `Â` for wgrad) eat most of the fprop
 saving below ~128 wide. An int8 dgrad on the ternary kernel would be
-faster but quantises dZ, which BitNet does not; not taken.
+faster but quantises dZ, which BitNet does not; not taken as the default
+-- since 2026-09-26 it is the option `ternary_backward = "int8_dgrad"` /
+`"int8"` (next sections).
 
 Checked: `cpp_snippets/test_ternary_kernels.cpp` (quantiser ties / clamp /
 NaN, SIMD activation rounding == scalar, TQ2 / TQ1 round trips incl. all
@@ -864,3 +870,186 @@ Intel SDE). `test_neural_net_ternary.py`: sizes (exact bytes), msgpack
 round trips, refusals, determinism per seed, the trained ternary layers
 == the quantiser on the master weights, accuracy bounds above.
 `test/bench_neural_net_fp4.py --ternary` prints the Python gates.
+
+### Ternary: int8 backward (2026-09-26), `ternary_backward`
+
+BitNet trains in FP16/BF16 with fake quantisation and says so: "no actual
+speed-up in our experiments ... low-precision kernels (e.g. FP8 GEMM) can
+be used to accelerate the forward and backward computations of BitLinear"
+(Training Tips FAQ, "Training acceleration?"). bff's float64 backward left
+ternary training at 0.82-0.92x of float64 an epoch; the option
+`NeuralNetTrainOptions.ternary_backward` runs the ternary layers' backward
+GEMMs on integer kernels (`internal/MlpTernaryGrad.h`):
+
+| mode | dgrad `dA = dZ Ŵ` | wgrad `dW = dZ^T Â` | source |
+|---|---|---|---|
+| `"float64"` (default) | float64 on `Ŵ = q gamma` | float64 on `Â = q_a / s_a` | BitNet b1.58 |
+| `"int8_dgrad"` | `dZ` int8 per row, RTN, `s = 127 / max |dZ_r|`, ternary x int8 kernel on `Ŵ^T` | float64 | SwitchBack (Wortsman, Dettmers, Zettlemoyer, Morcos, Farhadi, Schmidt 2023, arXiv 2304.13013; bitsandbytes `SwitchBackLinear`, `triton_based_modules.py`) |
+| `"int8"` | as `int8_dgrad` | `dZ' = dZ / s_a` int8 per 32-row batch block, stochastic rounding; fprop's `q_a` codes; int8 x int8 kernel, block coefficients applied during accumulation | Jetfire (Xi et al., ICML 2024, arXiv 2403.12422) |
+
+- **What is quantised.** Only these GEMMs' operands. The STE is unchanged
+  (the quantisers are the identity in the backward, no clipping mask,
+  nothing into `gamma` / `s_a`); the bias gradient, the activation
+  derivative, the kept float64 first/last layers, the float64 master
+  weights and Adam state are the same in all modes; the forward pass (and
+  so the inference network) is the same code.
+- **dgrad.** `dZ` rows (length n_out) to int8, round half to even, no
+  1e-5 floor (gradients can be tiny; a zero row gets step 0); `Ŵ^T`'s
+  trits are packed once a step straight from the trits
+  (`pack_transposed_into`), and `dZ Ŵ` is the forward kernel with the
+  per-tensor `gamma` as the right scale (per-row scales are folded into
+  `dZ`'s columns first).
+- **wgrad.** `Â`'s per-row step sits on the contraction (batch) index, so
+  it is folded into the gradient (`dZ'[r][o] = dZ[r][o] / s_a[r]`) and
+  fprop's int8 codes are used unchanged. `dZ'^T` is quantised per block of
+  32 batch rows a column (Jetfire's block size; 16 would double the float
+  combines, 64 pads bs 200 to 256), `s = 127 / max |block|`, stochastic
+  rounding `q = clamp(floor(float(x s) + u), -127, 127)` with `u = (u16 +
+  1/2) / 2^16` from the FP4 training's counter-based generator (SrKey of
+  seed, step, layer, operand 2; unbiased to 2^-17). `dW[o][k] = sum_b
+  step[o][b] (sum_{r in b} q[o][r] q_a[r][k])`: exact int32 block sums,
+  float combine block by block (unfused), double result.
+- **Kernel** (int8 x int8, register-blocked like the ternary one; the
+  right operand `Â^T` in tiles of kNR rows, a 16-wide sub-block as four
+  4 kNR-byte chunks, the left quad broadcast): NEON dotprod
+  `vdotq_laneq_s32`, plain NEON `vmull_s8` + `vpaddlq_s16`, AVX2
+  `maddubs(|w|, sign(a, w))` + `madd` (codes in [-127, 127], so int16 pairs
+  <= 32258 never saturate; 4 x 8 tile), AVX-512 VNNI `dpbusd(w ^ 0x80, a)`
+  minus `128 x` the left block sum, generic int32 loops. Every variant and
+  the element-by-element reference give the same bits.
+- Also faster for every mode: the trit quantiser is two comparisons
+  (`round_half_even(v) >= 1` iff `v > 0.5`), the kernel packing works a
+  16-wide sub-block at a time (same bits, same fingerprint).
+
+**Speed.** Python, M1 Pro (neon-dotprod, load 13-22 from other sessions,
+median of 5), ms an epoch, batch 200, first/last layer float64:
+
+| shape | float64 | ternary, float64 bw | int8_dgrad | int8 |
+|---|---|---|---|---|
+| surrogate 400 x 24 -> 8, 256-256-128 | 9.00 | 7.02 (0.78) | 6.11 (0.68) | 4.13 (**0.46**) |
+| regression 3000 x 4 -> 2, 64-64-64 | 7.97 | 7.28 (0.91) | 7.17 (0.90) | 6.28 (**0.79**) |
+| regression 3000 x 4 -> 2, 128-128-128 | 24.51 | 20.66 (0.84) | 19.00 (0.78) | 14.68 (**0.60**) |
+| tiny 2000 x 2 -> 1, 16-16 (no gate) | 0.52 | 0.54 (1.03) | 0.56 (1.06) | 0.56 (1.06) |
+
+C++, one step (quantise weights + forward + backward, bs 200, MatGemm for
+float64), us, / float64 in brackets:
+
+| net | machine (load) | float64 | ternary, float64 bw | int8_dgrad | int8 | int8: quantise W / fwd / bwd |
+|---|---|---|---|---|---|---|
+| 24-256-256-128-8 | M1 Pro dotprod (8-10) | 4039 | 3501 (0.87) | 3074 (0.76) | 1880 (**0.47**) | 148 / 860 / 833 |
+| 4-64-64-64-2 | M1 Pro | 506 | 480 (0.95) | 463 (0.92) | 395 (**0.78**) | 13 / 200 / 179 |
+| 4-128-128-128-2 | M1 Pro | 1529 | 1380 (0.90) | 1189 (0.78) | 942 (**0.62**) | 51 / 439 / 409 |
+| 2-16-16-1 | M1 Pro | 52 | 53 (1.02) | 55 (1.06) | 55 (1.07) | 1 / 30 / 24 |
+| 24-256-256-128-8 | Xeon 4416+ avx2, g++ 11.4 (16-17) | 6787 | 4496 (0.66) | 3556 (0.52) | 3063 (**0.45**) | 249 / 1064 / 1715 |
+| 4-64-64-64-2 | Xeon avx2 | 663 | 619 (0.93) | 587 (0.89) | 586 (0.88) | 20 / 247 / 314 |
+| 4-128-128-128-2 | Xeon avx2 | 2139 | 1823 (0.85) | 1570 (0.73) | 1465 (**0.69**) | 88 / 537 / 806 |
+| 2-16-16-1 | Xeon avx2 | 81 | 87 (1.07) | 103 (1.26) | 82 (1.00) | 1 / 46 / 45 |
+| 24-256-256-128-8 | Xeon avx512-vnni (17) | 7229 | 4685 (0.65) | 3873 (0.54) | 2319 (**0.32**) | 252 / 813 / 1199 |
+| 4-64-64-64-2 | Xeon avx512-vnni | 598 | 560 (0.94) | 547 (0.91) | 495 (**0.83**) | 22 / 177 / 272 |
+| 4-128-128-128-2 | Xeon avx512-vnni | 1997 | 1781 (0.89) | 1457 (0.73) | 1145 (**0.57**) | 84 / 425 / 611 |
+| 2-16-16-1 | Xeon avx512-vnni | 54 | 63 (1.17) | 59 (1.10) | 60 (1.11) | 1 / 25 / 32 |
+
+Pieces (bs 200, n x n layer, us; M1 dotprod / Xeon AVX-512 / Xeon AVX2):
+at n = 256 int8 wgrad 196 / 272 / 544 (quantise dZ' 62 / 107 / 121, pack
+`Â^T` 10 / 16 / 18, int8 x int8 GEMM 123 / 149 / 405) against MatGemm tn
+668 / 1084 / 1077; int8 dgrad 275 / 220 / 294 against MatGemm nn 639 /
+1054 / 1057. At n = 64 the int8 wgrad (26 / 38 / 53) and dgrad (30 / 38 /
+37) are only 1.0-1.9x under MatGemm (48 / 54 / 55): quantisation is half
+of it. **Where the 64-wide step goes** (M1, int8, 395 us): tanh of three
+200 x 64 layers ~120 us (3.3 ns a value, shared with float64), the kept
+first layer's float64 wgrad `MatGemm::tn` 64 x 4 x 200 ~43 us (a slow
+shape for MatGemm; shared), the two ternary layers ~50 us each in the
+backward and ~22 us each in the forward, per-step weight quantisation and
+packing 13 us. The integer part is no longer the bottleneck there; tanh
+and MatGemm's thin shapes are. The tiny net stays at ~1.05x (fixed
+per-call costs). AVX2's int8 x int8 tile is the weakest (sign + maddubs +
+madd a quad; u8 x s8 without VNNI cannot take full-range int8 on both
+sides without saturating).
+
+**Accuracy** (held-out; BitNet schedule unless marked, 2026-09-26, M1):
+
+| task | float64 training | ternary, float64 bw | int8_dgrad | int8 |
+|---|---|---|---|---|
+| 4-64-64-64-2 regression, MSE (60 epochs) | 8.45e-4 | 1.35e-3 | 1.35e-3 (1.00x) | 1.46e-3 (1.08x) |
+| same, constant schedule | | 1.52e-3 | 1.57e-3 (1.03x) | 1.67e-3 (1.10x) |
+| HMM surrogate set, 256-256-128, MAE | 0.0959 | 0.0918 | 0.0919 (1.00x) | 0.0921 (1.00x) |
+| same, constant schedule | | 0.0939 | 0.0943 (1.00x) | 0.0935 (1.00x) |
+
+Gradient checks (snippet, all-ternary 5-48-40-3 net, bs 37): cosine to the
+float64 backward's gradient 0.999998 (int8_dgrad, relative L2 error
+2.3e-3) and 0.999966 (int8, 8.4e-3); int8 dgrad == float64 GEMM of the
+same quantised operands to 3.5e-16, int8 wgrad to 1.2e-7 (the float
+combine); SR mean over 124 000 draws within 1.3 sigma of the value.
+Bounds (`test_neural_net_ternary.py`): each int8 mode within 1.3x of the
+float64-backward ternary MSE and <= 3x float64 training; surrogate within
+1.2x / 1.3x.
+
+**Recommendation.** Keep `"float64"` the default -- it is BitNet's
+recipe and costs nothing in accuracy -- and use `"int8"` when training
+time matters on nets 128 wide and up (0.3-0.6x float64 a step, accuracy
+within 1-8 % of the float64 backward on both sets); `"int8_dgrad"` is the
+SwitchBack middle ground (deterministic without draws, 0.5-0.8x).
+
+Checked: `test_ternary_kernels.cpp` section "int8 backward" -- gradient
+rows (no floor, zero row), the SR quantiser SIMD == scalar in SrKey's draw
+order (NaN, +-inf, clamp), SR unbiasedness, int8 wgrad kernel == reference
+bit for bit on 120 shapes and at +-127 everywhere over a 4096 batch, both
+GEMMs against float64 on the same operands, determinism, gradient cosine,
+and a second fingerprint `eb97f0d3b5c36b9a` (quantiser codes, kernel
+outputs, three training steps of each int8 mode) -- identical on the Mac
+(neon-dotprod, neon, AVX2 under Rosetta, generic) and cordeshub (generic,
+AVX2, AVX-512 VNNI, `-march=sapphirerapids`); the default's fingerprint
+`4f6b5c542ab55f36` is unchanged. `bench_neural_net_fp4.py --ternary
+--ternary-backward float64,int8_dgrad,int8` prints the epoch table.
+
+### Ternary: the BitNet schedule (2026-09-26), `ternary_schedule`
+
+"The Era of 1-bit LLMs: Training Tips, Code and FAQ" (Ma, Wang, Wei;
+microsoft/unilm `bitnet/`) trains b1.58 with a two-stage recipe; bff's
+`ternary_schedule = "bitnet"` (the default for `precision = "ternary"`)
+maps it onto epochs x minibatches (`T` steps):
+
+- learning rate `peak_k x (1 - t / T) x min(1, (t + 1) / (warm-up x T))`,
+  `peak_1 = ternary_lr_stage1 x learning_rate` (1.5) before
+  `ternary_stage_split x T` (0.5), `peak_2 = ternary_lr_stage2 x
+  learning_rate` (1.0) after: linear decay with a drop at the split
+  (BitNet 700M: 1.5e-3 -> 1e-3, LLaMA 2.5e-4; "1-bit models are more
+  stable", and the loss falls sharply at the drop);
+- weight decay: decoupled (AdamW) `ternary_weight_decay` 0.1 in stage 1, 0
+  in stage 2 (the latent weight's magnitude is its trit's confidence;
+  decay makes trits flip), and the L2 `alpha` likewise only in stage 1;
+- warm-up `ternary_warmup` 1 % of the steps (BitNet: 375 of ~1e5),
+  Adam `ternary_beta2` 0.95 (BitNet's beta = (0.9, 0.95));
+- early stopping: patience counts only in stage 2 -- the loss curve of
+  1-bit training is S-shaped, so stage 1's held-out loss does not predict
+  the end; the best held-out weights are restored as always. A run is
+  therefore at least half of `max_iter` epochs long.
+
+`"constant"` is the schedule before (learning_rate, beta2, alpha every
+step). The quantisers (`weight_quant` absmean round-clamp, `activation_quant`
+127 / absmax per token) and the STE's `detach` trick are BitNet's code, as
+before.
+
+Measured (held-out, M1, each backward mode):
+
+| run | constant | bitnet 1.5 / 1.0 (default) | bitnet 4 / 2.67 | bitnet 6 / 4 | bitnet 8 / 5.33 |
+|---|---|---|---|---|---|
+| regression 60 epochs, float64 bw, MSE (float64 net 8.45e-4) | 1.52e-3 | 1.35e-3 | 1.14e-3 | 1.13e-3 | 8.41e-4 |
+| regression 60 epochs, int8 bw | 1.67e-3 | 1.46e-3 | 9.89e-4 | 8.57e-4 | 7.62e-4 |
+| regression 200 epochs, float64 bw (float64 net 6.29e-4) | 1.46e-3 (stops at 74) | 8.23e-4 | 7.71e-4 | 6.14e-4 | 6.34e-4 |
+| regression 200 epochs, int8 bw | 1.67e-3 (58) | 8.47e-4 | 6.87e-4 | 7.46e-4 | 5.24e-4 |
+| HMM surrogate MAE, float64 bw (float64 net 0.0959) | 0.0939 | 0.0918 | 0.0984 | 0.0991 | 0.1000 |
+| HMM surrogate MAE, int8 bw | 0.0935 | 0.0921 | 0.0948 | 0.0939 | 0.0982 |
+
+The schedule helps every backward mode on both sets; with 200 epochs the
+ternary regression net reaches the float64 net's error (1.3x instead of
+2.3x). Higher peaks help the regression further but overfit the
+400-sample surrogate set, so the default is BitNet's own stage ratio (1.5
+/ 1.0 of the float learning rate). Every layer ternary (first and last
+too) got worse at 60 epochs (1.86e-3 -> 2.72e-3); the default keeps them
+float64. **S-shape:** not distinct on these MLPs: the training loss drops
+0.8-0.9x within five epochs of the split (the constant schedule's natural
+decline over the same epochs is 0.63x at 60 epochs, 0.98x on the
+surrogate at 200), so the second stage converges faster but the curve has
+no plateau-then-cliff; stage 1 already reaches about half the constant
+schedule's training loss.

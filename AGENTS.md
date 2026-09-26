@@ -40,7 +40,9 @@ deployment path -- int8, or FP4 (`fp4` / `mxfp4` / `nvfp4`, packed E2M1 codes
 run by integer-SIMD kernels after llama.cpp's, `internal/MlpFp4*.h`), or
 ternary (BitNet b1.58 W1.58A8: `ternary` / `ternary_tq1`, 2 or 1.6 bits a
 weight, `internal/MlpTernary*.h`); training can run NVIDIA's NVFP4 recipe or
-BitNet's ternary QAT (`NeuralNetTrainOptions.precision`). CPUs have
+BitNet's ternary QAT (`NeuralNetTrainOptions.precision`; BitNet's two-stage
+schedule by default, `ternary_backward = "int8"` runs its backward on int8
+kernels, SwitchBack / Jetfire style). CPUs have
 no FP4 unit: "native" means integer dot products on the codes, never
 dequantise-to-float. See `okf/neural-net.md` (tpeulen, 2026-09-24).
 

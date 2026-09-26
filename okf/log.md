@@ -2,6 +2,12 @@
 
 ## 2026-09-26
 
+- **Ternary training: int8 backward and BitNet's schedule** ([neural-net.md](neural-net.md), "Ternary: int8 backward", "Ternary: the BitNet schedule").
+  - `ternary_backward = "float64"` (default, BitNet) `| "int8_dgrad"` (SwitchBack, arXiv 2304.13013: dZ int8 per row on the ternary x int8 kernel against `Ŵ^T`) `| "int8"` (+ Jetfire-style wgrad, arXiv 2403.12422: dZ scaled by the activation steps, int8 per 32-row block with counter-based stochastic rounding, fprop's int8 codes reused, new int8 x int8 kernel). `internal/MlpTernaryGrad.h`; NEON dotprod / NEON / AVX2 / AVX-512 VNNI / generic bit-identical, second snippet fingerprint `eb97f0d3b5c36b9a`, the default's unchanged.
+  - Speed, int8 against float64 a step: 0.32-0.47x on the 256-256-128 surrogate, 0.57-0.69x at 128 wide, 0.78-0.88x at 64 wide (tanh and MatGemm's thin kept-layer shapes dominate there), ~1.05x on 16-wide (M1 Pro; Xeon 4416+ AVX2 / AVX-512 under load 17). Python epoch, M1: 0.46 / 0.60 / 0.79 / 1.06.
+  - Accuracy: int8 within 1-8 % of the float64 backward (regression MSE 1.46e-3 vs 1.35e-3; surrogate MAE 0.0921 vs 0.0918); gradient cosine 0.99997.
+  - `ternary_schedule = "bitnet"` (new default): two-stage LR (1.5x then 1.0x peak, linear decay, warm-up 1 %), decoupled weight decay 0.1 -> 0, beta2 0.95, patience only in stage 2. Regression MSE 1.52e-3 -> 1.35e-3 (60 epochs; 1.46e-3 -> 8.2e-4 at 200), surrogate MAE 0.0939 -> 0.0918; every-layer-ternary nets got worse (1.86e-3 -> 2.72e-3). No distinct S-shaped loss curve on these MLPs.
+
 - **Probe network selection mixes structural resolution, dynamics and labelling** (T-20260924-01; [fret-network.md](fret-network.md), "Choosing the pairs").
   - `ProbeNetworkSelection` (`include/ProbeNetworkSelection.h`): one greedy selector over pairs or labelling sites, minimising a weighted sum of term losses, each in [0, 1] relative to nothing selected. Terms are `IMP::Object`s that score a *set* (a site brings all pairs it completes), so non-additive terms fit without API change.
   - `ProbeResolutionTerm`: Olga's expected RMSD over the prior RMSD. Alone it reproduces `select_probe_pairs` / `select_probe_positions` exactly (order identical, decay to 1e-13); the chi-squared kernels moved to `internal/ProbePairKernels.h` so both use one copy.
