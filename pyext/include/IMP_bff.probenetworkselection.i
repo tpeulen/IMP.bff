@@ -11,12 +11,16 @@
  * core.i's.
  */
 
+IMP_SWIG_VALUE(IMP::bff, ProbeOligomerPairs, ProbeOligomerPairsList);
 IMP_SWIG_OBJECT(IMP::bff, ProbeNetworkTerm, ProbeNetworkTerms);
 IMP_SWIG_OBJECT(IMP::bff, ProbeResolutionTerm, ProbeResolutionTerms);
 IMP_SWIG_OBJECT(IMP::bff, ProbeKineticsTerm, ProbeKineticsTerms);
 IMP_SWIG_OBJECT(IMP::bff, ProbeLabellingTerm, ProbeLabellingTerms);
 IMP_SWIG_OBJECT(IMP::bff, ProbeNetworkSelection, ProbeNetworkSelections);
 
+%feature("compactdefaultargs") IMP::bff::ProbeOligomerPairs::ProbeOligomerPairs;
+// Overloads turn keyword arguments off; the empty one is for containers only.
+%ignore IMP::bff::ProbeOligomerPairs::ProbeOligomerPairs();
 %feature("compactdefaultargs") IMP::bff::ProbeResolutionTerm::ProbeResolutionTerm;
 %feature("compactdefaultargs") IMP::bff::ProbeKineticsTerm::ProbeKineticsTerm;
 %feature("compactdefaultargs") IMP::bff::ProbeLabellingTerm::ProbeLabellingTerm;
@@ -27,6 +31,13 @@ IMP_SWIG_OBJECT(IMP::bff, ProbeNetworkSelection, ProbeNetworkSelections);
     (double* predicted_measurements, int n_frames, int n_pairs),
     (double* rmsds, int n_rmsd_rows, int n_rmsd_cols),
     (double* state_distances, int n_states, int n_pairs)
+};
+// The oligomer switch: dye positions (frames, protomers, sites, xyz).
+%apply(double* IN_ARRAY4, int DIM1, int DIM2, int DIM3, int DIM4) {
+    (double* site_positions, int n_frames, int n_protomers, int n_sites, int n_dim)
+};
+%apply(int** ARGOUTVIEWM_ARRAY2, int* DIM1, int* DIM2) {
+    (int** out_pair_sites, int* n_out_rows, int* n_out_cols)
 };
 %apply(int* IN_ARRAY2, int DIM1, int DIM2) {
     (int* pair_sites, int n_site_rows, int n_site_cols)

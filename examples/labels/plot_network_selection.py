@@ -71,8 +71,9 @@ options = bff.FRETSimulationOptions()
 options.n_molecules = 300
 options.duration = 2.0
 options.seed = 11
-kinetics = bff.ProbeKineticsTerm(process, template, distances, options=options,
+kinetics = bff.ProbeKineticsTerm(process, template, options=options,
                                  n_bursts_per_pair=1000.0)
+kinetics.add_pairs(distances)
 print("rates:", list(kinetics.get_rate_names()))
 
 # %%

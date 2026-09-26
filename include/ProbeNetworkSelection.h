@@ -27,6 +27,11 @@
  * #IMP::bff::select_probe_pairs (pairs) or #IMP::bff::select_probe_positions
  * (sites).
  *
+ * Homo-oligomers: #IMP::bff::ProbeOligomerPairs is the switch. From the dye
+ * position of every site on every protomer it builds the measurable site
+ * pairs of a dimer, trimer, ... with each pair's distance mixture, for site
+ * mode (a mutation per site) and both the resolution and kinetics terms.
+ *
  * A term scores a *set*: #IMP::bff::ProbeNetworkTerm::get_loss_with receives
  * everything one candidate would add (in site mode, all pairs a new site
  * implies), and the selector assumes neither additivity nor independent pairs.
@@ -158,6 +163,64 @@ private:
 };
 IMP_OBJECTS(ProbeResolutionTerm, ProbeResolutionTerms);
 
+//! The measurable site pairs of a homo-oligomer, and what each one measures.
+/*!
+    The oligomer switch. Given the dye position of every candidate site on
+    every protomer, in every frame -- `site_positions` of shape
+    `(n_frames, n_protomers, n_sites, 3)`, e.g. accessible-volume mean
+    positions per chain -- it lists the rows a statistical labelling makes
+    measurable and the distances each row mixes:
+
+    - row `(i, i)`: site `i` on two different protomers; one distance per
+      unordered protomer pair (a dimer 1, a trimer 3, a tetramer 6);
+    - row `(i, j)`, `i < j`: site `i` on protomer `a`, site `j` on protomer
+      `b`, for every ordered `a != b`, plus, with \p include_intra, the
+      intra-protomer `a == b` (both sites on one chain carry a dye).
+
+    Every labelled combination is weighted equally. With one protomer only
+    the intra rows remain: the rows are ordinary double-mutant pairs.
+
+    The rows go to #IMP::bff::ProbeNetworkSelection::set_pair_sites (site
+    mode greedies over mutations), the mean efficiencies to
+    #IMP::bff::ProbeResolutionTerm, and the mixtures to
+    #IMP::bff::ProbeKineticsTerm::add_oligomer_pairs.
+*/
+class IMPBFFEXPORT ProbeOligomerPairs {
+public:
+    ProbeOligomerPairs() {}
+    /*!
+        \param[in] site_positions,n_frames,n_protomers,n_sites,n_dim dye position per frame, protomer and site (Angstrom); `n_dim` must be 3
+        \param[in] include_intra also count both dyes on one protomer for `i != j`
+    */
+    ProbeOligomerPairs(double* site_positions, int n_frames, int n_protomers,
+                       int n_sites, int n_dim, bool include_intra = true);
+
+    int get_n_frames() const { return n_frames_; }
+    int get_n_protomers() const { return n_protomers_; }
+    int get_n_sites() const { return n_sites_; }
+    int get_n_rows() const { return static_cast<int>(rows_.size() / 2); }
+    //! Labelled combinations row \p row mixes.
+    int get_n_components(int row) const;
+    //! The two site indices of every row, `n_rows x 2`.
+    void get_pair_sites(int** out_pair_sites, int* n_out_rows, int* n_out_cols) const;
+    //! The distances row \p row mixes in frame \p frame (Angstrom).
+    std::vector<double> get_distances(int frame, int row) const;
+    //! Mean FRET efficiency per frame and row, averaged over the mixture,
+    //! `n_frames x n_rows`: the predictions #IMP::bff::ProbeResolutionTerm takes.
+    void get_efficiencies(double forster_radius, double** out_matrix, int* n_out_rows,
+                          int* n_out_cols) const;
+
+    IMP_SHOWABLE_INLINE(ProbeOligomerPairs,
+                        out << "ProbeOligomerPairs(" << n_protomers_ << " protomers, "
+                            << n_sites_ << " sites, " << get_n_rows() << " rows)");
+
+private:
+    int n_frames_ = 0, n_protomers_ = 0, n_sites_ = 0;
+    std::vector<int> rows_;                          // n_rows x 2
+    std::vector<std::vector<double> > distances_;    // [frame * n_rows + row]
+};
+IMP_VALUES(ProbeOligomerPairs, ProbeOligomerPairsList);
+
 //! Dynamics: how well the rates of a kinetic scheme are determined.
 /*!
     For each candidate pair, bursts are simulated from \p process with that
@@ -179,16 +242,17 @@ IMP_OBJECTS(ProbeResolutionTerm, ProbeResolutionTerms);
     is the geometric-mean posterior variance of the log-rates relative to the
     prior. It is 1 for a pair whose distance is the same in every state.
 
-    The measurement template supplies dyes, instrument and Forster radius;
-    each candidate replaces its state distances with a single distance per
-    state. Only discrete processes are supported.
+    Candidates are added after construction: #add_pairs with one distance per
+    state, #add_oligomer_pairs with the distance mixture of each row of a
+    #IMP::bff::ProbeOligomerPairs (a mixture keeps its spread, and its mean is
+    the pair's nuisance). The measurement template supplies dyes, instrument
+    and Forster radius. Only discrete processes are supported.
 */
 class IMPBFFEXPORT ProbeKineticsTerm : public ProbeNetworkTerm {
 public:
     /*!
         \param[in] process the kinetic scheme, discrete, with its rates
         \param[in] measurement template pair: dyes, instrument, Forster radius
-        \param[in] state_distances,n_states,n_pairs mean donor-acceptor distance per state and candidate pair
         \param[in] options how many molecules, how long, and the seed; candidate `p` uses `seed + p`
         \param[in] max_gap,min_photons burst selection; `max_gap <= 0` keeps each molecule as one segment
         \param[in] n_bursts_per_pair the planned measurement per pair, which scales the information
@@ -196,13 +260,20 @@ public:
     */
     ProbeKineticsTerm(const FRETHiddenProcess& process,
                       const FRETMeasurement& measurement,
-                      double* state_distances, int n_states, int n_pairs,
                       const FRETSimulationOptions& options = FRETSimulationOptions(),
                       double max_gap = 0.0, int min_photons = 1,
                       double n_bursts_per_pair = 1000.0,
                       double prior_sd = 2.302585092994046);
 
-    int get_n_pairs() const override { return n_pairs_; }
+    //! Add candidates with one distance per state. Returns the first new index.
+    /*! \param[in] state_distances,n_states,n_pairs mean donor-acceptor distance per state and candidate pair */
+    int add_pairs(double* state_distances, int n_states, int n_pairs);
+    //! Add every row of \p pairs as a candidate, state `h` taking the
+    //! distance mixture of frame `state_frames[h]`. Returns the first new index.
+    int add_oligomer_pairs(const ProbeOligomerPairs& pairs,
+                           const std::vector<int>& state_frames);
+
+    int get_n_pairs() const override { return static_cast<int>(g_.size()); }
     double get_loss() const override;
     double get_loss_with(const std::vector<int>& pairs,
                          const std::vector<int>& sites) const override;
@@ -225,7 +296,13 @@ protected:
 
 private:
     double loss_of(const std::vector<double>& information) const;
-    int n_pairs_ = 0, n_k_ = 0;
+    //! One candidate from its distances per state (components of a mixture).
+    void add_candidate(const std::vector<std::vector<double> >& state_components);
+    FRETHiddenProcess process_;
+    FRETMeasurement measurement_;
+    FRETSimulationOptions options_;
+    double max_gap_ = 0.0, n_bursts_per_pair_ = 1000.0;
+    int min_photons_ = 1, n_k_ = 0;
     double prior_precision_ = 1.0;
     std::vector<std::string> rate_names_;
     std::vector<int> n_bursts_;
@@ -295,7 +372,8 @@ IMP_OBJECTS(ProbeLabellingTerm, ProbeLabellingTerms);
 
     Site mode needs #set_pair_sites. A pair is implied once both of its sites
     are chosen, a homotypic pair `(i, i)` as soon as `i` is (homo-oligomers,
-    as #IMP::bff::select_probe_positions). In pair mode the sites, when set,
+    as #IMP::bff::select_probe_positions); #IMP::bff::ProbeOligomerPairs
+    builds these rows for any number of protomers. In pair mode the sites, when set,
     are passed to the terms so the labelling term sees them.
 */
 class IMPBFFEXPORT ProbeNetworkSelection : public IMP::Object {

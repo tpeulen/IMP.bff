@@ -48,6 +48,7 @@ FLAT_NAMES = [
     "ProbeResolutionTerm",          # structural resolution (Olga)
     "ProbeKineticsTerm",            # rate information of a kinetic scheme
     "ProbeLabellingTerm",           # Labelizer site scores, shared sites
+    "ProbeOligomerPairs",           # the oligomer switch: n protomers -> rows
     "LabelizerScore",              # labelability score row
     "LabelizerFRETOptions",        # FRET pair-score settings
     "labelizer_score_structure",   # Labelizer entry point

@@ -88,6 +88,11 @@ with a rate variance 2.6x smaller (`examples/labels/plot_network_selection.py`).
 Steady dyes only so far: with blinking dyes the rates of the dyes would have to
 be paid for as well, like the means.
 
+Homo-oligomers: `ProbeOligomerPairs` turns the dye positions of every site on
+every protomer into the measurable site pairs and their distance mixtures (a
+trimer's `(i, i)` row mixes three distances). In `ProbeKineticsTerm` a mixture
+enters as offsets around the pair's free mean, so its spread is kept.
+
 ## The pieces
 
 | piece | what it is |

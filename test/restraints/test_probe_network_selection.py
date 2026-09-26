@@ -128,8 +128,10 @@ def _options(n=150):
 
 @pytest.fixture(scope="module")
 def kinetics():
-    return bff.ProbeKineticsTerm(_three_states(), _template(), _DISTANCES,
-                                 options=_options(), n_bursts_per_pair=500.0)
+    term = bff.ProbeKineticsTerm(_three_states(), _template(), options=_options(),
+                                 n_bursts_per_pair=500.0)
+    assert term.add_pairs(_DISTANCES) == 0
+    return term
 
 
 def test_kinetics_information_is_the_schur_complement(kinetics):
@@ -201,6 +203,77 @@ def test_mixing_trades_resolution_for_rates(kinetics):
     assert l_mix[-1, 1] <= l_res[-1, 1] + 1e-12
 
 
+# --- oligomers: the switch --------------------------------------------------------
+
+def _oligomer_positions(n_protomers, n_sites=3, n_frames=3, seed=0):
+    """Protomers placed around a Cn axis, sites scattered on each, per frame."""
+    rng = np.random.default_rng(seed)
+    local = rng.normal(0.0, 12.0, (n_frames, n_sites, 3)) + np.array([25.0, 0.0, 0.0])
+    out = np.empty((n_frames, n_protomers, n_sites, 3))
+    for a in range(n_protomers):
+        t = 2 * np.pi * a / n_protomers
+        rot = np.array([[np.cos(t), -np.sin(t), 0], [np.sin(t), np.cos(t), 0], [0, 0, 1]])
+        out[:, a] = local @ rot.T
+    return out
+
+
+@pytest.mark.parametrize("n_protomers", [1, 2, 3, 4])
+def test_oligomer_rows_and_mixtures(n_protomers):
+    x = _oligomer_positions(n_protomers)
+    pairs = bff.ProbeOligomerPairs(x)
+    n_sites = 3
+    ps = np.asarray(pairs.get_pair_sites())
+    homotypic = [(i, i) for i in range(n_sites)] if n_protomers > 1 else []
+    expected = sorted(homotypic + [(i, j) for i in range(n_sites)
+                                   for j in range(i + 1, n_sites)])
+    assert sorted(map(tuple, ps.tolist())) == expected
+    for r, (i, j) in enumerate(ps.tolist()):
+        n = pairs.get_n_components(r)
+        if i == j:
+            assert n == n_protomers * (n_protomers - 1) // 2
+        else:
+            assert n == n_protomers * n_protomers   # ordered inter + intra
+        d = np.asarray(pairs.get_distances(1, r))
+        want = sorted(np.linalg.norm(x[1, a, i] - x[1, b, j])
+                      for a in range(n_protomers) for b in range(n_protomers)
+                      if (a < b if i == j else True))
+        np.testing.assert_allclose(sorted(d), want, rtol=1e-12)
+    e = np.asarray(pairs.get_efficiencies(52.0))
+    assert e.shape == (3, len(ps))
+    r = 0
+    d = np.asarray(pairs.get_distances(0, r))
+    assert e[0, r] == pytest.approx(np.mean(1.0 / (1.0 + (d / 52.0) ** 6)))
+
+
+def test_oligomer_without_intra_counts_only_cross_protomer_pairs():
+    pairs = bff.ProbeOligomerPairs(_oligomer_positions(3), include_intra=False)
+    for r, (i, j) in enumerate(np.asarray(pairs.get_pair_sites()).tolist()):
+        assert pairs.get_n_components(r) == (3 if i == j else 6)
+
+
+def test_trimer_selection_by_sites_with_resolution_and_kinetics():
+    x = _oligomer_positions(3, n_sites=4, n_frames=3, seed=2)
+    pairs = bff.ProbeOligomerPairs(x)
+    ps = np.asarray(pairs.get_pair_sites())
+    e = np.asarray(pairs.get_efficiencies(52.0))
+    rmsds = np.array([[0.0, 6.0, 12.0], [6.0, 0.0, 6.0], [12.0, 6.0, 0.0]])
+    kin = bff.ProbeKineticsTerm(_three_states(), _template(), options=_options(80),
+                                n_bursts_per_pair=500.0)
+    assert kin.add_oligomer_pairs(pairs, [0, 1, 2]) == 0
+    assert kin.get_n_pairs() == len(ps)
+    sel = bff.ProbeNetworkSelection(len(ps))
+    sel.set_pair_sites(ps)
+    sel.add_term(bff.ProbeResolutionTerm(e, rmsds, 0.05))
+    sel.add_term(kin)
+    sites, losses = sel.select(2, by_sites=True)
+    assert len(sites) == 2 and len(set(sites)) == 2
+    # Two sites on a trimer measure (i,i), (j,j) and (i,j): three rows.
+    assert len(sel.get_selected_pairs()) == 3
+    assert np.all(np.diff(losses) <= 1e-12)
+    l = np.asarray(sel.get_term_losses())
+    assert l[-1, 1] < 1.0
+
+
 # --- labelling: the Labelizer's scores, and shared sites ------------------------------
 
 def test_labelling_prefers_good_sites_and_reuse():
@@ -263,8 +336,13 @@ def test_bad_inputs_raise():
         sel.add_term(bff.ProbeResolutionTerm(effs, rmsds, 0.05))
     with pytest.raises(bff.ValueException):
         sel.set_pair_sites(np.zeros((3, 2), dtype=np.int32))
+    term = bff.ProbeKineticsTerm(_three_states(), _template(), options=_options(5))
     with pytest.raises(bff.ValueException):
-        bff.ProbeKineticsTerm(_three_states(), _template(), _DISTANCES[:2], options=_options(5))
+        term.add_pairs(_DISTANCES[:2])
+    with pytest.raises(bff.ValueException):
+        term.add_oligomer_pairs(bff.ProbeOligomerPairs(np.zeros((2, 2, 3, 3))), [0, 1])
+    with pytest.raises(bff.ValueException):
+        bff.ProbeOligomerPairs(np.zeros((2, 2, 3, 2)))
     sel = bff.ProbeNetworkSelection(5)
     sel.add_term(bff.ProbeResolutionTerm(effs, rmsds, 0.05))
     with pytest.raises(bff.ValueException):

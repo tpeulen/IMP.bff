@@ -16,6 +16,7 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <utility>
 #include <vector>
 
 IMPBFF_BEGIN_NAMESPACE
@@ -147,94 +148,245 @@ double ProbeResolutionTerm::get_loss_with(const std::vector<int>& pairs,
     return value / initial_;
 }
 
+// --- ProbeOligomerPairs -----------------------------------------------------------
+
+ProbeOligomerPairs::ProbeOligomerPairs(double* site_positions, int n_frames, int n_protomers,
+                                       int n_sites, int n_dim, bool include_intra)
+    : n_frames_(n_frames), n_protomers_(n_protomers), n_sites_(n_sites) {
+    if (n_dim != 3) IMP_THROW("site_positions must hold x, y, z per site", ValueException);
+    if (n_frames < 1 || n_protomers < 1 || n_sites < 1) {
+        IMP_THROW("site_positions needs at least one frame, protomer and site",
+                  ValueException);
+    }
+    auto at = [&](int f, int a, int i) {
+        return site_positions + ((static_cast<std::size_t>(f) * n_protomers + a) * n_sites + i) * 3;
+    };
+    auto dist = [](const double* x, const double* y) {
+        const double dx = x[0] - y[0], dy = x[1] - y[1], dz = x[2] - y[2];
+        return std::sqrt(dx * dx + dy * dy + dz * dz);
+    };
+    // Which (protomer, protomer) combinations each row mixes; the same for
+    // every frame.
+    std::vector<std::vector<std::pair<int, int> > > combos;
+    for (int i = 0; i < n_sites; ++i) {
+        for (int j = i; j < n_sites; ++j) {
+            std::vector<std::pair<int, int> > c;
+            for (int a = 0; a < n_protomers; ++a) {
+                for (int b = 0; b < n_protomers; ++b) {
+                    if (i == j) {
+                        if (a < b) c.push_back(std::make_pair(a, b));
+                    } else if (a != b || include_intra) {
+                        c.push_back(std::make_pair(a, b));
+                    }
+                }
+            }
+            if (c.empty()) continue;   // (i, i) on a monomer: nothing to measure
+            rows_.push_back(i);
+            rows_.push_back(j);
+            combos.push_back(c);
+        }
+    }
+    const int n_rows = get_n_rows();
+    distances_.resize(static_cast<std::size_t>(n_frames) * n_rows);
+    for (int f = 0; f < n_frames; ++f) {
+        for (int r = 0; r < n_rows; ++r) {
+            const int i = rows_[2 * r], j = rows_[2 * r + 1];
+            std::vector<double>& d = distances_[static_cast<std::size_t>(f) * n_rows + r];
+            for (const auto& ab : combos[static_cast<std::size_t>(r)]) {
+                d.push_back(dist(at(f, ab.first, i), at(f, ab.second, j)));
+            }
+        }
+    }
+}
+
+int ProbeOligomerPairs::get_n_components(int row) const {
+    if (n_frames_ == 0) return 0;
+    return static_cast<int>(distances_.at(static_cast<std::size_t>(row)).size());
+}
+
+std::vector<double> ProbeOligomerPairs::get_distances(int frame, int row) const {
+    if (frame < 0 || frame >= n_frames_ || row < 0 || row >= get_n_rows()) {
+        IMP_THROW("frame or row out of range", ValueException);
+    }
+    return distances_[static_cast<std::size_t>(frame) * get_n_rows() + row];
+}
+
+void ProbeOligomerPairs::get_pair_sites(int** out_pair_sites, int* n_out_rows,
+                                        int* n_out_cols) const {
+    if (out_pair_sites == nullptr || n_out_rows == nullptr || n_out_cols == nullptr) return;
+    int n_flat = 0;
+    int* buffer = internal::new_int_view(rows_.size(), out_pair_sites, &n_flat);
+    *n_out_cols = 2;
+    *n_out_rows = 0;
+    if (buffer == nullptr) return;
+    if (!rows_.empty()) std::memcpy(buffer, rows_.data(), rows_.size() * sizeof(int));
+    *n_out_rows = get_n_rows();
+}
+
+void ProbeOligomerPairs::get_efficiencies(double forster_radius, double** out_matrix,
+                                          int* n_out_rows, int* n_out_cols) const {
+    if (out_matrix == nullptr || n_out_rows == nullptr || n_out_cols == nullptr) return;
+    if (!(forster_radius > 0.0)) IMP_THROW("forster_radius must be positive", ValueException);
+    const int n_rows = get_n_rows();
+    int n_flat = 0;
+    double* buffer = internal::new_double_view(
+            static_cast<std::size_t>(n_frames_) * n_rows, out_matrix, &n_flat);
+    *n_out_rows = 0;
+    *n_out_cols = n_rows;
+    if (buffer == nullptr) return;
+    for (int f = 0; f < n_frames_; ++f) {
+        for (int r = 0; r < n_rows; ++r) {
+            const std::vector<double>& d = distances_[static_cast<std::size_t>(f) * n_rows + r];
+            double e = 0.0;
+            for (double x : d) e += 1.0 / (1.0 + std::pow(x / forster_radius, 6));
+            buffer[static_cast<std::size_t>(f) * n_rows + r] = e / d.size();
+        }
+    }
+    *n_out_rows = n_frames_;
+}
+
 // --- ProbeKineticsTerm ------------------------------------------------------------
 
 ProbeKineticsTerm::ProbeKineticsTerm(const FRETHiddenProcess& process,
                                      const FRETMeasurement& measurement,
-                                     double* state_distances, int n_states, int n_pairs,
                                      const FRETSimulationOptions& options,
                                      double max_gap, int min_photons,
                                      double n_bursts_per_pair, double prior_sd)
-    : ProbeNetworkTerm("ProbeKineticsTerm"), n_pairs_(n_pairs) {
+    : ProbeNetworkTerm("ProbeKineticsTerm"), process_(process), measurement_(measurement),
+      options_(options), max_gap_(max_gap), n_bursts_per_pair_(n_bursts_per_pair),
+      min_photons_(min_photons) {
     if (process.get_is_landscape()) {
         IMP_THROW("ProbeKineticsTerm needs a discrete process", ValueException);
-    }
-    if (n_states != process.get_n_states()) {
-        IMP_THROW("state_distances must have one row per state of the process ("
-                  << process.get_n_states() << "), not " << n_states,
-                  ValueException);
     }
     if (!(prior_sd > 0.0)) IMP_THROW("prior_sd must be positive", ValueException);
     if (!(n_bursts_per_pair > 0.0)) {
         IMP_THROW("n_bursts_per_pair must be positive", ValueException);
     }
     prior_precision_ = 1.0 / (prior_sd * prior_sd);
-    for (const std::string& name : process.get_parameter_names()) {
-        rate_names_.push_back(name);
-    }
+    rate_names_ = process.get_parameter_names();
     n_k_ = static_cast<int>(rate_names_.size());
     if (n_k_ == 0) IMP_THROW("the process has no rates", ValueException);
+    committed_.assign(static_cast<std::size_t>(n_k_) * n_k_, 0.0);
+}
 
-    const std::string mean_prefix = measurement.get_name() + ".mean[";
-    const std::size_t nk = static_cast<std::size_t>(n_k_);
-    g_.assign(static_cast<std::size_t>(std::max(n_pairs, 0)),
-              std::vector<double>(nk * nk, 0.0));
-    n_bursts_.assign(static_cast<std::size_t>(std::max(n_pairs, 0)), 0);
-
+int ProbeKineticsTerm::add_pairs(double* state_distances, int n_states, int n_pairs) {
+    if (n_states != process_.get_n_states()) {
+        IMP_THROW("state_distances must have one row per state of the process ("
+                  << process_.get_n_states() << "), not " << n_states,
+                  ValueException);
+    }
+    const int first = get_n_pairs();
     for (int p = 0; p < n_pairs; ++p) {
-        FRETMeasurement m(measurement);
+        std::vector<std::vector<double> > components(static_cast<std::size_t>(n_states));
         for (int h = 0; h < n_states; ++h) {
-            m.set_state_distance(h, state_distances[h * n_pairs + p]);
+            components[static_cast<std::size_t>(h)].push_back(state_distances[h * n_pairs + p]);
         }
-        FRETSimulationOptions o(options);
-        o.seed = options.seed + static_cast<unsigned int>(p);
-        FRETPhotonData data = simulate_fret_measurement(process, m, o);
-        if (max_gap > 0.0) data = select_bursts(data, max_gap, min_photons);
-        const int n_seg = data.get_n_segments();
-        n_bursts_[static_cast<std::size_t>(p)] = n_seg;
-        if (n_seg == 0) continue;   // nothing seen: no information
+        add_candidate(components);
+    }
+    return first;
+}
 
-        FRETNetworkModel model(process);
-        model.add_measurement(m, data);
-        // Only the rates and this pair's state means are free: the rates
-        // are what the network shares, the means are what each pair pays.
-        for (const std::string& name : model.get_parameter_names()) {
-            const bool want = starts_with(name, "hidden.") || starts_with(name, mean_prefix);
-            if (model.get_parameter_free(name) != want) model.set_parameter_free(name, want);
-        }
-        const std::vector<std::string> free = model.get_free_parameter_names();
-        const int n_free = static_cast<int>(free.size());
-        const std::vector<double> scores = model.segment_scores(model.get_theta());
-        Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> >
-                s(scores.data(), n_seg, n_free);
-        const Eigen::MatrixXd f = (s.transpose() * s) / static_cast<double>(n_seg);
-
-        // The process's parameters come first (FRETNetworkModel's order).
-        const int nd = n_free - n_k_;
-        Eigen::MatrixXd g = f.topLeftCorner(n_k_, n_k_);
-        if (nd > 0) {
-            const Eigen::MatrixXd fkd = f.topRightCorner(n_k_, nd);
-            const Eigen::MatrixXd fdd = f.bottomRightCorner(nd, nd);
-            // A pseudo-inverse: a state no burst visits leaves its mean
-            // undetermined, and that direction must drop out, not blow up.
-            Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(fdd);
-            const Eigen::VectorXd ev = es.eigenvalues();
-            const double cut = 1e-12 * std::max(ev.cwiseAbs().maxCoeff(), 1e-300);
-            Eigen::VectorXd inv(nd);
-            for (int i = 0; i < nd; ++i) inv(i) = ev(i) > cut ? 1.0 / ev(i) : 0.0;
-            const Eigen::MatrixXd fdd_pinv =
-                    es.eigenvectors() * inv.asDiagonal() * es.eigenvectors().transpose();
-            g -= fkd * fdd_pinv * fkd.transpose();
-        }
-        // Into a new matrix: `g = g + g.transpose()` aliases in Eigen and
-        // overwrites the off-diagonal it is still reading.
-        const Eigen::MatrixXd gs = (0.5 * n_bursts_per_pair) * (g + g.transpose()).eval();
-        std::vector<double>& out = g_[static_cast<std::size_t>(p)];
-        for (int i = 0; i < n_k_; ++i) {
-            for (int j = 0; j < n_k_; ++j) out[static_cast<std::size_t>(i * n_k_ + j)] = gs(i, j);
+int ProbeKineticsTerm::add_oligomer_pairs(const ProbeOligomerPairs& pairs,
+                                          const std::vector<int>& state_frames) {
+    const int n_states = process_.get_n_states();
+    if (static_cast<int>(state_frames.size()) != n_states) {
+        IMP_THROW("state_frames must name one frame per state of the process ("
+                  << n_states << "), not " << state_frames.size(),
+                  ValueException);
+    }
+    for (int f : state_frames) {
+        if (f < 0 || f >= pairs.get_n_frames()) {
+            IMP_THROW("state_frames entry " << f << " is not a frame of the pairs",
+                      ValueException);
         }
     }
-    committed_.assign(nk * nk, 0.0);
+    const int first = get_n_pairs();
+    for (int r = 0; r < pairs.get_n_rows(); ++r) {
+        std::vector<std::vector<double> > components(static_cast<std::size_t>(n_states));
+        for (int h = 0; h < n_states; ++h) {
+            components[static_cast<std::size_t>(h)] =
+                    pairs.get_distances(state_frames[static_cast<std::size_t>(h)], r);
+        }
+        add_candidate(components);
+    }
+    return first;
+}
+
+void ProbeKineticsTerm::add_candidate(
+        const std::vector<std::vector<double> >& state_components) {
+    if (!get_committed_pairs().empty()) {
+        IMP_THROW("add candidates before a selection, not during one", ValueException);
+    }
+    const int p = get_n_pairs();
+    const int n_states = process_.get_n_states();
+    const std::size_t nk = static_cast<std::size_t>(n_k_);
+    FRETMeasurement m(measurement_);
+    for (int h = 0; h < n_states; ++h) {
+        // A mixture keeps its spread as offsets around its mean; the mean is
+        // the parameter the pair pays for.
+        const std::vector<double>& c = state_components[static_cast<std::size_t>(h)];
+        double mean = 0.0;
+        for (double x : c) mean += x;
+        mean /= c.size();
+        if (c.size() == 1) {
+            m.set_state_distance(h, mean);
+        } else {
+            std::vector<double> offsets, weights;
+            for (double x : c) {
+                offsets.push_back(x - mean);
+                weights.push_back(1.0 / c.size());
+            }
+            m.set_state_distance(h, mean, offsets, weights);
+        }
+    }
+    FRETSimulationOptions o(options_);
+    o.seed = options_.seed + static_cast<unsigned int>(p);
+    FRETPhotonData data = simulate_fret_measurement(process_, m, o);
+    if (max_gap_ > 0.0) data = select_bursts(data, max_gap_, min_photons_);
+    const int n_seg = data.get_n_segments();
+    n_bursts_.push_back(n_seg);
+    g_.push_back(std::vector<double>(nk * nk, 0.0));
+    if (n_seg == 0) return;   // nothing seen: no information
+
+    const std::string mean_prefix = measurement_.get_name() + ".mean[";
+    FRETNetworkModel model(process_);
+    model.add_measurement(m, data);
+    // Only the rates and this pair's state means are free: the rates are
+    // what the network shares, the means are what each pair pays.
+    for (const std::string& name : model.get_parameter_names()) {
+        const bool want = starts_with(name, "hidden.") || starts_with(name, mean_prefix);
+        if (model.get_parameter_free(name) != want) model.set_parameter_free(name, want);
+    }
+    const int n_free = static_cast<int>(model.get_free_parameter_names().size());
+    const std::vector<double> scores = model.segment_scores(model.get_theta());
+    Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> >
+            s(scores.data(), n_seg, n_free);
+    const Eigen::MatrixXd f = (s.transpose() * s) / static_cast<double>(n_seg);
+
+    // The process's parameters come first (FRETNetworkModel's order).
+    const int nd = n_free - n_k_;
+    Eigen::MatrixXd g = f.topLeftCorner(n_k_, n_k_);
+    if (nd > 0) {
+        const Eigen::MatrixXd fkd = f.topRightCorner(n_k_, nd);
+        const Eigen::MatrixXd fdd = f.bottomRightCorner(nd, nd);
+        // A pseudo-inverse: a state no burst visits leaves its mean
+        // undetermined, and that direction must drop out, not blow up.
+        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(fdd);
+        const Eigen::VectorXd ev = es.eigenvalues();
+        const double cut = 1e-12 * std::max(ev.cwiseAbs().maxCoeff(), 1e-300);
+        Eigen::VectorXd inv(nd);
+        for (int i = 0; i < nd; ++i) inv(i) = ev(i) > cut ? 1.0 / ev(i) : 0.0;
+        const Eigen::MatrixXd fdd_pinv =
+                es.eigenvectors() * inv.asDiagonal() * es.eigenvectors().transpose();
+        g -= fkd * fdd_pinv * fkd.transpose();
+    }
+    // Into a new matrix: `g = g + g.transpose()` aliases in Eigen and
+    // overwrites the off-diagonal it is still reading.
+    const Eigen::MatrixXd gs = (0.5 * n_bursts_per_pair_) * (g + g.transpose()).eval();
+    std::vector<double>& out = g_.back();
+    for (int i = 0; i < n_k_; ++i) {
+        for (int j = 0; j < n_k_; ++j) out[static_cast<std::size_t>(i * n_k_ + j)] = gs(i, j);
+    }
 }
 
 std::vector<double> ProbeKineticsTerm::get_pair_information(int pair) const {

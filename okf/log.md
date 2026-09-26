@@ -2,6 +2,10 @@
 
 ## 2026-09-26
 
+- **Oligomer switch for probe network selection: `ProbeOligomerPairs`** (T-20260926-01; [fret-network.md](fret-network.md), "Choosing the pairs").
+  - From dye positions `(frames, protomers, sites, 3)` it lists the rows a statistical labelling makes measurable: `(i, i)` over unordered protomer pairs (dimer 1, trimer 3, tetramer 6 distances), `(i, j)` over ordered cross-protomer pairs plus, optionally, intra-protomer ones; one protomer gives ordinary double-mutant pairs. Rows go to `set_pair_sites` (site mode), mean efficiencies to `ProbeResolutionTerm`, distance mixtures to `ProbeKineticsTerm.add_oligomer_pairs(pairs, state_frames)`.
+  - `ProbeKineticsTerm` now takes candidates after construction (`add_pairs` for one distance per state, `add_oligomer_pairs` for mixtures, kept as offsets around a free mean). Tests: 20 in `test_probe_network_selection.py`, including a trimer selected by sites with both terms.
+
 - **Ternary training: int8 backward and BitNet's schedule** ([neural-net.md](neural-net.md), "Ternary: int8 backward", "Ternary: the BitNet schedule").
   - `ternary_backward = "float64"` (default, BitNet) `| "int8_dgrad"` (SwitchBack, arXiv 2304.13013: dZ int8 per row on the ternary x int8 kernel against `Ŵ^T`) `| "int8"` (+ Jetfire-style wgrad, arXiv 2403.12422: dZ scaled by the activation steps, int8 per 32-row block with counter-based stochastic rounding, fprop's int8 codes reused, new int8 x int8 kernel). `internal/MlpTernaryGrad.h`; NEON dotprod / NEON / AVX2 / AVX-512 VNNI / generic bit-identical, second snippet fingerprint `eb97f0d3b5c36b9a`, the default's unchanged.
   - Speed, int8 against float64 a step: 0.32-0.47x on the 256-256-128 surrogate, 0.57-0.69x at 128 wide, 0.78-0.88x at 64 wide (tanh and MatGemm's thin kept-layer shapes dominate there), ~1.05x on 16-wide (M1 Pro; Xeon 4416+ AVX2 / AVX-512 under load 17). Python epoch, M1: 0.46 / 0.60 / 0.79 / 1.06.
