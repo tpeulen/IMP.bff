@@ -9,6 +9,7 @@
 // last.
 #include <IMP/bff/internal/MlpTernary.h>
 #include <IMP/bff/internal/MlpTernaryTrain.h>
+#include <IMP/bff/internal/MlpTernaryGrad.h>
 #include <IMP/bff/internal/MlpGemm.h>
 
 #include <chrono>
@@ -287,6 +288,9 @@ struct NoFmaGemm {
 // The generic build's value: kernel outputs, predict, and three ternary
 // training steps (all layers ternary, tanh; MlpMath's tanh, NoFmaGemm).
 constexpr std::uint64_t kTernaryFingerprint = 0x4f6b5c542ab55f36ULL;
+// The generic build's value of the int8 backward (quantisers, kernels and
+// the int8 training modes' steps).
+constexpr std::uint64_t kInt8BackwardFingerprint = 0x456f04538197b606ULL;
 
 static std::uint64_t test_training(std::uint64_t h) {
     std::printf("ternary training\n");
@@ -357,6 +361,178 @@ static std::uint64_t test_training(std::uint64_t h) {
     return h;
 }
 
+// ---------------------------------------------------------------- 5b. int8 backward
+// dgrad (SwitchBack: dZ int8 per row, the ternary kernel on W^T) and wgrad
+// (Jetfire-style: dZ' int8 per 32-row block, stochastic rounding, int8 x
+// int8 kernel on fprop's codes): SIMD == scalar / reference bit for bit,
+// == float64 GEMMs of the same quantised operands, SR unbiased.
+static std::uint64_t test_int8_backward(std::uint64_t h) {
+    std::printf("int8 backward\n");
+    Lcg rng(19);
+    // gradient rows: no 1e-5 floor, zero rows step 0
+    {
+        const double G[6] = {std::ldexp(1.0, -32), -std::ldexp(1.0, -31), std::ldexp(1.0, -33), 0, 0, 0};
+        mt::A8Rows q;
+        mt::quantize_grad_rows(G, 2, 3, 3, q);
+        check(q.q[0] == 64 && q.q[1] == -127 && q.q[2] == 32 && q.step[1] == 0.0 && q.q[16] == 0,
+              "gradient rows: 127 / absmax without a floor, zero row -> step 0");
+    }
+    // the SR quantiser: SIMD == scalar (SrKey::u16 order), NaN / inf / ties
+    int bad = 0;
+    const mt::SrKey key = mt::SrKey::make(7, 3, 2, 2);
+    for (int n_out : {1, 5, 17}) {
+        for (int bs : {1, 31, 32, 33, 200}) {
+            std::vector<double> dz(static_cast<std::size_t>(bs) * n_out), sa(static_cast<std::size_t>(bs));
+            for (double& v : dz) v = rng.uniform() * 1e-3;
+            for (double& v : sa) v = 0.01 + std::abs(rng.uniform());
+            if (bs > 8) { dz[3] = std::nan(""); dz[5] = 0.0; }
+            std::vector<double> T;
+            mt::G8Blocks L;
+            mt::quantize_wgrad_left(dz.data(), bs, n_out, sa.data(), key, T, L);
+            for (int o = 0; o < n_out; ++o)
+                for (int b = 0; b < L.nb; ++b) {
+                    const std::size_t e0 = static_cast<std::size_t>(o) * L.kp + static_cast<std::size_t>(b) * 32;
+                    double x[32], amax = 0.0;
+                    for (int j = 0; j < 32; ++j) {
+                        const int r = 32 * b + j;
+                        x[j] = r < bs ? dz[static_cast<std::size_t>(r) * n_out + o] * sa[static_cast<std::size_t>(r)] : 0.0;
+                        if (x[j] == x[j]) amax = std::max(amax, std::abs(x[j]));
+                    }
+                    const double s = amax > 0 ? 127.0 / amax : 0.0;
+                    std::int32_t sum = 0;
+                    for (int j = 0; j < 32; ++j) {
+                        const std::int8_t c = mt::vg::sr_code(x[j], s, key.u16(e0 + j));
+                        bad += c != L.q[e0 + j];
+                        sum += c;
+                    }
+                    bad += sum != L.sum[static_cast<std::size_t>(o) * L.nb + b];
+                }
+            h = fnv(L.q.data(), L.q.size(), fnv(L.step.data(), L.step.size() * sizeof(float), h));
+        }
+    }
+    {
+        double x[16] = {1e300, -1e300, std::nan(""), 126.99, -126.99, 0.5, -0.5, 3.0,
+                        -3.0, 0.0, -0.0, 127.0, -127.0, 1e-300, 2.25, -7.75};
+        x[0] = std::numeric_limits<double>::infinity();
+        std::int8_t a[16], b[16];
+        mt::vg::sr_group16(x, 1.0, key, 40, a);
+        mt::vg::sr_group16_scalar(x, 1.0, key, 40, b);
+        bad += std::memcmp(a, b, 16) != 0 || a[0] != 127 || a[1] != -127 || a[2] != 0 || a[7] != 3 || a[11] != 127;
+    }
+    check(bad == 0, "SR quantiser: SIMD == scalar (u16 draw order), clamp, NaN -> 0, integers exact");
+    // SR is unbiased: E[q step] = x, over 4000 keys
+    {
+        const double xs[4] = {0.3, -2.7, 0.01, -126.5};
+        double worst = 0.0;
+        for (double x0 : xs) {
+            std::vector<double> dz(32, 0.0), sa(32, 1.0), T;
+            dz[0] = 127.0;  // block absmax 127: s = 1
+            for (int i = 1; i < 32; ++i) dz[static_cast<std::size_t>(i)] = x0;
+            mt::G8Blocks L;
+            double acc = 0.0;
+            const int n = 4000;
+            for (int k = 0; k < n; ++k) {
+                mt::quantize_wgrad_left(dz.data(), 32, 1, sa.data(), mt::SrKey::make(1, k, 0, 2), T, L);
+                for (int i = 1; i < 32; ++i) acc += L.q[static_cast<std::size_t>(i)];
+            }
+            const double mean = acc / (31.0 * n), frac = x0 - std::floor(x0);
+            const double sigma = std::sqrt(frac * (1 - frac) / (31.0 * n)) + 1e-9;
+            worst = std::max(worst, std::abs(mean - x0) / sigma);
+        }
+        std::printf("  ok    SR unbiased: worst |mean - x| = %.2f sigma\n", worst);
+        check(worst < 5.0, "stochastic rounding unbiased (within 5 sigma, 124000 draws a value)");
+    }
+    // wgrad: kernel == reference bit for bit; == float64 GEMM of the operands
+    bad = 0;
+    double werr = 0.0;
+    for (int n_out : {1, 3, 4, 5, 17, 40}) {
+        for (int n_in : {1, 7, 16, 33}) {
+            for (int bs : {1, 31, 33, 64, 200}) {
+                std::vector<double> A(static_cast<std::size_t>(bs) * n_in), dz(static_cast<std::size_t>(bs) * n_out);
+                for (double& v : A) v = rng.uniform() * 2.0;
+                for (double& v : dz) v = rng.uniform() * 0.01;
+                mt::A8Rows q8;
+                mt::quantize_rows(A.data(), bs, n_in, static_cast<std::size_t>(n_in), q8);
+                std::vector<double> T, C(static_cast<std::size_t>(n_out) * n_in), R(C.size());
+                mt::G8Blocks L;
+                mt::PackedI8 P;
+                mt::wgrad(dz.data(), bs, n_out, q8, n_in, mt::SrKey::make(2, bs, n_in, 2), T, L, P, C.data());
+                mt::wgrad_reference(L, q8, n_in, R.data());
+                bad += std::memcmp(C.data(), R.data(), C.size() * sizeof(double)) != 0;
+                double cmax = 0.0, emax = 0.0;
+                for (int o = 0; o < n_out; ++o)
+                    for (int k = 0; k < n_in; ++k) {
+                        double s = 0.0;
+                        for (int r = 0; r < bs; ++r)
+                            s += static_cast<double>(L.q[static_cast<std::size_t>(o) * L.kp + r]) *
+                                 L.step[static_cast<std::size_t>(o) * L.nb + r / 32] *
+                                 q8.q[static_cast<std::size_t>(r) * q8.kp + k];
+                        cmax = std::max(cmax, std::abs(s));
+                        emax = std::max(emax, std::abs(s - C[static_cast<std::size_t>(o) * n_in + k]));
+                    }
+                if (cmax > 0) werr = std::max(werr, emax / cmax);
+                h = fnv(C.data(), C.size() * sizeof(double), h);
+            }
+        }
+    }
+    check(bad == 0, "int8 x int8 wgrad kernel == element-by-element reference (bit for bit, 120 shapes)");
+    std::printf("  ok    wgrad vs float64 GEMM of the same quantised operands: %.1e of the absmax\n", werr);
+    check(werr < 1e-5, "wgrad == float64 GEMM of the quantised operands (float combine, 1e-5)");
+    // extreme codes: every code +-127 over a long batch (no int16 / int32 trouble)
+    {
+        const int bs = 4096, n_in = 16, n_out = 4;
+        mt::A8Rows q8;
+        q8.rows = bs;
+        q8.kp = 16;
+        q8.q.assign(static_cast<std::size_t>(bs) * 16, 0);
+        for (std::size_t i = 0; i < q8.q.size(); ++i) q8.q[i] = static_cast<std::int8_t>(i % 3 ? -127 : 127);
+        q8.step.assign(bs, 1.0);
+        mt::G8Blocks L;
+        L.rows = n_out;
+        L.kp = bs;
+        L.nb = bs / 32;
+        L.q.assign(static_cast<std::size_t>(n_out) * bs, -127);
+        L.step.assign(static_cast<std::size_t>(n_out) * L.nb, 1.0f);
+        L.sum.assign(L.step.size(), -127 * 32);
+        mt::PackedI8 P;
+        mt::pack_wgrad_right(q8, n_in, bs, P);
+        std::vector<double> C(static_cast<std::size_t>(n_out) * n_in), R(C.size());
+        mt::wgrad_gemm(L, P, C.data());
+        mt::wgrad_reference(L, q8, n_in, R.data());
+        check(std::memcmp(C.data(), R.data(), C.size() * sizeof(double)) == 0 && std::abs(R[1]) > 1e6,
+              "int8 wgrad at +-127 everywhere (no saturation)");
+    }
+    // dgrad: == float64 on the same quantised operands, both weight scales
+    double derr = 0.0;
+    for (mt::Scale sc : {mt::Scale::Tensor, mt::Scale::Row}) {
+        const int bs = 37, n_out = 40, n_in = 21;
+        const mt::TernaryTensor t = random_trits(n_out, n_in, rng, sc);
+        mt::PackedT wt;
+        mt::pack_transposed_into(t, wt);
+        std::vector<double> dz(static_cast<std::size_t>(bs) * n_out), buf, dA(static_cast<std::size_t>(bs) * n_in);
+        for (double& v : dz) v = rng.uniform() * 0.01;
+        mt::A8Rows q;
+        mt::dgrad(dz.data(), bs, t, wt, buf, q, dA.data());
+        double amax = 0.0, emax = 0.0;
+        for (int r = 0; r < bs; ++r)
+            for (int k = 0; k < n_in; ++k) {
+                double s = 0.0;
+                for (int o = 0; o < n_out; ++o) {
+                    const double w = t.q[static_cast<std::size_t>(o) * n_in + k] * t.step(o);
+                    const double g = q.q[static_cast<std::size_t>(r) * q.kp + o] * q.step[static_cast<std::size_t>(r)];
+                    s += g * (sc == mt::Scale::Row ? w / t.step(o) : w);
+                }
+                amax = std::max(amax, std::abs(s));
+                emax = std::max(emax, std::abs(s - dA[static_cast<std::size_t>(r) * n_in + k]));
+            }
+        derr = std::max(derr, emax / amax);
+        h = fnv(dA.data(), dA.size() * sizeof(double), h);
+    }
+    std::printf("  ok    dgrad vs float64 GEMM of the same quantised operands: %.1e of the absmax\n", derr);
+    check(derr < 1e-12, "int8 dgrad == float64 GEMM of the quantised operands (1e-12)");
+    return h;
+}
+
 // ---------------------------------------------------------------- 6. timing
 static void time_gemm() {
     Lcg rng(17);
@@ -384,6 +560,21 @@ static void time_gemm() {
         const double tf = best([&] { mc::PortableGemm::nt(M, n, n, A.data(), W.data(), C.data()); });
         std::printf("  time  %d x %d x %d: ternary gemm %.1f us, activation quantisation %.1f us, portable double gemm %.1f us\n",
                     M, n, n, tg, tq, tf);
+        // backward: int8 wgrad (quantise dZ', pack, int8 x int8) and int8
+        // dgrad against the portable double GEMMs
+        std::vector<double> dz(static_cast<std::size_t>(M) * n), T, buf, W2(W.size());
+        for (double& v : dz) v = rng.uniform() * 0.01;
+        mt::G8Blocks L;
+        mt::PackedI8 P;
+        mt::A8Rows qg;
+        mt::PackedT wt;
+        const mt::SrKey key = mt::SrKey::make(1, 2, 3, 2);
+        const double tw = best([&] { mt::wgrad(dz.data(), M, n, q, n, key, T, L, P, W2.data()); });
+        const double td = best([&] { mt::pack_transposed_into(t, wt); mt::dgrad(dz.data(), M, t, wt, buf, qg, C.data()); });
+        const double tfw = best([&] { mc::PortableGemm::tn(n, n, M, dz.data(), A.data(), W2.data()); });
+        const double tfd = best([&] { mc::PortableGemm::nn(M, n, n, dz.data(), W.data(), C.data()); });
+        std::printf("  time  backward %d x %d, batch %d: int8 wgrad %.1f us (double %.1f), int8 dgrad %.1f us (double %.1f)\n",
+                    n, n, M, tw, tfw, td, tfd);
     }
 }
 
@@ -396,6 +587,9 @@ int main() {
     h = test_training(h);
     std::printf("  ok    fingerprint %016llx\n", static_cast<unsigned long long>(h));
     check(h == kTernaryFingerprint, "fingerprint == the generic build's");
+    const std::uint64_t h8 = test_int8_backward(1469598103934665603ULL);
+    std::printf("  ok    int8 backward fingerprint %016llx\n", static_cast<unsigned long long>(h8));
+    check(h8 == kInt8BackwardFingerprint, "int8 backward fingerprint == the generic build's");
     time_gemm();
     std::printf("%d failure(s)\n", g_failures);
     return g_failures;

@@ -159,9 +159,11 @@ inline double absmean(const double* w, std::size_t n) {
 }
 
 //! `clamp(round_half_even(w * s), -1, 1)`; NaN -> 0.
+//! round-half-even(v) >= 1 exactly when v > 0.5 (and <= -1 when v < -0.5),
+//! so the trit is two comparisons (branch-free; vectorises).
 inline std::int8_t trit(double w, double s) {
-    const double v = std::nearbyint(w * s);
-    return static_cast<std::int8_t>(v >= 1.0 ? 1 : (v <= -1.0 ? -1 : 0));
+    const double v = w * s;
+    return static_cast<std::int8_t>(static_cast<int>(v > 0.5) - static_cast<int>(v < -0.5));
 }
 
 //! BitNet b1.58's weight quantiser (weight_quant), per tensor or per row,
@@ -284,10 +286,13 @@ inline void pack_kernel_into(const TernaryTensor& t, PackedT& p) {
         const int tile = o / kNR, ot = o % kNR;
         const std::int8_t* q = t.q.data() + static_cast<std::size_t>(o) * t.cols;
         std::uint8_t* base = p.codes.data() + static_cast<std::size_t>(tile) * p.ns * 4 * kNR + 4 * ot;
-        for (int k = 0; k < t.cols; ++k) {
-            const unsigned u = static_cast<unsigned>(q[k] + 1);
-            std::uint8_t& b = base[static_cast<std::size_t>(k / 16) * 4 * kNR + (k % 4)];
-            b = static_cast<std::uint8_t>(b | (u << (2 * ((k % 16) / 4))));
+        for (int s = 0; s < p.ns; ++s) {  // byte j of sub-block s: elements j, 4 + j, 8 + j, 12 + j
+            std::uint8_t u[16];
+            const int k0 = 16 * s;
+            for (int i = 0; i < 16; ++i) u[i] = k0 + i < t.cols ? static_cast<std::uint8_t>(q[k0 + i] + 1) : 0;
+            std::uint8_t* b = base + static_cast<std::size_t>(s) * 4 * kNR;
+            for (int j = 0; j < 4; ++j)
+                b[j] = static_cast<std::uint8_t>(u[j] | (u[4 + j] << 2) | (u[8 + j] << 4) | (u[12 + j] << 6));
         }
     }
 }
