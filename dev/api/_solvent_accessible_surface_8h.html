@@ -157,9 +157,9 @@ Variables</h2></td></tr>
 <p>Sums the rate constants of the quenchers a walker is in contact with, frame by frame. Rates add because the channels are parallel.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">collided</td><td>flat row-major <picture><source srcset="form_303_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(n\_frames \times n\_atoms)$" src="form_303.png"/></picture> contact flags </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">collided</td><td>flat row-major <picture><source srcset="form_309_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(n\_frames \times n\_atoms)$" src="form_309.png"/></picture> contact flags </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">n_frames</td><td>rows </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">k_quench</td><td>per-atom rate constant, length <picture><source srcset="form_304_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$n\_atoms$" src="form_304.png"/></picture> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">k_quench</td><td>per-atom rate constant, length <picture><source srcset="form_310_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$n\_atoms$" src="form_310.png"/></picture> </td></tr>
   </table>
   </dd>
 </dl>
@@ -272,8 +272,8 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Solvent-accessible surface area of selected atoms (Shrake-Rupley). </p>
-<p>Samples each selected atom's surface at <code>radius</code> from its centre and counts the samples no other atom occludes within <picture><source srcset="form_297_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$radius + probe$" src="form_297.png"/></picture>.</p>
-<p>The neighbour cutoff is <picture><source srcset="form_298_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(2\,radius + probe)^2$" src="form_298.png"/></picture>**, which is the tight criterion for this kernel: a sample sits <code>radius</code> from its own centre and is occluded by a neighbour within <picture><source srcset="form_297_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$radius + probe$" src="form_297.png"/></picture> of it. The kernel this was ported from tested a <em>squared</em> distance against an <em>unsquared</em> sum, and against the van der Waals radius rather than the sampling radius &ndash; a 2.45 A cutoff where 6.0 A was meant, so nearly every occluding neighbour was missed and the area came back far too large. Fixed in PRD-109; nothing downstream moved, because nothing consumed the result.</p>
+<p>Samples each selected atom's surface at <code>radius</code> from its centre and counts the samples no other atom occludes within <picture><source srcset="form_303_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$radius + probe$" src="form_303.png"/></picture>.</p>
+<p>The neighbour cutoff is <picture><source srcset="form_304_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(2\,radius + probe)^2$" src="form_304.png"/></picture>**, which is the tight criterion for this kernel: a sample sits <code>radius</code> from its own centre and is occluded by a neighbour within <picture><source srcset="form_303_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$radius + probe$" src="form_303.png"/></picture> of it. The kernel this was ported from tested a <em>squared</em> distance against an <em>unsquared</em> sum, and against the van der Waals radius rather than the sampling radius &ndash; a 2.45 A cutoff where 6.0 A was meant, so nearly every occluding neighbour was missed and the area came back far too large. Fixed in PRD-109; nothing downstream moved, because nothing consumed the result.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">xyz</td><td>atom coordinates, flat, three per atom </td></tr>
@@ -334,8 +334,8 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Solvent-accessible surface area with a per-atom radius (Shrake-Rupley). </p>
-<p>The textbook form, and the one a <em>relative</em> accessibility needs: atom <code>i</code> is sampled on a sphere of radius <picture><source srcset="form_299_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r_i + probe$" src="form_299.png"/></picture> and a sample is occluded when it falls within <picture><source srcset="form_300_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r_j + probe$" src="form_300.png"/></picture> of another atom's centre, so each atom is occluded by its neighbour's real size. The area returned is the accessible surface <picture><source srcset="form_301_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$4\pi (r_i + probe)^2 f_i$" src="form_301.png"/></picture>.</p>
-<p><a class="el" href="_solvent_accessible_surface_8h.html#ad1e5eda178f209e7c1049d48dac9b938" title="Solvent-accessible surface area of selected atoms (Shrake-Rupley).">solvent_accessible_surface_area()</a> above differs deliberately and is not a worse version of this: it samples every atom at one radius and scales the count by <picture><source srcset="form_302_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r_i^2$" src="form_302.png"/></picture>, which is what the contact and quenching estimates want (a probe of fixed size rolling over a uniform obstacle set) and is cheaper. The two answer different questions; a caller comparing an area against a tabulated maximum wants this one.</p>
+<p>The textbook form, and the one a <em>relative</em> accessibility needs: atom <code>i</code> is sampled on a sphere of radius <picture><source srcset="form_305_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r_i + probe$" src="form_305.png"/></picture> and a sample is occluded when it falls within <picture><source srcset="form_306_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r_j + probe$" src="form_306.png"/></picture> of another atom's centre, so each atom is occluded by its neighbour's real size. The area returned is the accessible surface <picture><source srcset="form_307_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$4\pi (r_i + probe)^2 f_i$" src="form_307.png"/></picture>.</p>
+<p><a class="el" href="_solvent_accessible_surface_8h.html#ad1e5eda178f209e7c1049d48dac9b938" title="Solvent-accessible surface area of selected atoms (Shrake-Rupley).">solvent_accessible_surface_area()</a> above differs deliberately and is not a worse version of this: it samples every atom at one radius and scales the count by <picture><source srcset="form_308_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r_i^2$" src="form_308.png"/></picture>, which is what the contact and quenching estimates want (a probe of fixed size rolling over a uniform obstacle set) and is cheaper. The two answer different questions; a caller comparing an area against a tabulated maximum wants this one.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">xyz</td><td>atom coordinates, flat, three per atom </td></tr>
@@ -406,7 +406,7 @@ Variables</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Sep 25 2026 17:18:19 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Sep 26 2026 01:56:47 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

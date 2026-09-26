@@ -1314,7 +1314,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Mean-field weights for several dyes at once, cross-interactions included. </p>
-<p>The single-dye <a class="el" href="_rotamer_scoring_8h.html#abbfca0b671336c3d7e1fdbd3b9050e4a" title="Iterative mean-field update of one dye&#39;s rotamer cluster weights.">rotamer_mean_field_weights</a> sees the protein only. With two or more labels on one structure each dye is also part of the others' environment, so the update carries a conformer-pair energy matrix per dye pair and iterates all of them together: <picture><source srcset="form_294_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\log q_d \leftarrow \log q_d - K(E^{bb}_d + \sum_{e \neq d} E^{sc}_{de} q_e)$" src="form_294.png"/></picture>, renormalised by log-sum-exp each round.</p>
+<p>The single-dye <a class="el" href="_rotamer_scoring_8h.html#abbfca0b671336c3d7e1fdbd3b9050e4a" title="Iterative mean-field update of one dye&#39;s rotamer cluster weights.">rotamer_mean_field_weights</a> sees the protein only. With two or more labels on one structure each dye is also part of the others' environment, so the update carries a conformer-pair energy matrix per dye pair and iterates all of them together: <picture><source srcset="form_300_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\log q_d \leftarrow \log q_d - K(E^{bb}_d + \sum_{e \neq d} E^{sc}_{de} q_e)$" src="form_300.png"/></picture>, renormalised by log-sum-exp each round.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">rotamer_coords_list</td><td>one flat <code>n_conf * n_atoms * 3</code> per dye </td></tr>
@@ -1546,7 +1546,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Sep 25 2026 17:18:19 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Sep 26 2026 01:56:47 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -203,7 +203,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:a5c3ceb7537d41cf81d957f8e907db273"><td class="mdescLeft">&#160;</td><td class="mdescRight">Residue-level solvent-accessible surface area, on flat coordinates.  <br /></td></tr>
 <tr class="separator:a5c3ceb7537d41cf81d957f8e907db273"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a88bd56dc8d44333dbf17186c17049f28" id="r_a88bd56dc8d44333dbf17186c17049f28"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_probe_potential_restraints_8h.html#a88bd56dc8d44333dbf17186c17049f28">ramachandran_energy</a> (double phi, double psi, const std::vector&lt; double &gt; &amp;grid, int n_bins, double empty_penalty=10.0)</td></tr>
-<tr class="memdesc:a88bd56dc8d44333dbf17186c17049f28"><td class="mdescLeft">&#160;</td><td class="mdescRight">The Ramachandran pseudo-energy of one <picture><source srcset="form_273_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(\phi, \psi)$" src="form_273.png"/></picture>, from a grid.  <br /></td></tr>
+<tr class="memdesc:a88bd56dc8d44333dbf17186c17049f28"><td class="mdescLeft">&#160;</td><td class="mdescRight">The Ramachandran pseudo-energy of one <picture><source srcset="form_279_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(\phi, \psi)$" src="form_279.png"/></picture>, from a grid.  <br /></td></tr>
 <tr class="separator:a88bd56dc8d44333dbf17186c17049f28"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3693490a006462fc3ac865d6f6976d18" id="r_a3693490a006462fc3ac865d6f6976d18"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT IMP::core::Cosine *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_probe_potential_restraints_8h.html#a3693490a006462fc3ac865d6f6976d18">torsion_cosine</a> (const <a class="el" href="struct_f_f_torsion_type.html">FFTorsionType</a> &amp;type)</td></tr>
 <tr class="memdesc:a3693490a006462fc3ac865d6f6976d18"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <code>IMP::core::Cosine</code> a torsion type spells, converted from CHARMM.  <br /></td></tr>
@@ -320,12 +320,12 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Soft-sphere overlap energy over every atom pair, on flat coordinates. </p>
-<p><picture><source srcset="form_281_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$E = \sum_{i&lt;j} ((\sigma_{ij} - r_{ij})/t)^2$" src="form_281.png"/></picture> over the pairs with <picture><source srcset="form_282_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r_c &lt; r_{ij} &lt; \sigma_{ij}$" src="form_282.png"/></picture>. What <a class="el" href="_probe_potential_restraints_8h.html#a7b72a9f6ca28e37fa8adae094816dadc" title="The soft-sphere clash restraint over a hierarchy&#39;s atoms.">create_clash_restraint</a> scores through <a class="el" href="namespace_i_m_p.html">IMP</a>, for a caller holding arrays.</p>
+<p><picture><source srcset="form_287_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$E = \sum_{i&lt;j} ((\sigma_{ij} - r_{ij})/t)^2$" src="form_287.png"/></picture> over the pairs with <picture><source srcset="form_288_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r_c &lt; r_{ij} &lt; \sigma_{ij}$" src="form_288.png"/></picture>. What <a class="el" href="_probe_potential_restraints_8h.html#a7b72a9f6ca28e37fa8adae094816dadc" title="The soft-sphere clash restraint over a hierarchy&#39;s atoms.">create_clash_restraint</a> scores through <a class="el" href="namespace_i_m_p.html">IMP</a>, for a caller holding arrays.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">xyz</td><td>flat coordinates, three per atom </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">vdw</td><td>one radius per atom </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">clash_tolerance</td><td>the denominator <picture><source srcset="form_278_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$t$" src="form_278.png"/></picture> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">clash_tolerance</td><td>the denominator <picture><source srcset="form_284_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$t$" src="form_284.png"/></picture> </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">covalent_radius</td><td>pairs closer than this are not counted </td></tr>
   </table>
   </dd>
@@ -384,7 +384,7 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Harmonic restraints holding a C-alpha trace near a reference conformer. </p>
-<p>The bond lengths, angles and dihedrals of consecutive C-alphas, each with an #IMP::core::Harmonic at the value the reference has. chisurf's <code>internal_potential</code> summed <picture><source srcset="form_279_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k(x - x_0)^2$" src="form_279.png"/></picture> over the three; an <a class="el" href="namespace_i_m_p.html">IMP</a> harmonic scores <picture><source srcset="form_280_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\frac{1}{2}k(x-x_0)^2$" src="form_280.png"/></picture>, so the constants here are twice the reference's and the energy is the same.</p>
+<p>The bond lengths, angles and dihedrals of consecutive C-alphas, each with an #IMP::core::Harmonic at the value the reference has. chisurf's <code>internal_potential</code> summed <picture><source srcset="form_285_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k(x - x_0)^2$" src="form_285.png"/></picture> over the three; an <a class="el" href="namespace_i_m_p.html">IMP</a> harmonic scores <picture><source srcset="form_286_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\frac{1}{2}k(x-x_0)^2$" src="form_286.png"/></picture>, so the constants here are twice the reference's and the energy is the same.</p>
 <dl class="section note"><dt>Note</dt><dd>#IMP::atom::CAAngleRestraint and #IMP::atom::CADihedralRestraint are <a class="el" href="namespace_i_m_p.html">IMP</a>'s <em>statistical</em> C-alpha terms &ndash; a score per angle bin. These are the harmonic-to-a-reference kind, which is a different question.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -432,13 +432,13 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The soft-sphere clash restraint over a hierarchy's atoms. </p>
-<p>#IMP::core::SoftSpherePairScore is <picture><source srcset="form_275_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\frac{1}{2}k(\sigma - r)^2$" src="form_275.png"/></picture> on overlap, and the potential this ports is <picture><source srcset="form_276_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$((\sigma - r)/t)^2$" src="form_276.png"/></picture>, so <picture><source srcset="form_277_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k = 2/t^2$" src="form_277.png"/></picture> &ndash; the same term, and <a class="el" href="namespace_i_m_p.html">IMP</a>'s, evaluated over an #IMP::container::ClosePairContainer rather than every pair.</p>
+<p>#IMP::core::SoftSpherePairScore is <picture><source srcset="form_281_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\frac{1}{2}k(\sigma - r)^2$" src="form_281.png"/></picture> on overlap, and the potential this ports is <picture><source srcset="form_282_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$((\sigma - r)/t)^2$" src="form_282.png"/></picture>, so <picture><source srcset="form_283_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k = 2/t^2$" src="form_283.png"/></picture> &ndash; the same term, and <a class="el" href="namespace_i_m_p.html">IMP</a>'s, evaluated over an #IMP::container::ClosePairContainer rather than every pair.</p>
 <p>The Python skipped pairs closer than a <code>covalent_radius</code>, meaning "these
 are bonded, do not count them". Bonded pairs are excluded here by #IMP::atom::StereochemistryPairFilter when the hierarchy carries bonds, which is what that parameter was reaching for and is exact rather than a distance guess.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">hierarchy</td><td>the atoms </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">clash_tolerance</td><td>the <picture><source srcset="form_278_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$t$" src="form_278.png"/></picture> above: larger is softer </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">clash_tolerance</td><td>the <picture><source srcset="form_284_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$t$" src="form_284.png"/></picture> above: larger is softer </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">slack</td><td>the container's slack, A </td></tr>
   </table>
   </dd>
@@ -580,7 +580,7 @@ are bonded, do not count them". Bonded pairs are excluded here by #IMP::atom::St
 </div><div class="memdoc">
 
 <p>Bonded and element-aware nonbonded restraints for a typed dye system. </p>
-<p>Bonds and angles become harmonics, torsions the CHARMM cosine above, impropers a harmonic about the <em>current</em> geometry's dihedral, and every non-excluded site pair a lower-bound harmonic at its Lennard-Jones <picture><source srcset="form_286_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_{min}$" src="form_286.png"/></picture>. A site with no particle is skipped rather than an error: a system may describe more than the caller decorated.</p>
+<p>Bonds and angles become harmonics, torsions the CHARMM cosine above, impropers a harmonic about the <em>current</em> geometry's dihedral, and every non-excluded site pair a lower-bound harmonic at its Lennard-Jones <picture><source srcset="form_292_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_{min}$" src="form_292.png"/></picture>. A site with no particle is skipped rather than an error: a system may describe more than the caller decorated.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">model</td><td>the model the restraints score in </td></tr>
@@ -1048,7 +1048,7 @@ are bonded, do not count them". Bonded pairs are excluded here by #IMP::atom::St
       </table>
 </div><div class="memdoc">
 
-<p>The Ramachandran pseudo-energy of one <picture><source srcset="form_273_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(\phi, \psi)$" src="form_273.png"/></picture>, from a grid. </p>
+<p>The Ramachandran pseudo-energy of one <picture><source srcset="form_279_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(\phi, \psi)$" src="form_279.png"/></picture>, from a grid. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">phi,psi</td><td>radians; NaN (a chain end) scores zero </td></tr>
@@ -1186,7 +1186,7 @@ are bonded, do not count them". Bonded pairs are excluded here by #IMP::atom::St
 </div><div class="memdoc">
 
 <p>The <code>IMP::core::Cosine</code> a torsion type spells, converted from CHARMM. </p>
-<p>cgprobe stores torsions in the CHARMM convention <picture><source srcset="form_283_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$V = k(1 + \cos(n\phi - \delta))$" src="form_283.png"/></picture>, and <code>IMP::core::Cosine</code> scores <picture><source srcset="form_284_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k(1 - \cos(n\phi - \delta'))$" src="form_284.png"/></picture> &ndash; so the phase needs <picture><source srcset="form_285_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\delta' = \delta + \pi$" src="form_285.png"/></picture>. Getting that wrong put every conjugated torsion's minimum at 90 degrees (PRD-108); it is one conversion, in one place, for that reason. </p>
+<p>cgprobe stores torsions in the CHARMM convention <picture><source srcset="form_289_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$V = k(1 + \cos(n\phi - \delta))$" src="form_289.png"/></picture>, and <code>IMP::core::Cosine</code> scores <picture><source srcset="form_290_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k(1 - \cos(n\phi - \delta'))$" src="form_290.png"/></picture> &ndash; so the phase needs <picture><source srcset="form_291_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\delta' = \delta + \pi$" src="form_291.png"/></picture>. Getting that wrong put every conjugated torsion's minimum at 90 degrees (PRD-108); it is one conversion, in one place, for that reason. </p>
 
 </div>
 </div>
@@ -1213,7 +1213,7 @@ are bonded, do not count them". Bonded pairs are excluded here by #IMP::atom::St
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Sep 25 2026 17:18:19 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Sep 26 2026 01:56:47 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

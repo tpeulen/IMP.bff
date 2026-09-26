@@ -584,7 +584,7 @@ Variables</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">index_a,index_b</td><td>atom indices of each pair </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">rmin,eps</td><td>combined parameters per pair </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">n_frames,n_atoms,n_pairs</td><td>shapes </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">repulsive_only</td><td>drop the attractive tail beyond <picture><source srcset="form_286_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_{min}$" src="form_286.png"/></picture> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">repulsive_only</td><td>drop the attractive tail beyond <picture><source srcset="form_292_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_{min}$" src="form_292.png"/></picture> </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">r_floor</td><td>distance clamp keeping the energy finite </td></tr>
   </table>
   </dd>
@@ -753,7 +753,7 @@ Variables</h2></td></tr>
 
 <p>Repulsive-only LJ energy between every pair of conformers of two sets. </p>
 <p>The mean-field weight update needs the interaction energy of conformer <em>i</em> of one dye against conformer <em>j</em> of another (or against a protein, which is one "conformer"). Those energies <b>do not depend on the weights</b>, so they are computed once here and the iteration becomes a matrix-vector product. Recomputing the matrix inside the iteration loop instead is ten times the work for the same answer.</p>
-<p>Repulsive-only: the attractive tail ( <picture><source srcset="form_287_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r \ge R_{min}$" src="form_287.png"/></picture>) is dropped, which is what the mean-field treatment wants &ndash; it is asking what is <em>blocked</em>, not what is bound.</p>
+<p>Repulsive-only: the attractive tail ( <picture><source srcset="form_293_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r \ge R_{min}$" src="form_293.png"/></picture>) is dropped, which is what the mean-field treatment wants &ndash; it is asking what is <em>blocked</em>, not what is bound.</p>
 <p>Conformer pairs whose padded axis-aligned bounding boxes do not overlap are skipped entirely, which is most of them once two dyes are more than a linker apart.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -897,7 +897,7 @@ Variables</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">rotamer_coords,n_rotamer_coords</td><td>flat, <code>n_rotamers * n_probe_atoms * 3</code>. A raw buffer, so numpy's array passes straight through &ndash; see <a class="el" href="_brownian_walk_8h.html#ac7239a09ccb919d19a71987dc26605f6" title="One Brownian trajectory of a point particle confined to an occupancy grid.">brownian_walk_in_volume</a> on why. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">protein_coords,n_protein_coords</td><td>flat, <code>n_protein_atoms * 3</code> </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">rmin_ij</td><td>combined <picture><source srcset="form_286_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_{min}$" src="form_286.png"/></picture> per (dye atom, protein atom), flat <code>n_probe_atoms * n_protein_atoms</code> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">rmin_ij</td><td>combined <picture><source srcset="form_292_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_{min}$" src="form_292.png"/></picture> per (dye atom, protein atom), flat <code>n_probe_atoms * n_protein_atoms</code> </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">eps_ij</td><td>combined well depth, same shape </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">q_probe</td><td>per dye atom, or <b>empty</b> to skip electrostatics </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">q_protein</td><td>per protein atom, or empty </td></tr>
@@ -1290,7 +1290,7 @@ Variables</h2></td></tr>
 
 <p>A rotamer library placed and screened at one labelling site. </p>
 <p>(formerly IMP/bff/ProbeRotamerEnsemble.h, now a section of this file) </p>
-<p>The fps.json position type <code>R1</code> (PRD-108): a FRETpredict-style 1:1 rotamer library transformed into a residue's backbone frame and Boltzmann-screened against the protein. Per rotamer the chromophore centre, the transition dipole and the weight are kept &ndash; and every atom, so nothing downstream has to re-derive them &ndash; which is what a FRET <em>rate</em> distribution over a pair of labels needs ( <picture><source srcset="form_288_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_{ij}$" src="form_288.png"/></picture>, <picture><source srcset="form_289_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\kappa^2_{ij}$" src="form_289.png"/></picture>, <picture><source srcset="form_290_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$w_i w_j$" src="form_290.png"/></picture>), and not just a mean position.</p>
+<p>The fps.json position type <code>R1</code> (PRD-108): a FRETpredict-style 1:1 rotamer library transformed into a residue's backbone frame and Boltzmann-screened against the protein. Per rotamer the chromophore centre, the transition dipole and the weight are kept &ndash; and every atom, so nothing downstream has to re-derive them &ndash; which is what a FRET <em>rate</em> distribution over a pair of labels needs ( <picture><source srcset="form_294_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_{ij}$" src="form_294.png"/></picture>, <picture><source srcset="form_295_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\kappa^2_{ij}$" src="form_295.png"/></picture>, <picture><source srcset="form_296_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$w_i w_j$" src="form_296.png"/></picture>), and not just a mean position.</p>
 <p>A <b>sibling</b> of #IMP::bff::ProbeAccessibleVolume, not a subclass: both are #IMP::bff::States, so every distance and FRET helper takes either, while an ensemble is spared the grid an AV has and it does not.</p>
 <dl class="section author"><dt>Authors</dt><dd>Thomas-Otavio Peulen Copyright 2007-2026 <a class="el" href="namespace_i_m_p.html">IMP</a> Inventors. All rights reserved. fps.json <code>simulation_type</code> of a screened 1:1 rotamer library. </dd></dl>
 
@@ -1299,7 +1299,7 @@ Variables</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Sep 25 2026 17:18:19 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Sep 26 2026 01:56:47 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

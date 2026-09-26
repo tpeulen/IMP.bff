@@ -98,7 +98,7 @@ Include dependency graph for ProbePairSelection.h:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a68c9bcf1dc41e91e44c50c99d627a459" id="r_a68c9bcf1dc41e91e44c50c99d627a459"><td class="memItemLeft" align="right" valign="top">IMPBFF_BEGIN_NAMESPACE IMPBFFEXPORT std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_probe_pair_selection_8h.html#a68c9bcf1dc41e91e44c50c99d627a459">chi2_right_tail</a> (const std::vector&lt; double &gt; &amp;chisq, int ndof)</td></tr>
-<tr class="memdesc:a68c9bcf1dc41e91e44c50c99d627a459"><td class="mdescLeft">&#160;</td><td class="mdescRight">Chi-squared right-tail probability <picture><source srcset="form_254_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$Q(\nu/2, \chi^2/2)$" src="form_254.png"/></picture>, elementwise.  <br /></td></tr>
+<tr class="memdesc:a68c9bcf1dc41e91e44c50c99d627a459"><td class="mdescLeft">&#160;</td><td class="mdescRight">Chi-squared right-tail probability <picture><source srcset="form_260_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$Q(\nu/2, \chi^2/2)$" src="form_260.png"/></picture>, elementwise.  <br /></td></tr>
 <tr class="separator:a68c9bcf1dc41e91e44c50c99d627a459"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd192ca3c618fa8201887757e3086b9f" id="r_afd192ca3c618fa8201887757e3086b9f"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_probe_pair_selection_8h.html#afd192ca3c618fa8201887757e3086b9f">expected_rmsd_after_adding</a> (const std::vector&lt; double &gt; &amp;rmsds, const std::vector&lt; double &gt; &amp;chi2, const std::vector&lt; double &gt; &amp;e_add, double inv_err_sq, int ndof, double diag_weight, int n_frames, int n_candidates)</td></tr>
 <tr class="memdesc:afd192ca3c618fa8201887757e3086b9f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Expected mean RMSD after adding each candidate pair.  <br /></td></tr>
@@ -140,8 +140,8 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Chi-squared right-tail probability <picture><source srcset="form_254_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$Q(\nu/2, \chi^2/2)$" src="form_254.png"/></picture>, elementwise. </p>
-<p>The regularized upper incomplete gamma. Because <picture><source srcset="form_255_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\nu/2$" src="form_255.png"/></picture> is an integer or a half-integer, a few-term closed form serves for all but the largest <picture><source srcset="form_256_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\nu$" src="form_256.png"/></picture>, where a continued fraction takes over.</p>
+<p>Chi-squared right-tail probability <picture><source srcset="form_260_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$Q(\nu/2, \chi^2/2)$" src="form_260.png"/></picture>, elementwise. </p>
+<p>The regularized upper incomplete gamma. Because <picture><source srcset="form_261_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\nu/2$" src="form_261.png"/></picture> is an integer or a half-integer, a few-term closed form serves for all but the largest <picture><source srcset="form_262_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\nu$" src="form_262.png"/></picture>, where a continued fraction takes over.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">chisq</td><td>values, any length </td></tr>
@@ -276,13 +276,13 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Expected mean RMSD after adding each candidate pair. </p>
-<p>For candidate <picture><source srcset="form_35_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k$" src="form_35.png"/></picture> the accumulated <picture><source srcset="form_47_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\chi^2$" src="form_47.png"/></picture> gains <picture><source srcset="form_257_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(e_{ki} - e_{kj})^2 / \sigma^2$" src="form_257.png"/></picture>, the right-tail probability of the result weights the pairwise RMSDs, and the column means are averaged.</p>
+<p>For candidate <picture><source srcset="form_35_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k$" src="form_35.png"/></picture> the accumulated <picture><source srcset="form_47_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\chi^2$" src="form_47.png"/></picture> gains <picture><source srcset="form_263_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(e_{ki} - e_{kj})^2 / \sigma^2$" src="form_263.png"/></picture>, the right-tail probability of the result weights the pairwise RMSDs, and the column means are averaged.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">rmsds</td><td>pairwise RMSD between frames, flat <code>n * n</code> </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">chi2</td><td>accumulated chi-squared so far, flat <code>n * n</code> </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">e_add</td><td>per-frame predicted measurement of each candidate, flat <code>m * n</code> </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">inv_err_sq</td><td><picture><source srcset="form_258_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$1/\sigma^2$" src="form_258.png"/></picture> of the new measurement </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">inv_err_sq</td><td><picture><source srcset="form_264_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$1/\sigma^2$" src="form_264.png"/></picture> of the new measurement </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">ndof</td><td>degrees of freedom after the addition </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">diag_weight</td><td>Olga's diagonal correction on the denominator </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">n_frames,n_candidates</td><td>shapes </td></tr>
@@ -524,8 +524,8 @@ Functions</h2></td></tr>
 <p>Olga-style greedy informative <em>labelling site</em> selection. </p>
 <p>For a monomer, a FRET pair is a double mutant and pairs are the unit worth greedy over. For a homo-oligomer it is not: the labelling mix is statistical, each site is mutated once, and every cross-protomer combination of the chosen sites is measurable — in a dimer, sites {1, 2} measure 1:1, 2:2, 1:2 and 2:1. A pair-wise greedy would credit each of those as its own double mutant and buy, per mutation, roughly half the experiment that is actually there.</p>
 <p>So this selector greedies over <b>sites</b>. Each step scores a candidate site by the expected mean RMSD left by <em>all</em> pairs the enlarged site set implies — a pair is implied when both of its sites are chosen — not by the single pair the monomeric selector would add. The arithmetic per pair is Olga's unchanged: the implied pairs' <picture><source srcset="form_47_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\chi^2$" src="form_47.png"/></picture> gains accumulate together, and the right-tail probability of the sum weights the pairwise RMSDs.</p>
-<p>Which pairs exist is the caller's statement about the biology, passed as <code>pair_sites</code>: row <picture><source srcset="form_259_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$p$" src="form_259.png"/></picture> holds the two site indices pair <picture><source srcset="form_259_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$p$" src="form_259.png"/></picture> connects (a homodimer's inter-protomer 1:2 pair is <code>(0, 1)</code>, its 1:1 pair <code>(0, 0)</code>). The selector is agnostic to the oligomer order — a trimer or tetramer simply offers more rows per site — and never re-selects a site: a residue cannot be mutated twice, so there is no <code>unique_only</code> to turn off.</p>
-<p>The result is published as two managed numpy views: the selected site indices in selection order, and the expected mean RMSD after each of them (same length). The number of <em>measurements</em> a step implies is <picture><source srcset="form_260_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$|\{p : \mathrm{both\ sites\ chosen}\}|$" src="form_260.png"/></picture>, which the caller can count from <code>pair_sites</code> directly.</p>
+<p>Which pairs exist is the caller's statement about the biology, passed as <code>pair_sites</code>: row <picture><source srcset="form_265_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$p$" src="form_265.png"/></picture> holds the two site indices pair <picture><source srcset="form_265_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$p$" src="form_265.png"/></picture> connects (a homodimer's inter-protomer 1:2 pair is <code>(0, 1)</code>, its 1:1 pair <code>(0, 0)</code>). The selector is agnostic to the oligomer order — a trimer or tetramer simply offers more rows per site — and never re-selects a site: a residue cannot be mutated twice, so there is no <code>unique_only</code> to turn off.</p>
+<p>The result is published as two managed numpy views: the selected site indices in selection order, and the expected mean RMSD after each of them (same length). The number of <em>measurements</em> a step implies is <picture><source srcset="form_266_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$|\{p : \mathrm{both\ sites\ chosen}\}|$" src="form_266.png"/></picture>, which the caller can count from <code>pair_sites</code> directly.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">predicted_measurements,n_frames,n_pairs</td><td>predicted measurement per frame and pair (FRET, EPR or PRE) </td></tr>
@@ -545,7 +545,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Sep 25 2026 17:18:19 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Sep 26 2026 01:56:47 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

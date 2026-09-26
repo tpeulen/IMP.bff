@@ -147,7 +147,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a2790dc05590a47cd23d5a3d987556a46"><td class="mdescLeft">&#160;</td><td class="mdescRight">How many conformers this site's ensemble is really carrying.  <br /></td></tr>
 <tr class="separator:a2790dc05590a47cd23d5a3d987556a46"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6ec3c6c8a49ae4f9efbe491e0813c352" id="r_a6ec3c6c8a49ae4f9efbe491e0813c352"><td class="memItemLeft" align="right" valign="top"><a class="el" href="struct_f_r_e_t_pair_geometry.html">FRETPairGeometry</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_rotamer_ensemble.html#a6ec3c6c8a49ae4f9efbe491e0813c352">pair_geometry</a> (const <a class="el" href="class_states.html">States</a> &amp;other, bool use_dipoles=true) const</td></tr>
-<tr class="memdesc:a6ec3c6c8a49ae4f9efbe491e0813c352"><td class="mdescLeft">&#160;</td><td class="mdescRight"><picture><source srcset="form_288_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_{ij}$" src="form_288.png"/></picture>, <picture><source srcset="form_289_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\kappa^2_{ij}$" src="form_289.png"/></picture> and <picture><source srcset="form_290_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$w_i w_j$" src="form_290.png"/></picture> against <code>other</code>.  <br /></td></tr>
+<tr class="memdesc:a6ec3c6c8a49ae4f9efbe491e0813c352"><td class="mdescLeft">&#160;</td><td class="mdescRight"><picture><source srcset="form_294_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_{ij}$" src="form_294.png"/></picture>, <picture><source srcset="form_295_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\kappa^2_{ij}$" src="form_295.png"/></picture> and <picture><source srcset="form_296_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$w_i w_j$" src="form_296.png"/></picture> against <code>other</code>.  <br /></td></tr>
 <tr class="separator:a6ec3c6c8a49ae4f9efbe491e0813c352"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acc66ea85cb2c284c76871b82b3cf65ff" id="r_acc66ea85cb2c284c76871b82b3cf65ff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="struct_f_r_e_t_pair_efficiencies.html">FRETPairEfficiencies</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_rotamer_ensemble.html#acc66ea85cb2c284c76871b82b3cf65ff">pair_distribution</a> (const <a class="el" href="class_states.html">States</a> &amp;other, double <a class="el" href="_probe_library_8h.html#a6fcc551b0710fa70fa792baf8cf4790e">forster_radius</a>, double tau0=-1.0) const</td></tr>
 <tr class="memdesc:acc66ea85cb2c284c76871b82b3cf65ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">The pair's FRET rate distribution and its three averages.  <br /></td></tr>
@@ -643,7 +643,7 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 
 <p>How many conformers this site's ensemble is really carrying. </p>
-<p>Kish's effective sample size, <picture><source srcset="form_291_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(\sum w)^2 / \sum w^2$" src="form_291.png"/></picture>. The library is one fixed sample of the <em>free</em> dye; a site reweights that sample and never resamples it, so what the site gets is only as good as the overlap between the sample and the conformations the site allows. The rotamer count does not show this &ndash; a site can keep twenty rotamers and put three quarters of the weight on one of them.</p>
+<p>Kish's effective sample size, <picture><source srcset="form_297_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(\sum w)^2 / \sum w^2$" src="form_297.png"/></picture>. The library is one fixed sample of the <em>free</em> dye; a site reweights that sample and never resamples it, so what the site gets is only as good as the overlap between the sample and the conformations the site allows. The rotamer count does not show this &ndash; a site can keep twenty rotamers and put three quarters of the weight on one of them.</p>
 <p>Measured on the bundled pins (2026-08-24): at Hsp90 residue 637 the cutoff-30 library carries <b>1.7</b>, and the answer it gives differs from the cutoff-10 library's by 0.068 in E and 0.32 in <picture><source srcset="form_124_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\langle\kappa^2\rangle$" src="form_124.png"/></picture>. At the pp11 sites, which are open, the same comparison moves E by 0.008. Below roughly ten, treat what this ensemble says as unsupported and load a deeper cutoff. </p>
 
 </div>
@@ -1004,7 +1004,7 @@ Additional Inherited Members</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p><picture><source srcset="form_288_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_{ij}$" src="form_288.png"/></picture>, <picture><source srcset="form_289_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\kappa^2_{ij}$" src="form_289.png"/></picture> and <picture><source srcset="form_290_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$w_i w_j$" src="form_290.png"/></picture> against <code>other</code>. </p>
+<p><picture><source srcset="form_294_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_{ij}$" src="form_294.png"/></picture>, <picture><source srcset="form_295_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\kappa^2_{ij}$" src="form_295.png"/></picture> and <picture><source srcset="form_296_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$w_i w_j$" src="form_296.png"/></picture> against <code>other</code>. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">other</td><td>any states: an AV cloud has no dipoles, and the isotropic <picture><source srcset="form_116_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\kappa^2 = 2/3$" src="form_116.png"/></picture> is used for it </td></tr>
@@ -1021,7 +1021,7 @@ Additional Inherited Members</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Sep 25 2026 17:18:19 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Sep 26 2026 01:56:48 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

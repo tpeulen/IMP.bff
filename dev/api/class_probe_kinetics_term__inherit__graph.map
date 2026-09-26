@@ -1,0 +1,7 @@
+<map id="ProbeKineticsTerm" name="ProbeKineticsTerm">
+<area shape="rect" id="Node000001" title="Dynamics: how well the rates of a kinetic scheme are determined." alt="" coords="5,492,196,797"/>
+<area shape="rect" id="Node000002" href="$class_probe_network_term.html" title="One score of a probe network: a loss in [0, 1] over a set of pairs." alt="" coords="5,119,196,444"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,457,103,492,98,492,98,457"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="57,5,145,71"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="103,84,103,118,98,118,98,84"/>
+</map>

@@ -1,9 +1,9 @@
 <map id="NeuralNetTrainOptions" name="NeuralNetTrainOptions">
-<area shape="rect" id="Node000001" title="Hyper&#45;parameters for train_neural_net()." alt="" coords="59,277,253,543"/>
+<area shape="rect" id="Node000001" title="Hyper&#45;parameters for train_neural_net()." alt="" coords="59,307,253,572"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,135,136,200"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="70,200,71,226,75,253,77,261,72,262,69,254,65,227,65,200"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="70,200,69,240,75,282,77,290,72,292,69,283,64,240,64,200"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="202,135,281,200"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="233,201,215,254,212,263,207,261,209,252,228,199"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="237,201,215,283,212,292,207,290,209,282,231,200"/>
 <area shape="rect" id="Node000004" title=" " alt="" coords="176,5,307,85"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="244,99,244,134,239,134,239,99"/>
 </map>

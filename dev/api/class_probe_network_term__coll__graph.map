@@ -1,0 +1,5 @@
+<map id="ProbeNetworkTerm" name="ProbeNetworkTerm">
+<area shape="rect" id="Node000001" title="One score of a probe network: a loss in [0, 1] over a set of pairs." alt="" coords="5,119,196,444"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="57,5,145,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,84,103,118,98,118,98,84"/>
+</map>

@@ -1,56 +1,9 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,418,151,458"/>
-<area shape="rect" id="Node000001" href="$class_graph_node.html" title="A function over named ports, evaluated lazily when its inputs settle." alt="" coords="207,475,301,500"/>
-<area shape="poly" id="edge41_Node000000_Node000001" title=" " alt="" coords="164,459,209,472,207,477,162,464"/>
-<area shape="rect" id="Node000025" href="$class_graph_port.html" title="A value cell with links, bounds and invalidation&#45;driven evaluation." alt="" coords="211,425,297,451"/>
-<area shape="poly" id="edge64_Node000000_Node000025" title=" " alt="" coords="164,435,211,435,211,441,164,441"/>
-<area shape="rect" id="Node000002" href="$class_acceptor_density_decay.html" title="acceptor_density_decay (FRETAcceptorDensity.h) on a sampled time axis." alt="" coords="409,5,580,31"/>
-<area shape="poly" id="edge42_Node000001_Node000002" title=" " alt="" coords="304,464,307,460,324,432,335,405,341,378,342,351,336,299,324,247,312,195,308,144,312,118,320,92,335,66,356,40,380,23,408,14,410,19,382,28,359,44,339,69,325,94,317,119,314,144,317,194,329,245,341,298,348,351,346,379,340,407,329,435,312,464,308,468"/>
-<area shape="rect" id="Node000003" href="$class_convolution.html" title="Convolve whatever curve arrives with a measured response." alt="" coords="445,55,545,80"/>
-<area shape="poly" id="edge43_Node000001_Node000003" title=" " alt="" coords="304,464,307,460,322,436,332,412,339,364,335,318,324,272,315,226,313,181,316,158,324,135,337,112,355,89,375,75,398,66,444,60,445,65,399,71,377,79,359,93,341,115,329,137,321,159,318,181,320,226,330,271,340,317,345,364,337,413,327,438,311,464,308,468"/>
-<area shape="rect" id="Node000004" href="$class_discrete_distances.html" title="A distance distribution that is a set of discrete distances." alt="" coords="425,104,565,129"/>
-<area shape="poly" id="edge44_Node000001_Node000004" title=" " alt="" coords="303,465,307,460,321,439,329,418,336,377,333,337,325,297,318,258,317,218,327,178,339,159,355,139,370,127,387,119,424,111,425,116,389,124,373,131,359,143,343,162,332,180,322,219,323,257,331,296,339,336,342,378,335,420,325,442,311,464,307,468"/>
-<area shape="rect" id="Node000005" href="$class_f_c_s_mdf_curve.html" title="The Enderlein MDF diffusion shape as a node in a model graph." alt="" coords="439,153,550,179"/>
-<area shape="poly" id="edge45_Node000001_Node000005" title=" " alt="" coords="303,465,307,460,327,425,333,390,332,356,326,322,321,289,321,255,331,221,355,188,374,174,395,166,439,159,440,164,396,171,376,179,359,192,336,224,326,256,326,288,331,322,337,356,339,391,332,427,312,464,307,468"/>
-<area shape="rect" id="Node000006" href="$class_f_c_s_saturation_curve.html" title="Saturated FCS forward model as a graph node." alt="" coords="419,203,571,228"/>
-<area shape="poly" id="edge46_Node000001_Node000006" title=" " alt="" coords="303,465,307,460,324,432,331,403,330,375,327,348,324,320,325,292,335,265,356,237,385,219,418,211,419,216,387,224,359,241,339,267,331,293,329,320,332,347,336,375,336,404,329,434,311,464,307,468"/>
-<area shape="rect" id="Node000007" href="$class_f_r_e_t_spectrum_node.html" title=" " alt="" coords="419,252,570,277"/>
-<area shape="poly" id="edge47_Node000001_Node000007" title=" " alt="" coords="303,465,307,460,321,438,328,416,328,373,327,351,330,329,338,308,356,287,385,269,419,260,420,266,387,274,359,291,343,310,335,330,332,351,333,373,333,417,326,440,311,464,307,468"/>
-<area shape="rect" id="Node000008" href="$class_fit_objective.html" title="A node that evaluates to weighted residuals; what fits and searches consume." alt="" coords="445,301,545,327"/>
-<area shape="poly" id="edge48_Node000001_Node000008" title=" " alt="" coords="302,465,307,460,319,445,325,429,329,397,334,366,342,351,356,336,376,323,399,315,444,309,445,314,400,320,378,328,359,340,346,354,339,368,334,398,330,430,323,447,311,464,306,469"/>
-<area shape="rect" id="Node000011" href="$class_gaussian_distances.html" title="A distance distribution built from a sum of generalised normals." alt="" coords="421,351,568,376"/>
-<area shape="poly" id="edge51_Node000001_Node000011" title=" " alt="" coords="300,465,307,460,322,441,330,422,338,403,356,385,387,370,420,362,422,368,389,375,359,390,342,406,335,424,327,444,311,464,304,470"/>
-<area shape="rect" id="Node000012" href="$class_generalized_normal_curve.html" title="A generalized&#45;normal peak sampled on an even axis, scaled to an area." alt="" coords="401,400,588,425"/>
-<area shape="poly" id="edge52_Node000001_Node000012" title=" " alt="" coords="294,466,308,460,332,446,356,434,401,422,402,427,358,439,334,451,311,464,297,471"/>
-<area shape="rect" id="Node000013" href="$class_graph_expression.html" title="An arithmetic model equation, compiled once and evaluated in C++." alt="" coords="429,449,561,475"/>
-<area shape="poly" id="edge53_Node000001_Node000013" title=" " alt="" coords="315,478,428,466,429,472,316,484"/>
-<area shape="rect" id="Node000014" href="$class_kinetic_scheme_node.html" title="Populations for TCSPC and a correlation factor for FCS, from one chain." alt="" coords="418,499,571,524"/>
-<area shape="poly" id="edge54_Node000001_Node000014" title=" " alt="" coords="315,491,418,501,418,506,315,496"/>
-<area shape="rect" id="Node000015" href="$class_lifetime_spectrum_mixture.html" title="A mixture of lifetime spectra, as a node." alt="" coords="401,548,589,573"/>
-<area shape="poly" id="edge55_Node000001_Node000015" title=" " alt="" coords="296,504,311,510,334,523,358,534,401,545,400,551,356,539,332,528,308,515,294,508"/>
-<area shape="rect" id="Node000016" href="$class_max_ent_spectrum.html" title="A distribution recovered by maximum entropy from a measured decay." alt="" coords="428,597,561,623"/>
-<area shape="poly" id="edge56_Node000001_Node000016" title=" " alt="" coords="304,505,311,511,327,531,335,550,342,568,359,584,392,599,428,606,427,612,391,604,356,588,338,571,330,552,322,533,307,515,300,509"/>
-<area shape="rect" id="Node000017" href="$class_photophysics_anisotropy_spectrum_node.html" title="The polarised lifetime spectrum a VV or VH detector sees." alt="" coords="357,647,632,672"/>
-<area shape="poly" id="edge57_Node000001_Node000017" title=" " alt="" coords="306,506,311,511,323,527,330,544,334,576,339,606,346,620,359,633,376,644,373,649,356,637,342,623,334,607,329,576,325,545,319,530,307,514,302,510"/>
-<area shape="rect" id="Node000018" href="$class_photophysics_lifetime_spectrum_node.html" title="An interleaved (a0, t0, a1, t1, ...) spectrum built from scalar ports." alt="" coords="365,696,624,721"/>
-<area shape="poly" id="edge58_Node000001_Node000018" title=" " alt="" coords="307,506,311,511,326,534,333,557,333,601,332,623,335,643,343,663,359,683,375,694,372,698,356,687,338,666,330,644,327,623,328,601,328,558,321,536,307,514,303,510"/>
-<area shape="rect" id="Node000019" href="$class_photophysics_transfer_kinetics_node.html" title="The lifetime spectrum one pulse gives in one channel, under transfer kinetics." alt="" coords="371,745,618,771"/>
-<area shape="poly" id="edge59_Node000001_Node000019" title=" " alt="" coords="307,506,311,511,329,541,336,570,336,599,332,627,329,654,331,681,339,706,359,732,374,743,371,747,355,736,335,709,325,682,324,654,327,626,330,599,330,571,324,543,307,514,303,510"/>
-<area shape="rect" id="Node000020" href="$class_polymer_distances.html" title="A polymer&#45;chain distance distribution as a producer node." alt="" coords="425,795,565,820"/>
-<area shape="poly" id="edge60_Node000001_Node000020" title=" " alt="" coords="307,506,312,511,332,548,339,584,337,618,331,652,326,686,326,718,336,750,359,781,373,792,389,800,425,808,424,813,387,805,370,797,355,785,331,752,321,719,321,685,326,652,332,618,333,584,327,550,307,514,303,510"/>
-<area shape="rect" id="Node000021" href="$class_spectrum_grid.html" title="bins points from from to to, as the interleaved pairs (1, x)." alt="" coords="439,844,550,869"/>
-<area shape="poly" id="edge61_Node000001_Node000021" title=" " alt="" coords="307,506,311,511,325,533,335,555,342,597,338,638,331,678,323,717,322,755,332,793,343,812,359,831,376,844,396,852,439,858,439,864,395,857,374,848,355,835,339,815,328,795,317,756,318,716,325,677,333,637,336,597,329,556,321,535,307,514,303,510"/>
-<area shape="rect" id="Node000022" href="$class_t_c_s_p_c_decay.html" title=" " alt="" coords="443,893,547,919"/>
-<area shape="poly" id="edge62_Node000001_Node000022" title=" " alt="" coords="308,507,311,511,327,536,337,561,345,610,340,657,330,703,320,748,318,792,321,814,329,836,341,858,359,880,377,894,398,902,443,908,442,913,396,907,374,898,355,884,337,861,324,838,316,816,313,793,315,747,324,702,335,656,339,610,332,563,322,539,307,514,304,510"/>
-<area shape="rect" id="Node000023" href="$class_tabulated_distances.html" title="A distance distribution mixed from K distributions that are given, not modelled." alt="" coords="420,943,569,968"/>
-<area shape="poly" id="edge63_Node000001_Node000023" title=" " alt="" coords="308,507,312,511,329,540,340,568,346,596,348,623,341,676,329,728,317,779,314,830,317,854,325,879,339,904,359,929,387,948,421,956,419,961,385,953,356,933,335,907,320,881,312,856,308,830,312,779,324,727,336,676,342,623,341,596,335,570,324,542,307,514,304,510"/>
-<area shape="rect" id="Node000009" href="$class_fit_chi_squared.html" title="The chi&#45;square of a model curve against measured data." alt="" coords="695,277,807,303"/>
-<area shape="poly" id="edge49_Node000008_Node000009" title=" " alt="" coords="558,305,694,293,695,298,559,311"/>
-<area shape="rect" id="Node000010" href="$class_fit_joint_chi_squared.html" title="The misfit of several datasets at once: their residuals, end to end." alt="" coords="680,327,821,352"/>
-<area shape="poly" id="edge50_Node000008_Node000010" title=" " alt="" coords="559,318,680,330,679,335,558,323"/>
-<area shape="rect" id="Node000024" href="$class_graph_object.html" title="The identity half of chinet&#39;s GraphObject: a name and a uid." alt="" coords="27,483,129,508"/>
-<area shape="poly" id="edge65_Node000024_Node000001" title=" " alt="" coords="143,490,206,487,206,492,143,495"/>
-<area shape="poly" id="edge66_Node000024_Node000025" title=" " alt="" coords="130,476,213,448,215,453,131,481"/>
-<area shape="rect" id="Node000026" href="$class_graph_session.html" title="A saved&#45;and&#45;loadable graph of nodes and free ports, chinet&#39;s GraphSession." alt="" coords="199,524,309,549"/>
-<area shape="poly" id="edge67_Node000024_Node000026" title=" " alt="" coords="143,508,200,521,198,526,142,513"/>
+<area shape="rect" id="Node000000" href="$class_states.html" title="A weighted set of states of one label." alt="" coords="5,31,68,56"/>
+<area shape="rect" id="Node000001" href="$class_probe_accessible_volume.html" title="States enumerated as a voxel grid, plus the grid itself." alt="" coords="117,5,294,31"/>
+<area shape="poly" id="edge43_Node000000_Node000001" title=" " alt="" coords="81,34,120,28,121,33,82,39"/>
+<area shape="rect" id="Node000003" href="$class_probe_rotamer_ensemble.html" title="A rotamer library placed and screened at one labelling site." alt="" coords="116,55,295,80"/>
+<area shape="poly" id="edge45_Node000000_Node000003" title=" " alt="" coords="82,47,117,52,116,57,81,52"/>
+<area shape="rect" id="Node000002" href="$class_a_c_v.html" title="Accessible contact volume: the cloud split by proximity to a surface." alt="" coords="343,5,392,31"/>
+<area shape="poly" id="edge44_Node000001_Node000002" title=" " alt="" coords="308,15,342,15,342,21,308,21"/>
 </map>

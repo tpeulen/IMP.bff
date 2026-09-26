@@ -1,3 +1,15 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$struct_sampler_options.html" title="How run_sampler runs." alt="" coords="5,5,132,31"/>
+<area shape="rect" id="Node000000" href="$class_sampler_kernel.html" title="One transition of every walker a kernel holds." alt="" coords="5,56,123,81"/>
+<area shape="rect" id="Node000001" href="$class_nuts_kernel.html" title=" " alt="" coords="223,31,316,56"/>
+<area shape="poly" id="edge37_Node000000_Node000001" title=" " alt="" coords="136,57,222,46,223,52,137,62"/>
+<area shape="rect" id="Node000002" href="$classinternal_1_1_walker_kernel_base.html" title="Walkers, their log densities and blobs, and the target they are evaluated on." alt="" coords="171,80,368,105"/>
+<area shape="poly" id="edge38_Node000000_Node000002" title=" " alt="" coords="137,74,171,78,170,84,136,80"/>
+<area shape="rect" id="Node000003" href="$class_blocked_metropolis_kernel.html" title=" " alt="" coords="423,5,606,31"/>
+<area shape="poly" id="edge39_Node000002_Node000003" title=" " alt="" coords="341,74,367,65,391,52,415,40,451,28,453,33,417,44,393,57,369,70,342,79"/>
+<area shape="rect" id="Node000004" href="$class_differential_evolution_kernel.html" title=" " alt="" coords="416,55,613,80"/>
+<area shape="poly" id="edge40_Node000002_Node000004" title=" " alt="" coords="381,78,416,75,416,80,382,84"/>
+<area shape="rect" id="Node000005" href="$class_ensemble_slice_kernel.html" title="The ensemble slice sampler (Karamanis &amp; Beutler 2021; what zeus runs), differential directions." alt="" coords="435,104,594,129"/>
+<area shape="poly" id="edge41_Node000002_Node000005" title=" " alt="" coords="382,101,436,106,435,112,382,106"/>
+<area shape="rect" id="Node000006" href="$class_stretch_kernel.html" title="The affine&#45;invariant ensemble stretch move (Goodman &amp; Weare 2010; chisurf&#39;s EnsembleSampler)." alt="" coords="460,153,569,179"/>
+<area shape="poly" id="edge42_Node000002_Node000006" title=" " alt="" coords="320,107,417,138,462,151,461,156,415,143,319,112"/>
 </map>

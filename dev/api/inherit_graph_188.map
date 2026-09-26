@@ -1,3 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$struct_probe_simulation_trajectory.html" title="One recorded run: the frames, and what was known at each of them." alt="" coords="5,5,199,31"/>
+<area shape="rect" id="Node000000" href="$class_probe_simulation.html" title="The shape every probe simulation has: set positions, advance, read back." alt="" coords="5,31,135,56"/>
+<area shape="rect" id="Node000001" href="$class_molecular_probe_simulation.html" title="A dye placed on a structure and moved, as an ordinary simulation object." alt="" coords="183,5,376,31"/>
+<area shape="poly" id="edge35_Node000000_Node000001" title=" " alt="" coords="148,31,182,27,183,32,149,37"/>
+<area shape="rect" id="Node000002" href="$class_probe_diffusion_simulation.html" title="A dye&#39;s Brownian walk in its accessible volume, and the field it samples." alt="" coords="186,55,373,80"/>
+<area shape="poly" id="edge36_Node000000_Node000002" title=" " alt="" coords="149,50,186,54,185,59,148,55"/>
 </map>

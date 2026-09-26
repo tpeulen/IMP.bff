@@ -114,8 +114,8 @@ Public Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Generalized-Born implicit solvation over a set of atoms. </p>
-<p><picture><source srcset="form_268_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$E = \frac{1}{8\pi}(\frac{1}{\epsilon_0} - \frac{1}{\epsilon})
-\sum_{i \le j} q_i q_j (\frac{1}{f_{GB}} - \frac{1}{f_c})$" src="form_268.png"/></picture> with <picture><source srcset="form_269_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$f_{GB} = \sqrt{r^2 + a_i a_j e^{-r^2/4a_ia_j}}$" src="form_269.png"/></picture>. The sum includes each atom with itself, which is where the Born self-energy comes from &ndash; so this is a restraint over a set and not a #IMP::PairScore over pairs.</p>
+<p><picture><source srcset="form_274_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$E = \frac{1}{8\pi}(\frac{1}{\epsilon_0} - \frac{1}{\epsilon})
+\sum_{i \le j} q_i q_j (\frac{1}{f_{GB}} - \frac{1}{f_c})$" src="form_274.png"/></picture> with <picture><source srcset="form_275_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$f_{GB} = \sqrt{r^2 + a_i a_j e^{-r^2/4a_ia_j}}$" src="form_275.png"/></picture>. The sum includes each atom with itself, which is where the Born self-energy comes from &ndash; so this is a restraint over a set and not a #IMP::PairScore over pairs.</p>
 <p>Charges come from #IMP::atom::Charged and radii from #IMP::core::XYZR, which is where #IMP::atom::CoulombPairScore reads them too.</p>
 <dl class="section note"><dt>Note</dt><dd>The shift that smooths the cutoff uses <code>cutoff</code> where the squared distance would be dimensionally right (<code>sqrt(cutoff + ...)</code>, not <code>sqrt(cutoff^2 + ...)</code>). That is what the reference implementations do, and changing it would move every energy this has ever produced; it is kept deliberately, and said out loud here. </dd></dl>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
@@ -250,7 +250,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Sep 25 2026 17:18:19 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Sep 26 2026 01:56:48 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

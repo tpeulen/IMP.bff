@@ -124,8 +124,8 @@ Public Member Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A Go model over a set of beads: truncated Lennard-Jones on native contacts. </p>
 <p>Every pair gets a well whose minimum is the distance it has <b>in the structure the restraint was built from</b> &ndash; that is what makes it a Go model &ndash; with the full depth inside <code>cutoff</code> and <code>nn_e_factor</code> of it outside. The energy is</p>
-<p><picture><source srcset="form_264_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$E = \sum \epsilon_{ij}(-s + s^2/4 + 0.00818)$" src="form_264.png"/></picture>, <picture><source srcset="form_265_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$s = 2(r_m/r)^6$" src="form_265.png"/></picture>,</p>
-<p>inside <picture><source srcset="form_266_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r_m &lt; r &lt; 2.5 r_m$" src="form_266.png"/></picture> and <picture><source srcset="form_267_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$-\epsilon_{ij}$" src="form_267.png"/></picture> outside it.</p>
+<p><picture><source srcset="form_270_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$E = \sum \epsilon_{ij}(-s + s^2/4 + 0.00818)$" src="form_270.png"/></picture>, <picture><source srcset="form_271_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$s = 2(r_m/r)^6$" src="form_271.png"/></picture>,</p>
+<p>inside <picture><source srcset="form_272_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r_m &lt; r &lt; 2.5 r_m$" src="form_272.png"/></picture> and <picture><source srcset="form_273_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$-\epsilon_{ij}$" src="form_273.png"/></picture> outside it.</p>
 <dl class="section note"><dt>Note</dt><dd>#IMP::bff::create_go_restraints in <code><a class="el" href="_rotamer_scoring_8h.html">RotamerScoring.h</a></code> is a <em>harmonic</em> native contact over force-field sites. This is the truncated-LJ form over beads; they are different terms and both stay.</dd>
 <dd>
 The Python in chisurf carried its accumulator across pairs (<code>tmp -= sr</code> on the previous pair's value), so every energy after the first was wrong by whatever came before it. The imp-tricks kernel fixed that with a local, and this is that one. </dd></dl>
@@ -347,7 +347,7 @@ The Python in chisurf carried its accumulator across pairs (<code>tmp -= sr</cod
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Sep 25 2026 17:18:19 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Sep 26 2026 01:56:48 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
