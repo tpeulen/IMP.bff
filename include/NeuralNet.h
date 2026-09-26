@@ -138,6 +138,22 @@ public:
     static NeuralNet from_safetensors_file(const std::string& path,
                                            const std::string& hidden_activation = "tanh");
 
+    //! The network as safetensors bytes (a PyTorch-style `state_dict`).
+    /*! The inverse of from_safetensors(): one `blk.<i>.weight` of shape
+        `(n_out, n_in)` plus `blk.<i>.bias` per layer, dtype F64 (safetensors
+        has no quantised dtypes; quantised nets round-trip through GGUF), the
+        activations in `__metadata__` as
+        `"activations": "tanh,tanh,identity"`, and the scalers as
+        `x_scaler.mean` / `x_scaler.scale` / `y_scaler.mean` /
+        `y_scaler.scale` float64 tensors when the net carries them. The
+        result loads with `safetensors.numpy.load_file` and with
+        from_safetensors() bit-exactly.
+        \throws IMP::ValueException if the model is invalid */
+    SafetensorsBytes to_safetensors() const;
+    //! to_safetensors() written to the file at `path`.
+    /*! \throws IMP::IOException if the file cannot be written */
+    void to_safetensors_file(const std::string& path) const;
+
     //! Read a GGUF file holding a `bff.mlp` network.
     /*! GGUF is llama.cpp's and MLX's model format. Weights may be stored in
         any type this module maps -- F32, F16, BF16, F64, I8, Q8_0, Q4_0,

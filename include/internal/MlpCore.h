@@ -1466,6 +1466,104 @@ inline MlpModel model_from_safetensors(const unsigned char* data, size_t n,
     return m;
 }
 
+//! A validated model as safetensors bytes (a PyTorch-style `state_dict`).
+/*! The inverse of model_from_safetensors(): one `blk.<i>.weight` of shape
+    `(n_out, n_in)` plus `blk.<i>.bias` per layer, F64 payloads (the reader
+    accepts F64, so nothing loses precision), activations in `__metadata__`
+    as `"activations": "<h>,<h>,identity"` — the exact string
+    model_from_safetensors() parses back. Offsets count from the start of
+    the byte buffer (after the 8-byte header length), so a single header
+    build is self-consistent: the header length never enters the offsets. */
+template <class Json>
+inline std::vector<unsigned char> model_to_safetensors(const MlpModel& m) {
+    m.validate();
+    Json md = Json::object();
+    md["format"] = "bff.neural_net";
+    {
+        std::string acts;
+        for (size_t i = 0; i < m.layers.size(); ++i) {
+            if (i) acts += ",";
+            acts += activation_to_string(m.layers[i].activation);
+        }
+        md["activations"] = acts;
+    }
+
+    struct Tensor {
+        std::string name, dtype;
+        std::vector<std::int64_t> shape;
+        std::vector<unsigned char> bytes;
+    };
+    std::vector<Tensor> ts;
+    auto push = [&](const std::string& name, const std::string& dtype,
+                    std::vector<std::int64_t> shape, const double* v, size_t n) {
+        Tensor t;
+        t.name = name;
+        t.dtype = dtype;
+        t.shape = std::move(shape);
+        t.bytes.resize(n * (dtype == "F64" ? 8 : 4));
+        if (dtype == "F64") {
+            std::memcpy(t.bytes.data(), v, t.bytes.size());
+        } else {
+            for (size_t i = 0; i < n; ++i) {
+                const float f = static_cast<float>(v[i]);
+                std::memcpy(t.bytes.data() + 4 * i, &f, 4);
+            }
+        }
+        ts.push_back(std::move(t));
+    };
+    for (size_t i = 0; i < m.layers.size(); ++i) {
+        const DenseLayer& l = m.layers[i];
+        const std::string p = "blk." + std::to_string(i);
+        const std::vector<std::int64_t> wshape{static_cast<std::int64_t>(l.n_out),
+                                               static_cast<std::int64_t>(l.n_in)};
+        const std::vector<std::int64_t> bshape{static_cast<std::int64_t>(l.n_out)};
+        push(p + ".weight", "F64", wshape, l.weight.data(), l.weight.size());
+        push(p + ".bias", "F64", bshape, l.bias.data(), l.bias.size());
+    }
+    // the model's scalers ride along as tensors when active
+    if (m.x_scaler.active()) {
+        const std::vector<std::int64_t> s{m.x_scaler.size()};
+        push("x_scaler.mean", "F64", s, m.x_scaler.mean.data(), m.x_scaler.mean.size());
+        push("x_scaler.scale", "F64", s, m.x_scaler.scale.data(), m.x_scaler.scale.size());
+    }
+    if (m.y_scaler.active()) {
+        const std::vector<std::int64_t> s{m.y_scaler.size()};
+        push("y_scaler.mean", "F64", s, m.y_scaler.mean.data(), m.y_scaler.mean.size());
+        push("y_scaler.scale", "F64", s, m.y_scaler.scale.data(), m.y_scaler.scale.size());
+    }
+
+    // offsets count buffer bytes from the end of the 8-byte length word:
+    // independent of the header length, one build suffices
+    std::uint64_t at = 0;
+    Json header = Json::object();
+    header["__metadata__"] = md;
+    for (auto& t : ts) {
+        Json e = Json::object();
+        e["dtype"] = t.dtype;
+        e["shape"] = t.shape;
+        const std::vector<std::int64_t> off{static_cast<std::int64_t>(at),
+                static_cast<std::int64_t>(at + t.bytes.size())};
+        e["data_offsets"] = off;
+        at += t.bytes.size();
+        header[t.name] = e;
+    }
+    std::string h = header.dump();
+    // the spec asks the header to end aligned to 8 bytes with spaces
+    const std::uint64_t hlen = (h.size() + 7) & ~std::uint64_t(7);
+    h.resize(static_cast<size_t>(hlen), ' ');
+
+    std::vector<unsigned char> out;
+    out.reserve(static_cast<size_t>(8 + hlen + at));
+    // the spec's u64 length word is LITTLE-endian — the same convention
+    // model_from_safetensors() reads
+    for (int i = 0; i < 8; ++i)
+        out.push_back(static_cast<unsigned char>((hlen >> (8 * i)) & 0xFF));
+    out.insert(out.end(), h.begin(), h.end());
+    for (const auto& t : ts)
+        out.insert(out.end(), t.bytes.begin(), t.bytes.end());
+    return out;
+}
+
 }  // namespace mlpcore
 #endif  // SWIG
 }  // namespace internal

@@ -148,6 +148,26 @@ NeuralNet NeuralNet::from_safetensors_file(const std::string& path,
     return from_safetensors(neural_net_detail::read_file_bytes(path, "from_safetensors_file"), hidden_activation);
 }
 
+SafetensorsBytes NeuralNet::to_safetensors() const {
+    try {
+        const std::vector<unsigned char> file =
+                mc::model_to_safetensors<nlohmann::json>(impl_->model);
+        return SafetensorsBytes(file.begin(), file.end());
+    } catch (const IMP::Exception&) {
+        throw;
+    } catch (const std::exception& e) {
+        IMP_THROW("NeuralNet::to_safetensors: " << e.what(), IMP::ValueException);
+    }
+}
+
+void NeuralNet::to_safetensors_file(const std::string& path) const {
+    const SafetensorsBytes file = to_safetensors();
+    std::ofstream fh(path, std::ios::binary);
+    if (!fh) IMP_THROW("NeuralNet::to_safetensors_file: cannot open '" << path << "'", IMP::IOException);
+    fh.write(file.data(), static_cast<std::streamsize>(file.size()));
+    if (!fh) IMP_THROW("NeuralNet::to_safetensors_file: cannot write '" << path << "'", IMP::IOException);
+}
+
 NeuralNet NeuralNet::from_gguf(const GgufBytes& data) {
     internal::MlpModel m;
     try {
