@@ -67,6 +67,9 @@ typedef std::string OnnxBytes;
 /*! As OnnxBytes: bytes-like in Python, a `str` refused with a TypeError. */
 typedef std::string SafetensorsBytes;
 
+/*! As OnnxBytes: bytes-like in Python, a `str` refused with a TypeError. */
+typedef std::string GgufBytes;
+
 //! A dense multilayer perceptron: evaluated in batches, and differentiable.
 /*!
     Constructed from a `bff.neural_net` msgpack document -- the one
@@ -134,6 +137,37 @@ public:
     /*! \throws IMP::IOException if the file cannot be read */
     static NeuralNet from_safetensors_file(const std::string& path,
                                            const std::string& hidden_activation = "tanh");
+
+    //! Read a GGUF file holding a `bff.mlp` network.
+    /*! GGUF is llama.cpp's and MLX's model format. Weights may be stored in
+        any type this module maps -- F32, F16, BF16, F64, I8, Q8_0, Q4_0,
+        Q1_0, MXFP4, NVFP4, TQ1_0 or TQ2_0 -- and are dequantised on load;
+        biases, the layer shapes (`bff.dims`) and activations
+        (`bff.activations`) and the scalers (`bff.x_scaler.*`,
+        `bff.y_scaler.*`) come from the metadata. A file written by
+        to_gguf() loads bit-compatibly (F64 weights bit-exactly); quantised
+        tensors arrive dequantised, within the type's precision.
+        \throws IMP::ValueException on a malformed file or a foreign
+                architecture */
+    static NeuralNet from_gguf(const GgufBytes& data);
+    //! from_gguf() on the contents of the file at `path`.
+    /*! \throws IMP::IOException if the file cannot be read */
+    static NeuralNet from_gguf_file(const std::string& path);
+
+    //! The network as a GGUF file image, weights stored as `weight_type`.
+    /*! One of "f32" (default), "f16", "bf16", "f64", "q8_0", "q4_0",
+        "q1_0", "mxfp4", "nvfp4", "tq2_0" or "tq1_0". Quantised types
+        quantise each weight matrix (blocks of 32 or 256 along the input
+        dimension, rows padded to the block size); "f64" round trips
+        bit-exactly. The file's architecture tag is `bff.mlp`, the layer
+        shapes and activations and the scalers ride in `bff.*` metadata, so
+        from_gguf() rebuilds this network.
+        \throws IMP::ValueException for an unknown type or an empty network */
+    GgufBytes to_gguf(const std::string& weight_type = "f32") const;
+    //! to_gguf() written to the file at `path`.
+    /*! \throws IMP::IOException if the file cannot be written */
+    void to_gguf_file(const std::string& path,
+                      const std::string& weight_type = "f32") const;
 
     //! The network as a `bff.neural_net` msgpack document.
     /*! `NeuralNet(net.to_msgpack())` is the same network, bit for bit; this
@@ -353,6 +387,36 @@ public:
     static QuantizedNeuralNet from_msgpack(const MsgpackBytes& document);
     //! The `bff.quantized_neural_net` msgpack document (bit-exact round trip).
     MsgpackBytes to_msgpack() const;
+
+    //! Read a GGUF file holding a quantised `bff.mlp` network.
+    /*! The exact codes survive for "int8" (GGUF I8 + the per-layer scales
+        in metadata), "mxfp4" (GGUF MXFP4, bff's scale convention reversed
+        on load), "ternary" / "ternary_row" (TQ2_0) and "ternary_tq1" /
+        "ternary_tq1_row" (TQ1_0, the absmean from metadata); "nvfp4"
+        arrives folded (see to_gguf()); "fp4" was stored dequantised and
+        arrives as float layers.
+        \throws IMP::ValueException on a malformed file or a foreign
+                architecture */
+    static QuantizedNeuralNet from_gguf(const GgufBytes& data);
+    //! from_gguf() on the contents of the file at `path`.
+    /*! \throws IMP::IOException if the file cannot be read */
+    static QuantizedNeuralNet from_gguf_file(const std::string& path);
+
+    //! The quantised network as a GGUF file image, codes and scales intact
+    //! where GGUF has a matching type.
+    /*! int8 -> I8 + `bff.int8.scales`; mxfp4 -> MXFP4 (exact, foreign
+        readers decode it correctly); nvfp4 -> NVFP4 with the global scale
+        folded into the block scales (`bff.nvfp4.*.tensor_scale` records
+        the original; at most 1/16 relative noise a block); ternary ->
+        TQ2_0 / TQ1_0 with the absmean in `bff.ternary.*` metadata;
+        bff "fp4" (per-row scales) and the kept float64 layers are stored
+        dequantised as F32. Biases and scalers ride as F32/F64 tensors and
+        `bff.*` metadata.
+        \throws IMP::ValueException on an empty network */
+    GgufBytes to_gguf() const;
+    //! to_gguf() written to the file at `path`.
+    /*! \throws IMP::IOException if the file cannot be written */
+    void to_gguf_file(const std::string& path) const;
 
     //! "int8", "fp4", "mxfp4", "nvfp4" or one of the ternary formats.
     std::string get_format() const;

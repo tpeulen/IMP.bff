@@ -745,8 +745,10 @@ IMP_SWIG_DIRECTOR(IMP::bff, FitMinimizerObserver);
 
 /*
  * msgpack is bff's native format for every network document
- * (IMP::bff::MsgpackBytes, NeuralNet.h); ONNX and safetensors are import
- * formats (IMP::bff::OnnxBytes, IMP::bff::SafetensorsBytes). All three are
+ * (IMP::bff::MsgpackBytes, NeuralNet.h); ONNX, safetensors and GGUF are
+ * import formats
+ * (IMP::bff::OnnxBytes, IMP::bff::SafetensorsBytes, IMP::bff::GgufBytes); GGUF
+ * is also an export format (to_gguf). All are
  * a binary-safe std::string in C++ and `bytes` both ways in Python: bytes,
  * bytearray or memoryview (anything exposing a contiguous buffer) goes in,
  * `bytes` comes out -- never `str`, which would decode the payload as
@@ -813,6 +815,8 @@ BFF_BYTES_TYPEMAPS(IMP::bff::OnnxBytes, "an ONNX model",
     " (read the file with open(path, 'rb').read(), or use from_onnx_file)")
 BFF_BYTES_TYPEMAPS(IMP::bff::SafetensorsBytes, "a safetensors file",
     " (read the file with open(path, 'rb').read(), or use from_safetensors_file)")
+BFF_BYTES_TYPEMAPS(IMP::bff::GgufBytes, "a GGUF file",
+    " (read the file with open(path, 'rb').read(), or use from_gguf_file)")
 
 /* A dense network, evaluated in batches and differentiated. Every array
    result is a managed view -- 1-D for predict() (`n_rows * n_outputs`),

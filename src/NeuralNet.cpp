@@ -21,6 +21,7 @@
 #include <IMP/bff/internal/MlpTernary.h>
 #include <IMP/bff/internal/MlpQuant.h>
 #include <IMP/bff/internal/NetworkDocument.h>
+#include <IMP/bff/internal/NetworkGguf.h>
 
 #include <cstdlib>
 #include <exception>
@@ -145,6 +146,43 @@ NeuralNet NeuralNet::from_safetensors(const SafetensorsBytes& data,
 NeuralNet NeuralNet::from_safetensors_file(const std::string& path,
                                            const std::string& hidden_activation) {
     return from_safetensors(neural_net_detail::read_file_bytes(path, "from_safetensors_file"), hidden_activation);
+}
+
+NeuralNet NeuralNet::from_gguf(const GgufBytes& data) {
+    internal::MlpModel m;
+    try {
+        m = internal::netgguf::model_from_gguf(
+                std::vector<std::uint8_t>(data.begin(), data.end()));
+    } catch (const IMP::Exception&) {
+        throw;
+    } catch (const std::exception& e) {
+        IMP_THROW("NeuralNet::from_gguf: " << e.what(), IMP::ValueException);
+    }
+    return NeuralNet(std::make_shared<Impl>(std::move(m)));
+}
+
+NeuralNet NeuralNet::from_gguf_file(const std::string& path) {
+    return from_gguf(neural_net_detail::read_file_bytes(path, "from_gguf_file"));
+}
+
+GgufBytes NeuralNet::to_gguf(const std::string& weight_type) const {
+    try {
+        const std::vector<std::uint8_t> file =
+                internal::netgguf::model_to_gguf(impl_->model, weight_type);
+        return GgufBytes(file.begin(), file.end());
+    } catch (const IMP::Exception&) {
+        throw;
+    } catch (const std::exception& e) {
+        IMP_THROW("NeuralNet::to_gguf: " << e.what(), IMP::ValueException);
+    }
+}
+
+void NeuralNet::to_gguf_file(const std::string& path, const std::string& weight_type) const {
+    const GgufBytes file = to_gguf(weight_type);
+    std::ofstream fh(path, std::ios::binary);
+    if (!fh) IMP_THROW("NeuralNet::to_gguf_file: cannot open '" << path << "'", IMP::IOException);
+    fh.write(file.data(), static_cast<std::streamsize>(file.size()));
+    if (!fh) IMP_THROW("NeuralNet::to_gguf_file: cannot write '" << path << "'", IMP::IOException);
 }
 
 MsgpackBytes NeuralNet::to_msgpack() const {
@@ -484,6 +522,51 @@ MsgpackBytes QuantizedNeuralNet::to_msgpack() const {
     if (impl_->is_ternary()) return internal::ternary_to_msgpack(impl_->ternary);
     return internal::quantized_to_msgpack(impl_->format, impl_->quantize_activations, impl_->int8,
                                           impl_->fp4);
+}
+
+GgufBytes QuantizedNeuralNet::to_gguf() const {
+    try {
+        std::vector<std::uint8_t> file;
+        if (impl_->is_ternary())
+            file = internal::netgguf::ternary_to_gguf(impl_->ternary);
+        else
+            file = internal::netgguf::fp4_to_gguf(impl_->format, impl_->int8, impl_->fp4);
+        return GgufBytes(file.begin(), file.end());
+    } catch (const IMP::Exception&) {
+        throw;
+    } catch (const std::exception& e) {
+        IMP_THROW("QuantizedNeuralNet::to_gguf: " << e.what(), IMP::ValueException);
+    }
+}
+
+void QuantizedNeuralNet::to_gguf_file(const std::string& path) const {
+    const GgufBytes file = to_gguf();
+    std::ofstream fh(path, std::ios::binary);
+    if (!fh) IMP_THROW("QuantizedNeuralNet::to_gguf_file: cannot open '" << path << "'", IMP::IOException);
+    fh.write(file.data(), static_cast<std::streamsize>(file.size()));
+    if (!fh) IMP_THROW("QuantizedNeuralNet::to_gguf_file: cannot write '" << path << "'", IMP::IOException);
+}
+
+QuantizedNeuralNet QuantizedNeuralNet::from_gguf(const GgufBytes& data) {
+    QuantizedNeuralNet q;
+    q.impl_ = std::make_shared<Impl>();
+    try {
+        q.impl_->format = internal::netgguf::quantized_from_gguf(
+                std::vector<std::uint8_t>(data.begin(), data.end()),
+                q.impl_->quantize_activations, q.impl_->int8, q.impl_->fp4,
+                q.impl_->ternary);
+    } catch (const IMP::Exception&) {
+        throw;
+    } catch (const std::exception& e) {
+        IMP_THROW("QuantizedNeuralNet::from_gguf: " << e.what(), IMP::ValueException);
+    }
+    if (q.impl_->is_int8()) q.impl_->quantize_activations = true;
+    q.impl_->prepare();
+    return q;
+}
+
+QuantizedNeuralNet QuantizedNeuralNet::from_gguf_file(const std::string& path) {
+    return from_gguf(neural_net_detail::read_file_bytes(path, "from_gguf_file"));
 }
 
 std::string QuantizedNeuralNet::get_format() const { return impl_->format; }
