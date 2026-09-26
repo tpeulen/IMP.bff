@@ -103,6 +103,30 @@ class IMPBFFEXPORT NeuralNetTrainOptions {
   //! also wgrad int8 x int8 on fprop's int8 activations, the gradient int8
   //! per 32-row block with stochastic rounding keyed by `seed`).
   std::string ternary_backward = "float64";
+  //! Ternary only: the optimisation schedule. `"bitnet"` (default; lower
+  //! held-out error than `"constant"` on both test sets, okf/neural-net.md)
+  //! or `"constant"`: `learning_rate`, `beta2` and `alpha` every step,
+  //! early stopping as set (the schedule before 2026-09-26). `"bitnet"`: the
+  //! two-stage recipe of BitNet b1.58 ("The Era of 1-bit LLMs: Training
+  //! Tips, Code and FAQ", Ma, Wang, Wei): over the `T = max_iter x batches`
+  //! steps the learning rate is `peak_k x (1 - t / T) x min(1, (t + 1) /
+  //! warm-up)` with `peak_1 = ternary_lr_stage1 x learning_rate` before the
+  //! split step `ternary_stage_split x T` and `peak_2 = ternary_lr_stage2 x
+  //! learning_rate` after it (linear decay with a drop at the split);
+  //! decoupled weight decay `ternary_weight_decay` (AdamW-style, weights
+  //! only) and the L2 `alpha` in stage 1, neither in stage 2 (the latent
+  //! weights' magnitude is the trits' "confidence"); Adam's second moment
+  //! `ternary_beta2`; early stopping's patience counts only in stage 2 (the
+  //! loss curve of ternary training is S-shaped: stage 1's held-out loss
+  //! does not predict the end), the best held-out weights are kept as ever.
+  std::string ternary_schedule = "bitnet";
+  double ternary_lr_stage1 = 1.5;
+  double ternary_lr_stage2 = 1.0;
+  double ternary_weight_decay = 0.1;
+  double ternary_stage_split = 0.5;
+  //! Linear warm-up, a fraction of the steps (BitNet: 375 of ~1e5 steps).
+  double ternary_warmup = 0.01;
+  double ternary_beta2 = 0.95;
 
   IMP_SHOWABLE_INLINE(NeuralNetTrainOptions,
                       out << "NeuralNetTrainOptions(max_iter " << max_iter

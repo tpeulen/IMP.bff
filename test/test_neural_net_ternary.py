@@ -165,7 +165,8 @@ def test_ptq_error_on_the_fixtures_is_reported():
 # measured 2026-09-25 (okf/neural-net.md, "Ternary"): held-out MSE, target
 # variance 0.51 -- float64 8.4e-4; ternary QAT 1.52e-3 (1.8x; every layer
 # ternary: 1.86e-3, 2.2x); ternary PTQ of the float64 net 0.233 (276x),
-# ternary_row PTQ 0.206
+# ternary_row PTQ 0.206. With the BitNet schedule (the default since
+# 2026-09-26): QAT 1.35e-3 (1.6x), every layer ternary 2.72e-3 (3.2x)
 QAT_BOUND = 3.0
 
 
@@ -247,7 +248,8 @@ def test_qat_on_the_hmm_surrogate_set():
     r, qat, ptq = mae(ref), mae(q), mae(IMP.bff.QuantizedNeuralNet(ref, "ternary"))
     print("\nHMM surrogate (256-256-128), held-out MAE: float64 %.4f | ternary QAT %.4f (%.2fx) | ternary PTQ %.4f (%.2fx)"
           % (r, qat, qat / r, ptq, ptq / r))
-    # measured 2026-09-25: float64 0.0959, QAT 0.0939 (0.98x), PTQ 0.173 (1.81x)
+    # measured 2026-09-25: float64 0.0959, QAT 0.0939 (0.98x), PTQ 0.173 (1.81x);
+    # BitNet schedule (default since 2026-09-26): QAT 0.0918 (0.96x)
     assert qat <= 1.2 * r
     assert qat < ptq
 
@@ -259,8 +261,9 @@ def test_qat_on_the_hmm_surrogate_set():
 BACKWARDS = ("float64", "int8_dgrad", "int8")
 # measured 2026-09-26 (okf/neural-net.md, "Ternary: int8 backward"),
 # held-out MSE: float64 training 8.4e-4; ternary QAT with the float64
-# backward 1.52e-3, int8_dgrad 1.57e-3 (1.03x), int8 1.67e-3 (1.10x); HMM
-# surrogate MAE 0.0939 / 0.0943 / 0.0935. Bound: each int8 mode within this
+# backward 1.35e-3, int8_dgrad 1.35e-3 (1.00x), int8 1.46e-3 (1.08x) (BitNet
+# schedule; constant: 1.52e-3 / 1.57e-3 / 1.67e-3); HMM surrogate MAE
+# 0.0918 / 0.0919 / 0.0921 (constant: 0.0939 / 0.0943 / 0.0935). Bound: each int8 mode within this
 # factor of the float64-backward ternary result
 BACKWARD_BOUND = 1.3
 
@@ -314,3 +317,46 @@ def test_backward_modes_on_the_hmm_surrogate_set():
     for bw in ("int8_dgrad", "int8"):
         assert m[bw] <= 1.2 * m["float64"], (bw, m)
         assert m[bw] <= 1.3 * ref
+
+
+# ---------------------------------------------------------------------------
+# The BitNet schedule (ternary_schedule)
+# ---------------------------------------------------------------------------
+
+def test_bitnet_schedule_against_constant():
+    """BitNet b1.58's two-stage recipe (higher peak learning rate with linear
+    decay and a drop at the split, weight decay 0.1 -> 0, Adam beta2 0.95,
+    warm-up, patience only in stage 2) against the constant schedule, each
+    backward mode. Measured 2026-09-26, held-out MSE after 60 epochs:
+    constant 1.52e-3 / 1.67e-3 (float64 / int8 backward), bitnet 1.35e-3 /
+    1.46e-3."""
+    X, Y = _regression(3000, 0)
+    Xte, Yte = _regression(1000, 1)
+    assert IMP.bff.NeuralNetTrainOptions().ternary_schedule == "bitnet"
+    for bw in ("float64", "int8"):
+        c = _train(X, Y, _opts("ternary", ternary_backward=bw, ternary_schedule="constant"))
+        b = _train(X, Y, _opts("ternary", ternary_backward=bw))
+        mc_, mb = (_mse(IMP.bff.QuantizedNeuralNet.from_msgpack(t.get_quantized_network()), Xte, Yte) for t in (c, b))
+        print("\nbackward %s, held-out MSE: constant %.4g | bitnet %.4g (%.2fx), epochs %d / %d"
+              % (bw, mc_, mb, mb / mc_, c.get_number_of_epochs(), b.get_number_of_epochs()))
+        assert mb <= mc_
+        assert b.get_number_of_epochs() >= 30  # early stopping waits for stage 2
+
+
+def test_bitnet_schedule_options():
+    X, Y = _regression(800, 2)
+    a = _train(X, Y, _opts("ternary", seed=4, max_iter=6))
+    b = _train(X, Y, _opts("ternary", seed=4, max_iter=6, ternary_schedule="bitnet"))
+    assert a.get_network() == b.get_network()
+    # every knob matters
+    for kw in (dict(ternary_lr_stage1=3.0), dict(ternary_lr_stage2=2.0), dict(ternary_weight_decay=0.0),
+               dict(ternary_stage_split=0.25), dict(ternary_warmup=0.2), dict(ternary_beta2=0.999)):
+        assert _train(X, Y, _opts("ternary", seed=4, max_iter=6, **kw)).get_network() != a.get_network(), kw
+    # float64 / FP4 training ignore it
+    f = _train(X, Y, _opts("float64", seed=4, max_iter=3))
+    g = _train(X, Y, _opts("float64", seed=4, max_iter=3, ternary_schedule="constant"))
+    assert f.get_network() == g.get_network()
+    for kw in (dict(ternary_schedule="cosine"), dict(ternary_stage_split=1.5), dict(ternary_lr_stage1=0.0),
+               dict(ternary_beta2=1.0), dict(ternary_warmup=-0.1)):
+        with pytest.raises(ValueError):
+            _train(X, Y, _opts("ternary", max_iter=1, **kw))

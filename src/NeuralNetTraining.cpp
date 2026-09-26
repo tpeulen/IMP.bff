@@ -96,6 +96,15 @@ NeuralNetTraining train_neural_net_with_history(
   } catch (const std::exception& e) {
     IMP_THROW("train_neural_net: " << e.what(), IMP::ValueException);
   }
+  const bool bitnet = ternary && opt.ternary_schedule == "bitnet";
+  if (opt.ternary_schedule != "constant" && opt.ternary_schedule != "bitnet")
+    IMP_THROW("train_neural_net: ternary_schedule must be constant or bitnet, not '"
+                  << opt.ternary_schedule << "'",
+              IMP::ValueException);
+  if (bitnet && !(opt.ternary_lr_stage1 > 0 && opt.ternary_lr_stage2 > 0 && opt.ternary_weight_decay >= 0 &&
+                  opt.ternary_stage_split >= 0 && opt.ternary_stage_split <= 1 && opt.ternary_warmup >= 0 &&
+                  opt.ternary_warmup < 1 && opt.ternary_beta2 > 0 && opt.ternary_beta2 < 1))
+    IMP_THROW("train_neural_net: ternary schedule parameters out of range", IMP::ValueException);
   tcfg.seed = 0x5442'0000'0000'0000ULL ^ static_cast<std::uint64_t>(static_cast<std::uint32_t>(opt.seed));
   tnt::Workspace tws;
   f4t::Config fcfg;
@@ -220,6 +229,13 @@ NeuralNetTraining train_neural_net_with_history(
   std::vector<int> batch_order(n_train);
   std::iota(batch_order.begin(), batch_order.end(), 0);
 
+  // the BitNet schedule over all T steps (the split and warm-up in steps)
+  const long n_per_epoch = (n_train + opt.batch_size - 1) / opt.batch_size;
+  const double T_steps = static_cast<double>(n_per_epoch) * opt.max_iter;
+  const long split_step = static_cast<long>(std::llround(opt.ternary_stage_split * T_steps));
+  const double warm_steps = std::max(1.0, opt.ternary_warmup * T_steps);
+  long step = 0;
+
   double best_val = std::numeric_limits<double>::infinity();
   int n_bad = 0;
   std::vector<double> best_params = params;
@@ -267,13 +283,24 @@ NeuralNetTraining train_neural_net_with_history(
           tnt::backward<d::TrainGemm>(model.layers, tcfg, tws, dY.data(), bs, grad.data());
         else
           mc::backward<d::TrainGemm>(model.layers, ws, dY.data(), nullptr, nullptr, grad.data());
-        if (opt.alpha > 0.0)  // L2 on weights only
+        const bool stage1 = step < split_step;
+        double lr = opt.learning_rate, beta2 = opt.beta2;
+        if (bitnet) {
+          const double t = static_cast<double>(step);
+          lr *= (stage1 ? opt.ternary_lr_stage1 : opt.ternary_lr_stage2) * (1.0 - t / T_steps) *
+                std::min(1.0, (t + 1.0) / warm_steps);
+          beta2 = opt.ternary_beta2;
+        }
+        ++step;
+        if (opt.alpha > 0.0 && (!bitnet || stage1))  // L2 on weights only
           for (std::size_t i = 0; i < n_params; ++i)
             if (!is_bias[i]) grad[i] += opt.alpha * params[i];
 
         IMP::bff::internal::adam_update(params.data(), grad.data(), n_params, adam,
-                                        opt.learning_rate, opt.beta1, opt.beta2,
-                                        opt.epsilon);
+                                        lr, opt.beta1, beta2, opt.epsilon);
+        if (bitnet && stage1 && opt.ternary_weight_decay > 0.0)  // decoupled (AdamW)
+          for (std::size_t i = 0; i < n_params; ++i)
+            if (!is_bias[i]) params[i] -= lr * opt.ternary_weight_decay * params[i];
         mc::unflatten(model.layers, params.data(), n_params);
       }
 
@@ -286,7 +313,7 @@ NeuralNetTraining train_neural_net_with_history(
           best_val = vl;
           n_bad = 0;
           best_params = params;
-        } else if (++n_bad >= opt.n_iter_no_change) {
+        } else if ((!bitnet || step > split_step) && ++n_bad >= opt.n_iter_no_change) {
           break;  // patience exhausted; keep the best weights seen
         }
       }
