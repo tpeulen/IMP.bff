@@ -128,6 +128,26 @@ NeuralNet NeuralNet::from_onnx_file(const std::string& path) {
     return from_onnx(neural_net_detail::read_file_bytes(path, "from_onnx_file"));
 }
 
+OnnxBytes NeuralNet::to_onnx() const {
+    try {
+        const std::vector<unsigned char> file =
+                mc::model_to_onnx(impl_->model);
+        return OnnxBytes(file.begin(), file.end());
+    } catch (const IMP::Exception&) {
+        throw;
+    } catch (const std::exception& e) {
+        IMP_THROW("NeuralNet::to_onnx: " << e.what(), IMP::ValueException);
+    }
+}
+
+void NeuralNet::to_onnx_file(const std::string& path) const {
+    const OnnxBytes file = to_onnx();
+    std::ofstream fh(path, std::ios::binary);
+    if (!fh) IMP_THROW("NeuralNet::to_onnx_file: cannot open '" << path << "'", IMP::IOException);
+    fh.write(file.data(), static_cast<std::streamsize>(file.size()));
+    if (!fh) IMP_THROW("NeuralNet::to_onnx_file: cannot write '" << path << "'", IMP::IOException);
+}
+
 NeuralNet NeuralNet::from_safetensors(const SafetensorsBytes& data,
                                       const std::string& hidden_activation) {
     internal::MlpModel m;

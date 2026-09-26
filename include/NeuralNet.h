@@ -123,6 +123,20 @@ public:
     /*! \throws IMP::IOException if the file cannot be read */
     static NeuralNet from_onnx_file(const std::string& path);
 
+    //! The network as ONNX bytes.
+    /*! The inverse of from_onnx(): one Gemm per layer (weights
+        `n_out x n_in`, PyTorch's layout) plus its activation node — Relu,
+        Tanh, Sigmoid, Softplus, Sin, the Sigmoid + Mul pair for SiLU, and
+        nothing for the linear output. Weights are FLOAT: onnxruntime
+        evaluates in float32, so a float64 net comes back within float32
+        precision, exactly like the float32 nets from_onnx() imports. The
+        bytes pass onnx.checker and run in onnxruntime.
+        \throws IMP::ValueException if the model is invalid */
+    OnnxBytes to_onnx() const;
+    //! to_onnx() written to the file at `path`.
+    /*! \throws IMP::IOException if the file cannot be written */
+    void to_onnx_file(const std::string& path) const;
+
     //! Read a safetensors file holding a PyTorch-style `state_dict`.
     /*! `<prefix>.weight` of shape `(n_out, n_in)` with optional
         `<prefix>.bias`, layers ordered by the first integer in the prefix;

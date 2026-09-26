@@ -65,6 +65,17 @@ def test_safetensors_file_round_trip():
         os.unlink(p)
 
 
+def test_safetensors_round_trip_preserves_scalers():
+    doc = msgpack.unpackb(_make_net().to_msgpack(), raw=False)
+    doc["x_scaler"] = {"mean": [0.1] * 8, "scale": [1.2] * 8}
+    doc["y_scaler"] = {"mean": [-0.3] * 2, "scale": [0.7] * 2}
+    net = NeuralNet(msgpack.packb(doc, use_bin_type=True))
+    got = msgpack.unpackb(
+        NeuralNet.from_safetensors(net.to_safetensors()).to_msgpack(), raw=False)
+    assert got["x_scaler"] == doc["x_scaler"]
+    assert got["y_scaler"] == doc["y_scaler"]
+
+
 def test_safetensors_bytes_not_text():
     net = _make_net()
     raw = net.to_safetensors()

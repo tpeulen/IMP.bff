@@ -1220,6 +1220,249 @@ inline Node parse_node(Reader r) {
 
 }  // namespace onnx_detail
 
+/// The bytes of one protobuf field: tag, then the payload per wire type.
+/*! Wire types: 0 varint, 1 64-bit, 2 length-delimited, 5 32-bit. The ONNX
+    writer below uses only these; the reader above parses the same format. */
+namespace onnx_write_detail {
+
+inline void put_varint(std::vector<unsigned char>& out, std::uint64_t v) {
+    while (v >= 0x80) {
+        out.push_back(static_cast<unsigned char>(v | 0x80));
+        v >>= 7;
+    }
+    out.push_back(static_cast<unsigned char>(v));
+}
+
+inline void put_tag(std::vector<unsigned char>& out, unsigned number,
+                    unsigned wire) {
+    put_varint(out, (static_cast<std::uint64_t>(number) << 3) | wire);
+}
+
+inline void put_str(std::vector<unsigned char>& out, unsigned number,
+                    const std::string& s) {
+    put_tag(out, number, 2);
+    put_varint(out, s.size());
+    out.insert(out.end(), s.begin(), s.end());
+}
+
+inline void put_bytes(std::vector<unsigned char>& out, unsigned number,
+                      const std::vector<unsigned char>& b) {
+    put_tag(out, number, 2);
+    put_varint(out, b.size());
+    out.insert(out.end(), b.begin(), b.end());
+}
+
+inline void put_varint_field(std::vector<unsigned char>& out, unsigned number,
+                             std::uint64_t v) {
+    put_tag(out, number, 0);
+    put_varint(out, v);
+}
+
+/// A nested message built first, then embedded as one length-delimited field.
+struct Msg {
+    std::vector<unsigned char> b;
+    void str(unsigned number, const std::string& s) { put_str(b, number, s); }
+    void varint(unsigned number, std::uint64_t v) { put_varint_field(b, number, v); }
+    void fixed32(unsigned number, float f) {
+        put_tag(b, number, 5);
+        unsigned char raw[4];
+        std::memcpy(raw, &f, 4);
+        b.insert(b.end(), raw, raw + 4);
+    }
+    void fixed64(unsigned number, double d) {
+        put_tag(b, number, 1);
+        unsigned char raw[8];
+        std::memcpy(raw, &d, 8);
+        b.insert(b.end(), raw, raw + 8);
+    }
+    void packed_fixed32(unsigned number, const std::vector<float>& v) {
+        put_tag(b, number, 2);
+        put_varint(b, v.size() * 4);
+        for (float f : v) {
+            unsigned char raw[4];
+            std::memcpy(raw, &f, 4);
+            b.insert(b.end(), raw, raw + 4);
+        }
+    }
+    void packed_varint(unsigned number, const std::vector<std::int64_t>& v) {
+        put_tag(b, number, 2);
+        std::vector<unsigned char> payload;
+        for (std::int64_t x : v) put_varint(payload, static_cast<std::uint64_t>(x));
+        put_varint(b, payload.size());
+        b.insert(b.end(), payload.begin(), payload.end());
+    }
+    void msg(unsigned number, const Msg& m) { put_bytes(b, number, m.b); }
+};
+
+/// onnx.TensorProto: FLOAT = 1, DOUBLE = 11; raw_data = field 9.
+inline Msg tensor_proto(const std::string& name,
+                        const std::vector<std::int64_t>& dims,
+                        const std::vector<double>& data, bool as_double) {
+    Msg t;
+    t.str(8, name);              // field 8: name
+    t.packed_varint(1, dims);    // field 1: dims
+    t.varint(2, as_double ? 11 : 1);
+    if (as_double) {
+        put_tag(t.b, 9, 2);      // field 9: raw_data
+        put_varint(t.b, data.size() * 8);
+        for (double d : data) {
+            unsigned char raw[8];
+            std::memcpy(raw, &d, 8);
+            t.b.insert(t.b.end(), raw, raw + 8);
+        }
+    } else {
+        std::vector<float> f(data.begin(), data.end());
+        t.packed_fixed32(4, f);  // field 4: float_data
+    }
+    return t;
+}
+
+/// onnx.NodeProto: inputs = 1, outputs = 2, op_type = 4, attribute = 5.
+inline Msg node_proto(const std::string& op,
+                      const std::vector<std::string>& inputs,
+                      const std::vector<std::string>& outputs) {
+    Msg n;
+    for (const auto& i : inputs) n.str(1, i);
+    for (const auto& o : outputs) n.str(2, o);
+    n.str(4, op);
+    return n;
+}
+
+/// An `AttributeProto` of type INT (2) carrying one integer.
+inline Msg int_attr(const std::string& name, std::int64_t value) {
+    Msg a;
+    a.str(1, name);              // AttributeProto.name = 1
+    a.varint(20, 2);             // AttributeProto.type; INT = 2
+    a.varint(3, value);          // AttributeProto.i = 3
+    return a;
+}
+
+/// onnx.ValueInfoProto for a FLOAT tensor with shape [N, width].
+/*! TypeProto wraps its Tensor type in field 1; Tensor's own element type and
+    shape are fields 1 and 2. Keeping those two protobuf layers distinct is
+    required by onnx.checker. */
+inline Msg float_batch_value_info(const std::string& name, int width) {
+    Msg tensor;
+    tensor.varint(1, 1);  // TensorProto.DataType.FLOAT
+    Msg shape;
+    Msg batch;
+    batch.str(1, "N");   // TensorShapeProto.Dimension.dim_param
+    shape.msg(1, batch);
+    Msg features;
+    features.varint(1, static_cast<std::uint64_t>(width));
+    shape.msg(1, features);
+    tensor.msg(2, shape);
+    Msg type;
+    type.msg(1, tensor);  // TypeProto.tensor_type
+    Msg v;
+    v.str(1, name);
+    v.msg(2, type);       // ValueInfoProto.type
+    return v;
+}
+
+}  // namespace onnx_write_detail
+
+/// A validated model as ONNX bytes.
+/*! The inverse of model_from_onnx()'s subset: one Gemm (alpha = beta = 1,
+    transB = 1, weights `n_out x n_in` like PyTorch's layout) plus one
+    activation node per layer — Relu, Tanh, Sigmoid, Softplus, Sin, or none
+    for the linear output. Weights are FLOAT (onnxruntime's native dtype;
+    bff's float64 nets evaluate within float32 precision when round-tripped
+    through ONNX, exactly like the float32 nets the reader imports). The
+    result passes onnx.checker and runs in onnxruntime. */
+inline std::vector<unsigned char> model_to_onnx(const MlpModel& m) {
+    m.validate();
+    using namespace onnx_write_detail;
+
+    // activation -> op name; Identity emits no node
+    auto act_op = [](Activation a) -> const char* {
+        switch (a) {
+            case Activation::ReLU: return "Relu";
+            case Activation::Tanh: return "Tanh";
+            case Activation::Sigmoid: return "Sigmoid";
+            case Activation::Softplus: return "Softplus";
+            case Activation::SiLU: return nullptr;  // expanded below
+            case Activation::Sin: return "Sin";
+            case Activation::Identity: return nullptr;
+        }
+        return nullptr;
+    };
+
+    Msg graph;
+    std::vector<Msg> nodes, inits;
+    std::vector<Msg> inputs, outputs;
+    std::string cur = "features";  // the running tensor name
+    // Graph input: float32 [N, n_in], N dynamic; the final output name is
+    // known only after expanding SiLU, so create its ValueInfo below.
+    inputs.push_back(float_batch_value_info(cur, m.layers.front().n_in));
+
+    for (size_t i = 0; i < m.layers.size(); ++i) {
+        const DenseLayer& l = m.layers[i];
+        const std::string p = "blk" + std::to_string(i) + "_";
+        const std::string wname = p + "weight", bname = p + "bias";
+        const std::vector<std::int64_t> wdims{l.n_out, l.n_in};
+        const std::vector<std::int64_t> bdims{l.n_out};
+        inits.push_back(tensor_proto(wname, wdims, l.weight, false));
+        inits.push_back(tensor_proto(bname, bdims, l.bias, false));
+        const std::string out = p + "linear";
+        Msg gemm = node_proto("Gemm", {cur, wname, bname}, {out});
+        // weights are n_out x n_in (PyTorch's layout): transB = 1; alpha =
+        // beta = 1 explicitly. alpha/beta are AttributeProto FLOAT fields.
+        gemm.msg(5, int_attr("transB", 1));
+        {
+            Msg alpha;
+            alpha.str(1, "alpha");
+            alpha.varint(20, 1);         // AttributeProto type FLOAT = 1
+            alpha.fixed32(2, 1.0f);      // AttributeProto.f = 2
+            gemm.msg(5, alpha);
+            Msg beta;
+            beta.str(1, "beta");
+            beta.varint(20, 1);
+            beta.fixed32(2, 1.0f);
+            gemm.msg(5, beta);
+        }
+        nodes.push_back(std::move(gemm));
+        cur = out;
+        const char* op = act_op(l.activation);
+        if (l.activation == Activation::SiLU) {
+            // x * sigmoid(x): sigmoid into a helper tensor, Mul with x
+            const std::string sig = p + "sigmoid", mul = p + "silu";
+            nodes.push_back(node_proto("Sigmoid", {cur}, {sig}));
+            nodes.push_back(node_proto("Mul", {cur, sig}, {mul}));
+            cur = mul;
+        } else if (op) {
+            const std::string out2 = p + "act";
+            nodes.push_back(node_proto(op, {cur}, {out2}));
+            cur = out2;
+        }
+    }
+    // The output is the last running tensor, with a complete type/shape.
+    outputs.push_back(float_batch_value_info(cur, m.layers.back().n_out));
+
+    for (auto& t : inits) graph.msg(5, t);       // GraphProto.initializer = 5
+    for (auto& n : nodes) graph.msg(1, n);       // GraphProto.node = 1
+    graph.str(2, "bff_mlp");                     // GraphProto.name = 2
+    for (auto& v : inputs) graph.msg(11, v);     // GraphProto.input = 11
+    for (auto& v : outputs) graph.msg(12, v);    // GraphProto.output = 12
+
+    Msg model;
+    model.varint(1, 8);                          // ModelProto.ir_version = 8
+    // IR >= 4 allows initializers that are not graph inputs (the modern ONNX
+    // convention; IR 3 incorrectly requires every initializer as an input).
+    {                                            // opset_import = 8
+        Msg os;
+        os.str(1, "");                           // domain "" = ai.onnx
+        os.varint(2, 13);                        // version 13 (Softplus etc.)
+        model.msg(8, os);
+    }
+    model.str(2, "bff.neural_net");              // producer_name = 2
+    model.msg(7, graph);                         // ModelProto.graph = 7
+
+    std::vector<unsigned char> out = std::move(model.b);
+    // the reader above tolerates any field order; keep field 7 last, as built
+    return out;
+}
+
 /// Build a model from the bytes of an ONNX file (see the subset above).
 inline MlpModel model_from_onnx(const unsigned char* data, size_t n) {
     using namespace onnx_detail;
@@ -1462,6 +1705,28 @@ inline MlpModel model_from_safetensors(const unsigned char* data, size_t n,
         l.activation = activation_from_string(a);
         m.layers.push_back(std::move(l));
     }
+    // bff's writer preserves its otherwise nonstandard scalers as ordinary
+    // named F64 tensors. They are optional: foreign PyTorch state_dicts have
+    // none and stay unscaled.
+    auto read_scaler = [&](const std::string& prefix, StandardScaler& s) {
+        const std::string mean_key = prefix + ".mean";
+        const std::string scale_key = prefix + ".scale";
+        const bool have_mean = j.contains(mean_key);
+        const bool have_scale = j.contains(scale_key);
+        if (have_mean != have_scale)
+            throw std::runtime_error("safetensors: scaler '" + prefix +
+                                     "' needs both .mean and .scale");
+        if (!have_mean) return;
+        std::vector<std::int64_t> mean_shape, scale_shape;
+        s.mean = read(mean_key, mean_shape);
+        s.scale = read(scale_key, scale_shape);
+        if (mean_shape.size() != 1 || scale_shape.size() != 1 ||
+            s.mean.size() != s.scale.size())
+            throw std::runtime_error("safetensors: scaler '" + prefix +
+                                     "' tensors must be equal-length vectors");
+    };
+    read_scaler("x_scaler", m.x_scaler);
+    read_scaler("y_scaler", m.y_scaler);
     m.validate();
     return m;
 }
