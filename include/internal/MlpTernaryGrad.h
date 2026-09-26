@@ -240,11 +240,14 @@ inline void quantize_wgrad_left(const double* dZ, int bs, int n_out, const doubl
     for (int b = 0; b < out.nb; ++b) {
         const int r0 = b * B, nr = std::min(B, bs - r0);
         if (nr < B) std::fill(T.begin(), T.end(), 0.0);
-        for (int rr = 0; rr < nr; ++rr) {  // T[o][rr] = dZ'[r0 + rr][o]
-            const double sa = step_a[r0 + rr];
-            const double* g = dZ + static_cast<std::size_t>(r0 + rr) * n_out;
-            double* t = T.data() + rr;
-            for (int o = 0; o < n_out; ++o) t[static_cast<std::size_t>(o) * B] = g[o] * sa;
+        for (int o0 = 0; o0 < n_out; o0 += 8) {  // T[o][rr] = dZ'[r0 + rr][o], 8 columns at a time
+            const int no = std::min(8, n_out - o0);
+            for (int rr = 0; rr < nr; ++rr) {
+                const double sa = step_a[r0 + rr];
+                const double* g = dZ + static_cast<std::size_t>(r0 + rr) * n_out + o0;
+                double* t = T.data() + static_cast<std::size_t>(o0) * B + rr;
+                for (int j = 0; j < no; ++j) t[static_cast<std::size_t>(j) * B] = g[j] * sa;
+            }
         }
         for (int o = 0; o < n_out; ++o) {
             const double* x = T.data() + static_cast<std::size_t>(o) * B;
@@ -308,6 +311,13 @@ inline void pack_wgrad_right(const A8Rows& A, int n_in, int kp, PackedI8& p) {
 // `f += keep(float(sum) * step)`; out[r * kNR + o] = f.
 
 namespace mk8 {
+//! Left rows a tile: kMR, but 4 on AVX2 (its tile has 8 right rows; four
+//! left rows amortise the right chunks' loads and |w| over more products).
+#if defined(IMPBFF_FP4_AVX2)
+constexpr int kMR8 = 4;
+#else
+constexpr int kMR8 = kMR;
+#endif
 #if defined(IMPBFF_FP4_NEON_DOTPROD) || defined(IMPBFF_FP4_NEON)
 template <int R>
 IMPBFF_FP4_INLINE void tile(const std::int8_t* a, std::size_t lda, const float* st, const std::int32_t*,
@@ -441,6 +451,7 @@ inline void wgrad_gemm(const G8Blocks& L, const PackedI8& P, double* C) {
     if (M <= 0 || N <= 0) return;
     if (L.kp != P.kp) throw std::runtime_error("int8 wgrad: operand widths differ");
     const std::size_t lda = static_cast<std::size_t>(L.kp);
+    constexpr int kMR = mk8::kMR8;
     const int nrb = (M + kMR - 1) / kMR;
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(static) if (static_cast<long>(M) * N * nb > (1L << 14))
