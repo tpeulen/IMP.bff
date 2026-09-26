@@ -91,8 +91,10 @@ def test_onnx_file_round_trip(activation):
 
 
 @pytest.mark.skipif(not ONNX_PY, reason="onnx/onnxruntime not importable")
-def test_onnx_runtime_runs_bff_files():
-    net = _make_net(n_in=32, hidden=(32,), n_out=4)
+@pytest.mark.parametrize("activation", ["relu", "tanh", "logistic",
+                                        "softplus", "silu", "sin", "identity"])
+def test_onnx_runtime_runs_bff_files(activation):
+    net = _make_net(n_in=32, hidden=(32,), n_out=4, activation=activation)
     doc = msgpack.unpackb(net.to_msgpack(), raw=False)
     with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as f:
         p = f.name
@@ -105,9 +107,15 @@ def test_onnx_runtime_runs_bff_files():
         got = sess.run(None, {sess.get_inputs()[0].name: x})[0]
         # reference: manual evaluation of the doc's layers in float32
         h = x
-        acts = {"relu": lambda v: np.maximum(v, 0), "tanh": np.tanh,
-                "logistic": lambda v: 1 / (1 + np.exp(-v)),
-                "identity": lambda v: v}
+        acts = {
+            "relu": lambda v: np.maximum(v, 0),
+            "tanh": np.tanh,
+            "logistic": lambda v: 1 / (1 + np.exp(-v)),
+            "softplus": lambda v: np.maximum(v, 0) + np.log1p(np.exp(-np.abs(v))),
+            "silu": lambda v: v / (1 + np.exp(-v)),
+            "sin": np.sin,
+            "identity": lambda v: v,
+        }
         for i, layer in enumerate(doc["layers"]):
             w = np.array(layer["weight"], dtype=np.float32).reshape(
                     layer["n_out"], layer["n_in"])
