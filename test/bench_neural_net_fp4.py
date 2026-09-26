@@ -22,7 +22,9 @@ call; seconds an epoch) for okf/neural-net.md:
 
 * Ternary (BitNet b1.58, W1.58A8): the same two gates for
   `QuantizedNeuralNet(net, "ternary")` and `precision = "ternary"` (first
-  and last layer float64, the default), on the same shapes.
+  and last layer float64, the default), on the same shapes plus a 128-wide
+  regression; `--ternary-backward float64,int8_dgrad,int8` times each
+  `ternary_backward` mode.
 
 Both paths run on one thread in the IMP build (no OpenMP there); the
 kernel variant is `QuantizedNeuralNet.get_kernel_name()`; the machine's
@@ -95,7 +97,7 @@ def bench_inference(reps):
     return rows
 
 
-def _train_opts(precision, hidden, epochs):
+def _train_opts(precision, hidden, epochs, ternary_backward="float64"):
     o = IMP.bff.NeuralNetTrainOptions()
     o.hidden_layer_sizes = list(hidden)
     o.activation = "tanh"
@@ -103,14 +105,15 @@ def _train_opts(precision, hidden, epochs):
     o.n_iter_no_change = 10 ** 6  # every run does all epochs
     o.seed = 0
     o.precision = precision
+    o.ternary_backward = ternary_backward
     return o
 
 
-def _epoch_seconds(X, Y, precision, hidden, epochs, reps):
+def _epoch_seconds(X, Y, precision, hidden, epochs, reps, ternary_backward="float64"):
     out = []
     for _ in range(reps):
         t0 = time.perf_counter()
-        t = IMP.bff.train_neural_net_arrays(X, Y, _train_opts(precision, hidden, epochs))
+        t = IMP.bff.train_neural_net_arrays(X, Y, _train_opts(precision, hidden, epochs, ternary_backward))
         out.append((time.perf_counter() - t0) / t.get_number_of_epochs())
     return statistics.median(out)
 
@@ -139,7 +142,7 @@ def bench_training(reps, quick):
     return rows
 
 
-def bench_ternary(reps, quick):
+def bench_ternary(reps, quick, backwards=("float64",)):
     print("\n### Ternary G1 inference, us a predict() call (median of %d)\n" % reps)
     print("| net | batch | float64 | nvfp4 W4A8 | ternary | ternary / float64 |")
     print("|---|---|---|---|---|---|")
@@ -156,16 +159,18 @@ def bench_ternary(reps, quick):
          (256, 256, 128), 10 if quick else 40),
         ("regression 3000x4->2, 64-64-64", rng.uniform(-2, 2, size=(3000, 4)), rng.normal(size=(3000, 2)),
          (64, 64, 64), 5 if quick else 20),
+        ("regression 3000x4->2, 128-128-128", rng.uniform(-2, 2, size=(3000, 4)), rng.normal(size=(3000, 2)),
+         (128, 128, 128), 5 if quick else 20),
         ("tiny 2000x2->1, 16-16 (no gate)", rng.uniform(-2, 2, size=(2000, 2)), rng.normal(size=(2000, 1)),
          (16, 16), 5 if quick else 20),
     ]
     print("\n### Ternary G2 training, ms an epoch (median of %d runs; batch 200)\n" % reps)
-    print("| shape | float64 | ternary | ternary / float64 |")
-    print("|---|---|---|---|")
+    print("| shape | float64 | %s |" % " | ".join("ternary, backward %s (/ float64)" % b for b in backwards))
+    print("|---|---|%s|" % "|".join("---" for _ in backwards))
     for name, X, Y, hidden, epochs in cases:
         t64 = _epoch_seconds(X, Y, "float64", hidden, epochs, reps)
-        tt = _epoch_seconds(X, Y, "ternary", hidden, epochs, reps)
-        print("| %s | %.2f | %.2f | %.2f |" % (name, 1e3 * t64, 1e3 * tt, tt / t64))
+        tt = [_epoch_seconds(X, Y, "ternary", hidden, epochs, reps, b) for b in backwards]
+        print("| %s | %.2f | %s |" % (name, 1e3 * t64, " | ".join("%.2f (%.2f)" % (1e3 * v, v / t64) for v in tt)))
 
 
 def main():
@@ -173,6 +178,8 @@ def main():
     ap.add_argument("--reps", type=int, default=7)
     ap.add_argument("--quick", action="store_true")
     ap.add_argument("--ternary", action="store_true", help="only the ternary gates")
+    ap.add_argument("--ternary-backward", default="float64",
+                    help="comma-separated ternary_backward modes to time: float64, int8_dgrad, int8")
     a = ap.parse_args()
     print("machine %s, kernel variant %s" % (platform.machine(), IMP.bff.QuantizedNeuralNet.get_kernel_name()))
     if hasattr(os, "getloadavg"):
@@ -180,7 +187,7 @@ def main():
     if not a.ternary:
         bench_inference(a.reps)
         bench_training(a.reps, a.quick)
-    bench_ternary(a.reps, a.quick)
+    bench_ternary(a.reps, a.quick, tuple(a.ternary_backward.split(",")))
 
 
 if __name__ == "__main__":

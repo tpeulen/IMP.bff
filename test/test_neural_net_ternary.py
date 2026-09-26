@@ -250,3 +250,67 @@ def test_qat_on_the_hmm_surrogate_set():
     # measured 2026-09-25: float64 0.0959, QAT 0.0939 (0.98x), PTQ 0.173 (1.81x)
     assert qat <= 1.2 * r
     assert qat < ptq
+
+
+# ---------------------------------------------------------------------------
+# The low-precision backward modes (ternary_backward)
+# ---------------------------------------------------------------------------
+
+BACKWARDS = ("float64", "int8_dgrad", "int8")
+# measured 2026-09-26 (okf/neural-net.md, "Ternary: int8 backward"),
+# held-out MSE: float64 training 8.4e-4; ternary QAT with the float64
+# backward 1.52e-3, int8_dgrad 1.57e-3 (1.03x), int8 1.67e-3 (1.10x); HMM
+# surrogate MAE 0.0939 / 0.0943 / 0.0935. Bound: each int8 mode within this
+# factor of the float64-backward ternary result
+BACKWARD_BOUND = 1.3
+
+
+def test_backward_modes_on_a_regression():
+    X, Y = _regression(3000, 0)
+    Xte, Yte = _regression(1000, 1)
+    ref = _mse(IMP.bff.NeuralNet(_train(X, Y, _opts("float64")).get_network()), Xte, Yte)
+    m = {}
+    for bw in BACKWARDS:
+        t = _train(X, Y, _opts("ternary", ternary_backward=bw))
+        m[bw] = _mse(IMP.bff.QuantizedNeuralNet.from_msgpack(t.get_quantized_network()), Xte, Yte)
+    print("\nternary backward modes, 4-64-64-64-2 tanh, held-out MSE: float64 training %.4g | %s"
+          % (ref, " | ".join("%s %.4g (%.2fx)" % (k, v, v / m["float64"]) for k, v in m.items())))
+    for bw in ("int8_dgrad", "int8"):
+        assert m[bw] <= BACKWARD_BOUND * m["float64"], (bw, m)
+        assert m[bw] <= QAT_BOUND * ref
+
+
+def test_backward_modes_are_deterministic_and_refused():
+    X, Y = _regression(800, 2)
+    for bw in ("int8_dgrad", "int8"):
+        a = _train(X, Y, _opts("ternary", seed=4, max_iter=5, ternary_backward=bw))
+        b = _train(X, Y, _opts("ternary", seed=4, max_iter=5, ternary_backward=bw))
+        c = _train(X, Y, _opts("ternary", seed=5, max_iter=5, ternary_backward=bw))
+        assert a.get_network() == b.get_network() and a.get_quantized_network() == b.get_quantized_network()
+        assert a.get_network() != c.get_network()
+    d = _train(X, Y, _opts("ternary", seed=4, max_iter=5))
+    e = _train(X, Y, _opts("ternary", seed=4, max_iter=5, ternary_backward="float64"))
+    assert d.get_network() == e.get_network()  # the default is the float64 backward
+    assert IMP.bff.NeuralNetTrainOptions().ternary_backward == "float64"
+    with pytest.raises(ValueError):
+        _train(X, Y, _opts("ternary", max_iter=1, ternary_backward="int4"))
+
+
+def test_backward_modes_on_the_hmm_surrogate_set():
+    if not _has_surrogate():
+        pytest.skip("IMP.bff built without tttrlib: no HmmSurrogate")
+    gen = lambda n, seed: IMP.bff.HmmSurrogate.generate_training_set(  # noqa: E731
+        2, 2, n_samples=n, n_bursts=150, burst_len=80, mean_dt=4.0, seed=seed)
+    X, Y = gen(400, 12345)
+    Xte, Yte = gen(100, 12345 + 999)
+    mae = lambda net: float(np.mean(np.abs(_batch(net, Xte) - Yte)))  # noqa: E731
+    ref = mae(IMP.bff.NeuralNet(_train(X, Y, _opts("float64", seed=0, max_iter=200, hidden=(256, 256, 128))).get_network()))
+    m = {}
+    for bw in BACKWARDS:
+        t = _train(X, Y, _opts("ternary", seed=0, max_iter=200, hidden=(256, 256, 128), ternary_backward=bw))
+        m[bw] = mae(IMP.bff.QuantizedNeuralNet.from_msgpack(t.get_quantized_network()))
+    print("\nHMM surrogate, held-out MAE: float64 training %.4f | %s"
+          % (ref, " | ".join("%s %.4f (%.2fx)" % (k, v, v / m["float64"]) for k, v in m.items())))
+    for bw in ("int8_dgrad", "int8"):
+        assert m[bw] <= 1.2 * m["float64"], (bw, m)
+        assert m[bw] <= 1.3 * ref

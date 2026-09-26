@@ -91,6 +91,12 @@ NeuralNetTraining train_neural_net_with_history(
   tnt::Config tcfg;
   tcfg.keep_first = opt.ternary_keep_first_layer;
   tcfg.keep_last = opt.ternary_keep_last_layer;
+  try {
+    tcfg.backward = tnt::backward_from_string(opt.ternary_backward);
+  } catch (const std::exception& e) {
+    IMP_THROW("train_neural_net: " << e.what(), IMP::ValueException);
+  }
+  tcfg.seed = 0x5442'0000'0000'0000ULL ^ static_cast<std::uint64_t>(static_cast<std::uint32_t>(opt.seed));
   tnt::Workspace tws;
   f4t::Config fcfg;
   fcfg.format = opt.precision == "mxfp4" ? IMP::bff::internal::mlpfp4::Format::MXFP4

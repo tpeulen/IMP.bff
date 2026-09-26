@@ -94,6 +94,15 @@ class IMPBFFEXPORT NeuralNetTrainOptions {
   //! sees the physical inputs and the last is the regression head).
   bool ternary_keep_first_layer = true;
   bool ternary_keep_last_layer = true;
+  //! Ternary only: the backward GEMMs of the ternary layers (the STE,
+  //! float64 master weights and Adam state in every mode;
+  //! `internal/MlpTernaryGrad.h`): `"float64"` (default, BitNet's recipe:
+  //! dgrad and wgrad in float64 on the dequantised operands),
+  //! `"int8_dgrad"` (SwitchBack: dgrad on the ternary x int8 kernel with the
+  //! output gradient int8 per row; wgrad float64), `"int8"` (Jetfire-style:
+  //! also wgrad int8 x int8 on fprop's int8 activations, the gradient int8
+  //! per 32-row block with stochastic rounding keyed by `seed`).
+  std::string ternary_backward = "float64";
 
   IMP_SHOWABLE_INLINE(NeuralNetTrainOptions,
                       out << "NeuralNetTrainOptions(max_iter " << max_iter

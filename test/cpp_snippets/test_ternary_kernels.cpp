@@ -290,7 +290,7 @@ struct NoFmaGemm {
 constexpr std::uint64_t kTernaryFingerprint = 0x4f6b5c542ab55f36ULL;
 // The generic build's value of the int8 backward (quantisers, kernels and
 // the int8 training modes' steps).
-constexpr std::uint64_t kInt8BackwardFingerprint = 0x456f04538197b606ULL;
+constexpr std::uint64_t kInt8BackwardFingerprint = 0xeb97f0d3b5c36b9aULL;
 
 static std::uint64_t test_training(std::uint64_t h) {
     std::printf("ternary training\n");
@@ -530,6 +530,60 @@ static std::uint64_t test_int8_backward(std::uint64_t h) {
     }
     std::printf("  ok    dgrad vs float64 GEMM of the same quantised operands: %.1e of the absmax\n", derr);
     check(derr < 1e-12, "int8 dgrad == float64 GEMM of the quantised operands (1e-12)");
+    // training: the int8 modes' gradients against the float64 backward's
+    // (same forward, same STE), deterministic; three steps of each into the
+    // fingerprint (every layer ternary, tanh, NoFmaGemm)
+    namespace tr = mt::train;
+    Lcg mr(13);
+    const MlpModel m0 = make_model({5, 48, 40, 3}, mr);
+    const int bs = 37;
+    std::vector<double> X(static_cast<std::size_t>(bs) * 5), dY(static_cast<std::size_t>(bs) * 3);
+    for (double& v : X) v = mr.uniform();
+    for (double& v : dY) v = 0.1 * mr.uniform();
+    auto grad_of = [&](tr::Backward bw, std::vector<double>& g) {
+        tr::Config c;
+        c.keep_first = c.keep_last = false;
+        c.backward = bw;
+        c.seed = 99;
+        tr::Workspace ws;
+        g.assign(mc::n_parameters(m0.layers), 0.0);
+        tr::quantize_weights(m0.layers, c, ws);
+        tr::forward<NoFmaGemm>(m0.layers, c, X.data(), bs, ws);
+        tr::backward<NoFmaGemm>(m0.layers, c, ws, dY.data(), bs, g.data());
+    };
+    std::vector<double> g64, g1, g2;
+    grad_of(tr::Backward::Float64, g64);
+    for (tr::Backward bw : {tr::Backward::Int8Dgrad, tr::Backward::Int8}) {
+        grad_of(bw, g1);
+        grad_of(bw, g2);
+        check(g1 == g2, "int8 backward deterministic");
+        double dot = 0, n1 = 0, n2 = 0;
+        for (std::size_t i = 0; i < g1.size(); ++i) { dot += g1[i] * g64[i]; n1 += g1[i] * g1[i]; n2 += g64[i] * g64[i]; }
+        const double cosv = dot / std::sqrt(n1 * n2);
+        double e2 = 0;
+        for (std::size_t i = 0; i < g1.size(); ++i) e2 += (g1[i] - g64[i]) * (g1[i] - g64[i]);
+        std::printf("  ok    %s gradient vs the float64 backward's: cosine %.6f, relative L2 error %.2e\n",
+                    bw == tr::Backward::Int8 ? "int8" : "int8_dgrad", cosv, std::sqrt(e2 / n2));
+        check(cosv > 0.99, "int8 backward gradient ~ float64 backward gradient (cosine > 0.99)");
+        MlpModel m = m0;
+        tr::Config c;
+        c.keep_first = c.keep_last = false;
+        c.backward = bw;
+        c.seed = 5;
+        tr::Workspace ws;
+        std::vector<double> g(mc::n_parameters(m.layers));
+        for (int step = 0; step < 3; ++step) {
+            tr::quantize_weights(m.layers, c, ws);
+            tr::forward<NoFmaGemm>(m.layers, c, X.data(), bs, ws);
+            tr::backward<NoFmaGemm>(m.layers, c, ws, dY.data(), bs, g.data());
+            h = fnv(g.data(), g.size() * sizeof(double), fnv(ws.output().data(), ws.output().size() * sizeof(double), h));
+            std::size_t p = 0;
+            for (DenseLayer& d : m.layers) {
+                for (double& w : d.weight) w -= 0.125 * g[p++];
+                for (double& b : d.bias) b -= 0.125 * g[p++];
+            }
+        }
+    }
     return h;
 }
 

@@ -21,18 +21,31 @@
  *   clipped to +-1 -- no clipping mask, as in BitNet), `dA = dZ Ŵ`, and no
  *   gradient flows into the scales `s`, `s_a` (they sit inside the detached
  *   term). `db = sum dZ`.
- * - **GEMMs.** fprop on the ternary x int8 kernel. dgrad (`dZ Ŵ`) and wgrad
- *   (`dZ^T Â`) in float64 through the training GEMM (MatGemm) on the
- *   dequantised operands: BitNet keeps the backward in high precision
- *   ("gradients and optimizer states in high precision"); an int8 dgrad on
- *   the ternary kernel would quantise dZ, which the recipe does not.
+ * - **GEMMs.** fprop on the ternary x int8 kernel. The backward GEMMs by
+ *   `Config::backward` (option `ternary_backward`):
+ *   - `Float64` (default): dgrad (`dZ Ŵ`) and wgrad (`dZ^T Â`) in float64
+ *     through the training GEMM (MatGemm) on the dequantised operands --
+ *     BitNet's recipe ("gradients and optimizer states in high precision").
+ *   - `Int8Dgrad` (SwitchBack, Wortsman et al. 2023, arXiv 2304.13013):
+ *     dgrad on the ternary x int8 kernel, `dZ` int8 per row (round to
+ *     nearest even); wgrad float64.
+ *   - `Int8` (Jetfire-style, Xi et al. 2024, arXiv 2403.12422): dgrad as
+ *     above, and wgrad on the int8 x int8 kernel -- fprop's int8 codes of
+ *     `A` as they are, `dZ` times the activation steps int8 per block of
+ *     32 batch rows with stochastic rounding (SrKey of (seed, step, layer,
+ *     operand 2)).
+ *   MlpTernaryGrad.h states the quantisers and kernels. The STE, the master
+ *   weights, the bias gradient and the kept float64 layers are the same in
+ *   all three; only these GEMMs' operands are quantised. BitNet's FAQ
+ *   ("Training acceleration?") names low-precision GEMM kernels for
+ *   BitLinear's forward and backward as the way to speed up training.
  * - **First and last layer** float64 by default (`keep_first`,
  *   `keep_last`; the options `ternary_keep_first_layer` /
  *   `ternary_keep_last_layer`): an MLP's input layer sees the physical
  *   inputs and its output layer is the regression head, and BitNet keeps
  *   its embedding and output head in high precision too.
- * - Deterministic: no randomness beyond train_neural_net's (no stochastic
- *   rounding in this recipe).
+ * - Deterministic: `Float64` and `Int8Dgrad` draw nothing; `Int8`'s draws
+ *   are counter-based (a function of seed, step, layer and element).
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
@@ -42,8 +55,12 @@
 
 #include <IMP/bff/internal/MlpCore.h>
 #include <IMP/bff/internal/MlpTernary.h>
+#include <IMP/bff/internal/MlpTernaryGrad.h>
 
 #include <cstddef>
+#include <cstdint>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
 namespace IMP {
@@ -52,10 +69,27 @@ namespace internal {
 namespace mlpternary {
 namespace train {
 
+//! The backward GEMMs of a ternary layer (the STE is the same in all three).
+enum class Backward {
+    Float64,    //!< dgrad and wgrad in float64 on the dequantised operands (BitNet's recipe)
+    Int8Dgrad,  //!< SwitchBack: dgrad int8 (dZ per row) on the ternary kernel, wgrad float64
+    Int8        //!< + wgrad int8 x int8, dZ per 32-row block, stochastic rounding (Jetfire-style)
+};
+
+//! "float64", "int8_dgrad", "int8"; throws otherwise.
+inline Backward backward_from_string(const std::string& s) {
+    if (s == "float64") return Backward::Float64;
+    if (s == "int8_dgrad") return Backward::Int8Dgrad;
+    if (s == "int8") return Backward::Int8;
+    throw std::runtime_error("ternary_backward must be float64, int8_dgrad or int8, not '" + s + "'");
+}
+
 struct Config {
     bool keep_first = true;
     bool keep_last = true;
     Scale scale = Scale::Tensor;
+    Backward backward = Backward::Float64;
+    std::uint64_t seed = 0;  //!< keys wgrad's stochastic rounding (Backward::Int8)
     //! Whether layer `l` of `n` is ternary.
     bool ternary_layer(std::size_t l, std::size_t n) const {
         return !((keep_first && l == 0) || (keep_last && l + 1 == n));
@@ -70,6 +104,15 @@ struct Workspace {
     std::vector<std::vector<double>> ahat;     //!< Â = q_a / s_a of ternary layers' inputs (wgrad)
     A8Rows q8;
     std::vector<double> da, dz, f1;
+    // int8 backward: fprop's int8 inputs a layer, W^T's trits, scratch, the
+    // step counter of the stochastic rounding (backward() advances it)
+    std::vector<A8Rows> q8l;
+    std::vector<PackedT> pwt;
+    std::vector<double> T, buf;
+    G8Blocks gl;
+    PackedI8 pr;
+    A8Rows qg;
+    std::uint64_t step = 0;
     const std::vector<double>& output() const { return a.back(); }
 };
 
@@ -84,8 +127,13 @@ inline void quantize_weights(const std::vector<DenseLayer>& layers, const Config
         const DenseLayer& d = layers[l];
         quantize_into(d.weight.data(), d.n_out, d.n_in, c.scale, ws.tw[l]);
         pack_kernel_into(ws.tw[l], ws.pw[l]);
-        ws.wdq[l].resize(d.weight.size());
-        dequantize(ws.tw[l], ws.wdq[l].data());
+        if (c.backward == Backward::Float64) {
+            ws.wdq[l].resize(d.weight.size());
+            dequantize(ws.tw[l], ws.wdq[l].data());
+        } else {
+            ws.pwt.resize(L);
+            pack_transposed_into(ws.tw[l], ws.pwt[l]);
+        }
     }
 }
 
@@ -97,21 +145,25 @@ inline void forward(const std::vector<DenseLayer>& layers, const Config& c, cons
     ws.a.resize(L + 1);
     ws.z.resize(L);
     ws.ahat.resize(L);
+    ws.q8l.resize(L);
     ws.a[0].assign(X, X + static_cast<std::size_t>(bs) * layers.front().n_in);
     for (std::size_t l = 0; l < L; ++l) {
         const DenseLayer& ly = layers[l];
         std::vector<double>& z = ws.z[l];
         z.resize(static_cast<std::size_t>(bs) * ly.n_out);
         if (c.ternary_layer(l, L)) {
-            quantize_rows(ws.a[l].data(), bs, ly.n_in, static_cast<std::size_t>(ly.n_in), ws.q8);
-            gemm(ws.q8, ws.pw[l], z.data(), ly.bias.data());
-            std::vector<double>& ah = ws.ahat[l];
-            ah.resize(static_cast<std::size_t>(bs) * ly.n_in);
-            for (int r = 0; r < bs; ++r) {
-                const double st = ws.q8.step[static_cast<std::size_t>(r)];
-                const std::int8_t* q = ws.q8.q.data() + static_cast<std::size_t>(r) * ws.q8.kp;
-                double* o = ah.data() + static_cast<std::size_t>(r) * ly.n_in;
-                for (int k = 0; k < ly.n_in; ++k) o[k] = static_cast<double>(q[k]) * st;
+            A8Rows& q8 = ws.q8l[l];
+            quantize_rows(ws.a[l].data(), bs, ly.n_in, static_cast<std::size_t>(ly.n_in), q8);
+            gemm(q8, ws.pw[l], z.data(), ly.bias.data());
+            if (c.backward != Backward::Int8) {  // Â for the float64 wgrad
+                std::vector<double>& ah = ws.ahat[l];
+                ah.resize(static_cast<std::size_t>(bs) * ly.n_in);
+                for (int r = 0; r < bs; ++r) {
+                    const double st = q8.step[static_cast<std::size_t>(r)];
+                    const std::int8_t* q = q8.q.data() + static_cast<std::size_t>(r) * q8.kp;
+                    double* o = ah.data() + static_cast<std::size_t>(r) * ly.n_in;
+                    for (int k = 0; k < ly.n_in; ++k) o[k] = static_cast<double>(q[k]) * st;
+                }
             }
         } else {  // exactly layer_forward()'s float64 branch
             Gemm::nt(bs, ly.n_out, ly.n_in, ws.a[l].data(), ly.weight.data(), z.data());
@@ -153,11 +205,19 @@ inline void backward(const std::vector<DenseLayer>& layers, const Config& c, Wor
             for (int o = 0; o < ly.n_out; ++o) gb[o] += ws.dz[static_cast<std::size_t>(r) * ly.n_out + o];
         const bool tern = c.ternary_layer(li, L);
         // STE: dW = dZ^T Â, dA = dZ Ŵ
-        Gemm::tn(ly.n_out, ly.n_in, bs, ws.dz.data(), tern ? ws.ahat[li].data() : ws.a[li].data(), gW);
+        if (tern && c.backward == Backward::Int8)
+            wgrad(ws.dz.data(), bs, ly.n_out, ws.q8l[li], ly.n_in, SrKey::make(c.seed, ws.step, static_cast<int>(li), 2),
+                  ws.T, ws.gl, ws.pr, gW);
+        else
+            Gemm::tn(ly.n_out, ly.n_in, bs, ws.dz.data(), tern ? ws.ahat[li].data() : ws.a[li].data(), gW);
         if (li == 0) break;
         ws.da.resize(static_cast<std::size_t>(bs) * ly.n_in);
-        Gemm::nn(bs, ly.n_in, ly.n_out, ws.dz.data(), tern ? ws.wdq[li].data() : ly.weight.data(), ws.da.data());
+        if (tern && c.backward != Backward::Float64)
+            dgrad(ws.dz.data(), bs, ws.tw[li], ws.pwt[li], ws.buf, ws.qg, ws.da.data());
+        else
+            Gemm::nn(bs, ly.n_in, ly.n_out, ws.dz.data(), tern ? ws.wdq[li].data() : ly.weight.data(), ws.da.data());
     }
+    ++ws.step;
 }
 
 //! The inference network of a ternary-trained model: the ternary layers
