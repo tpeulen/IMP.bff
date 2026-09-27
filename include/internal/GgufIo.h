@@ -80,6 +80,8 @@
 #include <utility>
 #include <vector>
 
+#include "IqTables.h"
+
 namespace IMP {
 namespace bff {
 namespace internal {
@@ -90,15 +92,38 @@ enum class Type : std::uint32_t {
     F32 = 0,
     F16 = 1,
     Q4_0 = 2,
+    Q4_1 = 3,
+    Q5_0 = 6,
+    Q5_1 = 7,
     Q8_0 = 8,
+    Q8_1 = 9,
+    Q2_K = 10,
+    Q3_K = 11,
+    Q4_K = 12,
+    Q5_K = 13,
+    Q6_K = 14,
+    Q8_K = 15,
+    IQ2_XXS = 16,
+    IQ2_XS = 17,
+    IQ3_XXS = 18,
+    IQ1_S = 19,
+    IQ4_NL = 20,
+    IQ3_S = 21,
+    IQ2_S = 22,
+    IQ4_XS = 23,
     I8 = 24,
+    I16 = 25,
+    I32 = 26,
+    I64 = 27,
     F64 = 28,
+    IQ1_M = 29,
     BF16 = 30,
     TQ1_0 = 34,
     TQ2_0 = 35,
     MXFP4 = 39,
     NVFP4 = 40,
-    Q1_0 = 41
+    Q1_0 = 41,
+    Q2_0 = 42
 };
 
 //! Elements a block covers and bytes a block occupies, per type.
@@ -109,8 +134,31 @@ inline void type_shape(Type t, int& elements, int& bytes) {
         case Type::BF16: elements = 1; bytes = 2; return;
         case Type::F64: elements = 1; bytes = 8; return;
         case Type::I8: elements = 1; bytes = 1; return;
+        case Type::I16: elements = 1; bytes = 2; return;
+        case Type::I32: elements = 1; bytes = 4; return;
+        case Type::I64: elements = 1; bytes = 8; return;
         case Type::Q4_0: elements = 32; bytes = 18; return;
+        case Type::Q4_1: elements = 32; bytes = 20; return;
+        case Type::Q5_0: elements = 32; bytes = 22; return;
+        case Type::Q5_1: elements = 32; bytes = 24; return;
         case Type::Q8_0: elements = 32; bytes = 34; return;
+        case Type::Q8_1: elements = 32; bytes = 36; return;
+        case Type::Q2_K: elements = 256; bytes = 84; return;
+        case Type::Q3_K: elements = 256; bytes = 110; return;
+        case Type::Q4_K: elements = 256; bytes = 144; return;
+        case Type::Q5_K: elements = 256; bytes = 176; return;
+        case Type::Q6_K: elements = 256; bytes = 210; return;
+        case Type::Q8_K: elements = 256; bytes = 292; return;
+        case Type::IQ2_XXS: elements = 256; bytes = 66; return;
+        case Type::IQ2_XS: elements = 256; bytes = 74; return;
+        case Type::IQ3_XXS: elements = 256; bytes = 98; return;
+        case Type::IQ1_S: elements = 256; bytes = 50; return;
+        case Type::IQ4_NL: elements = 32; bytes = 18; return;
+        case Type::IQ3_S: elements = 256; bytes = 110; return;
+        case Type::IQ2_S: elements = 256; bytes = 82; return;
+        case Type::IQ4_XS: elements = 256; bytes = 136; return;
+        case Type::Q2_0: elements = 64; bytes = 18; return;
+        case Type::IQ1_M: elements = 256; bytes = 56; return;
         case Type::Q1_0: elements = 128; bytes = 18; return;   // 2 + 16
         case Type::MXFP4: elements = 32; bytes = 17; return;   // 1 + 16
         case Type::NVFP4: elements = 64; bytes = 36; return;   // 4 + 32
@@ -129,8 +177,31 @@ inline Type type_from_string(const std::string& name) {
     if (s == "bf16") return Type::BF16;
     if (s == "f64") return Type::F64;
     if (s == "i8") return Type::I8;
+    if (s == "i16") return Type::I16;
+    if (s == "i32") return Type::I32;
+    if (s == "i64") return Type::I64;
     if (s == "q8_0") return Type::Q8_0;
+    if (s == "q8_1") return Type::Q8_1;
+    if (s == "q5_0") return Type::Q5_0;
+    if (s == "q5_1") return Type::Q5_1;
+    if (s == "q2_k") return Type::Q2_K;
+    if (s == "q3_k") return Type::Q3_K;
+    if (s == "q4_k") return Type::Q4_K;
+    if (s == "q5_k") return Type::Q5_K;
+    if (s == "q6_k") return Type::Q6_K;
+    if (s == "q8_k") return Type::Q8_K;
+    if (s == "iq2_xxs") return Type::IQ2_XXS;
+    if (s == "iq3_xxs") return Type::IQ3_XXS;
+    if (s == "iq1_s") return Type::IQ1_S;
+    if (s == "iq4_nl") return Type::IQ4_NL;
+    if (s == "iq3_s") return Type::IQ3_S;
+    if (s == "iq2_s") return Type::IQ2_S;
+    if (s == "iq4_xs") return Type::IQ4_XS;
+    if (s == "q2_0") return Type::Q2_0;
+    if (s == "iq2_xs") return Type::IQ2_XS;
+    if (s == "iq1_m") return Type::IQ1_M;
     if (s == "q4_0") return Type::Q4_0;
+    if (s == "q4_1") return Type::Q4_1;
     if (s == "q1_0") return Type::Q1_0;
     if (s == "mxfp4") return Type::MXFP4;
     if (s == "nvfp4") return Type::NVFP4;
@@ -138,7 +209,7 @@ inline Type type_from_string(const std::string& name) {
     if (s == "tq2_0") return Type::TQ2_0;
     throw std::runtime_error("gguf: unknown tensor type '" + name +
                              "' (F32, F16, BF16, F64, I8, Q8_0, Q4_0, Q1_0, "
-                             "MXFP4, NVFP4, TQ1_0, TQ2_0)");
+                             "MXFP4, NVFP4, TQ1_0, TQ2_0, I16, I32, I64, Q4_1, Q5_0, Q5_1, Q8_1, IQ*)");
 }
 
 //! The canonical ggml spelling of a type.
@@ -149,8 +220,31 @@ inline std::string type_to_string(Type t) {
         case Type::BF16: return "BF16";
         case Type::F64: return "F64";
         case Type::I8: return "I8";
+        case Type::I16: return "I16";
+        case Type::I32: return "I32";
+        case Type::I64: return "I64";
         case Type::Q4_0: return "Q4_0";
+        case Type::Q4_1: return "Q4_1";
+        case Type::Q5_0: return "Q5_0";
+        case Type::Q5_1: return "Q5_1";
         case Type::Q8_0: return "Q8_0";
+        case Type::Q8_1: return "Q8_1";
+        case Type::Q2_K: return "Q2_K";
+        case Type::Q3_K: return "Q3_K";
+        case Type::Q4_K: return "Q4_K";
+        case Type::Q5_K: return "Q5_K";
+        case Type::Q6_K: return "Q6_K";
+        case Type::Q8_K: return "Q8_K";
+        case Type::IQ2_XXS: return "IQ2_XXS";
+        case Type::IQ3_XXS: return "IQ3_XXS";
+        case Type::IQ1_S: return "IQ1_S";
+        case Type::IQ4_NL: return "IQ4_NL";
+        case Type::IQ3_S: return "IQ3_S";
+        case Type::IQ2_S: return "IQ2_S";
+        case Type::IQ4_XS: return "IQ4_XS";
+        case Type::Q2_0: return "Q2_0";
+        case Type::IQ2_XS: return "IQ2_XS";
+        case Type::IQ1_M: return "IQ1_M";
         case Type::Q1_0: return "Q1_0";
         case Type::MXFP4: return "MXFP4";
         case Type::NVFP4: return "NVFP4";
@@ -163,7 +257,7 @@ inline std::string type_to_string(Type t) {
 //! Whether the type stores float values one element at a time (no blocks).
 inline bool is_plain(Type t) {
     return t == Type::F32 || t == Type::F16 || t == Type::BF16 || t == Type::F64 ||
-           t == Type::I8;
+           t == Type::I8 || t == Type::I16 || t == Type::I32 || t == Type::I64;
 }
 
 // ------------------------------------------------------------------ floats
@@ -368,6 +462,265 @@ inline void q8_0_decode(const std::uint8_t* in, int n, float* x) {
     }
 }
 
+// ---- Q8_1: Q8_0 payload with an additional fp16 d*sum(q) field.
+inline void q8_1_encode(const float* x, int n, std::uint8_t* out) {
+    for (int i = 0; i < n; i += 32, x += 32, out += 36) {
+        float amax = 0.f; for (int j = 0; j < 32; ++j) amax = std::max(amax, std::fabs(x[j]));
+        const float d = amax / 127.f, id = d > 0.f ? 1.f/d : 0.f;
+        const std::uint16_t dh = f16_of(d); out[0] = static_cast<std::uint8_t>(dh); out[1] = static_cast<std::uint8_t>(dh >> 8);
+        int sum = 0;
+        for (int j = 0; j < 32; ++j) { int q = static_cast<int>(std::round(x[j]*id)); q = std::max(-128, std::min(127, q)); out[4+j] = static_cast<std::uint8_t>(static_cast<std::int8_t>(q)); sum += q; }
+        const std::uint16_t sh = f16_of(sum*d); out[2] = static_cast<std::uint8_t>(sh); out[3] = static_cast<std::uint8_t>(sh >> 8);
+    }
+}
+inline void q8_1_decode(const std::uint8_t* in, int n, float* x) {
+    for (int i = 0; i < n; i += 32, x += 32, in += 36) { const float d = half_of(static_cast<std::uint16_t>(in[0] | (in[1] << 8))); for (int j = 0; j < 32; ++j) x[j] = d * static_cast<float>(static_cast<std::int8_t>(in[4+j])); }
+}
+
+// ---- Q2_K: sixteen affine 16-value groups inside a 256-value super-block.
+inline void q2_k_encode(const float* x, int n, std::uint8_t* out) {
+    for (int base = 0; base < n; base += 256, x += 256, out += 84) {
+        float ds[16], ms[16], maxd = 0.f, maxm = 0.f;
+        for (int g = 0; g < 16; ++g) { float lo=x[16*g], hi=lo; for (int j=1;j<16;++j) { lo=std::min(lo,x[16*g+j]); hi=std::max(hi,x[16*g+j]); } ds[g]=(hi-lo)/3.f; ms[g]=std::max(0.f,-lo); maxd=std::max(maxd,ds[g]); maxm=std::max(maxm,ms[g]); }
+        const float d=maxd/15.f, dm=maxm/15.f; const std::uint16_t dh=f16_of(d), mh=f16_of(dm);
+        for (int g=0;g<16;++g) { const int sd=d>0?std::max(0,std::min(15,static_cast<int>(std::round(ds[g]/d)))):0; const int sm=dm>0?std::max(0,std::min(15,static_cast<int>(std::round(ms[g]/dm)))):0; out[g]=static_cast<std::uint8_t>(sd | (sm<<4)); }
+        std::fill(out+16,out+80,0); for (int g=0;g<16;++g) { const float dg=d*(out[g]&15), mg=dm*(out[g]>>4); for(int j=0;j<16;++j) { const int q=dg>0?std::max(0,std::min(3,static_cast<int>(std::round((x[16*g+j]+mg)/dg)))):0; const int chunk=g/8, sub=g%8, l=(sub%2)*16+j; out[16+chunk*32+l] |= static_cast<std::uint8_t>(q << (2*(sub/2))); } }
+        out[80]=static_cast<std::uint8_t>(dh); out[81]=static_cast<std::uint8_t>(dh>>8); out[82]=static_cast<std::uint8_t>(mh); out[83]=static_cast<std::uint8_t>(mh>>8);
+    }
+}
+inline void q2_k_decode(const std::uint8_t* in, int n, float* x) {
+    for (int base=0;base<n;base+=256,x+=256,in+=84) { const float d=half_of(static_cast<std::uint16_t>(in[80]|(in[81]<<8))), dm=half_of(static_cast<std::uint16_t>(in[82]|(in[83]<<8))); for(int g=0;g<16;++g) { const float dg=d*(in[g]&15), mg=dm*(in[g]>>4); const int chunk=g/8, sub=g%8; for(int j=0;j<16;++j) { const int l=(sub%2)*16+j; const int q=(in[16+chunk*32+l]>>(2*(sub/2)))&3; x[16*g+j]=dg*q-mg; } } }
+}
+
+// ---- Q3_K: sixteen signed 3-bit 16-value groups; 6-bit scales share d.
+inline void q3_k_encode(const float* x, int n, std::uint8_t* out) {
+    for (int base=0;base<n;base+=256,x+=256,out+=110) { float gs[16], mx=0.f; for(int g=0;g<16;++g){ float a=0.f; for(int j=0;j<16;++j)a=std::max(a,std::fabs(x[16*g+j])); gs[g]=a/3.f; mx=std::max(mx,gs[g]); } const float d=mx/31.f; std::fill(out,out+110,0); for(int g=0;g<16;++g){ const int sc=d>0?std::max(1,std::min(31,static_cast<int>(std::round(gs[g]/d)))):0; const int raw=sc+32; if(g<8) out[96+g]|=raw&15; else out[96+g-8]|=(raw&15)<<4; out[104+g%4]|=static_cast<std::uint8_t>((raw>>4)<<(2*(g/4))); for(int j=0;j<16;++j){ int q=sc?std::max(-4,std::min(3,static_cast<int>(std::round(x[16*g+j]/(d*sc))))):0; int code=q+4, p=16*g+j; if(code>3){out[p%32]|=static_cast<std::uint8_t>(1u<<(p/32));code-=4;} const int chunk=p/128, l=p%32; out[32+chunk*32+l]|=static_cast<std::uint8_t>(code<<(2*((p%128)/32))); } } const std::uint16_t h=f16_of(d);out[108]=static_cast<std::uint8_t>(h);out[109]=static_cast<std::uint8_t>(h>>8); }
+}
+inline void q3_k_decode(const std::uint8_t* in, int n, float* x) {
+    for(int base=0;base<n;base+=256,x+=256,in+=110){ const float d=half_of(static_cast<std::uint16_t>(in[108]|(in[109]<<8))); for(int g=0;g<16;++g){ const int raw=(g<8?(in[96+g]&15):(in[96+g-8]>>4)) | (((in[104+g%4]>>(2*(g/4)))&3)<<4); const float s=d*(raw-32); for(int j=0;j<16;++j){const int p=16*g+j,chunk=p/128,l=p%32; int q=(in[32+chunk*32+l]>>(2*((p%128)/32)))&3; if(!(in[p%32]&(1u<<(p/32))))q-=4; x[p]=s*q;}}}
+}
+
+// ---- Q4_K: eight affine 32-value groups, six-bit scale and minimum codes.
+inline void q4_k_encode(const float* x, int n, std::uint8_t* out) {
+    for(int base=0;base<n;base+=256,x+=256,out+=144){ float ds[8],ms[8],md=0.f,mm=0.f; for(int g=0;g<8;++g){float lo=x[32*g],hi=lo;for(int j=1;j<32;++j){lo=std::min(lo,x[32*g+j]);hi=std::max(hi,x[32*g+j]);}ds[g]=(hi-lo)/15.f;ms[g]=std::max(0.f,-lo);md=std::max(md,ds[g]);mm=std::max(mm,ms[g]);}const float d=md/63.f,dm=mm/63.f;std::fill(out,out+144,0);for(int g=0;g<8;++g){const int sd=d?std::max(0,std::min(63,static_cast<int>(std::round(ds[g]/d)))):0,sm=dm?std::max(0,std::min(63,static_cast<int>(std::round(ms[g]/dm)))):0;if(g<4){out[4+g]=sd;out[8+g]=sm;}else{out[8+g]=(sd&15)|((sm&15)<<4);out[4+g-4]|=(sd>>4)<<6;out[4+g]|=(sm>>4)<<6;}}for(int g=0;g<8;++g){const int sd=(g<4?out[4+g]&63:((out[8+g]&15)|((out[g]>>6)<<4))),sm=(g<4?out[8+g]&63:((out[8+g]>>4)|((out[4+g]>>6)<<4)));const float dg=d*sd,mg=dm*sm;for(int j=0;j<32;++j){const int q=dg?std::max(0,std::min(15,static_cast<int>(std::round((x[32*g+j]+mg)/dg)))):0;const int pair=g/2,l=(g%2)*32+j;out[16+pair*32+(l%32)]|=static_cast<std::uint8_t>(q<<(4*(g%2)));}}const std::uint16_t dh=f16_of(d),mh=f16_of(dm);out[0]=static_cast<std::uint8_t>(dh);out[1]=static_cast<std::uint8_t>(dh>>8);out[2]=static_cast<std::uint8_t>(mh);out[3]=static_cast<std::uint8_t>(mh>>8);}
+}
+inline void q4_k_decode(const std::uint8_t* in,int n,float* x){for(int base=0;base<n;base+=256,x+=256,in+=144){const float d=half_of(static_cast<std::uint16_t>(in[0]|(in[1]<<8))),dm=half_of(static_cast<std::uint16_t>(in[2]|(in[3]<<8)));for(int g=0;g<8;++g){const int sd=g<4?in[4+g]&63:((in[8+g]&15)|((in[g]>>6)<<4)),sm=g<4?in[8+g]&63:((in[8+g]>>4)|((in[4+g]>>6)<<4));for(int j=0;j<32;++j){const int pair=g/2;const int q=(in[16+pair*32+j]>>(4*(g%2)))&15;x[32*g+j]=d*sd*q-dm*sm;}}}}
+
+// ---- Q5_K: Q4_K affine groups with one high-bit plane per quant.
+inline void q5_k_encode(const float* x,int n,std::uint8_t*out){for(int base=0;base<n;base+=256,x+=256,out+=176){float ds[8],ms[8],md=0,mm=0;for(int g=0;g<8;++g){float lo=x[32*g],hi=lo;for(int j=1;j<32;++j){lo=std::min(lo,x[32*g+j]);hi=std::max(hi,x[32*g+j]);}ds[g]=(hi-lo)/31.f;ms[g]=std::max(0.f,-lo);md=std::max(md,ds[g]);mm=std::max(mm,ms[g]);}const float d=md/63.f,dm=mm/63.f;std::fill(out,out+176,0);for(int g=0;g<8;++g){const int sd=d?std::max(0,std::min(63,static_cast<int>(std::round(ds[g]/d)))):0,sm=dm?std::max(0,std::min(63,static_cast<int>(std::round(ms[g]/dm)))):0;if(g<4){out[4+g]=sd;out[8+g]=sm;}else{out[8+g]=(sd&15)|((sm&15)<<4);out[g]|=(sd>>4)<<6;out[4+g]|=(sm>>4)<<6;}}for(int g=0;g<8;++g){const int sd=g<4?out[4+g]&63:((out[8+g]&15)|((out[g]>>6)<<4)),sm=g<4?out[8+g]&63:((out[8+g]>>4)|((out[4+g]>>6)<<4));const float dg=d*sd,mg=dm*sm;for(int j=0;j<32;++j){const int q=dg?std::max(0,std::min(31,static_cast<int>(std::round((x[32*g+j]+mg)/dg)))):0,pair=g/2;out[48+pair*32+j]|=static_cast<std::uint8_t>((q&15)<<(4*(g%2)));if(q&16)out[16+j]|=static_cast<std::uint8_t>(1u<<(2*pair+(g%2)));}}const std::uint16_t dh=f16_of(d),mh=f16_of(dm);out[0]=static_cast<std::uint8_t>(dh);out[1]=static_cast<std::uint8_t>(dh>>8);out[2]=static_cast<std::uint8_t>(mh);out[3]=static_cast<std::uint8_t>(mh>>8);}}
+inline void q5_k_decode(const std::uint8_t*in,int n,float*x){for(int base=0;base<n;base+=256,x+=256,in+=176){const float d=half_of(static_cast<std::uint16_t>(in[0]|(in[1]<<8))),dm=half_of(static_cast<std::uint16_t>(in[2]|(in[3]<<8)));for(int g=0;g<8;++g){const int sd=g<4?in[4+g]&63:((in[8+g]&15)|((in[g]>>6)<<4)),sm=g<4?in[8+g]&63:((in[8+g]>>4)|((in[4+g]>>6)<<4)),pair=g/2;for(int j=0;j<32;++j){int q=(in[48+pair*32+j]>>(4*(g%2)))&15;if(in[16+j]&(1u<<(2*pair+(g%2))))q|=16;x[32*g+j]=d*sd*q-dm*sm;}}}}
+
+// ---- Q6_K: signed six-bit groups; low nibbles plus a two-bit plane.
+inline void q6_k_encode(const float*x,int n,std::uint8_t*out){for(int base=0;base<n;base+=256,x+=256,out+=210){float gs[16],mx=0;for(int g=0;g<16;++g){float a=0;for(int j=0;j<16;++j)a=std::max(a,std::fabs(x[16*g+j]));gs[g]=a/31.f;mx=std::max(mx,gs[g]);}const float d=mx/127.f;std::fill(out,out+210,0);for(int g=0;g<16;++g){const int sc=d?std::max(1,std::min(127,static_cast<int>(std::round(gs[g]/d)))):0;out[192+g]=static_cast<std::uint8_t>(static_cast<std::int8_t>(sc));for(int j=0;j<16;++j){int q=sc?std::max(-32,std::min(31,static_cast<int>(std::round(x[16*g+j]/(d*sc))))):0;const int code=q+32,p=16*g+j,chunk=p/128,l=p%32,slot=(p%128)/32;const int qli=chunk*64+l+(slot==1||slot==3?32:0);out[qli]|=static_cast<std::uint8_t>((code&15)<<(slot>=2?4:0));out[128+chunk*32+l]|=static_cast<std::uint8_t>((code>>4)<<(2*slot));}}const std::uint16_t h=f16_of(d);out[208]=static_cast<std::uint8_t>(h);out[209]=static_cast<std::uint8_t>(h>>8);}}
+inline void q6_k_decode(const std::uint8_t*in,int n,float*x){for(int base=0;base<n;base+=256,x+=256,in+=210){const float d=half_of(static_cast<std::uint16_t>(in[208]|(in[209]<<8)));for(int p=0;p<256;++p){const int chunk=p/128,l=p%32,slot=(p%128)/32,qli=chunk*64+l+(slot==1||slot==3?32:0);const int code=((in[qli]>>(slot>=2?4:0))&15)|(((in[128+chunk*32+l]>>(2*slot))&3)<<4);x[p]=d*static_cast<std::int8_t>(in[192+p/16])*(code-32);}}}
+
+// ---- Q8_K: float32 scale, int8 codes, and int16 sums for 16-value groups.
+inline void q8_k_encode(const float*x,int n,std::uint8_t*out){for(int base=0;base<n;base+=256,x+=256,out+=292){float a=0;for(int i=0;i<256;++i)a=std::max(a,std::fabs(x[i]));const float d=a/127.f;std::uint32_t du;std::memcpy(&du,&d,4);for(int b=0;b<4;++b)out[b]=static_cast<std::uint8_t>(du>>(8*b));for(int g=0;g<16;++g){int sum=0;for(int j=0;j<16;++j){int q=d?std::max(-128,std::min(127,static_cast<int>(std::round(x[16*g+j]/d)))):0;out[4+16*g+j]=static_cast<std::uint8_t>(static_cast<std::int8_t>(q));sum+=q;}const std::uint16_t s=static_cast<std::uint16_t>(static_cast<std::int16_t>(sum));out[260+2*g]=static_cast<std::uint8_t>(s);out[261+2*g]=static_cast<std::uint8_t>(s>>8);}}}
+inline void q8_k_decode(const std::uint8_t*in,int n,float*x){for(int base=0;base<n;base+=256,x+=256,in+=292){std::uint32_t u=0;for(int b=0;b<4;++b)u|=static_cast<std::uint32_t>(in[b])<<(8*b);float d;std::memcpy(&d,&u,4);for(int i=0;i<256;++i)x[i]=d*static_cast<float>(static_cast<std::int8_t>(in[4+i]));}}
+
+// ---- IQ2_XXS: 2-bit importance-grid quants (ggml block_iq2_xxs).
+inline std::uint8_t iq2_signs(std::uint8_t index) {
+    // gguf-py's IQ2_XXS.ksigns stores the seven low sign bits and makes
+    // the eighth bit their parity (an even number of negative signs).
+    std::uint8_t parity = 0;
+    for (int bit = 0; bit < 7; ++bit) parity ^= (index >> bit) & 1u;
+    return static_cast<std::uint8_t>(index | (parity << 7));
+}
+inline void iq2_xxs_decode(const std::uint8_t*in,int n,float*x){for(;n;n-=256,in+=66,x+=256){const float d=half_of(static_cast<std::uint16_t>(in[0]|(in[1]<<8)));for(int b=0;b<8;++b){std::uint32_t lo=0,hi=0;for(int j=0;j<4;++j){lo|=static_cast<std::uint32_t>(in[2+8*b+j])<<(8*j);hi|=static_cast<std::uint32_t>(in[6+8*b+j])<<(8*j);}const float db=d*(.5f+(hi>>28))*.25f;for(int l=0;l<4;++l){const std::uint64_t grid=kIq2XxsGrid[(lo>>(8*l))&255];const std::uint8_t signs=iq2_signs((hi>>(7*l))&127);for(int j=0;j<8;++j){const float v=static_cast<float>((grid>>(8*j))&255);x[32*b+8*l+j]=(signs&(1u<<j))?-db*v:db*v;}}}}}
+inline void iq2_xxs_encode(const float*x,int n,std::uint8_t*out){for(;n;n-=256,x+=256,out+=66){float a=0;for(int i=0;i<256;++i)a=std::max(a,std::fabs(x[i]));const std::uint16_t dh=f16_of(a/166.625f);out[0]=static_cast<std::uint8_t>(dh);out[1]=static_cast<std::uint8_t>(dh>>8);const float d=half_of(dh), db=d*3.875f;for(int b=0;b<8;++b){std::uint32_t lo=0,hi=15u<<28;for(int l=0;l<4;++l){const float* v=x+32*b+8*l;float best=std::numeric_limits<float>::infinity();int bi=0,bs=0;for(int g=0;g<256;++g){const std::uint64_t grid=kIq2XxsGrid[g];for(int s=0;s<128;++s){const std::uint8_t sign=iq2_signs(static_cast<std::uint8_t>(s));float e=0;for(int j=0;j<8;++j){float q=db*static_cast<float>((grid>>(8*j))&255);if(sign&(1u<<j))q=-q;const float z=v[j]-q;e+=z*z;}if(e<best){best=e;bi=g;bs=s;}}}lo|=static_cast<std::uint32_t>(bi)<<(8*l);hi|=static_cast<std::uint32_t>(bs)<<(7*l);}for(int j=0;j<4;++j){out[2+8*b+j]=static_cast<std::uint8_t>(lo>>(8*j));out[6+8*b+j]=static_cast<std::uint8_t>(hi>>(8*j));}}}}
+
+// ---- IQ2_XS: 2-bit importance-grid quants with paired 4-bit scales.
+inline void iq2_xs_decode(const std::uint8_t*in,int n,float*x){for(;n;n-=256,in+=74,x+=256){const float d=half_of(static_cast<std::uint16_t>(in[0]|(in[1]<<8)));const std::uint8_t*qs=in+2;const std::uint8_t*sc=in+66;for(int b=0;b<8;++b){const float db[2]={d*(.5f+(sc[b]&15))*.25f,d*(.5f+(sc[b]>>4))*.25f};for(int l=0;l<4;++l){const std::uint16_t q=static_cast<std::uint16_t>(qs[8*b+2*l]|(qs[8*b+2*l+1]<<8));const std::uint64_t grid=kIq2XsGrid[q&511];const std::uint8_t signs=iq2_signs(q>>9);for(int j=0;j<8;++j){float z=db[l/2]*static_cast<float>((grid>>(8*j))&255);x[32*b+8*l+j]=(signs&(1u<<j))?-z:z;}}}}}
+inline void iq2_xs_encode(const float*x,int n,std::uint8_t*out){for(;n;n-=256,x+=256,out+=74){float a=0;for(int i=0;i<256;++i)a=std::max(a,std::fabs(x[i]));const std::uint16_t dh=f16_of(a/166.625f);out[0]=static_cast<std::uint8_t>(dh);out[1]=static_cast<std::uint8_t>(dh>>8);const float d=half_of(dh),db=d*3.875f;for(int b=0;b<8;++b){out[66+b]=255;for(int l=0;l<4;++l){const float*v=x+32*b+8*l;float best=std::numeric_limits<float>::infinity();int bi=0,bs=0;for(int g=0;g<512;++g){const std::uint64_t grid=kIq2XsGrid[g];for(int s=0;s<128;++s){const std::uint8_t sign=iq2_signs(static_cast<std::uint8_t>(s));float e=0;for(int j=0;j<8;++j){float q=db*static_cast<float>((grid>>(8*j))&255);if(sign&(1u<<j))q=-q;float z=v[j]-q;e+=z*z;}if(e<best){best=e;bi=g;bs=s;}}}const std::uint16_t q=static_cast<std::uint16_t>(bi|(bs<<9));out[2+8*b+2*l]=static_cast<std::uint8_t>(q);out[3+8*b+2*l]=static_cast<std::uint8_t>(q>>8);}}}}
+
+// Remaining IQ formats are import-only. Their grid and field layouts follow
+// gguf-py quants.py and ggml's block_iq* definitions.
+inline std::uint16_t iq_u16(const std::uint8_t* p) {
+    return static_cast<std::uint16_t>(p[0] | (p[1] << 8));
+}
+inline std::uint32_t iq_u32(const std::uint8_t* p) {
+    return static_cast<std::uint32_t>(iq_u16(p)) |
+           (static_cast<std::uint32_t>(iq_u16(p + 2)) << 16);
+}
+inline float iq_grid8(std::uint64_t grid, int j) {
+    return static_cast<float>((grid >> (8 * j)) & 0xffu);
+}
+inline float iq_grid4(std::uint32_t grid, int j) {
+    return static_cast<float>((grid >> (8 * j)) & 0xffu);
+}
+
+inline void iq3_xxs_decode(const std::uint8_t* in, int n, float* x) {
+    for (; n; n -= 256, in += 98, x += 256) {
+        const float d = half_of(iq_u16(in));
+        const std::uint8_t* qs = in + 2;
+        const std::uint8_t* scales = in + 66;
+        for (int b = 0; b < 8; ++b) {
+            const std::uint32_t word = iq_u32(scales + 4 * b);
+            const float db = d * (0.5f + static_cast<float>(word >> 28)) * 0.5f;
+            for (int l = 0; l < 4; ++l) {
+                const std::uint8_t signs = iq2_signs((word >> (7 * l)) & 127u);
+                for (int j = 0; j < 8; ++j) {
+                    const std::uint32_t grid = kIq3XxsGrid[qs[8 * b + 2 * l + j / 4]];
+                    const float value = db * iq_grid4(grid, j % 4);
+                    x[32 * b + 8 * l + j] = (signs & (1u << j)) ? -value : value;
+                }
+            }
+        }
+    }
+}
+
+inline void iq1_s_decode(const std::uint8_t* in, int n, float* x) {
+    for (; n; n -= 256, in += 50, x += 256) {
+        const float d = half_of(iq_u16(in));
+        const std::uint8_t* qs = in + 2;
+        const std::uint8_t* qh = in + 34;
+        for (int b = 0; b < 8; ++b) {
+            const std::uint16_t high = iq_u16(qh + 2 * b);
+            const float db = d * static_cast<float>(2 * ((high >> 12) & 7u) + 1);
+            const float delta = (high & 0x8000u) ? -0.125f : 0.125f;
+            for (int l = 0; l < 4; ++l) {
+                const int index = qs[4 * b + l] | (((high >> (3 * l)) & 7u) << 8);
+                const std::uint64_t grid = kIq1SGrid[index];
+                for (int j = 0; j < 8; ++j)
+                    x[32 * b + 8 * l + j] = db *
+                        (static_cast<float>(static_cast<std::int8_t>((grid >> (8 * j)) & 255u)) + delta);
+            }
+        }
+    }
+}
+
+inline void iq4_nl_decode(const std::uint8_t* in, int n, float* x) {
+    static constexpr std::int8_t values[16] =
+        {-127, -104, -83, -65, -49, -35, -22, -10, 1, 13, 25, 38, 53, 69, 89, 113};
+    for (; n; n -= 32, in += 18, x += 32) {
+        const float d = half_of(iq_u16(in));
+        for (int j = 0; j < 16; ++j) {
+            const std::uint8_t q = in[2 + j];
+            x[j] = d * static_cast<float>(values[q & 15u]);
+            x[j + 16] = d * static_cast<float>(values[q >> 4]);
+        }
+    }
+}
+
+inline void iq3_s_decode(const std::uint8_t* in, int n, float* x) {
+    for (; n; n -= 256, in += 110, x += 256) {
+        const float d = half_of(iq_u16(in));
+        const std::uint8_t* qs = in + 2;
+        const std::uint8_t* qh = in + 66;
+        const std::uint8_t* signs = in + 74;
+        const std::uint8_t* scales = in + 106;
+        for (int b = 0; b < 8; ++b) {
+            const int scale = (scales[b / 2] >> (4 * (b % 2))) & 15;
+            const float db = d * static_cast<float>(1 + 2 * scale);
+            for (int l = 0; l < 8; ++l) {
+                const int group = 8 * b + l;
+                const int index = qs[group] | (((qh[group / 8] >> (group % 8)) & 1u) << 8);
+                const std::uint32_t grid = kIq3SGrid[index];
+                for (int j = 0; j < 4; ++j) {
+                    const float value = db * iq_grid4(grid, j);
+                    x[32 * b + 4 * l + j] = (signs[4 * b + l / 2] & (1u << (4 * (l % 2) + j))) ? -value : value;
+                }
+            }
+        }
+    }
+}
+
+inline void iq2_s_decode(const std::uint8_t* in, int n, float* x) {
+    for (; n; n -= 256, in += 82, x += 256) {
+        const float d = half_of(iq_u16(in));
+        const std::uint8_t* qs = in + 2;
+        const std::uint8_t* signs = in + 34;
+        const std::uint8_t* qh = in + 66;
+        const std::uint8_t* scales = in + 74;
+        for (int b = 0; b < 16; ++b) {
+            const int scale = (scales[b / 2] >> (4 * (b % 2))) & 15;
+            const float db = d * (0.5f + static_cast<float>(scale)) * 0.25f;
+            for (int l = 0; l < 2; ++l) {
+                const int group = 2 * b + l;
+                const int index = qs[group] | (((qh[group / 4] >> (2 * (group % 4))) & 3u) << 8);
+                const std::uint64_t grid = kIq2SGrid[index];
+                for (int j = 0; j < 8; ++j) {
+                    const float value = db * iq_grid8(grid, j);
+                    x[16 * b + 8 * l + j] = (signs[group] & (1u << j)) ? -value : value;
+                }
+            }
+        }
+    }
+}
+
+inline void iq4_xs_decode(const std::uint8_t* in, int n, float* x) {
+    static constexpr std::int8_t values[16] =
+        {-127, -104, -83, -65, -49, -35, -22, -10, 1, 13, 25, 38, 53, 69, 89, 113};
+    for (; n; n -= 256, in += 136, x += 256) {
+        const float d = half_of(iq_u16(in));
+        const std::uint16_t scales_h = iq_u16(in + 2);
+        const std::uint8_t* scales_l = in + 4;
+        const std::uint8_t* qs = in + 8;
+        for (int b = 0; b < 8; ++b) {
+            const int scale = ((scales_l[b / 2] >> (4 * (b % 2))) & 15) |
+                              (((scales_h >> (2 * b)) & 3) << 4);
+            const float db = d * static_cast<float>(scale - 32);
+            for (int j = 0; j < 16; ++j) {
+                const std::uint8_t q = qs[16 * b + j];
+                x[32 * b + j] = db * static_cast<float>(values[q & 15u]);
+                x[32 * b + 16 + j] = db * static_cast<float>(values[q >> 4]);
+            }
+        }
+    }
+}
+
+inline void iq1_m_decode(const std::uint8_t* in, int n, float* x) {
+    for (; n; n -= 256, in += 56, x += 256) {
+        const std::uint8_t* qs = in;
+        const std::uint8_t* qh = in + 32;
+        const std::uint8_t* scales = in + 48;
+        const std::uint16_t s0 = iq_u16(scales), s1 = iq_u16(scales + 2);
+        const std::uint16_t s2 = iq_u16(scales + 4), s3 = iq_u16(scales + 6);
+        const std::uint16_t dh = static_cast<std::uint16_t>(
+            ((s0 >> 12) & 15u) | ((s1 >> 8) & 0xf0u) |
+            ((s2 >> 4) & 0xf00u) | (s3 & 0xf000u));
+        const float d = half_of(dh);
+        for (int b = 0; b < 16; ++b) {
+            const std::uint16_t packed = iq_u16(scales + 2 * (b / 4));
+            const int scale = (packed >> (3 * (b % 4))) & 7;
+            const float db = d * static_cast<float>(2 * scale + 1);
+            for (int l = 0; l < 2; ++l) {
+                const int group = 2 * b + l;
+                const int high = (qh[group / 2] >> (4 * (group % 2))) & 15;
+                const int index = qs[group] | ((high & 7) << 8);
+                const float delta = (high & 8) ? -0.125f : 0.125f;
+                const std::uint64_t grid = kIq1SGrid[index];
+                for (int j = 0; j < 8; ++j)
+                    x[16 * b + 8 * l + j] = db *
+                        (static_cast<float>(static_cast<std::int8_t>((grid >> (8 * j)) & 255u)) + delta);
+            }
+        }
+    }
+}
+
+// ---- Q2_0: GGML's 64-value two-bit block.
+inline void q2_0_encode(const float* x, int n, std::uint8_t* out) {
+    for (int i = 0; i < n; i += 64, x += 64, out += 18) {
+        float amax = 0.f;
+        for (int j = 0; j < 64; ++j) amax = std::max(amax, std::fabs(x[j]));
+        const float id = amax > 0.f ? 1.f / amax : 0.f;
+        const std::uint16_t h = f16_of(amax);
+        out[0] = static_cast<std::uint8_t>(h);
+        out[1] = static_cast<std::uint8_t>(h >> 8);
+        std::fill(out + 2, out + 18, 0);
+        for (int j = 0; j < 64; ++j) {
+            const int q = std::max(0, std::min(3, static_cast<int>(std::round(x[j] * id)) + 1));
+            out[2 + j / 4] |= static_cast<std::uint8_t>(q << (2 * (j % 4)));
+        }
+    }
+}
+inline void q2_0_decode(const std::uint8_t* in, int n, float* x) {
+    for (int i = 0; i < n; i += 64, x += 64, in += 18) {
+        const float d = half_of(static_cast<std::uint16_t>(in[0] | (in[1] << 8)));
+        for (int j = 0; j < 64; ++j) x[j] = d * (((in[2 + j / 4] >> (2 * (j % 4))) & 3) - 1);
+    }
+}
+
 // ---- Q4_0 (ggml's signed-max negative-delta quirk, j / j + 16 pairing)
 inline void q4_0_encode(const float* x, int n, std::uint8_t* out) {
     for (int i = 0; i < n; i += 32, x += 32, out += 18) {
@@ -402,6 +755,66 @@ inline void q4_0_decode(const std::uint8_t* in, int n, float* x) {
             x[j] = static_cast<float>(static_cast<int>(b & 0xF) - 8) * d;
             x[j + 16] = static_cast<float>(static_cast<int>(b >> 4) - 8) * d;
         }
+    }
+}
+
+// ---- Q4_1: affine 4-bit blocks, x = min + d * q, q in [0, 15].
+inline void q4_1_encode(const float* x, int n, std::uint8_t* out) {
+    for (int i = 0; i < n; i += 32, x += 32, out += 20) {
+        float lo = x[0], hi = x[0];
+        for (int j = 1; j < 32; ++j) { lo = std::min(lo, x[j]); hi = std::max(hi, x[j]); }
+        const float d = (hi - lo) / 15.f;
+        const float id = d != 0.f ? 1.f / d : 0.f;
+        const std::uint16_t dh = f16_of(d), mh = f16_of(lo);
+        out[0] = static_cast<std::uint8_t>(dh); out[1] = static_cast<std::uint8_t>(dh >> 8);
+        out[2] = static_cast<std::uint8_t>(mh); out[3] = static_cast<std::uint8_t>(mh >> 8);
+        for (int j = 0; j < 16; ++j) {
+            const int q0 = std::max(0, std::min(15, static_cast<int>(std::trunc((x[j] - lo) * id + .5f))));
+            const int q1 = std::max(0, std::min(15, static_cast<int>(std::trunc((x[j + 16] - lo) * id + .5f))));
+            out[4 + j] = static_cast<std::uint8_t>(q0 | (q1 << 4));
+        }
+    }
+}
+inline void q4_1_decode(const std::uint8_t* in, int n, float* x) {
+    for (int i = 0; i < n; i += 32, x += 32, in += 20) {
+        const float d = half_of(static_cast<std::uint16_t>(in[0] | (in[1] << 8)));
+        const float m = half_of(static_cast<std::uint16_t>(in[2] | (in[3] << 8)));
+        for (int j = 0; j < 16; ++j) { const std::uint8_t q = in[4 + j]; x[j] = m + d * (q & 15); x[j + 16] = m + d * (q >> 4); }
+    }
+}
+
+// ---- Q5_0/Q5_1: five-bit legacy blocks; the high bit-plane is qh[0..3].
+inline void q5_encode(const float* x, int n, std::uint8_t* out, bool affine) {
+    const int stride = affine ? 24 : 22;
+    for (int i = 0; i < n; i += 32, x += 32, out += stride) {
+        float lo = x[0], hi = x[0], amax = 0.f, vmax = 0.f;
+        for (int j = 0; j < 32; ++j) { lo = std::min(lo, x[j]); hi = std::max(hi, x[j]); if (std::fabs(x[j]) > amax) { amax = std::fabs(x[j]); vmax = x[j]; } }
+        const float d = affine ? (hi - lo) / 31.f : vmax / -16.f;
+        const float id = d != 0.f ? 1.f / d : 0.f;
+        const std::uint16_t dh = f16_of(d), mh = f16_of(lo);
+        out[0] = static_cast<std::uint8_t>(dh); out[1] = static_cast<std::uint8_t>(dh >> 8);
+        int off = 2;
+        if (affine) { out[2] = static_cast<std::uint8_t>(mh); out[3] = static_cast<std::uint8_t>(mh >> 8); off = 4; }
+        std::uint32_t qh = 0;
+        for (int j = 0; j < 16; ++j) {
+            const float a = affine ? (x[j] - lo) * id : x[j] * id;
+            const float b = affine ? (x[j + 16] - lo) * id : x[j + 16] * id;
+            const int q0 = std::max(0, std::min(31, static_cast<int>(std::trunc(a + (affine ? .5f : 16.5f)))));
+            const int q1 = std::max(0, std::min(31, static_cast<int>(std::trunc(b + (affine ? .5f : 16.5f)))));
+            out[off + 4 + j] = static_cast<std::uint8_t>((q0 & 15) | ((q1 & 15) << 4));
+            qh |= static_cast<std::uint32_t>((q0 >> 4) | ((q1 >> 4) << 16)) << j;
+        }
+        for (int b = 0; b < 4; ++b) out[off + b] = static_cast<std::uint8_t>(qh >> (8*b));
+    }
+}
+inline void q5_decode(const std::uint8_t* in, int n, float* x, bool affine) {
+    const int stride = affine ? 24 : 22;
+    for (int i = 0; i < n; i += 32, x += 32, in += stride) {
+        const float d = half_of(static_cast<std::uint16_t>(in[0] | (in[1] << 8)));
+        const float m = affine ? half_of(static_cast<std::uint16_t>(in[2] | (in[3] << 8))) : 0.f;
+        const int off = affine ? 4 : 2;
+        std::uint32_t qh = 0; for (int b = 0; b < 4; ++b) qh |= static_cast<std::uint32_t>(in[off+b]) << (8*b);
+        for (int j = 0; j < 16; ++j) { const std::uint8_t q = in[off + 4 + j]; const int q0 = (q & 15) | (((qh >> j) & 1u) << 4); const int q1 = (q >> 4) | (((qh >> (j+16)) & 1u) << 4); x[j] = affine ? m + d*q0 : d*(q0-16); x[j+16] = affine ? m + d*q1 : d*(q1-16); }
     }
 }
 
@@ -665,8 +1078,29 @@ inline void encode_row(Type t, const float* x, int n, std::uint8_t* out) {
         case Type::BF16: for (int i = 0; i < n; ++i) { const std::uint16_t h = f32_to_bf16(x[i]); out[2 * i] = static_cast<std::uint8_t>(h & 0xFF); out[2 * i + 1] = static_cast<std::uint8_t>(h >> 8); } break;
         case Type::F64: for (int i = 0; i < n; ++i) { const double v = static_cast<double>(x[i]); std::uint64_t u; std::memcpy(&u, &v, 8); for (int b = 0; b < 8; ++b) out[8 * i + b] = static_cast<std::uint8_t>(u >> (8 * b)); } break;
         case Type::I8: for (int i = 0; i < n; ++i) { float q = detail::rintf32(x[i]); q = std::max(-128.f, std::min(127.f, q)); out[i] = static_cast<std::uint8_t>(static_cast<std::int8_t>(q)); } break;
+        case Type::I16: for (int i = 0; i < n; ++i) { const long long q = std::max(-32768LL, std::min(32767LL, std::llround(x[i]))); const std::uint16_t u = static_cast<std::uint16_t>(static_cast<std::int16_t>(q)); out[2*i] = static_cast<std::uint8_t>(u); out[2*i+1] = static_cast<std::uint8_t>(u >> 8); } break;
+        case Type::I32: for (int i = 0; i < n; ++i) { const long long q = std::max(-2147483648LL, std::min(2147483647LL, std::llround(x[i]))); const std::uint32_t u = static_cast<std::uint32_t>(static_cast<std::int32_t>(q)); for (int b = 0; b < 4; ++b) out[4*i+b] = static_cast<std::uint8_t>(u >> (8*b)); } break;
+        case Type::I64: for (int i = 0; i < n; ++i) { const std::int64_t q = static_cast<std::int64_t>(std::llround(x[i])); const std::uint64_t u = static_cast<std::uint64_t>(q); for (int b = 0; b < 8; ++b) out[8*i+b] = static_cast<std::uint8_t>(u >> (8*b)); } break;
         case Type::Q8_0: detail::q8_0_encode(x, n, out); break;
+        case Type::Q8_1: detail::q8_1_encode(x, n, out); break;
+        case Type::Q2_K: detail::q2_k_encode(x, n, out); break;
+        case Type::Q3_K: detail::q3_k_encode(x, n, out); break;
+        case Type::Q4_K: detail::q4_k_encode(x, n, out); break;
+        case Type::Q5_K: detail::q5_k_encode(x, n, out); break;
+        case Type::Q6_K: detail::q6_k_encode(x, n, out); break;
+        case Type::Q8_K: detail::q8_k_encode(x, n, out); break;
+        case Type::IQ2_XXS: detail::iq2_xxs_encode(x, n, out); break;
+        case Type::IQ3_XXS: case Type::IQ1_S: case Type::IQ4_NL:
+        case Type::IQ3_S: case Type::IQ2_S: case Type::IQ4_XS:
+        case Type::IQ1_M:
+            throw std::runtime_error("gguf: tensor type " + type_to_string(t) +
+                                     " is import only; no reference-verified encoder is available");
+        case Type::Q2_0: detail::q2_0_encode(x, n, out); break;
+        case Type::IQ2_XS: detail::iq2_xs_encode(x, n, out); break;
         case Type::Q4_0: detail::q4_0_encode(x, n, out); break;
+        case Type::Q4_1: detail::q4_1_encode(x, n, out); break;
+        case Type::Q5_0: detail::q5_encode(x, n, out, false); break;
+        case Type::Q5_1: detail::q5_encode(x, n, out, true); break;
         case Type::Q1_0: detail::q1_0_encode(x, n, out); break;
         case Type::MXFP4: detail::mxfp4_encode(x, n, out); break;
         case Type::NVFP4: detail::nvfp4_encode(x, n, out); break;
@@ -717,8 +1151,31 @@ inline void decode_row(Type t, const std::uint8_t* in, int n, float* x) {
         case Type::BF16: for (int i = 0; i < n; ++i) x[i] = bf16_to_f32(static_cast<std::uint16_t>(in[2 * i] | (in[2 * i + 1] << 8))); break;
         case Type::F64: for (int i = 0; i < n; ++i) { std::uint64_t u = 0; for (int b = 0; b < 8; ++b) u |= static_cast<std::uint64_t>(in[8 * i + b]) << (8 * b); double v; std::memcpy(&v, &u, 8); x[i] = static_cast<float>(v); } break;
         case Type::I8: for (int i = 0; i < n; ++i) x[i] = static_cast<float>(static_cast<std::int8_t>(in[i])); break;
+        case Type::I16: for (int i = 0; i < n; ++i) x[i] = static_cast<float>(static_cast<std::int16_t>(static_cast<std::uint16_t>(in[2*i] | (in[2*i+1] << 8)))); break;
+        case Type::I32: for (int i = 0; i < n; ++i) { std::uint32_t u = 0; for (int b = 0; b < 4; ++b) u |= static_cast<std::uint32_t>(in[4*i+b]) << (8*b); x[i] = static_cast<float>(static_cast<std::int32_t>(u)); } break;
+        case Type::I64: for (int i = 0; i < n; ++i) { std::uint64_t u = 0; for (int b = 0; b < 8; ++b) u |= static_cast<std::uint64_t>(in[8*i+b]) << (8*b); x[i] = static_cast<float>(static_cast<std::int64_t>(u)); } break;
         case Type::Q8_0: detail::q8_0_decode(in, n, x); break;
+        case Type::Q8_1: detail::q8_1_decode(in, n, x); break;
+        case Type::Q2_K: detail::q2_k_decode(in, n, x); break;
+        case Type::Q3_K: detail::q3_k_decode(in, n, x); break;
+        case Type::Q4_K: detail::q4_k_decode(in, n, x); break;
+        case Type::Q5_K: detail::q5_k_decode(in, n, x); break;
+        case Type::Q6_K: detail::q6_k_decode(in, n, x); break;
+        case Type::Q8_K: detail::q8_k_decode(in, n, x); break;
+        case Type::IQ2_XXS: detail::iq2_xxs_decode(in, n, x); break;
+        case Type::IQ3_XXS: detail::iq3_xxs_decode(in, n, x); break;
+        case Type::IQ1_S: detail::iq1_s_decode(in, n, x); break;
+        case Type::IQ4_NL: detail::iq4_nl_decode(in, n, x); break;
+        case Type::IQ3_S: detail::iq3_s_decode(in, n, x); break;
+        case Type::IQ2_S: detail::iq2_s_decode(in, n, x); break;
+        case Type::IQ4_XS: detail::iq4_xs_decode(in, n, x); break;
+        case Type::Q2_0: detail::q2_0_decode(in, n, x); break;
+        case Type::IQ2_XS: detail::iq2_xs_decode(in, n, x); break;
+        case Type::IQ1_M: detail::iq1_m_decode(in, n, x); break;
         case Type::Q4_0: detail::q4_0_decode(in, n, x); break;
+        case Type::Q4_1: detail::q4_1_decode(in, n, x); break;
+        case Type::Q5_0: detail::q5_decode(in, n, x, false); break;
+        case Type::Q5_1: detail::q5_decode(in, n, x, true); break;
         case Type::Q1_0: detail::q1_0_decode(in, n, x); break;
         case Type::MXFP4: detail::mxfp4_decode(in, n, x); break;
         case Type::NVFP4: detail::nvfp4_decode(in, n, x); break;
@@ -1089,11 +1546,15 @@ private:
             t.ne[1] = c_.u64();
             t.type = static_cast<Type>(c_.u32());
             switch (t.type) {
-                case Type::F32: case Type::F16: case Type::Q4_0: case Type::Q8_0:
+                case Type::F32: case Type::F16: case Type::Q4_0: case Type::Q4_1:
+                case Type::Q5_0: case Type::Q5_1: case Type::Q8_0: case Type::Q8_1:
+                case Type::Q2_K: case Type::Q3_K: case Type::Q4_K: case Type::Q5_K: case Type::Q6_K: case Type::Q8_K: case Type::IQ2_XXS: case Type::IQ2_XS: case Type::IQ3_XXS: case Type::IQ1_S: case Type::IQ4_NL: case Type::IQ3_S: case Type::IQ2_S: case Type::IQ4_XS: case Type::Q2_0:
                 case Type::F64: case Type::BF16: case Type::TQ1_0: case Type::TQ2_0:
-                case Type::MXFP4: case Type::NVFP4: case Type::Q1_0: case Type::I8: break;
+                case Type::MXFP4: case Type::NVFP4: case Type::Q1_0:
+                case Type::I8: case Type::I16: case Type::I32: case Type::I64: case Type::IQ1_M: break;
                 default:
-                    throw std::runtime_error("gguf: tensor '" + t.name + "' has unsupported type " + type_to_string(Type(0)) + " id " + std::to_string(static_cast<std::uint32_t>(t.type)));
+                    throw std::runtime_error("gguf: tensor '" + t.name + "' has unsupported type id " +
+                                             std::to_string(static_cast<std::uint32_t>(t.type)));
             }
             t.offset = c_.u64();
         }

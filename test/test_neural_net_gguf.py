@@ -28,9 +28,10 @@ from IMP.bff import NeuralNet, QuantizedNeuralNet
 
 GGUF_PY = None
 try:
-    from gguf.constants import GGMLQuantizationType
+    from gguf.constants import GGMLQuantizationType, GGML_QUANT_SIZES
     from gguf.quants import dequantize as gguf_dequantize
-    from gguf import GGUFReader
+    from gguf.quants import quantize as gguf_quantize
+    from gguf import GGUFReader, GGUFWriter, GGUFValueType
     GGUF_PY = True
 except ImportError:
     GGUF_PY = False
@@ -85,6 +86,119 @@ def test_float_round_trip_every_type():
                "nvfp4": 0.4, "tq2_0": 0.7, "tq1_0": 0.7}[t]
         for a, b in zip(y0, y2):
             assert abs(a - b) < tol, (t, a, b)
+
+
+def test_float_export_imports_all_plain_integer_types():
+    """I16/I32/I64 GGUF tensors preserve integral-valued model weights."""
+    net = _make_net(n_in=8, hidden=(8,), n_out=2)
+    for tensor_type in ("i16", "i32", "i64"):
+        imported = NeuralNet.from_gguf(net.to_gguf(tensor_type))
+        assert imported.get_n_inputs() == net.get_n_inputs(), tensor_type
+        assert imported.get_n_outputs() == net.get_n_outputs(), tensor_type
+
+
+# These active GGML v3 formats have exact decoders in bff. Their upstream
+# writers require grid-neighbour searches that bff does not yet port, so the
+# public contract is read-only rather than emitting merely plausible bytes.
+IMPORT_ONLY_IQ_TYPES = (
+    "iq3_xxs", "iq1_s", "iq4_nl", "iq3_s", "iq2_s", "iq4_xs", "iq1_m",
+)
+
+
+@pytest.mark.parametrize("tensor_type", IMPORT_ONLY_IQ_TYPES)
+def test_float_export_rejects_import_only_iq_types(tensor_type):
+    """Read-only IQ formats fail explicitly instead of writing zero payloads."""
+    net = _make_net(n_in=256, hidden=(), n_out=1)
+    with pytest.raises(IMP.ValueException, match="import only"):
+        net.to_gguf(tensor_type)
+
+
+@pytest.mark.skipif(not GGUF_PY, reason="gguf-py not importable")
+@pytest.mark.parametrize("tensor_type", [
+    "f32", "f16", "bf16", "q4_0", "q4_1", "q5_0", "q5_1", "q8_0",
+    "q2_k", "q3_k", "q4_k", "q5_k", "q6_k", "iq2_xxs", "iq2_xs",
+    "tq1_0", "tq2_0", "mxfp4", "nvfp4",
+])
+def test_float_export_matches_reference_decoder(tensor_type, tmp_path):
+    """An independent gguf-py decoder must recover bff's imported weights."""
+    net = _make_net(n_in=256, hidden=(), n_out=1)
+    path = tmp_path / "export.gguf"
+    net.to_gguf_file(str(path), tensor_type)
+    reader = GGUFReader(str(path))
+    tensor = next(t for t in reader.tensors if t.name == "blk.0.weight")
+    qtype = GGMLQuantizationType[tensor_type.upper()]
+    assert tensor.tensor_type == qtype
+    reference = gguf_dequantize(
+        np.frombuffer(tensor.data.tobytes(), dtype=np.uint8), qtype
+    ).reshape(-1)
+    imported = NeuralNet.from_gguf(path.read_bytes())
+    weight = msgpack.unpackb(imported.to_msgpack(), raw=False)["layers"][0]["weight"]
+    np.testing.assert_allclose(weight, reference, rtol=0, atol=1e-6)
+
+
+@pytest.mark.skipif(not GGUF_PY, reason="gguf-py not importable")
+@pytest.mark.parametrize("tensor_type", [
+    "f32", "f16", "bf16", "q4_0", "q4_1", "q5_0", "q5_1", "q8_0",
+    "tq1_0", "tq2_0", "mxfp4",
+])
+def test_float_import_accepts_reference_encoded_tensor(tensor_type, tmp_path):
+    """Read a GGUF container and weight payload made by gguf-py."""
+    net = _make_net(n_in=256, hidden=(), n_out=1)
+    layer = msgpack.unpackb(net.to_msgpack(), raw=False)["layers"][0]
+    source = np.asarray(layer["weight"], dtype=np.float32).reshape(1, 256)
+    qtype = GGMLQuantizationType[tensor_type.upper()]
+    encoded = gguf_quantize(source, qtype)
+    path = tmp_path / "reference.gguf"
+    writer = GGUFWriter(str(path), "bff.mlp")
+    writer.add_uint32("bff.layer_count", 1)
+    writer.add_key_value("bff.dims", [256, 1], GGUFValueType.ARRAY,
+                         sub_type=GGUFValueType.UINT32)
+    writer.add_key_value("bff.activations", ["identity"], GGUFValueType.ARRAY,
+                         sub_type=GGUFValueType.STRING)
+    writer.add_string("bff.weight_type", tensor_type.upper())
+    writer.add_tensor("blk.0.weight", encoded, raw_dtype=qtype)
+    writer.add_tensor("blk.0.bias", np.asarray(layer["bias"], dtype=np.float32).reshape(1, 1))
+    writer.write_header_to_file()
+    writer.write_kv_data_to_file()
+    writer.write_tensors_to_file()
+    writer.close()
+    imported = NeuralNet.from_gguf(path.read_bytes())
+    weight = msgpack.unpackb(imported.to_msgpack(), raw=False)["layers"][0]["weight"]
+    reference = gguf_dequantize(np.asarray(encoded).view(np.uint8).reshape(-1), qtype)
+    np.testing.assert_allclose(weight, reference.reshape(-1), rtol=0, atol=1e-6)
+
+
+@pytest.mark.skipif(not GGUF_PY, reason="gguf-py not importable")
+@pytest.mark.parametrize("tensor_type", IMPORT_ONLY_IQ_TYPES)
+def test_float_import_only_iq_types_match_reference_decoder(tensor_type, tmp_path):
+    """Import IQ blocks that gguf-py can decode but neither library encodes."""
+    qtype = GGMLQuantizationType[tensor_type.upper()]
+    block_size, byte_size = GGML_QUANT_SIZES[qtype]
+    rng = np.random.default_rng(42)
+    payload = rng.integers(0, 256, size=byte_size * (256 // block_size), dtype=np.uint8)
+    for offset in range(0, len(payload), byte_size):
+        payload[offset:offset + 2] = (0, 60)  # finite fp16 scale, 1.0
+    reference = gguf_dequantize(payload, qtype).reshape(-1)
+    assert np.isfinite(reference).all()
+
+    path = tmp_path / "reference-iq.gguf"
+    writer = GGUFWriter(str(path), "bff.mlp")
+    writer.add_uint32("bff.layer_count", 1)
+    writer.add_key_value("bff.dims", [256, 1], GGUFValueType.ARRAY,
+                         sub_type=GGUFValueType.UINT32)
+    writer.add_key_value("bff.activations", ["identity"], GGUFValueType.ARRAY,
+                         sub_type=GGUFValueType.STRING)
+    writer.add_string("bff.weight_type", tensor_type.upper())
+    writer.add_tensor("blk.0.weight", payload.reshape(1, -1), raw_dtype=qtype)
+    writer.add_tensor("blk.0.bias", np.zeros((1, 1), dtype=np.float32))
+    writer.write_header_to_file()
+    writer.write_kv_data_to_file()
+    writer.write_tensors_to_file()
+    writer.close()
+
+    imported = NeuralNet.from_gguf(path.read_bytes())
+    weight = msgpack.unpackb(imported.to_msgpack(), raw=False)["layers"][0]["weight"]
+    np.testing.assert_allclose(weight, reference, rtol=0, atol=1e-5)
 
 
 def test_file_round_trip():
