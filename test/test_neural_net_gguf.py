@@ -101,7 +101,7 @@ def test_float_export_imports_all_plain_integer_types():
 # writers are not yet reference-verified in bff. The public contract is
 # read-only rather than emitting merely plausible bytes.
 IMPORT_ONLY_IQ_TYPES = (
-    "iq3_xxs", "iq1_s", "iq3_s", "iq2_s", "iq4_xs", "iq1_m",
+    "iq3_xxs", "iq1_s", "iq3_s", "iq2_s", "iq1_m",
 )
 
 
@@ -136,6 +136,21 @@ def test_iq4_nl_export_matches_ggml_reference_vector(source, expected_hex, tmp_p
 
 
 @pytest.mark.skipif(not GGUF_PY, reason="gguf-py not importable")
+def test_iq4_xs_export_matches_ggml_reference_vector(tmp_path):
+    """IQ4_XS uses ggml's deterministic nonlinear-codebook quantizer."""
+    source = [-3.875 + 0.03125 * i for i in range(256)]
+    doc = {"format": "bff.neural_net", "version": 1, "layers": [{
+        "n_in": 256, "n_out": 1, "activation": "identity",
+        "weight": source, "bias": [0.0],
+    }]}
+    net = NeuralNet(msgpack.packb(doc, use_bin_type=True))
+    path = tmp_path / "iq4-xs.gguf"
+    net.to_gguf_file(str(path), "iq4_xs")
+    tensor = next(t for t in GGUFReader(str(path)).tensors
+                  if t.name == "blk.0.weight")
+    assert tensor.tensor_type == GGMLQuantizationType.IQ4_XS
+    assert tensor.data.tobytes().hex() == "ec13af056e7f07080010101010101010101010101010101010101010101010101010101010202121102020202020202121213131313131314040405151516161627272728383939337262626252525151414141413030303131212121212020202020201010101011212010101010101010101010101010101010101010101010101010101010100"
+
 @pytest.mark.parametrize("tensor_type", [
     "f32", "f16", "bf16", "q4_0", "q4_1", "q5_0", "q5_1", "q8_0",
     "q2_k", "q3_k", "q4_k", "q5_k", "q6_k", "iq2_xxs", "iq2_xs",

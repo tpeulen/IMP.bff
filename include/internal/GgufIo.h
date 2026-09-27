@@ -717,6 +717,91 @@ inline void iq2_s_decode(const std::uint8_t* in, int n, float* x) {
     }
 }
 
+inline int iq4_nl_nearest_int(float value) {
+    const float shifted = value + 12582912.f;
+    std::int32_t bits;
+    std::memcpy(&bits, &shifted, sizeof(bits));
+    return (bits & 0x007fffff) - 0x00400000;
+}
+
+inline void iq4_xs_encode(const float* in, int n, std::uint8_t* out) {
+    static constexpr std::int8_t values[16] =
+        {-127, -104, -83, -65, -49, -35, -22, -10, 1, 13, 25, 38, 53, 69, 89, 113};
+    for (; n; n -= 256, in += 256, out += 136) {
+        std::fill(out, out + 136, 0);
+        std::uint8_t codes[256] = {};
+        float scales[8] = {};
+        float max_abs_scale = 0.f, max_scale = 0.f;
+        for (int block = 0; block < 8; ++block) {
+            const float* xb = in + 32 * block;
+            float weight[32];
+            float amax = 0.f, max_value = 0.f;
+            for (int j = 0; j < 32; ++j) {
+                weight[j] = xb[j] * xb[j];
+                const float ax = std::fabs(xb[j]);
+                if (ax > amax) { amax = ax; max_value = xb[j]; }
+            }
+            if (amax < 1e-15f) continue;
+            float scale = -max_value / static_cast<float>(values[0]);
+            float inv_scale = 1.f / scale;
+            float sum_qx = 0.f, sum_q2 = 0.f;
+            for (int j = 0; j < 32; ++j) {
+                const int code = iq4_nl_best_index(inv_scale * xb[j]);
+                const float q = static_cast<float>(values[code]);
+                sum_qx += weight[j] * q * xb[j];
+                sum_q2 += weight[j] * q * q;
+            }
+            float best = scale * sum_qx;
+            for (int trial = -7; trial <= 7; ++trial) {
+                inv_scale = (static_cast<float>(trial + values[0])) / max_value;
+                sum_qx = 0.f;
+                sum_q2 = 0.f;
+                for (int j = 0; j < 32; ++j) {
+                    const int code = iq4_nl_best_index(inv_scale * xb[j]);
+                    const float q = static_cast<float>(values[code]);
+                    sum_qx += weight[j] * q * xb[j];
+                    sum_q2 += weight[j] * q * q;
+                }
+                if (sum_q2 > 0.f && sum_qx * sum_qx > best * sum_q2) {
+                    scale = sum_qx / sum_q2;
+                    best = scale * sum_qx;
+                }
+            }
+            scales[block] = scale;
+            const float abs_scale = std::fabs(scale);
+            if (abs_scale > max_abs_scale) {
+                max_abs_scale = abs_scale;
+                max_scale = scale;
+            }
+        }
+        const float d = -max_scale / 32.f;
+        const std::uint16_t dh = f16_of(d);
+        out[0] = static_cast<std::uint8_t>(dh);
+        out[1] = static_cast<std::uint8_t>(dh >> 8);
+        const float inv_d = d != 0.f ? 1.f / d : 0.f;
+        std::uint16_t scales_h = 0;
+        for (int block = 0; block < 8; ++block) {
+            int scale_code = iq4_nl_nearest_int(inv_d * scales[block]);
+            scale_code = std::max(-32, std::min(31, scale_code));
+            const float group_scale = d * static_cast<float>(scale_code);
+            const float inv_group_scale = group_scale != 0.f ? 1.f / group_scale : 0.f;
+            for (int j = 0; j < 32; ++j)
+                codes[32 * block + j] = static_cast<std::uint8_t>(
+                    iq4_nl_best_index(inv_group_scale * in[32 * block + j]));
+            const int packed_scale = scale_code + 32;
+            if ((block & 1) == 0) out[4 + block / 2] = static_cast<std::uint8_t>(packed_scale & 15);
+            else out[4 + block / 2] |= static_cast<std::uint8_t>((packed_scale & 15) << 4);
+            scales_h |= static_cast<std::uint16_t>((packed_scale >> 4) << (2 * block));
+        }
+        out[2] = static_cast<std::uint8_t>(scales_h);
+        out[3] = static_cast<std::uint8_t>(scales_h >> 8);
+        for (int block = 0; block < 8; ++block)
+            for (int j = 0; j < 16; ++j)
+                out[8 + 16 * block + j] = static_cast<std::uint8_t>(
+                    codes[32 * block + j] | (codes[32 * block + 16 + j] << 4));
+    }
+}
+
 inline void iq4_xs_decode(const std::uint8_t* in, int n, float* x) {
     static constexpr std::int8_t values[16] =
         {-127, -104, -83, -65, -49, -35, -22, -10, 1, 13, 25, 38, 53, 69, 89, 113};
@@ -1160,11 +1245,12 @@ inline void encode_row(Type t, const float* x, int n, std::uint8_t* out) {
         case Type::Q8_K: detail::q8_k_encode(x, n, out); break;
         case Type::IQ2_XXS: detail::iq2_xxs_encode(x, n, out); break;
         case Type::IQ3_XXS: case Type::IQ1_S:
-        case Type::IQ3_S: case Type::IQ2_S: case Type::IQ4_XS:
+        case Type::IQ3_S: case Type::IQ2_S:
         case Type::IQ1_M:
             throw std::runtime_error("gguf: tensor type " + type_to_string(t) +
                                      " is import only; no reference-verified encoder is available");
         case Type::IQ4_NL: detail::iq4_nl_encode(x, n, out); break;
+        case Type::IQ4_XS: detail::iq4_xs_encode(x, n, out); break;
         case Type::Q2_0: detail::q2_0_encode(x, n, out); break;
         case Type::IQ2_XS: detail::iq2_xs_encode(x, n, out); break;
         case Type::Q4_0: detail::q4_0_encode(x, n, out); break;
