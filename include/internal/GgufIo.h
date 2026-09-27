@@ -1237,13 +1237,9 @@ inline void encode_row(Type t, const float* x, int n, std::uint8_t* out) {
         case Type::I64: for (int i = 0; i < n; ++i) { const std::int64_t q = static_cast<std::int64_t>(std::llround(x[i])); const std::uint64_t u = static_cast<std::uint64_t>(q); for (int b = 0; b < 8; ++b) out[8*i+b] = static_cast<std::uint8_t>(u >> (8*b)); } break;
         case Type::Q8_0: detail::q8_0_encode(x, n, out); break;
         case Type::Q8_1: detail::q8_1_encode(x, n, out); break;
-        case Type::Q2_K: detail::q2_k_encode(x, n, out); break;
-        case Type::Q3_K: detail::q3_k_encode(x, n, out); break;
-        case Type::Q4_K: detail::q4_k_encode(x, n, out); break;
-        case Type::Q5_K: detail::q5_k_encode(x, n, out); break;
-        case Type::Q6_K: detail::q6_k_encode(x, n, out); break;
-        case Type::Q8_K: detail::q8_k_encode(x, n, out); break;
-        case Type::IQ2_XXS: detail::iq2_xxs_encode(x, n, out); break;
+        case Type::Q2_K: case Type::Q3_K: case Type::Q4_K:
+        case Type::Q5_K: case Type::Q6_K: case Type::Q8_K:
+        case Type::IQ2_XXS: case Type::IQ2_XS:
         case Type::IQ3_XXS: case Type::IQ1_S:
         case Type::IQ3_S: case Type::IQ2_S:
         case Type::IQ1_M:
@@ -1252,7 +1248,6 @@ inline void encode_row(Type t, const float* x, int n, std::uint8_t* out) {
         case Type::IQ4_NL: detail::iq4_nl_encode(x, n, out); break;
         case Type::IQ4_XS: detail::iq4_xs_encode(x, n, out); break;
         case Type::Q2_0: detail::q2_0_encode(x, n, out); break;
-        case Type::IQ2_XS: detail::iq2_xs_encode(x, n, out); break;
         case Type::Q4_0: detail::q4_0_encode(x, n, out); break;
         case Type::Q4_1: detail::q4_1_encode(x, n, out); break;
         case Type::Q5_0: detail::q5_encode(x, n, out, false); break;

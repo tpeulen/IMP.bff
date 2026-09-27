@@ -100,12 +100,16 @@ def test_float_export_imports_all_plain_integer_types():
 # These active GGML v3 formats have exact decoders in bff, but their upstream
 # writers are not yet reference-verified in bff. The public contract is
 # read-only rather than emitting merely plausible bytes.
-IMPORT_ONLY_IQ_TYPES = (
-    "iq3_xxs", "iq1_s", "iq3_s", "iq2_s", "iq1_m",
+IMPORT_ONLY_K_TYPES = (
+    "q2_k", "q3_k", "q4_k", "q5_k", "q6_k", "q8_k",
 )
+IMPORT_ONLY_IQ_TYPES = (
+    "iq2_xxs", "iq2_xs", "iq3_xxs", "iq1_s", "iq3_s", "iq2_s", "iq1_m",
+)
+IMPORT_ONLY_TYPES = IMPORT_ONLY_K_TYPES + IMPORT_ONLY_IQ_TYPES
 
 
-@pytest.mark.parametrize("tensor_type", IMPORT_ONLY_IQ_TYPES)
+@pytest.mark.parametrize("tensor_type", IMPORT_ONLY_TYPES)
 def test_float_export_rejects_import_only_iq_types(tensor_type):
     """Read-only IQ formats fail explicitly instead of writing zero payloads."""
     net = _make_net(n_in=256, hidden=(), n_out=1)
@@ -153,7 +157,6 @@ def test_iq4_xs_export_matches_ggml_reference_vector(tmp_path):
 
 @pytest.mark.parametrize("tensor_type", [
     "f32", "f16", "bf16", "q4_0", "q4_1", "q5_0", "q5_1", "q8_0",
-    "q2_k", "q3_k", "q4_k", "q5_k", "q6_k", "iq2_xxs", "iq2_xs",
     "tq1_0", "tq2_0", "mxfp4", "nvfp4",
 ])
 def test_float_export_matches_reference_decoder(tensor_type, tmp_path):
