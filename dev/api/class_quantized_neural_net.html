@@ -86,7 +86,7 @@ Collaboration diagram for QuantizedNeuralNet:</div>
 <div class="dyncontent">
 <div class="center"><img src="class_quantized_neural_net__coll__graph.png" border="0" usemap="#a_quantized_neural_net_coll__map" alt="Collaboration graph"/></div>
 <map name="a_quantized_neural_net_coll__map" id="a_quantized_neural_net_coll__map">
-<area shape="rect" title="A NeuralNet&#39;s forward pass with quantised weights, for deployment." alt="" coords="5,5,207,331"/>
+<area shape="rect" title="A NeuralNet&#39;s forward pass with quantised weights, for deployment." alt="" coords="5,5,207,411"/>
 </map>
 </div>
 <table class="memberdecls">
@@ -100,6 +100,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a5f59ae9ea16a31477645513bf3361f70" id="r_a5f59ae9ea16a31477645513bf3361f70"><td class="memItemLeft" align="right" valign="top"><a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a5f59ae9ea16a31477645513bf3361f70">to_msgpack</a> () const</td></tr>
 <tr class="memdesc:a5f59ae9ea16a31477645513bf3361f70"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <code>bff.quantized_neural_net</code> msgpack document (bit-exact round trip).  <br /></td></tr>
 <tr class="separator:a5f59ae9ea16a31477645513bf3361f70"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d8967f2ec6284d4a71790e52caa78c8" id="r_a8d8967f2ec6284d4a71790e52caa78c8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="_neural_net_8h.html#ab8b4c077e8f6d0dd43f7f8359c44b99a">GgufBytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a8d8967f2ec6284d4a71790e52caa78c8">to_gguf</a> () const</td></tr>
+<tr class="separator:a8d8967f2ec6284d4a71790e52caa78c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c0c03fe67f926f5d31c8717fd8f14ab" id="r_a7c0c03fe67f926f5d31c8717fd8f14ab"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a7c0c03fe67f926f5d31c8717fd8f14ab">to_gguf_file</a> (const std::string &amp;path) const</td></tr>
+<tr class="memdesc:a7c0c03fe67f926f5d31c8717fd8f14ab"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_quantized_neural_net.html#a8d8967f2ec6284d4a71790e52caa78c8">to_gguf()</a> written to the file at <code>path</code>.  <br /></td></tr>
+<tr class="separator:a7c0c03fe67f926f5d31c8717fd8f14ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a103d3b604d102cf670aefd9e9950ba44" id="r_a103d3b604d102cf670aefd9e9950ba44"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a103d3b604d102cf670aefd9e9950ba44">get_format</a> () const</td></tr>
 <tr class="memdesc:a103d3b604d102cf670aefd9e9950ba44"><td class="mdescLeft">&#160;</td><td class="mdescRight">"int8", "fp4", "mxfp4", "nvfp4" or one of the ternary formats.  <br /></td></tr>
 <tr class="separator:a103d3b604d102cf670aefd9e9950ba44"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -131,6 +136,12 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:ab995598925dd2681eceddcc948a363d3" id="r_ab995598925dd2681eceddcc948a363d3"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_quantized_neural_net.html">QuantizedNeuralNet</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#ab995598925dd2681eceddcc948a363d3">from_msgpack</a> (const <a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp;document)</td></tr>
 <tr class="memdesc:ab995598925dd2681eceddcc948a363d3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a <code>bff.quantized_neural_net</code> msgpack document.  <br /></td></tr>
 <tr class="separator:ab995598925dd2681eceddcc948a363d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3d7e81babb05e6774961d85f240b2850" id="r_a3d7e81babb05e6774961d85f240b2850"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_quantized_neural_net.html">QuantizedNeuralNet</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a3d7e81babb05e6774961d85f240b2850">from_gguf</a> (const <a class="el" href="_neural_net_8h.html#ab8b4c077e8f6d0dd43f7f8359c44b99a">GgufBytes</a> &amp;data)</td></tr>
+<tr class="memdesc:a3d7e81babb05e6774961d85f240b2850"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a GGUF file holding a quantised <code>bff.mlp</code> network.  <br /></td></tr>
+<tr class="separator:a3d7e81babb05e6774961d85f240b2850"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a35bea6fc92339effddda28ecd2151d2a" id="r_a35bea6fc92339effddda28ecd2151d2a"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_quantized_neural_net.html">QuantizedNeuralNet</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a35bea6fc92339effddda28ecd2151d2a">from_gguf_file</a> (const std::string &amp;path)</td></tr>
+<tr class="memdesc:a35bea6fc92339effddda28ecd2151d2a"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_quantized_neural_net.html#a3d7e81babb05e6774961d85f240b2850" title="Read a GGUF file holding a quantised bff.mlp network.">from_gguf()</a> on the contents of the file at <code>path</code>.  <br /></td></tr>
+<tr class="separator:a35bea6fc92339effddda28ecd2151d2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1faa21e94d3f19a4ca77215412ad5aca" id="r_a1faa21e94d3f19a4ca77215412ad5aca"><td class="memItemLeft" align="right" valign="top">static std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a1faa21e94d3f19a4ca77215412ad5aca">get_kernel_name</a> ()</td></tr>
 <tr class="separator:a1faa21e94d3f19a4ca77215412ad5aca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -215,6 +226,74 @@ Static Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a3d7e81babb05e6774961d85f240b2850" name="a3d7e81babb05e6774961d85f240b2850"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3d7e81babb05e6774961d85f240b2850">&#9670;&#160;</a></span>from_gguf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="class_quantized_neural_net.html">QuantizedNeuralNet</a> QuantizedNeuralNet::from_gguf </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="_neural_net_8h.html#ab8b4c077e8f6d0dd43f7f8359c44b99a">GgufBytes</a> &amp;&#160;</td>
+          <td class="paramname"><em>data</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read a GGUF file holding a quantised <code>bff.mlp</code> network. </p>
+<p>The exact codes survive for "int8" (GGUF I8 + the per-layer scales in metadata), "mxfp4" (GGUF MXFP4, bff's scale convention reversed on load), "ternary" / "ternary_row" (TQ2_0) and "ternary_tq1" / "ternary_tq1_row" (TQ1_0, the absmean from metadata); "nvfp4" arrives folded (see <a class="el" href="class_quantized_neural_net.html#a8d8967f2ec6284d4a71790e52caa78c8">to_gguf()</a>); "fp4" was stored dequantised and arrives as float layers. </p><dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::ValueException</td><td>on a malformed file or a foreign architecture </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a35bea6fc92339effddda28ecd2151d2a" name="a35bea6fc92339effddda28ecd2151d2a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a35bea6fc92339effddda28ecd2151d2a">&#9670;&#160;</a></span>from_gguf_file()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="class_quantized_neural_net.html">QuantizedNeuralNet</a> QuantizedNeuralNet::from_gguf_file </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p><a class="el" href="class_quantized_neural_net.html#a3d7e81babb05e6774961d85f240b2850" title="Read a GGUF file holding a quantised bff.mlp network.">from_gguf()</a> on the contents of the file at <code>path</code>. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::IOException</td><td>if the file cannot be read </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="ab995598925dd2681eceddcc948a363d3" name="ab995598925dd2681eceddcc948a363d3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab995598925dd2681eceddcc948a363d3">&#9670;&#160;</a></span>from_msgpack()</h2>
 
@@ -475,6 +554,56 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a8d8967f2ec6284d4a71790e52caa78c8" name="a8d8967f2ec6284d4a71790e52caa78c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8d8967f2ec6284d4a71790e52caa78c8">&#9670;&#160;</a></span>to_gguf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="_neural_net_8h.html#ab8b4c077e8f6d0dd43f7f8359c44b99a">GgufBytes</a> QuantizedNeuralNet::to_gguf </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The quantised network as a GGUF file image, codes and scales intact where GGUF has a matching type.</p>
+<p>int8 -&gt; I8 + <code>bff.int8.scales</code>; mxfp4 -&gt; MXFP4 (exact, foreign readers decode it correctly); nvfp4 -&gt; NVFP4 with the global scale folded into the block scales (<code>bff.nvfp4.*.tensor_scale</code> records the original; at most 1/16 relative noise a block); ternary -&gt; TQ2_0 / TQ1_0 with the absmean in <code>bff.ternary.*</code> metadata; bff "fp4" (per-row scales) and the kept float64 layers are stored dequantised as F32. Biases and scalers ride as F32/F64 tensors and <code>bff.*</code> metadata. </p><dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::ValueException</td><td>on an empty network </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a7c0c03fe67f926f5d31c8717fd8f14ab" name="a7c0c03fe67f926f5d31c8717fd8f14ab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c0c03fe67f926f5d31c8717fd8f14ab">&#9670;&#160;</a></span>to_gguf_file()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void QuantizedNeuralNet::to_gguf_file </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p><a class="el" href="class_quantized_neural_net.html#a8d8967f2ec6284d4a71790e52caa78c8">to_gguf()</a> written to the file at <code>path</code>. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::IOException</td><td>if the file cannot be written </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="a5f59ae9ea16a31477645513bf3361f70" name="a5f59ae9ea16a31477645513bf3361f70"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5f59ae9ea16a31477645513bf3361f70">&#9670;&#160;</a></span>to_msgpack()</h2>
 
@@ -500,7 +629,7 @@ Static Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Sep 26 2026 01:56:48 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Sep 27 2026 04:57:19 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

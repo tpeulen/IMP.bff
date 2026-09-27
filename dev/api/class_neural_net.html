@@ -85,7 +85,7 @@ Collaboration diagram for NeuralNet:</div>
 <div class="dyncontent">
 <div class="center"><img src="class_neural_net__coll__graph.png" border="0" usemap="#a_neural_net_coll__map" alt="Collaboration graph"/></div>
 <map name="a_neural_net_coll__map" id="a_neural_net_coll__map">
-<area shape="rect" title="A dense multilayer perceptron: evaluated in batches, and differentiable." alt="" coords="5,5,187,851"/>
+<area shape="rect" title="A dense multilayer perceptron: evaluated in batches, and differentiable." alt="" coords="5,5,187,1011"/>
 </map>
 </div>
 <table class="memberdecls">
@@ -153,6 +153,24 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aec3925cd8f97f954e7ec95a71b794b7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader">Import</h2></td></tr>
+<tr class="memitem:a46b1654686795909dc437b9c63ecbcdb" id="r_a46b1654686795909dc437b9c63ecbcdb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="_neural_net_8h.html#af728b35d06d93bdfd5bda36f18f8bc7c">OnnxBytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#a46b1654686795909dc437b9c63ecbcdb">to_onnx</a> () const</td></tr>
+<tr class="memdesc:a46b1654686795909dc437b9c63ecbcdb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The network as ONNX bytes.  <br /></td></tr>
+<tr class="separator:a46b1654686795909dc437b9c63ecbcdb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9b48f5ff1b4fb6c74b7ac47a6c8165a5" id="r_a9b48f5ff1b4fb6c74b7ac47a6c8165a5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#a9b48f5ff1b4fb6c74b7ac47a6c8165a5">to_onnx_file</a> (const std::string &amp;path) const</td></tr>
+<tr class="memdesc:a9b48f5ff1b4fb6c74b7ac47a6c8165a5"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_neural_net.html#a46b1654686795909dc437b9c63ecbcdb" title="The network as ONNX bytes.">to_onnx()</a> written to the file at <code>path</code>.  <br /></td></tr>
+<tr class="separator:a9b48f5ff1b4fb6c74b7ac47a6c8165a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaac11a6a73559d00415aaf148b2ba68b" id="r_aaac11a6a73559d00415aaf148b2ba68b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="_neural_net_8h.html#aea7353cfa29000bff77d7dc987ebc179">SafetensorsBytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#aaac11a6a73559d00415aaf148b2ba68b">to_safetensors</a> () const</td></tr>
+<tr class="memdesc:aaac11a6a73559d00415aaf148b2ba68b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The network as safetensors bytes (a PyTorch-style <code>state_dict</code>).  <br /></td></tr>
+<tr class="separator:aaac11a6a73559d00415aaf148b2ba68b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab6951ec67cabfa422a4e6c8f30df54e" id="r_aab6951ec67cabfa422a4e6c8f30df54e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#aab6951ec67cabfa422a4e6c8f30df54e">to_safetensors_file</a> (const std::string &amp;path) const</td></tr>
+<tr class="memdesc:aab6951ec67cabfa422a4e6c8f30df54e"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_neural_net.html#aaac11a6a73559d00415aaf148b2ba68b" title="The network as safetensors bytes (a PyTorch-style state_dict).">to_safetensors()</a> written to the file at <code>path</code>.  <br /></td></tr>
+<tr class="separator:aab6951ec67cabfa422a4e6c8f30df54e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae4a4dad0cd9cc5a023d70015570ef36b" id="r_ae4a4dad0cd9cc5a023d70015570ef36b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="_neural_net_8h.html#ab8b4c077e8f6d0dd43f7f8359c44b99a">GgufBytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#ae4a4dad0cd9cc5a023d70015570ef36b">to_gguf</a> (const std::string &amp;weight_type=&quot;f32&quot;) const</td></tr>
+<tr class="memdesc:ae4a4dad0cd9cc5a023d70015570ef36b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The network as a GGUF file image, weights stored as <code>weight_type</code>.  <br /></td></tr>
+<tr class="separator:ae4a4dad0cd9cc5a023d70015570ef36b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03d86e09405e1c812c1a3bf62c57939a" id="r_a03d86e09405e1c812c1a3bf62c57939a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#a03d86e09405e1c812c1a3bf62c57939a">to_gguf_file</a> (const std::string &amp;path, const std::string &amp;weight_type=&quot;f32&quot;) const</td></tr>
+<tr class="memdesc:a03d86e09405e1c812c1a3bf62c57939a"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_neural_net.html#ae4a4dad0cd9cc5a023d70015570ef36b" title="The network as a GGUF file image, weights stored as weight_type.">to_gguf()</a> written to the file at <code>path</code>.  <br /></td></tr>
+<tr class="separator:a03d86e09405e1c812c1a3bf62c57939a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af05bbcd6919b7e3a8fd41b860c20f918" id="r_af05bbcd6919b7e3a8fd41b860c20f918"><td class="memItemLeft" align="right" valign="top"><a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#af05bbcd6919b7e3a8fd41b860c20f918">to_msgpack</a> () const</td></tr>
 <tr class="memdesc:af05bbcd6919b7e3a8fd41b860c20f918"><td class="mdescLeft">&#160;</td><td class="mdescRight">The network as a <code>bff.neural_net</code> msgpack document.  <br /></td></tr>
 <tr class="separator:af05bbcd6919b7e3a8fd41b860c20f918"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -168,6 +186,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aee617fca65c386d8052b2a276f47968d" id="r_aee617fca65c386d8052b2a276f47968d"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_neural_net.html">NeuralNet</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#aee617fca65c386d8052b2a276f47968d">from_safetensors_file</a> (const std::string &amp;path, const std::string &amp;hidden_activation=&quot;tanh&quot;)</td></tr>
 <tr class="memdesc:aee617fca65c386d8052b2a276f47968d"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_neural_net.html#a51acaef1d7a89c8d0e0c8c38f0965281" title="Read a safetensors file holding a PyTorch-style state_dict.">from_safetensors()</a> on the contents of the file at <code>path</code>.  <br /></td></tr>
 <tr class="separator:aee617fca65c386d8052b2a276f47968d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9dbf1f24228c2dc091c8a0e9e5feeb6" id="r_ae9dbf1f24228c2dc091c8a0e9e5feeb6"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_neural_net.html">NeuralNet</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#ae9dbf1f24228c2dc091c8a0e9e5feeb6">from_gguf</a> (const <a class="el" href="_neural_net_8h.html#ab8b4c077e8f6d0dd43f7f8359c44b99a">GgufBytes</a> &amp;data)</td></tr>
+<tr class="memdesc:ae9dbf1f24228c2dc091c8a0e9e5feeb6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a GGUF file holding a <code>bff.mlp</code> network.  <br /></td></tr>
+<tr class="separator:ae9dbf1f24228c2dc091c8a0e9e5feeb6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ed7f14b3a9c9924c3ede86b01078f09" id="r_a0ed7f14b3a9c9924c3ede86b01078f09"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_neural_net.html">NeuralNet</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_neural_net.html#a0ed7f14b3a9c9924c3ede86b01078f09">from_gguf_file</a> (const std::string &amp;path)</td></tr>
+<tr class="memdesc:a0ed7f14b3a9c9924c3ede86b01078f09"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_neural_net.html#ae9dbf1f24228c2dc091c8a0e9e5feeb6" title="Read a GGUF file holding a bff.mlp network.">from_gguf()</a> on the contents of the file at <code>path</code>.  <br /></td></tr>
+<tr class="separator:a0ed7f14b3a9c9924c3ede86b01078f09"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A dense multilayer perceptron: evaluated in batches, and differentiable. </p>
@@ -482,6 +506,74 @@ Public Member Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[out]</td><td class="paramname">out_dparams</td><td><code><a class="el" href="class_neural_net.html#a243a0682358b5fb312b0847a6e10c751" title="Weights plus biases: the length of get_parameters().">get_n_parameters()</a></code> long </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">out_dx,out_dv</td><td><code>(n_rows, n_inputs)</code> each; <code>dv</code> is zero for an order-0 pass </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ae9dbf1f24228c2dc091c8a0e9e5feeb6" name="ae9dbf1f24228c2dc091c8a0e9e5feeb6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae9dbf1f24228c2dc091c8a0e9e5feeb6">&#9670;&#160;</a></span>from_gguf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="class_neural_net.html">NeuralNet</a> NeuralNet::from_gguf </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="_neural_net_8h.html#ab8b4c077e8f6d0dd43f7f8359c44b99a">GgufBytes</a> &amp;&#160;</td>
+          <td class="paramname"><em>data</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read a GGUF file holding a <code>bff.mlp</code> network. </p>
+<p>GGUF is llama.cpp's and MLX's model format. Weights may be stored in any type this module maps &ndash; F32, F16, BF16, F64, I8, Q8_0, Q4_0, Q1_0, MXFP4, NVFP4, TQ1_0 or TQ2_0 &ndash; and are dequantised on load; biases, the layer shapes (<code>bff.dims</code>) and activations (<code>bff.activations</code>) and the scalers (<code>bff.x_scaler.*</code>, <code>bff.y_scaler.*</code>) come from the metadata. A file written by <a class="el" href="class_neural_net.html#ae4a4dad0cd9cc5a023d70015570ef36b" title="The network as a GGUF file image, weights stored as weight_type.">to_gguf()</a> loads bit-compatibly (F64 weights bit-exactly); quantised tensors arrive dequantised, within the type's precision. </p><dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::ValueException</td><td>on a malformed file or a foreign architecture </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a0ed7f14b3a9c9924c3ede86b01078f09" name="a0ed7f14b3a9c9924c3ede86b01078f09"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0ed7f14b3a9c9924c3ede86b01078f09">&#9670;&#160;</a></span>from_gguf_file()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="class_neural_net.html">NeuralNet</a> NeuralNet::from_gguf_file </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p><a class="el" href="class_neural_net.html#ae9dbf1f24228c2dc091c8a0e9e5feeb6" title="Read a GGUF file holding a bff.mlp network.">from_gguf()</a> on the contents of the file at <code>path</code>. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::IOException</td><td>if the file cannot be read </td></tr>
   </table>
   </dd>
 </dl>
@@ -1215,6 +1307,68 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="ae4a4dad0cd9cc5a023d70015570ef36b" name="ae4a4dad0cd9cc5a023d70015570ef36b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae4a4dad0cd9cc5a023d70015570ef36b">&#9670;&#160;</a></span>to_gguf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="_neural_net_8h.html#ab8b4c077e8f6d0dd43f7f8359c44b99a">GgufBytes</a> NeuralNet::to_gguf </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>weight_type</em> = <code>&quot;f32&quot;</code></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The network as a GGUF file image, weights stored as <code>weight_type</code>. </p>
+<p>One of "f32" (default), "f16", "bf16", "f64", "q8_0", "q4_0", "q1_0", "mxfp4", "nvfp4", "tq2_0" or "tq1_0". Quantised types quantise each weight matrix (blocks of 32 or 256 along the input dimension, rows padded to the block size); "f64" round trips bit-exactly. The file's architecture tag is <code>bff.mlp</code>, the layer shapes and activations and the scalers ride in <code>bff.*</code> metadata, so <a class="el" href="class_neural_net.html#ae9dbf1f24228c2dc091c8a0e9e5feeb6" title="Read a GGUF file holding a bff.mlp network.">from_gguf()</a> rebuilds this network. </p><dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::ValueException</td><td>for an unknown type or an empty network </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a03d86e09405e1c812c1a3bf62c57939a" name="a03d86e09405e1c812c1a3bf62c57939a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a03d86e09405e1c812c1a3bf62c57939a">&#9670;&#160;</a></span>to_gguf_file()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NeuralNet::to_gguf_file </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>path</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>weight_type</em> = <code>&quot;f32&quot;</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p><a class="el" href="class_neural_net.html#ae4a4dad0cd9cc5a023d70015570ef36b" title="The network as a GGUF file image, weights stored as weight_type.">to_gguf()</a> written to the file at <code>path</code>. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::IOException</td><td>if the file cannot be written </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="af05bbcd6919b7e3a8fd41b860c20f918" name="af05bbcd6919b7e3a8fd41b860c20f918"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af05bbcd6919b7e3a8fd41b860c20f918">&#9670;&#160;</a></span>to_msgpack()</h2>
 
@@ -1235,13 +1389,115 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a46b1654686795909dc437b9c63ecbcdb" name="a46b1654686795909dc437b9c63ecbcdb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a46b1654686795909dc437b9c63ecbcdb">&#9670;&#160;</a></span>to_onnx()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="_neural_net_8h.html#af728b35d06d93bdfd5bda36f18f8bc7c">OnnxBytes</a> NeuralNet::to_onnx </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The network as ONNX bytes. </p>
+<p>The inverse of <a class="el" href="class_neural_net.html#a345d7a50f2b61e9c1d5f57972a837077" title="Read an ONNX model holding a dense network.">from_onnx()</a>: one Gemm per layer (weights <code>n_out x n_in</code>, PyTorch's layout) plus its activation node — Relu, Tanh, Sigmoid, Softplus, Sin, the Sigmoid + Mul pair for SiLU, and nothing for the linear output. Weights are FLOAT: onnxruntime evaluates in float32, so a float64 net comes back within float32 precision, exactly like the float32 nets <a class="el" href="class_neural_net.html#a345d7a50f2b61e9c1d5f57972a837077" title="Read an ONNX model holding a dense network.">from_onnx()</a> imports. The bytes pass onnx.checker and run in onnxruntime. </p><dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::ValueException</td><td>if the model is invalid </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a9b48f5ff1b4fb6c74b7ac47a6c8165a5" name="a9b48f5ff1b4fb6c74b7ac47a6c8165a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9b48f5ff1b4fb6c74b7ac47a6c8165a5">&#9670;&#160;</a></span>to_onnx_file()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NeuralNet::to_onnx_file </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p><a class="el" href="class_neural_net.html#a46b1654686795909dc437b9c63ecbcdb" title="The network as ONNX bytes.">to_onnx()</a> written to the file at <code>path</code>. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::IOException</td><td>if the file cannot be written </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="aaac11a6a73559d00415aaf148b2ba68b" name="aaac11a6a73559d00415aaf148b2ba68b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaac11a6a73559d00415aaf148b2ba68b">&#9670;&#160;</a></span>to_safetensors()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="_neural_net_8h.html#aea7353cfa29000bff77d7dc987ebc179">SafetensorsBytes</a> NeuralNet::to_safetensors </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The network as safetensors bytes (a PyTorch-style <code>state_dict</code>). </p>
+<p>The inverse of <a class="el" href="class_neural_net.html#a51acaef1d7a89c8d0e0c8c38f0965281" title="Read a safetensors file holding a PyTorch-style state_dict.">from_safetensors()</a>: one <code>blk.&lt;i&gt;.weight</code> of shape <code>(n_out, n_in)</code> plus <code>blk.&lt;i&gt;.bias</code> per layer, dtype F64 (safetensors has no quantised dtypes; quantised nets round-trip through GGUF), the activations in <code>__metadata__</code> as <code>"activations": "tanh,tanh,identity"</code>, and the scalers as <code>x_scaler.mean</code> / <code>x_scaler.scale</code> / <code>y_scaler.mean</code> / <code>y_scaler.scale</code> float64 tensors when the net carries them. The result loads with <code>safetensors.numpy.load_file</code> and with <a class="el" href="class_neural_net.html#a51acaef1d7a89c8d0e0c8c38f0965281" title="Read a safetensors file holding a PyTorch-style state_dict.">from_safetensors()</a> bit-exactly. </p><dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::ValueException</td><td>if the model is invalid </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="aab6951ec67cabfa422a4e6c8f30df54e" name="aab6951ec67cabfa422a4e6c8f30df54e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aab6951ec67cabfa422a4e6c8f30df54e">&#9670;&#160;</a></span>to_safetensors_file()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NeuralNet::to_safetensors_file </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p><a class="el" href="class_neural_net.html#aaac11a6a73559d00415aaf148b2ba68b" title="The network as safetensors bytes (a PyTorch-style state_dict).">to_safetensors()</a> written to the file at <code>path</code>. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::IOException</td><td>if the file cannot be written </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>/home/runner/work/IMP.bff/IMP.bff/include/<a class="el" href="_neural_net_8h_source.html">NeuralNet.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Sep 26 2026 01:56:48 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Sep 27 2026 04:57:19 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
