@@ -97,11 +97,11 @@ def test_float_export_imports_all_plain_integer_types():
         assert imported.get_n_outputs() == net.get_n_outputs(), tensor_type
 
 
-# These active GGML v3 formats have exact decoders in bff. Their upstream
-# writers require grid-neighbour searches that bff does not yet port, so the
-# public contract is read-only rather than emitting merely plausible bytes.
+# These active GGML v3 formats have exact decoders in bff, but their upstream
+# writers are not yet reference-verified in bff. The public contract is
+# read-only rather than emitting merely plausible bytes.
 IMPORT_ONLY_IQ_TYPES = (
-    "iq3_xxs", "iq1_s", "iq4_nl", "iq3_s", "iq2_s", "iq4_xs", "iq1_m",
+    "iq3_xxs", "iq1_s", "iq3_s", "iq2_s", "iq4_xs", "iq1_m",
 )
 
 
@@ -111,6 +111,28 @@ def test_float_export_rejects_import_only_iq_types(tensor_type):
     net = _make_net(n_in=256, hidden=(), n_out=1)
     with pytest.raises(IMP.ValueException, match="import only"):
         net.to_gguf(tensor_type)
+
+
+@pytest.mark.skipif(not GGUF_PY, reason="gguf-py not importable")
+@pytest.mark.parametrize(("source", "expected_hex"), [
+    ([-3.875 + 0.25 * i for i in range(32)],
+     "22288091a1a1b2b2c3c3d3d4e4e5e6f6f7f8"),
+    ([(i % 7 - 3) * 0.625 + (0.125 if i % 3 == 0 else 0.0)
+      for i in range(32)], "f7a3bf8e4b2705f2e0bf7e5b2805f2e0bf8d"),
+])
+def test_iq4_nl_export_matches_ggml_reference_vector(source, expected_hex, tmp_path):
+    """IQ4_NL uses ggml's deterministic nonlinear-codebook quantizer."""
+    doc = {"format": "bff.neural_net", "version": 1, "layers": [{
+        "n_in": 32, "n_out": 1, "activation": "identity",
+        "weight": source, "bias": [0.0],
+    }]}
+    net = NeuralNet(msgpack.packb(doc, use_bin_type=True))
+    path = tmp_path / "iq4-nl.gguf"
+    net.to_gguf_file(str(path), "iq4_nl")
+    tensor = next(t for t in GGUFReader(str(path)).tensors
+                  if t.name == "blk.0.weight")
+    assert tensor.tensor_type == GGMLQuantizationType.IQ4_NL
+    assert tensor.data.tobytes().hex() == expected_hex
 
 
 @pytest.mark.skipif(not GGUF_PY, reason="gguf-py not importable")

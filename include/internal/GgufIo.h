@@ -589,6 +589,75 @@ inline void iq1_s_decode(const std::uint8_t* in, int n, float* x) {
     }
 }
 
+inline int iq4_nl_best_index(float x) {
+    static constexpr std::int8_t values[16] =
+        {-127, -104, -83, -65, -49, -35, -22, -10, 1, 13, 25, 38, 53, 69, 89, 113};
+    if (x <= values[0]) return 0;
+    if (x >= values[15]) return 15;
+    int lo = 0, hi = 15;
+    while (hi - lo > 1) {
+        const int mid = (lo + hi) / 2;
+        if (x < values[mid]) hi = mid;
+        else lo = mid;
+    }
+    return x - values[hi - 1] < values[hi] - x ? hi - 1 : hi;
+}
+
+inline void iq4_nl_encode(const float* in, int n, std::uint8_t* out) {
+    static constexpr std::int8_t values[16] =
+        {-127, -104, -83, -65, -49, -35, -22, -10, 1, 13, 25, 38, 53, 69, 89, 113};
+    for (; n; n -= 32, in += 32, out += 18) {
+        float sigma2 = 0.f;
+        for (int j = 0; j < 32; ++j) sigma2 += in[j] * in[j];
+        sigma2 *= 2.f / 32.f;
+        std::uint8_t codes[32] = {};
+        float weight[32];
+        for (int j = 0; j < 32; ++j) weight[j] = in[j] * in[j];
+        float amax = 0.f, max_value = 0.f;
+        for (int j = 0; j < 32; ++j) {
+            const float ax = std::fabs(in[j]);
+            if (ax > amax) { amax = ax; max_value = in[j]; }
+        }
+        float scale = 0.f;
+        if (amax >= 1e-15f) {
+            scale = -max_value / static_cast<float>(values[0]);
+            float inv_scale = 1.f / scale;
+            float sum_qx = 0.f, sum_q2 = 0.f;
+            for (int j = 0; j < 32; ++j) {
+                const int code = iq4_nl_best_index(inv_scale * in[j]);
+                codes[j] = static_cast<std::uint8_t>(code);
+                const float q = static_cast<float>(values[code]);
+                sum_qx += weight[j] * q * in[j];
+                sum_q2 += weight[j] * q * q;
+            }
+            float best = scale * sum_qx;
+            for (int trial = -7; trial <= 7; ++trial) {
+                inv_scale = (static_cast<float>(trial + values[0])) / max_value;
+                sum_qx = 0.f;
+                sum_q2 = 0.f;
+                for (int j = 0; j < 32; ++j) {
+                    const int code = iq4_nl_best_index(inv_scale * in[j]);
+                    const float q = static_cast<float>(values[code]);
+                    sum_qx += weight[j] * q * in[j];
+                    sum_q2 += weight[j] * q * q;
+                }
+                if (sum_q2 > 0.f && sum_qx * sum_qx > best * sum_q2) {
+                    scale = sum_qx / sum_q2;
+                    best = scale * sum_qx;
+                }
+            }
+            inv_scale = scale != 0.f ? 1.f / scale : 0.f;
+            for (int j = 0; j < 32; ++j)
+                codes[j] = static_cast<std::uint8_t>(iq4_nl_best_index(inv_scale * in[j]));
+        }
+        const std::uint16_t h = f16_of(scale);
+        out[0] = static_cast<std::uint8_t>(h);
+        out[1] = static_cast<std::uint8_t>(h >> 8);
+        for (int j = 0; j < 16; ++j)
+            out[2 + j] = static_cast<std::uint8_t>(codes[j] | (codes[j + 16] << 4));
+    }
+}
+
 inline void iq4_nl_decode(const std::uint8_t* in, int n, float* x) {
     static constexpr std::int8_t values[16] =
         {-127, -104, -83, -65, -49, -35, -22, -10, 1, 13, 25, 38, 53, 69, 89, 113};
@@ -1090,11 +1159,12 @@ inline void encode_row(Type t, const float* x, int n, std::uint8_t* out) {
         case Type::Q6_K: detail::q6_k_encode(x, n, out); break;
         case Type::Q8_K: detail::q8_k_encode(x, n, out); break;
         case Type::IQ2_XXS: detail::iq2_xxs_encode(x, n, out); break;
-        case Type::IQ3_XXS: case Type::IQ1_S: case Type::IQ4_NL:
+        case Type::IQ3_XXS: case Type::IQ1_S:
         case Type::IQ3_S: case Type::IQ2_S: case Type::IQ4_XS:
         case Type::IQ1_M:
             throw std::runtime_error("gguf: tensor type " + type_to_string(t) +
                                      " is import only; no reference-verified encoder is available");
+        case Type::IQ4_NL: detail::iq4_nl_encode(x, n, out); break;
         case Type::Q2_0: detail::q2_0_encode(x, n, out); break;
         case Type::IQ2_XS: detail::iq2_xs_encode(x, n, out); break;
         case Type::Q4_0: detail::q4_0_encode(x, n, out); break;
