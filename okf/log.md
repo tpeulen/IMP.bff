@@ -1,5 +1,9 @@
 # Update Log
 
+## 2026-09-28
+
+- **Selection notebooks show `ProbeNetworkSelection`** (T-20260924-01, T-20260926-01). `ipynb/example/greedy_pair_selection.ipynb`: the resolution term reproduces `select_probe_pairs` (order, decay 1e-12); three k-medoid conformers of the T4L docking ensemble as states of an invented A⇌B⇌C(+A⇌C) scheme; four pairs: Olga 2.27 Å / rate loss 0.067, rates only 3.36 Å / 0.0084, mixed 2.35 Å / 0.019. `ipynb/example/labelizer_greedy_pipeline.ipynb` step 7: the Labelizer score as a price (`ProbeLabellingTerm`); six pairs need 10 sites at 2.39 Å (Olga), 5 at 2.55 Å (weight 0.5), 4 at 2.72 Å (weight 1). The workshop notebook `doc/workshop/04_pair_selection_olga.ipynb` is not touched: it carries another session's uncommitted re-execution.
+
 ## 2026-09-26
 
 - **Oligomer switch for probe network selection: `ProbeOligomerPairs`** (T-20260926-01; [fret-network.md](fret-network.md), "Choosing the pairs").
