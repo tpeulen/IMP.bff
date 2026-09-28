@@ -91,7 +91,9 @@ SequenceMSA read_sequence_msa(const std::string& path, int reference,
     std::string line;
     while (std::getline(in, line)) {
         if (!line.empty() && line[line.size() - 1] == '\r') line.erase(line.size() - 1);
-        if (line.empty()) continue;
+        // A3M from an MSA server: a '#' comment line first, NULs between blocks.
+        line.erase(std::remove(line.begin(), line.end(), '\0'), line.end());
+        if (line.empty() || line[0] == '#') continue;
         if (line[0] == '>') {
             names.push_back(line.substr(1));
             sequences.push_back(std::string());
@@ -103,6 +105,17 @@ SequenceMSA read_sequence_msa(const std::string& path, int reference,
         }
         for (char c : line) {
             if (!std::isspace(static_cast<unsigned char>(c))) sequences.back().push_back(c);
+        }
+    }
+    // A3M: insertions (lower case, '.') are kept only where they occur, so the
+    // rows differ in length until they are dropped from every row.
+    bool ragged = false;
+    for (const std::string& q : sequences) ragged = ragged || q.size() != sequences[0].size();
+    if (ragged && match_columns_only) {
+        for (std::string& q : sequences) {
+            q.erase(std::remove_if(q.begin(), q.end(), [](char c) {
+                        return c == '.' || std::islower(static_cast<unsigned char>(c));
+                    }), q.end());
         }
     }
     return SequenceMSA(names, sequences, reference, match_columns_only);

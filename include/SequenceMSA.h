@@ -72,8 +72,12 @@ private:
 };
 IMP_VALUES(SequenceMSA, SequenceMSAs);
 
-//! Read an aligned FASTA or A2M file; sequence lines may be wrapped.
-/*! \param[in] path the alignment
+//! Read an aligned FASTA, A2M or A3M file; sequence lines may be wrapped.
+/*! A3M (rows of different length: insertions kept only where they occur, in
+    lower case) is recognised by its ragged rows and read by dropping every
+    insertion, which with \p match_columns_only is the same alignment A2M
+    gives. `#` lines and NULs, as MSA servers write them, are skipped.
+    \param[in] path the alignment
     \param[in] reference index of the reference sequence
     \param[in] match_columns_only as in the #SequenceMSA constructor
     \throw IOException when the file cannot be read, ValueException when the

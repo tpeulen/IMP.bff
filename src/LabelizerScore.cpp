@@ -7,6 +7,7 @@
  */
 
 #include <IMP/bff/LabelizerScore.h>
+#include <IMP/bff/Consurf.h>
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -748,65 +749,112 @@ std::map<std::string, LabelizerConservation> labelizer_read_consurf_records(
     return out;
 }
 
+namespace {
+
+//! The chains of a structure in file order, their one-letter sequences and
+//! residue numbers.
+void labelizer_chain_sequences(const LabelizerStructure& s, std::vector<std::string>* chains,
+                               std::map<std::string, std::string>* sequence_of,
+                               std::map<std::string, std::vector<int> >* numbers_of) {
+    for (std::size_t k = 0; k < s.residues.size(); ++k) {
+        const LabelizerResidue& r = s.residues[k];
+        if (!sequence_of->count(r.chain)) chains->push_back(r.chain);
+        (*sequence_of)[r.chain].push_back(labelizer_one_letter(r.comp_id));
+        (*numbers_of)[r.chain].push_back(r.seq_id);
+    }
+}
+
+//! ConSurf's records of one chain from a conservation of the alignment's
+//! reference; false when the chain is not that reference.
+bool labelizer_chain_records(const SequenceMSA& msa, const SequenceConservation& c,
+                             const std::vector<int>& grades, const std::string& chain,
+                             const std::string& seq, const std::vector<int>& numbers,
+                             double min_identity, double min_coverage,
+                             std::map<std::string, LabelizerConservation>* out) {
+    const std::string& reference = c.get_residues();
+    const std::vector<AlignedBlock> blocks = smith_waterman(reference, seq);
+    int aligned = 0, identical = 0;
+    for (const AlignedBlock& b : blocks) {
+        for (int q = b.query_start, t = b.template_start; q < b.query_end; ++q, ++t) {
+            ++aligned;
+            identical += reference[static_cast<std::size_t>(q)] == seq[static_cast<std::size_t>(t)];
+        }
+    }
+    // a chain matches when the alignment is mostly identical and covers
+    // at least half of the shorter of chain and reference: a short local
+    // hit on another protein, or on a peptide, is not the protein
+    const std::size_t shorter = std::min(seq.size(), reference.size());
+    if (aligned == 0 || identical < min_identity * aligned ||
+        aligned < min_coverage * static_cast<double>(shorter)) return false;
+    for (const AlignedBlock& b : blocks) {
+        for (int q = b.query_start, t = b.template_start; q < b.query_end; ++q, ++t) {
+            if (reference[static_cast<std::size_t>(q)] != seq[static_cast<std::size_t>(t)]) continue;
+            const std::size_t i = static_cast<std::size_t>(q);
+            LabelizerConservation r;
+            r.score = c.get_scores()[i];
+            r.lower = c.get_lower()[i];
+            r.upper = c.get_upper()[i];
+            r.grade = grades[4 * i];
+            r.lower_grade = grades[4 * i + 1];
+            r.upper_grade = grades[4 * i + 2];
+            r.insufficient = grades[4 * i + 3] != 0;
+            r.n_data = c.get_n_data()[i];
+            r.n_sequences = c.get_n_sequences();
+            r.variety = get_residue_variety(msa, c.get_columns()[i]);
+            (*out)[labelizer_residue_key(chain, numbers[static_cast<std::size_t>(t)])] = r;
+        }
+    }
+    return true;
+}
+
+}  // namespace
+
 std::map<std::string, LabelizerConservation> labelizer_conservation_from_msa(
         const LabelizerStructure& s, const std::string& msa_path, double min_identity,
         double min_coverage) {
     const SequenceMSA msa = read_sequence_msa(msa_path, 0, false);
     const SequenceConservation c = compute_sequence_conservation(msa);
     const std::vector<int> grades = get_consurf_grades(c);
-    const std::string& reference = c.get_residues();
-
-    // the chains, in file order, with their sequences
     std::vector<std::string> chains;
     std::map<std::string, std::string> sequence_of;
     std::map<std::string, std::vector<int> > numbers_of;
-    for (std::size_t k = 0; k < s.residues.size(); ++k) {
-        const LabelizerResidue& r = s.residues[k];
-        if (!sequence_of.count(r.chain)) chains.push_back(r.chain);
-        sequence_of[r.chain].push_back(labelizer_one_letter(r.comp_id));
-        numbers_of[r.chain].push_back(r.seq_id);
-    }
+    labelizer_chain_sequences(s, &chains, &sequence_of, &numbers_of);
     std::map<std::string, LabelizerConservation> out;
-    for (const std::string& chain : chains) {
-        const std::string& seq = sequence_of[chain];
-        const std::vector<AlignedBlock> blocks = smith_waterman(reference, seq);
-        int aligned = 0, identical = 0;
-        for (const AlignedBlock& b : blocks) {
-            for (int q = b.query_start, t = b.template_start; q < b.query_end; ++q, ++t) {
-                ++aligned;
-                identical += reference[static_cast<std::size_t>(q)] == seq[static_cast<std::size_t>(t)];
-            }
-        }
-        // a chain matches when the alignment is mostly identical and covers
-        // at least half of the shorter of chain and reference: a short local
-        // hit on another protein, or on a peptide, is not the protein
-        const std::size_t shorter = std::min(seq.size(), reference.size());
-        if (aligned == 0 || identical < min_identity * aligned ||
-            aligned < min_coverage * static_cast<double>(shorter)) continue;
-        for (const AlignedBlock& b : blocks) {
-            for (int q = b.query_start, t = b.template_start; q < b.query_end; ++q, ++t) {
-                if (reference[static_cast<std::size_t>(q)] != seq[static_cast<std::size_t>(t)]) continue;
-                const std::size_t i = static_cast<std::size_t>(q);
-                LabelizerConservation r;
-                r.score = c.get_scores()[i];
-                r.lower = c.get_lower()[i];
-                r.upper = c.get_upper()[i];
-                r.grade = grades[4 * i];
-                r.lower_grade = grades[4 * i + 1];
-                r.upper_grade = grades[4 * i + 2];
-                r.insufficient = grades[4 * i + 3] != 0;
-                r.n_data = c.get_n_data()[i];
-                r.n_sequences = c.get_n_sequences();
-                r.variety = get_residue_variety(msa, c.get_columns()[i]);
-                out[labelizer_residue_key(chain, numbers_of[chain][static_cast<std::size_t>(t)])] = r;
-            }
-        }
-    }
+    for (const std::string& chain : chains)
+        labelizer_chain_records(msa, c, grades, chain, sequence_of[chain], numbers_of[chain],
+                                min_identity, min_coverage, &out);
     if (out.empty()) {
         IMP_THROW("labelizer_conservation_from_msa: no chain of the structure matches the "
                   "alignment's reference sequence (" << min_identity * 100 << " % identity)",
                   ValueException);
     }
+    return out;
+}
+
+std::map<std::string, LabelizerConservation> labelizer_conservation_from_database(
+        const LabelizerStructure& s, const ConsurfOptions& options) {
+    std::vector<std::string> chains;
+    std::map<std::string, std::string> sequence_of;
+    std::map<std::string, std::vector<int> > numbers_of;
+    labelizer_chain_sequences(s, &chains, &sequence_of, &numbers_of);
+    Strings queries;
+    for (const std::string& chain : chains) queries.push_back(sequence_of[chain]);
+    const ConsurfResults results = compute_consurf(queries, options);
+    std::map<std::string, LabelizerConservation> out;
+    std::ostringstream why;
+    for (std::size_t k = 0; k < chains.size(); ++k) {
+        const ConsurfResult& r = results[k];
+        if (!r.get_is_ok()) {
+            why << " chain " << chains[k] << ": " << r.status << ";";
+            continue;
+        }
+        // the query is the chain itself: every residue maps
+        labelizer_chain_records(r.msa, r.conservation, r.grades, chains[k],
+                                sequence_of[chains[k]], numbers_of[chains[k]], 1.0, 1.0, &out);
+    }
+    if (out.empty())
+        IMP_THROW("labelizer_conservation_from_database: no chain has a ConSurf result;"
+                  << why.str(), ValueException);
     return out;
 }
 

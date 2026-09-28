@@ -57,3 +57,14 @@ def test_variety_and_data_counts():
     assert bff.get_n_with_data(msa, 0) == 3
     assert bff.get_residue_variety(msa, 1) == "C"
     assert bff.get_n_with_data(msa, 1) == 4
+
+
+def test_a3m_rows_of_different_length_read_as_match_states(tmp_path):
+    # an MSA server's A3M: comment line, lower-case insertions only where they
+    # occur, a NUL at the end of the block
+    p = tmp_path / "uniref.a3m"
+    p.write_bytes(b"#120\t1\n>101\nACDEFG\n>hit1\nAC-EkkFG\n>hit2\nqqACDEF-\n\x00")
+    msa = bff.read_sequence_msa(str(p))
+    assert msa.get_n_sequences() == 3 and msa.get_n_columns() == 6
+    assert [msa.get_sequence(k) for k in range(3)] == ["ACDEFG", "AC-EFG", "ACDEF-"]
+    assert list(msa.get_names()) == ["101", "hit1", "hit2"]

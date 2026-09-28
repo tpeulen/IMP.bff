@@ -72,6 +72,16 @@ FLAT_NAMES = [
     "align_sequences",              # the search's pairwise alignment
     "get_query_msa",                # hits -> query-anchored SequenceMSA
     "get_blosum62",
+    "SequenceHomologOptions",       # ConSurf's rules for homologues
+    "select_sequence_homologs",
+    "ConsurfOptions",               # ConSurf end to end
+    "ConsurfResult",
+    "compute_consurf",
+    "compute_consurf_from_msa",
+    "get_consurf_grades_text",      # ConSurf's .grades layout
+    "write_consurf_grades",
+    "write_consurf_msa",
+    "labelizer_conservation_from_database",
     "LabelizerScore",              # labelability score row
     "LabelizerFRETOptions",        # FRET pair-score settings
     "labelizer_score_structure",   # Labelizer entry point

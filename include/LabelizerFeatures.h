@@ -28,6 +28,7 @@
 #include <IMP/bff/bff_config.h>
 
 #include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/Consurf.h>
 #include <map>
 #include <string>
 #include <vector>
@@ -352,6 +353,15 @@ IMPBFFEXPORT std::map<std::string, LabelizerConservation> labelizer_read_consurf
 IMPBFFEXPORT std::map<std::string, LabelizerConservation> labelizer_conservation_from_msa(
         const LabelizerStructure& s, const std::string& msa_path, double min_identity = 0.9,
         double min_coverage = 0.5);
+
+//! ConSurf's records for every chain of a structure, computed end to end
+//! from a sequence database (#IMP::bff::compute_consurf): each chain's own
+//! sequence is its query, identical chains are searched once, and all share
+//! one pass over the database. Chains without a result (a peptide with too
+//! few homologues) have no records.
+/*! \throw ValueException when no chain has a result */
+IMPBFFEXPORT std::map<std::string, LabelizerConservation> labelizer_conservation_from_database(
+        const LabelizerStructure& s, const ConsurfOptions& options = ConsurfOptions());
 
 //! The residue key the score tables and the reference CSVs are indexed by.
 /*! `"<chain><seq_id>"`, e.g. `"A123"` — the reference's own convention

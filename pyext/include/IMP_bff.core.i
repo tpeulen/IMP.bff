@@ -1327,6 +1327,21 @@ IMP_SWIG_VALUE(IMP::bff, MfdbAttribution, MfdbAttributions);
 /* Building an accessible volume: the two doors, the PDB read and the strip. */
 %include "IMP_bff.probeaccessiblevolumebuilder.i"
 
+/* Evolution from one alignment: the encoded alignment, and co-evolution of its
+   columns (mean-field DCA). Before probe selection, whose pair cost reads it,
+   and before the Labelizer, whose conservation tables ConSurf feeds. */
+%include "IMP_bff.sequencemsa.i"
+/* Where alignments come from: the settings file, the sequence database, the
+   search and ConSurf's choice of homologues. */
+%include "IMP_bff.bffsettings.i"
+%include "IMP_bff.sequencedatabase.i"
+%include "IMP_bff.sequencesearch.i"
+%include "IMP_bff.sequencehomologs.i"
+%include "IMP_bff.sequencecoevolution.i"
+%include "IMP_bff.sequenceconservation.i"
+/* ConSurf end to end: search, homologues, alignment, rates, grades. */
+%include "IMP_bff.consurf.i"
+
 /* The native Labelizer: per-residue label-site scores and the FRET pair score.
    After `avbuilder.i`, whose `PDBAtomRecord` reader it groups into residues,
    and whose accessible volumes the pair layer measures distances over. */
@@ -1350,16 +1365,6 @@ IMP_SWIG_VALUE(IMP::bff, MfdbAttribution, MfdbAttributions);
 /* The photon-by-photon free-energy landscape likelihood (arXiv:2608.21061):
    SqRA grid, tridiagonal eigensolver, spline landscape, forward filter. */
 %include "IMP_bff.fretlandscape.i"
-
-/* Evolution from one alignment: the encoded alignment, and co-evolution of its
-   columns (mean-field DCA). Before probe selection, whose pair cost reads it. */
-%include "IMP_bff.sequencemsa.i"
-/* Where alignments come from: the settings file and the sequence database. */
-%include "IMP_bff.bffsettings.i"
-%include "IMP_bff.sequencedatabase.i"
-%include "IMP_bff.sequencesearch.i"
-%include "IMP_bff.sequencecoevolution.i"
-%include "IMP_bff.sequenceconservation.i"
 
 /* Greedy selection of a probe network by a weighted mix of scores: Olga's
    structural resolution, the rate information of a kinetic scheme, and the
