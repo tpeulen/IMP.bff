@@ -13,7 +13,7 @@
   "src/codecs/lz4.cpp": "f444c4407b8363fc619970f7dc8f8c86042e440b66384923b7c8465638f9ad08",
   "src/codecs/registry.cpp": "5c74d4b94fdde93c976197520c97672b0e57302289c9a3fea7317c6d9555fc65",
   "src/codecs/zstd.cpp": "f96bf55f8dc47432286b22a7c16a1828c2bca1071db5c2aed6e8fa98b1b303a3",
-  "src/ptolib.cpp": "97e52854822241929c73cf8aab2ac8c25eff02c8bafb26541157c60dc55f83b6",
+  "src/ptolib.cpp": "561b3f731dc88e41dba759e87be04276b5fa271a0be43bf1c9cb0c32de6bd216",
   "thirdparty/brotli/LICENSE": "3d180008e36922a4e8daec11c34c7af264fed5962d07924aea928c38e8663c94",
   "thirdparty/brotli/VENDORING.md": "270e82b09addd63d2e545d936e8e6fa6fee854d713e47252b59821c0d5ce0528",
   "thirdparty/brotli/common/constants.h": "c9c898542360e811dc44aa9be270d21ce0d18f3ecf45310f3d9f285f3692a59e",
