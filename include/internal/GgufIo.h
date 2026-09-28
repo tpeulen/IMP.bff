@@ -492,9 +492,127 @@ inline void q2_k_decode(const std::uint8_t* in, int n, float* x) {
     for (int base=0;base<n;base+=256,x+=256,in+=84) { const float d=half_of(static_cast<std::uint16_t>(in[80]|(in[81]<<8))), dm=half_of(static_cast<std::uint16_t>(in[82]|(in[83]<<8))); for(int g=0;g<16;++g) { const float dg=d*(in[g]&15), mg=dm*(in[g]>>4); const int chunk=g/8, sub=g%8; for(int j=0;j<16;++j) { const int l=(sub%2)*16+j; const int q=(in[16+chunk*32+l]>>(2*(sub/2)))&3; x[16*g+j]=dg*q-mg; } } }
 }
 
-// ---- Q3_K: sixteen signed 3-bit 16-value groups; 6-bit scales share d.
+// ---- Q3_K: GGML's RMSE-refined signed 3-bit 16-value groups.
+// This is the deterministic reference path in ggml-quants.c, not an
+// abs-max approximation. Its bit-based rounding intentionally differs from
+// std::round() at half-way values.
+inline int ggml_nearest_int(float value) {
+    float shifted = value + 12582912.f;
+    std::int32_t bits;
+    std::memcpy(&bits, &shifted, sizeof(bits));
+    return (bits & 0x007fffff) - 0x00400000;
+}
+
+inline float make_q3_quants_ref(const float* x, std::int8_t* codes) {
+    constexpr int n = 16;
+    constexpr int nmax = 4;
+    float max = 0.f;
+    float amax = 0.f;
+    for (int i = 0; i < n; ++i) {
+        const float ax = std::fabs(x[i]);
+        if (ax > amax) { amax = ax; max = x[i]; }
+    }
+    if (amax < 1e-15f) {
+        std::fill(codes, codes + n, static_cast<std::int8_t>(0));
+        return 0.f;
+    }
+
+    const float iscale = -static_cast<float>(nmax) / max;
+    float sumlx = 0.f;
+    float suml2 = 0.f;
+    for (int i = 0; i < n; ++i) {
+        int l = ggml_nearest_int(iscale * x[i]);
+        l = std::max(-nmax, std::min(nmax - 1, l));
+        codes[i] = static_cast<std::int8_t>(l);
+        const float w = x[i] * x[i];
+        sumlx += w * x[i] * l;
+        suml2 += w * l * l;
+    }
+    for (int attempt = 0; attempt < 5; ++attempt) {
+        int changed = 0;
+        for (int i = 0; i < n; ++i) {
+            const float w = x[i] * x[i];
+            float slx = sumlx - w * x[i] * codes[i];
+            if (slx > 0.f) {
+                float sl2 = suml2 - w * codes[i] * codes[i];
+                int replacement = ggml_nearest_int(x[i] * sl2 / slx);
+                replacement = std::max(-nmax, std::min(nmax - 1, replacement));
+                if (replacement != codes[i]) {
+                    slx += w * x[i] * replacement;
+                    sl2 += w * replacement * replacement;
+                    if (sl2 > 0.f && slx * slx * suml2 > sumlx * sumlx * sl2) {
+                        codes[i] = static_cast<std::int8_t>(replacement);
+                        sumlx = slx;
+                        suml2 = sl2;
+                        ++changed;
+                    }
+                }
+            }
+        }
+        if (!changed) break;
+    }
+    for (int i = 0; i < n; ++i) codes[i] += nmax;
+    return suml2 > 0.f ? sumlx / suml2 : 0.f;
+}
+
 inline void q3_k_encode(const float* x, int n, std::uint8_t* out) {
-    for (int base=0;base<n;base+=256,x+=256,out+=110) { float gs[16], mx=0.f; for(int g=0;g<16;++g){ float a=0.f; for(int j=0;j<16;++j)a=std::max(a,std::fabs(x[16*g+j])); gs[g]=a/3.f; mx=std::max(mx,gs[g]); } const float d=mx/31.f; std::fill(out,out+110,0); for(int g=0;g<16;++g){ const int sc=d>0?std::max(1,std::min(31,static_cast<int>(std::round(gs[g]/d)))):0; const int raw=sc+32; if(g<8) out[96+g]|=raw&15; else out[96+g-8]|=(raw&15)<<4; out[104+g%4]|=static_cast<std::uint8_t>((raw>>4)<<(2*(g/4))); for(int j=0;j<16;++j){ int q=sc?std::max(-4,std::min(3,static_cast<int>(std::round(x[16*g+j]/(d*sc))))):0; int code=q+4, p=16*g+j; if(code>3){out[p%32]|=static_cast<std::uint8_t>(1u<<(p/32));code-=4;} const int chunk=p/128, l=p%32; out[32+chunk*32+l]|=static_cast<std::uint8_t>(code<<(2*((p%128)/32))); } } const std::uint16_t h=f16_of(d);out[108]=static_cast<std::uint8_t>(h);out[109]=static_cast<std::uint8_t>(h>>8); }
+    for (int base = 0; base < n; base += 256, x += 256, out += 110) {
+        std::int8_t codes[256];
+        float scales[16];
+        float max_scale = 0.f;
+        float amax = 0.f;
+        for (int group = 0; group < 16; ++group) {
+            scales[group] = make_q3_quants_ref(x + 16 * group, codes + 16 * group);
+            const float scale = std::fabs(scales[group]);
+            if (scale > amax) { amax = scale; max_scale = scales[group]; }
+        }
+
+        std::fill(out, out + 110, static_cast<std::uint8_t>(0));
+        if (max_scale != 0.f) {
+            const float iscale = -32.f / max_scale;
+            for (int group = 0; group < 16; ++group) {
+                int scale_code = ggml_nearest_int(iscale * scales[group]);
+                scale_code = std::max(-32, std::min(31, scale_code)) + 32;
+                if (group < 8) out[96 + group] = static_cast<std::uint8_t>(scale_code & 0x0f);
+                else out[96 + group - 8] |= static_cast<std::uint8_t>((scale_code & 0x0f) << 4);
+                out[104 + group % 4] |= static_cast<std::uint8_t>((scale_code >> 4) << (2 * (group / 4)));
+            }
+            const std::uint16_t h = f16_of(1.f / iscale);
+            out[108] = static_cast<std::uint8_t>(h);
+            out[109] = static_cast<std::uint8_t>(h >> 8);
+        }
+
+        for (int group = 0; group < 16; ++group) {
+            int scale_code = group < 8 ? out[96 + group] & 0x0f
+                                       : out[96 + group - 8] >> 4;
+            scale_code = (scale_code | (((out[104 + group % 4] >>
+                                           (2 * (group / 4))) & 3) << 4)) - 32;
+            const float d = half_of(static_cast<std::uint16_t>(out[108] | (out[109] << 8))) * scale_code;
+            if (d == 0.f) continue;
+            for (int i = 0; i < 16; ++i) {
+                int l = ggml_nearest_int(x[16 * group + i] / d);
+                l = std::max(-4, std::min(3, l));
+                codes[16 * group + i] = static_cast<std::int8_t>(l + 4);
+            }
+        }
+
+        int mask_index = 0;
+        std::uint8_t mask_bit = 1;
+        for (int i = 0; i < 256; ++i) {
+            if (codes[i] > 3) {
+                out[mask_index] |= mask_bit;
+                codes[i] -= 4;
+            }
+            if (++mask_index == 32) { mask_index = 0; mask_bit <<= 1; }
+        }
+        for (int offset = 0; offset < 256; offset += 128) {
+            for (int lane = 0; lane < 32; ++lane) {
+                out[32 + offset / 4 + lane] = static_cast<std::uint8_t>(
+                    codes[offset + lane] | (codes[offset + lane + 32] << 2) |
+                    (codes[offset + lane + 64] << 4) | (codes[offset + lane + 96] << 6));
+            }
+        }
+    }
 }
 inline void q3_k_decode(const std::uint8_t* in, int n, float* x) {
     for(int base=0;base<n;base+=256,x+=256,in+=110){ const float d=half_of(static_cast<std::uint16_t>(in[108]|(in[109]<<8))); for(int g=0;g<16;++g){ const int raw=(g<8?(in[96+g]&15):(in[96+g-8]>>4)) | (((in[104+g%4]>>(2*(g/4)))&3)<<4); const float s=d*(raw-32); for(int j=0;j<16;++j){const int p=16*g+j,chunk=p/128,l=p%32; int q=(in[32+chunk*32+l]>>(2*((p%128)/32)))&3; if(!(in[p%32]&(1u<<(p/32))))q-=4; x[p]=s*q;}}}
@@ -1237,7 +1355,8 @@ inline void encode_row(Type t, const float* x, int n, std::uint8_t* out) {
         case Type::I64: for (int i = 0; i < n; ++i) { const std::int64_t q = static_cast<std::int64_t>(std::llround(x[i])); const std::uint64_t u = static_cast<std::uint64_t>(q); for (int b = 0; b < 8; ++b) out[8*i+b] = static_cast<std::uint8_t>(u >> (8*b)); } break;
         case Type::Q8_0: detail::q8_0_encode(x, n, out); break;
         case Type::Q8_1: detail::q8_1_encode(x, n, out); break;
-        case Type::Q2_K: case Type::Q3_K: case Type::Q4_K:
+        case Type::Q3_K: detail::q3_k_encode(x, n, out); break;
+        case Type::Q2_K: case Type::Q4_K:
         case Type::Q5_K: case Type::Q6_K: case Type::Q8_K:
         case Type::IQ2_XXS: case Type::IQ2_XS:
         case Type::IQ3_XXS: case Type::IQ1_S:
