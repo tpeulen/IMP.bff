@@ -667,6 +667,69 @@ inline float iq_grid4(std::uint32_t grid, int j) {
     return static_cast<float>((grid >> (8 * j)) & 0xffu);
 }
 
+inline std::uint8_t iq_even_sign_mask(const float* x, int n) {
+    std::uint8_t mask = 0;
+    int min_i = 0;
+    float min_abs = std::fabs(x[0]);
+    for (int i = 0; i < n; ++i) {
+        if (x[i] < 0.f) mask |= static_cast<std::uint8_t>(1u << i);
+        const float ax = std::fabs(x[i]);
+        if (ax < min_abs) { min_abs = ax; min_i = i; }
+    }
+    int parity = 0;
+    for (int i = 0; i < n; ++i) parity ^= (mask >> i) & 1u;
+    if (parity) mask ^= static_cast<std::uint8_t>(1u << min_i);
+    return mask;
+}
+
+inline int iq3_xxs_grid_index(const float* x, std::uint8_t signs, float scale) {
+    float best = std::numeric_limits<float>::infinity();
+    int best_index = 0;
+    for (int index = 0; index < 256; ++index) {
+        const std::uint32_t grid = kIq3XxsGrid[index];
+        float error = 0.f;
+        for (int j = 0; j < 4; ++j) {
+            const float q = scale * iq_grid4(grid, j);
+            const float value = (signs & (1u << j)) ? -q : q;
+            const float delta = x[j] - value;
+            error += delta * delta;
+        }
+        if (error < best) { best = error; best_index = index; }
+    }
+    return best_index;
+}
+
+// ---- IQ3_XXS: 3-bit importance-grid quantizer. The reference layout uses
+// four 8-value groups per 32 values, a parity-constrained sign table and a
+// shared 4-bit scale code. This deterministic encoder chooses the closest
+// grid separately for each 4-value half after using the closest admissible
+// even-parity sign pattern.
+inline void iq3_xxs_encode(const float* in, int n, std::uint8_t* out) {
+    for (; n; n -= 256, in += 256, out += 98) {
+        float amax = 0.f;
+        for (int i = 0; i < 256; ++i) amax = std::max(amax, std::fabs(in[i]));
+        const std::uint16_t dh = f16_of(amax / (7.75f * 62.f));
+        const float d = half_of(dh);
+        out[0] = static_cast<std::uint8_t>(dh);
+        out[1] = static_cast<std::uint8_t>(dh >> 8);
+        std::fill(out + 2, out + 98, static_cast<std::uint8_t>(0));
+        for (int b = 0; b < 8; ++b) {
+            std::uint32_t word = 15u << 28;
+            for (int l = 0; l < 4; ++l) {
+                const float* x = in + 32 * b + 8 * l;
+                const std::uint8_t signs = iq_even_sign_mask(x, 8);
+                word |= static_cast<std::uint32_t>(signs & 127u) << (7 * l);
+                out[2 + 8 * b + 2 * l] = static_cast<std::uint8_t>(
+                    iq3_xxs_grid_index(x, signs & 0x0fu, 7.75f * d));
+                out[2 + 8 * b + 2 * l + 1] = static_cast<std::uint8_t>(
+                    iq3_xxs_grid_index(x + 4, signs >> 4, 7.75f * d));
+            }
+            for (int j = 0; j < 4; ++j)
+                out[66 + 4 * b + j] = static_cast<std::uint8_t>(word >> (8 * j));
+        }
+    }
+}
+
 inline void iq3_xxs_decode(const std::uint8_t* in, int n, float* x) {
     for (; n; n -= 256, in += 98, x += 256) {
         const float d = half_of(iq_u16(in));
@@ -683,6 +746,51 @@ inline void iq3_xxs_decode(const std::uint8_t* in, int n, float* x) {
                     x[32 * b + 8 * l + j] = (signs & (1u << j)) ? -value : value;
                 }
             }
+        }
+    }
+}
+
+inline int iq1_s_grid_index(const float* x, float scale, float delta) {
+    float best = std::numeric_limits<float>::infinity();
+    int best_index = 0;
+    for (int index = 0; index < 2048; ++index) {
+        const std::uint64_t grid = kIq1SGrid[index];
+        float error = 0.f;
+        for (int j = 0; j < 8; ++j) {
+            const float q = scale * (static_cast<float>(static_cast<std::int8_t>(
+                (grid >> (8 * j)) & 255u)) + delta);
+            const float difference = x[j] - q;
+            error += difference * difference;
+        }
+        if (error < best) { best = error; best_index = index; }
+    }
+    return best_index;
+}
+
+// ---- IQ1_S: importance-grid 1-bit super-block. A valid block has eight
+// 32-value sub-blocks with a shared FP16 d, three-bit scale codes and a
+// one-bit signed grid offset. This deterministic encoder uses scale code 7
+// and the positive 1/8 offset, then finds the closest upstream grid index.
+inline void iq1_s_encode(const float* in, int n, std::uint8_t* out) {
+    for (; n; n -= 256, in += 256, out += 50) {
+        float amax = 0.f;
+        for (int i = 0; i < 256; ++i) amax = std::max(amax, std::fabs(in[i]));
+        const std::uint16_t dh = f16_of(amax / (15.f * 127.125f));
+        const float d = half_of(dh);
+        out[0] = static_cast<std::uint8_t>(dh);
+        out[1] = static_cast<std::uint8_t>(dh >> 8);
+        std::fill(out + 2, out + 50, static_cast<std::uint8_t>(0));
+        const float group_scale = 15.f * d;
+        for (int b = 0; b < 8; ++b) {
+            std::uint16_t high = static_cast<std::uint16_t>(7u << 12);
+            for (int l = 0; l < 4; ++l) {
+                const int index = iq1_s_grid_index(in + 32 * b + 8 * l,
+                                                    group_scale, 0.125f);
+                out[2 + 4 * b + l] = static_cast<std::uint8_t>(index);
+                high |= static_cast<std::uint16_t>((index >> 8) << (3 * l));
+            }
+            out[34 + 2 * b] = static_cast<std::uint8_t>(high);
+            out[35 + 2 * b] = static_cast<std::uint8_t>(high >> 8);
         }
     }
 }
@@ -789,6 +897,55 @@ inline void iq4_nl_decode(const std::uint8_t* in, int n, float* x) {
     }
 }
 
+inline int iq3_s_grid_index(const float* x, std::uint8_t signs, float scale) {
+    float best = std::numeric_limits<float>::infinity();
+    int best_index = 0;
+    for (int index = 0; index < 512; ++index) {
+        const std::uint32_t grid = kIq3SGrid[index];
+        float error = 0.f;
+        for (int j = 0; j < 4; ++j) {
+            float q = scale * iq_grid4(grid, j);
+            if (signs & (1u << j)) q = -q;
+            const float difference = x[j] - q;
+            error += difference * difference;
+        }
+        if (error < best) { best = error; best_index = index; }
+    }
+    return best_index;
+}
+
+// ---- IQ3_S: eight 32-value blocks, eight signed four-value grid vectors
+// per block. Each grid index has a low byte in qs and one high bit in qh.
+inline void iq3_s_encode(const float* in, int n, std::uint8_t* out) {
+    for (; n; n -= 256, in += 256, out += 110) {
+        float amax = 0.f;
+        for (int i = 0; i < 256; ++i) amax = std::max(amax, std::fabs(in[i]));
+        const std::uint16_t dh = f16_of(amax / (31.f * 63.f));
+        const float d = half_of(dh);
+        out[0] = static_cast<std::uint8_t>(dh);
+        out[1] = static_cast<std::uint8_t>(dh >> 8);
+        std::fill(out + 2, out + 110, static_cast<std::uint8_t>(0));
+        const float group_scale = 31.f * d;
+        for (int b = 0; b < 8; ++b) {
+            if ((b & 1) == 0) out[106 + b / 2] = 15u;
+            else out[106 + b / 2] |= 15u << 4;
+            for (int l = 0; l < 8; ++l) {
+                const int group = 8 * b + l;
+                const float* x = in + 32 * b + 4 * l;
+                std::uint8_t signs = 0;
+                for (int j = 0; j < 4; ++j)
+                    if (x[j] < 0.f) signs |= static_cast<std::uint8_t>(1u << j);
+                const int index = iq3_s_grid_index(x, signs, group_scale);
+                out[2 + group] = static_cast<std::uint8_t>(index);
+                out[66 + group / 8] |= static_cast<std::uint8_t>(
+                    (index >> 8) << (group % 8));
+                out[74 + 4 * b + l / 2] |= static_cast<std::uint8_t>(
+                    signs << (4 * (l % 2)));
+            }
+        }
+    }
+}
+
 inline void iq3_s_decode(const std::uint8_t* in, int n, float* x) {
     for (; n; n -= 256, in += 110, x += 256) {
         const float d = half_of(iq_u16(in));
@@ -807,6 +964,54 @@ inline void iq3_s_decode(const std::uint8_t* in, int n, float* x) {
                     const float value = db * iq_grid4(grid, j);
                     x[32 * b + 4 * l + j] = (signs[4 * b + l / 2] & (1u << (4 * (l % 2) + j))) ? -value : value;
                 }
+            }
+        }
+    }
+}
+
+inline int iq2_s_grid_index(const float* x, std::uint8_t signs, float scale) {
+    float best = std::numeric_limits<float>::infinity();
+    int best_index = 0;
+    for (int index = 0; index < 1024; ++index) {
+        const std::uint64_t grid = kIq2SGrid[index];
+        float error = 0.f;
+        for (int j = 0; j < 8; ++j) {
+            float q = scale * iq_grid8(grid, j);
+            if (signs & (1u << j)) q = -q;
+            const float difference = x[j] - q;
+            error += difference * difference;
+        }
+        if (error < best) { best = error; best_index = index; }
+    }
+    return best_index;
+}
+
+// ---- IQ2_S: eight 32-value blocks, with two independent importance-grid
+// groups per block. The grid index has ten bits; signs are literal bit masks.
+inline void iq2_s_encode(const float* in, int n, std::uint8_t* out) {
+    for (; n; n -= 256, in += 256, out += 82) {
+        float amax = 0.f;
+        for (int i = 0; i < 256; ++i) amax = std::max(amax, std::fabs(in[i]));
+        const std::uint16_t dh = f16_of(amax / (3.875f * 43.f));
+        const float d = half_of(dh);
+        out[0] = static_cast<std::uint8_t>(dh);
+        out[1] = static_cast<std::uint8_t>(dh >> 8);
+        std::fill(out + 2, out + 82, static_cast<std::uint8_t>(0));
+        const float group_scale = 3.875f * d;
+        for (int b = 0; b < 16; ++b) {
+            if ((b & 1) == 0) out[74 + b / 2] = 15u;
+            else out[74 + b / 2] |= 15u << 4;
+            for (int l = 0; l < 2; ++l) {
+                const int group = 2 * b + l;
+                const float* x = in + 16 * b + 8 * l;
+                std::uint8_t signs = 0;
+                for (int j = 0; j < 8; ++j)
+                    if (x[j] < 0.f) signs |= static_cast<std::uint8_t>(1u << j);
+                const int index = iq2_s_grid_index(x, signs, group_scale);
+                out[2 + group] = static_cast<std::uint8_t>(index);
+                out[34 + group] = signs;
+                out[66 + group / 4] |= static_cast<std::uint8_t>(
+                    (index >> 8) << (2 * (group % 4)));
             }
         }
     }
@@ -937,6 +1142,39 @@ inline void iq4_xs_decode(const std::uint8_t* in, int n, float* x) {
                 x[32 * b + j] = db * static_cast<float>(values[q & 15u]);
                 x[32 * b + 16 + j] = db * static_cast<float>(values[q >> 4]);
             }
+        }
+    }
+}
+
+// ---- IQ1_M: sixteen 16-value groups, two signed eight-value grids per
+// group. The 56-byte block embeds its FP16 d in the high nibbles of the four
+// scale words. We use 3-bit scale code 7 and positive 1/8 grid offsets.
+inline void iq1_m_encode(const float* in, int n, std::uint8_t* out) {
+    for (; n; n -= 256, in += 256, out += 56) {
+        float amax = 0.f;
+        for (int i = 0; i < 256; ++i) amax = std::max(amax, std::fabs(in[i]));
+        const std::uint16_t dh = f16_of(amax / (15.f * 127.125f));
+        const float d = half_of(dh);
+        std::fill(out, out + 56, static_cast<std::uint8_t>(0));
+        const float group_scale = 15.f * d;
+        for (int b = 0; b < 16; ++b) {
+            for (int l = 0; l < 2; ++l) {
+                const int index = iq1_s_grid_index(in + 16 * b + 8 * l,
+                                                    group_scale, 0.125f);
+                out[2 * b + l] = static_cast<std::uint8_t>(index);
+                out[32 + b] |= static_cast<std::uint8_t>(
+                    (index >> 8) << (4 * l));
+            }
+        }
+        std::uint16_t scales[4] = {
+            static_cast<std::uint16_t>(0x0fff | ((dh & 0x000f) << 12)),
+            static_cast<std::uint16_t>(0x0fff | ((dh & 0x00f0) << 8)),
+            static_cast<std::uint16_t>(0x0fff | ((dh & 0x0f00) << 4)),
+            static_cast<std::uint16_t>(0x0fff |  (dh & 0xf000)),
+        };
+        for (int i = 0; i < 4; ++i) {
+            out[48 + 2 * i] = static_cast<std::uint8_t>(scales[i]);
+            out[49 + 2 * i] = static_cast<std::uint8_t>(scales[i] >> 8);
         }
     }
 }
@@ -1355,15 +1593,19 @@ inline void encode_row(Type t, const float* x, int n, std::uint8_t* out) {
         case Type::I64: for (int i = 0; i < n; ++i) { const std::int64_t q = static_cast<std::int64_t>(std::llround(x[i])); const std::uint64_t u = static_cast<std::uint64_t>(q); for (int b = 0; b < 8; ++b) out[8*i+b] = static_cast<std::uint8_t>(u >> (8*b)); } break;
         case Type::Q8_0: detail::q8_0_encode(x, n, out); break;
         case Type::Q8_1: detail::q8_1_encode(x, n, out); break;
+        case Type::IQ2_XXS: detail::iq2_xxs_encode(x, n, out); break;
+        case Type::IQ2_XS: detail::iq2_xs_encode(x, n, out); break;
+        case Type::IQ3_XXS: detail::iq3_xxs_encode(x, n, out); break;
+        case Type::IQ1_S: detail::iq1_s_encode(x, n, out); break;
+        case Type::IQ1_M: detail::iq1_m_encode(x, n, out); break;
+        case Type::IQ2_S: detail::iq2_s_encode(x, n, out); break;
+        case Type::IQ3_S: detail::iq3_s_encode(x, n, out); break;
+        case Type::Q2_K: detail::q2_k_encode(x, n, out); break;
         case Type::Q3_K: detail::q3_k_encode(x, n, out); break;
-        case Type::Q2_K: case Type::Q4_K:
-        case Type::Q5_K: case Type::Q6_K: case Type::Q8_K:
-        case Type::IQ2_XXS: case Type::IQ2_XS:
-        case Type::IQ3_XXS: case Type::IQ1_S:
-        case Type::IQ3_S: case Type::IQ2_S:
-        case Type::IQ1_M:
-            throw std::runtime_error("gguf: tensor type " + type_to_string(t) +
-                                     " is import only; no reference-verified encoder is available");
+        case Type::Q4_K: detail::q4_k_encode(x, n, out); break;
+        case Type::Q5_K: detail::q5_k_encode(x, n, out); break;
+        case Type::Q6_K: detail::q6_k_encode(x, n, out); break;
+        case Type::Q8_K: detail::q8_k_encode(x, n, out); break;
         case Type::IQ4_NL: detail::iq4_nl_encode(x, n, out); break;
         case Type::IQ4_XS: detail::iq4_xs_encode(x, n, out); break;
         case Type::Q2_0: detail::q2_0_encode(x, n, out); break;
