@@ -60,6 +60,12 @@ FLAT_NAMES = [
     "SequenceConservationOptions",  # its presets: consurf, rate4site
     "compute_sequence_conservation",
     "get_consurf_grades",           # ConSurf's nine grades
+    "get_settings_path",            # the user's settings file
+    "SequenceSearchSettings",       # its sequence_search section
+    "SequenceSearchServer",         # a remote MSA service
+    "get_sequence_search_settings",
+    "SequenceDatabase",             # binary FASTA in a .pto
+    "create_sequence_database",     # FASTA (.gz) -> .pto, streaming
     "LabelizerScore",              # labelability score row
     "LabelizerFRETOptions",        # FRET pair-score settings
     "labelizer_score_structure",   # Labelizer entry point

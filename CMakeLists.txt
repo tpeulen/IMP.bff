@@ -100,6 +100,12 @@ if(TARGET IMP.bff-lib)
     add_subdirectory(thirdparty/ptolib EXCLUDE_FROM_ALL)
   endif()
   target_link_libraries(IMP.bff-lib ptolib::ptolib)
+  # Optional: zlib reads gzip-compressed FASTA into a sequence database.
+  find_package(ZLIB QUIET)
+  if(ZLIB_FOUND)
+    target_link_libraries(IMP.bff-lib ZLIB::ZLIB)
+    target_compile_definitions(IMP.bff-lib PRIVATE IMP_BFF_HAS_ZLIB=1)
+  endif()
   install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ptolib/include/ptolib"
           DESTINATION include)
   # tttrlib's headers are C++17 (std::any, <filesystem>) and

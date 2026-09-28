@@ -1354,6 +1354,9 @@ IMP_SWIG_VALUE(IMP::bff, MfdbAttribution, MfdbAttributions);
 /* Evolution from one alignment: the encoded alignment, and co-evolution of its
    columns (mean-field DCA). Before probe selection, whose pair cost reads it. */
 %include "IMP_bff.sequencemsa.i"
+/* Where alignments come from: the settings file and the sequence database. */
+%include "IMP_bff.bffsettings.i"
+%include "IMP_bff.sequencedatabase.i"
 %include "IMP_bff.sequencecoevolution.i"
 %include "IMP_bff.sequenceconservation.i"
 
