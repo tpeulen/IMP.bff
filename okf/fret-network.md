@@ -78,8 +78,10 @@ the rate information left after the means are paid for, the Schur complement
 `G_p = F_kk − F_kd F_dd⁻¹ F_dk`. The network's information is `F0 + Σ G_p`, and
 the loss `[det F0 / det(F0 + Σ G_p)]^(1/n_k)` is the geometric-mean posterior
 variance of the log-rates relative to their prior. It is mixed by weight with
-Olga's structural resolution (`ProbeResolutionTerm`) and the Labelizer's site
-scores (`ProbeLabellingTerm`).
+Olga's structural resolution (`ProbeResolutionTerm`), the Labelizer's site
+scores (`ProbeLabellingTerm`) and a per-pair cost (`ProbePairCostTerm`: the
+chance `1 − Π(1 − c_p)` that a selected pair is a problem, e.g. that its sites
+co-evolve; computing co-evolution scores is deferred, T-20260928-02).
 
 With three states, any three pairs that separate them resolve the structure,
 so Olga's choice among them is arbitrary for the rates. The mix spends that

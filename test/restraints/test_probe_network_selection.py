@@ -323,6 +323,53 @@ def test_labelizer_scores_feed_the_labelling_term():
     assert all(0.0 < term.get_site_cost(i) <= 1.0 for i in range(len(keys)))
 
 
+# --- pair costs: e.g. co-evolution --------------------------------------------------
+
+def test_pair_cost_loss_is_the_chance_one_pair_is_a_problem():
+    costs = [0.0, 0.2, 0.5, float("nan")]
+    term = bff.ProbePairCostTerm(costs)
+    assert term.get_loss() == 0.0
+    assert term.get_loss_with([1, 2], []) == pytest.approx(1 - 0.8 * 0.5)
+    term.commit([1], [])
+    assert term.get_loss() == pytest.approx(0.2)
+    assert term.get_loss_with([2], []) == pytest.approx(1 - 0.8 * 0.5)
+    assert term.get_loss_with([0], []) == pytest.approx(0.2)
+    assert not term.get_is_eligible_pair(3)
+    term.reset()
+    assert term.get_loss() == 0.0
+
+
+def test_pair_cost_steers_the_selection():
+    effs, rmsds = _olga_case(7, n_pairs=12)
+    res = bff.ProbeResolutionTerm(effs, rmsds, 0.05)
+    plain = bff.ProbeNetworkSelection(12)
+    plain.add_term(res)
+    first, _ = plain.select(1)
+    first = int(first[0])
+    costs = np.zeros(12)
+    costs[first] = 0.9
+    nan = np.full(12, 0.0)
+    nan[first] = float("nan")
+    for c, w in [(costs, 10.0), (nan, 1.0)]:
+        sel = bff.ProbeNetworkSelection(12)
+        sel.add_term(res)
+        term = bff.ProbePairCostTerm(list(c))
+        sel.add_term(term, w)
+        units, _ = sel.select(3)
+        assert first not in list(units)
+        assert term.get_loss() == pytest.approx(0.0)
+
+
+def test_pair_cost_rejects_out_of_range_and_wrong_size():
+    with pytest.raises(bff.ValueException):
+        bff.ProbePairCostTerm([0.1, 1.5])
+    with pytest.raises(bff.ValueException):
+        bff.ProbePairCostTerm([-0.1])
+    sel = bff.ProbeNetworkSelection(3)
+    with pytest.raises(bff.ValueException):
+        sel.add_term(bff.ProbePairCostTerm([0.1, 0.2]))
+
+
 # --- bad input ------------------------------------------------------------------------
 
 def test_bad_inputs_raise():

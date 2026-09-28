@@ -499,6 +499,38 @@ double ProbeLabellingTerm::get_loss_with(const std::vector<int>&,
     return std::min(1.0, total / n_reference_);
 }
 
+// --- ProbePairCostTerm ------------------------------------------------------------
+
+ProbePairCostTerm::ProbePairCostTerm(const std::vector<double>& costs)
+    : ProbeNetworkTerm("ProbePairCostTerm"), costs_(costs) {
+    for (double c : costs_) {
+        if (!std::isnan(c) && !(c >= 0.0 && c <= 1.0)) {
+            IMP_THROW("pair costs must lie in [0, 1] (NaN for ineligible), not " << c,
+                      ValueException);
+        }
+    }
+}
+
+bool ProbePairCostTerm::get_is_eligible_pair(int pair) const {
+    return pair >= 0 && pair < static_cast<int>(costs_.size()) &&
+           !std::isnan(costs_[static_cast<std::size_t>(pair)]);
+}
+
+void ProbePairCostTerm::do_reset() { log_ok_ = 0.0; }
+
+void ProbePairCostTerm::do_commit(const std::vector<int>& pairs, const std::vector<int>&) {
+    for (int p : pairs) log_ok_ += std::log1p(-get_cost(p));
+}
+
+double ProbePairCostTerm::get_loss() const { return -std::expm1(log_ok_); }
+
+double ProbePairCostTerm::get_loss_with(const std::vector<int>& pairs,
+                                        const std::vector<int>&) const {
+    double log_ok = log_ok_;
+    for (int p : pairs) log_ok += std::log1p(-get_cost(p));
+    return -std::expm1(log_ok);
+}
+
 // --- ProbeNetworkSelection --------------------------------------------------------
 
 ProbeNetworkSelection::ProbeNetworkSelection(int n_pairs, std::string name)

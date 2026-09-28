@@ -20,6 +20,8 @@
  *   log-rates relative to their prior.
  * - #IMP::bff::ProbeLabellingTerm: the Labelizer's per-site label score and
  *   a cost per mutation, so reusing a chosen site is free.
+ * - #IMP::bff::ProbePairCostTerm: a cost per pair, read as the probability that
+ *   the pair is a problem (e.g. its sites co-evolve).
  *
  * Every term reports a dimensionless loss in `[0, 1]`, relative to nothing
  * selected, so the weights of #IMP::bff::ProbeNetworkSelection::add_term are
@@ -358,6 +360,47 @@ private:
     double committed_ = 0.0;
 };
 IMP_OBJECTS(ProbeLabellingTerm, ProbeLabellingTerms);
+
+//! A cost per candidate pair: the chance that a selected pair is a problem.
+/*!
+    Each candidate pair carries a cost `c_p` in `[0, 1]`, read as the
+    probability that measuring it causes a problem the other terms do not see,
+    for example that its two sites co-evolve, so mutating both may disturb the
+    coupling under study. The loss is the probability that at least one
+    selected pair is a problem,
+
+    \f[ L = 1 - \prod_{p \in S} (1 - c_p), \f]
+
+    0 with nothing selected, growing with every costly pair, never above 1,
+    and without a budget to set. A pair whose cost is NaN is not eligible.
+    Pair-level only: in site mode each pair a new site implies is charged.
+*/
+class IMPBFFEXPORT ProbePairCostTerm : public ProbeNetworkTerm {
+public:
+    //! \param[in] costs one cost in `[0, 1]` per candidate pair, NaN for ineligible
+    ProbePairCostTerm(const std::vector<double>& costs);
+
+    int get_n_pairs() const override { return static_cast<int>(costs_.size()); }
+    bool get_is_eligible_pair(int pair) const override;
+    double get_loss() const override;
+    double get_loss_with(const std::vector<int>& pairs,
+                         const std::vector<int>& sites) const override;
+
+    //! The cost of pair \p pair.
+    double get_cost(int pair) const { return costs_.at(static_cast<std::size_t>(pair)); }
+
+    IMP_OBJECT_METHODS(ProbePairCostTerm);
+
+protected:
+    void do_reset() override;
+    void do_commit(const std::vector<int>& pairs,
+                   const std::vector<int>& new_sites) override;
+
+private:
+    std::vector<double> costs_;
+    double log_ok_ = 0.0;   // sum over committed pairs of log(1 - c_p)
+};
+IMP_OBJECTS(ProbePairCostTerm, ProbePairCostTerms);
 
 //! Greedy selection of a probe network by a weighted sum of term losses.
 /*!

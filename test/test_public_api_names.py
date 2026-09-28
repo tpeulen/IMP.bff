@@ -49,6 +49,7 @@ FLAT_NAMES = [
     "ProbeKineticsTerm",            # rate information of a kinetic scheme
     "ProbeLabellingTerm",           # Labelizer site scores, shared sites
     "ProbeOligomerPairs",           # the oligomer switch: n protomers -> rows
+    "ProbePairCostTerm",            # a cost per pair (e.g. co-evolution)
     "LabelizerScore",              # labelability score row
     "LabelizerFRETOptions",        # FRET pair-score settings
     "labelizer_score_structure",   # Labelizer entry point
