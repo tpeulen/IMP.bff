@@ -50,6 +50,16 @@ FLAT_NAMES = [
     "ProbeLabellingTerm",           # Labelizer site scores, shared sites
     "ProbeOligomerPairs",           # the oligomer switch: n protomers -> rows
     "ProbePairCostTerm",            # a cost per pair (e.g. co-evolution)
+    "SequenceMSA",                  # an encoded multiple sequence alignment
+    "read_sequence_msa",            # aligned FASTA / A2M reader
+    "get_sequence_weights",         # redundancy weights
+    "SequenceCoevolution",          # mean-field DCA result
+    "compute_sequence_coevolution", # mean-field DCA
+    "probe_pair_coevolution",       # DCA per probe pair
+    "SequenceConservation",         # per-site rates (Rate4Site method)
+    "SequenceConservationOptions",  # its presets: consurf, rate4site
+    "compute_sequence_conservation",
+    "get_consurf_grades",           # ConSurf's nine grades
     "LabelizerScore",              # labelability score row
     "LabelizerFRETOptions",        # FRET pair-score settings
     "labelizer_score_structure",   # Labelizer entry point

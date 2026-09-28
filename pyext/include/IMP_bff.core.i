@@ -1351,6 +1351,12 @@ IMP_SWIG_VALUE(IMP::bff, MfdbAttribution, MfdbAttributions);
    SqRA grid, tridiagonal eigensolver, spline landscape, forward filter. */
 %include "IMP_bff.fretlandscape.i"
 
+/* Evolution from one alignment: the encoded alignment, and co-evolution of its
+   columns (mean-field DCA). Before probe selection, whose pair cost reads it. */
+%include "IMP_bff.sequencemsa.i"
+%include "IMP_bff.sequencecoevolution.i"
+%include "IMP_bff.sequenceconservation.i"
+
 /* Greedy selection of a probe network by a weighted mix of scores: Olga's
    structural resolution, the rate information of a kinetic scheme, and the
    Labelizer's site scores. After the FRET network, which the kinetics term
