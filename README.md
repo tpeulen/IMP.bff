@@ -596,8 +596,16 @@ by name.
 
 ```json
 {"sequence_search": {"databases": {"uniref90": "/data/uniref90.pto"},
-                     "default_database": "uniref90", "threads": 8}}
+                     "default_database": "uniref90", "threads": 8,
+                     "servers": {"colabfold": {"url": "https://api.colabfold.com",
+                                               "protocol": "colabfold-v1"}},
+                     "fallback_server": "colabfold"}}
 ```
+
+With no database configured, the alignment comes from the fallback server
+instead (ColabFold's MMseqs2 API: submit, poll, unpack the returned archive
+natively; needs libcurl at build time), and the homologues are chosen from its
+rows by the same rules.
 
 On Swiss-Prot (575,748 sequences), 1lk2 chain A: every hit `mmseqs` reports at
 E <= 1e-10 is found, and the search takes 0.4 s against mmseqs' 25 s (the

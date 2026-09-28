@@ -18,7 +18,10 @@
  *
  * The database is #ConsurfOptions::database, a `.pto` path or a name from the
  * settings (#IMP::bff::get_sequence_search_settings), else the settings'
- * default database. Several queries share one pass over the database.
+ * default database. Several queries share one pass over the database. With
+ * no database at all, a server from the settings supplies each query's
+ * alignment instead (#IMP::bff::fetch_server_msa), and the homologues are
+ * chosen from its rows by the same rules.
  *
  * \authors Thomas-Otavio Peulen
  *  Copyright 2007-2026 IMP Inventors. All rights reserved.
@@ -44,6 +47,11 @@ public:
     //! A `.pto` path or a database name from the settings; empty: the
     //! settings' default database.
     std::string database;
+    //! A server name from the settings, asked when there is no database
+    //! (neither given nor the settings' default); empty: the settings'
+    //! fallback_server. Its alignment's rows are the hits the homologues
+    //! are chosen from.
+    std::string server;
     SequenceSearchOptions search;
     SequenceHomologOptions homologs;
     SequenceConservationOptions conservation;
@@ -74,7 +82,7 @@ public:
 IMP_VALUES(ConsurfResult, ConsurfResults);
 
 //! ConSurf for each of \p queries (protein sequences), in one database pass.
-/*! \throw IOException when no database is given and the settings name none */
+/*! \throw IOException when neither a database nor a server is available */
 IMPBFFEXPORT ConsurfResults compute_consurf(const Strings& queries,
                                             const ConsurfOptions& options = ConsurfOptions());
 

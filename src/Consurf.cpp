@@ -7,6 +7,7 @@
 #include <IMP/bff/Consurf.h>
 #include <IMP/bff/BffSettings.h>
 #include <IMP/bff/SequenceDatabase.h>
+#include <IMP/bff/SequenceServer.h>
 
 #include <cstdio>
 #include <fstream>
@@ -25,13 +26,32 @@ std::string clean_query(const std::string& s) {
     return out;
 }
 
-SequenceDatabase open_consurf_database(const std::string& database) {
-    if (!database.empty()) return SequenceDatabase(database);
+//! Where the hits come from: a database path, or a server; one of the two.
+struct ConsurfSource {
+    std::string database;
+    SequenceSearchServer server;
+    bool use_server = false;
+};
+
+ConsurfSource consurf_source(const ConsurfOptions& options) {
+    ConsurfSource source;
+    if (!options.database.empty()) {
+        source.database = options.database;
+        return source;
+    }
     const SequenceSearchSettings settings = get_sequence_search_settings();
-    if (settings.default_database.empty())
+    if (!settings.default_database.empty()) {
+        source.database = settings.get_database(settings.default_database);
+        return source;
+    }
+    const std::string server = options.server.empty() ? settings.fallback_server : options.server;
+    if (server.empty())
         IMP_THROW("compute_consurf: no database given, and the settings ("
-                  << get_settings_path() << ") name no default_database", IOException);
-    return SequenceDatabase(settings.get_database(settings.default_database));
+                  << get_settings_path() << ") name neither a default_database nor a "
+                  "fallback_server", IOException);
+    source.server = settings.get_server(server);
+    source.use_server = true;
+    return source;
 }
 
 }  // namespace
@@ -63,11 +83,21 @@ ConsurfResults compute_consurf(const Strings& queries, const ConsurfOptions& opt
     }
     ConsurfResults per_unique(unique.size());
     if (!unique.empty()) {
-        const SequenceDatabase database = open_consurf_database(options.database);
-        SequenceSearchOptions search = options.search;
-        search.max_evalue = std::max(search.max_evalue, options.homologs.max_evalue);
-        const SequenceSearchHits hits =
-                search_sequence_database(Strings(unique.begin(), unique.end()), database, search);
+        const ConsurfSource source = consurf_source(options);
+        SequenceSearchHits hits;
+        if (source.use_server) {
+            for (std::size_t k = 0; k < unique.size(); ++k) {
+                const SequenceSearchHits rows = get_a3m_hits(
+                        fetch_server_msa(unique[k], source.server), static_cast<int>(k));
+                hits.insert(hits.end(), rows.begin(), rows.end());
+            }
+        } else {
+            const SequenceDatabase database(source.database);
+            SequenceSearchOptions search = options.search;
+            search.max_evalue = std::max(search.max_evalue, options.homologs.max_evalue);
+            hits = search_sequence_database(Strings(unique.begin(), unique.end()), database,
+                                            search);
+        }
         for (std::size_t k = 0; k < unique.size(); ++k) {
             ConsurfResult& r = per_unique[k];
             r.query = unique[k];

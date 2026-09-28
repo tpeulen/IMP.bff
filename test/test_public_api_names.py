@@ -82,6 +82,9 @@ FLAT_NAMES = [
     "write_consurf_grades",
     "write_consurf_msa",
     "labelizer_conservation_from_database",
+    "get_sequence_server_available",  # built with libcurl and zlib
+    "fetch_server_msa",             # colabfold-v1: ticket, poll, tar.gz
+    "get_a3m_hits",                 # A3M rows as hit records
     "LabelizerScore",              # labelability score row
     "LabelizerFRETOptions",        # FRET pair-score settings
     "labelizer_score_structure",   # Labelizer entry point

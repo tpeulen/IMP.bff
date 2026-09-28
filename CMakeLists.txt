@@ -106,6 +106,12 @@ if(TARGET IMP.bff-lib)
     target_link_libraries(IMP.bff-lib ZLIB::ZLIB)
     target_compile_definitions(IMP.bff-lib PRIVATE IMP_BFF_HAS_ZLIB=1)
   endif()
+  # Optional: libcurl asks an MSA server when no sequence database is set up.
+  find_package(CURL QUIET)
+  if(CURL_FOUND)
+    target_link_libraries(IMP.bff-lib CURL::libcurl)
+    target_compile_definitions(IMP.bff-lib PRIVATE IMP_BFF_HAS_CURL=1)
+  endif()
   install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ptolib/include/ptolib"
           DESTINATION include)
   # tttrlib's headers are C++17 (std::any, <filesystem>) and
