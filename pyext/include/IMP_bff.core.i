@@ -1357,6 +1357,7 @@ IMP_SWIG_VALUE(IMP::bff, MfdbAttribution, MfdbAttributions);
 /* Where alignments come from: the settings file and the sequence database. */
 %include "IMP_bff.bffsettings.i"
 %include "IMP_bff.sequencedatabase.i"
+%include "IMP_bff.sequencesearch.i"
 %include "IMP_bff.sequencecoevolution.i"
 %include "IMP_bff.sequenceconservation.i"
 

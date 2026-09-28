@@ -282,6 +282,13 @@ std::uint64_t SequenceDatabase::get_offset(std::size_t i) const {
     return o;
 }
 
+void SequenceDatabase::get_offsets(std::size_t first, std::size_t count,
+                                   std::uint64_t* out) const {
+    if (!reader_ || first + count > n_sequences_)
+        IMP_THROW("SequenceDatabase: no sequences " << first << "+" << count, IndexException);
+    reader_->offsets(kColumnResidues, first, count, out);
+}
+
 void SequenceDatabase::advise_sequential() const {
     if (reader_) reader_->advise_sequential(kColumnResidues);
 }

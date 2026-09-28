@@ -87,6 +87,9 @@ public:
                                      std::size_t* count, std::uint64_t* n_codes) const;
     //! Offset of sequence \p i's first code in the concatenation of all.
     std::uint64_t get_offset(std::size_t i) const;
+    //! The offsets of sequences \p first .. \p first + \p count, inclusive:
+    //! `count + 1` values into \p out.
+    void get_offsets(std::size_t first, std::size_t count, std::uint64_t* out) const;
     //! Tell the system the next reads are one pass in order.
     void advise_sequential() const;
 #endif

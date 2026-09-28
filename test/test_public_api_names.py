@@ -66,6 +66,12 @@ FLAT_NAMES = [
     "get_sequence_search_settings",
     "SequenceDatabase",             # binary FASTA in a .pto
     "create_sequence_database",     # FASTA (.gz) -> .pto, streaming
+    "SequenceSearchOptions",        # prefilter and alignment settings
+    "SequenceSearchHit",            # one aligned target
+    "search_sequence_database",     # MMseqs2's method, native
+    "align_sequences",              # the search's pairwise alignment
+    "get_query_msa",                # hits -> query-anchored SequenceMSA
+    "get_blosum62",
     "LabelizerScore",              # labelability score row
     "LabelizerFRETOptions",        # FRET pair-score settings
     "labelizer_score_structure",   # Labelizer entry point
