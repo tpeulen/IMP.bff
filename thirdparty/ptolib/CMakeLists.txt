@@ -21,7 +21,18 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_library(ptolib STATIC src/ptolib.cpp)
+# One copy of ptolib per process. DataStoreRegistry::instance() is a function-
+# local static in ptolib.cpp; statically linked into several Windows DLLs (which
+# export nothing a static library brings in), each DLL gets its own registry and
+# a store made through one is invisible to a listing taken through another. A
+# consumer that links ptolib into more than one DLL builds it shared instead.
+option(PTOLIB_SHARED "Build ptolib as a shared library" OFF)
+if(PTOLIB_SHARED)
+    add_library(ptolib SHARED src/ptolib.cpp)
+    set_target_properties(ptolib PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+else()
+    add_library(ptolib STATIC src/ptolib.cpp)
+endif()
 add_library(ptolib_impl ALIAS ptolib)
 set_target_properties(ptolib PROPERTIES POSITION_INDEPENDENT_CODE ON CXX_STANDARD 14
     CXX_VISIBILITY_PRESET default VISIBILITY_INLINES_HIDDEN OFF)
@@ -109,7 +120,7 @@ if(PTOLIB_BUILD_TESTS)
             "-DPTOLIB_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}"
             "-DPTOLIB_JSON_INCLUDE_DIR=${_ptolib_json_inc}"
             -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/cmake/installed_consumer.cmake")
-    foreach(t test_container test_datastore test_store_file test_simd test_codec test_codec_stream test_codec_capabilities)
+    foreach(t test_container test_datastore test_store_file test_stream_store test_simd test_codec test_codec_stream test_codec_capabilities)
         add_executable(${t} tests/${t}.cpp)
         target_link_libraries(${t} PRIVATE ptolib_impl)
         target_compile_definitions(${t} PRIVATE
