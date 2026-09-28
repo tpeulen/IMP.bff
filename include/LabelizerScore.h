@@ -287,8 +287,11 @@ IMPBFFEXPORT std::vector<LabelizerScore> labelizer_labeling_score(
     \param[in] model the terms; see #labelizer_model_paper
     \param[in] options the settings
     \param[in] conservation_path a ConSurf `.grades` table or B-factor PDB, an
-               alignment (`.fasta`, `.fa`, `.fas`, `.faa`, `.afa`, `.a2m`, `.msa`:
-               conservation computed natively, as ConSurf does), or empty
+               alignment (`.fasta`, `.fa`, `.fas`, `.faa`, `.afa`, `.a2m`, `.a3m`,
+               `.msa`: conservation computed natively, as ConSurf does), a
+               sequence database (`.pto`, or `db:NAME` for one the settings
+               name, `db:` for their default: ConSurf end to end, see
+               #labelizer_conservation_from_database), or empty
     \return the parameter rows followed by the `combined` rows
     \throw IOException when a file cannot be read
 */

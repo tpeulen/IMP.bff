@@ -92,3 +92,33 @@ def test_without_a_database_the_settings_are_asked(setup, tmp_path, monkeypatch)
     monkeypatch.setenv("IMP_BFF_SETTINGS", str(tmp_path / "none.json"))
     with pytest.raises(bff.IOException):
         bff.compute_consurf(["ACDEFGHIKLMNPQRSTVWY"])
+
+
+def test_the_command_line(setup, capfd):
+    d, family, options = setup
+    fasta = d / "q.fasta"
+    fasta.write_text(f">query one\n{family[0]}\n")
+    db = options.database
+    assert bff.command_line_main(["sequence-db", "info", db]) == 0
+    assert "sequences" in capfd.readouterr().out
+    hits = d / "hits.tsv"
+    assert bff.command_line_main(["sequence-search", str(fasta), "--database", db,
+                                  "-o", str(hits), "--msa", str(d / "hits.fasta")]) == 0
+    rows = [l.split("\t") for l in hits.read_text().splitlines() if not l.startswith("#")]
+    assert rows and rows[0][0] == "query" and float(rows[0][2]) == 1.0
+    assert bff.read_sequence_msa(str(d / "hits.fasta")).get_n_sequences() == len(rows) + 1
+    grades = d / "cli.grades"
+    assert bff.command_line_main(["consurf", str(fasta), "--database", db, "-o", str(grades),
+                                  "--standalone"]) == 0
+    assert "positions" in capfd.readouterr().out
+    assert len([l for l in grades.read_text().splitlines() if l[:4].strip().isdigit()]) == len(family[0])
+    # a new database from the command line
+    small = d / "small.fasta"
+    small.write_text(">a\nACDEFGHIK\n>b\nLMNPQRST\n")
+    assert bff.command_line_main(["sequence-db", "create", str(small), str(d / "small.pto")]) == 0
+    assert bff.SequenceDatabase(str(d / "small.pto")).get_number_of_sequences() == 2
+    # a peptide has too few homologues: a usage-free failure
+    pep = d / "pep.fasta"
+    pep.write_text(">pep\nACDEFGHIKLM\n")
+    assert bff.command_line_main(["consurf", str(pep), "--database", db, "-o", str(d / "x")]) == 1
+    assert "too few homologues" in capfd.readouterr().err

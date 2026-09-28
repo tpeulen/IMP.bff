@@ -46,6 +46,9 @@ CORE_GROUPS = {
     "fps-distance": [],
     "potentials2pto": [],
     "rmsd": [],
+    "sequence-db": ["create", "info"],
+    "sequence-search": [],
+    "consurf": [],
 }
 LAYER_GROUPS = {
     "fps": ["score", "dock", "refine", "screen", "convert", "project"],

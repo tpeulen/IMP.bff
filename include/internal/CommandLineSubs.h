@@ -171,6 +171,8 @@ IMPBFFEXPORT void add_fps_distance_subs(CLI::App& app);
 IMPBFFEXPORT void add_potentials_subs(CLI::App& app);
 //! rmsd
 IMPBFFEXPORT void add_rmsd_subs(CLI::App& app);
+//! `sequence-db`, `sequence-search`, `consurf` (CommandLineSequence.cpp).
+IMPBFFEXPORT void add_sequence_subs(CLI::App& app);
 
 #if IMPBFF_CLI_HAS_IMP_LAYER
 //! analyze-trajectories, av-vs-rotamer (IMP layer)

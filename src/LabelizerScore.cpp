@@ -678,13 +678,24 @@ std::vector<LabelizerScore> labelizer_score_structure(const std::string& pdb_pat
                                         const std::string& conservation_path) {
     const LabelizerStructure s = labelizer_read_structure(pdb_path);
     std::map<std::string, LabelizerConservation> conservation;
-    if (!conservation_path.empty()) {
+    if (conservation_path.compare(0, 3, "db:") == 0) {
+        // a sequence database named in the settings: ConSurf, computed here
+        ConsurfOptions consurf;
+        consurf.database = conservation_path.substr(3);
+        conservation = labelizer_conservation_from_database(s, consurf);
+    } else if (!conservation_path.empty()) {
         std::string ext = conservation_path.substr(conservation_path.find_last_of('.') + 1);
         std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
         const bool alignment = ext == "fasta" || ext == "fa" || ext == "fas" || ext == "faa" ||
-                               ext == "afa" || ext == "a2m" || ext == "msa";
-        conservation = alignment ? labelizer_conservation_from_msa(s, conservation_path)
-                                 : labelizer_read_consurf_records(conservation_path);
+                               ext == "afa" || ext == "a2m" || ext == "a3m" || ext == "msa";
+        if (ext == "pto") {
+            ConsurfOptions consurf;
+            consurf.database = conservation_path;
+            conservation = labelizer_conservation_from_database(s, consurf);
+        } else {
+            conservation = alignment ? labelizer_conservation_from_msa(s, conservation_path)
+                                     : labelizer_read_consurf_records(conservation_path);
+        }
     }
     std::vector<LabelizerScore> out = labelizer_parameter_scores(s, model, options, conservation);
     const std::vector<LabelizerScore> combined = labelizer_labeling_score(out, model, options);

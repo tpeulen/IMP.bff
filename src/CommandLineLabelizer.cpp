@@ -11,8 +11,9 @@
  *
  *  **The published arithmetic is the default, defects included**, because the
  *  paper's numbers were computed with them; `--corrected` selects the
- *  arithmetic the reference documents. Conservation is **imported, never
- *  computed** (a ConSurf `.grades` table or a B-factor PDB).
+ *  arithmetic the reference documents. Conservation is imported (a ConSurf
+ *  `.grades` table or a B-factor PDB) or computed here, ConSurf's way, from
+ *  an alignment or a sequence database (see labelizer_score_structure).
  *
  *  Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
@@ -265,8 +266,10 @@ void add_labelizer_subs(CLI::App& app) {
   sub->add_option("-o,--out", a->out,
                   "the container to write; defaults to <stem>.mmfdb.pto beside the structure");
   sub->add_option("--conservation", a->conservation,
-                  "a ConSurf .grades table, or a PDB carrying the normalised grade in its "
-                  "B-factor column");
+                  "a ConSurf .grades table, a PDB carrying the normalised grade in its "
+                  "B-factor column, an alignment (.fasta/.a2m/.a3m ...), or a sequence "
+                  "database -- a .pto, or db:NAME from the settings (db: for the default) "
+                  "-- to run ConSurf here");
   sub->add_flag("--no-conservation", a->no_conservation,
                 "drop the conservation term from the model, rather than leaving it "
                 "unavailable and taking the whole combined score down with it");

@@ -560,8 +560,10 @@ The model, what a score means and the traps worth knowing are in
 The published arithmetic is the **default, defects included**, because that is
 what the paper's numbers were computed with; `--corrected` selects the
 arithmetic the reference documents, and the container records which was used.
-Conservation is imported, never computed -- pass a ConSurf `.grades` table or a
-PDB carrying the grade in its B-factor column.
+Conservation is imported -- a ConSurf `.grades` table or a PDB carrying the
+grade in its B-factor column -- or computed here the way ConSurf computes it,
+from an alignment or end to end from a sequence database
+([`imp_bff consurf`](#imp_bff_consurf); `--conservation db:uniref90`).
 
 Output is one `.mmfdb.pto` rather than the reference's six CSVs, four
 score-carrying PDBs, heat-map JSON and zip: the structure verbatim, the scores
@@ -569,6 +571,39 @@ as tables whose columns are named by MMFDB dictionary items, and the complete
 settings. A position that was not scored carries a status and no number, which
 is the thing the reference's output cannot express -- it writes `-1` for
 "excluded" and `0` for "no contribution" into the same column as real scores.
+
+## imp_bff consurf -- conservation grades of a chain, no server {#imp_bff_consurf}
+
+ConSurf end to end in one process: a homology search of a local sequence
+database (MMseqs2's method, implemented natively), ConSurf's rules for which
+hits become homologues, their alignment to the query, per-site rates by
+Rate4Site's method (checked against the program: identical tree, shape and
+scores) and the nine grades. Its `.grades` output is what
+`imp_bff labelizer --conservation` reads, and the Labelizer can run it itself
+(`--conservation db:NAME`).
+
+```bash
+imp_bff sequence-db create uniref90.fasta.gz /data/uniref90.pto   # once
+imp_bff consurf 1lk2.pdb --chain A --database uniref90 -o 1lk2_A.grades
+imp_bff sequence-search query.fasta --database uniref90 -o hits.tsv --msa hits.fasta
+```
+
+A database is binary FASTA inside a `.pto` container: one byte per residue,
+read in place from a memory map, converted and searched in bounded memory.
+Where the databases live is not compiled in: name them in the settings file
+(`$IMP_BFF_SETTINGS`, else `~/.config/imp.bff/settings.json`) and refer to them
+by name.
+
+```json
+{"sequence_search": {"databases": {"uniref90": "/data/uniref90.pto"},
+                     "default_database": "uniref90", "threads": 8}}
+```
+
+On Swiss-Prot (575,748 sequences), 1lk2 chain A: every hit `mmseqs` reports at
+E <= 1e-10 is found, and the search takes 0.4 s against mmseqs' 25 s (the
+latter including its database build); ConSurf end to end takes 1.2 s.
+`--standalone` applies stand-alone ConSurf's homologue rules instead of the
+server's.
 
 ## imp_bff fps-export -- FPS's result files, and the errors that fill them {#imp_bff_fps_export}
 
