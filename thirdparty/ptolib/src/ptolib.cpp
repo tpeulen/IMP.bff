@@ -4123,6 +4123,7 @@ struct StoreWriter::Impl {
         BlobRef offsets;
         std::vector<std::uint64_t> row_starts; // ragged: first row of each values segment
         std::uint64_t buf_first_row = 0;       // ragged: first row in `buf`
+        std::size_t segment_bytes = 0;         // of its values
     };
 
     std::string filename, temp;
@@ -4219,7 +4220,7 @@ StoreWriter::~StoreWriter() {
 std::uint64_t StoreWriter::uid() const { return impl_->uid; }
 
 int StoreWriter::add_column(const std::string& name, ColumnType type, bool ragged,
-                            const std::string& codec) {
+                            const std::string& codec, std::size_t segment_bytes) {
     if (impl_->closed) throw std::runtime_error("StoreWriter: the store is already closed");
     if (type == ColumnType::Bool || type == ColumnType::String)
         throw std::runtime_error("StoreWriter: column '" + name +
@@ -4235,6 +4236,8 @@ int StoreWriter::add_column(const std::string& name, ColumnType type, bool ragge
             : (codec == "none" || codec == "raw") ? kCodecNone : codec_id(codec);
     if (!codec.empty() && codec != "none" && codec != "raw" && c.codec == kCodecNone)
         throw std::runtime_error("StoreWriter: unknown codec '" + codec + "'");
+    c.segment_bytes = segment_bytes == 0 ? impl_->segment_bytes
+                                         : std::max<std::size_t>(segment_bytes, 4096);
     if (ragged) c.obuf.push_back(0);
     impl_->cols.push_back(c);
     return static_cast<int>(impl_->cols.size()) - 1;
@@ -4250,7 +4253,7 @@ void StoreWriter::append(int column, const void* values, std::uint64_t n) {
     const unsigned char* p = static_cast<const unsigned char*>(values);
     std::uint64_t left = n * c.width;
     // Segments hold whole values: the limit rounded down to the width.
-    const std::size_t limit = impl_->segment_bytes / c.width * c.width;
+    const std::size_t limit = c.segment_bytes / c.width * c.width;
     while (left > 0) {
         const std::size_t room = limit - c.buf.size();
         const std::size_t take = static_cast<std::size_t>(std::min<std::uint64_t>(left, room));
@@ -4268,12 +4271,12 @@ void StoreWriter::append_row(int column, const void* values, std::uint64_t n) {
     if (!c.ragged) throw std::runtime_error("StoreWriter: '" + c.name + "' is not ragged; use append");
     const std::uint64_t bytes = n * c.width;
     // A segment never splits a row: flush first when this one would not fit.
-    if (!c.buf.empty() && c.buf.size() + bytes > impl_->segment_bytes) impl_->flush_values(c);
+    if (!c.buf.empty() && c.buf.size() + bytes > c.segment_bytes) impl_->flush_values(c);
     const unsigned char* p = static_cast<const unsigned char*>(values);
     c.buf.insert(c.buf.end(), p, p + bytes);
     c.n_values += n;
     c.n_rows += 1;
-    if (c.buf.size() >= impl_->segment_bytes) impl_->flush_values(c);
+    if (c.buf.size() >= c.segment_bytes) impl_->flush_values(c);
     c.obuf.push_back(c.n_values);
     if (c.obuf.size() * 8 >= impl_->segment_bytes) impl_->flush_offsets(c);
 }
