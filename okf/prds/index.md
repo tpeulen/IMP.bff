@@ -21,6 +21,7 @@ move of each.
 
 | PRD | what | status | next |
 |---|---|---|---|
+| [154](prd-154.md) | Fast-NPS, clean-room: direct-FRET/TA scalar compatibility leaves plus the Bayesian structural tracer (`NPSIsotropicFRETEfficiencyRestraint`, live IMP sites + sampled nuisances, one MonteCarlo transaction) | done (2026-09-28) | AV-cloud FRET mode, multi-observation dispatch, Fast-NPS sampler parity (per the PRD's deferred list) |
 | [153](prd-153.md) | IMP.bff as a Pyodide 0.28 wheel (wasm32): the IMP-free core, static into one side module, no OpenMP/GPU/program; parameter layer, chisurf FittingParameter and ndXplorer overlays identical to native | done (2026-09-23) | CI; ndXplorer page bundle needs chimol + lzma (Open 2) |
 | [151](prd-151.md) | exact linear-Gaussian inference over the factor graph: aGrUM's CLG canonical forms `(K, h, g)`, variable elimination with relevance pruning, its default triangulation; ChiSurf conditions through it | done (2026-09-17) | per-dataset Gaussian factors for a global fit (Open 1) |
 | [150](prd-150.md) | kinetic schemes composed from factors: aGrUM's CTBN amalgamation (CIMs -> joint generator `K[target, source]`), after checking which schemes in the stack factor | done (2026-09-17) | chisurf `burst/simulate.py` k_nrad/k_rad through it; the FRETExchange pair product-vs-sum question |
