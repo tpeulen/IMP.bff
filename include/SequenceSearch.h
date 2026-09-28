@@ -103,6 +103,16 @@ IMPBFFEXPORT SequenceSearchHits search_sequence_database(
         const Strings& queries, const SequenceDatabase& database,
         const SequenceSearchOptions& options = SequenceSearchOptions());
 
+#ifndef SWIG
+//! The search over \p rows of \p database only (sorted, distinct): the
+//! second stage of a clustered search. E-values are against \p residues
+//! (0: the whole database's), so they compare with a full search's.
+IMPBFFEXPORT SequenceSearchHits search_sequence_database_rows(
+        const Strings& queries, const SequenceDatabase& database,
+        const std::vector<std::size_t>& rows,
+        const SequenceSearchOptions& options = SequenceSearchOptions(), double residues = 0);
+#endif
+
 //! Align \p query to \p target: the same scoring and hit record as the search.
 IMPBFFEXPORT SequenceSearchHit align_sequences(
         const std::string& query, const std::string& target,

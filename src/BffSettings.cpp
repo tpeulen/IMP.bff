@@ -106,6 +106,15 @@ void SequenceSearchSettings::set_index(const std::string& name, const std::strin
     indexes_[name] = path;
 }
 
+std::string SequenceSearchSettings::get_representatives(const std::string& name) const {
+    const auto it = representatives_.find(name);
+    return it == representatives_.end() ? std::string() : it->second;
+}
+
+void SequenceSearchSettings::set_representatives(const std::string& name, const std::string& path) {
+    representatives_[name] = path;
+}
+
 std::vector<std::string> SequenceSearchSettings::get_server_names() const {
     std::vector<std::string> out;
     for (const auto& kv : servers_) out.push_back(kv.first);
@@ -146,11 +155,11 @@ SequenceSearchSettings get_sequence_search_settings(const std::string& path) {
     if (section == doc.end()) return out;
     const nlohmann::json& s = *section;
     if (!s.is_object()) IMP_THROW("settings: sequence_search must be an object", ValueException);
-    refuse_unknown(s, {"databases", "default_database", "indexes", "servers", "fallback_server",
-                       "threads", "memory_budget_mb"}, "sequence_search");
+    refuse_unknown(s, {"databases", "default_database", "indexes", "clusters", "servers",
+                       "fallback_server", "threads", "memory_budget_mb"}, "sequence_search");
     const std::string dir = parent_directory(file);
 
-    for (const char* key : {"databases", "indexes"}) {
+    for (const char* key : {"databases", "indexes", "clusters"}) {
         const auto it = s.find(key);
         if (it == s.end()) continue;
         if (!it->is_object())
@@ -160,7 +169,8 @@ SequenceSearchSettings get_sequence_search_settings(const std::string& path) {
             const std::string where = std::string("sequence_search.") + key + "." + e.key();
             const std::string p = resolve(string_map_entry(e.value(), where), dir);
             if (std::string(key) == "databases") out.set_database(e.key(), p);
-            else out.set_index(e.key(), p);
+            else if (std::string(key) == "indexes") out.set_index(e.key(), p);
+            else out.set_representatives(e.key(), p);
         }
     }
     const auto servers = s.find("servers");

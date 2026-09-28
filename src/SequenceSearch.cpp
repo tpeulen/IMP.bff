@@ -324,10 +324,13 @@ SequenceSearchHit align_sequences(const std::string& query, const std::string& t
     return hit;
 }
 
-SequenceSearchHits search_sequence_database(const Strings& queries,
-                                            const SequenceDatabase& database,
-                                            const SequenceSearchOptions& options) {
-    using namespace sequence_search;
+namespace sequence_search {
+
+//! The search, over every sequence of \p database or over \p rows of it
+//! (sorted); E-values against \p residues.
+SequenceSearchHits search(const Strings& queries, const SequenceDatabase& database,
+                          const std::vector<std::size_t>* rows, double residues,
+                          const SequenceSearchOptions& options) {
     if (queries.empty()) return SequenceSearchHits();
     if (queries.size() > 65535)
         IMP_THROW("search_sequence_database: at most 65535 queries at once", ValueException);
@@ -341,7 +344,6 @@ SequenceSearchHits search_sequence_database(const Strings& queries,
         longest_query = std::max(longest_query, q.back().size());
     }
     const SeedTable seeds = build_seeds(q, options.kmer_threshold);
-    const double residues = double(database.get_number_of_residues());
     const std::size_t capacity = static_cast<std::size_t>(std::max(options.max_candidates, 1));
     // The ungapped threshold in raw score units.
     const int min_ungapped = static_cast<int>(std::ceil(
@@ -350,62 +352,77 @@ SequenceSearchHits search_sequence_database(const Strings& queries,
     unsigned n_threads = options.threads > 0 ? static_cast<unsigned>(options.threads)
                                              : std::thread::hardware_concurrency();
     n_threads = std::max(1u, n_threads);
-    const std::size_t n_segments = database.get_number_of_segments();
-    database.advise_sequential();
+    // Work units: whole segments of the database, or blocks of the rows.
+    const std::size_t kRowBlock = 4096;
+    const std::size_t n_units = rows ? (rows->size() + kRowBlock - 1) / kRowBlock
+                                     : database.get_number_of_segments();
+    if (!rows) database.advise_sequential();
 
-    // ---- prefilter: every thread takes whole segments ----
+    // ---- prefilter ----
     std::vector<std::vector<CandidateHeap>> heaps(n_threads, std::vector<CandidateHeap>(q.size()));
-    std::atomic<std::size_t> next_segment{0};
+    std::atomic<std::size_t> next_unit{0};
     std::vector<std::exception_ptr> errors(n_threads);
+    const std::uint32_t kTop = 20 * 20 * 20 * 20;   // the weight of a k-mer's first residue
     auto prefilter = [&](unsigned thread) {
         try {
             std::vector<Diagonals> diagonals(q.size());
             std::vector<std::uint64_t> offsets;
             std::vector<int> best(q.size());
-            for (std::size_t k; (k = next_segment++) < n_segments;) {
+            // One target: its diagonals, and its best ungapped score per query.
+            auto scan = [&](const unsigned char* t, std::uint64_t n, std::size_t row) {
+                if (n < static_cast<std::uint64_t>(kK_mer)) return;
+                const std::uint32_t stamp = static_cast<std::uint32_t>(row);
+                std::fill(best.begin(), best.end(), 0);
+                std::uint32_t kmer = 0;
+                int valid = 0;
+                for (std::uint64_t j = 0; j < n; ++j) {
+                    const unsigned char c = t[j];
+                    if (c == 0) { valid = 0; kmer = 0; continue; }
+                    if (valid == kK_mer) kmer -= (t[j - kK_mer] - 1u) * kTop;
+                    else ++valid;
+                    kmer = kmer * 20 + (c - 1u);
+                    if (valid < kK_mer || !seeds.has(kmer)) continue;
+                    const std::int32_t at = static_cast<std::int32_t>(j + 1 - kK_mer);
+                    for (std::uint32_t e = seeds.start[kmer]; e < seeds.start[kmer + 1]; ++e) {
+                        const Seed s = seeds.seeds[e];
+                        Diagonals& dg = diagonals[s.query];
+                        const std::size_t qn = q[s.query].size();
+                        dg.fit(qn + static_cast<std::size_t>(n) + 1);
+                        const std::size_t d = static_cast<std::size_t>(at) + qn - s.position;
+                        if (dg.stamp[d] != stamp) {
+                            dg.stamp[d] = stamp;
+                            dg.last[d] = at;
+                            continue;
+                        }
+                        if (dg.last[d] < 0 || dg.last[d] == at) continue;   // scored, or the same hit
+                        dg.last[d] = -1;
+                        const int score = ungapped_diagonal(
+                                q[s.query], t, n, static_cast<long>(at) - s.position);
+                        if (score > best[s.query]) best[s.query] = score;
+                    }
+                }
+                for (std::size_t qi = 0; qi < q.size(); ++qi)
+                    if (best[qi] >= min_ungapped)
+                        keep(heaps[thread][qi], Candidate{best[qi], row}, capacity);
+            };
+            for (std::size_t k; (k = next_unit++) < n_units;) {
+                if (rows) {
+                    const std::size_t end = std::min(rows->size(), (k + 1) * kRowBlock);
+                    for (std::size_t i = k * kRowBlock; i < end; ++i) {
+                        std::uint64_t n = 0;
+                        const unsigned char* t = database.get_codes((*rows)[i], &n);
+                        scan(t, n, (*rows)[i]);
+                    }
+                    continue;
+                }
                 std::size_t first = 0, count = 0;
                 std::uint64_t n_codes = 0;
                 const unsigned char* codes = database.get_segment(k, &first, &count, &n_codes);
                 offsets.resize(count + 1);
                 database.get_offsets(first, count, offsets.data());
                 const std::uint64_t base = offsets[0];
-                for (std::size_t r = 0; r < count; ++r) {
-                    const unsigned char* t = codes + (offsets[r] - base);
-                    const std::uint64_t n = offsets[r + 1] - offsets[r];
-                    if (n < static_cast<std::uint64_t>(kK_mer)) continue;
-                    const std::uint32_t stamp = static_cast<std::uint32_t>(first + r);
-                    std::fill(best.begin(), best.end(), 0);
-                    std::uint32_t kmer = 0;
-                    int valid = 0;
-                    for (std::uint64_t j = 0; j < n; ++j) {
-                        const unsigned char c = t[j];
-                        if (c == 0) { valid = 0; kmer = 0; continue; }
-                        kmer = (kmer * 20 + (c - 1u)) % kKmerSpace;
-                        if (++valid < kK_mer) continue;
-                        if (!seeds.has(kmer)) continue;
-                        const std::int32_t at = static_cast<std::int32_t>(j + 1 - kK_mer);
-                        for (std::uint32_t e = seeds.start[kmer]; e < seeds.start[kmer + 1]; ++e) {
-                            const Seed s = seeds.seeds[e];
-                            Diagonals& dg = diagonals[s.query];
-                            const std::size_t qn = q[s.query].size();
-                            dg.fit(qn + static_cast<std::size_t>(n) + 1);
-                            const std::size_t d = static_cast<std::size_t>(at) + qn - s.position;
-                            if (dg.stamp[d] != stamp) {
-                                dg.stamp[d] = stamp;
-                                dg.last[d] = at;
-                                continue;
-                            }
-                            if (dg.last[d] < 0 || dg.last[d] == at) continue;   // scored, or the same hit
-                            dg.last[d] = -1;
-                            const int score = ungapped_diagonal(
-                                    q[s.query], t, n, static_cast<long>(at) - s.position);
-                            if (score > best[s.query]) best[s.query] = score;
-                        }
-                    }
-                    for (std::size_t qi = 0; qi < q.size(); ++qi)
-                        if (best[qi] >= min_ungapped)
-                            keep(heaps[thread][qi], Candidate{best[qi], first + r}, capacity);
-                }
+                for (std::size_t r = 0; r < count; ++r)
+                    scan(codes + (offsets[r] - base), offsets[r + 1] - offsets[r], first + r);
             }
         } catch (...) {
             errors[thread] = std::current_exception();
@@ -477,6 +494,31 @@ SequenceSearchHits search_sequence_database(const Strings& queries,
         return a.target < b.target;
     });
     return out;
+}
+
+}  // namespace sequence_search
+
+SequenceSearchHits search_sequence_database(const Strings& queries,
+                                            const SequenceDatabase& database,
+                                            const SequenceSearchOptions& options) {
+    return sequence_search::search(queries, database, nullptr,
+                                   double(database.get_number_of_residues()), options);
+}
+
+SequenceSearchHits search_sequence_database_rows(const Strings& queries,
+                                                 const SequenceDatabase& database,
+                                                 const std::vector<std::size_t>& rows,
+                                                 const SequenceSearchOptions& options,
+                                                 double residues) {
+    for (std::size_t i = 1; i < rows.size(); ++i)
+        if (rows[i] <= rows[i - 1])
+            IMP_THROW("search_sequence_database_rows: rows must be sorted and distinct",
+                      ValueException);
+    if (!rows.empty() && rows.back() >= database.get_number_of_sequences())
+        IMP_THROW("search_sequence_database_rows: no row " << rows.back(), IndexException);
+    return sequence_search::search(
+            queries, database, &rows,
+            residues > 0 ? residues : double(database.get_number_of_residues()), options);
 }
 
 SequenceMSA get_query_msa(const std::string& query, const SequenceSearchHits& hits,

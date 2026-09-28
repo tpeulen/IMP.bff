@@ -1336,6 +1336,7 @@ IMP_SWIG_VALUE(IMP::bff, MfdbAttribution, MfdbAttributions);
 %include "IMP_bff.bffsettings.i"
 %include "IMP_bff.sequencedatabase.i"
 %include "IMP_bff.sequencesearch.i"
+%include "IMP_bff.sequenceclusters.i"
 %include "IMP_bff.sequencehomologs.i"
 %include "IMP_bff.sequenceserver.i"
 %include "IMP_bff.sequencecoevolution.i"

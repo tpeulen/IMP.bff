@@ -6,6 +6,7 @@
  */
 #include <IMP/bff/Consurf.h>
 #include <IMP/bff/BffSettings.h>
+#include <IMP/bff/SequenceClusters.h>
 #include <IMP/bff/SequenceDatabase.h>
 #include <IMP/bff/SequenceServer.h>
 
@@ -28,20 +29,20 @@ std::string clean_query(const std::string& s) {
 
 //! Where the hits come from: a database path, or a server; one of the two.
 struct ConsurfSource {
-    std::string database;
+    std::string database, representatives;
     SequenceSearchServer server;
     bool use_server = false;
 };
 
 ConsurfSource consurf_source(const ConsurfOptions& options) {
     ConsurfSource source;
-    if (!options.database.empty()) {
-        source.database = options.database;
-        return source;
-    }
     const SequenceSearchSettings settings = get_sequence_search_settings();
-    if (!settings.default_database.empty()) {
-        source.database = settings.get_database(settings.default_database);
+    const std::string named = !options.database.empty() ? options.database : settings.default_database;
+    if (!named.empty()) {
+        source.database = named;
+        source.representatives = !options.representatives.empty()
+                                         ? options.representatives
+                                         : settings.get_representatives(named);
         return source;
     }
     const std::string server = options.server.empty() ? settings.fallback_server : options.server;
@@ -95,8 +96,14 @@ ConsurfResults compute_consurf(const Strings& queries, const ConsurfOptions& opt
             const SequenceDatabase database(source.database);
             SequenceSearchOptions search = options.search;
             search.max_evalue = std::max(search.max_evalue, options.homologs.max_evalue);
-            hits = search_sequence_database(Strings(unique.begin(), unique.end()), database,
-                                            search);
+            const Strings queries(unique.begin(), unique.end());
+            if (source.representatives.empty()) {
+                hits = search_sequence_database(queries, database, search);
+            } else {
+                hits = search_clustered_sequence_database(
+                        queries, SequenceDatabase(source.representatives),
+                        SequenceClusters(source.representatives), database, search);
+            }
         }
         for (std::size_t k = 0; k < unique.size(); ++k) {
             ConsurfResult& r = per_unique[k];

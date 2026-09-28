@@ -85,6 +85,10 @@ FLAT_NAMES = [
     "get_sequence_server_available",  # built with libcurl and zlib
     "fetch_server_msa",             # colabfold-v1: ticket, poll, tar.gz
     "get_a3m_hits",                 # A3M rows as hit records
+    "create_sequence_clusters",     # UniRef50 -> UniRef90 membership
+    "SequenceClusters",
+    "SequenceClusterSearchOptions",
+    "search_clustered_sequence_database",  # representatives, then members
     "LabelizerScore",              # labelability score row
     "LabelizerFRETOptions",        # FRET pair-score settings
     "labelizer_score_structure",   # Labelizer entry point

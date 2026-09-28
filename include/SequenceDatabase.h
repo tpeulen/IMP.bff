@@ -31,6 +31,7 @@
 #include <IMP/bff/IMPCompatibility.h>
 
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -92,6 +93,10 @@ public:
     void get_offsets(std::size_t first, std::size_t count, std::uint64_t* out) const;
     //! Tell the system the next reads are one pass in order.
     void advise_sequential() const;
+    //! Every sequence's identifier (the header's first word) in row order,
+    //! decoding each header segment once: `visit(row, identifier)`.
+    void scan_identifiers(
+            const std::function<void(std::size_t, const std::string&)>& visit) const;
 #endif
 
     IMP_SHOWABLE_INLINE(SequenceDatabase, out << "SequenceDatabase(" << path_ << ", "

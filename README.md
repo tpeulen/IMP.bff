@@ -602,6 +602,15 @@ by name.
                      "fallback_server": "colabfold"}}
 ```
 
+A search can read far less than the whole database: with UniRef50's
+representatives and their membership recorded once
+(`imp_bff sequence-db cluster uniref90.pto uniref50.pto idmapping_selected.tab.gz`,
+UniProt's ID mapping) and named in the settings
+(`"clusters": {"uniref90": "/data/uniref50.pto"}`), it searches the
+representatives first and then only the UniRef90 members of the clusters
+found -- the same hits, since a homologue ConSurf keeps (>= 35 % identity) has
+a representative the query finds with looser cut-offs.
+
 With no database configured, the alignment comes from the fallback server
 instead (ColabFold's MMseqs2 API: submit, poll, unpack the returned archive
 natively; needs libcurl at build time), and the homologues are chosen from its

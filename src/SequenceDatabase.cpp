@@ -289,6 +289,29 @@ void SequenceDatabase::get_offsets(std::size_t first, std::size_t count,
     reader_->offsets(kColumnResidues, first, count, out);
 }
 
+void SequenceDatabase::scan_identifiers(
+        const std::function<void(std::size_t, const std::string&)>& visit) const {
+    if (!reader_) return;
+    std::vector<unsigned char> scratch;
+    std::vector<std::uint64_t> offsets;
+    std::string id;
+    for (std::size_t k = 0; k < reader_->n_segments(kColumnHeaders); ++k) {
+        const pto::SegmentInfo seg = reader_->segment(kColumnHeaders, k);
+        const char* text = static_cast<const char*>(
+                reader_->segment_data(kColumnHeaders, k, scratch));
+        offsets.resize(static_cast<std::size_t>(seg.n_rows) + 1);
+        reader_->offsets(kColumnHeaders, seg.first_row, seg.n_rows, offsets.data());
+        for (std::uint64_t r = 0; r < seg.n_rows; ++r) {
+            const char* h = text + (offsets[r] - offsets[0]);
+            const std::size_t n = static_cast<std::size_t>(offsets[r + 1] - offsets[r]);
+            std::size_t end = 0;
+            while (end < n && h[end] != ' ' && h[end] != '\t') ++end;
+            id.assign(h, end);
+            visit(static_cast<std::size_t>(seg.first_row + r), id);
+        }
+    }
+}
+
 void SequenceDatabase::advise_sequential() const {
     if (reader_) reader_->advise_sequential(kColumnResidues);
 }

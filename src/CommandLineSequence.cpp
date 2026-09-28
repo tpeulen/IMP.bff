@@ -22,6 +22,7 @@
 #include <IMP/bff/Consurf.h>
 #include <IMP/bff/LabelizerFeatures.h>
 #include <IMP/bff/LabelizerScore.h>
+#include <IMP/bff/SequenceClusters.h>
 #include <IMP/bff/SequenceDatabase.h>
 #include <IMP/bff/SequenceSearch.h>
 
@@ -30,7 +31,8 @@ namespace cli {
 namespace sequence {
 
 struct Args {
-  std::string fasta, out, name = "sequences", database, input, chain, msa;
+  std::string fasta, out, name = "sequences", database, input, chain, msa, representatives,
+      mapping;
   int segment_mb = 16;
   int threshold = SequenceSearchOptions().kmer_threshold;
   int max_candidates = SequenceSearchOptions().max_candidates;
@@ -85,6 +87,21 @@ void create(const Args& a) {
             << " residues\n";
 }
 
+void cluster(const Args& a) {
+  const std::size_t placed =
+      create_sequence_clusters(a.database, a.representatives, a.mapping);
+  const SequenceClusters c(a.representatives);
+  std::cout << a.representatives << ": " << c.get_number_of_clusters() << " clusters, "
+            << placed << " members placed, " << c.get_number_of_orphans() << " orphans\n";
+}
+
+//! The representatives to search through: given, or the settings' for a
+//! database named there.
+std::string representatives_for(const Args& a, const std::string& database) {
+  if (!a.representatives.empty()) return a.representatives;
+  return get_sequence_search_settings().get_representatives(database);
+}
+
 void info(const Args& a) {
   const SequenceDatabase db(resolve_database(a.database), a.name);
   std::cout << db.get_path() << "\n  sequences " << db.get_number_of_sequences()
@@ -97,8 +114,14 @@ void search(const Args& a) {
   const std::vector<std::pair<std::string, std::string> > records = read_fasta(a.input);
   Strings queries;
   for (const auto& r : records) queries.push_back(r.second);
-  const SequenceDatabase db(resolve_database(a.database), a.name);
-  const SequenceSearchHits hits = search_sequence_database(queries, db, search_options(a));
+  const std::string name = resolve_database(a.database);
+  const SequenceDatabase db(name, a.name);
+  const std::string reps = representatives_for(a, name);
+  const SequenceSearchHits hits =
+      reps.empty() ? search_sequence_database(queries, db, search_options(a))
+                   : search_clustered_sequence_database(queries, SequenceDatabase(reps),
+                                                        SequenceClusters(reps), db,
+                                                        search_options(a));
   std::ofstream file;
   if (!a.out.empty()) {
     file.open(a.out.c_str());
@@ -147,6 +170,7 @@ void consurf(const Args& a) {
   }
   ConsurfOptions options;
   options.database = resolve_database(a.database);
+  options.representatives = a.representatives;
   options.search = search_options(a);
   if (a.standalone) options.homologs = SequenceHomologOptions::consurf_standalone();
   const ConsurfResult r = compute_consurf(Strings(1, query), options)[0];
@@ -158,6 +182,8 @@ void consurf(const Args& a) {
 }
 
 void add_search_options(CLI::App* sub, Args& a) {
+  sub->add_option("--representatives", a.representatives,
+                  "cluster representatives: search in two stages (default: the settings')");
   sub->add_option("--threshold", a.threshold,
                   "k-mer neighbourhood score; lower is more sensitive and slower");
   sub->add_option("--max-candidates", a.max_candidates, "targets aligned per query");
@@ -188,6 +214,26 @@ file to search it by name:
   create->callback([a] {
     set_current_sub("sequence-db create");
     sequence::create(*a);
+  });
+  CLI::App* cluster = db->add_subcommand(
+      "cluster", R"doc(Record which members belong to each cluster representative.)doc");
+  cluster->footer(R"doc(A search then reads the representatives first and only the members of the
+clusters found. For UniRef, with UniProt's ID mapping (UniRef90 in column 9,
+UniRef50 in column 10):
+
+    imp_bff sequence-db cluster uniref90.pto uniref50.pto idmapping_selected.tab.gz
+
+and in the settings: "clusters": {"uniref90": ".../uniref50.pto"}.)doc");
+  cluster->add_option("members", a->database, "the member database")->required();
+  cluster->add_option("representatives", a->representatives,
+                      "the representatives' database; the membership is added to it")
+      ->required();
+  cluster->add_option("mapping", a->mapping, "the mapping table (.gz with zlib)")
+      ->required()
+      ->check(CLI::ExistingFile);
+  cluster->callback([a] {
+    set_current_sub("sequence-db cluster");
+    sequence::cluster(*a);
   });
   CLI::App* info = db->add_subcommand("info", R"doc(Summarise a sequence database.)doc");
   info->add_option("database", a->database, "a .pto, or a database name from the settings");

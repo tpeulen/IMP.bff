@@ -1,0 +1,118 @@
+"""Clustered search: membership from a mapping table, then representatives
+first and only the members of the clusters found."""
+
+import gzip
+import os
+import random
+
+import pytest
+
+import IMP.bff as bff
+
+FIXTURE = os.path.join(os.path.dirname(__file__), "..", "input", "sequence", "rbp_60x120.fasta")
+AA = "ACDEFGHIKLMNPQRSTVWY"
+
+
+def _row(acc, u90, u50):
+    # UniProt's idmapping_selected layout: UniRef90 in column 9, UniRef50 in 10
+    cols = [acc, acc + "_HUMAN", "", "", "", "", "", "UniRef100_" + acc, u90, u50, "UPI0"]
+    return "\t".join(cols) + "\n"
+
+
+@pytest.fixture(scope="module")
+def clustered(tmp_path_factory):
+    d = tmp_path_factory.mktemp("clusters")
+    msa = bff.read_sequence_msa(FIXTURE, match_columns_only=False)
+    family = [msa.get_sequence(k).replace("-", "") for k in range(msa.get_n_sequences())]
+    rng = random.Random(9)
+    decoys = ["".join(rng.choice(AA) for _ in range(rng.randint(60, 300))) for _ in range(1500)]
+    members, reps, mapping = [], [], []
+    # the family: one UniRef50 cluster, its members spread over the table,
+    # all but the last placed by the mapping (the last is an orphan)
+    for k, s in enumerate(family):
+        members.append((f"UniRef90_F{k}", s))
+        if k < len(family) - 1:
+            mapping.append(_row(f"F{k}", f"UniRef90_F{k}", "UniRef50_F0"))
+    reps.append(("UniRef50_F0", family[0]))
+    for k, s in enumerate(decoys):
+        members.append((f"UniRef90_D{k}", s))
+        mapping.append(_row(f"D{k}", f"UniRef90_D{k}", f"UniRef50_D{k}"))
+        mapping.append(_row(f"D{k}b", f"UniRef90_D{k}", f"UniRef50_D{k}"))   # two accessions
+        reps.append((f"UniRef50_D{k}", s))
+    rng.shuffle(members)
+    for name, records in (("members", members), ("reps", reps)):
+        with open(d / f"{name}.fasta", "w") as fh:
+            for i, s in records:
+                fh.write(f">{i} n=1 Tax=x\n{s}\n")
+        bff.create_sequence_database(str(d / f"{name}.fasta"), str(d / f"{name}.pto"), "sequences", 1)
+    with gzip.open(d / "idmapping.tab.gz", "wt") as fh:
+        fh.writelines(mapping)
+    placed = bff.create_sequence_clusters(str(d / "members.pto"), str(d / "reps.pto"),
+                                          str(d / "idmapping.tab.gz"))
+    assert placed == len(members) - 1
+    return d, family
+
+
+def test_membership_is_recorded(clustered):
+    d, family = clustered
+    members = bff.SequenceDatabase(str(d / "members.pto"))
+    reps = bff.SequenceDatabase(str(d / "reps.pto"))
+    clusters = bff.SequenceClusters(str(d / "reps.pto"))
+    assert clusters.get_number_of_clusters() == reps.get_number_of_sequences()
+    fam = sorted(members.get_identifier(r) for r in clusters.get_members(0))
+    assert fam == sorted(f"UniRef90_F{k}" for k in range(len(family) - 1))
+    assert [members.get_identifier(r) for r in clusters.get_orphans()] == [f"UniRef90_F{len(family) - 1}"]
+    assert [members.get_identifier(r) for r in clusters.get_members(5)] == [
+        reps.get_identifier(5).replace("UniRef50", "UniRef90")]
+    # the representatives' sequences still read
+    assert reps.get_sequence(0) == family[0]
+
+
+def test_two_stages_find_what_one_does(clustered):
+    d, family = clustered
+    members = bff.SequenceDatabase(str(d / "members.pto"))
+    reps = bff.SequenceDatabase(str(d / "reps.pto"))
+    clusters = bff.SequenceClusters(str(d / "reps.pto"))
+    queries = [family[3], family[20]]
+    full = bff.search_sequence_database(queries, members)
+    two = bff.search_clustered_sequence_database(queries, reps, clusters, members)
+    key = lambda hits: sorted((h.query, h.identifier, h.score) for h in hits)
+    assert key(two) == key(full)
+    assert [h.evalue for h in two] == pytest.approx([h.evalue for h in
+                                                     sorted(full, key=lambda h: (h.query, h.evalue, h.target))])
+    # without the orphans, the one unplaced member is missed
+    o = bff.SequenceClusterSearchOptions()
+    o.search_orphans = False
+    some = bff.search_clustered_sequence_database(queries, reps, clusters, members,
+                                                  bff.SequenceSearchOptions(), o)
+    orphan = f"UniRef90_F{len(family) - 1}"
+    assert orphan in {h.identifier for h in full}
+    assert orphan not in {h.identifier for h in some}
+
+
+def test_a_membership_is_checked_against_its_representatives(clustered):
+    d, family = clustered
+    members = bff.SequenceDatabase(str(d / "members.pto"))
+    clusters = bff.SequenceClusters(str(d / "reps.pto"))
+    with pytest.raises(bff.ValueException):
+        bff.search_clustered_sequence_database([family[0]], members, clusters, members)
+    with pytest.raises(bff.IOException):
+        bff.SequenceClusters(str(d / "members.pto"))
+
+
+def test_consurf_searches_in_two_stages_when_the_settings_say_so(clustered, tmp_path, monkeypatch):
+    import json
+    d, family = clustered
+    settings = tmp_path / "settings.json"
+    settings.write_text(json.dumps({"sequence_search": {
+        "databases": {"u90": str(d / "members.pto")}, "default_database": "u90",
+        "clusters": {"u90": str(d / "reps.pto")}}}))
+    monkeypatch.setenv("IMP_BFF_SETTINGS", str(settings))
+    assert bff.get_sequence_search_settings().get_representatives("u90") == str(d / "reps.pto")
+    options = bff.ConsurfOptions()
+    options.homologs = bff.SequenceHomologOptions.consurf_standalone()
+    two = bff.compute_consurf([family[3]], options)[0]
+    options.database = str(d / "members.pto")          # a path: no clusters named for it
+    one = bff.compute_consurf([family[3]], options)[0]
+    assert two.get_is_ok() and [h.identifier for h in two.homologs] == [h.identifier for h in one.homologs]
+    assert list(two.grades) == list(one.grades)

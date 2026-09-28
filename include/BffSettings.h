@@ -14,7 +14,7 @@
  *   "sequence_search": {
  *     "databases": {"uniref90": "/Volumes/SD1TB/sequences/uniref90.pto"},
  *     "default_database": "uniref90",
- *     "indexes": {"uniref90": "/Volumes/SD1TB/sequences/uniref90.index.pto"},
+ *     "clusters": {"uniref90": "/Volumes/SD1TB/sequences/uniref50.pto"},
  *     "servers": {
  *       "colabfold": {"url": "https://api.colabfold.com",
  *                     "protocol": "colabfold-v1",
@@ -88,6 +88,12 @@ public:
     std::string get_index(const std::string& name) const;
     void set_index(const std::string& name, const std::string& path);
 
+    //! The cluster representatives of database \p name (a `.pto` holding
+    //! their membership, #IMP::bff::create_sequence_clusters), or "": with
+    //! them, a search of \p name runs in two stages.
+    std::string get_representatives(const std::string& name) const;
+    void set_representatives(const std::string& name, const std::string& path);
+
     std::vector<std::string> get_server_names() const;
     bool get_has_server(const std::string& name) const;
     //! \throw ValueException if unknown.
@@ -99,7 +105,7 @@ public:
                             << " databases, " << servers_.size() << " servers)");
 
 private:
-    std::map<std::string, std::string> databases_, indexes_;
+    std::map<std::string, std::string> databases_, indexes_, representatives_;
     std::map<std::string, SequenceSearchServer> servers_;
 };
 IMP_VALUES(SequenceSearchSettings, SequenceSearchSettingsList);

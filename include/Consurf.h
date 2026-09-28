@@ -52,6 +52,10 @@ public:
     //! fallback_server. Its alignment's rows are the hits the homologues
     //! are chosen from.
     std::string server;
+    //! Cluster representatives of the database (a `.pto` or settings name):
+    //! search in two stages; empty: the settings' `clusters` entry of a
+    //! database named there, else one stage.
+    std::string representatives;
     SequenceSearchOptions search;
     SequenceHomologOptions homologs;
     SequenceConservationOptions conservation;
