@@ -200,12 +200,17 @@ _TAG_OF = {"CR": "cr", "SS": "ss", "SE": "se", "CS": "cs", "ME": "me"}
 #: available, and refusing is the reference's behaviour too -- it raises
 #: `NotImplementedError` for every table but the one it implements per term.
 UNIMPLEMENTED = {
-    # ConSurf fields `labelizer_read_consurf` does not import.
-    "N_CS3_Lower_Score", "N_CS4_Upper_Score", "I_CS1_Color",
-    "I_CS5_Variety_Length", "C_CS6_Cys_In_Variety",
     # Bin centres span -153 to +333 degrees, which is neither the -180..180
     # nor the 0..360 convention, and no reference output exists to settle it.
     "N_SS2_Phi", "N_SS3_Psi",
+}
+
+#: The conservation tables: every ConSurf field is imported now (a `.grades`
+#: table or an alignment, `test_labelizer_conservation.py`), so each scores
+#: when a source is given and scores nothing without one.
+CONSERVATION = {
+    "N_CS2_Score", "N_CS3_Lower_Score", "N_CS4_Upper_Score", "I_CS1_Color",
+    "I_CS5_Variety_Length", "C_CS6_Cys_In_Variety",
 }
 
 
@@ -238,9 +243,9 @@ def test_a_table_is_either_implemented_or_refused_never_guessed(table, helical):
     assert len(rows) == len(helical.residues)
     scored = [r.value for r in rows if r.status == "scored"]
 
-    if table == "N_CS2_Score":
-        # The only implemented conservation table, and it needs grades that
-        # were not supplied here -- so no value, and that is correct.
+    if table in CONSERVATION:
+        # They need a conservation source, and none was supplied here -- so
+        # no value, and that is correct.
         assert not scored
         return
 

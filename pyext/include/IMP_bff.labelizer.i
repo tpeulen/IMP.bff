@@ -20,6 +20,7 @@ IMP_SWIG_VALUE(IMP::bff, LabelizerTable, LabelizerTables);
 IMP_SWIG_VALUE(IMP::bff, LabelizerParameter, LabelizerParameters);
 IMP_SWIG_VALUE(IMP::bff, LabelizerScore, LabelizerScores);
 IMP_SWIG_VALUE(IMP::bff, LabelizerFRETPairScore, LabelizerFRETPairScores);
+IMP_SWIG_VALUE(IMP::bff, LabelizerConservation, LabelizerConservations);
 /* The three Mfdb* value types are declared in swig.i-in now, ahead of
    ProbeRotamerLibrary.h, which needs MfdbTags for `write_probe_rotamer_drot_with_provenance`. */
 
@@ -34,6 +35,7 @@ IMP_SWIG_VALUE(IMP::bff, LabelizerFRETPairScore, LabelizerFRETPairScores);
 %template(LabelizerParameterList) std::vector<IMP::bff::LabelizerParameter>;
 %template(LabelizerScoreList) std::vector<IMP::bff::LabelizerScore>;
 %template(LabelizerPairScoreList) std::vector<IMP::bff::LabelizerFRETPairScore>;
+%template(LabelizerConservationMap) std::map<std::string, IMP::bff::LabelizerConservation>;
 %template(MfdbTagList) std::vector<IMP::bff::MfdbTag>;
 %template(MfdbColumnList) std::vector<IMP::bff::MfdbColumn>;
 %template(MfdbAttributionList) std::vector<IMP::bff::MfdbAttribution>;

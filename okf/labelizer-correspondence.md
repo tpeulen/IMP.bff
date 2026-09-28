@@ -27,7 +27,7 @@ operation you call; the Python API remains flat under `IMP.bff`.
 | `cysteine_resemblance.py` | 85 | `labelizer_parameter_scores`, tag `cr` | pure lookup |
 | `secondary_structure.py` | 158 | **`labelizer_dssp`** + tag `ss` | the DSSP *binary* became C++ |
 | `solvent_exposure.py` | 163 | **`labelizer_residue_depth`**, `labelizer_relative_solvent_accessibility`, `labelizer_half_sphere_exposure` + tag `se` | the MSMS *binary* became C++ |
-| `conservation_score.py` | 155 | `labelizer_read_consurf` + tag `cs` | import only, as in the reference |
+| `conservation_score.py` | 155 | `labelizer_read_consurf`, `labelizer_read_consurf_records`, **`labelizer_conservation_from_msa`** + tag `cs` | ConSurf import, or computed natively from an alignment (below) |
 | `methionin_exclusion.py` | 100 | `labelizer_parameter_scores`, tag `me` | |
 | `tryptophan_proximity.py` | 234 | `labelizer_parameter_scores`, tag `tp` | ported *working*; raises in the reference |
 | `charge_environment.py` | 351 | `labelizer_parameter_scores`, tag `ce` | ported *working*; raises in the reference |
@@ -110,6 +110,39 @@ than editing a module-level singleton.
   conservation feedback loop; see `okf/validation/labelizer_ab.md`.
 * The six CSV writers, the heat-map JSON writer and `zip_files` — one
   `.mmfdb.pto` replaces all of them.
+
+## Conservation: imported, or computed from an alignment
+
+The reference imports ConSurf's score only and implements one of the six
+conservation tables (`N_CS2_Score`). ConSurf itself is a web service: HMMER
+against UniRef90, CD-HIT, MAFFT, then Rate4Site `-ib -zn -Mj -bn`, then its
+nine-grade binning. Here:
+
+- `labelizer_read_consurf_records` imports **every** field of a `.grades`
+  table: score, grade, interval and its grades, MSA data, variety.
+- `labelizer_conservation_from_msa` computes the same fields from an
+  alignment. It uses `compute_sequence_conservation`, an independent
+  implementation of Rate4Site's method whose default is ConSurf's `-bn`
+  setting, and `get_consurf_grades`, which bins as ConSurf does. It maps the
+  alignment's reference onto every chain that matches it by local alignment.
+  `labelizer_score_structure` takes an alignment path (`.fasta`, `.a2m`, ...)
+  where it took a ConSurf file.
+- All six conservation tables score:
+  - `N_CS2` reads the score;
+  - `N_CS3` and `N_CS4` read the interval bounds;
+  - `I_CS1` reads the grade. Its keys are grades 1..8, so grade 9 reads the
+    nearest key, 8;
+  - `I_CS5` reads the number of amino acids at the position;
+  - `C_CS6` reads whether a cysteine is among them.
+
+  The reference never implemented the last five, so these readings are
+  interpretations of the table keys.
+- A/B (see `okf/log.md`, 2026-09-28): on ConSurf's own example run (1lk2
+  chain A), the native records equal ConSurf's `.grades` in grade, flag and
+  variety on all 274 residues, and scores agree to 5e-4. The Labelizer's
+  conservation rows are identical through either path.
+
+The alignment itself is still the expensive, external step.
 
 ## Behaviour that deliberately differs
 

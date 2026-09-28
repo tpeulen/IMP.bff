@@ -2,6 +2,22 @@
 
 ## 2026-09-28
 
+- **Conservation and co-evolution from one alignment, native; the Labelizer computes ConSurf's scores itself** (T-20260928-02; [labelizer-correspondence.md](labelizer-correspondence.md), "Conservation").
+  - `SequenceMSA`, `compute_sequence_coevolution` (mean-field DCA), `compute_sequence_conservation` (Rate4Site's method, independent), `get_consurf_grades`. Written from the published methods; Rate4Site's and DCA.py's sources were read for behaviour only, never copied (a method specification in words sat between them and the code).
+  - A/B with the originals as black boxes. Rate4Site 3.0.0 (Debian binary on cordeshub):
+
+    | alignment | this, ConSurf `-bn` / Rate4Site `-bg` | Rate4Site | agreement |
+    |---|---|---|---|
+    | 60 x 120 | 0.22 s / 1.6 s | 2.4 s / 18.6 s | scores to 1e-4 (its print precision); grades identical |
+    | 150 x 271 | 1.3 s / 7.9 s | 50.8 s / 210.8 s | same, and identical NJ tree, alpha, log L |
+    | ConSurf 1lk2 run | 0.09 s | — | vs ConSurf's own `r4s.res` and `.grades`: grades and flags identical |
+
+    Timings are on different machines (Mac M-series vs x86 Linux). Parity needed Rate4Site's exact optimiser: its pairwise distances stop at 1 % with a derivative-based Brent, and neighbour joining is sensitive to where they stop (precise distances gave a *different* tree, 33 log-units worse on this alignment).
+  - Mean-field DCA against FRETNet-Designer's `DCA.py`: DI to 5e-14, MI to 3e-16, 8x faster (13.7 s vs 113.5 s at 150 x 271; the 5420-square inverse dominates, single-threaded).
+  - ConSurf's grading rules (bins of |min score| / 4.5; cut-off: interval over three bins or at most five sequences) reproduce its `.grades` exactly on 274 of 274 positions.
+  - Labelizer: `labelizer_read_consurf_records` (every `.grades` field), `labelizer_conservation_from_msa` (native, the reference matched to chains by local alignment with identity and coverage thresholds), `labelizer_score_structure` accepts an alignment. The five conservation tables the reference never implemented now score (readings documented as interpretations). ConSurf itself runs `-bn`, so that is the default here: what the Labelizer's table was fitted on, and fast.
+  - Tests: `test/sequence/` (17, incl. A/B against shipped reference outputs in `test/input/sequence/`), `test/label/test_labelizer_conservation.py` (5).
+
 - **`ProbePairCostTerm`: a cost per pair in probe network selection** (T-20260928-01). Costs in [0, 1] read as the probability a pair is a problem (e.g. its two sites co-evolve); loss `1 − Π(1 − c_p)` over the selected pairs, NaN = ineligible, no budget needed. Co-evolution (MSA + DCA) itself is deferred: T-20260928-02. Tests: 3 new in `test_probe_network_selection.py`.
 
 - **Workshop 05 section 10: the oligomer switch on BmrA.** `ProbeOligomerPairs` from the Cβ of the ten candidate sites on both chains gives the 55 rows section 4 builds by hand (10 1:1, 45 across, mirror images mixed); a rotated three-copy illustration shows 3 and 6 distances per row. Site-mode selection with resolution and a two-state closed⇌open rate score: Gln66 first for every weighting (as with the volumes), resolution and rates differ only in the third site, equal rate loss. Cβ reorders close candidates against the AV result (Ser113 vs Ser10).

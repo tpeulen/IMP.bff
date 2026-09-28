@@ -248,6 +248,15 @@ IMPBFFEXPORT std::vector<LabelizerScore> labelizer_parameter_scores(
         const LabelizerOptions& options,
         const std::map<std::string, double>& conservation);
 
+//! The same, with every ConSurf field per residue.
+/*! From #labelizer_read_consurf_records or #labelizer_conservation_from_msa;
+    enables the conservation tables beyond `N_CS2_Score` (interval bounds,
+    colour grade, residue variety). */
+IMPBFFEXPORT std::vector<LabelizerScore> labelizer_parameter_scores(
+        const LabelizerStructure& s, const std::vector<LabelizerParameter>& model,
+        const LabelizerOptions& options,
+        const std::map<std::string, LabelizerConservation>& conservation);
+
 //! The combined label score per position, from parameter scores.
 /*!
     The weighted geometric mean, with the weight acting as an **integer repeat
@@ -277,7 +286,9 @@ IMPBFFEXPORT std::vector<LabelizerScore> labelizer_labeling_score(
     \param[in] pdb_path the structure
     \param[in] model the terms; see #labelizer_model_paper
     \param[in] options the settings
-    \param[in] conservation_path a ConSurf `.grades` or B-factor PDB, or empty
+    \param[in] conservation_path a ConSurf `.grades` table or B-factor PDB, an
+               alignment (`.fasta`, `.fa`, `.fas`, `.faa`, `.afa`, `.a2m`, `.msa`:
+               conservation computed natively, as ConSurf does), or empty
     \return the parameter rows followed by the `combined` rows
     \throw IOException when a file cannot be read
 */

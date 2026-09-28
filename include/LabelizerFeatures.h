@@ -302,6 +302,57 @@ IMPBFFEXPORT void labelizer_global_charge(const LabelizerStructure& s, double** 
 IMPBFFEXPORT std::map<std::string, double> labelizer_read_consurf(
         const std::string& path);
 
+//! Everything ConSurf reports for one position, as the conservation tables read it.
+/*!
+    `score` is the normalised Rate4Site score (low = conserved); `lower` and
+    `upper` bound its 25-75 % interval; the grades are ConSurf's 1 (variable)
+    .. 9 (conserved), 0 when unknown; `variety` holds the amino acids seen at
+    the position, one letter each; `insufficient` is ConSurf's confidence
+    cut-off. A record imported from a B-factor PDB carries the score only.
+*/
+struct IMPBFFEXPORT LabelizerConservation {
+    double score, lower, upper;
+    int grade, lower_grade, upper_grade;
+    int n_data, n_sequences;
+    std::string variety;
+    bool insufficient;
+
+    LabelizerConservation();
+    IMP_SHOWABLE_INLINE(LabelizerConservation,
+                        out << "LabelizerConservation(" << score << ", grade " << grade << ")");
+};
+IMP_VALUES(LabelizerConservation, LabelizerConservations);
+
+//! Every ConSurf field per residue key, from a `.grades` table or a B-factor PDB.
+/*! A `.grades` table gives score, grade, interval, interval grades, MSA data
+    and residue variety; a PDB gives the score only.
+    	hrow IOException when the file cannot be read */
+IMPBFFEXPORT std::map<std::string, LabelizerConservation> labelizer_read_consurf_records(
+        const std::string& path);
+
+//! ConSurf's records computed from an alignment, for the chains of a structure.
+/*!
+    Runs #IMP::bff::compute_sequence_conservation (by default what ConSurf
+    runs) on the alignment and grades it (#IMP::bff::get_consurf_grades). The
+    alignment's reference sequence is matched to every chain of \p s by
+    local alignment. A chain matches when the alignment covers at least
+    \p min_coverage of the shorter of chain and reference and its aligned
+    residues are at least \p min_identity identical; it receives the records of
+    the positions it shares with the reference, keyed by its own residue
+    numbers (all protomers of a homo-oligomer do). A short local hit on another
+    protein or a peptide does not match.
+
+    \param[in] s the structure
+    \param[in] msa_path an aligned FASTA / A2M file whose reference (first
+               sequence) is the protein
+    \param[in] min_identity fraction of identical aligned residues a chain needs
+    \param[in] min_coverage aligned fraction of the shorter of chain and reference
+    \throw ValueException when no chain matches the reference
+*/
+IMPBFFEXPORT std::map<std::string, LabelizerConservation> labelizer_conservation_from_msa(
+        const LabelizerStructure& s, const std::string& msa_path, double min_identity = 0.9,
+        double min_coverage = 0.5);
+
 //! The residue key the score tables and the reference CSVs are indexed by.
 /*! `"<chain><seq_id>"`, e.g. `"A123"` — the reference's own convention
     (`labeling_parameter.py:129`), kept so its output files can be compared

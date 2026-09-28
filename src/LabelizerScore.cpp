@@ -13,6 +13,12 @@
 #include <fstream>
 #include <utility>
 #include <IMP/bff/ProbeDataPaths.h>
+#include <IMP/bff/SequenceAlignment.h>
+#include <IMP/bff/SequenceConservation.h>
+#include <IMP/bff/SequenceMSA.h>
+#include <limits>
+#include <regex>
+#include <sstream>
 #include <IMP/bff/internal/json.h>
 
 #include <map>
@@ -240,6 +246,19 @@ std::vector<LabelizerScore> labelizer_parameter_scores(
         const LabelizerStructure& s, const std::vector<LabelizerParameter>& model,
         const LabelizerOptions& options,
         const std::map<std::string, double>& conservation) {
+    // A score-only source: every other ConSurf field stays unknown.
+    std::map<std::string, LabelizerConservation> records;
+    for (std::map<std::string, double>::const_iterator it = conservation.begin();
+         it != conservation.end(); ++it) {
+        records[it->first].score = it->second;
+    }
+    return labelizer_parameter_scores(s, model, options, records);
+}
+
+std::vector<LabelizerScore> labelizer_parameter_scores(
+        const LabelizerStructure& s, const std::vector<LabelizerParameter>& model,
+        const LabelizerOptions& options,
+        const std::map<std::string, LabelizerConservation>& conservation) {
     const std::size_t nr = s.residues.size();
     std::vector<LabelizerScore> out;
     out.reserve(nr * model.size());
@@ -404,25 +423,55 @@ std::vector<LabelizerScore> labelizer_parameter_scores(
                     }
                 }
             } else if (par.tag == "cs") {
-                if (par.table != "N_CS2_Score") {
-                    // The other conservation tables score fields a ConSurf
-                    // grade file carries beside the score -- the confidence
-                    // bounds, the colour bin, the variety string. The importer
-                    // reads the score only, so there is nothing to look them
-                    // up with, and guessing would be worse than refusing. The
-                    // reference refuses too (conservation_score.py:153).
-                    IMP_THROW("labelizer_parameter_scores: table '" << par.table
-                              << "' needs ConSurf fields labelizer_read_consurf does "
-                              << "not import (confidence bounds, colour bin, "
-                              << "variety). Only N_CS2_Score is implemented, "
-                              << "as in the reference.", ValueException);
-                }
+                // N_CS2 reads the normalised score; the others read the fields a
+                // ConSurf grade file carries beside it: the interval bounds
+                // (N_CS3 / N_CS4), the colour grade (I_CS1), the number of
+                // amino acids seen at the position (I_CS5) and whether a
+                // cysteine is among them (C_CS6). The reference implements
+                // only N_CS2; these follow the tables' own keys.
                 const std::string key = labelizer_residue_key(r.chain, r.seq_id);
-                std::map<std::string, double>::const_iterator g =
+                std::map<std::string, LabelizerConservation>::const_iterator g =
                         conservation.find(key);
                 if (g != conservation.end()) {
-                    row.value = labelizer_lookup(labelizer_load_table(par.table), g->second);
-                    row.status = "scored";
+                    const LabelizerConservation& c = g->second;
+                    const LabelizerTable& t = labelizer_load_table(par.table);
+                    auto missing = [&](const char* field) {
+                        IMP_THROW("labelizer_parameter_scores: table '" << par.table
+                                  << "' needs the ConSurf " << field << ", which this "
+                                  << "conservation source does not carry (a B-factor PDB "
+                                  << "holds the score only; use a .grades table or an "
+                                  << "alignment)", ValueException);
+                    };
+                    if (par.table == "N_CS2_Score") {
+                        if (std::isfinite(c.score)) {
+                            row.value = labelizer_lookup(t, c.score);
+                            row.status = "scored";
+                        }
+                    } else if (par.table == "N_CS3_Lower_Score" || par.table == "N_CS4_Upper_Score") {
+                        const double v = par.table == "N_CS3_Lower_Score" ? c.lower : c.upper;
+                        if (!std::isfinite(v)) missing("confidence interval");
+                        row.value = labelizer_lookup(t, v);
+                        row.status = "scored";
+                    } else if (par.table == "I_CS1_Color") {
+                        if (c.grade <= 0) missing("colour grade");
+                        // Bins 1..8: the most conserved grade, 9, has no bin of
+                        // its own and reads the nearest one, as every numeric
+                        // table reads its nearest bin.
+                        row.value = labelizer_lookup(t, static_cast<double>(c.grade));
+                        row.status = "scored";
+                    } else if (par.table == "I_CS5_Variety_Length") {
+                        if (c.variety.empty()) missing("residue variety");
+                        row.value = labelizer_lookup(t, static_cast<double>(c.variety.size()));
+                        row.status = "scored";
+                    } else if (par.table == "C_CS6_Cys_In_Variety") {
+                        if (c.variety.empty()) missing("residue variety");
+                        const bool cys = c.variety.find('C') != std::string::npos;
+                        row.value = labelizer_lookup_key(t, cys ? "True" : "False");
+                        row.status = "scored";
+                    } else {
+                        IMP_THROW("labelizer_parameter_scores: unknown conservation table '"
+                                  << par.table << "'", ValueException);
+                    }
                 }
             } else if (par.tag == "se") {
                 const LabelizerTable& t = labelizer_load_table(par.table);
@@ -627,13 +676,137 @@ std::vector<LabelizerScore> labelizer_score_structure(const std::string& pdb_pat
                                         const LabelizerOptions& options,
                                         const std::string& conservation_path) {
     const LabelizerStructure s = labelizer_read_structure(pdb_path);
-    std::map<std::string, double> conservation;
+    std::map<std::string, LabelizerConservation> conservation;
     if (!conservation_path.empty()) {
-        conservation = labelizer_read_consurf(conservation_path);
+        std::string ext = conservation_path.substr(conservation_path.find_last_of('.') + 1);
+        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+        const bool alignment = ext == "fasta" || ext == "fa" || ext == "fas" || ext == "faa" ||
+                               ext == "afa" || ext == "a2m" || ext == "msa";
+        conservation = alignment ? labelizer_conservation_from_msa(s, conservation_path)
+                                 : labelizer_read_consurf_records(conservation_path);
     }
     std::vector<LabelizerScore> out = labelizer_parameter_scores(s, model, options, conservation);
     const std::vector<LabelizerScore> combined = labelizer_labeling_score(out, model, options);
     out.insert(out.end(), combined.begin(), combined.end());
+    return out;
+}
+
+LabelizerConservation::LabelizerConservation()
+    : score(std::numeric_limits<double>::quiet_NaN()),
+      lower(std::numeric_limits<double>::quiet_NaN()),
+      upper(std::numeric_limits<double>::quiet_NaN()),
+      grade(0), lower_grade(0), upper_grade(0), n_data(0), n_sequences(0),
+      insufficient(false) {}
+
+std::map<std::string, LabelizerConservation> labelizer_read_consurf_records(
+        const std::string& path) {
+    const bool is_pdb = path.size() > 4 && path.compare(path.size() - 4, 4, ".pdb") == 0;
+    std::map<std::string, LabelizerConservation> out;
+    if (is_pdb) {
+        const std::map<std::string, double> scores = labelizer_read_consurf(path);
+        for (std::map<std::string, double>::const_iterator it = scores.begin(); it != scores.end(); ++it) {
+            out[it->first].score = it->second;
+        }
+        return out;
+    }
+    std::ifstream in(path.c_str());
+    if (!in) IMP_THROW("labelizer_read_consurf_records: cannot read " << path, IOException);
+    // POS SEQ 3LATOM SCORE COLOR[*] LOW, HIGH LOWCOLOR,HIGHCOLOR n/N VARIETY
+    static const std::regex row(
+            R"(^\s*(\d+)\s+(\w)\s+(\S+)\s+(\S+)\s+(\d)(\*?)\s+(\S+?)\s*,\s*(\S+)\s+(\d)\s*,\s*(\d)\s+(\d+)/(\d+)\s*(\S*))");
+    std::string line;
+    while (std::getline(in, line)) {
+        std::smatch m;
+        if (!std::regex_search(line, m, row)) continue;
+        const std::string atom = m[3];
+        const std::size_t colon = atom.find(':');
+        if (colon == std::string::npos || colon < 4) continue;   // not in the structure
+        LabelizerConservation c;
+        c.score = std::atof(m[4].str().c_str());
+        c.grade = std::atoi(m[5].str().c_str());
+        c.insufficient = m[6].length() > 0;
+        c.lower = std::atof(m[7].str().c_str());
+        c.upper = std::atof(m[8].str().c_str());
+        c.lower_grade = std::atoi(m[9].str().c_str());
+        c.upper_grade = std::atoi(m[10].str().c_str());
+        c.n_data = std::atoi(m[11].str().c_str());
+        c.n_sequences = std::atoi(m[12].str().c_str());
+        for (char ch : m[13].str()) {
+            if (std::isalpha(static_cast<unsigned char>(ch))) c.variety.push_back(ch);
+        }
+        const std::string chain = atom.substr(colon + 1);
+        const int seq = std::atoi(atom.substr(3, colon - 3).c_str());
+        out[labelizer_residue_key(chain, seq)] = c;
+    }
+    if (out.empty()) {
+        // not the tab layout: fall back to the score-only reader
+        const std::map<std::string, double> scores = labelizer_read_consurf(path);
+        for (std::map<std::string, double>::const_iterator it = scores.begin(); it != scores.end(); ++it) {
+            out[it->first].score = it->second;
+        }
+    }
+    return out;
+}
+
+std::map<std::string, LabelizerConservation> labelizer_conservation_from_msa(
+        const LabelizerStructure& s, const std::string& msa_path, double min_identity,
+        double min_coverage) {
+    const SequenceMSA msa = read_sequence_msa(msa_path, 0, false);
+    const SequenceConservation c = compute_sequence_conservation(msa);
+    const std::vector<int> grades = get_consurf_grades(c);
+    const std::string& reference = c.get_residues();
+
+    // the chains, in file order, with their sequences
+    std::vector<std::string> chains;
+    std::map<std::string, std::string> sequence_of;
+    std::map<std::string, std::vector<int> > numbers_of;
+    for (std::size_t k = 0; k < s.residues.size(); ++k) {
+        const LabelizerResidue& r = s.residues[k];
+        if (!sequence_of.count(r.chain)) chains.push_back(r.chain);
+        sequence_of[r.chain].push_back(labelizer_one_letter(r.comp_id));
+        numbers_of[r.chain].push_back(r.seq_id);
+    }
+    std::map<std::string, LabelizerConservation> out;
+    for (const std::string& chain : chains) {
+        const std::string& seq = sequence_of[chain];
+        const std::vector<AlignedBlock> blocks = smith_waterman(reference, seq);
+        int aligned = 0, identical = 0;
+        for (const AlignedBlock& b : blocks) {
+            for (int q = b.query_start, t = b.template_start; q < b.query_end; ++q, ++t) {
+                ++aligned;
+                identical += reference[static_cast<std::size_t>(q)] == seq[static_cast<std::size_t>(t)];
+            }
+        }
+        // a chain matches when the alignment is mostly identical and covers
+        // at least half of the shorter of chain and reference: a short local
+        // hit on another protein, or on a peptide, is not the protein
+        const std::size_t shorter = std::min(seq.size(), reference.size());
+        if (aligned == 0 || identical < min_identity * aligned ||
+            aligned < min_coverage * static_cast<double>(shorter)) continue;
+        for (const AlignedBlock& b : blocks) {
+            for (int q = b.query_start, t = b.template_start; q < b.query_end; ++q, ++t) {
+                if (reference[static_cast<std::size_t>(q)] != seq[static_cast<std::size_t>(t)]) continue;
+                const std::size_t i = static_cast<std::size_t>(q);
+                LabelizerConservation r;
+                r.score = c.get_scores()[i];
+                r.lower = c.get_lower()[i];
+                r.upper = c.get_upper()[i];
+                r.grade = grades[4 * i];
+                r.lower_grade = grades[4 * i + 1];
+                r.upper_grade = grades[4 * i + 2];
+                r.insufficient = grades[4 * i + 3] != 0;
+                r.n_data = c.get_n_data()[i];
+                r.n_sequences = c.get_n_sequences();
+                r.variety = get_residue_variety(msa, c.get_columns()[i]);
+                out[labelizer_residue_key(chain, numbers_of[chain][static_cast<std::size_t>(t)])] = r;
+            }
+        }
+    }
+    if (out.empty()) {
+        IMP_THROW("labelizer_conservation_from_msa: no chain of the structure matches the "
+                  "alignment's reference sequence (" << min_identity * 100 << " % identity)",
+                  ValueException);
+    }
     return out;
 }
 
