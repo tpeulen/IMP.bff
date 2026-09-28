@@ -5,6 +5,7 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 #include <IMP/bff/Distributions.h>
+#include <IMP/bff/IMPCompatibility.h>
 #include <IMP/bff/internal/Normalize.h>
 #include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/internal/DistanceKernels.h>
@@ -50,6 +51,23 @@ void normal_distribution(const std::vector<double>& x, double loc,
         if (norm) internal::normalize_sum(y);
     }
     internal::copy_to_view(y, out_view, n_out_view);
+}
+
+double normal_log_density(double value, double loc, double scale) {
+    if (!std::isfinite(value)) {
+        IMP_THROW("normal_log_density: value must be finite", IMP::ValueException);
+    }
+    if (!std::isfinite(loc)) {
+        IMP_THROW("normal_log_density: loc must be finite", IMP::ValueException);
+    }
+    if (!std::isfinite(scale) || scale <= 0.0) {
+        IMP_THROW("normal_log_density: scale must be finite and > 0",
+                  IMP::ValueException);
+    }
+
+    const double standardized_residual = (value - loc) / scale;
+    return -0.5 * standardized_residual * standardized_residual -
+           std::log(scale) - 0.5 * std::log(2.0 * std::acos(-1.0));
 }
 
 std::vector<double> generalized_normal_density_impl(

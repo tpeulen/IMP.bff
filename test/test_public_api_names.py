@@ -83,6 +83,7 @@ FLAT_NAMES = [
     "create_forcefield_system",       # topology (C++, ProbeTopology.h)
     "simulate_probe_diffusion",        # probesampling
     "fret_rate_trace",               # quenching / FRETRateTrace
+    "NPSIsotropicFRETEfficiencyRestraint",  # NPS Bayesian structural tracer
 ]
 
 #: Submodule paths that must not exist: the namespace is flat.

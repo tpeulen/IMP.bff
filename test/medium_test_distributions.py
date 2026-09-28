@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import math
+import sys
+
+import IMP
 import numpy as np
 import pytest
 
@@ -10,7 +14,59 @@ from IMP.bff import (
     normal_distribution,
     generalized_normal_distribution,
     distance_between_gaussian,
+    normal_log_density,
 )
+
+
+def test_normal_log_density_at_unit_mean():
+    assert normal_log_density(0.0, 0.0, 1.0) == pytest.approx(
+        -0.9189385332046727, rel=1e-12, abs=1e-14)
+
+
+def test_normal_log_density_with_nonzero_residual():
+    assert normal_log_density(2.0, 1.0, 0.5) == pytest.approx(
+        -2.2257913526447273, rel=1e-12, abs=1e-14)
+
+
+def test_normal_log_density_includes_scale_normalization():
+    assert normal_log_density(0.0, 0.0, 0.5) == pytest.approx(
+        -0.22579135264472738, rel=1e-12, abs=1e-14)
+
+
+def test_normal_log_density_can_be_positive():
+    assert normal_log_density(0.0, 0.0, 0.1) == pytest.approx(
+        1.3836465597893728, rel=1e-12, abs=1e-14)
+
+
+def test_normal_log_density_is_symmetric_about_location():
+    left = normal_log_density(-1.25, 0.0, 0.75)
+    right = normal_log_density(1.25, 0.0, 0.75)
+    assert left == pytest.approx(-2.0201453496417807, rel=1e-12, abs=1e-14)
+    assert right == pytest.approx(left, rel=1e-12, abs=1e-14)
+
+
+@pytest.mark.parametrize(
+    ("value", "loc", "scale"),
+    [
+        (math.nan, 0.0, 1.0),
+        (math.inf, 0.0, 1.0),
+        (0.0, math.nan, 1.0),
+        (0.0, math.inf, 1.0),
+        (0.0, 0.0, math.nan),
+        (0.0, 0.0, math.inf),
+        (0.0, 0.0, 0.0),
+        (0.0, 0.0, -1.0),
+    ],
+)
+def test_normal_log_density_rejects_invalid_inputs(value, loc, scale):
+    with pytest.raises(IMP.ValueException, match="normal_log_density"):
+        normal_log_density(value, loc, scale)
+
+
+def test_normal_log_density_extreme_finite_residual_is_negative_infinity():
+    result = normal_log_density(sys.float_info.max, -sys.float_info.max, 1.0)
+    assert result == -math.inf
+    assert not math.isnan(result)
 
 
 class TestPoisson:

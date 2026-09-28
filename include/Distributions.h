@@ -44,6 +44,15 @@ IMPBFFEXPORT void normal_distribution(
         double** out_view = 0, int* n_out_view = 0
 );
 
+//! Fully normalized natural-log Gaussian density.
+/*!
+    \param[in] value observed value
+    \param[in] loc Gaussian mean
+    \param[in] scale Gaussian standard deviation; must be finite and > 0
+    \throws IMP::ValueException unless all inputs are finite and \p scale > 0
+*/
+IMPBFFEXPORT double normal_log_density(double value, double loc, double scale);
+
 //! Generalized normal density with a **skew** parameter.
 /*!
     Not the exponential-power family: the shape parameter skews by transforming

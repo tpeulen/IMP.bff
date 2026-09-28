@@ -1340,6 +1340,9 @@ IMP_SWIG_VALUE(IMP::bff, MfdbAttribution, MfdbAttributions);
 /* The processes that deactivate or depolarise a dye. */
 %include "IMP_bff.photophysics.i"
 
+/* Fast-NPS dye-model metadata. */
+%include "IMP_bff.nps.i"
+
 /* Kinetic schemes composed from factors: conditional intensity matrices and
    their amalgamation into the joint generator (PRD-150). */
 %include "IMP_bff.kineticnetwork.i"
