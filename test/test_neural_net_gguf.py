@@ -97,15 +97,31 @@ def test_float_export_imports_all_plain_integer_types():
         assert imported.get_n_outputs() == net.get_n_outputs(), tensor_type
 
 
+def test_float_export_imports_every_active_ggml_v3_type():
+    """Every non-removed GGML v3 tensor type exports and reimports.
+
+    The 256-wide single-layer network satisfies every active block-size
+    constraint (including K/IQ/TQ super-block formats) without padding.
+    """
+    net = _make_net(n_in=256, hidden=(), n_out=1)
+    active_types = (
+        "f32", "f16", "q4_0", "q4_1", "q5_0", "q5_1", "q8_0", "q8_1",
+        "q2_k", "q3_k", "q4_k", "q5_k", "q6_k", "q8_k",
+        "iq2_xxs", "iq2_xs", "iq3_xxs", "iq1_s", "iq4_nl", "iq3_s",
+        "iq2_s", "iq4_xs", "i8", "i16", "i32", "i64", "f64", "iq1_m",
+        "bf16", "tq1_0", "tq2_0", "mxfp4", "nvfp4", "q1_0", "q2_0",
+    )
+    for tensor_type in active_types:
+        imported = NeuralNet.from_gguf(net.to_gguf(tensor_type))
+        assert imported.get_n_inputs() == 256, tensor_type
+        assert imported.get_n_outputs() == 1, tensor_type
+
+
 # These active GGML v3 formats have exact decoders in bff, but their upstream
 # writers are not yet reference-verified in bff. The public contract is
 # read-only rather than emitting merely plausible bytes.
-IMPORT_ONLY_K_TYPES = (
-    "q2_k", "q4_k", "q5_k", "q6_k", "q8_k",
-)
-IMPORT_ONLY_IQ_TYPES = (
-    "iq2_xxs", "iq2_xs", "iq3_xxs", "iq1_s", "iq3_s", "iq2_s", "iq1_m",
-)
+IMPORT_ONLY_K_TYPES = ()
+IMPORT_ONLY_IQ_TYPES = ()
 IMPORT_ONLY_TYPES = IMPORT_ONLY_K_TYPES + IMPORT_ONLY_IQ_TYPES
 
 
@@ -179,9 +195,10 @@ def test_q3_k_export_matches_ggml_reference_vector(source, expected_hex, tmp_pat
     assert tensor.data.tobytes().hex() == expected_hex
 
 
+@pytest.mark.skipif(not GGUF_PY, reason="gguf-py not importable")
 @pytest.mark.parametrize("tensor_type", [
-    "f32", "f16", "bf16", "q4_0", "q4_1", "q5_0", "q5_1", "q8_0",
-    "tq1_0", "tq2_0", "mxfp4", "nvfp4",
+    "f32", "f16", "bf16", "q4_0", "q4_1", "q5_0", "q5_1", "q8_0", "q2_k", "q3_k", "q4_k", "q5_k", "q6_k",
+    "iq2_xxs", "iq2_xs", "iq3_xxs", "iq1_s", "iq4_nl", "iq2_s", "iq4_xs", "iq3_s", "iq1_m", "tq1_0", "tq2_0", "mxfp4", "nvfp4",
 ])
 def test_float_export_matches_reference_decoder(tensor_type, tmp_path):
     """An independent gguf-py decoder must recover bff's imported weights."""
@@ -195,6 +212,31 @@ def test_float_export_matches_reference_decoder(tensor_type, tmp_path):
     reference = gguf_dequantize(
         np.frombuffer(tensor.data.tobytes(), dtype=np.uint8), qtype
     ).reshape(-1)
+    imported = NeuralNet.from_gguf(path.read_bytes())
+    weight = msgpack.unpackb(imported.to_msgpack(), raw=False)["layers"][0]["weight"]
+    np.testing.assert_allclose(weight, reference, rtol=0, atol=1e-6)
+
+
+@pytest.mark.skipif(not GGUF_PY, reason="gguf-py not importable")
+def test_float_export_q8_k_matches_upstream_layout(tmp_path):
+    """Q8_K uses GGML's fp32 d, signed codes, and sixteen int16 sums.
+
+    gguf-py has no Q8_K dequantizer, so this is an independent direct
+    implementation of upstream ggml-quants.c::dequantize_row_q8_K.
+    """
+    net = _make_net(n_in=256, hidden=(), n_out=1)
+    path = tmp_path / "q8-k.gguf"
+    net.to_gguf_file(str(path), "q8_k")
+    tensor = next(t for t in GGUFReader(str(path)).tensors
+                  if t.name == "blk.0.weight")
+    assert tensor.tensor_type == GGMLQuantizationType.Q8_K
+    raw = tensor.data.tobytes()
+    assert len(raw) == 292
+    d = np.frombuffer(raw[:4], dtype="<f4")[0]
+    codes = np.frombuffer(raw[4:260], dtype=np.int8)
+    sums = np.frombuffer(raw[260:292], dtype="<i2")
+    np.testing.assert_array_equal(sums, codes.reshape(16, 16).sum(axis=1))
+    reference = (d * codes.astype(np.float32)).reshape(-1)
     imported = NeuralNet.from_gguf(path.read_bytes())
     weight = msgpack.unpackb(imported.to_msgpack(), raw=False)["layers"][0]["weight"]
     np.testing.assert_allclose(weight, reference, rtol=0, atol=1e-6)
