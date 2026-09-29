@@ -7,8 +7,9 @@
  * was built with zlib) into one `dstore` object of a `.pto` container
  * (ptolib's streamed store, format 5):
  *
- * - `residues`: one byte per residue, variable-length rows, stored raw so a
- *   sequence is read in place from the memory map. The codes are those of
+ * - `residues`: variable-length rows of residue codes, packed in 5 bits each
+ *   (the 21 codes need 5; any sequence still decodes alone), or optionally
+ *   one byte each, read in place from the memory map. The codes are those of
  *   #IMP::bff::SequenceMSA: 1..20 are `ACDEFGHIKLMNPQRSTVWY`, 0 is anything
  *   else (X, B, Z, J, U, O).
  * - `headers`: the FASTA header line without `>`, compressed (zstd when
@@ -46,11 +47,20 @@ IMPBFF_BEGIN_NAMESPACE
     \param[in] out the `.pto` container to create (replaced if present)
     \param[in] name the store object inside the container
     \param[in] segment_mb segment size of the streamed store, in MB
+    \param[in] packed residues in 5 bits each (62.5 % of a byte; any sequence
+               still reads alone), else one byte each (read in place)
     \return the number of sequences written
     \throw IOException when a file cannot be read or written
 */
 IMPBFFEXPORT std::size_t create_sequence_database(const std::string& fasta,
                                                   const std::string& out,
+                                                  const std::string& name = "sequences",
+                                                  int segment_mb = 16, bool packed = true);
+
+//! Rewrite a sequence database, packed (5 bits a residue) or as bytes, in one
+//! streaming pass; rows keep their order, so a cluster membership stays valid.
+IMPBFFEXPORT std::size_t repack_sequence_database(const std::string& in, const std::string& out,
+                                                  bool packed = true,
                                                   const std::string& name = "sequences",
                                                   int segment_mb = 16);
 
@@ -76,16 +86,29 @@ public:
     std::string get_header(std::size_t i) const;
     //! The first word of the header: the accession.
     std::string get_identifier(std::size_t i) const;
+    //! The residues' description (JSON): alphabet and source.
+    std::string get_metadata() const;
+    //! Whether residues are stored packed (5 bits) rather than a byte each.
+    bool get_is_packed() const;
 
 #ifndef SWIG
-    //! Sequence \p i's codes in place (1..20 amino acids, 0 other); \p n its length.
-    const unsigned char* get_codes(std::size_t i, std::uint64_t* n) const;
+    //! Sequence \p i's codes (1..20 amino acids, 0 other); \p n its length.
+    //! In place from the map when stored as bytes; decoded into \p scratch
+    //! when packed. Valid until \p scratch changes.
+    const unsigned char* get_codes(std::size_t i, std::uint64_t* n,
+                                   std::vector<unsigned char>& scratch) const;
     //! Streaming: the database in segments of whole sequences.
     std::size_t get_number_of_segments() const;
     //! Segment \p k: its first sequence and how many it holds, and its codes
-    //! (back to back, in place). Sequence boundaries come from #get_codes.
-    const unsigned char* get_segment(std::size_t k, std::size_t* first,
-                                     std::size_t* count, std::uint64_t* n_codes) const;
+    //! back to back (in place, or decoded into \p scratch when packed).
+    //! Sequence boundaries come from #get_offsets.
+    const unsigned char* get_segment(std::size_t k, std::size_t* first, std::size_t* count,
+                                     std::uint64_t* n_codes,
+                                     std::vector<unsigned char>& scratch) const;
+    //! Every sequence in row order with its header, one segment of each
+    //! column decoded at a time: `visit(row, codes, n, header)`.
+    void scan_records(const std::function<void(std::size_t, const unsigned char*, std::uint64_t,
+                                               const std::string&)>& visit) const;
     //! Offset of sequence \p i's first code in the concatenation of all.
     std::uint64_t get_offset(std::size_t i) const;
     //! The offsets of sequences \p first .. \p first + \p count, inclusive:

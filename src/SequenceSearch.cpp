@@ -367,6 +367,7 @@ SequenceSearchHits search(const Strings& queries, const SequenceDatabase& databa
         try {
             std::vector<Diagonals> diagonals(q.size());
             std::vector<std::uint64_t> offsets;
+            std::vector<unsigned char> scratch;
             std::vector<int> best(q.size());
             // One target: its diagonals, and its best ungapped score per query.
             auto scan = [&](const unsigned char* t, std::uint64_t n, std::size_t row) {
@@ -410,14 +411,15 @@ SequenceSearchHits search(const Strings& queries, const SequenceDatabase& databa
                     const std::size_t end = std::min(rows->size(), (k + 1) * kRowBlock);
                     for (std::size_t i = k * kRowBlock; i < end; ++i) {
                         std::uint64_t n = 0;
-                        const unsigned char* t = database.get_codes((*rows)[i], &n);
+                        const unsigned char* t = database.get_codes((*rows)[i], &n, scratch);
                         scan(t, n, (*rows)[i]);
                     }
                     continue;
                 }
                 std::size_t first = 0, count = 0;
                 std::uint64_t n_codes = 0;
-                const unsigned char* codes = database.get_segment(k, &first, &count, &n_codes);
+                const unsigned char* codes =
+                        database.get_segment(k, &first, &count, &n_codes, scratch);
                 offsets.resize(count + 1);
                 database.get_offsets(first, count, offsets.data());
                 const std::uint64_t base = offsets[0];
@@ -457,10 +459,11 @@ SequenceSearchHits search(const Strings& queries, const SequenceDatabase& databa
     std::atomic<std::size_t> next_job{0};
     auto align = [&](unsigned thread) {
         try {
+            std::vector<unsigned char> scratch;
             for (std::size_t k; (k = next_job++) < jobs.size();) {
                 const Job& job = jobs[k];
                 std::uint64_t n = 0;
-                const unsigned char* t = database.get_codes(job.target, &n);
+                const unsigned char* t = database.get_codes(job.target, &n, scratch);
                 SequenceSearchHit hit = smith_waterman_hit(q[job.query], t, static_cast<int>(n),
                                                            options.gap_open, options.gap_extend);
                 hit.evalue = evalue(hit.score, q[job.query].size(), residues);

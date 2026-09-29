@@ -66,6 +66,7 @@ FLAT_NAMES = [
     "get_sequence_search_settings",
     "SequenceDatabase",             # binary FASTA in a .pto
     "create_sequence_database",     # FASTA (.gz) -> .pto, streaming
+    "repack_sequence_database",     # 5-bit residues <-> bytes, streaming
     "SequenceSearchOptions",        # prefilter and alignment settings
     "SequenceSearchHit",            # one aligned target
     "search_sequence_database",     # MMseqs2's method, native
@@ -123,6 +124,14 @@ FLAT_NAMES = [
     "simulate_probe_diffusion",        # probesampling
     "fret_rate_trace",               # quenching / FRETRateTrace
     "NPSIsotropicFRETEfficiencyRestraint",  # NPS Bayesian structural tracer
+    "NPSNetworkDye",                   # NPS network per-dye metadata
+    "NPSMeasurement",                  # NPS network measurement record
+    "nps_network_fret_efficiency",     # NPS network forward model
+    "nps_network_transfer_anisotropy",  # NPS network TA
+    "nps_network_log_likelihood",      # NPS multi-measurement likelihood
+    "nps_convolved_efficiency",        # NPS distance-convolution polynomial
+    "nps_orientation_row_index",       # NPS 625-row orientation grid
+    "nps_single_orientation_row_index",  # NPS 25-row orientation grid
 ]
 
 #: Submodule paths that must not exist: the namespace is flat.

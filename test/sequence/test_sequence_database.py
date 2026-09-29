@@ -96,3 +96,30 @@ def test_what_is_not_fasta_is_refused(tmp_path):
         bff.create_sequence_database(str(bad), str(tmp_path / "bad.pto"))
     with pytest.raises(bff.IOException):
         bff.create_sequence_database(str(tmp_path / "absent.fasta"), str(tmp_path / "x.pto"))
+
+
+def test_packed_and_byte_stores_hold_the_same_and_repack_either_way(tmp_path):
+    fasta = tmp_path / "many.fasta"
+    msa = bff.read_sequence_msa(FIXTURE, match_columns_only=False)
+    seqs = [msa.get_sequence(k).replace("-", "") for k in range(msa.get_n_sequences())]
+    with open(fasta, "w") as fh:
+        for k in range(3000):
+            fh.write(f">s{k} x\n{seqs[k % len(seqs)]}XBZ\n")
+    packed, plain = str(tmp_path / "p.pto"), str(tmp_path / "b.pto")
+    bff.create_sequence_database(str(fasta), packed, "sequences", 1)
+    bff.create_sequence_database(str(fasta), plain, "sequences", 1, False)
+    a, b = bff.SequenceDatabase(packed), bff.SequenceDatabase(plain)
+    assert a.get_is_packed() and not b.get_is_packed()
+    assert os.path.getsize(packed) < 0.75 * os.path.getsize(plain)
+    for i in (0, 1, 1499, 2999):
+        assert a.get_sequence(i) == b.get_sequence(i) == seqs[i % len(seqs)] + "XXX"
+        assert a.get_header(i) == b.get_header(i)
+    again = str(tmp_path / "again.pto")
+    assert bff.repack_sequence_database(plain, again) == 3000
+    c = bff.SequenceDatabase(again)
+    assert c.get_is_packed() and c.get_sequence(1234) == b.get_sequence(1234)
+    assert c.get_identifier(2999) == "s2999"
+    # the search finds the same in either
+    q = [seqs[0]]
+    key = lambda hits: [(h.identifier, h.score) for h in hits]
+    assert key(bff.search_sequence_database(q, a)) == key(bff.search_sequence_database(q, b))

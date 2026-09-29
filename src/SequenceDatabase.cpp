@@ -124,7 +124,7 @@ bool get_sequence_database_reads_gzip() {
 }
 
 std::size_t create_sequence_database(const std::string& fasta, const std::string& out,
-                                     const std::string& name, int segment_mb) {
+                                     const std::string& name, int segment_mb, bool packed) {
     if (segment_mb < 1) IMP_THROW("create_sequence_database: segment_mb must be >= 1",
                                   ValueException);
     static const std::array<unsigned char, 256> codes = make_codes();
@@ -141,6 +141,7 @@ std::size_t create_sequence_database(const std::string& fasta, const std::string
         // Residues raw, to be read in place; headers compressed in small
         // segments, since a hit's header is looked up alone.
         const int residues = store.add_column(kColumnResidues, pto::ColumnType::UInt8, true, "none");
+        if (packed) store.set_bit_width(residues, 5);
         const std::string header_codec = pto::can_compress("zstd") ? "zstd" : "none";
         const int headers = store.add_column(kColumnHeaders, pto::ColumnType::UInt8, true,
                                              header_codec, std::size_t(64) << 10);
@@ -219,16 +220,21 @@ SequenceDatabase::SequenceDatabase(const std::string& path_or_name, const std::s
     n_residues_ = info.n_values;
 }
 
-const unsigned char* SequenceDatabase::get_codes(std::size_t i, std::uint64_t* n) const {
+const unsigned char* SequenceDatabase::get_codes(std::size_t i, std::uint64_t* n,
+                                                 std::vector<unsigned char>& scratch) const {
     if (!reader_ || i >= n_sequences_)
         IMP_THROW("SequenceDatabase: no sequence " << i, IndexException);
     const void* p = reader_->row_view(kColumnResidues, i, n);
-    return static_cast<const unsigned char*>(p);
+    if (p != nullptr) return static_cast<const unsigned char*>(p);
+    reader_->row(kColumnResidues, i, scratch);   // packed: decode this row alone
+    *n = scratch.size();
+    return scratch.data();
 }
 
 std::string SequenceDatabase::get_sequence(std::size_t i) const {
     std::uint64_t n = 0;
-    const unsigned char* codes = get_codes(i, &n);
+    std::vector<unsigned char> scratch;
+    const unsigned char* codes = get_codes(i, &n, scratch);
     std::string out(static_cast<std::size_t>(n), 'X');
     for (std::uint64_t k = 0; k < n; ++k)
         out[static_cast<std::size_t>(k)] = codes[k] <= 20 ? kLetters[codes[k]] : 'X';
@@ -255,22 +261,98 @@ std::string SequenceDatabase::get_identifier(std::size_t i) const {
     return end == std::string::npos ? header : header.substr(0, end);
 }
 
+std::string SequenceDatabase::get_metadata() const {
+    return reader_ ? reader_->metadata(kColumnResidues) : std::string();
+}
+
+bool SequenceDatabase::get_is_packed() const {
+    return reader_ && get_number_of_segments() > 0 && !reader_->segment(kColumnResidues, 0).raw;
+}
+
 std::size_t SequenceDatabase::get_number_of_segments() const {
     return reader_ ? reader_->n_segments(kColumnResidues) : 0;
 }
 
 const unsigned char* SequenceDatabase::get_segment(std::size_t k, std::size_t* first,
-                                                   std::size_t* count,
-                                                   std::uint64_t* n_codes) const {
+                                                   std::size_t* count, std::uint64_t* n_codes,
+                                                   std::vector<unsigned char>& scratch) const {
     if (!reader_ || k >= get_number_of_segments())
         IMP_THROW("SequenceDatabase: no segment " << k, IndexException);
     const pto::SegmentInfo seg = reader_->segment(kColumnResidues, k);
     if (first) *first = static_cast<std::size_t>(seg.first_row);
     if (count) *count = static_cast<std::size_t>(seg.n_rows);
     if (n_codes) *n_codes = seg.n_values;
-    // Stored raw, so always in place.
-    return static_cast<const unsigned char*>(reader_->view(kColumnResidues, seg.first_value,
-                                                           seg.n_values));
+    // in place when stored as bytes, decoded when packed
+    return static_cast<const unsigned char*>(reader_->segment_data(kColumnResidues, k, scratch));
+}
+
+void SequenceDatabase::scan_records(
+        const std::function<void(std::size_t, const unsigned char*, std::uint64_t,
+                                 const std::string&)>& visit) const {
+    if (!reader_) return;
+    std::vector<unsigned char> codes, headers;
+    std::vector<std::uint64_t> offsets, header_offsets;
+    std::size_t header_segment = 0;
+    pto::SegmentInfo hseg;
+    const char* htext = nullptr;
+    std::string header;
+    for (std::size_t k = 0; k < get_number_of_segments(); ++k) {
+        std::size_t first = 0, count = 0;
+        std::uint64_t n_codes = 0;
+        const unsigned char* data = get_segment(k, &first, &count, &n_codes, codes);
+        offsets.resize(count + 1);
+        get_offsets(first, count, offsets.data());
+        for (std::size_t r = 0; r < count; ++r) {
+            const std::size_t row = first + r;
+            // the header segment holding this row, decoded once
+            while (htext == nullptr || row >= hseg.first_row + hseg.n_rows) {
+                hseg = reader_->segment(kColumnHeaders, header_segment);
+                htext = static_cast<const char*>(
+                        reader_->segment_data(kColumnHeaders, header_segment, headers));
+                header_offsets.resize(static_cast<std::size_t>(hseg.n_rows) + 1);
+                reader_->offsets(kColumnHeaders, hseg.first_row, hseg.n_rows, header_offsets.data());
+                ++header_segment;
+            }
+            const std::size_t h = static_cast<std::size_t>(row - hseg.first_row);
+            header.assign(htext + (header_offsets[h] - header_offsets[0]),
+                          static_cast<std::size_t>(header_offsets[h + 1] - header_offsets[h]));
+            visit(row, data + (offsets[r] - offsets[0]), offsets[r + 1] - offsets[r], header);
+        }
+    }
+}
+
+std::size_t repack_sequence_database(const std::string& in, const std::string& out, bool packed,
+                                     const std::string& name, int segment_mb) {
+    const SequenceDatabase source(in, name);
+    if (source.get_path() == out)
+        IMP_THROW("repack_sequence_database: write to another file than " << in, ValueException);
+    pto::File container;
+    if (!container.create(out, "sequence database"))
+        IMP_THROW("repack_sequence_database: " << container.error(), IOException);
+    container.set_writing_app("imp.bff repack_sequence_database");
+    std::size_t n = 0;
+    {
+        pto::StoreWriter store(container, "table", name, pto::StoreOptions(),
+                               static_cast<std::size_t>(segment_mb) << 20);
+        const int residues = store.add_column(kColumnResidues, pto::ColumnType::UInt8, true, "none");
+        if (packed) store.set_bit_width(residues, 5);
+        const std::string header_codec = pto::can_compress("zstd") ? "zstd" : "none";
+        const int headers = store.add_column(kColumnHeaders, pto::ColumnType::UInt8, true,
+                                             header_codec, std::size_t(64) << 10);
+        store.set_metadata(residues, source.get_metadata());
+        source.scan_records([&](std::size_t, const unsigned char* codes, std::uint64_t len,
+                                const std::string& header) {
+            store.append_row(residues, codes, len);
+            store.append_row(headers, header.data(), header.size());
+            ++n;
+        });
+        if (!store.close())
+            IMP_THROW("repack_sequence_database: could not write " << out, IOException);
+    }
+    if (!container.commit())
+        IMP_THROW("repack_sequence_database: " << container.error(), IOException);
+    container.close();
+    return n;
 }
 
 std::uint64_t SequenceDatabase::get_offset(std::size_t i) const {

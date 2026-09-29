@@ -34,6 +34,7 @@ struct Args {
   std::string fasta, out, name = "sequences", database, input, chain, msa, representatives,
       mapping;
   int segment_mb = 16;
+  bool bytes = false;
   int threshold = SequenceSearchOptions().kmer_threshold;
   int max_candidates = SequenceSearchOptions().max_candidates;
   double evalue = SequenceSearchOptions().max_evalue;
@@ -81,10 +82,16 @@ std::string resolve_database(const std::string& given) {
 }
 
 void create(const Args& a) {
-  const std::size_t n = create_sequence_database(a.fasta, a.out, a.name, a.segment_mb);
+  const std::size_t n = create_sequence_database(a.fasta, a.out, a.name, a.segment_mb, !a.bytes);
   const SequenceDatabase db(a.out, a.name);
   std::cout << a.out << ": " << n << " sequences, " << db.get_number_of_residues()
             << " residues\n";
+}
+
+void pack(const Args& a) {
+  const std::size_t n = repack_sequence_database(a.database, a.out, !a.bytes, a.name, a.segment_mb);
+  std::cout << a.out << ": " << n << " sequences, " << (a.bytes ? "a byte" : "5 bits")
+            << " a residue\n";
 }
 
 void cluster(const Args& a) {
@@ -104,7 +111,8 @@ std::string representatives_for(const Args& a, const std::string& database) {
 
 void info(const Args& a) {
   const SequenceDatabase db(resolve_database(a.database), a.name);
-  std::cout << db.get_path() << "\n  sequences " << db.get_number_of_sequences()
+  std::cout << db.get_path() << "\n  residues as " << (db.get_is_packed() ? "5 bits" : "bytes")
+            << "\n  sequences " << db.get_number_of_sequences()
             << "\n  residues  " << db.get_number_of_residues() << "\n  segments  "
             << db.get_number_of_segments() << "\n";
   if (db.get_number_of_sequences() > 0) std::cout << "  first     " << db.get_header(0) << "\n";
@@ -211,9 +219,23 @@ file to search it by name:
   create->add_option("out", a->out, "the .pto to write")->required();
   create->add_option("--name", a->name, "the store inside the container");
   create->add_option("--segment-mb", a->segment_mb, "segment size in MB");
+  create->add_flag("--bytes", a->bytes, "a byte per residue instead of 5 bits (read in place)");
   create->callback([a] {
     set_current_sub("sequence-db create");
     sequence::create(*a);
+  });
+  CLI::App* pack = db->add_subcommand(
+      "pack", R"doc(Rewrite a database with residues packed in 5 bits (or --bytes).)doc");
+  pack->footer(R"doc(One streaming pass; rows keep their order, so a cluster membership built
+against the old file still holds:
+
+    imp_bff sequence-db pack uniref90.pto uniref90.packed.pto)doc");
+  pack->add_option("database", a->database, "the database to rewrite")->required();
+  pack->add_option("out", a->out, "the new .pto")->required();
+  pack->add_flag("--bytes", a->bytes, "a byte per residue instead");
+  pack->callback([a] {
+    set_current_sub("sequence-db pack");
+    sequence::pack(*a);
   });
   CLI::App* cluster = db->add_subcommand(
       "cluster", R"doc(Record which members belong to each cluster representative.)doc");
