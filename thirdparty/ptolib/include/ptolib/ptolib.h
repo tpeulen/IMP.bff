@@ -2960,6 +2960,7 @@ struct ColumnInfo {
     std::uint64_t n_rows = 0;
     bool ragged = false;                   ///< variable-length rows
     bool extent = false;                   ///< a child level's extent: offsets only
+    std::string reference;                 ///< rows stored against this column's (its parent level)
     std::uint64_t n_values = 0;            ///< values; equals n_rows unless ragged
     std::size_t n_segments = 0;            ///< of the values blob
     std::uint64_t stored_bytes = 0;        ///< of the values blob, as stored
@@ -3063,6 +3064,32 @@ public:
      * be otherwise (\ref set_bit_width, or bytes). Set before appending.
      */
     void set_huffman(int column, bool coded = true);
+    /*!
+     * \brief Store \p column's rows against the rows of \p reference (format 6).
+     *
+     * Both ragged UInt8; \p reference in the parent level of \p column's.
+     * A row given with \ref append_row_against is stored as a script against
+     * its parent row of \p reference: the reference span it covers and the
+     * differences -- substitutions, deletions, insertions at Rice-coded gaps,
+     * literals of \p literal_bits bits -- or literally, whichever is smaller.
+     * Members stored against their cluster's representative, instances
+     * against a template. Reading resolves the reference: \ref StoreReader::row
+     * returns the row itself. Set before appending.
+     */
+    void set_reference(int column, int reference, unsigned literal_bits = 8);
+    /*!
+     * \brief Append a row of a referencing column, given its parent's
+     *        reference row and an alignment to it.
+     *
+     * \p alignment spells the two rows' alignment with 'M' (a column of both,
+     * equal or a substitution), 'I' (a value of this row only) and 'D' (a value
+     * of the reference only); leading and trailing 'D' skip the reference's
+     * ends. Empty: store the row literally. \p reference must be what the
+     * parent row holds in the referenced column.
+     */
+    void append_row_against(int column, const void* values, std::uint64_t n,
+                            const void* reference, std::uint64_t reference_n,
+                            const std::string& alignment);
     /// End the current segment of every column here, so segment k of columns
     /// written in step covers the same rows (a chunk).
     void cut();

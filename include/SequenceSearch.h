@@ -113,6 +113,18 @@ IMPBFFEXPORT SequenceSearchHits search_sequence_database_rows(
         const SequenceSearchOptions& options = SequenceSearchOptions(), double residues = 0);
 #endif
 
+#ifndef SWIG
+//! The alignment of \p member to \p reference as 'M'/'I'/'D' operations
+//! (reference ends skipped as leading and trailing 'D', the member's
+//! unaligned ends as 'I'), for storing a member against its cluster's
+//! representative. A banded local alignment (BLOSUM62, 11/1) around the
+//! diagonal the length difference suggests, \p band columns either side of
+//! it; identical sequences take no alignment. Empty when nothing aligns.
+IMPBFFEXPORT std::string align_to_reference(const unsigned char* reference, std::size_t n,
+                                            const unsigned char* member, std::size_t m,
+                                            int band = 24);
+#endif
+
 //! Align \p query to \p target: the same scoring and hit record as the search.
 IMPBFFEXPORT SequenceSearchHit align_sequences(
         const std::string& query, const std::string& target,

@@ -13,6 +13,7 @@
 #include <cctype>
 #include <cmath>
 #include <cstdint>
+#include <cstring>
 #include <functional>
 #include <mutex>
 #include <queue>
@@ -312,6 +313,95 @@ int get_blosum62(char a, char b) {
         return k == std::string::npos ? 0u : static_cast<unsigned>(k + 1);
     };
     return matrix()(code(a), code(b));
+}
+
+std::string align_to_reference(const unsigned char* ref, std::size_t n,
+                               const unsigned char* mem, std::size_t m, int band) {
+    using namespace sequence_search;
+    if (n == 0 || m == 0) return std::string();
+    if (n == m && std::memcmp(ref, mem, n) == 0) return std::string(n, 'M');
+    const Matrix& sm = matrix();
+    const int open = 11 + 1, ext = 1, kNeg = -(1 << 28);
+    // rows: the member (i), columns: the reference (j = i + d), d in [lo, hi]
+    const long lo = std::min<long>(0, static_cast<long>(n) - static_cast<long>(m)) - band;
+    const long hi = std::max<long>(0, static_cast<long>(n) - static_cast<long>(m)) + band;
+    const std::size_t W = static_cast<std::size_t>(hi - lo + 1);
+    std::vector<int> H_prev(W + 2, 0), H_cur(W + 2, 0), F_prev(W + 2, kNeg), F_cur(W + 2, kNeg);
+    // traceback: bits 0-1 source of H (0 start, 1 diagonal, 2 E, 3 F), bit 2 E extended, bit 3 F extended
+    std::vector<unsigned char> tb((m + 1) * W, 0);
+    int best = 0;
+    std::size_t bi = 0;
+    long bd = 0;
+    // the band's column index c = d - lo; cell (i, j = i + d)
+    // neighbours: (i-1, j-1) same d; (i-1, j) d+1; (i, j-1) d-1
+    for (std::size_t i = 1; i <= m; ++i) {
+        int E = kNeg;
+        std::fill(H_cur.begin(), H_cur.end(), 0);
+        std::fill(F_cur.begin(), F_cur.end(), kNeg);
+        for (std::size_t c = 0; c < W; ++c) {
+            const long d = lo + static_cast<long>(c);
+            const long j = static_cast<long>(i) + d;
+            if (j < 1 || j > static_cast<long>(n)) { E = kNeg; continue; }
+            unsigned char dir = 0;
+            // E: along the reference (a 'D'), from (i, j-1) = band column c-1 this row
+            const int e_open = (c >= 1 ? H_cur[c - 1] : kNeg) - open, e_ext = E - ext;
+            if (e_ext >= e_open) { E = e_ext; dir |= 4; } else E = e_open;
+            // F: along the member (an 'I'), from (i-1, j) = band column c+1 last row
+            const int f_open = (c + 1 < W ? H_prev[c + 1] : kNeg) - open;
+            const int f_ext = (c + 1 < W ? F_prev[c + 1] : kNeg) - ext;
+            int F;
+            if (f_ext >= f_open) { F = f_ext; dir |= 8; } else F = f_open;
+            F_cur[c] = F;
+            int h = H_prev[c] + sm(mem[i - 1], ref[static_cast<std::size_t>(j) - 1]);
+            int from = 1;
+            if (E > h) { h = E; from = 2; }
+            if (F > h) { h = F; from = 3; }
+            if (h <= 0) { h = 0; from = 0; }
+            H_cur[c] = h;
+            tb[i * W + c] = static_cast<unsigned char>(dir | from);
+            if (h > best) { best = h; bi = i; bd = d; }
+        }
+        std::swap(H_prev, H_cur);
+        std::swap(F_prev, F_cur);
+    }
+    if (best == 0) return std::string();
+    // trace back from (bi, bi + bd)
+    std::string ops;
+    std::size_t i = bi;
+    long d = bd;
+    int state = 0;
+    while (i > 0) {
+        const long j = static_cast<long>(i) + d;
+        if (j < 1) break;
+        const std::size_t c = static_cast<std::size_t>(d - lo);
+        const unsigned char cell = tb[i * W + c];
+        if (state == 0) {
+            const int from = cell & 3;
+            if (from == 0) break;
+            if (from == 1) { ops += 'M'; --i; continue; }
+            state = from;
+            continue;
+        }
+        if (state == 2) {   // a 'D': the reference advanced, j - 1, same i: d - 1
+            ops += 'D';
+            const bool extended = (cell & 4) != 0;
+            --d;
+            if (!extended) state = 0;
+            continue;
+        }
+        ops += 'I';         // the member advanced: i - 1, same j: d + 1
+        const bool extended = (cell & 8) != 0;
+        --i;
+        ++d;
+        if (!extended) state = 0;
+    }
+    std::reverse(ops.begin(), ops.end());
+    // i, j = i + d: where the local alignment starts (0-based counts before it)
+    const std::size_t member_start = i;
+    const std::size_t ref_start = static_cast<std::size_t>(static_cast<long>(i) + d);
+    const std::size_t member_end = bi, ref_end = static_cast<std::size_t>(static_cast<long>(bi) + bd);
+    return std::string(ref_start, 'D') + std::string(member_start, 'I') + ops +
+           std::string(m - member_end, 'I') + std::string(n - ref_end, 'D');
 }
 
 SequenceSearchHit align_sequences(const std::string& query, const std::string& target,

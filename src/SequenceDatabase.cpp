@@ -282,6 +282,9 @@ const unsigned char* SequenceDatabase::get_segment(std::size_t k, std::size_t* f
                                                    std::vector<unsigned char>& scratch) const {
     if (!reader_ || k >= get_number_of_segments())
         IMP_THROW("SequenceDatabase: no segment " << k, IndexException);
+    if (!reader_->info(residues_).reference.empty())
+        IMP_THROW("SequenceDatabase: " << path_ << ": these sequences are stored as edits; "
+                  "read them by row", ValueException);
     const pto::SegmentInfo seg = reader_->segment(residues_, k);
     if (first) *first = static_cast<std::size_t>(seg.first_row);
     if (count) *count = static_cast<std::size_t>(seg.n_rows);
@@ -293,6 +296,16 @@ const unsigned char* SequenceDatabase::get_segment(std::size_t k, std::size_t* f
 void SequenceDatabase::scan_records(
         const std::function<void(std::size_t, const unsigned char*, std::uint64_t,
                                  const std::string&)>& visit) const {
+    if (reader_ && !reader_->info(residues_).reference.empty()) {
+        // stored as edits: row by row (each resolves its representative)
+        std::vector<unsigned char> scratch;
+        for (std::size_t r = 0; r < n_sequences_; ++r) {
+            std::uint64_t n = 0;
+            const unsigned char* codes = get_codes(r, &n, scratch);
+            visit(r, codes, n, get_header(r));
+        }
+        return;
+    }
     if (!reader_) return;
     std::vector<unsigned char> codes, headers;
     std::vector<std::uint64_t> offsets, header_offsets;
@@ -437,6 +450,14 @@ SequenceDatabase SequenceDatabase::get_members_database() const {
     const pto::ColumnInfo info = reader_->info(m.residues_);
     m.n_sequences_ = static_cast<std::size_t>(info.n_rows);
     m.n_residues_ = info.n_values;
+    if (!info.reference.empty()) {
+        // stored as edits against the representatives: the count is recorded
+        m.n_residues_ = 0;
+        try {
+            const nlohmann::json meta = nlohmann::json::parse(reader_->metadata(m.residues_));
+            m.n_residues_ = meta.value("residues", std::uint64_t(0));
+        } catch (...) {}
+    }
     return m;
 }
 

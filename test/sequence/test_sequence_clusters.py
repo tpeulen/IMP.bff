@@ -171,6 +171,7 @@ def test_a_clustered_database_searches_like_the_member_database(clustered, tmp_p
     assert db.get_has_members() and not bff.SequenceDatabase(str(d / "reps.pto")).get_has_members()
     m = db.get_members_database()
     assert m.get_number_of_sequences() == members.get_number_of_sequences()
+    assert m.get_number_of_residues() == members.get_number_of_residues()
     # the family's cluster holds its placed members, contiguously; the orphan is last
     first, end = db.get_member_range(0)
     assert sorted(m.get_identifier(r) for r in range(first, end)) == sorted(
@@ -180,7 +181,7 @@ def test_a_clustered_database_searches_like_the_member_database(clustered, tmp_p
     assert [m.get_identifier(r) for r in range(*last)] == [f"UniRef90_F{len(family) - 1}"]
     # every member once, sequences intact
     ids = {members.get_identifier(i): i for i in range(members.get_number_of_sequences())}
-    for r in range(0, m.get_number_of_sequences(), 97):
+    for r in range(0, m.get_number_of_sequences(), 7):
         assert m.get_sequence(r) == members.get_sequence(ids[m.get_identifier(r)])
     queries = [family[3], family[20]]
     full = bff.search_sequence_database(queries, members)

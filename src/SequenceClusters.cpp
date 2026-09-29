@@ -13,6 +13,8 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <atomic>
+#include <thread>
 #include <sys/resource.h>
 
 #ifdef IMP_BFF_HAS_ZLIB
@@ -453,13 +455,17 @@ std::size_t create_clustered_sequence_database(const std::string& members,
         int rep_residues, rep_headers, mem_residues, mem_headers;
         sequence_columns(0, &rep_residues, &rep_headers);
         const int level = store.add_level("members");
-        sequence_columns(level, &mem_residues, &mem_headers);
+        mem_residues = store.add_column("residues", pto::ColumnType::UInt8, true, "none", 0, level);
+        mem_headers = store.add_column("headers", pto::ColumnType::UInt8, true, header_codec,
+                                       std::size_t(64) << 10, level);
+        // members as edits against their representative (5-bit literals)
+        store.set_reference(mem_residues, rep_residues, 5);
         store.set_metadata(rep_residues, rep_db.get_metadata());
-        store.set_metadata(mem_residues, member_db.get_metadata());
 
         std::vector<char> data;
         struct Ref { std::uint32_t cluster, row; std::size_t at; };
         std::vector<Ref> refs;
+        std::vector<std::string> ops;   // per ref: its alignment to its representative
         std::size_t loaded = n_buckets, next = 0;   // refs[next..] are the clusters to come
         auto load = [&](std::size_t b) {
             data.clear();
@@ -480,17 +486,39 @@ std::size_t create_clustered_sequence_database(const std::string& members,
             std::sort(refs.begin(), refs.end(), [](const Ref& a, const Ref& c) {
                 return a.cluster != c.cluster ? a.cluster < c.cluster : a.row < c.row;
             });
+            // align every member to its representative, across threads
+            ops.assign(refs.size(), std::string());
+            std::atomic<std::size_t> next_ref{0};
+            auto align = [&]() {
+                std::vector<unsigned char> scratch;
+                for (std::size_t q; (q = next_ref++) < refs.size();) {
+                    if (refs[q].cluster >= n_reps) continue;   // orphans: literal
+                    MemberRecordHead h;
+                    std::memcpy(&h, data.data() + refs[q].at, sizeof h);
+                    std::uint64_t rn = 0;
+                    const unsigned char* rc = rep_db.get_codes(refs[q].cluster, &rn, scratch);
+                    ops[q] = align_to_reference(
+                            rc, static_cast<std::size_t>(rn),
+                            reinterpret_cast<const unsigned char*>(data.data() + refs[q].at + sizeof h),
+                            h.n_codes);
+                }
+            };
+            const unsigned n_threads = std::max(1u, std::thread::hardware_concurrency());
+            std::vector<std::thread> pool;
+            for (unsigned t = 1; t < n_threads; ++t) pool.emplace_back(align);
+            align();
+            for (std::thread& t : pool) t.join();
             loaded = b;
             next = 0;
         };
-        auto emit_members = [&](std::size_t k) {
+        auto emit_members = [&](std::size_t k, const unsigned char* rep, std::uint64_t rep_n) {
             if (loaded != bucket_of(k)) load(bucket_of(k));
             std::uint64_t count = 0;
             for (; next < refs.size() && refs[next].cluster == k; ++next, ++count) {
                 MemberRecordHead h;
                 std::memcpy(&h, data.data() + refs[next].at, sizeof h);
                 const char* p = data.data() + refs[next].at + sizeof h;
-                store.append_row(mem_residues, p, h.n_codes);
+                store.append_row_against(mem_residues, p, h.n_codes, rep, rep_n, ops[next]);
                 store.append_row(mem_headers, p + h.n_codes, h.n_header);
             }
             store.append_children(level, count);
@@ -500,7 +528,7 @@ std::size_t create_clustered_sequence_database(const std::string& members,
                                 const std::string& header) {
             store.append_row(rep_residues, codes, n);
             store.append_row(rep_headers, header.data(), header.size());
-            emit_members(k);
+            emit_members(k, codes, n);
         });
         // the orphans, if any, under an empty last representative
         if (loaded != bucket_of(n_reps)) load(bucket_of(n_reps));
@@ -508,7 +536,14 @@ std::size_t create_clustered_sequence_database(const std::string& members,
             const std::string name = "orphans";
             store.append_row(rep_residues, nullptr, 0);
             store.append_row(rep_headers, name.data(), name.size());
-            emit_members(n_reps);
+            emit_members(n_reps, nullptr, 0);
+        }
+        // the members' residues are scripts: record how many residues they hold
+        {
+            nlohmann::json meta = nlohmann::json::object();
+            try { meta = nlohmann::json::parse(member_db.get_metadata()); } catch (...) {}
+            meta["residues"] = member_db.get_number_of_residues();
+            store.set_metadata(mem_residues, meta.dump());
         }
         if (!store.close())
             IMP_THROW("create_clustered_sequence_database: could not write " << out, IOException);
