@@ -99,7 +99,12 @@ if(TARGET IMP.bff-lib)
   if(NOT TARGET ptolib::ptolib)
     add_subdirectory(thirdparty/ptolib EXCLUDE_FROM_ALL)
   endif()
-  target_link_libraries(IMP.bff-lib ptolib::ptolib)
+  # The whole archive: tttrlib, earlier on the link line, exports its own
+  # ptolib (maybe another version), and a symbol found there first was bound
+  # to it -- the codec table of an older ptolib, and a crash. Every ptolib
+  # symbol now resolves here; inline members stay here too.
+  target_link_libraries(IMP.bff-lib "$<LINK_LIBRARY:WHOLE_ARCHIVE,ptolib::ptolib>")
+  set_target_properties(IMP.bff-lib PROPERTIES VISIBILITY_INLINES_HIDDEN ON)
   # Optional: zlib reads gzip-compressed FASTA into a sequence database.
   find_package(ZLIB QUIET)
   if(ZLIB_FOUND)

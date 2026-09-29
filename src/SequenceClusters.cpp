@@ -366,6 +366,53 @@ struct MemberRecordHead {
     std::uint32_t cluster, row, n_codes, n_header;
 };
 
+//! Residue codes (0..20) in 5 bits each, for the bucket files.
+std::size_t packed_bytes(std::size_t n) { return (n * 5 + 7) / 8; }
+
+void pack5(const unsigned char* in, std::size_t n, std::vector<char>& out) {
+    const std::size_t at = out.size();
+    out.resize(at + packed_bytes(n), 0);
+    unsigned char* p = reinterpret_cast<unsigned char*>(out.data() + at);
+    for (std::size_t i = 0; i < n; ++i) {
+        const std::size_t bit = i * 5;
+        const unsigned v = in[i] & 31u;
+        p[bit / 8] |= static_cast<unsigned char>(v << (bit % 8));
+        if (bit % 8 > 3) p[bit / 8 + 1] |= static_cast<unsigned char>(v >> (8 - bit % 8));
+    }
+}
+
+void unpack5(const char* packed, std::size_t n, std::vector<unsigned char>& out) {
+    const unsigned char* p = reinterpret_cast<const unsigned char*>(packed);
+    out.resize(n);
+    for (std::size_t i = 0; i < n; ++i) {
+        const std::size_t bit = i * 5;
+        unsigned v = p[bit / 8] >> (bit % 8);
+        if (bit % 8 > 3) v |= static_cast<unsigned>(p[bit / 8 + 1]) << (8 - bit % 8);
+        out[i] = static_cast<unsigned char>(v & 31u);
+    }
+}
+
+//! Which of the 8000 3-mers over the 20 amino acids a sequence contains.
+struct KmerSet {
+    std::vector<std::uint64_t> bits = std::vector<std::uint64_t>(125, 0);
+    unsigned count = 0;
+    explicit KmerSet(const std::vector<unsigned char>& s) {
+        for (std::size_t i = 2; i < s.size(); ++i) {
+            if (!s[i] || !s[i - 1] || !s[i - 2]) continue;
+            const unsigned k = (s[i - 2] - 1u) * 400u + (s[i - 1] - 1u) * 20u + (s[i] - 1u);
+            if (!((bits[k / 64] >> (k % 64)) & 1u)) { bits[k / 64] |= std::uint64_t(1) << (k % 64); ++count; }
+        }
+    }
+    double similarity(const KmerSet& o) const {
+        const unsigned m = std::min(count, o.count);
+        if (m == 0) return 0.0;
+        unsigned shared = 0;
+        for (std::size_t w = 0; w < bits.size(); ++w)
+            shared += static_cast<unsigned>(__builtin_popcountll(bits[w] & o.bits[w]));
+        return double(shared) / m;
+    }
+};
+
 }  // namespace
 
 std::size_t create_clustered_sequence_database(const std::string& members,
@@ -425,8 +472,7 @@ std::size_t create_clustered_sequence_database(const std::string& members,
             std::vector<char>& buf = buffers[b];
             const char* hp = reinterpret_cast<const char*>(&h);
             buf.insert(buf.end(), hp, hp + sizeof h);
-            buf.insert(buf.end(), reinterpret_cast<const char*>(codes),
-                       reinterpret_cast<const char*>(codes) + n);
+            pack5(codes, static_cast<std::size_t>(n), buf);
             buf.insert(buf.end(), header.begin(), header.end());
             if (buf.size() >= (std::size_t(1) << 17)) flush(b);
         });
@@ -450,22 +496,37 @@ std::size_t create_clustered_sequence_database(const std::string& members,
             store.set_bit_width(*residues, 5);
             store.set_huffman(*residues);
             *headers = store.add_column("headers", pto::ColumnType::UInt8, true, header_codec,
-                                        std::size_t(64) << 10, level);
+                                        std::size_t(16) << 10, level);
+            if (header_codec == "zstd") store.set_dictionary(*headers);
         };
         int rep_residues, rep_headers, mem_residues, mem_headers;
         sequence_columns(0, &rep_residues, &rep_headers);
         const int level = store.add_level("members");
         mem_residues = store.add_column("residues", pto::ColumnType::UInt8, true, "none", 0, level);
         mem_headers = store.add_column("headers", pto::ColumnType::UInt8, true, header_codec,
-                                       std::size_t(64) << 10, level);
-        // members as edits against their representative (5-bit literals)
+                                       std::size_t(16) << 10, level);
+        if (header_codec == "zstd") store.set_dictionary(mem_headers);
+        // members as edits against their representative or a closer sibling;
+        // literals Huffman-coded by the representatives' composition
         store.set_reference(mem_residues, rep_residues, 5);
+        {
+            std::vector<std::uint64_t> freq(256, 0);
+            for (int c = 0; c <= 20; ++c) freq[static_cast<std::size_t>(c)] = 1;
+            std::vector<unsigned char> scratch;
+            for (std::size_t k = 0; k < std::min<std::size_t>(n_reps, 20000); ++k) {
+                std::uint64_t rn = 0;
+                const unsigned char* rc = rep_db.get_codes(k * (n_reps / std::min<std::size_t>(n_reps, 20000)), &rn, scratch);
+                for (std::uint64_t i = 0; i < rn; ++i) ++freq[rc[i]];
+            }
+            store.set_literal_frequencies(mem_residues, freq.data());
+        }
         store.set_metadata(rep_residues, rep_db.get_metadata());
 
         std::vector<char> data;
         struct Ref { std::uint32_t cluster, row; std::size_t at; };
         std::vector<Ref> refs;
-        std::vector<std::string> ops;   // per ref: its alignment to its representative
+        std::vector<std::string> ops;          // per ref: its alignment to its reference
+        std::vector<std::uint32_t> sibling;    // per ref: 0 the representative, else rows back
         std::size_t loaded = n_buckets, next = 0;   // refs[next..] are the clusters to come
         auto load = [&](std::size_t b) {
             data.clear();
@@ -481,26 +542,61 @@ std::size_t create_clustered_sequence_database(const std::string& members,
                 MemberRecordHead h;
                 std::memcpy(&h, data.data() + at, sizeof h);
                 refs.push_back(Ref{h.cluster, h.row, at});
-                at += sizeof h + h.n_codes + h.n_header;
+                at += sizeof h + packed_bytes(h.n_codes) + h.n_header;
             }
             std::sort(refs.begin(), refs.end(), [](const Ref& a, const Ref& c) {
                 return a.cluster != c.cluster ? a.cluster < c.cluster : a.row < c.row;
             });
-            // align every member to its representative, across threads
+            // Each member's reference: the representative, or an earlier member
+            // of its cluster that shares more 3-mers (by at least 0.05), up to 16
+            // back and 7 deep; then its alignment to it. Clusters across threads.
             ops.assign(refs.size(), std::string());
-            std::atomic<std::size_t> next_ref{0};
+            sibling.assign(refs.size(), 0);
+            std::vector<std::pair<std::size_t, std::size_t> > groups;   // [first, end) of a cluster
+            for (std::size_t q = 0; q < refs.size();) {
+                std::size_t e = q;
+                while (e < refs.size() && refs[e].cluster == refs[q].cluster) ++e;
+                groups.push_back(std::make_pair(q, e));
+                q = e;
+            }
+            std::atomic<std::size_t> next_group{0};
             auto align = [&]() {
                 std::vector<unsigned char> scratch;
-                for (std::size_t q; (q = next_ref++) < refs.size();) {
-                    if (refs[q].cluster >= n_reps) continue;   // orphans: literal
-                    MemberRecordHead h;
-                    std::memcpy(&h, data.data() + refs[q].at, sizeof h);
+                std::vector<std::vector<unsigned char> > seqs;
+                std::vector<KmerSet> sets;
+                std::vector<unsigned> depth;
+                for (std::size_t g; (g = next_group++) < groups.size();) {
+                    const std::size_t first = groups[g].first, end = groups[g].second;
+                    const std::uint32_t k = refs[first].cluster;
+                    if (k >= n_reps) continue;   // orphans: literal
                     std::uint64_t rn = 0;
-                    const unsigned char* rc = rep_db.get_codes(refs[q].cluster, &rn, scratch);
-                    ops[q] = align_to_reference(
-                            rc, static_cast<std::size_t>(rn),
-                            reinterpret_cast<const unsigned char*>(data.data() + refs[q].at + sizeof h),
-                            h.n_codes);
+                    const unsigned char* rc = rep_db.get_codes(k, &rn, scratch);
+                    const std::vector<unsigned char> rep(rc, rc + rn);
+                    const KmerSet rep_set(rep);
+                    seqs.clear();
+                    sets.clear();
+                    depth.clear();
+                    for (std::size_t q = first; q < end; ++q) {
+                        MemberRecordHead h;
+                        std::memcpy(&h, data.data() + refs[q].at, sizeof h);
+                        std::vector<unsigned char> m;
+                        unpack5(data.data() + refs[q].at + sizeof h, h.n_codes, m);
+                        const KmerSet set(m);
+                        double best = set.similarity(rep_set) + 0.05;
+                        std::size_t pick = 0;   // 0: the representative, else a distance back
+                        const std::size_t j = q - first;
+                        for (std::size_t back = 1; back <= std::min<std::size_t>(j, 16); ++back) {
+                            if (depth[j - back] >= 7) continue;
+                            const double sim = set.similarity(sets[j - back]);
+                            if (sim > best) { best = sim; pick = back; }
+                        }
+                        const std::vector<unsigned char>& ref = pick ? seqs[j - pick] : rep;
+                        ops[q] = align_to_reference(ref.data(), ref.size(), m.data(), m.size());
+                        sibling[q] = ops[q].empty() ? 0 : static_cast<std::uint32_t>(pick);
+                        depth.push_back(ops[q].empty() ? 0u : (pick ? depth[j - pick] + 1u : 1u));
+                        seqs.push_back(std::move(m));
+                        sets.push_back(set);
+                    }
                 }
             };
             const unsigned n_threads = std::max(1u, std::thread::hardware_concurrency());
@@ -514,12 +610,20 @@ std::size_t create_clustered_sequence_database(const std::string& members,
         auto emit_members = [&](std::size_t k, const unsigned char* rep, std::uint64_t rep_n) {
             if (loaded != bucket_of(k)) load(bucket_of(k));
             std::uint64_t count = 0;
+            std::vector<std::vector<unsigned char> > written_rows;   // this cluster's members
             for (; next < refs.size() && refs[next].cluster == k; ++next, ++count) {
                 MemberRecordHead h;
                 std::memcpy(&h, data.data() + refs[next].at, sizeof h);
                 const char* p = data.data() + refs[next].at + sizeof h;
-                store.append_row_against(mem_residues, p, h.n_codes, rep, rep_n, ops[next]);
-                store.append_row(mem_headers, p + h.n_codes, h.n_header);
+                std::vector<unsigned char> m;
+                unpack5(p, h.n_codes, m);
+                const std::uint32_t back = sibling[next];
+                const std::vector<unsigned char>* ref = back ? &written_rows[written_rows.size() - back] : nullptr;
+                store.append_row_against(mem_residues, m.data(), m.size(),
+                                         ref ? ref->data() : rep, ref ? ref->size() : rep_n,
+                                         ops[next], back);
+                store.append_row(mem_headers, p + packed_bytes(h.n_codes), h.n_header);
+                written_rows.push_back(std::move(m));
             }
             store.append_children(level, count);
             written += count;

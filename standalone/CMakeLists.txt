@@ -252,7 +252,14 @@ if(NOT IMPBFF_LIBRARY_TYPE MATCHES "^(SHARED|STATIC)$")
   message(FATAL_ERROR "IMPBFF_LIBRARY_TYPE must be SHARED or STATIC, not '${IMPBFF_LIBRARY_TYPE}'")
 endif()
 add_library(imp_bff ${IMPBFF_LIBRARY_TYPE} ${_cxx_sources} ${_ihm_sources})
-target_link_libraries(imp_bff PUBLIC ptolib::ptolib)
+# The whole archive (when static): a tttrlib linked before it exports its own
+# ptolib, maybe another version; every ptolib symbol must resolve here.
+if(PTOLIB_SHARED)
+  target_link_libraries(imp_bff PUBLIC ptolib::ptolib)
+else()
+  target_link_libraries(imp_bff PUBLIC "$<LINK_LIBRARY:WHOLE_ARCHIVE,ptolib::ptolib>")
+endif()
+set_target_properties(imp_bff PROPERTIES VISIBILITY_INLINES_HIDDEN ON)
 # Optional: zlib reads gzip-compressed FASTA into a sequence database.
 option(IMPBFF_WITH_ZLIB "Read gzip-compressed FASTA (zlib)" ON)
 if(IMPBFF_WITH_ZLIB)

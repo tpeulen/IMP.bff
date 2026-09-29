@@ -148,7 +148,8 @@ std::size_t create_sequence_database(const std::string& fasta, const std::string
         }
         const std::string header_codec = pto::can_compress("zstd") ? "zstd" : "none";
         const int headers = store.add_column(kColumnHeaders, pto::ColumnType::UInt8, true,
-                                             header_codec, std::size_t(64) << 10);
+                                             header_codec, std::size_t(16) << 10);
+        if (header_codec == "zstd") store.set_dictionary(headers);
         nlohmann::json meta;
         meta["alphabet"] = kLetters;
         meta["source"] = fasta;
@@ -359,7 +360,8 @@ std::size_t repack_sequence_database(const std::string& in, const std::string& o
         }
         const std::string header_codec = pto::can_compress("zstd") ? "zstd" : "none";
         const int headers = store.add_column(kColumnHeaders, pto::ColumnType::UInt8, true,
-                                             header_codec, std::size_t(64) << 10);
+                                             header_codec, std::size_t(16) << 10);
+        if (header_codec == "zstd") store.set_dictionary(headers);
         store.set_metadata(residues, source.get_metadata());
         source.scan_records([&](std::size_t, const unsigned char* codes, std::uint64_t len,
                                 const std::string& header) {
