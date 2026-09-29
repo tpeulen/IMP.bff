@@ -90,7 +90,7 @@ void create(const Args& a) {
 
 void pack(const Args& a) {
   const std::size_t n = repack_sequence_database(a.database, a.out, !a.bytes, a.name, a.segment_mb);
-  std::cout << a.out << ": " << n << " sequences, " << (a.bytes ? "a byte" : "5 bits")
+  std::cout << a.out << ": " << n << " sequences, " << (a.bytes ? "a byte" : "Huffman-coded")
             << " a residue\n";
 }
 
@@ -111,7 +111,7 @@ std::string representatives_for(const Args& a, const std::string& database) {
 
 void info(const Args& a) {
   const SequenceDatabase db(resolve_database(a.database), a.name);
-  std::cout << db.get_path() << "\n  residues as " << (db.get_is_packed() ? "5 bits" : "bytes")
+  std::cout << db.get_path() << "\n  residues as " << (db.get_is_packed() ? "packed (Huffman / 5 bits)" : "bytes")
             << "\n  sequences " << db.get_number_of_sequences()
             << "\n  residues  " << db.get_number_of_residues() << "\n  segments  "
             << db.get_number_of_segments() << "\n";
@@ -219,13 +219,13 @@ file to search it by name:
   create->add_option("out", a->out, "the .pto to write")->required();
   create->add_option("--name", a->name, "the store inside the container");
   create->add_option("--segment-mb", a->segment_mb, "segment size in MB");
-  create->add_flag("--bytes", a->bytes, "a byte per residue instead of 5 bits (read in place)");
+  create->add_flag("--bytes", a->bytes, "a byte per residue instead of packed (read in place)");
   create->callback([a] {
     set_current_sub("sequence-db create");
     sequence::create(*a);
   });
   CLI::App* pack = db->add_subcommand(
-      "pack", R"doc(Rewrite a database with residues packed in 5 bits (or --bytes).)doc");
+      "pack", R"doc(Rewrite a database with residues packed: Huffman-coded (or --bytes).)doc");
   pack->footer(R"doc(One streaming pass; rows keep their order, so a cluster membership built
 against the old file still holds:
 

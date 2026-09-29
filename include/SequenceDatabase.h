@@ -7,9 +7,10 @@
  * was built with zlib) into one `dstore` object of a `.pto` container
  * (ptolib's streamed store, format 5):
  *
- * - `residues`: variable-length rows of residue codes, packed in 5 bits each
- *   (the 21 codes need 5; any sequence still decodes alone), or optionally
- *   one byte each, read in place from the memory map. The codes are those of
+ * - `residues`: variable-length rows of residue codes, Huffman-coded per
+ *   segment (~4.2 bits a residue on UniRef; 5 bits where Huffman does not
+ *   shrink) with any sequence still decoding alone, or optionally one byte
+ *   each, read in place from the memory map. The codes are those of
  *   #IMP::bff::SequenceMSA: 1..20 are `ACDEFGHIKLMNPQRSTVWY`, 0 is anything
  *   else (X, B, Z, J, U, O).
  * - `headers`: the FASTA header line without `>`, compressed (zstd when
@@ -47,7 +48,7 @@ IMPBFF_BEGIN_NAMESPACE
     \param[in] out the `.pto` container to create (replaced if present)
     \param[in] name the store object inside the container
     \param[in] segment_mb segment size of the streamed store, in MB
-    \param[in] packed residues in 5 bits each (62.5 % of a byte; any sequence
+    \param[in] packed residues Huffman-coded (~4.2 bits each; any sequence
                still reads alone), else one byte each (read in place)
     \return the number of sequences written
     \throw IOException when a file cannot be read or written
@@ -57,7 +58,7 @@ IMPBFFEXPORT std::size_t create_sequence_database(const std::string& fasta,
                                                   const std::string& name = "sequences",
                                                   int segment_mb = 16, bool packed = true);
 
-//! Rewrite a sequence database, packed (5 bits a residue) or as bytes, in one
+//! Rewrite a sequence database, packed (~4.2 bits a residue) or as bytes, in one
 //! streaming pass; rows keep their order, so a cluster membership stays valid,
 //! and the container's other objects (such as that membership) are copied.
 IMPBFFEXPORT std::size_t repack_sequence_database(const std::string& in, const std::string& out,
@@ -89,7 +90,7 @@ public:
     std::string get_identifier(std::size_t i) const;
     //! The residues' description (JSON): alphabet and source.
     std::string get_metadata() const;
-    //! Whether residues are stored packed (5 bits) rather than a byte each.
+    //! Whether residues are stored packed (Huffman / 5 bits) rather than a byte each.
     bool get_is_packed() const;
 
 #ifndef SWIG

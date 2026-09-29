@@ -141,7 +141,11 @@ std::size_t create_sequence_database(const std::string& fasta, const std::string
         // Residues raw, to be read in place; headers compressed in small
         // segments, since a hit's header is looked up alone.
         const int residues = store.add_column(kColumnResidues, pto::ColumnType::UInt8, true, "none");
-        if (packed) store.set_bit_width(residues, 5);
+        if (packed) {
+            // Huffman codes (~4.2 bits a residue), 5 bits where they do not shrink
+            store.set_bit_width(residues, 5);
+            store.set_huffman(residues);
+        }
         const std::string header_codec = pto::can_compress("zstd") ? "zstd" : "none";
         const int headers = store.add_column(kColumnHeaders, pto::ColumnType::UInt8, true,
                                              header_codec, std::size_t(64) << 10);
@@ -335,7 +339,11 @@ std::size_t repack_sequence_database(const std::string& in, const std::string& o
         pto::StoreWriter store(container, "table", name, pto::StoreOptions(),
                                static_cast<std::size_t>(segment_mb) << 20);
         const int residues = store.add_column(kColumnResidues, pto::ColumnType::UInt8, true, "none");
-        if (packed) store.set_bit_width(residues, 5);
+        if (packed) {
+            // Huffman codes (~4.2 bits a residue), 5 bits where they do not shrink
+            store.set_bit_width(residues, 5);
+            store.set_huffman(residues);
+        }
         const std::string header_codec = pto::can_compress("zstd") ? "zstd" : "none";
         const int headers = store.add_column(kColumnHeaders, pto::ColumnType::UInt8, true,
                                              header_codec, std::size_t(64) << 10);
