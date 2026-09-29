@@ -127,3 +127,35 @@ def test_repacking_keeps_the_membership(clustered, tmp_path):
     assert list(b.get_members(0)) == list(a.get_members(0))
     assert list(b.get_orphans()) == list(a.get_orphans())
     assert not bff.SequenceDatabase(out).get_is_packed()
+
+
+def test_uniref_xml_places_what_the_table_cannot(clustered, tmp_path):
+    d, family = clustered
+    members = bff.SequenceDatabase(str(d / "members.pto"))
+    reps = bff.SequenceDatabase(str(d / "reps.pto"))
+    # the same clusters as XML, with the orphan (a UniParc-only member) placed
+    ids = [members.get_identifier(i) for i in range(members.get_number_of_sequences())]
+    lines = ['<?xml version="1.0"?>', '<UniRef50 xmlns="http://uniprot.org/uniref">']
+    def entry(rep, member_ids):
+        lines.append(f'<entry id="{rep}" updated="2026-09-02">')
+        lines.append('<name>Cluster: x</name>')
+        for m in member_ids:
+            lines.append('<member><dbReference type="UniParc ID" id="UPI0">')
+            lines.append(f'<property type="UniRef90 ID" value="{m}"/>')
+            lines.append('</dbReference></member>')
+        lines.append('<sequence length="3">ACD</sequence></entry>')
+    entry("UniRef50_F0", [f"UniRef90_F{k}" for k in range(len(family))])
+    for k in range(reps.get_number_of_sequences() - 1):
+        entry(f"UniRef50_D{k}", [f"UniRef90_D{k}"])
+    lines.append("</UniRef50>")
+    xml = tmp_path / "uniref50.xml.gz"
+    with gzip.open(xml, "wt") as fh:
+        fh.write("\n".join(lines) + "\n")
+    out = str(tmp_path / "reps.pto")
+    bff.repack_sequence_database(str(d / "reps.pto"), out)
+    placed = bff.create_sequence_clusters(str(d / "members.pto"), out, str(xml))
+    assert placed == members.get_number_of_sequences()
+    c = bff.SequenceClusters(out)
+    assert c.get_number_of_orphans() == 0
+    assert sorted(members.get_identifier(r) for r in c.get_members(0)) == sorted(
+        f"UniRef90_F{k}" for k in range(len(family)))

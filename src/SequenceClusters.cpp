@@ -208,14 +208,49 @@ std::size_t create_sequence_clusters(const std::string& members,
         PairBuckets a(dir, "map");
         LineSource in(mapping);
         std::string line;
-        const char* p = nullptr;
-        const char* q = nullptr;
-        std::size_t np = 0, nq = 0;
-        while (in.next(line)) {
-            if (!tab_field(line, member_column, &p, &np) || np == 0) continue;
-            if (!tab_field(line, representative_column, &q, &nq) || nq == 0) continue;
-            const std::uint64_t hm = cluster_hash(p, np);
-            a.add(hash_bucket(hm), hm, cluster_hash(q, nq));
+        const bool xml = mapping.find(".xml") != std::string::npos;
+        if (xml) {
+            // UniRef's XML: <entry id="UniRef50_X"> ... per member a
+            // <property type="UniRef90 ID" value="UniRef90_Y"/>; the member
+            // level is the one the member database's identifiers name.
+            const std::string entry = "<entry id=\"";
+            std::string level = "UniRef90";
+            if (member_db.get_number_of_sequences() > 0) {
+                const std::string first = member_db.get_identifier(0);
+                level = first.substr(0, first.find('_'));
+            }
+            const std::string member_key = "type=\"" + level + " ID\" value=\"";
+            std::uint64_t current = 0;
+            bool have = false;
+            while (in.next(line)) {
+                std::string::size_type at = line.find(entry);
+                if (at != std::string::npos) {
+                    at += entry.size();
+                    const std::string::size_type end = line.find('"', at);
+                    if (end == std::string::npos) continue;
+                    current = cluster_hash(line.data() + at, end - at);
+                    have = true;
+                    continue;
+                }
+                if (!have) continue;
+                at = line.find(member_key);
+                if (at == std::string::npos) continue;
+                at += member_key.size();
+                const std::string::size_type end = line.find('"', at);
+                if (end == std::string::npos) continue;
+                const std::uint64_t hm = cluster_hash(line.data() + at, end - at);
+                a.add(hash_bucket(hm), hm, current);
+            }
+        } else {
+            const char* p = nullptr;
+            const char* q = nullptr;
+            std::size_t np = 0, nq = 0;
+            while (in.next(line)) {
+                if (!tab_field(line, member_column, &p, &np) || np == 0) continue;
+                if (!tab_field(line, representative_column, &q, &nq) || nq == 0) continue;
+                const std::uint64_t hm = cluster_hash(p, np);
+                a.add(hash_bucket(hm), hm, cluster_hash(q, nq));
+            }
         }
     }
     // 2. the members' identifiers -> rows

@@ -45,10 +45,16 @@ IMPBFF_BEGIN_NAMESPACE
                settings name
     \param[in] representatives the representatives' database (e.g. UniRef50);
                the `members` object is added to its container
-    \param[in] mapping a tab-separated table (`.gz` with zlib): one row per
-               accession, the member cluster id in column \p member_column and
-               the representative cluster id in \p representative_column
-               (1-based; UniProt's idmapping_selected: 9 and 10)
+    \param[in] mapping (`.gz` with zlib) either UniRef's XML of the
+               representatives' level (`uniref50.xml.gz`: every member, UniParc
+               ones included, with its id at the members' level, e.g. its
+               UniRef90 ID for UniRef90 members -- a path containing `.xml`),
+               or a tab-separated table, one row per accession, the member
+               cluster id in column \p member_column and the representative
+               cluster id in \p representative_column (1-based; UniProt's
+               idmapping_selected: 9 and 10). The table lacks the clusters of
+               UniParc sequences only (a fifth of UniRef90), which then become
+               orphans that every search reads; the XML places them.
     \param[in] temporary a directory for the bucket files; empty: next to the
                representatives
     \return the number of members placed in a cluster
