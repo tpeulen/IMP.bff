@@ -119,7 +119,8 @@ IMPBFFEXPORT SequenceSearchHits search_sequence_database_rows(
 //! unaligned ends as 'I'), for storing a member against its cluster's
 //! representative. A banded local alignment (BLOSUM62, 11/1) around the
 //! diagonal the length difference suggests, \p band columns either side of
-//! it; identical sequences take no alignment. Empty when nothing aligns.
+//! it; identical sequences take no alignment. Empty when nothing aligns, or
+//! when the band would exceed 16 M cells (memory stays bounded).
 IMPBFFEXPORT std::string align_to_reference(const unsigned char* reference, std::size_t n,
                                             const unsigned char* member, std::size_t m,
                                             int band = 24);

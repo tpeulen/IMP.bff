@@ -326,6 +326,9 @@ std::string align_to_reference(const unsigned char* ref, std::size_t n,
     const long lo = std::min<long>(0, static_cast<long>(n) - static_cast<long>(m)) - band;
     const long hi = std::max<long>(0, static_cast<long>(n) - static_cast<long>(m)) + band;
     const std::size_t W = static_cast<std::size_t>(hi - lo + 1);
+    // Bounded work and memory: a pair whose band would span more than 16 M
+    // cells (a giant against a much shorter reference) is stored literally.
+    if ((m + 1) * W > (std::size_t(1) << 24)) return std::string();
     std::vector<int> H_prev(W + 2, 0), H_cur(W + 2, 0), F_prev(W + 2, kNeg), F_cur(W + 2, kNeg);
     // traceback: bits 0-1 source of H (0 start, 1 diagonal, 2 E, 3 F), bit 2 E extended, bit 3 F extended
     std::vector<unsigned char> tb((m + 1) * W, 0);
