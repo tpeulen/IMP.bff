@@ -188,3 +188,36 @@ def test_a_clustered_database_searches_like_the_member_database(clustered, tmp_p
     two = bff.search_clustered_sequence_database(queries, db)
     key = lambda hits: sorted((h.query, h.identifier, h.score) for h in hits)
     assert key(two) == key(full)
+
+
+def test_clusters_of_close_members_chain_through_siblings(tmp_path):
+    # members close to each other and far from their representative: stored
+    # against siblings, chains limited, several clusters in a row
+    rng = random.Random(21)
+    reps, members, mapping = [], [], []
+    for k in range(3):
+        rep = "".join(rng.choice(AA) for _ in range(300))
+        reps.append((f"UniRef50_R{k}", rep))
+        centre = "".join(c if rng.random() < 0.4 else rng.choice(AA) for c in rep)
+        for j in range(30):
+            m = "".join(c if rng.random() > 0.02 else rng.choice(AA) for c in centre)
+            members.append((f"UniRef90_M{k}_{j}", m))
+            mapping.append(_row(f"M{k}_{j}", f"UniRef90_M{k}_{j}", f"UniRef50_R{k}"))
+    for name, records in (("members", members), ("reps", reps)):
+        with open(tmp_path / f"{name}.fasta", "w") as fh:
+            for i, s in records:
+                fh.write(f">{i}\n{s}\n")
+        bff.create_sequence_database(str(tmp_path / f"{name}.fasta"), str(tmp_path / f"{name}.pto"))
+    with gzip.open(tmp_path / "map.tab.gz", "wt") as fh:
+        fh.writelines(mapping)
+    bff.create_sequence_clusters(str(tmp_path / "members.pto"), str(tmp_path / "reps.pto"),
+                                 str(tmp_path / "map.tab.gz"))
+    out = str(tmp_path / "clustered.pto")
+    assert bff.create_clustered_sequence_database(str(tmp_path / "members.pto"),
+                                                  str(tmp_path / "reps.pto"), out) == 90
+    m = bff.SequenceDatabase(out).get_members_database()
+    want = dict(members)
+    for r in range(m.get_number_of_sequences()):
+        assert m.get_sequence(r) == want[m.get_identifier(r)]
+    # far smaller than the members stored alone
+    assert os.path.getsize(out) < os.path.getsize(tmp_path / "members.pto")

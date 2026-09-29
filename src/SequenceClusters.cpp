@@ -573,9 +573,10 @@ std::size_t create_clustered_sequence_database(const std::string& members,
                     const unsigned char* rc = rep_db.get_codes(k, &rn, scratch);
                     const std::vector<unsigned char> rep(rc, rc + rn);
                     const KmerSet rep_set(rep);
-                    seqs.clear();
+                    seqs.clear();   // the last 17 members only: a window, not the cluster
                     sets.clear();
                     depth.clear();
+                    const std::size_t window = 17;
                     for (std::size_t q = first; q < end; ++q) {
                         MemberRecordHead h;
                         std::memcpy(&h, data.data() + refs[q].at, sizeof h);
@@ -587,15 +588,15 @@ std::size_t create_clustered_sequence_database(const std::string& members,
                         const std::size_t j = q - first;
                         for (std::size_t back = 1; back <= std::min<std::size_t>(j, 16); ++back) {
                             if (depth[j - back] >= 7) continue;
-                            const double sim = set.similarity(sets[j - back]);
+                            const double sim = set.similarity(sets[(j - back) % window]);
                             if (sim > best) { best = sim; pick = back; }
                         }
-                        const std::vector<unsigned char>& ref = pick ? seqs[j - pick] : rep;
+                        const std::vector<unsigned char>& ref = pick ? seqs[(j - pick) % window] : rep;
                         ops[q] = align_to_reference(ref.data(), ref.size(), m.data(), m.size());
                         sibling[q] = ops[q].empty() ? 0 : static_cast<std::uint32_t>(pick);
                         depth.push_back(ops[q].empty() ? 0u : (pick ? depth[j - pick] + 1u : 1u));
-                        seqs.push_back(std::move(m));
-                        sets.push_back(set);
+                        if (seqs.size() < window) { seqs.push_back(std::move(m)); sets.push_back(set); }
+                        else { seqs[j % window] = std::move(m); sets[j % window] = set; }
                     }
                 }
             };
@@ -609,9 +610,13 @@ std::size_t create_clustered_sequence_database(const std::string& members,
         };
         auto emit_members = [&](std::size_t k, const unsigned char* rep, std::uint64_t rep_n) {
             if (loaded != bucket_of(k)) load(bucket_of(k));
+            // the parent row owns its members before they are written: the
+            // writer tracks siblings and their depth per parent
             std::uint64_t count = 0;
+            while (next + count < refs.size() && refs[next + count].cluster == k) ++count;
+            store.append_children(level, count);
             std::vector<std::vector<unsigned char> > written_rows;   // this cluster's members
-            for (; next < refs.size() && refs[next].cluster == k; ++next, ++count) {
+            for (std::uint64_t written_here = 0; written_here < count; ++next, ++written_here) {
                 MemberRecordHead h;
                 std::memcpy(&h, data.data() + refs[next].at, sizeof h);
                 const char* p = data.data() + refs[next].at + sizeof h;
@@ -624,8 +629,8 @@ std::size_t create_clustered_sequence_database(const std::string& members,
                                          ops[next], back);
                 store.append_row(mem_headers, p + packed_bytes(h.n_codes), h.n_header);
                 written_rows.push_back(std::move(m));
+                if (written_rows.size() > 17) written_rows.erase(written_rows.begin());
             }
-            store.append_children(level, count);
             written += count;
         };
         rep_db.scan_records([&](std::size_t k, const unsigned char* codes, std::uint64_t n,
