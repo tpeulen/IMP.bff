@@ -9,7 +9,7 @@
 
 #include <IMP/bff/Distributions.h>
 #include <IMP/bff/FRETOrientationFactor.h>
-
+#include <IMP/bff/SamplerDiagnostics.h>
 #include <IMP/algebra/Vector3D.h>
 
 #include <algorithm>
@@ -637,6 +637,62 @@ double nps_network_log_likelihood(
     return log_likelihood;
 }
 
+double nps_network_chi2(
+        const std::vector<std::vector<double>>& config,
+        const NPSNetworkDyes& dyes,
+        const NPSMeasurements& measurements) {
+    const char* api_name = "nps_network_chi2";
+    double chi2 = 0.0;
+    bool any_active = false;
+    for (std::size_t m_index = 0; m_index < measurements.size();
+            ++m_index) {
+        const NPSMeasurement& meas = measurements[m_index];
+        const int index1 = meas.dye1;
+        const int index2 = meas.dye2;
+        if (meas.fret_active) {
+            if (!std::isfinite(meas.e_avg) || !std::isfinite(meas.e_err)
+                    || meas.e_err <= 0.0) {
+                IMP_THROW(api_name << ": measurement " << m_index
+                                  << " FRET data must be finite with a "
+                                     "positive error",
+                          ValueException);
+            }
+            if (!std::isfinite(meas.r_iso6) || meas.r_iso6 <= 0.0) {
+                IMP_THROW(api_name << ": measurement " << m_index
+                                  << " r_iso6 must be finite and "
+                                     "strictly positive",
+                          ValueException);
+            }
+            const double efficiency = nps_network_fret_efficiency(
+                    config, dyes, index1, index2, meas.r_iso6,
+                    meas.eff_conv_coeff);
+            const double z = (meas.e_avg - efficiency) / meas.e_err;
+            chi2 += z * z;
+            any_active = true;
+        }
+        if (meas.ta_active) {
+            if (!std::isfinite(meas.r_t_avg)
+                    || !std::isfinite(meas.r_t_err)
+                    || meas.r_t_err <= 0.0) {
+                IMP_THROW(api_name << ": measurement " << m_index
+                                  << " TA data must be finite with a "
+                                     "positive error",
+                          ValueException);
+            }
+            const double ta = nps_network_transfer_anisotropy(
+                    config, dyes, index1, index2);
+            const double z = (meas.r_t_avg - ta) / meas.r_t_err;
+            chi2 += z * z;
+            any_active = true;
+        }
+    }
+    if (!any_active) {
+        IMP_THROW(api_name << ": at least one measurement must be active",
+                  ValueException);
+    }
+    return chi2;
+}
+
 // ---------------------------------------------------------------------------
 // Table generation: the Fast-NPS modelMCSimulation concept on bff states.
 // ---------------------------------------------------------------------------
@@ -915,6 +971,276 @@ std::vector<std::vector<double> > nps_convolved_efficiency_table(
                                            150.0);
     }
     return table;
+}
+
+namespace {
+
+//! Validate a flat (n, 4) cloud; return its point count.
+/*! Throws exactly the cloud-prior validation contract; shared by the
+    cloud-prior API so the validation exists once. */
+std::size_t validate_cloud(const std::vector<double>& cloud,
+                           const char* api_name) {
+    if (cloud.empty() || cloud.size() % 4 != 0) {
+        IMP_THROW(api_name << ": cloud must be a flat (n, 4) array — "
+                          "x, y, z, weight per point",
+                  ValueException);
+    }
+    const std::size_t n = cloud.size() / 4;
+    double w_sum = 0.0;
+    for (std::size_t i = 0; i < n; ++i) {
+        for (int c = 0; c < 3; ++c) {
+            if (!std::isfinite(cloud[4 * i + static_cast<std::size_t>(c)])) {
+                IMP_THROW(api_name << ": cloud coordinates must be finite",
+                          ValueException);
+            }
+        }
+        const double w = cloud[4 * i + 3];
+        if (!std::isfinite(w) || w < 0.0) {
+            IMP_THROW(api_name << ": cloud weights must be finite and "
+                          "non-negative",
+                  ValueException);
+        }
+        w_sum += w;
+    }
+    if (!(w_sum > 0.0)) {
+        IMP_THROW(api_name << ": cloud must carry a positive weight",
+                  ValueException);
+    }
+    return n;
+}
+
+//! Scott's-rule bandwidth of a weighted cloud (d = 3).
+/*! The weighted RMS spread about the weighted mean (population form —
+    weights are frequencies, the KDE kernel itself regularises the scale)
+    times Scott's factor n^(-1/(d+4)) (Scott 1992). Weights are used raw
+    and divided by their sum. */
+double bandwidth_of(const std::vector<double>& cloud, std::size_t n,
+                    const char* api_name) {
+    double w_sum = 0.0, mx = 0.0, my = 0.0, mz = 0.0;
+    for (std::size_t i = 0; i < n; ++i) {
+        const double w = cloud[4 * i + 3];
+        w_sum += w;
+        mx += w * cloud[4 * i + 0];
+        my += w * cloud[4 * i + 1];
+        mz += w * cloud[4 * i + 2];
+    }
+    const double inv_w = 1.0 / w_sum;
+    mx *= inv_w;
+    my *= inv_w;
+    mz *= inv_w;
+    double v = 0.0;
+    for (std::size_t i = 0; i < n; ++i) {
+        const double w = cloud[4 * i + 3];
+        const double dx = cloud[4 * i + 0] - mx;
+        const double dy = cloud[4 * i + 1] - my;
+        const double dz = cloud[4 * i + 2] - mz;
+        v += w * (dx * dx + dy * dy + dz * dz);
+    }
+    if (!(v > 0.0)) {
+        IMP_THROW(api_name << ": cloud positions carry no spread",
+                  ValueException);
+    }
+    return std::sqrt(v * inv_w) *
+           std::pow(static_cast<double>(n), -0.2);
+}
+
+//! Weighted Gaussian-KDE log density — log( sum_i w_i phi_h(x - x_i) / W ).
+/*! Two allocation-free passes: the running maximum of the kernel terms,
+    then the log-sum-exp accumulation. Weights raw, W their sum. */
+double kde_log_density(const std::vector<double>& cloud, std::size_t n,
+                       double h, double x, double y, double z) {
+    const double inv_two_h2 = 1.0 / (2.0 * h * h);
+    const double log_kernel_norm =
+            -3.0 * std::log(h) - 1.5 * std::log(2.0 * M_PI);
+    double w_sum = 0.0;
+    double max_term = -std::numeric_limits<double>::infinity();
+    for (std::size_t i = 0; i < n; ++i) {
+        const double w = cloud[4 * i + 3];
+        if (w == 0.0) continue;
+        w_sum += w;
+        const double dx = x - cloud[4 * i + 0];
+        const double dy = y - cloud[4 * i + 1];
+        const double dz = z - cloud[4 * i + 2];
+        const double t = std::log(w) + log_kernel_norm
+                                 - inv_two_h2 * (dx * dx + dy * dy + dz * dz);
+        if (t > max_term) max_term = t;
+    }
+    double acc = 0.0;
+    for (std::size_t i = 0; i < n; ++i) {
+        const double w = cloud[4 * i + 3];
+        if (w == 0.0) continue;
+        const double dx = x - cloud[4 * i + 0];
+        const double dy = y - cloud[4 * i + 1];
+        const double dz = z - cloud[4 * i + 2];
+        const double t = std::log(w) + log_kernel_norm
+                                 - inv_two_h2 * (dx * dx + dy * dy + dz * dz);
+        acc += std::exp(t - max_term);
+    }
+    return max_term + std::log(acc) - std::log(w_sum);
+}
+
+}  // namespace
+
+double nps_cloud_bandwidth(const std::vector<double>& cloud) {
+    const std::size_t n = validate_cloud(cloud, "nps_cloud_bandwidth");
+    return bandwidth_of(cloud, n, "nps_cloud_bandwidth");
+}
+
+double nps_cloud_log_prior(const std::vector<double>& cloud,
+                           double x, double y, double z) {
+    const char* api_name = "nps_cloud_log_prior";
+    if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z)) {
+        IMP_THROW(api_name << ": query position must be finite",
+                  ValueException);
+    }
+    const std::size_t n = validate_cloud(cloud, api_name);
+    const double h = bandwidth_of(cloud, n, api_name);
+    return kde_log_density(cloud, n, h, x, y, z);
+}
+
+std::vector<double> nps_config_from_cloud(
+        const std::vector<double>& cloud) {
+    validate_cloud(cloud, "nps_config_from_cloud");
+    const std::vector<double> mean = points_weighted_mean(cloud);
+    return std::vector<double>{mean[0], mean[1], mean[2], 0.0, 0.0};
+}
+
+NPSCloudPositionPriorRestraint::NPSCloudPositionPriorRestraint(
+        IMP::Model* m, IMP::ParticleIndexAdaptor site,
+        const std::vector<double>& cloud, double scale, std::string name)
+    : IMP::Restraint(m, name),
+      site_(static_cast<IMP::ParticleIndex>(site)),
+      cloud_(cloud),
+      scale_(scale) {
+    if (!IMP::core::XYZ::get_is_setup(m, site_)) {
+        IMP_THROW("NPSCloudPositionPriorRestraint: site particle "
+                  "must have IMP::core::XYZ",
+                  ValueException);
+    }
+    if (!std::isfinite(scale) || scale <= 0.0) {
+        IMP_THROW("NPSCloudPositionPriorRestraint: scale must be "
+                  "finite and strictly positive",
+                  ValueException);
+    }
+    // Validate the cloud once and freeze the KDE's scale; the private
+    // copy is then immutable, so evaluate() skips validation entirely.
+    bandwidth_ =
+            bandwidth_of(cloud_, validate_cloud(cloud_, get_name().c_str()),
+                         get_name().c_str());
+}
+
+double NPSCloudPositionPriorRestraint::unprotected_evaluate(
+        IMP::DerivativeAccumulator* accum) const {
+    IMP::Model* m = get_model();
+    if (accum != nullptr) {
+        IMP_THROW("NPSCloudPositionPriorRestraint: derivatives are not "
+                          "supported; this restraint is Monte-Carlo-only",
+                  UsageException);
+    }
+    const IMP::algebra::Vector3D p =
+            IMP::core::XYZ(m, site_).get_coordinates();
+    if (!are_finite(p)) {
+        return std::numeric_limits<double>::infinity();
+    }
+    const double log_density = kde_log_density(
+            cloud_, cloud_.size() / 4, bandwidth_, p[0], p[1], p[2]);
+    if (!std::isfinite(log_density)) {
+        return std::numeric_limits<double>::infinity();
+    }
+    return -scale_ * log_density;
+}
+
+IMP::ModelObjectsTemp NPSCloudPositionPriorRestraint::do_get_inputs()
+        const {
+    IMP::Model* m = get_model();
+    IMP::ModelObjectsTemp out;
+    out.push_back(m->get_particle(site_));
+    return out;
+}
+
+// ---------------------------------------------------------------------------
+// The sampler objective and its diagnostics: the Fast-NPS sampling loop
+// on bff's MCMCSampler, without a per-move crossing into Python.
+// ---------------------------------------------------------------------------
+
+NPSNetworkObjective::NPSNetworkObjective(const NPSNetworkDyes& dyes,
+                                         const NPSMeasurements& measurements,
+                                         int n_dyes, std::string name)
+    : GraphNode(name),
+      dyes_(dyes),
+      measurements_(measurements),
+      n_dyes_(n_dyes) {
+    if (n_dyes <= 0) {
+        IMP_THROW("NPSNetworkObjective: n_dyes must be positive",
+                  ValueException);
+    }
+}
+
+void NPSNetworkObjective::evaluate() {
+    std::vector<std::vector<double>> config;
+    config.reserve(static_cast<std::size_t>(n_dyes_));
+    for (int i = 0; i < n_dyes_; ++i) {
+        // The parameter ports carry one scalar each (MCMCSampler writes
+        // scalars), so read them as scalars.
+        config.push_back(std::vector<double>{
+                get_input_port("x" + std::to_string(3 * i))->get_value(),
+                get_input_port("x" + std::to_string(3 * i + 1))->get_value(),
+                get_input_port("x" + std::to_string(3 * i + 2))->get_value(),
+                0.0, 0.0});
+    }
+    double value;
+    if (output_is_log_likelihood_) {
+        value = -nps_network_log_likelihood(config, dyes_, measurements_);
+    } else {
+        value = nps_network_chi2(config, dyes_, measurements_);
+    }
+    get_output_port("chi2")->set_value(value);
+}
+
+double nps_cross_entropy(const std::vector<double>& chi2,
+                         const std::vector<double>& ln_prior) {
+    const char* api_name = "nps_cross_entropy";
+    if (chi2.size() != ln_prior.size() || chi2.empty()) {
+        IMP_THROW(api_name << ": chi2 and ln_prior must be equal-length, "
+                          "non-empty records",
+                  ValueException);
+    }
+    double log_post_sum = 0.0;
+    std::size_t kept = 0;
+    for (std::size_t i = 0; i < chi2.size(); ++i) {
+        if (!std::isfinite(chi2[i])) continue;  // unscorable states skip
+        log_post_sum += -0.5 * chi2[i] + ln_prior[i];
+        ++kept;
+    }
+    if (kept == 0) {
+        IMP_THROW(api_name << ": the records hold no finite state",
+                  ValueException);
+    }
+    return -log_post_sum / static_cast<double>(kept);
+}
+
+std::vector<double> nps_mean_mcse(
+        const std::vector<std::vector<double>>& chain) {
+    const char* api_name = "nps_mean_mcse";
+    if (chain.empty() || chain[0].empty()) {
+        IMP_THROW(api_name << ": chain must be non-empty",
+                  ValueException);
+    }
+    const std::size_t ndim = chain[0].size();
+    std::vector<double> out(ndim, 0.0);
+    for (std::size_t d = 0; d < ndim; ++d) {
+        McmcChains single(1, std::vector<double>());
+        single[0].reserve(chain.size());
+        for (const auto& row : chain) {
+            if (row.size() != ndim) {
+                IMP_THROW(api_name << ": chain rows must share one width",
+                          ValueException);
+            }
+            single[0].push_back(row[d]);
+        }
+        out[d] = mcse_mean(single);
+    }
+    return out;
 }
 
 IMPBFF_END_NAMESPACE

@@ -10,12 +10,14 @@
 #include <IMP/bff/bff_config.h>
 
 #include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/GraphNode.h>
 
 #include <IMP/Restraint.h>
 #include <IMP/core/XYZ.h>
 #include <IMP/isd/Nuisance.h>
 #include <IMP/particle_index.h>
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -257,6 +259,177 @@ IMPBFFEXPORT double nps_network_log_likelihood(
         const std::vector<std::vector<double>>& config,
         const NPSNetworkDyes& dyes,
         const NPSMeasurements& measurements);
+
+//! Chi-square of the active measurements for one dye configuration.
+/*! \f$\chi^2=\sum (({\rm obs}-{\rm model})/\sigma)^2\f$ over every active
+    observable of every measurement — the -2 log likelihood up to the
+    Gaussian constants, and the number MCMCSampler's chi2 mode reports
+    for this objective. One number, one definition: "the model fits the
+    data" is the same arithmetic whether a fit, a sampler or a report
+    asks. \throws IMP::ValueException when no measurement is active or a
+        data value/error is invalid. */
+IMPBFFEXPORT double nps_network_chi2(
+        const std::vector<std::vector<double>>& config,
+        const NPSNetworkDyes& dyes,
+        const NPSMeasurements& measurements);
+
+//! Scott's-rule kernel bandwidth of a weighted label-position cloud.
+/*! The scale of the cloud-based position prior: the weighted RMS spread
+    \f$\sigma_w\f$ (about the weighted mean, weights sum-normalised) times
+    Scott's factor \f$n^{-1/(d+4)}\f$ with \f$d=3\f$ (Scott 1992,
+    doi:10.1111/j.2517-6161.1992.tb01796.x). This replaces Fast-NPS's hard
+    box grid: the accessible volume's own cloud carries the prior's scale.
+    Weights are read from the cloud, never normalised in place.
+    \throws IMP::ValueException when the cloud is not a flat (n, 4)
+        x/y/z/weight array, carries non-finite entries, or has no
+        positive weight. */
+IMPBFFEXPORT double nps_cloud_bandwidth(
+        const std::vector<double>& cloud);
+
+//! Log prior density of a dye position under a weighted label cloud.
+/*! The weighted Gaussian kernel density estimate of the cloud,
+    \f$\log p(x)=\log\sum_i w_i\,\phi_h(x-x_i)\f$ with the Scott bandwidth
+    of nps_cloud_bandwidth() and \f$\sum_i w_i\f$ normalised to 1 — the
+    smooth prior Fast-NPS's box-grid membership only approximates. It is
+    finite everywhere (the widest kernel wins in the far tails) and
+    translation-covariant with the cloud.
+    \throws IMP::ValueException on a malformed cloud or a non-finite
+        query position. */
+IMPBFFEXPORT double nps_cloud_log_prior(
+        const std::vector<double>& cloud,
+        double x, double y, double z);
+
+//! Seed one Fast-NPS configuration row [x, y, z, m, phi] from a cloud.
+/*! The position is the committed points_weighted_mean() of the cloud and
+    the angles are the isotropic seed m = 0, phi = 0; the row feeds
+    nps_network_fret_efficiency() and its siblings directly.
+    \throws IMP::ValueException when the cloud is malformed. */
+IMPBFFEXPORT std::vector<double> nps_config_from_cloud(
+        const std::vector<double>& cloud);
+
+//! Thin cloud-prior restraint on one live existing IMP label site.
+/*!
+    Scores \f$-\lambda \log p_{\rm cloud}(x)\f$ for the current `XYZ`
+    coordinates of one existing particle under the weighted Gaussian KDE
+    prior of a label cloud (the scale factor \f$\lambda>0\f$ defaults to
+    1). It reads the position at every score and owns no coordinates,
+    hierarchy, cloud storage beyond its own copy, or sampler: one
+    `IMP::core::MonteCarlo` owns the whole posterior transaction, exactly
+    the conventions of NPSIsotropicFRETEfficiencyRestraint.
+
+    Unscorable live state (non-finite coordinates or a non-finite prior
+    value) returns +infinity rather than throwing, so every
+    proposal-reachable model state has a score and a rejected move rolls
+    back cleanly.
+
+    \throw IMP::ValueException at construction when the particle lacks
+        `XYZ`, the cloud is malformed, or the scale is not finite and
+        strictly positive.
+    \throw IMP::UsageException when derivatives are requested: this
+        restraint is Monte-Carlo-only.
+*/
+class IMPBFFEXPORT NPSCloudPositionPriorRestraint : public IMP::Restraint {
+    IMP::ParticleIndex site_;
+    std::vector<double> cloud_;
+    double bandwidth_;
+    double scale_;
+
+public:
+    //! \param[in] m the model the particle belongs to
+    /*! \param[in] site the existing label-site particle whose current
+                   `XYZ` coordinates are scored
+        \param[in] cloud the label-position prior as a flat (n, 4)
+                   x/y/z/weight cloud
+        \param[in] scale finite positive multiplier of the log prior
+        \param[in] name the restraint's name */
+    NPSCloudPositionPriorRestraint(
+            IMP::Model* m, IMP::ParticleIndexAdaptor site,
+            const std::vector<double>& cloud, double scale = 1.0,
+            std::string name = "NPSCloudPositionPriorRestraint%1%");
+
+    //! The current bandwidth (Scott's rule on the cloud).
+    double get_bandwidth() const { return bandwidth_; }
+
+    virtual double unprotected_evaluate(
+            IMP::DerivativeAccumulator* accum) const override;
+    virtual IMP::ModelObjectsTemp do_get_inputs() const override;
+
+    IMP_OBJECT_METHODS(NPSCloudPositionPriorRestraint);
+};
+
+//! The plural for SWIG vector arguments.
+IMP_OBJECTS(NPSCloudPositionPriorRestraint,
+            NPSCloudPositionPriorRestraints);
+
+//! The Fast-NPS network posterior as a MCMCSampler objective node.
+/*! One GraphNode whose update() builds the configuration rows
+    \f$[x,y,z,m,\varphi]\f$ from its linked input ports \f$x0..x_{3n-1}\f$
+    — one scalar port per dye coordinate (MCMCSampler's parameter ports
+    are scalar), three per dye, the angles seeded isotropic at
+    \f$m=0,\varphi=0\f$ — evaluates the committed
+    nps_network_log_likelihood() (or nps_network_chi2() in chi2 mode)
+    and publishes the value on the "chi2" output port.
+    set_output_is_log_likelihood() selects the reading: the default
+    publishes \f$\chi^2\f$ (MCMCSampler's native objective currency),
+    log-likelihood mode publishes \f$-\log L\f$ so the sampler reads it
+    with set_output_is_log_likelihood(true).
+
+    This is the whole Fast-NPS sampling objective without a Python
+    std::function and without a per-move crossing: the ports link to the
+    sampler's parameter ports, so a proposal lands here by reference and
+    update() is pure C++. The dyes and measurements are copied at
+    construction and never change.
+    \throws IMP::ValueException at construction when n_dyes is not
+        positive. */
+class IMPBFFEXPORT NPSNetworkObjective : public GraphNode {
+    NPSNetworkDyes dyes_;
+    NPSMeasurements measurements_;
+    int n_dyes_;
+    bool output_is_log_likelihood_ = false;
+
+public:
+    /*! \param[in] dyes per-dye metadata
+        \param[in] measurements the active measurements
+        \param[in] n_dyes number of dyes (input ports
+                   \f$x0..x_{3n-1}\f$ the caller links)
+        \throws IMP::ValueException when n_dyes is not positive. */
+    NPSNetworkObjective(const NPSNetworkDyes& dyes,
+                        const NPSMeasurements& measurements,
+                        int n_dyes,
+                        std::string name = "NPSNetworkObjective%1%");
+
+    //! Publish -log L (true) or chi2 (false, the default) on "chi2".
+    void set_output_is_log_likelihood(bool v) {
+        output_is_log_likelihood_ = v;
+    }
+    bool get_output_is_log_likelihood() const {
+        return output_is_log_likelihood_;
+    }
+
+    //! Build the config from the linked ports and evaluate.
+    virtual void evaluate() override;
+};
+
+//! Cross-entropy of a recorded chain: \f$-\langle\log p\rangle\f$.
+/*! Fast-NPS's sampler figure of merit. With MCMCSampler's records the
+    log posterior is \f$-0.5\,\chi^2 + \ln\pi\f$ (log-likelihood mode:
+    the likelihood part alone is \f$-0.5\,\chi^2\f$ exactly), so the
+    tracker needs only the two recorded vectors — no new estimator, just
+    the definition stated once. Unscorable states (\f$\chi^2=\infty\f$)
+    are skipped, not averaged as infinities.
+    \throws IMP::ValueException when the vectors differ in length, are
+        empty, or hold no finite state. */
+IMPBFFEXPORT double nps_cross_entropy(
+        const std::vector<double>& chi2,
+        const std::vector<double>& ln_prior);
+
+//! Monte-Carlo standard error of each coordinate's posterior mean.
+/*! One value per parameter through the committed mcse_mean() of
+    SamplerDiagnostics.h (Vehtari et al. 2021) on the recorded rows —
+    no new estimator.
+    \throws IMP::ValueException on an empty chain. */
+IMPBFFEXPORT std::vector<double> nps_mean_mcse(
+        const std::vector<std::vector<double>>& chain);
 
 //! Thin Bayesian direct-FRET likelihood on live existing IMP label sites.
 /*!
