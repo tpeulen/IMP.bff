@@ -306,4 +306,333 @@ IMP::ModelObjectsTemp NPSIsotropicFRETEfficiencyRestraint::do_get_inputs()
     return out;
 }
 
+namespace {
+
+//! One Fast-NPS configuration row: [x, y, z, m, phi].
+struct ConfigRow {
+    double x, y, z, m, phi;
+};
+
+ConfigRow get_config_row(const std::vector<std::vector<double>>& config,
+                         int index, const char* api_name) {
+    if (index < 0 || static_cast<std::size_t>(index) >= config.size()) {
+        IMP_THROW(api_name << ": dye index " << index << " leaves the "
+                          << config.size() << "-row configuration",
+                  ValueException);
+    }
+    const std::vector<double>& row = config[index];
+    if (row.size() != 5) {
+        IMP_THROW(api_name << ": configuration row " << index
+                          << " must hold [x, y, z, m, phi], not "
+                          << row.size() << " values",
+                  ValueException);
+    }
+    for (int k = 0; k < 5; ++k) {
+        if (!std::isfinite(row[k])) {
+            IMP_THROW(api_name << ": configuration row " << index
+                              << " value " << k << " must be finite",
+                      ValueException);
+        }
+    }
+    if (row[3] < -1.0 || row[3] > 1.0) {
+        IMP_THROW(api_name << ": configuration row " << index
+                          << " m must be in [-1, 1]",
+                  ValueException);
+    }
+    ConfigRow out;
+    out.x = row[0];
+    out.y = row[1];
+    out.z = row[2];
+    out.m = row[3];
+    out.phi = row[4];
+    return out;
+}
+
+void validate_network_dye(const NPSNetworkDye& dye, int index,
+                          const char* api_name) {
+    if (!std::isfinite(dye.dep) || dye.dep < 0.0 || dye.dep > 1.0) {
+        IMP_THROW(api_name << ": dye " << index
+                          << " dep must be finite in [0, 1]",
+                  ValueException);
+    }
+}
+
+//! NPS transition-dipole unit vector from one configuration row, the
+//! same get_direction() construction the direct leaves use.
+UnitVector get_row_direction(const ConfigRow& row) {
+    const double c = -row.m;
+    const double s = std::sqrt(std::max(0.0, 1.0 - c * c));
+    UnitVector direction = {
+            s * std::cos(row.phi), s * std::sin(row.phi), c};
+    return direction;
+}
+
+//! Azimuth slot of the Fast-NPS orientation grids: floor(scale * phi)
+//! truncated toward zero as the reference's int cast does, clamped into
+//! [0, 5) so azimuths outside [0, pi) cannot leave the table.
+int azimuth_slot(double phi, double scale) {
+    const double scaled = scale * phi;
+    if (scaled >= 5.0) return 4;
+    if (scaled <= -1.0) return 0;
+    return static_cast<int>(scaled);  // (-1, 5) truncates into [0, 4]
+}
+
+//! Polar slot of the Fast-NPS orientation grids; m in [-1, 1] maps to
+//! [0, 5) with the same clamp the azimuth slot applies at the edge.
+int polar_slot_of(double m, double scale) {
+    const double scaled = scale * (-m + 1.0);
+    if (scaled >= 5.0) return 4;
+    return static_cast<int>(scaled);
+}
+
+}  // namespace
+
+int nps_orientation_row_index(double m1, double phi1,
+                              double m2, double phi2) {
+    if (!std::isfinite(m1) || !std::isfinite(m2) || m1 < -1.0 || m1 > 1.0
+            || m2 < -1.0 || m2 > 1.0) {
+        IMP_THROW("nps_orientation_row_index: m must be finite in [-1, 1]",
+                  ValueException);
+    }
+    if (!std::isfinite(phi1) || !std::isfinite(phi2)) {
+        IMP_THROW("nps_orientation_row_index: phi must be finite",
+                  ValueException);
+    }
+    // Fast-NPS uses the literal 3.142, not pi (logLikelihood.cpp line 175).
+    const double azimuth_scale = 5.0 / 3.142;
+    const double polar_scale = 2.5;
+    // Clamp into [0, 5): phi = pi lands at 4.9993 in the reference (int
+    // 4), larger or negative azimuths would leave the table, where the
+    // reference indexes out of bounds.
+    const int phi_slot1 = azimuth_slot(phi1, azimuth_scale);
+    const int polar_slot1 = polar_slot_of(m1, polar_scale);
+    const int phi_slot2 = azimuth_slot(phi2, azimuth_scale);
+    const int polar_slot2 = polar_slot_of(m2, polar_scale);
+    return 125 * phi_slot1 + 25 * polar_slot1 + 5 * phi_slot2 + polar_slot2;
+}
+
+int nps_single_orientation_row_index(double m, double phi) {
+    if (!std::isfinite(m) || m < -1.0 || m > 1.0) {
+        IMP_THROW("nps_single_orientation_row_index: m must be finite "
+                          "in [-1, 1]",
+                  ValueException);
+    }
+    if (!std::isfinite(phi)) {
+        IMP_THROW("nps_single_orientation_row_index: phi must be finite",
+                  ValueException);
+    }
+    const double azimuth_scale = 5.0 / 3.142;
+    const int phi_slot = azimuth_slot(phi, azimuth_scale);
+    const int polar_slot = polar_slot_of(m, 2.5);
+    return 5 * phi_slot + polar_slot;
+}
+
+double nps_convolved_efficiency(
+        double distance, const std::vector<double>& coefficients) {
+    if (!std::isfinite(distance)) {
+        IMP_THROW("nps_convolved_efficiency: distance must be finite",
+                  ValueException);
+    }
+    if (coefficients.size() != 12) {
+        IMP_THROW("nps_convolved_efficiency: expected 12 coefficients, got "
+                          << coefficients.size(),
+                  ValueException);
+    }
+    for (int k = 0; k < 12; ++k) {
+        if (!std::isfinite(coefficients[k])) {
+            IMP_THROW("nps_convolved_efficiency: coefficient " << k
+                              << " must be finite",
+                      ValueException);
+        }
+    }
+    if (distance > 150.0) return 0.0;
+    // Horner: the single evaluation of the polynomial Fast-NPS repeats
+    // five times across its regimes.
+    double value = 0.0;
+    for (int k = 11; k >= 0; --k) {
+        value = value * distance + coefficients[k];
+    }
+    return value;
+}
+
+double nps_network_fret_efficiency(
+        const std::vector<std::vector<double>>& config,
+        const NPSNetworkDyes& dyes,
+        int dye1, int dye2, double r_iso6,
+        const std::vector<std::vector<double>>& eff_conv_coeff) {
+    const char* api_name = "nps_network_fret_efficiency";
+    if (dye1 < 0 || static_cast<std::size_t>(dye1) >= dyes.size()
+            || dye2 < 0 || static_cast<std::size_t>(dye2) >= dyes.size()) {
+        IMP_THROW(api_name << ": dye index leaves the " << dyes.size()
+                          << "-dye array",
+                  ValueException);
+    }
+    if (!std::isfinite(r_iso6) || r_iso6 <= 0.0) {
+        IMP_THROW(api_name << ": r_iso6 must be finite and strictly positive",
+                  ValueException);
+    }
+    validate_network_dye(dyes[dye1], dye1, api_name);
+    validate_network_dye(dyes[dye2], dye2, api_name);
+    const ConfigRow row1 =
+            get_config_row(config, dye1, api_name);
+    const ConfigRow row2 =
+            get_config_row(config, dye2, api_name);
+
+    const double dx = row2.x - row1.x;
+    const double dy = row2.y - row1.y;
+    const double dz = row2.z - row1.z;
+    const double distance = std::hypot(std::hypot(dx, dy), dz);
+    if (!std::isfinite(distance)) {
+        IMP_THROW(api_name << ": dye separation must be finite",
+                  ValueException);
+    }
+    if (distance > 150.0) return 0.0;
+
+    const NPSNetworkDye& meta1 = dyes[dye1];
+    const NPSNetworkDye& meta2 = dyes[dye2];
+    if (!meta1.dist_conv && !meta2.dist_conv) {
+        // Direct branch: the committed Dale-Eisinger/wobbling route,
+        // pinned equal to Fast-NPS's dep-factor closed form. Rebuilt as
+        // NPSDirectDye so no orientation formula is written twice.
+        if (distance <= 0.0) {
+            IMP_THROW(api_name << ": coincident dyes have no defined "
+                              "direct separation",
+                      ValueException);
+        }
+        NPSDirectDye direct1;
+        direct1.x = row1.x;
+        direct1.y = row1.y;
+        direct1.z = row1.z;
+        direct1.m = row1.m;
+        direct1.phi = row1.phi;
+        // dep = sqrt(ravg / 0.4) inverts to ravg = 0.4 dep^2 exactly the
+        // relation makeSetting.cpp:278 derives dep from.
+        direct1.steady_state_anisotropy = 0.4 * meta1.dep * meta1.dep;
+        NPSDirectDye direct2;
+        direct2.x = row2.x;
+        direct2.y = row2.y;
+        direct2.z = row2.z;
+        direct2.m = row2.m;
+        direct2.phi = row2.phi;
+        direct2.steady_state_anisotropy = 0.4 * meta2.dep * meta2.dep;
+        const double r_iso = std::pow(r_iso6, 1.0 / 6.0);
+        return nps_direct_fret_efficiency(direct1, direct2, r_iso);
+    }
+
+    // Distance-convolved branches: pick the coefficient row by the same
+    // regime rules as logLikelihood.cpp lines 168-190.
+    std::size_t row_index = 0;
+    if (meta1.iso && meta2.iso) {
+        // iso/iso pair: single shared row.
+        if (eff_conv_coeff.empty()) {
+            IMP_THROW(api_name << ": iso/iso pair needs coefficient "
+                              << "row 0, table is empty",
+                      ValueException);
+        }
+    } else if (!meta1.iso && !meta2.iso) {
+        // Non-iso pair: the 625-row orientation grid.
+        row_index = static_cast<std::size_t>(nps_orientation_row_index(
+                row1.m, row1.phi, row2.m, row2.phi));
+        if (row_index >= eff_conv_coeff.size()) {
+            IMP_THROW(api_name << ": coefficient table holds "
+                              << eff_conv_coeff.size() << " rows, pair "
+                                 "grid needs row " << row_index,
+                      ValueException);
+        }
+    } else {
+        // Mixed pair: the 25-row single-dye grid over the non-iso dye.
+        const ConfigRow& non_iso_row = meta1.iso ? row2 : row1;
+        row_index = static_cast<std::size_t>(
+                nps_single_orientation_row_index(non_iso_row.m,
+                                                 non_iso_row.phi));
+        if (row_index >= eff_conv_coeff.size()) {
+            IMP_THROW(api_name << ": coefficient table holds "
+                              << eff_conv_coeff.size() << " rows, single "
+                                 "grid needs row " << row_index,
+                      ValueException);
+        }
+    }
+    return nps_convolved_efficiency(distance, eff_conv_coeff[row_index]);
+}
+
+double nps_network_transfer_anisotropy(
+        const std::vector<std::vector<double>>& config,
+        const NPSNetworkDyes& dyes, int dye1, int dye2) {
+    const char* api_name = "nps_network_transfer_anisotropy";
+    if (dye1 < 0 || static_cast<std::size_t>(dye1) >= dyes.size()
+            || dye2 < 0 || static_cast<std::size_t>(dye2) >= dyes.size()) {
+        IMP_THROW(api_name << ": dye index leaves the " << dyes.size()
+                          << "-dye array",
+                  ValueException);
+    }
+    validate_network_dye(dyes[dye1], dye1, api_name);
+    validate_network_dye(dyes[dye2], dye2, api_name);
+    const ConfigRow row1 = get_config_row(config, dye1, api_name);
+    const ConfigRow row2 = get_config_row(config, dye2, api_name);
+    NPSDirectDye direct1;
+    direct1.x = row1.x;
+    direct1.y = row1.y;
+    direct1.z = row1.z;
+    direct1.m = row1.m;
+    direct1.phi = row1.phi;
+    direct1.steady_state_anisotropy = 0.4 * dyes[dye1].dep * dyes[dye1].dep;
+    NPSDirectDye direct2;
+    direct2.x = row2.x;
+    direct2.y = row2.y;
+    direct2.z = row2.z;
+    direct2.m = row2.m;
+    direct2.phi = row2.phi;
+    direct2.steady_state_anisotropy = 0.4 * dyes[dye2].dep * dyes[dye2].dep;
+    return nps_direct_transfer_anisotropy(direct1, direct2);
+}
+
+double nps_network_log_likelihood(
+        const std::vector<std::vector<double>>& config,
+        const NPSNetworkDyes& dyes,
+        const NPSMeasurements& measurements) {
+    const char* api_name = "nps_network_log_likelihood";
+    double log_likelihood = 0.0;
+    for (std::size_t m_index = 0; m_index < measurements.size();
+            ++m_index) {
+        const NPSMeasurement& meas = measurements[m_index];
+        const int index1 = meas.dye1;
+        const int index2 = meas.dye2;
+        if (meas.fret_active) {
+            if (!std::isfinite(meas.e_avg) || !std::isfinite(meas.e_err)
+                    || meas.e_err <= 0.0) {
+                IMP_THROW(api_name << ": measurement " << m_index
+                                  << " FRET data must be finite with a "
+                                     "positive error",
+                          ValueException);
+            }
+            if (!std::isfinite(meas.r_iso6) || meas.r_iso6 <= 0.0) {
+                IMP_THROW(api_name << ": measurement " << m_index
+                                  << " r_iso6 must be finite and "
+                                     "strictly positive",
+                          ValueException);
+            }
+            const double efficiency = nps_network_fret_efficiency(
+                    config, dyes, index1, index2, meas.r_iso6,
+                    meas.eff_conv_coeff);
+            log_likelihood += normal_log_density(
+                    meas.e_avg, efficiency, meas.e_err);
+        }
+        if (meas.ta_active) {
+            if (!std::isfinite(meas.r_t_avg)
+                    || !std::isfinite(meas.r_t_err)
+                    || meas.r_t_err <= 0.0) {
+                IMP_THROW(api_name << ": measurement " << m_index
+                                  << " TA data must be finite with a "
+                                     "positive error",
+                          ValueException);
+            }
+            const double ta = nps_network_transfer_anisotropy(
+                    config, dyes, index1, index2);
+            log_likelihood += normal_log_density(
+                    meas.r_t_avg, ta, meas.r_t_err);
+        }
+    }
+    return log_likelihood;
+}
+
 IMPBFF_END_NAMESPACE
