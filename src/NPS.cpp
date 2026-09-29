@@ -15,7 +15,9 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <random>
 #include <string>
+#include <vector>
 
 IMPBFF_BEGIN_NAMESPACE
 
@@ -633,6 +635,286 @@ double nps_network_log_likelihood(
         }
     }
     return log_likelihood;
+}
+
+// ---------------------------------------------------------------------------
+// Table generation: the Fast-NPS modelMCSimulation concept on bff states.
+// ---------------------------------------------------------------------------
+
+namespace {
+
+//! The estimator's separations: 1..150 A, the grid the tables summarize.
+constexpr int kTableBinCount = 150;
+//! Power-basis order of every table row (degree-11 polynomial).
+constexpr int kTableCoefficients = 12;
+
+//! Least squares for the scaled fit: min |V c - y| with V[i][j] = u_i^j,
+//! u = dist / 150. Solved by Householder QR on V itself — the scaled
+//! Vandermonde still has cond ~1e8 (12 powers of u), whose square kills
+//! the normal equations (cond(Gram) ~1e16, half of double's digits), which
+//! is exactly how the reference's raw-power fit degenerates. QR on V loses
+//! only cond(V), not its square.
+std::vector<double> solve_scaled(const std::vector<double>& u,
+                                 const std::vector<double>& y,
+                                 int n_coeff) {
+    const int n_pts = static_cast<int>(u.size());
+    // V: n_pts x n_coeff, augmented with y in the last column.
+    std::vector<double> V(
+            static_cast<std::size_t>(n_pts) * (n_coeff + 1), 0.0);
+    for (int i = 0; i < n_pts; ++i) {
+        V[static_cast<std::size_t>(i) * (n_coeff + 1)] =
+                y[static_cast<std::size_t>(i)];
+        V[static_cast<std::size_t>(i) * (n_coeff + 1) + 1] = 1.0;
+        for (int j = 2; j <= n_coeff; ++j) {
+            V[static_cast<std::size_t>(i) * (n_coeff + 1) + j] =
+                    V[static_cast<std::size_t>(i) * (n_coeff + 1) + j - 1] *
+                    u[static_cast<std::size_t>(i)];
+        }
+    }
+    // Householder QR in place over the coefficient columns; y rides along.
+    for (int k = 0; k < n_coeff; ++k) {
+        double norm = 0.0;
+        for (int i = k; i < n_pts; ++i) {
+            const double v = V[static_cast<std::size_t>(i) *
+                                    (n_coeff + 1) + k + 1];
+            norm += v * v;
+        }
+        norm = std::sqrt(norm);
+        if (norm == 0.0) {
+            IMP_THROW("nps_convolved_efficiency_table: rank-deficient "
+                              "design (degenerate sampled curve)",
+                      ValueException);
+        }
+        const double a0 =
+                V[static_cast<std::size_t>(k) * (n_coeff + 1) + k + 1];
+        const double alpha = a0 >= 0.0 ? -norm : norm;
+        // v = x - alpha e1; v[0] = a0 - alpha
+        std::vector<double> v(n_pts, 0.0);
+        v[static_cast<std::size_t>(k)] = a0 - alpha;
+        double vtv = v[static_cast<std::size_t>(k)] *
+                     v[static_cast<std::size_t>(k)];
+        for (int i = k + 1; i < n_pts; ++i) {
+            v[static_cast<std::size_t>(i)] =
+                    V[static_cast<std::size_t>(i) * (n_coeff + 1) + k + 1];
+            vtv += v[static_cast<std::size_t>(i)] *
+                   v[static_cast<std::size_t>(i)];
+        }
+        if (vtv == 0.0) continue;
+        const double beta = 2.0 / vtv;
+        for (int c = 0; c <= n_coeff; ++c) {
+            double dot = 0.0;
+            for (int i = k; i < n_pts; ++i) {
+                dot += v[static_cast<std::size_t>(i)] *
+                       V[static_cast<std::size_t>(i) * (n_coeff + 1) + c];
+            }
+            dot *= beta;
+            for (int i = k; i < n_pts; ++i) {
+                V[static_cast<std::size_t>(i) * (n_coeff + 1) + c] -=
+                        dot * v[static_cast<std::size_t>(i)];
+            }
+        }
+    }
+    // Back-substitution on the leading n_coeff x n_coeff of R.
+    std::vector<double> scaled(static_cast<std::size_t>(n_coeff), 0.0);
+    for (int k = n_coeff - 1; k >= 0; --k) {
+        double acc = V[static_cast<std::size_t>(k) * (n_coeff + 1)];
+        for (int c = k + 1; c < n_coeff; ++c) {
+            acc -= V[static_cast<std::size_t>(k) * (n_coeff + 1) + c + 1] *
+                   scaled[static_cast<std::size_t>(c)];
+        }
+        const double pivot =
+                V[static_cast<std::size_t>(k) * (n_coeff + 1) + k + 1];
+        if (pivot == 0.0) {
+            IMP_THROW("nps_convolved_efficiency_table: rank-deficient "
+                              "design (degenerate sampled curve)",
+                      ValueException);
+        }
+        scaled[static_cast<std::size_t>(k)] = acc / pivot;
+    }
+    return scaled;
+}
+
+//! Rewrite coefficients of p(u), u = dist / scale, as coefficients of
+//! p(dist) in the same power basis. (d/s)^j = d^j / s^j, so the transform
+//! is exactly c_j = a_j / s^j — no binomial expansion, no cancellation.
+std::vector<double> rescale_power_coefficients(
+        const std::vector<double>& scaled, double scale) {
+    std::vector<double> out(scaled.size(), 0.0);
+    double scale_j = 1.0;  // scale^j
+    for (std::size_t j = 0; j < scaled.size(); ++j) {
+        out[j] = scaled[j] / scale_j;
+        scale_j *= scale;
+    }
+    return out;
+}
+
+}  // namespace
+
+std::vector<std::vector<double> > nps_convolved_efficiency_table(
+        const std::vector<double>& cloud1,
+        const std::vector<double>& cloud2,
+        double dep1, double dep2, double r_iso6,
+        int n_samples, int seed) {
+    const char* api_name = "nps_convolved_efficiency_table";
+    if (cloud1.empty() || cloud2.empty() ||
+            cloud1.size() % 4 != 0 || cloud2.size() % 4 != 0) {
+        IMP_THROW(api_name << ": clouds must be flat (n, 4) arrays — "
+                          "x, y, z, weight per point",
+                  ValueException);
+    }
+    for (double dep : {dep1, dep2}) {
+        if (!std::isfinite(dep) || dep < 0.0 || dep > 1.0) {
+            IMP_THROW(api_name << ": dep must be finite in [0, 1]",
+                      ValueException);
+        }
+    }
+    if (!std::isfinite(r_iso6) || r_iso6 <= 0.0) {
+        IMP_THROW(api_name << ": r_iso6 must be finite and strictly positive",
+                  ValueException);
+    }
+    const std::size_t n1 = cloud1.size() / 4;
+    const std::size_t n2 = cloud2.size() / 4;
+
+    // Regime semantics match the likelihood: dep = 1 is an isotropic dye
+    // (the reference maps ravg = 0.4 — the fundamental anisotropy, a fully
+    // isotropic report — to dep = sqrt(0.4/0.4) = 1), any dep < 1 puts the
+    // dye on the orientation grid. Both iso -> 1 row, one grid dye -> 25,
+    // both grid dyes -> 625 rows.
+    const bool grid1 = dep1 < 1.0;
+    const bool grid2 = dep2 < 1.0;
+    const int grid_slots = (grid1 ? 25 : 1) * (grid2 ? 25 : 1);
+    if (n_samples <= 0) {
+        // Estimator noise scales 1/sqrt(n); the 625-row table shares its
+        // draws across slots so per-slot counts can stay moderate without
+        // the table getting noisy, and one-row tables get the most.
+        n_samples = grid_slots == 1 ? 200000 : (grid_slots == 25 ? 40000
+                                                                 : 8000);
+    }
+
+    // Shared pair draws: the inter-cloud difference vectors v_s are drawn
+    // once and reused by every slot and every bin. The reference instead
+    // re-draws (with rejection from a hardcoded sphere) per bin.
+    std::mt19937_64 rng(static_cast<std::uint64_t>(seed));
+    std::uniform_int_distribution<std::size_t> draw1(0, n1 - 1);
+    std::uniform_int_distribution<std::size_t> draw2(0, n2 - 1);
+    const std::size_t ns = static_cast<std::size_t>(n_samples);
+    std::vector<double> vx(ns), vy(ns), vz(ns), vw(ns);
+    for (std::size_t s = 0; s < ns; ++s) {
+        const std::size_t i1 = draw1(rng);
+        const std::size_t i2 = draw2(rng);
+        vx[s] = cloud1[4 * i1 + 0] - cloud2[4 * i2 + 0];
+        vy[s] = cloud1[4 * i1 + 1] - cloud2[4 * i2 + 1];
+        vz[s] = cloud1[4 * i1 + 2] - cloud2[4 * i2 + 2];
+        vw[s] = cloud1[4 * i1 + 3] * cloud2[4 * i2 + 3];
+    }
+
+    // Slot representative dipoles: the mid-slot angles of the committed
+    // grid layout (polar mid of the 0.4-wide m bins, azimuth mid of the
+    // 3.142-scaled bins), matching how the evaluator later picks rows
+    // from actual dye angles.
+    auto slot_direction = [](int polar_slot, int phi_slot) {
+        const double m_mid = -1.0 + (2.0 * (polar_slot + 0.5)) / 5.0;
+        const double phi_mid = (phi_slot + 0.5) * 3.142 / 5.0;
+        const double c = m_mid;
+        const double s = std::sqrt(std::max(0.0, 1.0 - c * c));
+        return UnitVector{s * std::cos(phi_mid), s * std::sin(phi_mid), c};
+    };
+
+    // The bin axis offsets cloud 2 along +x (the reference's dD shift), so
+    // a sample's separation at bin d is ov = v_s - d * xhat and the dipole
+    // projections are cThK = (dirK . v_s - dirK_x * d) / |ov|. Per slot the
+    // dot products dirK . v_s are constant — precompute them and the bin
+    // loop is a handful of flops per sample instead of a re-sampling pass.
+    std::vector<std::vector<double> > table(
+            static_cast<std::size_t>(grid_slots),
+            std::vector<double>(kTableCoefficients, 0.0));
+    std::vector<double> u(kTableBinCount);
+    std::vector<double> y(kTableBinCount);
+    std::vector<double> a1(ns), a2(ns);
+    for (int slot = 0; slot < grid_slots; ++slot) {
+        // Row layout matches the evaluator: a mixed table lists dye 1's
+        // slots as 5 * phi_slot + polar_slot; the pair grid interleaves
+        // both dyes as 125 * phi1 + 25 * polar1 + 5 * phi2 + polar2.
+        const int phi_slot1 = grid1 ? (grid2 ? slot / 125 : slot / 5) : 0;
+        const int polar_slot1 =
+                grid1 ? (grid2 ? (slot % 125) / 25 : slot % 5) : 0;
+        const int phi_slot2 = grid2 ? (slot % 25) / 5 : 0;
+        const int polar_slot2 = grid2 ? slot % 5 : 0;
+        const UnitVector dir1 =
+                grid1 ? slot_direction(polar_slot1, phi_slot1)
+                      : UnitVector{0.0, 0.0, 1.0};
+        const UnitVector dir2 =
+                grid2 ? slot_direction(polar_slot2, phi_slot2)
+                      : UnitVector{0.0, 0.0, 1.0};
+        // Mutual angle of the two slot dipoles — constant within the slot.
+        const double c_th_t = dir1.x * dir2.x + dir1.y * dir2.y +
+                              dir1.z * dir2.z;
+        if (grid1 || grid2) {
+            for (std::size_t s = 0; s < ns; ++s) {
+                a1[s] = dir1.x * vx[s] + dir1.y * vy[s] +
+                        dir1.z * vz[s];
+                a2[s] = dir2.x * vx[s] + dir2.y * vy[s] +
+                        dir2.z * vz[s];
+            }
+        }
+        double w_sum = 0.0;
+        for (std::size_t s = 0; s < ns; ++s) w_sum += vw[s];
+        if (w_sum <= 0.0) {
+            IMP_THROW(api_name << ": clouds carry no positive weight",
+                      ValueException);
+        }
+        for (int d = 0; d < kTableBinCount; ++d) {
+            const double dist = static_cast<double>(d + 1);
+            const double dist6 = dist * dist * dist * dist * dist * dist;
+            double acc = 0.0;
+            for (std::size_t s = 0; s < ns; ++s) {
+                const double ovx = vx[s] - dist;
+                const double r2 = ovx * ovx + vy[s] * vy[s] +
+                                  vz[s] * vz[s];
+                const double r = std::sqrt(r2);
+                double avg_r6 = r_iso6;  // iso/iso: k2 = 2/3, x1.5 -> Riso6
+                if (grid1 && grid2) {
+                    // Both dyes on the orientation grid: the full two-dye
+                    // form of the reference nonIsoToNonIso generator, with
+                    // cosines normalized by the sampled separation (the
+                    // reference divides by the mean bin distance here,
+                    // which biases its cosine when |ov| deviates from d).
+                    const double c1 = (a1[s] - dir1.x * dist) / r;
+                    const double c2 = (a2[s] - dir2.x * dist) / r;
+                    const double kappa_x2 =
+                            (c_th_t - 3.0 * c1 * c2) *
+                            (c_th_t - 3.0 * c1 * c2);
+                    const double avg_k2 =
+                            kappa_x2 * dep1 * dep2 +
+                            (2.0 - dep1 - dep2) / 3.0 +
+                            c1 * c1 * dep1 * (1.0 - dep2) +
+                            c2 * c2 * dep2 * (1.0 - dep1);
+                    avg_r6 = avg_k2 * 1.5 * r_iso6;
+                } else if (grid1 || grid2) {
+                    // Exactly one orientation-grid dye: the reference
+                    // nonIsoToIso form — the isotropic dye averages out
+                    // analytically, leaving k2 = (2 - dep)/3 + c^2 dep
+                    // with only the grid dye's cosine.
+                    const double dep = grid1 ? dep1 : dep2;
+                    const double c1 =
+                            ((grid1 ? a1[s] : a2[s]) -
+                             (grid1 ? dir1.x : dir2.x) * dist) / r;
+                    const double avg_k2 = (2.0 - dep) / 3.0 +
+                                          c1 * c1 * dep;
+                    avg_r6 = avg_k2 * 1.5 * r_iso6;
+                }
+                const double r6 = r2 * r2 * r2;
+                acc += vw[s] * (avg_r6 / (avg_r6 + r6));
+            }
+            y[static_cast<std::size_t>(d)] = acc / w_sum;
+            u[static_cast<std::size_t>(d)] = dist / 150.0;
+        }
+        table[static_cast<std::size_t>(slot)] =
+                rescale_power_coefficients(solve_scaled(u, y,
+                                                        kTableCoefficients),
+                                           150.0);
+    }
+    return table;
 }
 
 IMPBFF_END_NAMESPACE

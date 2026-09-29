@@ -158,6 +158,51 @@ IMPBFFEXPORT int nps_orientation_row_index(
 //! nps_orientation_row_index().
 IMPBFFEXPORT int nps_single_orientation_row_index(double m, double phi);
 
+//! Build a distance-convolved efficiency table from two label clouds.
+/*!
+    The concept is Fast-NPS's modelMCSimulation: for each orientation slot of
+    the table layout below, average the transfer efficiency over the two
+    labels' position distributions at each mean separation 1..150 A, then
+    summarize each 150-point curve by 12 power-basis coefficients — the rows
+    nps_network_fret_efficiency() consumes. The implementation differs from
+    the original on purpose:
+
+    - the position average is taken over the caller's clouds (an accessible
+      volume, a rotamer library, anything that is a States cloud), not a
+      rejection-sampled sphere of hardcoded 20 A radius;
+    - pair draws are shared across all distances and slots (sample once,
+      reuse), instead of re-sampling per bin;
+    - the fit solves the least-squares system in the scaled variable
+      u = dist / 150 (condition number ~1e3, not the raw-power Vandermonde's
+      ~1e20) and rescales the solved coefficients back to the power basis,
+      so the table layout and the evaluator's Horner evaluation stay
+      exactly as committed;
+    - the orientation cosine uses the sampled separation, not the mean one
+      (the reference divides by the mean distance, biasing cTh).
+
+    dep arguments are the dyes' depolarization factors q; the non-iso slots
+    integrate the wobbling-in-cone orientation factor (2 - q)/3 + q cTh^2
+    with cTh from the sampled geometry, matching the committed direct branch.
+
+    \param[in] cloud1, cloud2 flat (n, 4) clouds — x, y, z, weight per point
+    \param[in] dep1, dep2 depolarization factors; dep = 1 marks an isotropic
+               dye (one table row), dep < 1 puts the dye on the orientation
+               grid — iso/iso tables pass (1, 1), mixed (q, 1) or (1, q),
+               and the pair grid (q1, q2).
+    \param[in] r_iso6 the isotropic Forster distance to the sixth power, A^6
+    \param[in] n_samples pair draws per slot evaluation (shared across the
+               table); 0 selects the default (60000)
+    \param[in] seed RNG seed for the shared pair draws; a fixed seed makes
+               tables reproducible
+    \return the coefficient table: 1, 25 or 625 rows of 12 coefficients,
+            indexed by the same layout functions the evaluator uses
+*/
+IMPBFFEXPORT std::vector<std::vector<double> > nps_convolved_efficiency_table(
+        const std::vector<double>& cloud1,
+        const std::vector<double>& cloud2,
+        double dep1, double dep2, double r_iso6,
+        int n_samples = 0, int seed = 0);
+
 //! Evaluate one Fast-NPS distance-convolution polynomial at a separation.
 /*! Horner evaluation of the 12 coefficients
     \f$E(d)=\sum_{k=0}^{11} c_k d^k\f$, exactly the polynomial Fast-NPS
