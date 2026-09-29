@@ -349,6 +349,24 @@ std::size_t repack_sequence_database(const std::string& in, const std::string& o
         if (!store.close())
             IMP_THROW("repack_sequence_database: could not write " << out, IOException);
     }
+    // Everything else in the container (a cluster membership, say) comes
+    // along, streamed through a temporary file.
+    {
+        pto::File from;
+        if (!from.open(source.get_path()))
+            IMP_THROW("repack_sequence_database: " << from.error(), IOException);
+        const std::string temporary = out + ".object-tmp";
+        for (const pto::PtoObject& o : from.objects()) {
+            if (o.name == name) continue;
+            if (!from.extract(o.uid, temporary) ||
+                container.add_file(o.kind, o.encoding, o.name, temporary) == 0) {
+                std::remove(temporary.c_str());
+                IMP_THROW("repack_sequence_database: could not copy '" << o.name << "'",
+                          IOException);
+            }
+            std::remove(temporary.c_str());
+        }
+    }
     if (!container.commit())
         IMP_THROW("repack_sequence_database: " << container.error(), IOException);
     container.close();

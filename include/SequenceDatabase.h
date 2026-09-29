@@ -58,7 +58,8 @@ IMPBFFEXPORT std::size_t create_sequence_database(const std::string& fasta,
                                                   int segment_mb = 16, bool packed = true);
 
 //! Rewrite a sequence database, packed (5 bits a residue) or as bytes, in one
-//! streaming pass; rows keep their order, so a cluster membership stays valid.
+//! streaming pass; rows keep their order, so a cluster membership stays valid,
+//! and the container's other objects (such as that membership) are copied.
 IMPBFFEXPORT std::size_t repack_sequence_database(const std::string& in, const std::string& out,
                                                   bool packed = true,
                                                   const std::string& name = "sequences",

@@ -116,3 +116,14 @@ def test_consurf_searches_in_two_stages_when_the_settings_say_so(clustered, tmp_
     one = bff.compute_consurf([family[3]], options)[0]
     assert two.get_is_ok() and [h.identifier for h in two.homologs] == [h.identifier for h in one.homologs]
     assert list(two.grades) == list(one.grades)
+
+
+def test_repacking_keeps_the_membership(clustered, tmp_path):
+    d, family = clustered
+    out = str(tmp_path / "reps_bytes.pto")
+    bff.repack_sequence_database(str(d / "reps.pto"), out, False)
+    a, b = bff.SequenceClusters(str(d / "reps.pto")), bff.SequenceClusters(out)
+    assert b.get_number_of_clusters() == a.get_number_of_clusters()
+    assert list(b.get_members(0)) == list(a.get_members(0))
+    assert list(b.get_orphans()) == list(a.get_orphans())
+    assert not bff.SequenceDatabase(out).get_is_packed()
