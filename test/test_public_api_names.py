@@ -90,6 +90,7 @@ FLAT_NAMES = [
     "SequenceClusters",
     "SequenceClusterSearchOptions",
     "search_clustered_sequence_database",  # representatives, then members
+    "create_clustered_sequence_database",  # one cluster-ordered store
     "LabelizerScore",              # labelability score row
     "LabelizerFRETOptions",        # FRET pair-score settings
     "labelizer_score_structure",   # Labelizer entry point

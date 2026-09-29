@@ -127,8 +127,18 @@ public:
     IMP_SHOWABLE_INLINE(SequenceDatabase, out << "SequenceDatabase(" << path_ << ", "
                                               << n_sequences_ << " sequences)");
 
+    //! Whether each sequence has members below it: a clustered database
+    //! (#IMP::bff::create_clustered_sequence_database), searched in two stages.
+    bool get_has_members() const;
+    //! The members' level as a database of its own (the same mapped file).
+    SequenceDatabase get_members_database() const;
+    //! The members of sequence \p i: rows [first, end) of #get_members_database.
+    Ints get_member_range(std::size_t i) const;
+
 private:
     std::string path_;
+    std::string level_;                        // "" or "members/" ...
+    std::string residues_ = "residues", headers_ = "headers";
     std::shared_ptr<pto::StoreReader> reader_;
     std::size_t n_sequences_ = 0;
     std::uint64_t n_residues_ = 0;

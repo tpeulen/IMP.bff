@@ -159,3 +159,31 @@ def test_uniref_xml_places_what_the_table_cannot(clustered, tmp_path):
     assert c.get_number_of_orphans() == 0
     assert sorted(members.get_identifier(r) for r in c.get_members(0)) == sorted(
         f"UniRef90_F{k}" for k in range(len(family)))
+
+
+def test_a_clustered_database_searches_like_the_member_database(clustered, tmp_path):
+    d, family = clustered
+    out = str(tmp_path / "clustered.pto")
+    n = bff.create_clustered_sequence_database(str(d / "members.pto"), str(d / "reps.pto"), out)
+    members = bff.SequenceDatabase(str(d / "members.pto"))
+    assert n == members.get_number_of_sequences()
+    db = bff.SequenceDatabase(out)
+    assert db.get_has_members() and not bff.SequenceDatabase(str(d / "reps.pto")).get_has_members()
+    m = db.get_members_database()
+    assert m.get_number_of_sequences() == members.get_number_of_sequences()
+    # the family's cluster holds its placed members, contiguously; the orphan is last
+    first, end = db.get_member_range(0)
+    assert sorted(m.get_identifier(r) for r in range(first, end)) == sorted(
+        f"UniRef90_F{k}" for k in range(len(family) - 1))
+    assert db.get_identifier(db.get_number_of_sequences() - 1) == "orphans"
+    last = db.get_member_range(db.get_number_of_sequences() - 1)
+    assert [m.get_identifier(r) for r in range(*last)] == [f"UniRef90_F{len(family) - 1}"]
+    # every member once, sequences intact
+    ids = {members.get_identifier(i): i for i in range(members.get_number_of_sequences())}
+    for r in range(0, m.get_number_of_sequences(), 97):
+        assert m.get_sequence(r) == members.get_sequence(ids[m.get_identifier(r)])
+    queries = [family[3], family[20]]
+    full = bff.search_sequence_database(queries, members)
+    two = bff.search_clustered_sequence_database(queries, db)
+    key = lambda hits: sorted((h.query, h.identifier, h.score) for h in hits)
+    assert key(two) == key(full)

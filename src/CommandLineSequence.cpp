@@ -90,8 +90,13 @@ void create(const Args& a) {
 
 void pack(const Args& a) {
   const std::size_t n = repack_sequence_database(a.database, a.out, !a.bytes, a.name, a.segment_mb);
-  std::cout << a.out << ": " << n << " sequences, " << (a.bytes ? "a byte" : "Huffman-coded")
-            << " a residue\n";
+  std::cout << a.out << ": " << n << " sequences, " << (a.bytes ? "a byte a residue" : "residues Huffman-coded")
+            << "\n";
+}
+
+void clustered(const Args& a) {
+  const std::size_t n = create_clustered_sequence_database(a.database, a.representatives, a.out);
+  std::cout << a.out << ": representatives and " << n << " members, cluster-ordered\n";
 }
 
 void cluster(const Args& a) {
@@ -115,6 +120,11 @@ void info(const Args& a) {
             << "\n  sequences " << db.get_number_of_sequences()
             << "\n  residues  " << db.get_number_of_residues() << "\n  segments  "
             << db.get_number_of_segments() << "\n";
+  if (db.get_has_members()) {
+    const SequenceDatabase m = db.get_members_database();
+    std::cout << "  members   " << m.get_number_of_sequences() << " sequences, "
+              << m.get_number_of_residues() << " residues (searched in two stages)\n";
+  }
   if (db.get_number_of_sequences() > 0) std::cout << "  first     " << db.get_header(0) << "\n";
 }
 
@@ -126,7 +136,8 @@ void search(const Args& a) {
   const SequenceDatabase db(name, a.name);
   const std::string reps = representatives_for(a, name);
   const SequenceSearchHits hits =
-      reps.empty() ? search_sequence_database(queries, db, search_options(a))
+      db.get_has_members() ? search_clustered_sequence_database(queries, db, search_options(a))
+      : reps.empty() ? search_sequence_database(queries, db, search_options(a))
                    : search_clustered_sequence_database(queries, SequenceDatabase(reps),
                                                         SequenceClusters(reps), db,
                                                         search_options(a));
@@ -256,6 +267,21 @@ and in the settings: "clusters": {"uniref90": ".../uniref50.pto"}.)doc");
   cluster->callback([a] {
     set_current_sub("sequence-db cluster");
     sequence::cluster(*a);
+  });
+  CLI::App* clustered = db->add_subcommand(
+      "clustered", R"doc(One cluster-ordered database: representatives, each followed by its members.)doc");
+  clustered->footer(R"doc(From a member database and its representatives with their membership
+(sequence-db cluster). Searches of the result run in two stages by themselves,
+reading each hit cluster's members as one run:
+
+    imp_bff sequence-db clustered uniref90.pto uniref50.pto uniref.pto)doc");
+  clustered->add_option("members", a->database, "the member database")->required();
+  clustered->add_option("representatives", a->representatives,
+                        "the representatives, with their membership")->required();
+  clustered->add_option("out", a->out, "the clustered .pto")->required();
+  clustered->callback([a] {
+    set_current_sub("sequence-db clustered");
+    sequence::clustered(*a);
   });
   CLI::App* info = db->add_subcommand("info", R"doc(Summarise a sequence database.)doc");
   info->add_option("database", a->database, "a .pto, or a database name from the settings");

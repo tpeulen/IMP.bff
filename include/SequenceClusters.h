@@ -66,6 +66,24 @@ IMPBFFEXPORT std::size_t create_sequence_clusters(const std::string& members,
                                                   int representative_column = 10,
                                                   const std::string& temporary = "");
 
+//! One database of both levels, cluster-ordered: the representatives as its
+//! sequences, each followed (as its members, #SequenceDatabase::get_members_database)
+//! by the member sequences of its cluster, stored together.
+/*! A two-stage search of it reads the representatives, then each hit
+    cluster's members as one contiguous run, instead of scattered rows of a
+    separate member database; and the representatives need no file of their
+    own. Built in two streaming passes: \p members into bucket files by
+    cluster (in \p temporary, next to \p out by default), then cluster by
+    cluster in the representatives' order. Members the membership does not
+    place go under a last, empty representative named `orphans`.
+    \param[in] members the member database (e.g. UniRef90)
+    \param[in] representatives the representatives, with their membership
+               (#create_sequence_clusters)
+    \return the number of members written */
+IMPBFFEXPORT std::size_t create_clustered_sequence_database(
+        const std::string& members, const std::string& representatives, const std::string& out,
+        const std::string& temporary = "");
+
 //! The membership recorded by #create_sequence_clusters.
 class IMPBFFEXPORT SequenceClusters {
 public:
@@ -116,6 +134,14 @@ IMP_VALUES(SequenceClusterSearchOptions, SequenceClusterSearchOptionsList);
 IMPBFFEXPORT SequenceSearchHits search_clustered_sequence_database(
         const Strings& queries, const SequenceDatabase& representatives,
         const SequenceClusters& clusters, const SequenceDatabase& members,
+        const SequenceSearchOptions& options = SequenceSearchOptions(),
+        const SequenceClusterSearchOptions& cluster_options = SequenceClusterSearchOptions());
+
+//! Search a clustered database (#create_clustered_sequence_database) in two
+//! stages: its representatives, then the members of the clusters found.
+/*! Hits are rows of \p database's members level, E-values against all members. */
+IMPBFFEXPORT SequenceSearchHits search_clustered_sequence_database(
+        const Strings& queries, const SequenceDatabase& database,
         const SequenceSearchOptions& options = SequenceSearchOptions(),
         const SequenceClusterSearchOptions& cluster_options = SequenceClusterSearchOptions());
 

@@ -46,7 +46,7 @@ CORE_GROUPS = {
     "fps-distance": [],
     "potentials2pto": [],
     "rmsd": [],
-    "sequence-db": ["create", "pack", "cluster", "info"],
+    "sequence-db": ["create", "pack", "cluster", "clustered", "info"],
     "sequence-search": [],
     "consurf": [],
 }

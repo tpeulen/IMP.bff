@@ -13,6 +13,7 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <sys/resource.h>
 
 #ifdef IMP_BFF_HAS_ZLIB
 #include <zlib.h>
@@ -356,6 +357,170 @@ std::size_t create_sequence_clusters(const std::string& members,
     return placed;
 }
 
+namespace {
+
+//! One member record in a bucket file: cluster, row, then codes and header.
+struct MemberRecordHead {
+    std::uint32_t cluster, row, n_codes, n_header;
+};
+
+}  // namespace
+
+std::size_t create_clustered_sequence_database(const std::string& members,
+                                               const std::string& representatives,
+                                               const std::string& out,
+                                               const std::string& temporary) {
+    const SequenceDatabase member_db(members);
+    const SequenceDatabase rep_db(representatives);
+    const SequenceClusters clusters(representatives);
+    const std::size_t n_reps = rep_db.get_number_of_sequences();
+    const std::size_t n_members = member_db.get_number_of_sequences();
+    if (clusters.get_number_of_clusters() != n_reps)
+        IMP_THROW("create_clustered_sequence_database: the membership is not these "
+                  "representatives'", ValueException);
+    if (n_members >= 0xFFFFFFFFu || n_reps >= 0xFFFFFFFFu)
+        IMP_THROW("create_clustered_sequence_database: too many sequences", ValueException);
+    // 1. member row -> cluster (orphans: n_reps)
+    std::vector<std::uint32_t> cluster_of(n_members, static_cast<std::uint32_t>(n_reps));
+    for (std::size_t k = 0; k < n_reps; ++k)
+        for (std::size_t m : clusters.get_member_rows(k))
+            cluster_of[m] = static_cast<std::uint32_t>(k);
+    // 2. members into bucket files by cluster range, in one streaming pass
+    const std::string dir = temporary.empty() ? out + ".clustered-tmp" : temporary;
+    std::filesystem::create_directories(dir);
+    struct rlimit lim;
+    if (getrlimit(RLIMIT_NOFILE, &lim) == 0 && lim.rlim_cur < 2048) {
+        lim.rlim_cur = std::min<rlim_t>(lim.rlim_max, 2048);
+        setrlimit(RLIMIT_NOFILE, &lim);
+    }
+    const std::size_t n_buckets = 512;
+    const std::size_t groups = n_reps + 1;   // with the orphans' group
+    auto bucket_of = [&](std::size_t k) { return k * n_buckets / groups; };
+    std::vector<std::string> paths(n_buckets);
+    {
+        std::vector<FILE*> files(n_buckets, nullptr);
+        std::vector<std::vector<char> > buffers(n_buckets);
+        for (std::size_t b = 0; b < n_buckets; ++b) {
+            paths[b] = dir + "/bucket_" + std::to_string(b);
+            files[b] = std::fopen(paths[b].c_str(), "wb");
+            if (files[b] == nullptr)
+                IMP_THROW("create_clustered_sequence_database: cannot write " << paths[b]
+                          << " (open-file limit?)", IOException);
+        }
+        auto flush = [&](std::size_t b) {
+            if (buffers[b].empty()) return;
+            if (std::fwrite(buffers[b].data(), 1, buffers[b].size(), files[b]) != buffers[b].size())
+                IMP_THROW("create_clustered_sequence_database: cannot write " << paths[b]
+                          << " (disk full?)", IOException);
+            buffers[b].clear();
+        };
+        member_db.scan_records([&](std::size_t row, const unsigned char* codes, std::uint64_t n,
+                                   const std::string& header) {
+            const std::uint32_t k = cluster_of[row];
+            const std::size_t b = bucket_of(k);
+            MemberRecordHead h{k, static_cast<std::uint32_t>(row), static_cast<std::uint32_t>(n),
+                               static_cast<std::uint32_t>(header.size())};
+            std::vector<char>& buf = buffers[b];
+            const char* hp = reinterpret_cast<const char*>(&h);
+            buf.insert(buf.end(), hp, hp + sizeof h);
+            buf.insert(buf.end(), reinterpret_cast<const char*>(codes),
+                       reinterpret_cast<const char*>(codes) + n);
+            buf.insert(buf.end(), header.begin(), header.end());
+            if (buf.size() >= (std::size_t(1) << 17)) flush(b);
+        });
+        for (std::size_t b = 0; b < n_buckets; ++b) {
+            flush(b);
+            std::fclose(files[b]);
+        }
+    }
+    std::vector<std::uint32_t>().swap(cluster_of);
+    // 3. the store: each representative, then its members, bucket by bucket
+    pto::File container;
+    if (!container.create(out, "clustered sequence database"))
+        IMP_THROW("create_clustered_sequence_database: " << container.error(), IOException);
+    container.set_writing_app("imp.bff create_clustered_sequence_database");
+    std::size_t written = 0;
+    {
+        pto::StoreWriter store(container, "table", "sequences");
+        const std::string header_codec = pto::can_compress("zstd") ? "zstd" : "none";
+        auto sequence_columns = [&](int level, int* residues, int* headers) {
+            *residues = store.add_column("residues", pto::ColumnType::UInt8, true, "none", 0, level);
+            store.set_bit_width(*residues, 5);
+            store.set_huffman(*residues);
+            *headers = store.add_column("headers", pto::ColumnType::UInt8, true, header_codec,
+                                        std::size_t(64) << 10, level);
+        };
+        int rep_residues, rep_headers, mem_residues, mem_headers;
+        sequence_columns(0, &rep_residues, &rep_headers);
+        const int level = store.add_level("members");
+        sequence_columns(level, &mem_residues, &mem_headers);
+        store.set_metadata(rep_residues, rep_db.get_metadata());
+        store.set_metadata(mem_residues, member_db.get_metadata());
+
+        std::vector<char> data;
+        struct Ref { std::uint32_t cluster, row; std::size_t at; };
+        std::vector<Ref> refs;
+        std::size_t loaded = n_buckets, next = 0;   // refs[next..] are the clusters to come
+        auto load = [&](std::size_t b) {
+            data.clear();
+            refs.clear();
+            FILE* f = std::fopen(paths[b].c_str(), "rb");
+            if (f == nullptr) IMP_THROW("create_clustered_sequence_database: cannot read " << paths[b], IOException);
+            char chunk[1 << 16];
+            for (std::size_t got; (got = std::fread(chunk, 1, sizeof chunk, f)) > 0;)
+                data.insert(data.end(), chunk, chunk + got);
+            std::fclose(f);
+            std::remove(paths[b].c_str());
+            for (std::size_t at = 0; at + sizeof(MemberRecordHead) <= data.size();) {
+                MemberRecordHead h;
+                std::memcpy(&h, data.data() + at, sizeof h);
+                refs.push_back(Ref{h.cluster, h.row, at});
+                at += sizeof h + h.n_codes + h.n_header;
+            }
+            std::sort(refs.begin(), refs.end(), [](const Ref& a, const Ref& c) {
+                return a.cluster != c.cluster ? a.cluster < c.cluster : a.row < c.row;
+            });
+            loaded = b;
+            next = 0;
+        };
+        auto emit_members = [&](std::size_t k) {
+            if (loaded != bucket_of(k)) load(bucket_of(k));
+            std::uint64_t count = 0;
+            for (; next < refs.size() && refs[next].cluster == k; ++next, ++count) {
+                MemberRecordHead h;
+                std::memcpy(&h, data.data() + refs[next].at, sizeof h);
+                const char* p = data.data() + refs[next].at + sizeof h;
+                store.append_row(mem_residues, p, h.n_codes);
+                store.append_row(mem_headers, p + h.n_codes, h.n_header);
+            }
+            store.append_children(level, count);
+            written += count;
+        };
+        rep_db.scan_records([&](std::size_t k, const unsigned char* codes, std::uint64_t n,
+                                const std::string& header) {
+            store.append_row(rep_residues, codes, n);
+            store.append_row(rep_headers, header.data(), header.size());
+            emit_members(k);
+        });
+        // the orphans, if any, under an empty last representative
+        if (loaded != bucket_of(n_reps)) load(bucket_of(n_reps));
+        if (next < refs.size()) {
+            const std::string name = "orphans";
+            store.append_row(rep_residues, nullptr, 0);
+            store.append_row(rep_headers, name.data(), name.size());
+            emit_members(n_reps);
+        }
+        if (!store.close())
+            IMP_THROW("create_clustered_sequence_database: could not write " << out, IOException);
+    }
+    if (!container.commit())
+        IMP_THROW("create_clustered_sequence_database: " << container.error(), IOException);
+    container.close();
+    std::error_code ec;
+    std::filesystem::remove_all(dir, ec);
+    return written;
+}
+
 SequenceClusters::SequenceClusters(const std::string& representatives) {
     const std::string path = SequenceDatabase(representatives).get_path();
     pto::File container;
@@ -422,6 +587,37 @@ SequenceSearchHits search_clustered_sequence_database(
     }
     std::sort(rows.begin(), rows.end());
     rows.erase(std::unique(rows.begin(), rows.end()), rows.end());
+    return search_sequence_database_rows(queries, members, rows, options);
+}
+
+SequenceSearchHits search_clustered_sequence_database(
+        const Strings& queries, const SequenceDatabase& database,
+        const SequenceSearchOptions& options, const SequenceClusterSearchOptions& cluster_options) {
+    const SequenceDatabase members = database.get_members_database();
+    SequenceSearchOptions first = options;
+    first.max_candidates = std::max(cluster_options.max_representatives, options.max_candidates);
+    first.max_evalue = std::max(cluster_options.max_representative_evalue, options.max_evalue);
+    const SequenceSearchHits found = search_sequence_database(queries, database, first);
+    // each hit cluster's members: one contiguous run
+    std::vector<std::size_t> clusters;
+    for (const SequenceSearchHit& h : found) clusters.push_back(h.target);
+    std::sort(clusters.begin(), clusters.end());
+    clusters.erase(std::unique(clusters.begin(), clusters.end()), clusters.end());
+    std::vector<std::size_t> rows;
+    for (std::size_t k : clusters) {
+        const Ints range = database.get_member_range(k);
+        for (int r = range[0]; r < range[1]; ++r) rows.push_back(static_cast<std::size_t>(r));
+    }
+    if (cluster_options.search_orphans && database.get_number_of_sequences() > 0) {
+        // an orphans' group is the last representative, named so
+        const std::size_t last = database.get_number_of_sequences() - 1;
+        if (database.get_identifier(last) == "orphans" &&
+            !std::binary_search(clusters.begin(), clusters.end(), last)) {
+            const Ints range = database.get_member_range(last);
+            for (int r = range[0]; r < range[1]; ++r) rows.push_back(static_cast<std::size_t>(r));
+        }
+    }
+    std::sort(rows.begin(), rows.end());
     return search_sequence_database_rows(queries, members, rows, options);
 }
 

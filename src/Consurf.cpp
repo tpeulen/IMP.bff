@@ -97,7 +97,10 @@ ConsurfResults compute_consurf(const Strings& queries, const ConsurfOptions& opt
             SequenceSearchOptions search = options.search;
             search.max_evalue = std::max(search.max_evalue, options.homologs.max_evalue);
             const Strings queries(unique.begin(), unique.end());
-            if (source.representatives.empty()) {
+            if (database.get_has_members()) {
+                // one clustered store: representatives, then the hit clusters' members
+                hits = search_clustered_sequence_database(queries, database, search);
+            } else if (source.representatives.empty()) {
                 hits = search_sequence_database(queries, database, search);
             } else {
                 hits = search_clustered_sequence_database(

@@ -215,11 +215,11 @@ SequenceDatabase::SequenceDatabase(const std::string& path_or_name, const std::s
     } catch (const std::exception& error) {
         IMP_THROW("SequenceDatabase: " << error.what(), IOException);
     }
-    if (!reader_->has_column(kColumnResidues) || !reader_->has_column(kColumnHeaders) ||
-        !reader_->info(kColumnResidues).ragged)
+    if (!reader_->has_column(residues_) || !reader_->has_column(headers_) ||
+        !reader_->info(residues_).ragged)
         IMP_THROW("SequenceDatabase: " << path_ << " is not a sequence database",
                   IOException);
-    const pto::ColumnInfo info = reader_->info(kColumnResidues);
+    const pto::ColumnInfo info = reader_->info(residues_);
     n_sequences_ = static_cast<std::size_t>(info.n_rows);
     n_residues_ = info.n_values;
 }
@@ -228,9 +228,9 @@ const unsigned char* SequenceDatabase::get_codes(std::size_t i, std::uint64_t* n
                                                  std::vector<unsigned char>& scratch) const {
     if (!reader_ || i >= n_sequences_)
         IMP_THROW("SequenceDatabase: no sequence " << i, IndexException);
-    const void* p = reader_->row_view(kColumnResidues, i, n);
+    const void* p = reader_->row_view(residues_, i, n);
     if (p != nullptr) return static_cast<const unsigned char*>(p);
-    reader_->row(kColumnResidues, i, scratch);   // packed: decode this row alone
+    reader_->row(residues_, i, scratch);   // packed: decode this row alone
     *n = scratch.size();
     return scratch.data();
 }
@@ -248,14 +248,14 @@ std::string SequenceDatabase::get_sequence(std::size_t i) const {
 int SequenceDatabase::get_length(std::size_t i) const {
     if (!reader_ || i >= n_sequences_)
         IMP_THROW("SequenceDatabase: no sequence " << i, IndexException);
-    return static_cast<int>(reader_->row_size(kColumnResidues, i));
+    return static_cast<int>(reader_->row_size(residues_, i));
 }
 
 std::string SequenceDatabase::get_header(std::size_t i) const {
     if (!reader_ || i >= n_sequences_)
         IMP_THROW("SequenceDatabase: no sequence " << i, IndexException);
     std::vector<unsigned char> buf;
-    reader_->row(kColumnHeaders, i, buf);
+    reader_->row(headers_, i, buf);
     return std::string(buf.begin(), buf.end());
 }
 
@@ -266,15 +266,15 @@ std::string SequenceDatabase::get_identifier(std::size_t i) const {
 }
 
 std::string SequenceDatabase::get_metadata() const {
-    return reader_ ? reader_->metadata(kColumnResidues) : std::string();
+    return reader_ ? reader_->metadata(residues_) : std::string();
 }
 
 bool SequenceDatabase::get_is_packed() const {
-    return reader_ && get_number_of_segments() > 0 && !reader_->segment(kColumnResidues, 0).raw;
+    return reader_ && get_number_of_segments() > 0 && !reader_->segment(residues_, 0).raw;
 }
 
 std::size_t SequenceDatabase::get_number_of_segments() const {
-    return reader_ ? reader_->n_segments(kColumnResidues) : 0;
+    return reader_ ? reader_->n_segments(residues_) : 0;
 }
 
 const unsigned char* SequenceDatabase::get_segment(std::size_t k, std::size_t* first,
@@ -282,12 +282,12 @@ const unsigned char* SequenceDatabase::get_segment(std::size_t k, std::size_t* f
                                                    std::vector<unsigned char>& scratch) const {
     if (!reader_ || k >= get_number_of_segments())
         IMP_THROW("SequenceDatabase: no segment " << k, IndexException);
-    const pto::SegmentInfo seg = reader_->segment(kColumnResidues, k);
+    const pto::SegmentInfo seg = reader_->segment(residues_, k);
     if (first) *first = static_cast<std::size_t>(seg.first_row);
     if (count) *count = static_cast<std::size_t>(seg.n_rows);
     if (n_codes) *n_codes = seg.n_values;
     // in place when stored as bytes, decoded when packed
-    return static_cast<const unsigned char*>(reader_->segment_data(kColumnResidues, k, scratch));
+    return static_cast<const unsigned char*>(reader_->segment_data(residues_, k, scratch));
 }
 
 void SequenceDatabase::scan_records(
@@ -310,11 +310,11 @@ void SequenceDatabase::scan_records(
             const std::size_t row = first + r;
             // the header segment holding this row, decoded once
             while (htext == nullptr || row >= hseg.first_row + hseg.n_rows) {
-                hseg = reader_->segment(kColumnHeaders, header_segment);
+                hseg = reader_->segment(headers_, header_segment);
                 htext = static_cast<const char*>(
-                        reader_->segment_data(kColumnHeaders, header_segment, headers));
+                        reader_->segment_data(headers_, header_segment, headers));
                 header_offsets.resize(static_cast<std::size_t>(hseg.n_rows) + 1);
-                reader_->offsets(kColumnHeaders, hseg.first_row, hseg.n_rows, header_offsets.data());
+                reader_->offsets(headers_, hseg.first_row, hseg.n_rows, header_offsets.data());
                 ++header_segment;
             }
             const std::size_t h = static_cast<std::size_t>(row - hseg.first_row);
@@ -386,7 +386,7 @@ std::uint64_t SequenceDatabase::get_offset(std::size_t i) const {
         IMP_THROW("SequenceDatabase: no sequence " << i, IndexException);
     std::uint64_t o = 0;
     if (i == n_sequences_) return n_residues_;
-    reader_->offsets(kColumnResidues, i, 0, &o);
+    reader_->offsets(residues_, i, 0, &o);
     return o;
 }
 
@@ -394,7 +394,7 @@ void SequenceDatabase::get_offsets(std::size_t first, std::size_t count,
                                    std::uint64_t* out) const {
     if (!reader_ || first + count > n_sequences_)
         IMP_THROW("SequenceDatabase: no sequences " << first << "+" << count, IndexException);
-    reader_->offsets(kColumnResidues, first, count, out);
+    reader_->offsets(residues_, first, count, out);
 }
 
 void SequenceDatabase::scan_identifiers(
@@ -403,12 +403,12 @@ void SequenceDatabase::scan_identifiers(
     std::vector<unsigned char> scratch;
     std::vector<std::uint64_t> offsets;
     std::string id;
-    for (std::size_t k = 0; k < reader_->n_segments(kColumnHeaders); ++k) {
-        const pto::SegmentInfo seg = reader_->segment(kColumnHeaders, k);
+    for (std::size_t k = 0; k < reader_->n_segments(headers_); ++k) {
+        const pto::SegmentInfo seg = reader_->segment(headers_, k);
         const char* text = static_cast<const char*>(
-                reader_->segment_data(kColumnHeaders, k, scratch));
+                reader_->segment_data(headers_, k, scratch));
         offsets.resize(static_cast<std::size_t>(seg.n_rows) + 1);
-        reader_->offsets(kColumnHeaders, seg.first_row, seg.n_rows, offsets.data());
+        reader_->offsets(headers_, seg.first_row, seg.n_rows, offsets.data());
         for (std::uint64_t r = 0; r < seg.n_rows; ++r) {
             const char* h = text + (offsets[r] - offsets[0]);
             const std::size_t n = static_cast<std::size_t>(offsets[r + 1] - offsets[r]);
@@ -420,8 +420,39 @@ void SequenceDatabase::scan_identifiers(
     }
 }
 
+bool SequenceDatabase::get_has_members() const {
+    return reader_ && reader_->has_column(level_ + "members") &&
+           reader_->info(level_ + "members").extent;
+}
+
+SequenceDatabase SequenceDatabase::get_members_database() const {
+    if (!get_has_members())
+        IMP_THROW("SequenceDatabase: " << path_ << " has no members level", ValueException);
+    SequenceDatabase m(*this);
+    m.level_ = level_ + "members/";
+    m.residues_ = m.level_ + "residues";
+    m.headers_ = m.level_ + "headers";
+    if (!reader_->has_column(m.residues_) || !reader_->has_column(m.headers_))
+        IMP_THROW("SequenceDatabase: " << path_ << ": its members are not sequences", IOException);
+    const pto::ColumnInfo info = reader_->info(m.residues_);
+    m.n_sequences_ = static_cast<std::size_t>(info.n_rows);
+    m.n_residues_ = info.n_values;
+    return m;
+}
+
+Ints SequenceDatabase::get_member_range(std::size_t i) const {
+    if (!get_has_members())
+        IMP_THROW("SequenceDatabase: " << path_ << " has no members level", ValueException);
+    if (i >= n_sequences_) IMP_THROW("SequenceDatabase: no sequence " << i, IndexException);
+    const auto e = reader_->extent(level_ + "members", i);
+    Ints out;   // not Ints{a, b}: that is IMP's (count, value) constructor
+    out.push_back(static_cast<int>(e.first));
+    out.push_back(static_cast<int>(e.second));
+    return out;
+}
+
 void SequenceDatabase::advise_sequential() const {
-    if (reader_) reader_->advise_sequential(kColumnResidues);
+    if (reader_) reader_->advise_sequential(residues_);
 }
 
 IMPBFF_END_NAMESPACE
