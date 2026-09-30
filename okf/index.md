@@ -54,6 +54,11 @@ shared index.
   import, msgpack storage, the MatGemm policy and the int8 path; what came
   from tttrlib, what was not ported, and the design record of the lost
   tttrlib `MlpGemm.h`/`MlpQuant.h` work.
+* [Fast ConSurf](fast-consurf.md) - Conservation grades natively in seconds:
+  the clustered UniRef `.pto`, the MMseqs2-style search in two stages, the
+  ESM-2 embedding prefilter (contrastive head, PQ index, native GGUF forward
+  pass), ConSurf's homologue rules and Rate4Site's method; parameters,
+  measurements and what is pending. The methods record for the paper.
 * [cgprobe](cgprobe.md) - The explicit-dye layer: what it does, where the physics
   lives (R0/κ² in `fret`), the flat `IMP.bff.*` surface, conventions (CB
   strip), tests and pins.
