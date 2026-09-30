@@ -117,6 +117,15 @@ if(TARGET IMP.bff-lib)
     target_link_libraries(IMP.bff-lib CURL::libcurl)
     target_compile_definitions(IMP.bff-lib PRIVATE IMP_BFF_HAS_CURL=1)
   endif()
+  # Optional: Accelerate's BLAS for the protein language model's matrix
+  # products on macOS (the AMX units); Eigen's own products otherwise.
+  if(APPLE)
+    find_library(IMPBFF_ACCELERATE Accelerate)
+    if(IMPBFF_ACCELERATE)
+      target_link_libraries(IMP.bff-lib ${IMPBFF_ACCELERATE})
+      target_compile_definitions(IMP.bff-lib PRIVATE IMP_BFF_HAS_ACCELERATE=1)
+    endif()
+  endif()
   install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ptolib/include/ptolib"
           DESTINATION include)
   # tttrlib's headers are C++17 (std::any, <filesystem>) and

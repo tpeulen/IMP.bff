@@ -238,3 +238,50 @@ def test_early_stop_takes_the_best_clusters_first(clustered, tmp_path):
     good = [h for h in some if h.evalue <= 1e-4 and h.identity >= 0.35]
     assert len(good) >= 1
     assert some[0].identifier == full_ids[0]
+
+
+def _embedding_prefilter(d, reps_path, tmp_path):
+    """The tiny test model's projections of every representative, indexed."""
+    import numpy as np
+    model_path = os.path.join(os.path.dirname(__file__), "..", "input", "sequence", "esm2_tiny.gguf")
+    model = bff.ProteinLanguageModel(model_path)
+    reps = bff.SequenceDatabase(reps_path)
+    x = np.array([model.get_projected_embedding(reps.get_sequence(i))
+                  for i in range(reps.get_number_of_sequences())], dtype=np.float32)
+    np.save(tmp_path / "reps.npy", x)
+    index = str(tmp_path / "reps_esm.pto")
+    bff.create_embedding_index([str(tmp_path / "reps.npy")], index, "tiny", 4, 2000, 5)
+    return model_path, index
+
+
+def test_embedding_prefilter_aligning_every_representative_is_the_kmer_search(clustered, tmp_path):
+    d, family = clustered
+    members = bff.SequenceDatabase(str(d / "members.pto"))
+    reps = bff.SequenceDatabase(str(d / "reps.pto"))
+    clusters = bff.SequenceClusters(str(d / "reps.pto"))
+    model, index = _embedding_prefilter(d, str(d / "reps.pto"), tmp_path)
+    queries = [family[3], family[20]]
+    kmer = bff.search_clustered_sequence_database(queries, reps, clusters, members)
+    o = bff.SequenceClusterSearchOptions()
+    o.embedding_model, o.embedding_index = model, index
+    o.embedding_candidates = reps.get_number_of_sequences()
+    embedded = bff.search_clustered_sequence_database(queries, reps, clusters, members,
+                                                      bff.SequenceSearchOptions(), o)
+    key = lambda hits: sorted((h.query, h.identifier, h.score, round(h.evalue, 12)) for h in hits)
+    assert key(embedded) == key(kmer)
+    # fewer candidates: a subset of the same hits
+    o.embedding_candidates = 50
+    few = bff.search_clustered_sequence_database(queries, reps, clusters, members,
+                                                 bff.SequenceSearchOptions(), o)
+    assert set(key(few)) <= set(key(kmer))
+
+
+def test_embedding_prefilter_needs_both_paths(clustered):
+    d, family = clustered
+    o = bff.SequenceClusterSearchOptions()
+    o.embedding_model = "model.gguf"
+    with pytest.raises(bff.ValueException):
+        bff.search_clustered_sequence_database(
+            [family[0]], bff.SequenceDatabase(str(d / "reps.pto")),
+            bff.SequenceClusters(str(d / "reps.pto")), bff.SequenceDatabase(str(d / "members.pto")),
+            bff.SequenceSearchOptions(), o)

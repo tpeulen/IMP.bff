@@ -91,6 +91,9 @@ FLAT_NAMES = [
     "SequenceClusterSearchOptions",
     "search_clustered_sequence_database",  # representatives, then members
     "create_clustered_sequence_database",  # one cluster-ordered store
+    "ProteinLanguageModel",        # ESM-2 from GGUF, native forward pass
+    "EmbeddingIndex",              # product-quantised nearest neighbours
+    "create_embedding_index",
     "LabelizerScore",              # labelability score row
     "LabelizerFRETOptions",        # FRET pair-score settings
     "labelizer_score_structure",   # Labelizer entry point

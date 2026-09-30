@@ -1335,6 +1335,8 @@ IMP_SWIG_VALUE(IMP::bff, MfdbAttribution, MfdbAttributions);
    search and ConSurf's choice of homologues. */
 %include "IMP_bff.bffsettings.i"
 %include "IMP_bff.sequencedatabase.i"
+%include "IMP_bff.proteinlanguagemodel.i"
+%include "IMP_bff.embeddingindex.i"
 %include "IMP_bff.sequencesearch.i"
 %include "IMP_bff.sequenceclusters.i"
 %include "IMP_bff.sequencehomologs.i"

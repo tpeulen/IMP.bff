@@ -130,6 +130,14 @@ public:
     int min_homologues = 0;
     double stop_evalue = 1e-4;
     double stop_min_identity = 0.35;
+    //! Embedding prefilter: a #IMP::bff::ProteinLanguageModel (GGUF, with a
+    //! projection head) and an #IMP::bff::EmbeddingIndex of the
+    //! representatives. When both are set, the first stage aligns only the
+    //! \p embedding_candidates representatives nearest each query instead of
+    //! scanning all of them for k-mers: seconds instead of minutes on UniRef50.
+    std::string embedding_model;
+    std::string embedding_index;
+    int embedding_candidates = 10000;
 
     IMP_SHOWABLE_INLINE(SequenceClusterSearchOptions,
                         out << "SequenceClusterSearchOptions(" << max_representatives << ", E <= "

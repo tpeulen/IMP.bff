@@ -278,6 +278,15 @@ if(IMPBFF_WITH_CURL)
     target_compile_definitions(imp_bff PRIVATE IMP_BFF_HAS_CURL=1)
   endif()
 endif()
+# Optional: Accelerate's BLAS for the protein language model's matrix products
+# on macOS (the AMX units); Eigen's own products otherwise.
+if(APPLE)
+  find_library(IMPBFF_ACCELERATE Accelerate)
+  if(IMPBFF_ACCELERATE)
+    target_link_libraries(imp_bff PRIVATE ${IMPBFF_ACCELERATE})
+    target_compile_definitions(imp_bff PRIVATE IMP_BFF_HAS_ACCELERATE=1)
+  endif()
+endif()
 if(IMPBFF_WITH_TTTRLIB_SIMULATION)
   target_link_libraries(imp_bff PRIVATE tttrlib::tttrlib)
   # PUBLIC: the SWIG wrapper compiles HMMSurrogate.h, whose class exists only

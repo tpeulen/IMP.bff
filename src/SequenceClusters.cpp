@@ -5,6 +5,8 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 #include <IMP/bff/SequenceClusters.h>
+#include <IMP/bff/EmbeddingIndex.h>
+#include <IMP/bff/ProteinLanguageModel.h>
 #include <IMP/bff/internal/json.h>
 #include <IMP/bff/internal/ptolib.h>
 
@@ -767,6 +769,34 @@ SequenceSearchOptions stage_one(const SequenceSearchOptions& options,
     return first;
 }
 
+//! Stage 1: every representative scanned for k-mers, or, with an embedding
+//! prefilter, only the ones nearest each query's embedding.
+SequenceSearchHits search_representatives(const Strings& queries, const SequenceDatabase& representatives,
+                                          const SequenceSearchOptions& options,
+                                          const SequenceClusterSearchOptions& co) {
+    if (co.embedding_model.empty() && co.embedding_index.empty())
+        return search_sequence_database(queries, representatives, stage_one(options, co));
+    if (co.embedding_model.empty() || co.embedding_index.empty())
+        IMP_THROW("search_clustered_sequence_database: the embedding prefilter needs both "
+                  "embedding_model and embedding_index", ValueException);
+    const ProteinLanguageModel model(co.embedding_model);
+    const EmbeddingIndex index(co.embedding_index);
+    if (model.get_projection_length() != index.get_dimension())
+        IMP_THROW("search_clustered_sequence_database: " << co.embedding_model << " embeds in "
+                  << model.get_projection_length() << " dimensions, " << co.embedding_index
+                  << " holds " << index.get_dimension(), ValueException);
+    const std::vector<float> embedded =
+            model.embed(std::vector<std::string>(queries.begin(), queries.end()), true);
+    const std::size_t k = static_cast<std::size_t>(std::max(co.embedding_candidates, 1));
+    std::vector<std::size_t> rows;
+    for (const auto& hits : index.nearest(embedded, k))
+        for (const auto& h : hits)
+            if (h.second < representatives.get_number_of_sequences()) rows.push_back(h.second);
+    std::sort(rows.begin(), rows.end());
+    rows.erase(std::unique(rows.begin(), rows.end()), rows.end());
+    return search_sequence_database_rows(queries, representatives, rows, stage_one(options, co));
+}
+
 }  // namespace
 
 SequenceSearchHits search_clustered_sequence_database(
@@ -779,7 +809,7 @@ SequenceSearchHits search_clustered_sequence_database(
                   << " representatives: not this database's membership", ValueException);
     // Stage 1: the representatives, reaching further than the final cut-off.
     const SequenceSearchHits found =
-            search_sequence_database(queries, representatives, stage_one(options, cluster_options));
+            search_representatives(queries, representatives, options, cluster_options);
     // Stage 2: the members of the clusters found (and the orphans).
     std::vector<std::size_t> always;
     if (cluster_options.search_orphans) always = clusters.get_orphan_rows();
@@ -795,8 +825,7 @@ SequenceSearchHits search_clustered_sequence_database(
         const Strings& queries, const SequenceDatabase& database,
         const SequenceSearchOptions& options, const SequenceClusterSearchOptions& cluster_options) {
     const SequenceDatabase members = database.get_members_database();
-    const SequenceSearchHits found =
-            search_sequence_database(queries, database, stage_one(options, cluster_options));
+    const SequenceSearchHits found = search_representatives(queries, database, options, cluster_options);
     // an orphans' group is the last representative, named so: always searched
     std::vector<std::size_t> always;
     if (cluster_options.search_orphans && database.get_number_of_sequences() > 0) {
