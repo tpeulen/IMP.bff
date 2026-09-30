@@ -113,6 +113,13 @@ IMPBFFEXPORT SequenceSearchHits search_sequence_database_rows(
         const SequenceSearchOptions& options = SequenceSearchOptions(), double residues = 0);
 #endif
 
+//! #search_sequence_database over \p rows of \p database only (any order;
+//! repeats count once), E-values against the whole database: what a
+//! prefilter's candidates align to.
+IMPBFFEXPORT SequenceSearchHits search_sequence_database_rows(
+        const Strings& queries, const SequenceDatabase& database, const Ints& rows,
+        const SequenceSearchOptions& options = SequenceSearchOptions());
+
 #ifndef SWIG
 //! The alignment of \p member to \p reference as 'M'/'I'/'D' operations
 //! (reference ends skipped as leading and trailing 'D', the member's

@@ -602,6 +602,20 @@ SequenceSearchHits search_sequence_database(const Strings& queries,
 }
 
 SequenceSearchHits search_sequence_database_rows(const Strings& queries,
+                                                 const SequenceDatabase& database, const Ints& rows,
+                                                 const SequenceSearchOptions& options) {
+    std::vector<std::size_t> sorted;
+    for (int r : rows) {
+        if (r < 0 || std::size_t(r) >= database.get_number_of_sequences())
+            IMP_THROW("search_sequence_database_rows: no row " << r, IndexException);
+        sorted.push_back(std::size_t(r));
+    }
+    std::sort(sorted.begin(), sorted.end());
+    sorted.erase(std::unique(sorted.begin(), sorted.end()), sorted.end());
+    return search_sequence_database_rows(queries, database, sorted, options, 0);
+}
+
+SequenceSearchHits search_sequence_database_rows(const Strings& queries,
                                                  const SequenceDatabase& database,
                                                  const std::vector<std::size_t>& rows,
                                                  const SequenceSearchOptions& options,

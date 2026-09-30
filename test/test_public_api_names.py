@@ -70,6 +70,7 @@ FLAT_NAMES = [
     "SequenceSearchOptions",        # prefilter and alignment settings
     "SequenceSearchHit",            # one aligned target
     "search_sequence_database",     # MMseqs2's method, native
+    "search_sequence_database_rows",  # a prefilter's candidates only
     "align_sequences",              # the search's pairwise alignment
     "get_query_msa",                # hits -> query-anchored SequenceMSA
     "get_blosum62",

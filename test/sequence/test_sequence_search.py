@@ -139,3 +139,21 @@ def test_hits_make_a_query_anchored_alignment(database):
     assert msa.get_n_columns() == len(query)
     assert msa.get_sequence(0) == query
     assert list(msa.get_reference_positions()) == list(range(1, len(query) + 1))
+
+
+def test_rows_search_is_the_full_search_restricted(tmp_path):
+    fasta = os.path.join(os.path.dirname(__file__), "..", "input", "sequence", "rbp_60x120.fasta")
+    msa = bff.read_sequence_msa(fasta, match_columns_only=False)
+    seqs = [msa.get_sequence(k).replace("-", "") for k in range(msa.get_n_sequences())]
+    with open(tmp_path / "db.fasta", "w") as fh:
+        for k, s in enumerate(seqs):
+            fh.write(f">s{k}\n{s}\n")
+    bff.create_sequence_database(str(tmp_path / "db.fasta"), str(tmp_path / "db.pto"))
+    db = bff.SequenceDatabase(str(tmp_path / "db.pto"))
+    full = bff.search_sequence_database([seqs[0]], db)
+    rows = [7, 3, 3, 20, 11]                       # any order, repeats once
+    part = bff.search_sequence_database_rows([seqs[0]], db, rows)
+    key = lambda h: (h.target, h.score, round(h.evalue, 12))
+    assert sorted(map(key, part)) == sorted(key(h) for h in full if h.target in rows)
+    with pytest.raises(bff.IndexException):
+        bff.search_sequence_database_rows([seqs[0]], db, [len(seqs)])
