@@ -13,6 +13,8 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <functional>
+#include <map>
 #include <atomic>
 #include <thread>
 #include <sys/resource.h>
@@ -703,6 +705,70 @@ std::vector<std::size_t> SequenceClusters::get_orphan_rows() const {
     return std::vector<std::size_t>(o.begin(), o.end());
 }
 
+namespace {
+
+//! Stage 2: the members of the clusters \p found, all at once or best first in
+//! growing batches until every query has enough good hits.
+SequenceSearchHits search_members(const Strings& queries, const SequenceSearchHits& found,
+                                  const std::function<void(std::size_t, std::vector<std::size_t>&)>& rows_of,
+                                  const std::vector<std::size_t>& always, const SequenceDatabase& members,
+                                  const SequenceSearchOptions& options,
+                                  const SequenceClusterSearchOptions& co) {
+    // clusters by their best representative E-value over all queries
+    std::map<std::size_t, double> best;
+    for (const SequenceSearchHit& h : found) {
+        auto it = best.find(h.target);
+        if (it == best.end() || h.evalue < it->second) best[h.target] = h.evalue;
+    }
+    std::vector<std::pair<double, std::size_t> > order;
+    for (const auto& kv : best) order.push_back(std::make_pair(kv.second, kv.first));
+    std::sort(order.begin(), order.end());
+    auto rows_for = [&](std::size_t first, std::size_t end, bool with_always) {
+        std::vector<std::size_t> rows;
+        for (std::size_t i = first; i < end; ++i) rows_of(order[i].second, rows);
+        if (with_always) rows.insert(rows.end(), always.begin(), always.end());
+        std::sort(rows.begin(), rows.end());
+        rows.erase(std::unique(rows.begin(), rows.end()), rows.end());
+        return rows;
+    };
+    if (co.min_homologues <= 0)
+        return search_sequence_database_rows(queries, members, rows_for(0, order.size(), true), options);
+    SequenceSearchHits out;
+    std::vector<int> good(queries.size(), 0);
+    std::size_t done = 0, batch = 64;
+    bool first = true;
+    while (done < order.size() || first) {
+        const std::size_t end = std::min(order.size(), done + batch);
+        const SequenceSearchHits hits =
+                search_sequence_database_rows(queries, members, rows_for(done, end, first), options);
+        for (const SequenceSearchHit& h : hits) {
+            out.push_back(h);
+            if (h.evalue <= co.stop_evalue && h.identity >= co.stop_min_identity)
+                ++good[static_cast<std::size_t>(h.query)];
+        }
+        done = end;
+        first = false;
+        batch *= 2;
+        if (std::all_of(good.begin(), good.end(), [&](int g) { return g >= co.min_homologues; })) break;
+    }
+    std::sort(out.begin(), out.end(), [](const SequenceSearchHit& a, const SequenceSearchHit& b) {
+        if (a.query != b.query) return a.query < b.query;
+        if (a.evalue != b.evalue) return a.evalue < b.evalue;
+        return a.target < b.target;
+    });
+    return out;
+}
+
+SequenceSearchOptions stage_one(const SequenceSearchOptions& options,
+                                const SequenceClusterSearchOptions& co) {
+    SequenceSearchOptions first = options;
+    first.max_candidates = std::max(co.max_representatives, options.max_candidates);
+    first.max_evalue = std::max(co.max_representative_evalue, options.max_evalue);
+    return first;
+}
+
+}  // namespace
+
 SequenceSearchHits search_clustered_sequence_database(
         const Strings& queries, const SequenceDatabase& representatives,
         const SequenceClusters& clusters, const SequenceDatabase& members,
@@ -712,57 +778,41 @@ SequenceSearchHits search_clustered_sequence_database(
                   << " clusters for " << representatives.get_number_of_sequences()
                   << " representatives: not this database's membership", ValueException);
     // Stage 1: the representatives, reaching further than the final cut-off.
-    SequenceSearchOptions first = options;
-    first.max_candidates = std::max(cluster_options.max_representatives, options.max_candidates);
-    first.max_evalue = std::max(cluster_options.max_representative_evalue, options.max_evalue);
-    const SequenceSearchHits found = search_sequence_database(queries, representatives, first);
-    // Stage 2: the members of every cluster found (and the orphans), in row order.
-    std::vector<std::size_t> rows;
-    std::vector<char> seen(clusters.get_number_of_clusters(), 0);
-    for (const SequenceSearchHit& h : found) {
-        if (seen[h.target]) continue;
-        seen[h.target] = 1;
-        const std::vector<std::size_t> m = clusters.get_member_rows(h.target);
-        rows.insert(rows.end(), m.begin(), m.end());
-    }
-    if (cluster_options.search_orphans) {
-        const std::vector<std::size_t> o = clusters.get_orphan_rows();
-        rows.insert(rows.end(), o.begin(), o.end());
-    }
-    std::sort(rows.begin(), rows.end());
-    rows.erase(std::unique(rows.begin(), rows.end()), rows.end());
-    return search_sequence_database_rows(queries, members, rows, options);
+    const SequenceSearchHits found =
+            search_sequence_database(queries, representatives, stage_one(options, cluster_options));
+    // Stage 2: the members of the clusters found (and the orphans).
+    std::vector<std::size_t> always;
+    if (cluster_options.search_orphans) always = clusters.get_orphan_rows();
+    return search_members(queries, found,
+                          [&](std::size_t k, std::vector<std::size_t>& rows) {
+                              const std::vector<std::size_t> m = clusters.get_member_rows(k);
+                              rows.insert(rows.end(), m.begin(), m.end());
+                          },
+                          always, members, options, cluster_options);
 }
 
 SequenceSearchHits search_clustered_sequence_database(
         const Strings& queries, const SequenceDatabase& database,
         const SequenceSearchOptions& options, const SequenceClusterSearchOptions& cluster_options) {
     const SequenceDatabase members = database.get_members_database();
-    SequenceSearchOptions first = options;
-    first.max_candidates = std::max(cluster_options.max_representatives, options.max_candidates);
-    first.max_evalue = std::max(cluster_options.max_representative_evalue, options.max_evalue);
-    const SequenceSearchHits found = search_sequence_database(queries, database, first);
-    // each hit cluster's members: one contiguous run
-    std::vector<std::size_t> clusters;
-    for (const SequenceSearchHit& h : found) clusters.push_back(h.target);
-    std::sort(clusters.begin(), clusters.end());
-    clusters.erase(std::unique(clusters.begin(), clusters.end()), clusters.end());
-    std::vector<std::size_t> rows;
-    for (std::size_t k : clusters) {
-        const Ints range = database.get_member_range(k);
-        for (int r = range[0]; r < range[1]; ++r) rows.push_back(static_cast<std::size_t>(r));
-    }
+    const SequenceSearchHits found =
+            search_sequence_database(queries, database, stage_one(options, cluster_options));
+    // an orphans' group is the last representative, named so: always searched
+    std::vector<std::size_t> always;
     if (cluster_options.search_orphans && database.get_number_of_sequences() > 0) {
-        // an orphans' group is the last representative, named so
         const std::size_t last = database.get_number_of_sequences() - 1;
-        if (database.get_identifier(last) == "orphans" &&
-            !std::binary_search(clusters.begin(), clusters.end(), last)) {
+        if (database.get_identifier(last) == "orphans") {
             const Ints range = database.get_member_range(last);
-            for (int r = range[0]; r < range[1]; ++r) rows.push_back(static_cast<std::size_t>(r));
+            for (int r = range[0]; r < range[1]; ++r) always.push_back(static_cast<std::size_t>(r));
         }
     }
-    std::sort(rows.begin(), rows.end());
-    return search_sequence_database_rows(queries, members, rows, options);
+    // each cluster's members: one contiguous run
+    return search_members(queries, found,
+                          [&](std::size_t k, std::vector<std::size_t>& rows) {
+                              const Ints range = database.get_member_range(k);
+                              for (int r = range[0]; r < range[1]; ++r) rows.push_back(static_cast<std::size_t>(r));
+                          },
+                          always, members, options, cluster_options);
 }
 
 IMPBFF_END_NAMESPACE

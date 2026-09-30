@@ -39,6 +39,7 @@ struct Args {
   int max_candidates = SequenceSearchOptions().max_candidates;
   double evalue = SequenceSearchOptions().max_evalue;
   int threads = 0;
+  int min_homologues = 0;
   bool standalone = false;
 };
 
@@ -136,7 +137,8 @@ void search(const Args& a) {
   const SequenceDatabase db(name, a.name);
   const std::string reps = representatives_for(a, name);
   const SequenceSearchHits hits =
-      db.get_has_members() ? search_clustered_sequence_database(queries, db, search_options(a))
+      db.get_has_members() ? search_clustered_sequence_database(queries, db, search_options(a),
+                                                                cluster_options(a))
       : reps.empty() ? search_sequence_database(queries, db, search_options(a))
                    : search_clustered_sequence_database(queries, SequenceDatabase(reps),
                                                         SequenceClusters(reps), db,
@@ -190,6 +192,7 @@ void consurf(const Args& a) {
   ConsurfOptions options;
   options.database = resolve_database(a.database);
   options.representatives = a.representatives;
+  options.clusters = cluster_options(a);
   options.search = search_options(a);
   if (a.standalone) options.homologs = SequenceHomologOptions::consurf_standalone();
   const ConsurfResult r = compute_consurf(Strings(1, query), options)[0];
@@ -200,7 +203,16 @@ void consurf(const Args& a) {
             << r.homologs.size() << " homologues\n";
 }
 
+SequenceClusterSearchOptions cluster_options(const Args& a) {
+  SequenceClusterSearchOptions o;
+  o.min_homologues = a.min_homologues;
+  return o;
+}
+
 void add_search_options(CLI::App* sub, Args& a) {
+  sub->add_option("--min-homologues", a.min_homologues,
+                  "clustered databases: stop the second stage once every query has this many "
+                  "homologues (E <= 1e-4, >= 35 % identity), best clusters first; 0 searches all");
   sub->add_option("--representatives", a.representatives,
                   "cluster representatives: search in two stages (default: the settings')");
   sub->add_option("--threshold", a.threshold,

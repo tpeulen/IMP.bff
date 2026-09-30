@@ -221,3 +221,20 @@ def test_clusters_of_close_members_chain_through_siblings(tmp_path):
         assert m.get_sequence(r) == want[m.get_identifier(r)]
     # far smaller than the members stored alone
     assert os.path.getsize(out) < os.path.getsize(tmp_path / "members.pto")
+
+
+def test_early_stop_takes_the_best_clusters_first(clustered, tmp_path):
+    d, family = clustered
+    out = str(tmp_path / "clustered.pto")
+    bff.create_clustered_sequence_database(str(d / "members.pto"), str(d / "reps.pto"), out)
+    db = bff.SequenceDatabase(out)
+    queries = [family[3]]
+    full = bff.search_clustered_sequence_database(queries, db)
+    o = bff.SequenceClusterSearchOptions()
+    o.min_homologues = 1
+    some = bff.search_clustered_sequence_database(queries, db, bff.SequenceSearchOptions(), o)
+    full_ids = [h.identifier for h in full]
+    assert set(h.identifier for h in some) <= set(full_ids)
+    good = [h for h in some if h.evalue <= 1e-4 and h.identity >= 0.35]
+    assert len(good) >= 1
+    assert some[0].identifier == full_ids[0]

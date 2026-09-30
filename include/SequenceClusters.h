@@ -121,6 +121,15 @@ public:
     double max_representative_evalue = 10.0;
     //! Always search the orphans in the second stage.
     bool search_orphans = true;
+    //! Early stop: 0 searches the members of every cluster found. Otherwise
+    //! clusters are taken best first (by their representative's E-value), in
+    //! growing batches, until every query has this many hits that pass
+    //! \p stop_evalue and \p stop_min_identity -- the homologues ConSurf
+    //! keeps, say four times its cap of 150. Faster; the homologues are then
+    //! the closest ones rather than a sample of all.
+    int min_homologues = 0;
+    double stop_evalue = 1e-4;
+    double stop_min_identity = 0.35;
 
     IMP_SHOWABLE_INLINE(SequenceClusterSearchOptions,
                         out << "SequenceClusterSearchOptions(" << max_representatives << ", E <= "

@@ -32,6 +32,7 @@
 #include <IMP/bff/bff_config.h>
 #include <IMP/bff/IMPCompatibility.h>
 #include <IMP/bff/SequenceConservation.h>
+#include <IMP/bff/SequenceClusters.h>
 #include <IMP/bff/SequenceHomologs.h>
 #include <IMP/bff/SequenceMSA.h>
 #include <IMP/bff/SequenceSearch.h>
@@ -57,6 +58,9 @@ public:
     //! database named there, else one stage.
     std::string representatives;
     SequenceSearchOptions search;
+    //! The two-stage search of a clustered database: reach of the first stage,
+    //! and the optional early stop of the second (min_homologues).
+    SequenceClusterSearchOptions clusters;
     SequenceHomologOptions homologs;
     SequenceConservationOptions conservation;
 

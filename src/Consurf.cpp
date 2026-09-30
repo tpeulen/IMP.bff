@@ -99,13 +99,13 @@ ConsurfResults compute_consurf(const Strings& queries, const ConsurfOptions& opt
             const Strings queries(unique.begin(), unique.end());
             if (database.get_has_members()) {
                 // one clustered store: representatives, then the hit clusters' members
-                hits = search_clustered_sequence_database(queries, database, search);
+                hits = search_clustered_sequence_database(queries, database, search, options.clusters);
             } else if (source.representatives.empty()) {
                 hits = search_sequence_database(queries, database, search);
             } else {
                 hits = search_clustered_sequence_database(
                         queries, SequenceDatabase(source.representatives),
-                        SequenceClusters(source.representatives), database, search);
+                        SequenceClusters(source.representatives), database, search, options.clusters);
             }
         }
         for (std::size_t k = 0; k < unique.size(); ++k) {
