@@ -1,7 +1,7 @@
 ---
 title: Fast ConSurf -- conservation grades in seconds, natively
 status: in progress (UniRef50-scale embedding running; see "Pending")
-updated: 2026-09-30
+updated: 2026-10-01
 ---
 
 # Fast ConSurf
@@ -282,6 +282,50 @@ assumed for the target.
 **Projected with the embedding prefilter:** 0.16 s embedding + ~0.3 s index
 scan + ~1.3 s alignment + ~3 s stage 2 (early stop) + 1.4 s conservation
 ≈ **6 s**, provided the recall at UniRef50 scale holds.
+
+## First reading at scale: the multi-domain limit (2026-09-30)
+
+An index over the first 17 M representatives (44 %; built in 288 s, one
+query scanned in 0.57 s) was tested against 1lk2's 2,451 strong stage-1 hits
+among those rows. K is the full-database equivalent (the subset's top
+K · 17/38.84):
+
+| K | strong hits in the top K |
+|---|---|
+| 1,000 | 409 / 2451 (17 %) |
+| 5,000 | 1350 / 2451 (55 %) |
+| 10,000 | 1531 / 2451 (62 %) |
+| 20,000 | 1592 / 2451 (65 %) |
+
+This is well below the Swiss-Prot numbers. The missed hits are as similar to
+the query as the found ones (median identity 0.35 vs 0.34), but the matching
+region is a smaller part of them: median target coverage 0.46 vs 0.72, median
+length 412 vs 347. Truncation at 1,022 residues explains only 2 %. The
+missed hits are multi-domain proteins, where one mean-pooled vector dilutes
+the shared domain. The first rows of UniRef50 hold the longest proteins, and
+nearly all of their strong hits are missed (36 of 38 in the first million
+rows). The Swiss-Prot test could not show this: its queries and matches are
+mostly whole proteins.
+
+**Window vectors** score a row by its best 256-residue window (stride 128).
+They were tested fairly on cordeshub: 200k random background rows of the
+same subset set the cut-off at each K, because windows lift unrelated rows
+too. Scoring is exact cosine through the same model and head:
+
+| K | whole sequence: cut-off, recall | windows: cut-off, recall |
+|---|---|---|
+| 1,000 | 0.633, 0.508 | 0.695, 0.570 (5 background rows above the cut-off) |
+| 5,000 | 0.544, 0.635 | 0.627, 0.733 |
+| 10,000 | 0.502, 0.685 | 0.581, 0.801 |
+| 20,000 | 0.475, 0.713 | 0.538, 0.838 |
+
+The exact whole-sequence recall (0.685) agrees with the PQ index's 0.625.
+Windows add about 12 points and cost 3.8 windows per row in this long-protein
+subset (2.7 per strong hit). This subset is the hardest part of UniRef50, so
+full-database recall should be higher. For ConSurf, recall is not the
+criterion: at most 150 homologues are kept, sampled over thousands of
+candidates. Grade agreement with the full run decides, and it is measured
+next.
 
 ## Pending
 
