@@ -29,7 +29,7 @@ std::string clean_query(const std::string& s) {
 
 //! Where the hits come from: a database path, or a server; one of the two.
 struct ConsurfSource {
-    std::string database, representatives, embedding_model, embedding_index;
+    std::string database, representatives;
     SequenceSearchServer server;
     bool use_server = false;
 };
@@ -43,8 +43,6 @@ ConsurfSource consurf_source(const ConsurfOptions& options) {
         source.representatives = !options.representatives.empty()
                                          ? options.representatives
                                          : settings.get_representatives(named);
-        source.embedding_model = settings.get_embedding_model(named);
-        source.embedding_index = settings.get_embedding_index(named);
         return source;
     }
     const std::string server = options.server.empty() ? settings.fallback_server : options.server;
@@ -99,21 +97,15 @@ ConsurfResults compute_consurf(const Strings& queries, const ConsurfOptions& opt
             SequenceSearchOptions search = options.search;
             search.max_evalue = std::max(search.max_evalue, options.homologs.max_evalue);
             const Strings queries(unique.begin(), unique.end());
-            // the settings' embedding prefilter, unless the options name one
-            SequenceClusterSearchOptions clusters = options.clusters;
-            if (clusters.embedding_model.empty() && clusters.embedding_index.empty()) {
-                clusters.embedding_model = source.embedding_model;
-                clusters.embedding_index = source.embedding_index;
-            }
             if (database.get_has_members()) {
                 // one clustered store: representatives, then the hit clusters' members
-                hits = search_clustered_sequence_database(queries, database, search, clusters);
+                hits = search_clustered_sequence_database(queries, database, search, options.clusters);
             } else if (source.representatives.empty()) {
                 hits = search_sequence_database(queries, database, search);
             } else {
                 hits = search_clustered_sequence_database(
                         queries, SequenceDatabase(source.representatives),
-                        SequenceClusters(source.representatives), database, search, clusters);
+                        SequenceClusters(source.representatives), database, search, options.clusters);
             }
         }
         for (std::size_t k = 0; k < unique.size(); ++k) {

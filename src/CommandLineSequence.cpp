@@ -74,19 +74,13 @@ SequenceSearchOptions search_options(const Args& a) {
   return o;
 }
 
-//! The second-stage and prefilter options; the embedding prefilter from the
-//! settings of \p database (a name) unless given.
-SequenceClusterSearchOptions cluster_options(const Args& a, const std::string& database = "") {
+//! The second-stage and embedding-prefilter options, as given.
+SequenceClusterSearchOptions cluster_options(const Args& a) {
   SequenceClusterSearchOptions o;
   o.min_homologues = a.min_homologues;
   o.embedding_model = a.embedding_model;
   o.embedding_index = a.embedding_index;
   o.embedding_candidates = a.embedding_candidates;
-  if (o.embedding_model.empty() && o.embedding_index.empty() && !database.empty()) {
-    const SequenceSearchSettings settings = get_sequence_search_settings();
-    o.embedding_model = settings.get_embedding_model(database);
-    o.embedding_index = settings.get_embedding_index(database);
-  }
   return o;
 }
 
@@ -155,11 +149,11 @@ void search(const Args& a) {
   const std::string reps = representatives_for(a, name);
   const SequenceSearchHits hits =
       db.get_has_members() ? search_clustered_sequence_database(queries, db, search_options(a),
-                                                                cluster_options(a, name))
+                                                                cluster_options(a))
       : reps.empty() ? search_sequence_database(queries, db, search_options(a))
                    : search_clustered_sequence_database(queries, SequenceDatabase(reps),
                                                         SequenceClusters(reps), db,
-                                                        search_options(a), cluster_options(a, name));
+                                                        search_options(a), cluster_options(a));
   std::ofstream file;
   if (!a.out.empty()) {
     file.open(a.out.c_str());
@@ -228,7 +222,7 @@ void add_search_options(CLI::App* sub, Args& a) {
                   "cluster representatives: search in two stages (default: the settings')");
   sub->add_option("--embedding-model", a.embedding_model,
                   "clustered databases: protein language model (GGUF) of the embedding "
-                  "prefilter (default: the settings')");
+                  "prefilter; with --embedding-index, stage 1 aligns only its candidates");
   sub->add_option("--embedding-index", a.embedding_index,
                   "clustered databases: embedding index of the representatives");
   sub->add_option("--embedding-candidates", a.embedding_candidates,

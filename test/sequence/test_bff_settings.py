@@ -71,25 +71,3 @@ def test_invalid_json_is_refused(tmp_path):
     p.write_text("{not json")
     with pytest.raises(bff.ValueException):
         bff.get_sequence_search_settings(str(p))
-
-
-def test_an_embedding_prefilter_is_a_model_and_an_index(tmp_path):
-    path = _write(tmp_path, {"sequence_search": {
-        "databases": {"uniref": "uniref.pto"},
-        "embeddings": {"uniref": {"model": "esm.gguf", "index": "~/esm.pto"}}}})
-    s = bff.get_sequence_search_settings(path)
-    assert s.get_embedding_model("uniref") == str(tmp_path / "esm.gguf")
-    assert s.get_embedding_index("uniref").endswith("/esm.pto")
-    assert not s.get_embedding_index("uniref").startswith("~")
-    assert s.get_embedding_model("sprot") == s.get_embedding_index("sprot") == ""
-
-
-@pytest.mark.parametrize("embeddings", [
-    {"x": {"model": "m.gguf"}},                             # no index
-    {"x": {"model": "m.gguf", "index": "i.pto", "idx": 1}},  # misspelt key
-    {"x": "m.gguf"},                                        # not an object
-])
-def test_embedding_mistakes_are_refused(tmp_path, embeddings):
-    with pytest.raises(bff.ValueException):
-        bff.get_sequence_search_settings(
-            _write(tmp_path, {"sequence_search": {"embeddings": embeddings}}))

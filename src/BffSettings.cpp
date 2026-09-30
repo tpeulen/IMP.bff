@@ -115,22 +115,6 @@ void SequenceSearchSettings::set_representatives(const std::string& name, const 
     representatives_[name] = path;
 }
 
-std::string SequenceSearchSettings::get_embedding_model(const std::string& name) const {
-    const auto it = embedding_models_.find(name);
-    return it == embedding_models_.end() ? std::string() : it->second;
-}
-
-std::string SequenceSearchSettings::get_embedding_index(const std::string& name) const {
-    const auto it = embedding_indexes_.find(name);
-    return it == embedding_indexes_.end() ? std::string() : it->second;
-}
-
-void SequenceSearchSettings::set_embedding(const std::string& name, const std::string& model,
-                                           const std::string& index) {
-    embedding_models_[name] = model;
-    embedding_indexes_[name] = index;
-}
-
 std::vector<std::string> SequenceSearchSettings::get_server_names() const {
     std::vector<std::string> out;
     for (const auto& kv : servers_) out.push_back(kv.first);
@@ -171,9 +155,8 @@ SequenceSearchSettings get_sequence_search_settings(const std::string& path) {
     if (section == doc.end()) return out;
     const nlohmann::json& s = *section;
     if (!s.is_object()) IMP_THROW("settings: sequence_search must be an object", ValueException);
-    refuse_unknown(s, {"databases", "default_database", "indexes", "clusters", "embeddings",
-                       "servers", "fallback_server", "threads", "memory_budget_mb"},
-                   "sequence_search");
+    refuse_unknown(s, {"databases", "default_database", "indexes", "clusters", "servers",
+                       "fallback_server", "threads", "memory_budget_mb"}, "sequence_search");
     const std::string dir = parent_directory(file);
 
     for (const char* key : {"databases", "indexes", "clusters"}) {
@@ -188,23 +171,6 @@ SequenceSearchSettings get_sequence_search_settings(const std::string& path) {
             if (std::string(key) == "databases") out.set_database(e.key(), p);
             else if (std::string(key) == "indexes") out.set_index(e.key(), p);
             else out.set_representatives(e.key(), p);
-        }
-    }
-    const auto embeddings = s.find("embeddings");
-    if (embeddings != s.end()) {
-        if (!embeddings->is_object())
-            IMP_THROW("settings: sequence_search.embeddings must map names to {model, index}",
-                      ValueException);
-        for (auto e = embeddings->begin(); e != embeddings->end(); ++e) {
-            const std::string where = "sequence_search.embeddings." + e.key();
-            if (!e.value().is_object()) IMP_THROW("settings: " << where << " must be an object",
-                                                  ValueException);
-            refuse_unknown(e.value(), {"model", "index"}, where);
-            const auto model = e.value().find("model"), index = e.value().find("index");
-            if (model == e.value().end() || index == e.value().end())
-                IMP_THROW("settings: " << where << " needs a model and an index", ValueException);
-            out.set_embedding(e.key(), resolve(string_map_entry(*model, where + ".model"), dir),
-                              resolve(string_map_entry(*index, where + ".index"), dir));
         }
     }
     const auto servers = s.find("servers");

@@ -15,8 +15,6 @@
  *     "databases": {"uniref90": "/Volumes/SD1TB/sequences/uniref90.pto"},
  *     "default_database": "uniref90",
  *     "clusters": {"uniref90": "/Volumes/SD1TB/sequences/uniref50.pto"},
- *     "embeddings": {"uniref": {"model": "/Volumes/SD1TB/sequences/esm2_35m_head.gguf",
- *                               "index": "/Volumes/SD1TB/sequences/uniref50_esm.pto"}},
  *     "servers": {
  *       "colabfold": {"url": "https://api.colabfold.com",
  *                     "protocol": "colabfold-v1",
@@ -96,13 +94,6 @@ public:
     std::string get_representatives(const std::string& name) const;
     void set_representatives(const std::string& name, const std::string& path);
 
-    //! The embedding prefilter of database \p name: a protein language model
-    //! (GGUF) and an embedding index of its representatives, or "" when it
-    //! has none (#IMP::bff::SequenceClusterSearchOptions::embedding_model).
-    std::string get_embedding_model(const std::string& name) const;
-    std::string get_embedding_index(const std::string& name) const;
-    void set_embedding(const std::string& name, const std::string& model, const std::string& index);
-
     std::vector<std::string> get_server_names() const;
     bool get_has_server(const std::string& name) const;
     //! \throw ValueException if unknown.
@@ -114,8 +105,7 @@ public:
                             << " databases, " << servers_.size() << " servers)");
 
 private:
-    std::map<std::string, std::string> databases_, indexes_, representatives_,
-            embedding_models_, embedding_indexes_;
+    std::map<std::string, std::string> databases_, indexes_, representatives_;
     std::map<std::string, SequenceSearchServer> servers_;
 };
 IMP_VALUES(SequenceSearchSettings, SequenceSearchSettingsList);
