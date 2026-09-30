@@ -73,6 +73,12 @@ SequenceSearchOptions search_options(const Args& a) {
   return o;
 }
 
+SequenceClusterSearchOptions cluster_options(const Args& a) {
+  SequenceClusterSearchOptions o;
+  o.min_homologues = a.min_homologues;
+  return o;
+}
+
 std::string resolve_database(const std::string& given) {
   if (!given.empty()) return given;
   const SequenceSearchSettings settings = get_sequence_search_settings();
@@ -201,12 +207,6 @@ void consurf(const Args& a) {
   if (!a.msa.empty()) write_consurf_msa(r, a.msa);
   std::cout << a.out << ": " << r.conservation.get_n_positions() << " positions, "
             << r.homologs.size() << " homologues\n";
-}
-
-SequenceClusterSearchOptions cluster_options(const Args& a) {
-  SequenceClusterSearchOptions o;
-  o.min_homologues = a.min_homologues;
-  return o;
 }
 
 void add_search_options(CLI::App* sub, Args& a) {
