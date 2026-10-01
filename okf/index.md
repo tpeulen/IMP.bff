@@ -59,6 +59,10 @@ shared index.
   ESM-2 embedding prefilter (contrastive head, PQ index, native GGUF forward
   pass), ConSurf's homologue rules and Rate4Site's method; parameters,
   measurements and what is pending. The methods record for the paper.
+* [ESM-2 contacts](esm-contacts.md) - ESM-2 contact maps as an alternative to
+  co-evolution (DCA) for the FRET network's pair cost: model sizes against DCA
+  on 20 chains (650M: 0.84 vs 0.38 long-range precision on the same chains),
+  and why contact maps do *not* predict which pairs change distance.
 * [cgprobe](cgprobe.md) - The explicit-dye layer: what it does, where the physics
   lives (R0/κ² in `fret`), the flat `IMP.bff.*` surface, conventions (CB
   strip), tests and pins.
