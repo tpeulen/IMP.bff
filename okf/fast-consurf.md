@@ -1,6 +1,6 @@
 ---
 title: Fast ConSurf -- conservation grades in seconds, natively
-status: in progress (UniRef50-scale embedding running; see "Pending")
+status: in progress (time target met on 1lk2; benchmark over more chains pending)
 updated: 2026-10-01
 ---
 
@@ -27,7 +27,7 @@ query sequence
   │     (b) ESM-2 embedding -> nearest representatives (PQ index)
   │           -> Smith-Waterman on those candidates only            [~2 s]
   │
-  ├─ Stage 2: search the members (UniRef90) of the clusters found  [11 s; ~3 s with early stop]
+  ├─ Stage 2: search the members (UniRef90) of the clusters found  [~11 s; early stop not yet measured]
   │
   ├─ Homologue selection by ConSurf's rules (E, coverage, identity,
   │     redundancy, cap 150 sampled)
@@ -265,7 +265,15 @@ does not arise.
 | of which stage 1 (k-mer scan of 38.8 M representatives) | 228 s | 4,741 hits, 3,642 at E ≤ 1e-4 |
 | of which stage 2 | ~11 s | |
 | of which conservation | 1.4 s | |
-| early stop at 150 / 300 / 600 homologues | 233 / 239 / 238 s | grades identical to the full run (ρ = 1.000) |
+
+**Retracted (2026-10-01):** an earlier version of this table listed early stop
+at 150 / 300 / 600 homologues as 233 / 239 / 238 s with grades identical to
+the full run. Those runs never stopped early. In Python,
+`options.clusters.min_homologues = n` sets the field on a copy that SWIG
+returns, and `options` is unchanged. The numbers are repeats of the full run,
+and their spread (233–241 s) is run-to-run noise. Nested options must be
+copied out, changed and assigned back
+(`c = o.clusters; c.min_homologues = n; o.clusters = c`).
 
 Stage 1 through candidate rows, simulated with the k-mer hits padded with
 random representatives:
@@ -280,7 +288,7 @@ random representatives:
 assumed for the target.
 
 **Projected with the embedding prefilter:** 0.16 s embedding + ~0.3 s index
-scan + ~1.3 s alignment + ~3 s stage 2 (early stop) + 1.4 s conservation
+scan + ~1.3 s alignment + stage 2 (~11 s full; early stop unmeasured) + 1.4 s conservation
 ≈ **6 s**, provided the recall at UniRef50 scale holds.
 
 ## First reading at scale: the multi-domain limit (2026-09-30)
@@ -327,6 +335,60 @@ criterion: at most 150 homologues are kept, sampled over thousands of
 candidates. Grade agreement with the full run decides, and it is measured
 next.
 
+## Full scale: 1lk2 end to end (2026-10-01)
+
+Index over all 38,840,027 representatives: built in 505 s, 1.24 GB
+(`/Volumes/SD1TB/sequences/uniref50_esm.pto`). Query embedding 0.11 s. Scan
+20.5 s cold (1.24 GB at the SD card's ~60 MB/s) and **0.13 s warm** (page
+cache).
+
+Recall of the k-mer scan's stage-1 hits (3,642 strong, E ≤ 1e-4; 4,741 in
+all):
+
+| K | strong | all |
+|---|---|---|
+| 1,000 | 825 (23 %) | 865 |
+| 5,000 | 1,724 (47 %) | 2,084 |
+| 10,000 | 1,862 (51 %) | 2,359 |
+| 20,000 | 1,969 (54 %) | 2,555 |
+
+ConSurf end to end, against the k-mer two-stage run (284 s in this session;
+the reference for scores and grades):
+
+| configuration | time | score ρ | grades exact | within 1 |
+|---|---|---|---|---|
+| k-mer two-stage (reference) | 284 s | 1 | 1 | 1 |
+| embedding, 10k candidates | 46.7 s | 0.951 | 0.642 | 0.942 |
+| embedding, 20k candidates | 28.0 s | 0.951 | 0.642 | 0.942 |
+| **embedding, 10k candidates, early stop at 600** | **6.4 s** | 0.952 | 0.650 | 0.927 |
+
+The 46.7 s → 28.0 s difference between the first two rows is caching: the
+second run found the member rows already read. With 20k candidates the
+selected homologues and grades are identical to 10k, so the added candidates
+are too distant to be chosen. **The time target is met with early stop**
+(6.4 s, index warm). The grades move: 64 % agree exactly with the reference
+and 93 % within one grade. Is that more than the sensitivity of grades to which 150
+homologues are sampled? Baselines keep the k-mer search fixed and change only
+the choice of homologues:
+
+| same k-mer search, homologue choice varied | time | score ρ | grades exact | within 1 |
+|---|---|---|---|---|
+| the 150 closest instead of 150 sampled (`sampling="best"`) | 328 s | 0.886 | 0.515 | 0.792 |
+| early stop at 600 homologues | 351 s | 0.942 | 0.591 | 0.916 |
+| *for comparison: embedding, 10k, early stop at 600* | *6.4 s* | *0.952* | *0.650* | *0.927* |
+
+Changing only which homologues are kept moves 40–50 % of the grades. The fast
+path agrees with the reference better than either variant of the exact
+search. **The grade differences of the embedding path are inside the spread
+that ConSurf's own homologue sampling produces.** They are not a loss
+specific to the prefilter. For a paper, the honest statement is: same
+scores to ρ ≈ 0.95, grades within one class at 93 %, 44× faster (284 → 6.4 s),
+on one chain. More chains are needed before this generalises.
+
+The k-mer runs with early stop were slower than without (351 vs 284 s): the
+early stop saves only stage-2 work, and run-to-run time varies by tens of
+seconds on the SD card. Timings in this table are single runs.
+
 ## Pending
 
 - **UniRef50 embedding** of all 38.84 M representatives on cordeshub
@@ -339,8 +401,13 @@ next.
     1k/5k/10k/20k;
   - end-to-end time;
   - grade agreement with the 240 s run (`scratchpad/ab/e2e.py`).
-- If recall falls short: more candidates, and window vectors for long
-  representatives.
+- More chains (a benchmark set) for grade agreement and time, not just 1lk2.
+- Window vectors for long representatives (+12 recall points measured on the
+  first 17 M rows) if a benchmark shows grade drift beyond the sampling
+  spread.
+- Time on a fast SSD instead of the SD card. Cold runs here are bound by its
+  random reads; the 6.4 s figure has the index and touched rows in the page
+  cache.
 
 ## Reproduction
 
