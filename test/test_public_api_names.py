@@ -135,7 +135,8 @@ FLAT_NAMES = [
     "create_forcefield_system",       # topology (C++, ProbeTopology.h)
     "simulate_probe_diffusion",        # probesampling
     "fret_rate_trace",               # quenching / FRETRateTrace
-    "NPSIsotropicFRETEfficiencyRestraint",  # NPS Bayesian structural tracer
+    "nps_isotropic_direct_score",      # NPS direct-FRET likelihood term
+    "nps_cloud_prior_score",           # NPS cloud position prior term
     "NPSNetworkDye",                   # NPS network per-dye metadata
     "NPSMeasurement",                  # NPS network measurement record
     "nps_network_fret_efficiency",     # NPS network forward model

@@ -5,11 +5,10 @@ adjacency from a sampled accessible volume). The bff replacement keeps the
 accessible volume's own point cloud as the prior: a weighted Gaussian
 kernel density estimate whose bandwidth is Scott's rule on the cloud, a
 log-density the samplers can use directly, a config seed for the network
-evaluator's [x, y, z, m, phi] rows, and a thin IMP restraint so
-IMP.core.MonteCarlo + Movers can sample a live label site under it — the
-same conventions as the committed NPSIsotropicFRETEfficiencyRestraint:
-+inf (never a throw) for unscorable live state, Monte-Carlo-only, and
-ValueException at construction for misconfiguration.
+evaluator's [x, y, z, m, phi] rows, and the prior as a score
+(nps_cloud_prior_score) with the conventions of nps_isotropic_direct_score:
++inf (never a throw) for an unscorable position, ValueException for
+misconfiguration. Plain values in, so the core builds without IMP.
 """
 import math
 
@@ -17,8 +16,6 @@ import numpy as np
 import pytest
 
 import IMP
-import IMP.core
-import IMP.algebra
 import IMP.bff as bff
 
 
@@ -156,86 +153,47 @@ def test_seeded_config_feeds_the_network_evaluator():
 
 
 # ---------------------------------------------------------------------------
-# the restraint: IMP.core.MonteCarlo samples a live label site under the prior
+# the score: -scale * log prior, what a sampler minimises
 # ---------------------------------------------------------------------------
 
-def _restraint(model, particle, cloud, scale=1.0):
-    return bff.NPSCloudPositionPriorRestraint(
-        model, particle, cloud, scale)
-
-
-def test_restraint_scores_minus_the_cloud_log_prior():
-    model = IMP.Model()
-    p = IMP.Particle(model)
-    xyz = IMP.core.XYZ.setup_particle(
-        p, IMP.algebra.Vector3D(1.0, 2.0, 3.0))
+def test_score_is_minus_the_cloud_log_prior():
     cloud = _cloud_gaussian([0.0, 0.0, 0.0], n_points=200)
-    r = _restraint(model, p, cloud)
-    score = r.unprotected_evaluate(None)
-    assert score == pytest.approx(
+    assert bff.nps_cloud_prior_score(cloud, 1.0, 2.0, 3.0) == pytest.approx(
         -bff.nps_cloud_log_prior(cloud, 1.0, 2.0, 3.0), rel=1e-12)
+    assert bff.nps_cloud_prior_score(cloud, 1.0, 2.0, 3.0, 2.5) == pytest.approx(
+        -2.5 * bff.nps_cloud_log_prior(cloud, 1.0, 2.0, 3.0), rel=1e-12)
 
 
-def test_restraint_rejects_derivatives_and_bad_construction():
-    model = IMP.Model()
-    p = IMP.Particle(model)
-    IMP.core.XYZ.setup_particle(p, IMP.algebra.Vector3D(0.0, 0.0, 0.0))
+def test_score_rejects_bad_configuration():
     cloud = _cloud_gaussian([0.0, 0.0, 0.0], n_points=100)
-    r = _restraint(model, p, cloud)
-    with pytest.raises(IMP.UsageException):
-        r.unprotected_evaluate(IMP.DerivativeAccumulator())
-    # a particle without XYZ is refused at construction
-    q = IMP.Particle(model)
+    for scale in (0.0, -1.0, float("nan"), float("inf")):
+        with pytest.raises(IMP.ValueException):
+            bff.nps_cloud_prior_score(cloud, 0.0, 0.0, 0.0, scale)
     with pytest.raises(IMP.ValueException):
-        bff.NPSCloudPositionPriorRestraint(model, q, cloud, 1.0)
-    # a non-positive bandwidth scale is refused
-    with pytest.raises(IMP.ValueException):
-        bff.NPSCloudPositionPriorRestraint(model, p, cloud, 0.0)
-    with pytest.raises(IMP.ValueException):
-        bff.NPSCloudPositionPriorRestraint(model, p, cloud, float("nan"))
-    # a ragged cloud is refused
-    with pytest.raises(IMP.ValueException):
-        bff.NPSCloudPositionPriorRestraint(model, p, [1.0, 2.0], 1.0)
+        bff.nps_cloud_prior_score([1.0, 2.0], 0.0, 0.0, 0.0)
 
 
-def test_restraint_maps_unscorable_state_to_infinity():
-    model = IMP.Model()
-    p = IMP.Particle(model)
-    xyz = IMP.core.XYZ.setup_particle(
-        p, IMP.algebra.Vector3D(0.0, 0.0, 0.0))
+def test_score_maps_an_unscorable_position_to_infinity():
     cloud = _cloud_gaussian([0.0, 0.0, 0.0], n_points=100)
-    r = _restraint(model, p, cloud)
-    xyz.set_coordinates(IMP.algebra.Vector3D(float("nan"), 0.0, 0.0))
-    assert r.unprotected_evaluate(None) == float("inf")
+    assert bff.nps_cloud_prior_score(cloud, float("nan"), 0.0, 0.0) == float("inf")
 
 
-def test_monte_carlo_with_a_ball_mover_pulls_the_site_into_the_cloud():
-    """The Mover route: one IMP.core.MonteCarlo owning the transaction, a
-    BallMover proposing positions, the cloud prior as the sole restraint.
-    Starting outside the cloud, the chain must move the site to the
-    neighbourhood of the weighted mean — what a hard box could only
+def test_metropolis_on_the_score_pulls_the_site_into_the_cloud():
+    """A seeded Metropolis walk on the score alone, started outside the
+    cloud, ends near the weighted mean -- what a hard box could only
     approximate by construction."""
-    model = IMP.Model()
-    p = IMP.Particle(model)
-    xyz = IMP.core.XYZ.setup_particle(
-        p, IMP.algebra.Vector3D(30.0, 30.0, 30.0))
     cloud = _cloud_gaussian([0.0, 0.0, 0.0], n_points=600)
-    r = _restraint(model, p, cloud)
-    sf = IMP.core.RestraintsScoringFunction([r])
-    xyz.set_coordinates_are_optimized(True)
-    mc = IMP.core.MonteCarlo(model)
-    mc.set_scoring_function(sf)
-    mc.set_kt(0.5)
-    mover = IMP.core.BallMover(model, p, 4.0)
-    mover.set_was_used(True)
-    mc.add_mover(mover)
-    mc.optimize(2000)
-    mean = bff.points_weighted_mean(cloud)
-    h = bff.nps_cloud_bandwidth(cloud)
-    final = np.array([xyz.get_coordinate(i) for i in range(3)])
-    dist = float(np.linalg.norm(final - np.asarray(mean)))
-    # a converged chain sits within a few bandwidths of the cloud's mean
-    assert dist < 5.0 * h
+    rng = np.random.default_rng(11)
+    x = np.array([30.0, 30.0, 30.0])
+    s = bff.nps_cloud_prior_score(cloud, *x)
+    kt = 0.5
+    for _ in range(2000):
+        y = x + rng.normal(0.0, 2.0, 3)
+        t = bff.nps_cloud_prior_score(cloud, *y)
+        if t <= s or rng.random() < math.exp(-(t - s) / kt):
+            x, s = y, t
+    mean = np.asarray(bff.points_weighted_mean(cloud))
+    assert float(np.linalg.norm(x - mean)) < 5.0 * bff.nps_cloud_bandwidth(cloud)
 
 
 if __name__ == "__main__":

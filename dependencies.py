@@ -16,12 +16,6 @@
 # So this change lands with the standalone build, which resolves its own
 # dependencies rather than asking IMP's generator to. Verified out-of-tree
 # before it does.
-#
-# `isd` is a direct requirement of the NPS Bayesian structural tracer
-# (`NPSIsotropicFRETEfficiencyRestraint` reads live `IMP.isd.Nuisance`
-# particles). It is already in the transitive closure through `rmf`, so
-# declaring it direct adds no new module to the build; it only makes the
-# real edge visible and keeps the include legal if `rmf` is ever dropped.
-required_modules = 'container:core:em:atom:rmf:rotamer:kinematics:isd'
+required_modules = 'container:core:em:atom:rmf:rotamer:kinematics'
 required_dependencies = 'IMP.em'
 optional_dependencies = 'tttrlib'

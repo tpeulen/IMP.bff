@@ -61,4 +61,5 @@ IMP_SWIG_VALUE(IMP::bff, ResidueSites, ResidueSitesList);
 %template(ResidueQuenchingMap) std::map<std::string, IMP::bff::ResidueQuenching>;
 %template(PETReferenceMap) std::map<std::string, IMP::bff::PETReference>;
 %template(MapStringVectorString) std::map<std::string, std::vector<std::string> >;
-%template(VectorInt2) std::vector<int>;
+/* std::vector<int> is VectorInt (IMP_bff.core.i); a second %template of it
+   breaks the standalone build, where IMP::Ints is that same type. */

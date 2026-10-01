@@ -88,6 +88,13 @@ class ModelException : public Exception {
     explicit ModelException(const char *t) : Exception(t) {}
 };
 
+//! An index was out of range. IMP's is its own class; here it is a value
+//! error, which is how the standalone Python layer reports it.
+class IndexException : public ValueException {
+ public:
+    explicit IndexException(const char *t) : ValueException(t) {}
+};
+
 }  // namespace IMP
 #endif  // SWIG
 
@@ -137,6 +144,14 @@ class ModelException : public Exception {
 #define IMP_OBJECTS(Name, PluralName)                  \
     typedef std::vector<IMP::Pointer<Name> > PluralName; \
     typedef std::vector<Name*> PluralName##Temp
+
+namespace IMP {
+//! IMP's plural typedefs for the basic types (`IMP/types.h`). `IMP::Vector<T>`
+//! derives from `std::vector<T>`, so these are the same types to every caller.
+typedef std::vector<std::string> Strings;
+typedef std::vector<int> Ints;
+typedef std::vector<double> Floats;
+}
 
 #ifndef SWIG
 namespace IMP {

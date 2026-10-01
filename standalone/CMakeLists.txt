@@ -327,7 +327,9 @@ else()
     PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"   # the IMP/ shims, first
            "$<BUILD_INTERFACE:${IMPBFF_GEN_INCLUDE}>"
            "$<INSTALL_INTERFACE:include>"
-    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ihm" ${RMF_INCLUDE_DIR})
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ihm" ${RMF_INCLUDE_DIR}
+            # nlohmann/json, for the settings and the embedding index: the copy ptolib vendors
+            "${IMPBFF_ROOT}/thirdparty/ptolib/thirdparty/nlohmann_json/include")
   target_link_libraries(imp_bff PUBLIC Eigen3::Eigen Boost::headers PRIVATE ${RMF_LIBRARY})
 endif()
 if(cereal_FOUND)

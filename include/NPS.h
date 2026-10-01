@@ -12,10 +12,6 @@
 #include <IMP/bff/IMPCompatibility.h>
 #include <IMP/bff/GraphNode.h>
 
-#include <IMP/Restraint.h>
-#include <IMP/core/XYZ.h>
-#include <IMP/isd/Nuisance.h>
-#include <IMP/particle_index.h>
 
 #include <memory>
 #include <string>
@@ -307,59 +303,22 @@ IMPBFFEXPORT double nps_cloud_log_prior(
 IMPBFFEXPORT std::vector<double> nps_config_from_cloud(
         const std::vector<double>& cloud);
 
-//! Thin cloud-prior restraint on one live existing IMP label site.
+//! The cloud position prior as a score: \f$-\lambda \log p_{\rm cloud}(x)\f$.
 /*!
-    Scores \f$-\lambda \log p_{\rm cloud}(x)\f$ for the current `XYZ`
-    coordinates of one existing particle under the weighted Gaussian KDE
-    prior of a label cloud (the scale factor \f$\lambda>0\f$ defaults to
-    1). It reads the position at every score and owns no coordinates,
-    hierarchy, cloud storage beyond its own copy, or sampler: one
-    `IMP::core::MonteCarlo` owns the whole posterior transaction, exactly
-    the conventions of NPSIsotropicFRETEfficiencyRestraint.
+    The prior term of one label site for a sampler that minimises scores:
+    nps_cloud_log_prior() scaled by \f$\lambda>0\f$ (1 by default) and negated.
+    An unscorable position (non-finite coordinates, or a density that
+    underflows) scores +infinity rather than throwing, so a sampler can
+    always reject the move.
 
-    Unscorable live state (non-finite coordinates or a non-finite prior
-    value) returns +infinity rather than throwing, so every
-    proposal-reachable model state has a score and a rejected move rolls
-    back cleanly.
-
-    \throw IMP::ValueException at construction when the particle lacks
-        `XYZ`, the cloud is malformed, or the scale is not finite and
-        strictly positive.
-    \throw IMP::UsageException when derivatives are requested: this
-        restraint is Monte-Carlo-only.
+    This replaces `NPSCloudPositionPriorRestraint`: the prior needs a
+    position, not an `IMP::Model`, and the core builds without IMP.
+    \throws IMP::ValueException when the cloud is malformed or the scale
+        is not finite and strictly positive.
 */
-class IMPBFFEXPORT NPSCloudPositionPriorRestraint : public IMP::Restraint {
-    IMP::ParticleIndex site_;
-    std::vector<double> cloud_;
-    double bandwidth_;
-    double scale_;
-
-public:
-    //! \param[in] m the model the particle belongs to
-    /*! \param[in] site the existing label-site particle whose current
-                   `XYZ` coordinates are scored
-        \param[in] cloud the label-position prior as a flat (n, 4)
-                   x/y/z/weight cloud
-        \param[in] scale finite positive multiplier of the log prior
-        \param[in] name the restraint's name */
-    NPSCloudPositionPriorRestraint(
-            IMP::Model* m, IMP::ParticleIndexAdaptor site,
-            const std::vector<double>& cloud, double scale = 1.0,
-            std::string name = "NPSCloudPositionPriorRestraint%1%");
-
-    //! The current bandwidth (Scott's rule on the cloud).
-    double get_bandwidth() const { return bandwidth_; }
-
-    virtual double unprotected_evaluate(
-            IMP::DerivativeAccumulator* accum) const override;
-    virtual IMP::ModelObjectsTemp do_get_inputs() const override;
-
-    IMP_OBJECT_METHODS(NPSCloudPositionPriorRestraint);
-};
-
-//! The plural for SWIG vector arguments.
-IMP_OBJECTS(NPSCloudPositionPriorRestraint,
-            NPSCloudPositionPriorRestraints);
+IMPBFFEXPORT double nps_cloud_prior_score(
+        const std::vector<double>& cloud,
+        double x, double y, double z, double scale = 1.0);
 
 //! The Fast-NPS network posterior as a MCMCSampler objective node.
 /*! One GraphNode whose update() builds the configuration rows
@@ -431,68 +390,44 @@ IMPBFFEXPORT double nps_cross_entropy(
 IMPBFFEXPORT std::vector<double> nps_mean_mcse(
         const std::vector<std::vector<double>>& chain);
 
-//! Thin Bayesian direct-FRET likelihood on live existing IMP label sites.
+//! Isotropic direct efficiency between two label positions.
 /*!
-    The `bff_structural_direct` tracer's likelihood bridge. It reads the two
-    endpoint `IMP::core::XYZ` coordinates and the two `IMP::isd::Nuisance`
-    values (additive efficiency bias \f$b_E\f$ and
-    \f$\eta_R=\log(R_{\rm iso}/1\,\text{\AA})\f$) at every score, and owns no
-    coordinates, hierarchy, probe/AV state, graph port, prior, or sampler:
-    one `IMP::core::MonteCarlo` owns the whole posterior transaction.
+    The model of the `bff_structural_direct` tracer: with
+    \f$\eta_R=\log(R_{\rm iso}/1\,\text{\AA})\f$, the efficiency
+    \f$1/(1+(r/R_{\rm iso})^6)\f$ evaluated in log space,
+    \f$z=6(\log r-\eta_R)\f$, so it stays finite for any finite
+    \f$\eta_R\f$. Separations beyond the 150 Angstrom compatibility cutoff
+    give exactly 0; coincident positions give the isotropic limit 1.
+    Unscorable input (non-finite coordinates, \f$\eta_R\f$ or separation)
+    returns +infinity.
 
-    The isotropic direct efficiency is evaluated in log space,
-    \f$z=6(\log r-\eta_R)\f$, so it stays finite for any finite \f$\eta_R\f$.
-    Finite separations beyond the 150 Å compatibility cutoff give exactly 0;
-    a finite coincident pair gives the isotropic limit 1. Unscorable live
-    state (non-finite coordinates, nuisances, separation, mean, or score
-    arithmetic) returns +infinity rather than throwing, so every
-    proposal-reachable model state has a score and a rejected move rolls back
-    cleanly.
-
-    \throw IMP::ValueException at construction when an endpoint lacks `XYZ`,
-    a nuisance particle lacks `IMP::isd::Nuisance`, the observation is not
-    finite, or the scale is not finite and strictly positive.
-    \throw IMP::UsageException when derivatives are requested: this restraint
-    is Monte-Carlo-only in the first slice.
+    \param[in] donor,acceptor the two positions, x/y/z
+    \param[in] log_r_iso \f$\eta_R\f$
+    \throws IMP::ValueException when a position does not have three
+        coordinates.
 */
-class IMPBFFEXPORT NPSIsotropicFRETEfficiencyRestraint : public IMP::Restraint {
-    IMP::ParticleIndex donor_, acceptor_, bias_, log_r_iso_;
-    double observed_efficiency_;
-    double sigma_;
+IMPBFFEXPORT double nps_isotropic_direct_efficiency(
+        const std::vector<double>& donor, const std::vector<double>& acceptor,
+        double log_r_iso);
 
-public:
-    //! \param[in] m the model the four particles belong to
-    /*! \param[in] donor,acceptor the two existing label-site particles whose
-                   current `XYZ` coordinates are scored
-        \param[in] bias,log_r_iso existing `IMP::isd::Nuisance` particles for
-                   \f$b_E\f$ and \f$\eta_R=\log(R_{\rm iso}/1\,\text{\AA})\f$
-        \param[in] observed_efficiency the calibrated raw \f$E_{\rm obs}\f$
-        \param[in] sigma the fixed finite positive \f$\sigma_E\f$
-        \param[in] name the restraint's name */
-    NPSIsotropicFRETEfficiencyRestraint(
-            IMP::Model* m, IMP::ParticleIndexAdaptor donor,
-            IMP::ParticleIndexAdaptor acceptor,
-            IMP::ParticleIndexAdaptor bias,
-            IMP::ParticleIndexAdaptor log_r_iso,
-            double observed_efficiency, double sigma,
-            std::string name = "NPSIsotropicFRETEfficiencyRestraint%1%");
+//! The direct-FRET likelihood term: \f$-\log N(E_{\rm obs}\mid\hat E_{\rm iso}+b_E,\sigma_E)\f$.
+/*!
+    nps_isotropic_direct_efficiency() plus the additive efficiency bias
+    \f$b_E\f$, scored against a calibrated observation with a fixed
+    \f$\sigma_E\f$. Every reachable state has a score: unscorable input maps
+    to +infinity, never a throw, so a sampler can reject it and roll back.
+    The positions, \f$b_E\f$ and \f$\eta_R\f$ are whatever the sampler
+    holds -- graph ports under MCMCSampler, say -- not particles.
 
-    //! The current isotropic direct efficiency \f$\hat E_{\rm iso}\f$.
-    /*! Returns +infinity when the current live state is unscorable. */
-    double get_model_efficiency() const;
-    //! \f$\hat E_{\rm iso}+b_E\f$, the current Gaussian observation mean.
-    /*! Returns +infinity when the current live state is unscorable. */
-    double get_observation_mean() const;
-
-    virtual double unprotected_evaluate(
-            IMP::DerivativeAccumulator* accum) const override;
-    virtual IMP::ModelObjectsTemp do_get_inputs() const override;
-
-    IMP_OBJECT_METHODS(NPSIsotropicFRETEfficiencyRestraint);
-};
-
-IMP_OBJECTS(NPSIsotropicFRETEfficiencyRestraint,
-            NPSIsotropicFRETEfficiencyRestraints);
+    This replaces `NPSIsotropicFRETEfficiencyRestraint`, which read the same
+    values from an `IMP::Model`; the core builds without IMP.
+    \throws IMP::ValueException when a position does not have three
+        coordinates, the observation is not finite, or \f$\sigma_E\f$ is not
+        finite and strictly positive.
+*/
+IMPBFFEXPORT double nps_isotropic_direct_score(
+        const std::vector<double>& donor, const std::vector<double>& acceptor,
+        double bias, double log_r_iso, double observed_efficiency, double sigma);
 
 IMPBFF_END_NAMESPACE
 

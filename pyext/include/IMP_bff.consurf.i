@@ -12,6 +12,10 @@ IMP_SWIG_VALUE(IMP::bff, ConsurfResult, ConsurfResults);
 
 %include "IMP/bff/Consurf.h"
 
+/* The container compute_consurf returns, instantiated after the header as
+   labelizer.i does; the standalone (Pyodide) wrapper needs it named. */
+%template(ConsurfResultList) std::vector<IMP::bff::ConsurfResult>;
+
 /* ConsurfOptions' nested options (search, clusters, homologs, conservation)
    are value members: SWIG hands out a copy, so `o.clusters.min_homologues = 600`
    used to set a field of that copy and change nothing, silently. The getter

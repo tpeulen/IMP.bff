@@ -178,134 +178,57 @@ double logspace_isotropic_direct_efficiency(double log_r, double eta_r) {
     return 1.0 / (1.0 + e);
 }
 
-bool are_finite(const IMP::algebra::Vector3D& v) {
-    return std::isfinite(v[0]) && std::isfinite(v[1]) && std::isfinite(v[2]);
+const double kNpsInfinity = std::numeric_limits<double>::infinity();
+
+void check_xyz(const std::vector<double>& v, const char* what) {
+    if (v.size() != 3) {
+        IMP_THROW(what << " must have three coordinates, got " << v.size(),
+                  ValueException);
+    }
 }
 
 }  // namespace
 
-NPSIsotropicFRETEfficiencyRestraint::NPSIsotropicFRETEfficiencyRestraint(
-        IMP::Model* m, IMP::ParticleIndexAdaptor donor,
-        IMP::ParticleIndexAdaptor acceptor, IMP::ParticleIndexAdaptor bias,
-        IMP::ParticleIndexAdaptor log_r_iso, double observed_efficiency,
-        double sigma, std::string name)
-    : IMP::Restraint(m, name),
-      donor_(static_cast<IMP::ParticleIndex>(donor)),
-      acceptor_(static_cast<IMP::ParticleIndex>(acceptor)),
-      bias_(static_cast<IMP::ParticleIndex>(bias)),
-      log_r_iso_(static_cast<IMP::ParticleIndex>(log_r_iso)),
-      observed_efficiency_(observed_efficiency),
-      sigma_(sigma) {
-    if (!IMP::core::XYZ::get_is_setup(m, donor_)) {
-        IMP_THROW("NPSIsotropicFRETEfficiencyRestraint: donor particle "
-                  "must have IMP::core::XYZ",
-                  ValueException);
+double nps_isotropic_direct_efficiency(const std::vector<double>& donor,
+                                       const std::vector<double>& acceptor,
+                                       double log_r_iso) {
+    check_xyz(donor, "nps_isotropic_direct_efficiency: donor");
+    check_xyz(acceptor, "nps_isotropic_direct_efficiency: acceptor");
+    for (int i = 0; i < 3; ++i) {
+        if (!std::isfinite(donor[i]) || !std::isfinite(acceptor[i])) return kNpsInfinity;
     }
-    if (!IMP::core::XYZ::get_is_setup(m, acceptor_)) {
-        IMP_THROW("NPSIsotropicFRETEfficiencyRestraint: acceptor particle "
-                  "must have IMP::core::XYZ",
-                  ValueException);
-    }
-    if (!IMP::isd::Nuisance::get_is_setup(m, bias_)) {
-        IMP_THROW("NPSIsotropicFRETEfficiencyRestraint: bias particle "
-                  "must have IMP::isd::Nuisance",
-                  ValueException);
-    }
-    if (!IMP::isd::Nuisance::get_is_setup(m, log_r_iso_)) {
-        IMP_THROW("NPSIsotropicFRETEfficiencyRestraint: log_r_iso particle "
-                  "must have IMP::isd::Nuisance",
-                  ValueException);
-    }
+    const double distance = std::hypot(std::hypot(acceptor[0] - donor[0],
+                                                  acceptor[1] - donor[1]),
+                                       acceptor[2] - donor[2]);
+    // hypot overflows to +inf for finite positions too far apart to score.
+    if (!std::isfinite(distance)) return kNpsInfinity;
+    // The isotropic r -> 0 limit; the oriented leaf rejects this state.
+    if (distance == 0.0) return 1.0;
+    if (distance > 150.0) return 0.0;
+    if (!std::isfinite(log_r_iso)) return kNpsInfinity;
+    return logspace_isotropic_direct_efficiency(std::log(distance), log_r_iso);
+}
+
+double nps_isotropic_direct_score(const std::vector<double>& donor,
+                                  const std::vector<double>& acceptor,
+                                  double bias, double log_r_iso,
+                                  double observed_efficiency, double sigma) {
     if (!std::isfinite(observed_efficiency)) {
-        IMP_THROW("NPSIsotropicFRETEfficiencyRestraint: observed efficiency "
-                  "must be finite",
+        IMP_THROW("nps_isotropic_direct_score: observed efficiency must be finite",
                   ValueException);
     }
     if (!std::isfinite(sigma) || sigma <= 0.0) {
-        IMP_THROW("NPSIsotropicFRETEfficiencyRestraint: sigma must be "
-                  "finite and strictly positive",
-                  ValueException);
+        IMP_THROW("nps_isotropic_direct_score: sigma must be finite and strictly "
+                  "positive", ValueException);
     }
-}
-
-double NPSIsotropicFRETEfficiencyRestraint::get_model_efficiency() const {
-    IMP::Model* m = get_model();
-    const IMP::algebra::Vector3D c1 =
-            IMP::core::XYZ(m, donor_).get_coordinates();
-    const IMP::algebra::Vector3D c2 =
-            IMP::core::XYZ(m, acceptor_).get_coordinates();
-    if (!are_finite(c1) || !are_finite(c2)) {
-        return std::numeric_limits<double>::infinity();
-    }
-    const double dx = c2[0] - c1[0];
-    const double dy = c2[1] - c1[1];
-    const double dz = c2[2] - c1[2];
-    const double distance = std::hypot(std::hypot(dx, dy), dz);
-    // isfinite() rejects NaN and +/-inf alike; hypot overflows to +inf for
-    // finite endpoints too far apart to score, which maps to +inf below.
-    if (!std::isfinite(distance)) {
-        return std::numeric_limits<double>::infinity();
-    }
-    if (distance == 0.0) {
-        // Isotropic r -> 0 limit; the oriented public leaf rejects this state.
-        return 1.0;
-    }
-    if (distance > 150.0) return 0.0;
-    const double eta_r = IMP::isd::Nuisance(m, log_r_iso_).get_nuisance();
-    if (!std::isfinite(eta_r)) {
-        return std::numeric_limits<double>::infinity();
-    }
-    return logspace_isotropic_direct_efficiency(std::log(distance), eta_r);
-}
-
-double NPSIsotropicFRETEfficiencyRestraint::get_observation_mean() const {
-    const double efficiency = get_model_efficiency();
-    if (!std::isfinite(efficiency)) {
-        return std::numeric_limits<double>::infinity();
-    }
-    const double bias = IMP::isd::Nuisance(get_model(), bias_).get_nuisance();
-    if (!std::isfinite(bias)) {
-        return std::numeric_limits<double>::infinity();
-    }
+    const double efficiency = nps_isotropic_direct_efficiency(donor, acceptor, log_r_iso);
+    if (!std::isfinite(efficiency) || !std::isfinite(bias)) return kNpsInfinity;
     const double mean = efficiency + bias;
-    if (!std::isfinite(mean)) {
-        return std::numeric_limits<double>::infinity();
-    }
-    return mean;
-}
-
-double NPSIsotropicFRETEfficiencyRestraint::unprotected_evaluate(
-        IMP::DerivativeAccumulator* accum) const {
-    IMP_USAGE_CHECK(accum == nullptr,
-                    "NPSIsotropicFRETEfficiencyRestraint does not provide "
-                    "derivatives; it is Monte-Carlo-only");
-    // Totality boundary: every proposal-reachable model state must have a
-    // score, so an IMP MonteCarlo proposal can always be scored, rejected,
-    // and rolled back. Unscorable live state maps to +inf, never a throw.
-    const double mean = get_observation_mean();
-    if (!std::isfinite(mean)) {
-        return std::numeric_limits<double>::infinity();
-    }
-    const double score =
-            -normal_log_density(observed_efficiency_, mean, sigma_);
-    // A finite extreme residual underflows the density to a literal -inf
-    // log score (defined behavior of normal_log_density); only NaN --
-    // which would indicate an arithmetic contract break -- maps to +inf.
-    if (std::isnan(score)) {
-        return std::numeric_limits<double>::infinity();
-    }
-    return score;
-}
-
-IMP::ModelObjectsTemp NPSIsotropicFRETEfficiencyRestraint::do_get_inputs()
-        const {
-    IMP::Model* m = get_model();
-    IMP::ModelObjectsTemp out;
-    out.push_back(m->get_particle(donor_));
-    out.push_back(m->get_particle(acceptor_));
-    out.push_back(m->get_particle(bias_));
-    out.push_back(m->get_particle(log_r_iso_));
-    return out;
+    if (!std::isfinite(mean)) return kNpsInfinity;
+    const double score = -normal_log_density(observed_efficiency, mean, sigma);
+    // A finite extreme residual underflows the density to a -inf log, a defined
+    // result; only NaN -- an arithmetic contract break -- maps to +inf.
+    return std::isnan(score) ? kNpsInfinity : score;
 }
 
 namespace {
@@ -1105,57 +1028,17 @@ std::vector<double> nps_config_from_cloud(
     return std::vector<double>{mean[0], mean[1], mean[2], 0.0, 0.0};
 }
 
-NPSCloudPositionPriorRestraint::NPSCloudPositionPriorRestraint(
-        IMP::Model* m, IMP::ParticleIndexAdaptor site,
-        const std::vector<double>& cloud, double scale, std::string name)
-    : IMP::Restraint(m, name),
-      site_(static_cast<IMP::ParticleIndex>(site)),
-      cloud_(cloud),
-      scale_(scale) {
-    if (!IMP::core::XYZ::get_is_setup(m, site_)) {
-        IMP_THROW("NPSCloudPositionPriorRestraint: site particle "
-                  "must have IMP::core::XYZ",
-                  ValueException);
-    }
+double nps_cloud_prior_score(const std::vector<double>& cloud,
+                             double x, double y, double z, double scale) {
     if (!std::isfinite(scale) || scale <= 0.0) {
-        IMP_THROW("NPSCloudPositionPriorRestraint: scale must be "
-                  "finite and strictly positive",
+        IMP_THROW("nps_cloud_prior_score: scale must be finite and strictly positive",
                   ValueException);
     }
-    // Validate the cloud once and freeze the KDE's scale; the private
-    // copy is then immutable, so evaluate() skips validation entirely.
-    bandwidth_ =
-            bandwidth_of(cloud_, validate_cloud(cloud_, get_name().c_str()),
-                         get_name().c_str());
-}
-
-double NPSCloudPositionPriorRestraint::unprotected_evaluate(
-        IMP::DerivativeAccumulator* accum) const {
-    IMP::Model* m = get_model();
-    if (accum != nullptr) {
-        IMP_THROW("NPSCloudPositionPriorRestraint: derivatives are not "
-                          "supported; this restraint is Monte-Carlo-only",
-                  UsageException);
-    }
-    const IMP::algebra::Vector3D p =
-            IMP::core::XYZ(m, site_).get_coordinates();
-    if (!are_finite(p)) {
-        return std::numeric_limits<double>::infinity();
-    }
-    const double log_density = kde_log_density(
-            cloud_, cloud_.size() / 4, bandwidth_, p[0], p[1], p[2]);
-    if (!std::isfinite(log_density)) {
-        return std::numeric_limits<double>::infinity();
-    }
-    return -scale_ * log_density;
-}
-
-IMP::ModelObjectsTemp NPSCloudPositionPriorRestraint::do_get_inputs()
-        const {
-    IMP::Model* m = get_model();
-    IMP::ModelObjectsTemp out;
-    out.push_back(m->get_particle(site_));
-    return out;
+    const std::size_t n = validate_cloud(cloud, "nps_cloud_prior_score");
+    if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z)) return kNpsInfinity;
+    const double bandwidth = bandwidth_of(cloud, n, "nps_cloud_prior_score");
+    const double log_density = kde_log_density(cloud, cloud.size() / 4, bandwidth, x, y, z);
+    return std::isfinite(log_density) ? -scale * log_density : kNpsInfinity;
 }
 
 // ---------------------------------------------------------------------------
