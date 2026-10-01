@@ -438,6 +438,38 @@ Time grows with the query: 1.4 s at 136 residues, 9.2 s at 752.
 median 5.2 s, at quality closer to the reference than ConSurf's own homologue
 sampling spread.
 
+## One file for consurfer (2026-10-01)
+
+`/Volumes/SD1TB/sequences/uniref_consurf.pto` (24.7 GB) holds everything a
+ConSurf run needs:
+- the clustered UniRef store (a copy of `uniref.pto`);
+- the embedding index (`embedding_index`);
+- the ESM-2 35M + head weights (`protein_language_model`, the GGUF as an
+  attachment).
+
+It was made with `add_embedding_prefilter(database, model, index)` (CLI
+`imp_bff sequence-db add-prefilter`), which took 60 s. When no model or index
+is given, the clustered search uses the database's own prefilter
+(`SequenceClusterSearchOptions.use_database_prefilter`, default on). So a run
+needs only:
+
+```python
+o = IMP.bff.ConsurfOptions()
+o.database = "/Volumes/SD1TB/sequences/uniref_consurf.pto"
+o.clusters.min_homologues = 600        # optional early stop
+r = IMP.bff.compute_consurf([sequence], o)[0]
+```
+
+On 1lk2 this gives the same result as the separate files (ρ 0.952, grades
+exact 0.650, within one 0.927). Loading the model from the container takes
+0.9 s, and the scan is the same as from the separate index (21 s cold,
+0.13 s warm). Repeated runs on the SD card took 29.3 → 11.4 → **3.5 s** as
+the page cache filled. Copying 47 GB just before had emptied it; that is why
+the first runs were slow, not the layout.
+
+`uniref.pto` and `uniref50_esm.pto` remain next to it for now (a duplicate
+of 23.4 + 1.2 GB on the card).
+
 ## Pending
 
 - **UniRef50 embedding** of all 38.84 M representatives on cordeshub
