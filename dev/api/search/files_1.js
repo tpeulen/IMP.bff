@@ -11,5 +11,6 @@ var searchData=
   ['bayesiantransfertensors_2eh_8',['BayesianTransferTensors.h',['../_bayesian_transfer_tensors_8h.html',1,'']]],
   ['bayesiantransformedgaussianprior_2eh_9',['BayesianTransformedGaussianPrior.h',['../_bayesian_transformed_gaussian_prior_8h.html',1,'']]],
   ['bayesiantransforms_2eh_10',['BayesianTransforms.h',['../_bayesian_transforms_8h.html',1,'']]],
-  ['brownianwalk_2eh_11',['BrownianWalk.h',['../_brownian_walk_8h.html',1,'']]]
+  ['bffsettings_2eh_11',['BffSettings.h',['../_bff_settings_8h.html',1,'']]],
+  ['brownianwalk_2eh_12',['BrownianWalk.h',['../_brownian_walk_8h.html',1,'']]]
 ];

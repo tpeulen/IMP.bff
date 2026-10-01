@@ -168,7 +168,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Monte-Carlo photon trace against a per-frame quenching rate. </p>
-<p>Each excitation draws an intrinsic delay time <picture><source srcset="form_209_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$-\tau_0 \ln(1-u)$" src="form_209.png"/></picture> and is then raced against quenching frame by frame from a random starting point on the trajectory. The draw is written as <picture><source srcset="form_210_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$1-u$" src="form_210.png"/></picture> deliberately: a generator uniform on [0, 1) makes <picture><source srcset="form_210_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$1-u$" src="form_210.png"/></picture> land in (0, 1], so the logarithm is finite and never positive. The ancestor of this code used <picture><source srcset="form_211_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\ln(1/(u+\epsilon))$" src="form_211.png"/></picture>, which goes <em>negative</em> for <picture><source srcset="form_212_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$u &gt; 1-\epsilon$" src="form_212.png"/></picture> &ndash; a photon emitted before it was excited, 2.4e-4 of all photons, each then silently dropped by any histogram starting at zero.</p>
+<p>Each excitation draws an intrinsic delay time <picture><source srcset="form_248_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$-\tau_0 \ln(1-u)$" src="form_248.png"/></picture> and is then raced against quenching frame by frame from a random starting point on the trajectory. The draw is written as <picture><source srcset="form_249_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$1-u$" src="form_249.png"/></picture> deliberately: a generator uniform on [0, 1) makes <picture><source srcset="form_249_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$1-u$" src="form_249.png"/></picture> land in (0, 1], so the logarithm is finite and never positive. The ancestor of this code used <picture><source srcset="form_250_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\ln(1/(u+\epsilon))$" src="form_250.png"/></picture>, which goes <em>negative</em> for <picture><source srcset="form_251_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$u &gt; 1-\epsilon$" src="form_251.png"/></picture> &ndash; a photon emitted before it was excited, 2.4e-4 of all photons, each then silently dropped by any histogram starting at zero.</p>
 <p>Parallel <b>and</b> reproducible: each thread gets its own generator seeded from <code>seed</code> and the photon index, so the result does not depend on how the scheduler distributed the work. Seeding per thread instead would force a choice between the two.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -243,7 +243,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Trajectory-driven fluorescence decay, without shot noise. </p>
-<p>For each virtual trajectory a random starting frame is chosen and the excited-state population is propagated under <picture><source srcset="form_213_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$1/\tau_0 + k_q(\text{frame})$" src="form_213.png"/></picture>, the emitted intensity accumulating into TAC bins.</p>
+<p>For each virtual trajectory a random starting frame is chosen and the excited-state population is propagated under <picture><source srcset="form_252_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$1/\tau_0 + k_q(\text{frame})$" src="form_252.png"/></picture>, the emitted intensity accumulating into TAC bins.</p>
 <p>Accumulation is blocked, one private histogram per block reduced in block order. That is a correctness requirement, not a tuning knob: the bin index is data-dependent, so accumulating into a shared histogram from parallel iterations loses updates. Measured on the numba ancestor with 8 threads and 200 curves, sums scattered over 196.73-200.61 against a stable single-thread 200.612864255 &ndash; up to 2 % of the emitted intensity dropped, differently each run.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -397,7 +397,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Trajectory-driven fluorescence decay, without shot noise. </p>
-<p>For each virtual trajectory a random starting frame is chosen and the excited-state population is propagated under <picture><source srcset="form_213_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$1/\tau_0 + k_q(\text{frame})$" src="form_213.png"/></picture>, the emitted intensity accumulating into TAC bins.</p>
+<p>For each virtual trajectory a random starting frame is chosen and the excited-state population is propagated under <picture><source srcset="form_252_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$1/\tau_0 + k_q(\text{frame})$" src="form_252.png"/></picture>, the emitted intensity accumulating into TAC bins.</p>
 <p>Accumulation is blocked, one private histogram per block reduced in block order. That is a correctness requirement, not a tuning knob: the bin index is data-dependent, so accumulating into a shared histogram from parallel iterations loses updates. Measured on the numba ancestor with 8 threads and 200 curves, sums scattered over 196.73-200.61 against a stable single-thread 200.612864255 &ndash; up to 2 % of the emitted intensity dropped, differently each run.</p>
 <p>The caller's <code>decay</code> histogram is accumulated <b>in place</b>, so several virtual-trajectory groups can fill one experiment.</p>
 <dl class="params"><dt>Parameters</dt><dd>
@@ -418,7 +418,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Sep 28 2026 04:30:01 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Oct 1 2026 20:45:52 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

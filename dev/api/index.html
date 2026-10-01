@@ -118,7 +118,7 @@ Coming from LabelLib</h2>
 <div class="line"> </div>
 <div class="line">av = ll.dyeDensityAV1(atoms_xyzr, source_xyz, 20.0, 2.0, 3.5, 0.9)</div>
 <div class="line">d = ll.meanDistance(av1, av2)</div>
-<div class="ttc" id="anamespace_i_m_p_1_1bff_html"><div class="ttname"><a href="namespace_i_m_p_1_1bff.html">IMP::bff</a></div><div class="ttdef"><b>Definition</b> IMPCompatibility.h:171</div></div>
+<div class="ttc" id="anamespace_i_m_p_1_1bff_html"><div class="ttname"><a href="namespace_i_m_p_1_1bff.html">IMP::bff</a></div><div class="ttdef"><b>Definition</b> IMPCompatibility.h:186</div></div>
 </div><!-- fragment --><p><code>dyeDensityAV1</code>, <code>dyeDensityAV3</code>, <code>minLinkerLength</code>, <code>addWeights</code>, <code>meanDistance</code>, <code>meanEfficiency</code>, <code>sampleDistanceDistInv</code> and <code>Grid3D</code> are all there, with their <code>_arr</code> twins. The numbers are bff's own lattice search, so they agree with LabelLib to within the discretisation rather than bit for bit; <code>test/test_labellib_interface.py</code> measures that against LabelLib itself wherever it is installed. bff's own spelling of the same computation is <code>IMP.bff.get_av</code> (arrays) and <code>IMP.bff.get_av_from_pdb</code> (a structure file), which return an <code>AccessibleVolume</code> carrying the cloud, the density and the grid.</p>
 <h2><a class="anchor" id="autotoc_md4"></a>
 A first volume</h2>
@@ -261,8 +261,23 @@ imp_bff labelizer – score the labelling sites of a structure</h2>
 <div class="line">imp_bff labelizer structure.pdb --donor Alexa488 --acceptor Alexa647 --pairs</div>
 <div class="line">imp_bff labelizer structure.mmfdb.pto --show</div>
 </div><!-- fragment --><p>The model, what a score means and the traps worth knowing are in Choosing a labelling site.</p>
-<p>The published arithmetic is the <b>default, defects included</b>, because that is what the paper's numbers were computed with; <code>--corrected</code> selects the arithmetic the reference documents, and the container records which was used. Conservation is imported, never computed &ndash; pass a ConSurf <code>.grades</code> table or a PDB carrying the grade in its B-factor column.</p>
+<p>The published arithmetic is the <b>default, defects included</b>, because that is what the paper's numbers were computed with; <code>--corrected</code> selects the arithmetic the reference documents, and the container records which was used. Conservation is imported &ndash; a ConSurf <code>.grades</code> table or a PDB carrying the grade in its B-factor column &ndash; or computed here the way ConSurf computes it, from an alignment or end to end from a sequence database (<a class="el" href="index.html#imp_bff_consurf">`imp_bff consurf`</a>; <code>--conservation db:uniref90</code>).</p>
 <p>Output is one <code>.mmfdb.pto</code> rather than the reference's six CSVs, four score-carrying PDBs, heat-map JSON and zip: the structure verbatim, the scores as tables whose columns are named by MMFDB dictionary items, and the complete settings. A position that was not scored carries a status and no number, which is the thing the reference's output cannot express &ndash; it writes <code>-1</code> for "excluded" and <code>0</code> for "no contribution" into the same column as real scores.</p>
+<h2><a class="anchor" id="imp_bff_consurf"></a>
+imp_bff consurf – conservation grades of a chain, no server</h2>
+<p>ConSurf end to end in one process: a homology search of a local sequence database (MMseqs2's method, implemented natively), ConSurf's rules for which hits become homologues, their alignment to the query, per-site rates by Rate4Site's method (checked against the program: identical tree, shape and scores) and the nine grades. Its <code>.grades</code> output is what <code>imp_bff labelizer --conservation</code> reads, and the Labelizer can run it itself (<code>--conservation db:NAME</code>).</p>
+<div class="fragment"><div class="line">imp_bff sequence-db create uniref90.fasta.gz /data/uniref90.pto   # once</div>
+<div class="line">imp_bff consurf 1lk2.pdb --chain A --database uniref90 -o 1lk2_A.grades</div>
+<div class="line">imp_bff sequence-search query.fasta --database uniref90 -o hits.tsv --msa hits.fasta</div>
+</div><!-- fragment --><p>A database is binary FASTA inside a <code>.pto</code> container: one byte per residue, read in place from a memory map, converted and searched in bounded memory. Where the databases live is not compiled in: name them in the settings file (<code>$IMP_BFF_SETTINGS</code>, else <code>~/.config/imp.bff/settings.json</code>) and refer to them by name.</p>
+<div class="fragment"><div class="line">{&quot;sequence_search&quot;: {&quot;databases&quot;: {&quot;uniref90&quot;: &quot;/data/uniref90.pto&quot;},</div>
+<div class="line">                     &quot;default_database&quot;: &quot;uniref90&quot;, &quot;threads&quot;: 8,</div>
+<div class="line">                     &quot;servers&quot;: {&quot;colabfold&quot;: {&quot;url&quot;: &quot;https://api.colabfold.com&quot;,</div>
+<div class="line">                                               &quot;protocol&quot;: &quot;colabfold-v1&quot;}},</div>
+<div class="line">                     &quot;fallback_server&quot;: &quot;colabfold&quot;}}</div>
+</div><!-- fragment --><p>A search can read far less than the whole database: with UniRef50's representatives and their membership recorded once (<code>imp_bff sequence-db cluster uniref90.pto uniref50.pto idmapping_selected.tab.gz</code>, UniProt's ID mapping) and named in the settings (<code>"clusters": {"uniref90": "/data/uniref50.pto"}</code>), it searches the representatives first and then only the UniRef90 members of the clusters found &ndash; the same hits, since a homologue ConSurf keeps (&gt;= 35 % identity) has a representative the query finds with looser cut-offs.</p>
+<p>With no database configured, the alignment comes from the fallback server instead (ColabFold's MMseqs2 API: submit, poll, unpack the returned archive natively; needs libcurl at build time), and the homologues are chosen from its rows by the same rules.</p>
+<p>On Swiss-Prot (575,748 sequences), 1lk2 chain A: every hit <code>mmseqs</code> reports at E &lt;= 1e-10 is found, and the search takes 0.4 s against mmseqs' 25 s (the latter including its database build); ConSurf end to end takes 1.2 s. <code>--standalone</code> applies stand-alone ConSurf's homologue rules instead of the server's.</p>
 <h2><a class="anchor" id="imp_bff_fps_export"></a>
 imp_bff fps-export – FPS's result files, and the errors that fill them</h2>
 <p>The door onto FPS's <code>SaveForm</code> &ndash; the dialog every result file is written from &ndash; and onto <code>ErrorEstimation</code>, the mode that produces a table with more than one row in it.</p>
@@ -295,7 +310,7 @@ Info</h1>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Sep 28 2026 04:30:02 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Oct 1 2026 20:45:53 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

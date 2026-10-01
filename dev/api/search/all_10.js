@@ -3,7 +3,7 @@ var searchData=
   ['q_0',['Q',['../struct_bayesian_sum_to_zero_transform.html#ab864d9bcafddc2b2773a91cdfb82e12c',1,'BayesianSumToZeroTransform']]],
   ['quadratic_5fdirection_1',['quadratic_direction',['../class_bayesian_p_spline_prior.html#aa4ffa8680a6d2ca148be4928c5e470b8',1,'BayesianPSplinePrior']]],
   ['quality_2',['quality',['../struct_probe_rotamer_drot_encoding.html#a7015c3955bd630b19d023ad5fc2d6688',1,'ProbeRotamerDrotEncoding']]],
-  ['quantile_3',['quantile',['../namespacemcmc__detail.html#a552568fc4cf24eecba030b2f00f767f0',1,'mcmc_detail::quantile()'],['../class_bayesian_evidence_mixture.html#adce55114d29561953c4b67a9f61d9b0d',1,'BayesianEvidenceMixture::quantile(double p) const']]],
+  ['quantile_3',['quantile',['../class_bayesian_evidence_mixture.html#adce55114d29561953c4b67a9f61d9b0d',1,'BayesianEvidenceMixture::quantile()'],['../namespacemcmc__detail.html#a552568fc4cf24eecba030b2f00f767f0',1,'mcmc_detail::quantile()']]],
   ['quantile_5fvector_4',['quantile_vector',['../class_bayesian_evidence_mixture.html#a0843317486bc7a13cdabff72cce90de0',1,'BayesianEvidenceMixture']]],
   ['quantizedneuralnet_5',['quantizedneuralnet',['../class_quantized_neural_net.html#ad72ac79da9da38f9797e0896a1103b29',1,'QuantizedNeuralNet::QuantizedNeuralNet()'],['../class_quantized_neural_net.html',1,'QuantizedNeuralNet']]],
   ['quantum_5fyield_6',['quantum_yield',['../struct_probe.html#a63d5058b8f9dc2e635f601a9c2327eab',1,'Probe']]],
@@ -21,6 +21,8 @@ var searchData=
   ['quenching_5frate_5fmap_18',['quenching_rate_map',['../_photophysics_quenching_8h.html#ad2c9b38eb7a8c0bbc8271c3b847efb14',1,'PhotophysicsQuenching.h']]],
   ['quenching_5frate_5fper_5fframe_19',['quenching_rate_per_frame',['../_solvent_accessible_surface_8h.html#aef2f7d5d8e83c5e694c6d74595b28b52',1,'SolventAccessibleSurface.h']]],
   ['quenching_5frates_5ffor_5fresidues_20',['quenching_rates_for_residues',['../_photophysics_quenching_8h.html#a577a7bd32de23c584a7664d38e4d6306',1,'PhotophysicsQuenching.h']]],
-  ['query_5fend_21',['query_end',['../struct_aligned_block.html#a5b2e43af1f3a1ac1c06268eca6c81643',1,'AlignedBlock']]],
-  ['query_5fstart_22',['query_start',['../struct_aligned_block.html#aa517bfe064af96c337c7e6a06f532477',1,'AlignedBlock']]]
+  ['query_21',['query',['../class_sequence_search_hit.html#acf72e307eb5373eb550ced9d5671ded6',1,'SequenceSearchHit::query'],['../class_consurf_result.html#a93011b5c175d4d24ab869b8bc51a62d8',1,'ConsurfResult::query']]],
+  ['query_5fend_22',['query_end',['../class_sequence_search_hit.html#ac50c6aff01c9894eadcc064e4d9b63bf',1,'SequenceSearchHit::query_end'],['../struct_aligned_block.html#a5b2e43af1f3a1ac1c06268eca6c81643',1,'AlignedBlock::query_end']]],
+  ['query_5flength_23',['query_length',['../class_sequence_search_hit.html#a13138b0aba223c427ca680015e6217e2',1,'SequenceSearchHit']]],
+  ['query_5fstart_24',['query_start',['../class_sequence_search_hit.html#afe965df8a2d474f2485ade72d27a575b',1,'SequenceSearchHit::query_start'],['../struct_aligned_block.html#aa517bfe064af96c337c7e6a06f532477',1,'AlignedBlock::query_start']]]
 ];

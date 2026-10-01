@@ -31,8 +31,9 @@ var searchData=
   ['histograms_28',['histograms',['../struct_poisson_goodness_of_fit.html#aa2f3bac871c9477e6872cdf83ac10af3',1,'PoissonGoodnessOfFit']]],
   ['hmmsurrogate_2eh_29',['HMMSurrogate.h',['../_h_m_m_surrogate_8h.html',1,'']]],
   ['holdout_5fevery_30',['holdout_every',['../class_f_r_e_t_landscape_initial_guess_options.html#a4634051791a9797eb5fc280472fa1364',1,'FRETLandscapeInitialGuessOptions']]],
-  ['hse_5fradius_31',['hse_radius',['../struct_labelizer_options.html#a4a3c3cbe431821f150b7176a57439906',1,'LabelizerOptions']]],
-  ['hydrodynamic_5fradius_32',['hydrodynamic_radius',['../struct_probe.html#a747afdea10ba0cbd1c482112f32d9d08',1,'Probe']]],
-  ['hydrogen_5fmask_33',['hydrogen_mask',['../_rotamer_scoring_8h.html#a85c18715fb6055ea0e054ab001830a36',1,'RotamerScoring.h']]],
-  ['hydrogenbondrestraint_34',['hydrogenbondrestraint',['../class_hydrogen_bond_restraint.html#a90a94b58140d42c04005a76b6a3155e6',1,'HydrogenBondRestraint::HydrogenBondRestraint()'],['../class_hydrogen_bond_restraint.html',1,'HydrogenBondRestraint']]]
+  ['homologs_31',['homologs',['../class_consurf_options.html#a84dbb2895fd19f19290199efe4bc7e67',1,'ConsurfOptions::homologs'],['../class_consurf_result.html#a8ea7ffad9c02d6fe5aea0062c2666909',1,'ConsurfResult::homologs']]],
+  ['hse_5fradius_32',['hse_radius',['../struct_labelizer_options.html#a4a3c3cbe431821f150b7176a57439906',1,'LabelizerOptions']]],
+  ['hydrodynamic_5fradius_33',['hydrodynamic_radius',['../struct_probe.html#a747afdea10ba0cbd1c482112f32d9d08',1,'Probe']]],
+  ['hydrogen_5fmask_34',['hydrogen_mask',['../_rotamer_scoring_8h.html#a85c18715fb6055ea0e054ab001830a36',1,'RotamerScoring.h']]],
+  ['hydrogenbondrestraint_35',['hydrogenbondrestraint',['../class_hydrogen_bond_restraint.html#a90a94b58140d42c04005a76b6a3155e6',1,'HydrogenBondRestraint::HydrogenBondRestraint()'],['../class_hydrogen_bond_restraint.html',1,'HydrogenBondRestraint']]]
 ];

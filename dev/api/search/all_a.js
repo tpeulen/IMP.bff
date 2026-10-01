@@ -25,6 +25,7 @@ var searchData=
   ['kineticnetwork_2eh_22',['KineticNetwork.h',['../_kinetic_network_8h.html',1,'']]],
   ['kineticschemenode_23',['kineticschemenode',['../class_kinetic_scheme_node.html#a6a505e0044e5b8f083746c016c373891',1,'KineticSchemeNode::KineticSchemeNode()'],['../class_kinetic_scheme_node.html',1,'KineticSchemeNode']]],
   ['kineticschemenode_2eh_24',['KineticSchemeNode.h',['../_kinetic_scheme_node_8h.html',1,'']]],
-  ['knot_5fcurvatures_25',['knot_curvatures',['../class_natural_cubic_spline.html#aa3c5194337e417dabcebd1ece9063419',1,'NaturalCubicSpline']]],
-  ['kq_26',['kq',['../struct_residue_quenching.html#a5a8dc692ab69b37ba249558fc6fc3a50',1,'ResidueQuenching::kQ'],['../struct_p_e_t_reference.html#a8b0c4867a1c47f84479a3fd4e0727998',1,'PETReference::kQ']]]
+  ['kmer_5fthreshold_25',['kmer_threshold',['../class_sequence_search_options.html#a004508a07c1469b25da7ca55c3cca30e',1,'SequenceSearchOptions']]],
+  ['knot_5fcurvatures_26',['knot_curvatures',['../class_natural_cubic_spline.html#aa3c5194337e417dabcebd1ece9063419',1,'NaturalCubicSpline']]],
+  ['kq_27',['kq',['../struct_residue_quenching.html#a5a8dc692ab69b37ba249558fc6fc3a50',1,'ResidueQuenching::kQ'],['../struct_p_e_t_reference.html#a8b0c4867a1c47f84479a3fd4e0727998',1,'PETReference::kQ']]]
 ];

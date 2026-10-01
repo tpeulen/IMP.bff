@@ -1,0 +1,3 @@
+<map id="SequenceDatabase" name="SequenceDatabase">
+<area shape="rect" id="Node000001" title="A sequence database, mapped read&#45;only; cheap to copy, safe from many threads." alt="" coords="5,5,219,271"/>
+</map>

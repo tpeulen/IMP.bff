@@ -258,11 +258,11 @@ Static Public Member Functions</h2></td></tr>
 
 <p><code>a + b</code>, <code>a - b</code>, <code>a * b</code>, <code>a / b</code>, elementwise, with the variance carried through. </p>
 <p>First-order propagation over the <b>independent sources</b>, not over the operands:  </p><p class="formulaDsp">
-<picture><source srcset="form_98_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaDsp" alt="\[ \mathrm{Var}(z) = \sum_s \left(\frac{\partial z}{\partial s}\right)^2
-    \mathrm{Var}(s) \]" src="form_98.png"/></picture>
+<picture><source srcset="form_104_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaDsp" alt="\[ \mathrm{Var}(z) = \sum_s \left(\frac{\partial z}{\partial s}\right)^2
+    \mathrm{Var}(s) \]" src="form_104.png"/></picture>
 </p>
 <p> with the derivatives composed by the chain rule as the expression is built. Propagating over the operands instead is the standard mistake and it is wrong whenever they share a source.</p>
-<p>Anisotropy is exactly that case.** <picture><source srcset="form_99_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r = (VV - G\,VH)/(VV + 2G\,VH)$" src="form_99.png"/></picture> has the same two channels above and below the line, so numerator and denominator are strongly correlated; treating them as independent gets the variance wrong in a way no amount of care about each half will fix. Tracing back to <picture><source srcset="form_100_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$VV$" src="form_100.png"/></picture> and <picture><source srcset="form_101_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$VH$" src="form_101.png"/></picture> gets it right without the caller thinking about it.</p>
+<p>Anisotropy is exactly that case.** <picture><source srcset="form_105_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r = (VV - G\,VH)/(VV + 2G\,VH)$" src="form_105.png"/></picture> has the same two channels above and below the line, so numerator and denominator are strongly correlated; treating them as independent gets the variance wrong in a way no amount of care about each half will fix. Tracing back to <picture><source srcset="form_106_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$VV$" src="form_106.png"/></picture> and <picture><source srcset="form_107_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$VH$" src="form_107.png"/></picture> gets it right without the caller thinking about it.</p>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
     <tr><td class="paramname">IMP::ValueException</td><td>if the operands differ in size, or if an operand carries no uncertainty at all &ndash; an untracked operand would silently contribute none. </td></tr>
@@ -695,7 +695,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The family's own objective: Poisson deviance, or chi-square. </p>
-<p>Minimised in both cases, and for Poisson it is twice the difference from the saturated log-likelihood &ndash; so minimising it maximises the likelihood, and the dropped <picture><source srcset="form_106_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$-\log y!$" src="form_106.png"/></picture> cancels in any ratio. </p>
+<p>Minimised in both cases, and for Poisson it is twice the difference from the saturated log-likelihood &ndash; so minimising it maximises the likelihood, and the dropped <picture><source srcset="form_112_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$-\log y!$" src="form_112.png"/></picture> cancels in any ratio. </p>
 
 </div>
 </div>
@@ -785,7 +785,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Declare this dataset an independent source of uncertainty. </p>
-<p>A measured channel. Its variance is its family's &ndash; counts for Poisson, the stored array otherwise &ndash; and every dataset derived from it tracks <picture><source srcset="form_97_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\partial\,\mathrm{value}/\partial\,\mathrm{this}$" src="form_97.png"/></picture>, so that a later combination knows what it was built from.</p>
+<p>A measured channel. Its variance is its family's &ndash; counts for Poisson, the stored array otherwise &ndash; and every dataset derived from it tracks <picture><source srcset="form_103_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\partial\,\mathrm{value}/\partial\,\mathrm{this}$" src="form_103.png"/></picture>, so that a later combination knows what it was built from.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">name</td><td>what it is called in <a class="el" href="class_fit_dataset.html#a1b807f860ba9b893cf0741da99d3101f" title="A line naming the shape, the family and the mask.">describe</a> and in error messages </td></tr>
@@ -974,8 +974,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>Build this dataset as <code>sum_i coefficient_i * source_i</code>, propagating the variance. </p>
 <p>The case that motivates it is the constructed magic-angle decay, which is not measured at 54.7 degrees but assembled from a parallel and a perpendicular channel: </p><pre class="fragment">I = I_VV + 2 G I_VH
-</pre><p> The result is not Poisson, and treating it as though it were is wrong.** Each channel is counts, so <picture><source srcset="form_102_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\mathrm{Var} = \sum_i c_i^2
-\mathrm{Var}_i$" src="form_102.png"/></picture> and the combination's variance is <picture><source srcset="form_103_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$I_{VV} + 4G^2 I_{VH}$" src="form_103.png"/></picture> &ndash; while a Poisson reading of the result would say <picture><source srcset="form_104_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$I_{VV} + 2G I_{VH}$" src="form_104.png"/></picture>. The perpendicular channel's contribution is understated by a factor of <picture><source srcset="form_105_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$2G$" src="form_105.png"/></picture>, and the misfit is pushed wherever the perpendicular counts are largest. The coefficient squares; the Poisson assumption does not know that.</p>
+</pre><p> The result is not Poisson, and treating it as though it were is wrong.** Each channel is counts, so <picture><source srcset="form_108_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\mathrm{Var} = \sum_i c_i^2
+\mathrm{Var}_i$" src="form_108.png"/></picture> and the combination's variance is <picture><source srcset="form_109_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$I_{VV} + 4G^2 I_{VH}$" src="form_109.png"/></picture> &ndash; while a Poisson reading of the result would say <picture><source srcset="form_110_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$I_{VV} + 2G I_{VH}$" src="form_110.png"/></picture>. The perpendicular channel's contribution is understated by a factor of <picture><source srcset="form_111_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$2G$" src="form_111.png"/></picture>, and the misfit is pushed wherever the perpendicular counts are largest. The coefficient squares; the Poisson assumption does not know that.</p>
 <p>A Poisson source contributes its <b>measured</b> values as its variance, because the combination does not let a model be decomposed back into per-channel predictions. That is data weighting, with the bias described on <a class="el" href="_fit_dataset_8h.html#aaaa5c9789017dd50271fa2d195eb843da8fb4034df934594ef582752e9614c779" title="Counts. , the model&#39;s own prediction.">FIT_NOISE_FAMILY_POISSON</a>, and it is the price of constructing the combination at all. <b>The unbiased alternative is not to construct it</b>: keep the channels as two datasets, give each its Poisson family, and let one objective hold both. That the abstraction supports the honest route is the argument for preferring it.</p>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
@@ -1336,7 +1336,7 @@ Static Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Sep 28 2026 04:30:01 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Oct 1 2026 20:45:52 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

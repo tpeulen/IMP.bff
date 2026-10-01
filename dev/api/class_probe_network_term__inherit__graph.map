@@ -1,11 +1,15 @@
 <map id="ProbeNetworkTerm" name="ProbeNetworkTerm">
-<area shape="rect" id="Node000001" title="One score of a probe network: a loss in [0, 1] over a set of pairs." alt="" coords="220,119,411,444"/>
+<area shape="rect" id="Node000001" title="One score of a probe network: a loss in [0, 1] over a set of pairs." alt="" coords="435,119,625,444"/>
 <area shape="rect" id="Node000003" href="$class_probe_kinetics_term.html" title="Dynamics: how well the rates of a kinetic scheme are determined." alt="" coords="5,492,196,797"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,456,193,493,189,490,211,453"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="424,341,316,408,260,449,209,494,198,505,194,502,206,490,257,445,313,404,421,336"/>
 <area shape="rect" id="Node000004" href="$class_probe_labelling_term.html" title="Labelling: how well the chosen sites label, and how many mutations." alt="" coords="220,522,411,767"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="318,457,318,522,313,522,313,457"/>
-<area shape="rect" id="Node000005" href="$class_probe_resolution_term.html" title="Structural resolution: Olga&#39;s expected RMSD." alt="" coords="435,532,625,757"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="420,453,466,530,461,533,415,456"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="271,5,359,71"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="318,84,318,118,313,118,313,84"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="430,456,390,523,385,521,425,453"/>
+<area shape="rect" id="Node000005" href="$class_probe_pair_benefit_term.html" title="A benefit per candidate pair: the chance that a selected pair sees a change." alt="" coords="435,532,625,757"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="533,458,533,532,527,532,527,458"/>
+<area shape="rect" id="Node000006" href="$class_probe_pair_cost_term.html" title="A cost per candidate pair: the chance that a selected pair is a problem." alt="" coords="649,532,840,757"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="635,453,680,530,676,533,630,456"/>
+<area shape="rect" id="Node000007" href="$class_probe_resolution_term.html" title="Structural resolution: Olga&#39;s expected RMSD." alt="" coords="864,532,1055,757"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="639,336,747,404,803,445,855,490,890,530,886,534,851,494,800,449,744,408,636,341"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="486,5,574,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="533,84,533,118,527,118,527,84"/>
 </map>

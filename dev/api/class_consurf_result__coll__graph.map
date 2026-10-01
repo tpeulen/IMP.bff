@@ -1,0 +1,13 @@
+<map id="ConsurfResult" name="ConsurfResult">
+<area shape="rect" id="Node000001" title="ConSurf&#39;s result for one query." alt="" coords="243,477,437,563"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="31,235,110,300"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="79,299,95,349,108,375,125,398,148,421,174,441,230,474,227,478,171,445,144,425,121,402,103,378,90,351,74,301"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,5,136,85"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="73,99,73,234,68,234,68,99"/>
+<area shape="rect" id="Node000004" href="$class_sequence_m_s_a.html" title="An encoded multiple sequence alignment." alt="" coords="135,135,329,400"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="291,399,318,461,313,463,286,401"/>
+<area shape="rect" id="Node000005" href="$class_sequence_conservation.html" title="Per&#45;site rates and conservation scores of the reference sequence." alt="" coords="354,135,542,400"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="394,401,367,463,362,461,389,399"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="567,235,697,300"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="620,301,594,351,557,402,508,444,453,477,450,473,505,440,553,398,589,348,616,299"/>
+</map>

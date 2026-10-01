@@ -517,7 +517,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Adjoint of <a class="el" href="class_grid_diffusion_solver.html#a885e7a08eeb56fa8bacc97621bdf0868" title="Integrate n_steps steps, reporting every n_out.">run()</a>: the gradient of a loss on the decay, every voxel at once. </p>
-<p>For <picture><source srcset="form_157_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$L = \sum_k \bar F_k F(t_k)$" src="form_157.png"/></picture>, returns dL/dD, dL/dk and dL/dp0 for about four times the cost of one <a class="el" href="class_grid_diffusion_solver.html#a885e7a08eeb56fa8bacc97621bdf0868" title="Integrate n_steps steps, reporting every n_out.">run()</a>. Finite differences need one run <em>per parameter</em>.</p>
+<p>For <picture><source srcset="form_163_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$L = \sum_k \bar F_k F(t_k)$" src="form_163.png"/></picture>, returns dL/dD, dL/dk and dL/dp0 for about four times the cost of one <a class="el" href="class_grid_diffusion_solver.html#a885e7a08eeb56fa8bacc97621bdf0868" title="Integrate n_steps steps, reporting every n_out.">run()</a>. Finite differences need one run <em>per parameter</em>.</p>
 <p>The gradient is of the <em>discrete</em> scheme actually run, so it agrees with a central difference of <a class="el" href="class_grid_diffusion_solver.html#a885e7a08eeb56fa8bacc97621bdf0868" title="Integrate n_steps steps, reporting every n_out.">run()</a> to roundoff &ndash; which is also why the time step must not depend on the parameters being differentiated.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -673,7 +673,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Sep 28 2026 04:30:02 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Oct 1 2026 20:45:53 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

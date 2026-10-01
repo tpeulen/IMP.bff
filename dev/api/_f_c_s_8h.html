@@ -135,7 +135,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:a4c5fcacd1b2027acea7c28bc74184c72"><td class="mdescLeft">&#160;</td><td class="mdescRight">Saturated FCS forward model: steady-state photophysics on a grid.  <br /></td></tr>
 <tr class="separator:a4c5fcacd1b2027acea7c28bc74184c72"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a73b69da3ef5b87fcec9c442947a8b449" id="r_a73b69da3ef5b87fcec9c442947a8b449"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_f_c_s_8h.html#a73b69da3ef5b87fcec9c442947a8b449">fcs_excitation_rate_peak</a> (double power_w, double extinction, double w0, double wavelength_m=488e-9)</td></tr>
-<tr class="memdesc:a73b69da3ef5b87fcec9c442947a8b449"><td class="mdescLeft">&#160;</td><td class="mdescRight">Peak focal excitation rate <picture><source srcset="form_85_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k_{exc}(0,0)$" src="form_85.png"/></picture> in 1/s.  <br /></td></tr>
+<tr class="memdesc:a73b69da3ef5b87fcec9c442947a8b449"><td class="mdescLeft">&#160;</td><td class="mdescRight">Peak focal excitation rate <picture><source srcset="form_91_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k_{exc}(0,0)$" src="form_91.png"/></picture> in 1/s.  <br /></td></tr>
 <tr class="separator:a73b69da3ef5b87fcec9c442947a8b449"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0aae7e7e43e62fa60565b85c015d18d8" id="r_a0aae7e7e43e62fa60565b85c015d18d8"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_f_c_s_8h.html#a0aae7e7e43e62fa60565b85c015d18d8">fcs_gaussian_g_diff</a> (const std::vector&lt; double &gt; &amp;tau, double w0, double z0, double diffusion, double **out_view=0, int *n_out_view=0)</td></tr>
 <tr class="memdesc:a0aae7e7e43e62fa60565b85c015d18d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Analytical 3D-Gaussian diffusion autocorrelation shape, G(0) = 1.  <br /></td></tr>
@@ -170,7 +170,7 @@ Functions</h2></td></tr>
 <p>The pipeline: a Gaussian excitation profile scaled to the measured laser power becomes a spatial excitation rate; an N-state master-equation scheme (dark rates + excitation cross sections, <code>K[target, source]</code>, diagonals derived so columns sum to zero) is solved for its steady state at every grid point; the brightness-weighted populations form the emission profile; its spatial autocorrelation under free diffusion is evaluated in reciprocal space (0th-order Hankel transform along r — the quadrature matrix is cached on its grids, exactly as the Python's lru_cache did — and a real DFT along z, with the separable propagator factored so the exponentials are (n_kr + n_kz) * n_tau, not their product); and the photokinetic bunching factor X(tau) comes from the eigen-decomposition of the generator (Eigen::EigenSolver — the modes may be complex for a cyclic scheme, the sum is real).</p>
 <p>All quantities SI: lengths m, times s, power W, rates Hz. The scheme matrices arrive flat row-major with their state count.</p>
 <dl class="section author"><dt>Authors</dt><dd>Thomas-Otavio Peulen Copyright 2007-2026 <a class="el" href="namespace_i_m_p.html">IMP</a> Inventors. All rights reserved. Bessel J0, to machine precision, via the periodic trapezoid.</dd></dl>
-<p><picture><source srcset="form_84_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$J_0(x) = \frac{1}{\pi}\int_0^\pi \cos(x\sin\theta)\,d\theta$" src="form_84.png"/></picture>; the integrand is smooth and periodic, so the trapezoid converges geometrically — 64 nodes give ~1e-15 for the |x| &lt;= 40 this model reaches. Exposed because the library deliberately carries no special- functions dependency, and a truncated polynomial here would put a 1e-7 floor under every curve parity test downstream. </p>
+<p><picture><source srcset="form_90_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$J_0(x) = \frac{1}{\pi}\int_0^\pi \cos(x\sin\theta)\,d\theta$" src="form_90.png"/></picture>; the integrand is smooth and periodic, so the trapezoid converges geometrically — 64 nodes give ~1e-15 for the |x| &lt;= 40 this model reaches. Exposed because the library deliberately carries no special- functions dependency, and a truncated polynomial here would put a 1e-7 floor under every curve parity test downstream. </p>
 
 </div>
 </div>
@@ -243,8 +243,8 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Photokinetic state-relaxation (bunching) factor X(tau). </p>
-<p><picture><source srcset="form_89_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$X(\tau) = q_a^T e^{K\tau} (q_b \circ p_{eq}) /
-((q_a\cdot p_{eq})(q_b\cdot p_{eq}))$" src="form_89.png"/></picture> for the generator <picture><source srcset="form_90_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$K = K_{dark} + k_{exc} K_{exc}$" src="form_90.png"/></picture>, via its eigen-decomposition — the eigenvalues ARE the relaxation rates a bunching fit reports. Degenerate schemes (no stationary state, dark scheme with no bright reachable state) return ones, as the reference does.</p>
+<p><picture><source srcset="form_95_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$X(\tau) = q_a^T e^{K\tau} (q_b \circ p_{eq}) /
+((q_a\cdot p_{eq})(q_b\cdot p_{eq}))$" src="form_95.png"/></picture> for the generator <picture><source srcset="form_96_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$K = K_{dark} + k_{exc} K_{exc}$" src="form_96.png"/></picture>, via its eigen-decomposition — the eigenvalues ARE the relaxation rates a bunching fit reports. Degenerate schemes (no stationary state, dark scheme with no bright reachable state) return ones, as the reference does.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">tau</td><td>lag times (s) </td></tr>
@@ -299,8 +299,8 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Peak focal excitation rate <picture><source srcset="form_85_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k_{exc}(0,0)$" src="form_85.png"/></picture> in 1/s. </p>
-<p><picture><source srcset="form_86_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\sigma_{abs}\, 2\Phi/(\pi w_0^2)$" src="form_86.png"/></picture> with <picture><source srcset="form_87_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\Phi = P/(h c/\lambda)$" src="form_87.png"/></picture> and <picture><source srcset="form_88_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\sigma_{abs} = 10^{-4}\cdot 1000\ln(10)\,\epsilon/N_A$" src="form_88.png"/></picture>. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Peak focal excitation rate <picture><source srcset="form_91_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k_{exc}(0,0)$" src="form_91.png"/></picture> in 1/s. </p>
+<p><picture><source srcset="form_92_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\sigma_{abs}\, 2\Phi/(\pi w_0^2)$" src="form_92.png"/></picture> with <picture><source srcset="form_93_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\Phi = P/(h c/\lambda)$" src="form_93.png"/></picture> and <picture><source srcset="form_94_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\sigma_{abs} = 10^{-4}\cdot 1000\ln(10)\,\epsilon/N_A$" src="form_94.png"/></picture>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">power_w</td><td>total measured excitation power (W) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">extinction</td><td>molar extinction coefficient (1/M/cm) </td></tr>
@@ -535,7 +535,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Effective detection volume of the Enderlein MDF (um^3). </p>
-<p><picture><source srcset="form_83_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$V_\mathrm{eff} = \pi (\int \kappa\,dz)^2 / \int (\kappa^2/w^2)\,dz$" src="form_83.png"/></picture> by axial trapezoidal integration over <code>n_grid</code> points spanning <code>span</code> Rayleigh ranges.</p>
+<p><picture><source srcset="form_89_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$V_\mathrm{eff} = \pi (\int \kappa\,dz)^2 / \int (\kappa^2/w^2)\,dz$" src="form_89.png"/></picture> by axial trapezoidal integration over <code>n_grid</code> points spanning <code>span</code> Rayleigh ranges.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">w0</td><td>lateral 1/e^2 excitation waist at focus (um) </td></tr>
@@ -921,7 +921,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The numerically integrated saturated FCS diffusion shape G(tau). </p>
-<p>The steady-state emission profile on an (r, z) grid spanning five beam waists, spatially (cross-)correlated in reciprocal space, amplitude <picture><source srcset="form_91_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$V_0/V_{eff}$" src="form_91.png"/></picture> (the saturation volume expansion), optionally times the bunching factor. At zero power the exact limit — the unsaturated Gaussian at amplitude one — is returned.</p>
+<p>The steady-state emission profile on an (r, z) grid spanning five beam waists, spatially (cross-)correlated in reciprocal space, amplitude <picture><source srcset="form_97_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$V_0/V_{eff}$" src="form_97.png"/></picture> (the saturation volume expansion), optionally times the bunching factor. At zero power the exact limit — the unsaturated Gaussian at amplitude one — is returned.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">tau</td><td>lag times (s) </td></tr>
@@ -979,7 +979,7 @@ Functions</h2></td></tr>
 <p>The Gauss&ndash;Lorentz MDF of Enderlein et al. (2005): a confocal detection volume built from a Gaussian excitation beam and a Gaussian-imaged pinhole, giving the effective volume (hence absolute concentrations) and the diffusion autocorrelation without the 3-D Gaussian approximation. Port of chisurf's <code>core/fluorescence/fcs/enderlein.py</code> (itself a port of Fretica's FEnderleinMDF / FVeffEnderlein / FGdiffEnderlein), moved here because it is a <em>forward model</em> &ndash; parameters in, model curve out, no measured data touched &ndash; which the placement rule (owner, 2026-09-02) sends to bff rather than to the photon library. The photon library's <code>SimGrid</code> PSF builders serve its simulator and share the same w(z) law; they are the cited twin, not a copy of this.</p>
 <p>The lateral integral of the MDF&ndash;propagator convolution is analytic; the axial double integral is one trapezoid over a fixed z grid (which only has to resolve the smooth kappa/w profile) times a Gauss&ndash;Hermite quadrature in the <em>difference</em> direction (z' = z + sqrt(4 D tau) xi), which resolves the propagator at any lag &ndash; a fixed z' grid fails once sqrt(4 D tau) drops below its spacing.</p>
 <p>All lengths are micrometres, <code>tau</code> seconds, <code>diffusion</code> um^2/s. The pinhole enters as the back-projected radius a = pinhole/2/magnification.</p>
-<dl class="section author"><dt>Authors</dt><dd>Thomas-Otavio Peulen Copyright 2007-2026 <a class="el" href="namespace_i_m_p.html">IMP</a> Inventors. All rights reserved. Gauss&ndash;Hermite nodes and weights for <picture><source srcset="form_82_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\int e^{-x^2} f(x)\,dx$" src="form_82.png"/></picture>.</dd></dl>
+<dl class="section author"><dt>Authors</dt><dd>Thomas-Otavio Peulen Copyright 2007-2026 <a class="el" href="namespace_i_m_p.html">IMP</a> Inventors. All rights reserved. Gauss&ndash;Hermite nodes and weights for <picture><source srcset="form_88_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\int e^{-x^2} f(x)\,dx$" src="form_88.png"/></picture>.</dd></dl>
 <p>Newton-refined roots of the physicists' Hermite polynomial over the orthonormal recurrence (no overflow at any practical n), agreeing with the usual numpy reference to machine precision. Exposed because the quadrature is useful beyond this file and the library deliberately carries no numerical-recipes dependency.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -994,7 +994,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Sep 28 2026 04:30:01 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Oct 1 2026 20:45:52 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

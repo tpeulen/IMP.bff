@@ -113,6 +113,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ab132fce3809cb314458eee3e937d23a0" id="r_ab132fce3809cb314458eee3e937d23a0"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_distributions_8h.html#ab132fce3809cb314458eee3e937d23a0">normal_distribution</a> (const std::vector&lt; double &gt; &amp;x, double loc=0.0, double scale=1.0, bool norm=false, double **out_view=0, int *n_out_view=0)</td></tr>
 <tr class="memdesc:ab132fce3809cb314458eee3e937d23a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Normal probability density on a given axis.  <br /></td></tr>
 <tr class="separator:ab132fce3809cb314458eee3e937d23a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c1894fe04009be200334af4934e557c" id="r_a7c1894fe04009be200334af4934e557c"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_distributions_8h.html#a7c1894fe04009be200334af4934e557c">normal_log_density</a> (double value, double loc, double scale)</td></tr>
+<tr class="memdesc:a7c1894fe04009be200334af4934e557c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fully normalized natural-log Gaussian density.  <br /></td></tr>
+<tr class="separator:a7c1894fe04009be200334af4934e557c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a98164a781cf685784fa6425386122db1" id="r_a98164a781cf685784fa6425386122db1"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_distributions_8h.html#a98164a781cf685784fa6425386122db1">generalized_normal_distribution</a> (const std::vector&lt; double &gt; &amp;x, double loc=0.0, double scale=1.0, double shape=0.0, bool norm=true, double **out_view=0, int *n_out_view=0)</td></tr>
 <tr class="memdesc:a98164a781cf685784fa6425386122db1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generalized normal density with a <b>skew</b> parameter.  <br /></td></tr>
 <tr class="separator:a98164a781cf685784fa6425386122db1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -647,6 +650,56 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a7c1894fe04009be200334af4934e557c" name="a7c1894fe04009be200334af4934e557c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c1894fe04009be200334af4934e557c">&#9670;&#160;</a></span>normal_log_density()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">IMPBFFEXPORT double normal_log_density </td>
+          <td>(</td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>loc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>scale</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Fully normalized natural-log Gaussian density. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">value</td><td>observed value </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">loc</td><td>Gaussian mean </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">scale</td><td>Gaussian standard deviation; must be finite and &gt; 0 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::ValueException</td><td>unless all inputs are finite and <code>scale</code> &gt; 0 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="a64a33a5a25dadce638e90a5e5d527e01" name="a64a33a5a25dadce638e90a5e5d527e01"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a64a33a5a25dadce638e90a5e5d527e01">&#9670;&#160;</a></span>poisson_0toN()</h2>
 
@@ -701,7 +754,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Sep 28 2026 04:30:01 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Oct 1 2026 20:45:52 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

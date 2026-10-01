@@ -148,6 +148,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a6c5b77ccbf07b1edb574fe940b3a34de" id="r_a6c5b77ccbf07b1edb574fe940b3a34de"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT std::vector&lt; <a class="el" href="struct_labelizer_score.html">LabelizerScore</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_labelizer_score_8h.html#a6c5b77ccbf07b1edb574fe940b3a34de">labelizer_parameter_scores</a> (const <a class="el" href="struct_labelizer_structure.html">LabelizerStructure</a> &amp;s, const std::vector&lt; <a class="el" href="struct_labelizer_parameter.html">LabelizerParameter</a> &gt; &amp;model, const <a class="el" href="struct_labelizer_options.html">LabelizerOptions</a> &amp;options, const std::map&lt; std::string, double &gt; &amp;conservation)</td></tr>
 <tr class="memdesc:a6c5b77ccbf07b1edb574fe940b3a34de"><td class="mdescLeft">&#160;</td><td class="mdescRight">Every per-residue parameter score of one structure, tidy.  <br /></td></tr>
 <tr class="separator:a6c5b77ccbf07b1edb574fe940b3a34de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a722857f035e63f8c7eb849e3582727b8" id="r_a722857f035e63f8c7eb849e3582727b8"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT std::vector&lt; <a class="el" href="struct_labelizer_score.html">LabelizerScore</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_labelizer_score_8h.html#a722857f035e63f8c7eb849e3582727b8">labelizer_parameter_scores</a> (const <a class="el" href="struct_labelizer_structure.html">LabelizerStructure</a> &amp;s, const std::vector&lt; <a class="el" href="struct_labelizer_parameter.html">LabelizerParameter</a> &gt; &amp;model, const <a class="el" href="struct_labelizer_options.html">LabelizerOptions</a> &amp;options, const std::map&lt; std::string, <a class="el" href="struct_labelizer_conservation.html">LabelizerConservation</a> &gt; &amp;conservation)</td></tr>
+<tr class="memdesc:a722857f035e63f8c7eb849e3582727b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same, with every ConSurf field per residue.  <br /></td></tr>
+<tr class="separator:a722857f035e63f8c7eb849e3582727b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b368393f35afcad3274401ffc778237" id="r_a9b368393f35afcad3274401ffc778237"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT std::vector&lt; <a class="el" href="struct_labelizer_score.html">LabelizerScore</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_labelizer_score_8h.html#a9b368393f35afcad3274401ffc778237">labelizer_labeling_score</a> (const std::vector&lt; <a class="el" href="struct_labelizer_score.html">LabelizerScore</a> &gt; &amp;parameter_scores, const std::vector&lt; <a class="el" href="struct_labelizer_parameter.html">LabelizerParameter</a> &gt; &amp;model, const <a class="el" href="struct_labelizer_options.html">LabelizerOptions</a> &amp;options)</td></tr>
 <tr class="memdesc:a9b368393f35afcad3274401ffc778237"><td class="mdescLeft">&#160;</td><td class="mdescRight">The combined label score per position, from parameter scores.  <br /></td></tr>
 <tr class="separator:a9b368393f35afcad3274401ffc778237"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -506,7 +509,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="a6c5b77ccbf07b1edb574fe940b3a34de" name="a6c5b77ccbf07b1edb574fe940b3a34de"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6c5b77ccbf07b1edb574fe940b3a34de">&#9670;&#160;</a></span>labelizer_parameter_scores()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a6c5b77ccbf07b1edb574fe940b3a34de">&#9670;&#160;</a></span>labelizer_parameter_scores() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -558,6 +561,49 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a722857f035e63f8c7eb849e3582727b8" name="a722857f035e63f8c7eb849e3582727b8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a722857f035e63f8c7eb849e3582727b8">&#9670;&#160;</a></span>labelizer_parameter_scores() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">IMPBFFEXPORT std::vector&lt; <a class="el" href="struct_labelizer_score.html">LabelizerScore</a> &gt; labelizer_parameter_scores </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_labelizer_structure.html">LabelizerStructure</a> &amp;&#160;</td>
+          <td class="paramname"><em>s</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_labelizer_parameter.html">LabelizerParameter</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>model</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_labelizer_options.html">LabelizerOptions</a> &amp;&#160;</td>
+          <td class="paramname"><em>options</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::map&lt; std::string, <a class="el" href="struct_labelizer_conservation.html">LabelizerConservation</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>conservation</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The same, with every ConSurf field per residue. </p>
+<p>From <a class="el" href="_labelizer_features_8h.html#aaf1b1450f45d583f76980362221bdd31" title="Every ConSurf field per residue key, from a .grades table or a B-factor PDB.">labelizer_read_consurf_records</a> or <a class="el" href="_labelizer_features_8h.html#a8d4c529992a85956034c996274e2fc7e" title="ConSurf&#39;s records computed from an alignment, for the chains of a structure.">labelizer_conservation_from_msa</a>; enables the conservation tables beyond <code>N_CS2_Score</code> (interval bounds, colour grade, residue variety). </p>
+
+</div>
+</div>
 <a id="a3dd85deae0f5fd97defead7dfd2ef743" name="a3dd85deae0f5fd97defead7dfd2ef743"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3dd85deae0f5fd97defead7dfd2ef743">&#9670;&#160;</a></span>labelizer_score_structure()</h2>
 
@@ -603,7 +649,7 @@ Functions</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">pdb_path</td><td>the structure </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">model</td><td>the terms; see <a class="el" href="_labelizer_score_8h.html#a7f567e804fc2f3e46a1d987560dd7da4">labelizer_model_paper</a> </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">options</td><td>the settings </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">conservation_path</td><td>a ConSurf <code>.grades</code> or B-factor PDB, or empty </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">conservation_path</td><td>a ConSurf <code>.grades</code> table or B-factor PDB, an alignment (<code>.fasta</code>, <code>.fa</code>, <code>.fas</code>, <code>.faa</code>, <code>.afa</code>, <code>.a2m</code>, <code>.a3m</code>, <code>.msa</code>: conservation computed natively, as ConSurf does), a sequence database (<code>.pto</code>, or <code>db:NAME</code> for one the settings name, <code>db:</code> for their default: ConSurf end to end, see <a class="el" href="_labelizer_features_8h.html#ae710a8f00a54b5d9608adfd65864262a">labelizer_conservation_from_database</a>), or empty </td></tr>
   </table>
   </dd>
 </dl>
@@ -641,7 +687,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Sep 28 2026 04:30:01 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Oct 1 2026 20:45:52 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

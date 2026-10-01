@@ -1,0 +1,7 @@
+<map id="NPSMeasurement" name="NPSMeasurement">
+<area shape="rect" id="Node000001" title="One Fast&#45;NPS measurement: dye pair, active observables, and data." alt="" coords="5,276,199,541"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="19,133,185,213"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,214,105,260,99,260,99,214"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="23,5,181,71"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="105,71,105,117,99,117,99,71"/>
+</map>

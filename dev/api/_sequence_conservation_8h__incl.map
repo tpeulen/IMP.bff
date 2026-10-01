@@ -1,0 +1,13 @@
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/SequenceConservation.h" name="/home/runner/work/IMP.bff/IMP.bff/include/SequenceConservation.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="340,5,625,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,152,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="386,48,152,93,151,88,385,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="177,93,370,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="433,48,318,91,316,86,432,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="395,93,571,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="485,46,485,79,480,79,480,46"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="595,93,653,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="518,43,592,84,590,89,515,48"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="678,93,741,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="538,43,666,87,664,92,536,48"/>
+</map>

@@ -17,8 +17,10 @@ var searchData=
   ['bin_5fwidth_14',['bin_width',['../struct_probe_trajectory_density_options.html#ae6203111df9b78188c85f2cf7d8f2ad4',1,'ProbeTrajectoryDensityOptions']]],
   ['bin_5fwidths_15',['bin_widths',['../class_f_r_e_t_landscape_initial_guess_options.html#acf563b4e4ebdeb5578d4f3af7427a4a6',1,'FRETLandscapeInitialGuessOptions']]],
   ['bins_16',['bins',['../struct_labelizer_table.html#a57d9d54261695a52c28c2cc543add155',1,'LabelizerTable']]],
-  ['blobs_5f_17',['blobs_',['../classinternal_1_1_walker_kernel_base.html#adce17259494e2f1fc012fcb0a770e552',1,'internal::WalkerKernelBase']]],
-  ['body_5fid_18',['body_id',['../struct_f_p_s_label_position.html#a75dbcb930397b1755b7e661c2e9a5f64',1,'FPSLabelPosition']]],
-  ['bonds_19',['bonds',['../struct_mol2_component.html#aec456225123bcae7eb6ceb3a2a8b2ecf',1,'Mol2Component']]],
-  ['by_5fkey_20',['by_key',['../struct_labelizer_table.html#a55b0dc57958af2ae6be47339a1d39708',1,'LabelizerTable']]]
+  ['bits_17',['bits',['../class_sequence_search_hit.html#a825202d31ec8970c9eeb9d3e5b365548',1,'SequenceSearchHit']]],
+  ['blobs_5f_18',['blobs_',['../classinternal_1_1_walker_kernel_base.html#adce17259494e2f1fc012fcb0a770e552',1,'internal::WalkerKernelBase']]],
+  ['body_5fid_19',['body_id',['../struct_f_p_s_label_position.html#a75dbcb930397b1755b7e661c2e9a5f64',1,'FPSLabelPosition']]],
+  ['bonds_20',['bonds',['../struct_mol2_component.html#aec456225123bcae7eb6ceb3a2a8b2ecf',1,'Mol2Component']]],
+  ['branch_5flengths_21',['branch_lengths',['../class_sequence_conservation_options.html#aae15d1710fe468c019ed2337bef207e2',1,'SequenceConservationOptions']]],
+  ['by_5fkey_22',['by_key',['../struct_labelizer_table.html#a55b0dc57958af2ae6be47339a1d39708',1,'LabelizerTable']]]
 ];

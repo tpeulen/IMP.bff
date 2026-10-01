@@ -131,7 +131,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:aba1f75faebbbc45f25cda6f8356d6efb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bursts simulated for candidate <code>pair</code>.  <br /></td></tr>
 <tr class="separator:aba1f75faebbbc45f25cda6f8356d6efb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa1b7dc7362149563c8763dc308cb99f" id="r_afa1b7dc7362149563c8763dc308cb99f"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_kinetics_term.html#afa1b7dc7362149563c8763dc308cb99f">get_pair_information</a> (int pair) const</td></tr>
-<tr class="memdesc:afa1b7dc7362149563c8763dc308cb99f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Candidate <code>pair's</code> rate information <picture><source srcset="form_259_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$G_p$" src="form_259.png"/></picture>, flat <code>n_k x n_k</code>.  <br /></td></tr>
+<tr class="memdesc:afa1b7dc7362149563c8763dc308cb99f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Candidate <code>pair's</code> rate information <picture><source srcset="form_300_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$G_p$" src="form_300.png"/></picture>, flat <code>n_k x n_k</code>.  <br /></td></tr>
 <tr class="separator:afa1b7dc7362149563c8763dc308cb99f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9ed984c304ab74f9a786f9db79fa028c" id="r_a9ed984c304ab74f9a786f9db79fa028c"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_kinetics_term.html#a9ed984c304ab74f9a786f9db79fa028c">get_rate_sigmas</a> () const</td></tr>
 <tr class="memdesc:a9ed984c304ab74f9a786f9db79fa028c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Posterior standard deviation of each log-rate with the committed set.  <br /></td></tr>
@@ -176,11 +176,11 @@ Protected Member Functions</h2></td></tr>
 <div class="textblock"><p>Dynamics: how well the rates of a kinetic scheme are determined. </p>
 <p>For each candidate pair, bursts are simulated from <code>process</code> with that pair's per-state distances (#IMP::bff::simulate_fret_measurement, then #IMP::bff::select_bursts). A #IMP::bff::FRETNetworkModel with only the hidden rates and the pair's state means free gives the per-burst scores <code>S</code>, and the Fisher information per burst <code>F = S^T S / n_bursts</code> over <code>(log k, d)</code>. The pair's information on the rates after its own distances are paid for is the Schur complement</p>
 <p class="formulaDsp">
-<picture><source srcset="form_254_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaDsp" alt="\[ G_p = F_{kk} - F_{kd} F_{dd}^{-1} F_{dk}, \]" src="form_254.png"/></picture>
+<picture><source srcset="form_293_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaDsp" alt="\[ G_p = F_{kk} - F_{kd} F_{dd}^{-1} F_{dk}, \]" src="form_293.png"/></picture>
 </p>
-<p>scaled to <code>n_bursts_per_pair</code>. Pairs are measured on separate molecules, so the network's information is <picture><source srcset="form_255_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$F_0 + \sum_p G_p$" src="form_255.png"/></picture> with the prior precision <picture><source srcset="form_256_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$F_0 = I / \sigma_0^2$" src="form_256.png"/></picture> on the log-rates, and the loss</p>
+<p>scaled to <code>n_bursts_per_pair</code>. Pairs are measured on separate molecules, so the network's information is <picture><source srcset="form_294_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$F_0 + \sum_p G_p$" src="form_294.png"/></picture> with the prior precision <picture><source srcset="form_295_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$F_0 = I / \sigma_0^2$" src="form_295.png"/></picture> on the log-rates, and the loss</p>
 <p class="formulaDsp">
-<picture><source srcset="form_257_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaDsp" alt="\[ L = \left[\det F_0 / \det(F_0 + \sum_p G_p)\right]^{1/n_k} \]" src="form_257.png"/></picture>
+<picture><source srcset="form_296_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaDsp" alt="\[ L = \left[\det F_0 / \det(F_0 + \sum_p G_p)\right]^{1/n_k} \]" src="form_296.png"/></picture>
 </p>
 <p>is the geometric-mean posterior variance of the log-rates relative to the prior. It is 1 for a pair whose distance is the same in every state.</p>
 <p>Candidates are added after construction: <a class="el" href="class_probe_kinetics_term.html#a19f6668a9232523252dd7d910a151998" title="Add candidates with one distance per state. Returns the first new index.">add_pairs</a> with one distance per state, <a class="el" href="class_probe_kinetics_term.html#a0b9ae1e8792bf534764538e92a98132b">add_oligomer_pairs</a> with the distance mixture of each row of a #IMP::bff::ProbeOligomerPairs (a mixture keeps its spread, and its mean is the pair's nuisance). The measurement template supplies dyes, instrument and Forster radius. Only discrete processes are supported. </p>
@@ -536,7 +536,7 @@ Protected Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Candidate <code>pair's</code> rate information <picture><source srcset="form_259_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$G_p$" src="form_259.png"/></picture>, flat <code>n_k x n_k</code>. </p>
+<p>Candidate <code>pair's</code> rate information <picture><source srcset="form_300_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$G_p$" src="form_300.png"/></picture>, flat <code>n_k x n_k</code>. </p>
 
 </div>
 </div>
@@ -610,7 +610,7 @@ Protected Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Sep 28 2026 04:30:02 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Oct 1 2026 20:45:53 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
