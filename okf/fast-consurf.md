@@ -1,6 +1,6 @@
 ---
 title: Fast ConSurf -- conservation grades in seconds, natively
-status: in progress (time target met on 1lk2; benchmark over more chains pending)
+status: target met (20 chains: median 5.2 s on SSD, grades closer to the reference than the sampling spread); open: distribution, a larger benchmark
 updated: 2026-10-01
 ---
 
@@ -389,6 +389,55 @@ The k-mer runs with early stop were slower than without (351 vs 284 s): the
 early stop saves only stage-2 work, and run-to-run time varies by tens of
 seconds on the SD card. Timings in this table are single runs.
 
+## Benchmark: 20 Swiss-Prot chains (2026-10-01)
+
+20 random Swiss-Prot sequences (seed 2026, 80–800 residues;
+`prototypes/esm_retrieval/consurf_e2e/bench.py`, results in `bench.tsv`).
+One of them (CT62_HUMAN, 136 residues) has 3 homologues in UniRef and gets
+no result in either method (5 are needed), leaving 19:
+
+| configuration | score ρ, median (min) | grades exact, median | within 1, median (min) | time |
+|---|---|---|---|---|
+| k-mer two-stage (reference), all 20 queries in one pass | 1 | 1 | 1 | 551 s, 27.6 s per query |
+| same search, the 150 closest homologues (sampling spread) | 0.899 (0.795) | 0.517 | 0.771 (0.616) | 492 s, 24.6 s per query |
+| **embedding, 10k candidates, early stop at 600**, one query at a time | **0.982 (0.902)** | 0.684 | **0.960 (0.771)** | median 22.1 s, max 40.3 s (SD card) |
+
+- **Quality:** on every chain the fast path is closer to the reference than
+  the sampling spread of the exact search. Four chains match exactly
+  (ρ = 1.000). The weakest is ZN350_HUMAN (ρ 0.902), a zinc-finger protein:
+  repetitive multi-domain, the case the whole-sequence embedding handles
+  worst.
+- **Time:** 22 s on the SD card, not the 6.4 s of the warm 1lk2 run. Cold
+  runs read thousands of scattered candidate and member rows, and the SD
+  card's random reads dominate. The SSD measurement below separates storage
+  from computation.
+- **Batching:** the k-mer search shares one pass of the database among all
+  queries of a call, so a batch of 20 costs 27.6 s per query. The fast path
+  is per query. The honest comparison depends on the use: one chain at a
+  time (the Labelizer, an interactive run) 284 s → seconds; a batch of many
+  chains, about 28 s per chain against the fast path's per-chain cost.
+
+**On a fast SSD** (the Mac's internal SSD, database and index copied there;
+`bench_ssd.py`), the same 20 queries one at a time, first pass after the
+copy and second pass:
+
+| storage | median | max | 20 queries |
+|---|---|---|---|
+| SD card | 22.1 s | 40.3 s | ~460 s |
+| internal SSD, first pass | **5.2 s** | **9.2 s** | 105 s |
+| internal SSD, second pass | 5.1 s | 9.9 s | 104 s |
+
+Every query finishes under 10 s. The homologues are the same as from the SD
+card on all 20. First and second pass agree, so the run is bound by
+computation, not storage. (The first pass is only partly cold: the copy had
+just been written and part of it was in the page cache. The 23 GB database
+does not fit in the 16 GB of RAM, so most member rows came from the SSD.)
+Time grows with the query: 1.4 s at 136 residues, 9.2 s at 752.
+
+**The < 10 s target is met** on 20 random chains with data on an SSD:
+median 5.2 s, at quality closer to the reference than ConSurf's own homologue
+sampling spread.
+
 ## Pending
 
 - **UniRef50 embedding** of all 38.84 M representatives on cordeshub
@@ -401,13 +450,9 @@ seconds on the SD card. Timings in this table are single runs.
     1k/5k/10k/20k;
   - end-to-end time;
   - grade agreement with the 240 s run (`scratchpad/ab/e2e.py`).
-- More chains (a benchmark set) for grade agreement and time, not just 1lk2.
 - Window vectors for long representatives (+12 recall points measured on the
   first 17 M rows) if a benchmark shows grade drift beyond the sampling
   spread.
-- Time on a fast SSD instead of the SD card. Cold runs here are bound by its
-  random reads; the 6.4 s figure has the index and touched rows in the page
-  cache.
 
 ## Reproduction
 
