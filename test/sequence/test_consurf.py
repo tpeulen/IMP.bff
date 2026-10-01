@@ -122,3 +122,27 @@ def test_the_command_line(setup, capfd):
     pep.write_text(">pep\nACDEFGHIKLM\n")
     assert bff.command_line_main(["consurf", str(pep), "--database", db, "-o", str(d / "x")]) == 1
     assert "too few homologues" in capfd.readouterr().err
+
+
+def test_nested_options_set_in_place():
+    """o.clusters.x = v must change o: SWIG returns nested value members by
+    copy, and a silent no-op once invalidated measurements."""
+    o = bff.ConsurfOptions()
+    o.clusters.min_homologues = 600
+    o.clusters.embedding_candidates = 123
+    o.homologs.sampling = "best"
+    o.search.max_candidates = 77
+    assert o.clusters.min_homologues == 600
+    assert o.clusters.embedding_candidates == 123
+    assert o.homologs.sampling == "best"
+    assert o.search.max_candidates == 77
+    # the copy-out-and-assign pattern still works
+    c = o.clusters
+    c.min_homologues = 5
+    o.clusters = c
+    assert o.clusters.min_homologues == 5
+    # what the getter returns is still the C++ type, usable by C++ functions
+    assert isinstance(o.clusters, bff.SequenceClusterSearchOptions)
+    other = bff.ConsurfOptions()
+    other.clusters = o.clusters
+    assert other.clusters.min_homologues == 5 and other.clusters.embedding_candidates == 123
