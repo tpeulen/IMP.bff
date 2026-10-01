@@ -63,8 +63,13 @@ IMPBFFEXPORT std::size_t create_embedding_index(const Strings& vectors, const st
 class IMPBFFEXPORT EmbeddingIndex {
 public:
     EmbeddingIndex() {}
-    //! Open \p path, made by #IMP::bff::create_embedding_index.
+    //! Open the index in \p path: the file #IMP::bff::create_embedding_index
+    //! made, or any `.pto` container it was copied into
+    //! (#IMP::bff::add_embedding_prefilter).
     explicit EmbeddingIndex(const std::string& path);
+
+    //! The name of the index's object in a `.pto` container.
+    static const char* get_object_name() { return "embedding_index"; }
 
     std::string get_path() const { return path_; }
     std::size_t get_number_of_vectors() const { return n_; }

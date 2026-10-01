@@ -6,6 +6,8 @@
  */
 #include <IMP/bff/ProteinLanguageModel.h>
 
+#include <IMP/bff/internal/ptolib.h>
+
 #include <Eigen/Dense>
 #ifdef IMP_BFF_HAS_ACCELERATE
 #include <vecLib/cblas.h>
@@ -74,13 +76,7 @@ float half_to_float(std::uint16_t h) {
 class Gguf {
 public:
     explicit Gguf(const std::string& path) : path_(path) {
-        std::ifstream in(path, std::ios::binary);
-        if (!in) fail("cannot read the file");
-        in.seekg(0, std::ios::end);
-        bytes_.resize(static_cast<std::size_t>(in.tellg()));
-        in.seekg(0);
-        in.read(bytes_.data(), static_cast<std::streamsize>(bytes_.size()));
-        if (!in) fail("cannot read the file");
+        load(path);
         if (bytes_.size() < 24 || std::memcmp(bytes_.data(), "GGUF", 4) != 0) fail("not a GGUF file");
         pos_ = 4;
         std::uint32_t version = get<std::uint32_t>();
@@ -167,6 +163,31 @@ private:
 
     [[noreturn]] void fail(const std::string& why) const {
         IMP_THROW("ProteinLanguageModel: " << path_ << ": " << why, IOException);
+    }
+    //! The GGUF bytes: the file itself, or the model object of a `.pto`
+    //! container (a database carrying its own prefilter).
+    void load(const std::string& path) {
+        std::ifstream in(path, std::ios::binary);
+        if (!in) fail("cannot read the file");
+        char magic[4] = {0, 0, 0, 0};
+        in.read(magic, 4);
+        if (in && std::memcmp(magic, "GGUF", 4) == 0) {
+            in.seekg(0, std::ios::end);
+            bytes_.resize(static_cast<std::size_t>(in.tellg()));
+            in.seekg(0);
+            in.read(bytes_.data(), static_cast<std::streamsize>(bytes_.size()));
+            if (!in) fail("cannot read the file");
+            return;
+        }
+        in.close();
+        pto::File container;
+        if (!container.open(path)) fail("neither a GGUF file nor a .pto container");
+        const std::uint64_t uid = container.find(ProteinLanguageModel::get_object_name());
+        if (uid == 0)
+            fail(std::string("a .pto container without a '") +
+                 ProteinLanguageModel::get_object_name() + "' object");
+        const std::vector<unsigned char> data = container.read(uid);
+        bytes_.assign(data.begin(), data.end());
     }
     const Tensor& tensor(const std::string& name) const {
         auto it = tensors_.find(name);

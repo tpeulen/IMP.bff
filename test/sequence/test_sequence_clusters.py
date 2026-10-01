@@ -285,3 +285,44 @@ def test_embedding_prefilter_needs_both_paths(clustered):
             [family[0]], bff.SequenceDatabase(str(d / "reps.pto")),
             bff.SequenceClusters(str(d / "reps.pto")), bff.SequenceDatabase(str(d / "members.pto")),
             bff.SequenceSearchOptions(), o)
+
+
+def test_a_database_carrying_its_own_prefilter_is_the_whole_search(clustered, tmp_path):
+    d, family = clustered
+    model, index = _embedding_prefilter(d, str(d / "reps.pto"), tmp_path)
+    # a clustered single store, then the prefilter into it
+    one = str(tmp_path / "one.pto")
+    bff.create_clustered_sequence_database(str(d / "members.pto"), str(d / "reps.pto"), one)
+    assert not bff.get_has_embedding_prefilter(one)
+    # the index was made over reps.pto's rows: the clustered store keeps that order
+    reps = bff.SequenceDatabase(str(d / "reps.pto"))
+    db = bff.SequenceDatabase(one)
+    assert [db.get_identifier(i) for i in range(reps.get_number_of_sequences())] == \
+        [reps.get_identifier(i) for i in range(reps.get_number_of_sequences())]
+    queries = [family[3], family[20]]
+    o = bff.SequenceClusterSearchOptions()
+    o.embedding_model, o.embedding_index, o.embedding_candidates = model, index, 50
+    explicit = bff.search_clustered_sequence_database(queries, db, bff.SequenceSearchOptions(), o)
+    kmer_before = bff.search_clustered_sequence_database(queries, db)
+    bff.add_embedding_prefilter(one, model, index)
+    assert bff.get_has_embedding_prefilter(one)
+    db = bff.SequenceDatabase(one)                       # still reads as before
+    assert db.get_has_members()
+    # the model and the index load from the database file itself
+    assert bff.ProteinLanguageModel(one).get_projection_length() == 8
+    assert bff.EmbeddingIndex(one).get_number_of_vectors() == reps.get_number_of_sequences()
+    # no paths given: the file's own prefilter, the same hits as the explicit one
+    o2 = bff.SequenceClusterSearchOptions()
+    o2.embedding_candidates = 50
+    embedded = bff.search_clustered_sequence_database(queries, db, bff.SequenceSearchOptions(), o2)
+    key = lambda hits: sorted((h.query, h.identifier, h.score) for h in hits)
+    assert key(embedded) == key(explicit)
+    # switched off: the k-mer scan again
+    o2.use_database_prefilter = False
+    kmer = bff.search_clustered_sequence_database(queries, db, bff.SequenceSearchOptions(), o2)
+    assert key(kmer) == key(kmer_before)
+    # adding again replaces the prefilter rather than duplicating it
+    bff.add_embedding_prefilter(one, model, index)
+    assert bff.get_has_embedding_prefilter(one)
+    assert bff.EmbeddingIndex(one).get_number_of_vectors() == reps.get_number_of_sequences()
+    assert key(bff.search_clustered_sequence_database(queries, db, bff.SequenceSearchOptions(), o2)) == key(kmer_before)

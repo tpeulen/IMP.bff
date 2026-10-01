@@ -95,6 +95,8 @@ FLAT_NAMES = [
     "ProteinLanguageModel",        # ESM-2 from GGUF, native forward pass
     "EmbeddingIndex",              # product-quantised nearest neighbours
     "create_embedding_index",
+    "add_embedding_prefilter",     # model + index into the database: one file
+    "get_has_embedding_prefilter",
     "LabelizerScore",              # labelability score row
     "LabelizerFRETOptions",        # FRET pair-score settings
     "labelizer_score_structure",   # Labelizer entry point

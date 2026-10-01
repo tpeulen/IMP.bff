@@ -111,6 +111,12 @@ void clustered(const Args& a) {
   std::cout << a.out << ": representatives and " << n << " members, cluster-ordered\n";
 }
 
+void add_prefilter(const Args& a) {
+  add_embedding_prefilter(a.database, a.embedding_model, a.embedding_index);
+  std::cout << a.database << ": embedding prefilter added (model and index in the file); "
+            << "searches of it use it unless given others\n";
+}
+
 void cluster(const Args& a) {
   const std::size_t placed =
       create_sequence_clusters(a.database, a.representatives, a.mapping);
@@ -137,6 +143,8 @@ void info(const Args& a) {
     std::cout << "  members   " << m.get_number_of_sequences() << " sequences, "
               << m.get_number_of_residues() << " residues (searched in two stages)\n";
   }
+  if (get_has_embedding_prefilter(db.get_path()))
+    std::cout << "  prefilter embedding (model and index in the file)\n";
   if (db.get_number_of_sequences() > 0) std::cout << "  first     " << db.get_header(0) << "\n";
 }
 
@@ -306,6 +314,21 @@ reading each hit cluster's members as one run:
   clustered->callback([a] {
     set_current_sub("sequence-db clustered");
     sequence::clustered(*a);
+  });
+  CLI::App* prefilter = db->add_subcommand(
+      "add-prefilter", R"doc(Put an embedding prefilter into a clustered database: one file for the whole search.)doc");
+  prefilter->footer(R"doc(Copies the protein language model (GGUF) and the embedding index of the
+representatives into the database's .pto. A search or a ConSurf run of that
+file then finds its representatives through the embedding by itself:
+
+    imp_bff sequence-db add-prefilter uniref.pto esm2_35m_head.gguf uniref50_esm.pto)doc");
+  prefilter->add_option("database", a->database, "the clustered .pto (changed in place)")->required();
+  prefilter->add_option("model", a->embedding_model, "the protein language model (GGUF)")->required();
+  prefilter->add_option("index", a->embedding_index, "the embedding index of the representatives")
+      ->required();
+  prefilter->callback([a] {
+    set_current_sub("sequence-db add-prefilter");
+    sequence::add_prefilter(*a);
   });
   CLI::App* info = db->add_subcommand("info", R"doc(Summarise a sequence database.)doc");
   info->add_option("database", a->database, "a .pto, or a database name from the settings");

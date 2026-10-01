@@ -46,9 +46,13 @@ IMPBFF_BEGIN_NAMESPACE
 class IMPBFFEXPORT ProteinLanguageModel {
 public:
     ProteinLanguageModel() {}
-    //! Load \p path, a GGUF file.
+    //! Load \p path: a GGUF file, or a `.pto` container holding one as its
+    //! #get_object_name object (#IMP::bff::add_embedding_prefilter).
     /*! \throw IOException when the file cannot be read or is not an ESM-2 GGUF */
     explicit ProteinLanguageModel(const std::string& path);
+
+    //! The name of the model's object in a `.pto` container.
+    static const char* get_object_name() { return "protein_language_model"; }
 
     std::string get_path() const { return path_; }
     //! The model's name (`general.name`).

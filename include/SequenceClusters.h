@@ -138,6 +138,10 @@ public:
     std::string embedding_model;
     std::string embedding_index;
     int embedding_candidates = 10000;
+    //! When neither path is given and the database carries its own prefilter
+    //! (#IMP::bff::add_embedding_prefilter), use it: one file is the whole
+    //! search. False keeps the k-mer scan.
+    bool use_database_prefilter = true;
 
     IMP_SHOWABLE_INLINE(SequenceClusterSearchOptions,
                         out << "SequenceClusterSearchOptions(" << max_representatives << ", E <= "
@@ -153,6 +157,21 @@ IMPBFFEXPORT SequenceSearchHits search_clustered_sequence_database(
         const SequenceClusters& clusters, const SequenceDatabase& members,
         const SequenceSearchOptions& options = SequenceSearchOptions(),
         const SequenceClusterSearchOptions& cluster_options = SequenceClusterSearchOptions());
+
+//! Put an embedding prefilter into a clustered database, so the database
+//! alone is the whole search: the protein language model's GGUF (\p model)
+//! as an attachment object, and the #IMP::bff::EmbeddingIndex of the
+//! representatives (\p index, made by #IMP::bff::create_embedding_index over
+//! \p database's representatives in row order) copied in. A prefilter already
+//! there is replaced.
+/*! \throw ValueException when the model's projection does not fit the index,
+           or the index does not cover the representatives
+    \throw IOException when a file cannot be read or written */
+IMPBFFEXPORT void add_embedding_prefilter(const std::string& database, const std::string& model,
+                                          const std::string& index);
+
+//! Whether \p database (a `.pto` path) carries its own embedding prefilter.
+IMPBFFEXPORT bool get_has_embedding_prefilter(const std::string& database);
 
 //! Search a clustered database (#create_clustered_sequence_database) in two
 //! stages: its representatives, then the members of the clusters found.

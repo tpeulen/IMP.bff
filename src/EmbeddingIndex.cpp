@@ -25,7 +25,7 @@ IMPBFF_BEGIN_NAMESPACE
 
 namespace embedding_index {
 
-const char* const kObject = "embedding_index";
+const char* const kObject = EmbeddingIndex::get_object_name();
 const int kCentroids = 256;
 
 float half_to_float(std::uint16_t h) {

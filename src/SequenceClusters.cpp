@@ -774,16 +774,20 @@ SequenceSearchOptions stage_one(const SequenceSearchOptions& options,
 SequenceSearchHits search_representatives(const Strings& queries, const SequenceDatabase& representatives,
                                           const SequenceSearchOptions& options,
                                           const SequenceClusterSearchOptions& co) {
-    if (co.embedding_model.empty() && co.embedding_index.empty())
+    std::string model_path = co.embedding_model, index_path = co.embedding_index;
+    if (model_path.empty() && index_path.empty() && co.use_database_prefilter &&
+        get_has_embedding_prefilter(representatives.get_path()))
+        model_path = index_path = representatives.get_path();
+    if (model_path.empty() && index_path.empty())
         return search_sequence_database(queries, representatives, stage_one(options, co));
-    if (co.embedding_model.empty() || co.embedding_index.empty())
+    if (model_path.empty() || index_path.empty())
         IMP_THROW("search_clustered_sequence_database: the embedding prefilter needs both "
                   "embedding_model and embedding_index", ValueException);
-    const ProteinLanguageModel model(co.embedding_model);
-    const EmbeddingIndex index(co.embedding_index);
+    const ProteinLanguageModel model(model_path);
+    const EmbeddingIndex index(index_path);
     if (model.get_projection_length() != index.get_dimension())
-        IMP_THROW("search_clustered_sequence_database: " << co.embedding_model << " embeds in "
-                  << model.get_projection_length() << " dimensions, " << co.embedding_index
+        IMP_THROW("search_clustered_sequence_database: " << model_path << " embeds in "
+                  << model.get_projection_length() << " dimensions, " << index_path
                   << " holds " << index.get_dimension(), ValueException);
     const std::vector<float> embedded =
             model.embed(std::vector<std::string>(queries.begin(), queries.end()), true);
@@ -842,6 +846,70 @@ SequenceSearchHits search_clustered_sequence_database(
                               for (int r = range[0]; r < range[1]; ++r) rows.push_back(static_cast<std::size_t>(r));
                           },
                           always, members, options, cluster_options);
+}
+
+bool get_has_embedding_prefilter(const std::string& database) {
+    pto::File container;
+    if (!container.open(database)) return false;
+    return container.find(ProteinLanguageModel::get_object_name()) != 0 &&
+           container.find(EmbeddingIndex::get_object_name()) != 0;
+}
+
+void add_embedding_prefilter(const std::string& database, const std::string& model_path,
+                             const std::string& index_path) {
+    const SequenceDatabase db(database);
+    const ProteinLanguageModel model(model_path);
+    const EmbeddingIndex index(index_path);
+    if (model.get_projection_length() != index.get_dimension())
+        IMP_THROW("add_embedding_prefilter: " << model_path << " embeds in "
+                  << model.get_projection_length() << " dimensions, " << index_path << " holds "
+                  << index.get_dimension(), ValueException);
+    // the orphans' group, a last empty representative, is searched in any case
+    std::size_t covered = db.get_number_of_sequences();
+    if (covered > 0 && db.get_identifier(covered - 1) == "orphans") --covered;
+    if (index.get_number_of_vectors() < covered)
+        IMP_THROW("add_embedding_prefilter: " << index_path << " holds "
+                  << index.get_number_of_vectors() << " vectors for " << covered
+                  << " representatives in " << database, ValueException);
+    // the model's GGUF file: from a GGUF file directly, else out of a container
+    const std::string temporary = db.get_path() + ".prefilter-tmp";
+    std::string gguf = model_path;
+    {
+        std::ifstream in(model_path, std::ios::binary);
+        char magic[4] = {0, 0, 0, 0};
+        in.read(magic, 4);
+        if (!in || std::memcmp(magic, "GGUF", 4) != 0) {
+            pto::File from;
+            if (!from.open(model_path) || !from.extract(from.find(ProteinLanguageModel::get_object_name()),
+                                                        temporary + ".gguf"))
+                IMP_THROW("add_embedding_prefilter: cannot read the model out of " << model_path,
+                          IOException);
+            gguf = temporary + ".gguf";
+        }
+    }
+    pto::File container;
+    if (!container.open(db.get_path(), true))
+        IMP_THROW("add_embedding_prefilter: " << container.error(), IOException);
+    for (const char* name : {ProteinLanguageModel::get_object_name(), EmbeddingIndex::get_object_name()})
+        for (std::uint64_t old : container.find_all(name)) container.remove(old);
+    bool ok = container.add_file("attachment", "gguf", ProteinLanguageModel::get_object_name(), gguf) != 0;
+    {
+        pto::File from;
+        std::uint64_t uid = 0;
+        ok = ok && from.open(index.get_path()) &&
+             (uid = from.find(EmbeddingIndex::get_object_name())) != 0 &&
+             from.extract(uid, temporary);
+        if (ok) {
+            const pto::PtoObject o = from.object(uid);   // kind and encoding as they were
+            ok = container.add_file(o.kind, o.encoding, o.name, temporary) != 0;
+        }
+    }
+    std::remove(temporary.c_str());
+    if (gguf != model_path) std::remove(gguf.c_str());
+    if (!ok || !container.commit())
+        IMP_THROW("add_embedding_prefilter: could not write " << db.get_path() << ": "
+                  << container.error(), IOException);
+    container.close();
 }
 
 IMPBFF_END_NAMESPACE
