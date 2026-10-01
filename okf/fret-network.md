@@ -87,7 +87,8 @@ per-pair benefit (`ProbePairBenefitTerm`: loss `Π(1 − d_p)`, the chance that
 no selected pair sees a change). `d_p` comes from an elastic network of the
 structure (`ElasticNetworkModes`, `get_pair_change_probabilities`):
 calibrated on seven open/closed proteins, leave-one-out AUC 0.86–0.96 for
-pairs changing by > 5 Å (okf/esm-contacts.md).
+pairs changing by > 5 Å (okf/esm-contacts.md). Worked example on MBP:
+`ipynb/example/elastic_network_fret_pairs.ipynb`.
 
 With three states, any three pairs that separate them resolve the structure,
 so Olga's choice among them is arbitrary for the rates. The mix spends that

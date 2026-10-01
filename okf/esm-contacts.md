@@ -181,6 +181,9 @@ the observed change is the cleft of one lobe.
   selected, mixed by weight with the resolution, kinetics, labelling and
   cost terms in `ProbeNetworkSelection`.
 
+**Worked example:** `ipynb/example/elastic_network_fret_pairs.ipynb` (MBP; it
+plans from 1OMP only and checks against 1ANF).
+
 ## Next
 
 - Native contacts and `probe_pair_contacts`: done, see above.
