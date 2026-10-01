@@ -6,6 +6,7 @@
  */
 #include <IMP/bff/ProteinLanguageModel.h>
 
+#include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/internal/ptolib.h>
 
 #include <Eigen/Dense>
@@ -18,6 +19,7 @@
 #include <cstdint>
 #include <cstring>
 #include <fstream>
+#include <limits>
 #include <map>
 #include <sstream>
 
@@ -303,12 +305,19 @@ struct ProteinLanguageModel::Weights {
     language_model::Norm final_norm;
     language_model::Row mean, std;
     language_model::Linear head0, head1, head2, skip;
+    // contact head: logistic regression over layers x heads attention maps
+    language_model::Row contact_w;   // empty: no contact head
+    float contact_b = 0.f;
 
-    language_model::Matrix forward(const std::string& sequence) const;
+    //! The last layer for the residues; with \p contacts, also the contact
+    //! logits' accumulator (`n x n`, before the bias and the sigmoid).
+    language_model::Matrix forward(const std::string& sequence,
+                                   language_model::Matrix* contacts = nullptr) const;
     std::vector<float> project(const language_model::Row& pooled) const;
 };
 
-language_model::Matrix ProteinLanguageModel::Weights::forward(const std::string& sequence) const {
+language_model::Matrix ProteinLanguageModel::Weights::forward(const std::string& sequence,
+                                                              language_model::Matrix* contacts) const {
     const int n = std::min<int>(int(sequence.size()), max_length), L = n + 2, hd = d / heads;
     language_model::Matrix x(L, d);
     x.row(0) = embeddings.row(cls);
@@ -336,7 +345,9 @@ language_model::Matrix ProteinLanguageModel::Weights::forward(const std::string&
             }
     };
     const float scale = 1.0f / std::sqrt(float(hd));
-    language_model::Matrix attended(L, d), scores(L, L);
+    language_model::Matrix attended(L, d), scores(L, L), symmetric(n, n);
+    if (contacts) *contacts = language_model::Matrix::Zero(n, n);
+    int layer_index = 0;
     for (const Layer& layer : blocks) {
         language_model::Matrix h = layer.attention_norm(x, eps);
         language_model::Matrix q = layer.q(h), k = layer.k(h), v = layer.v(h);
@@ -350,6 +361,17 @@ language_model::Matrix ProteinLanguageModel::Weights::forward(const std::string&
                 scores.row(r) = (scores.row(r).array() - top).exp();
                 scores.row(r) /= scores.row(r).sum();
             }
+            if (contacts && n > 0) {
+                // ESM's contact head: the residues' block (no <cls>, no <eos>),
+                // symmetrised, average-product corrected, weighted per head
+                symmetric = scores.block(1, 1, n, n) + scores.block(1, 1, n, n).transpose();
+                const Eigen::VectorXf rows = symmetric.rowwise().sum();
+                const language_model::Row cols = symmetric.colwise().sum();
+                const float total = rows.sum();
+                const float w = contact_w[layer_index * heads + a];
+                if (total != 0.f) *contacts += w * (symmetric - rows * cols / total);
+                else *contacts += w * symmetric;
+            }
             language_model::gemm_nn(L, hd, L, scores.data(), L, v.data() + a * hd, d,
                                     attended.data() + a * hd, d);
         }
@@ -357,6 +379,7 @@ language_model::Matrix ProteinLanguageModel::Weights::forward(const std::string&
         language_model::Matrix f = layer.up(layer.ffn_norm(x, eps));
         language_model::gelu(f);
         x += layer.down(f);
+        ++layer_index;
     }
     return final_norm(x, eps).middleRows(1, n);
 }
@@ -434,6 +457,11 @@ ProteinLanguageModel::ProteinLanguageModel(const std::string& path) : path_(path
         w->head2.load(g, "head.mlp.4", w->projection, hidden);
         w->skip.load(g, "head.skip", w->projection, w->d, false);
     }
+    if (g.has("contact_head.regression.weight")) {
+        w->contact_w = g.matrix("contact_head.regression.weight", 1, w->layers * w->heads).row(0);
+        w->contact_b = g.has("contact_head.regression.bias")
+                               ? g.vector("contact_head.regression.bias", 1)[0] : 0.f;
+    }
     w_ = w;
 }
 
@@ -442,6 +470,52 @@ int ProteinLanguageModel::get_embedding_length() const { return w_ ? w_->d : 0; 
 int ProteinLanguageModel::get_number_of_layers() const { return w_ ? w_->layers : 0; }
 int ProteinLanguageModel::get_projection_length() const { return w_ ? w_->projection : 0; }
 int ProteinLanguageModel::get_max_length() const { return w_ ? w_->max_length : 0; }
+bool ProteinLanguageModel::get_has_contact_head() const { return w_ && w_->contact_w.size() > 0; }
+
+std::vector<double> ProteinLanguageModel::contacts(const std::string& sequence, int* n) const {
+    if (!w_) IMP_THROW("ProteinLanguageModel: no model loaded", ValueException);
+    if (w_->contact_w.size() == 0)
+        IMP_THROW("ProteinLanguageModel: " << path_ << " has no contact head", ValueException);
+    language_model::Matrix logits;
+    w_->forward(sequence, &logits);
+    *n = int(logits.rows());
+    std::vector<double> out(std::size_t(*n) * std::size_t(*n));
+    for (int i = 0; i < *n; ++i)
+        for (int j = 0; j < *n; ++j)
+            out[std::size_t(i) * *n + j] = 1.0 / (1.0 + std::exp(-double(logits(i, j) + w_->contact_b)));
+    return out;
+}
+
+void ProteinLanguageModel::get_contacts(const std::string& sequence, double** out_matrix,
+                                        int* n_out_rows, int* n_out_cols) const {
+    int n = 0;
+    const std::vector<double> c = contacts(sequence, &n);
+    if (out_matrix == nullptr || n_out_rows == nullptr || n_out_cols == nullptr) return;
+    int n_flat = 0;
+    double* buffer = internal::new_double_view(c.size(), out_matrix, &n_flat);
+    *n_out_rows = 0;
+    *n_out_cols = n;
+    if (buffer == nullptr) return;
+    if (!c.empty()) std::memcpy(buffer, c.data(), c.size() * sizeof(double));
+    *n_out_rows = n;
+}
+
+std::vector<double> probe_pair_contacts(const ProteinLanguageModel& model, const std::string& sequence,
+                                        int* pair_residues, int n_pair_rows, int n_pair_cols,
+                                        int residue_offset) {
+    if (n_pair_cols != 2) IMP_THROW("probe_pair_contacts: two residues per pair", ValueException);
+    int n = 0;
+    const std::vector<double> c = model.contacts(sequence, &n);
+    std::vector<double> out(static_cast<std::size_t>(n_pair_rows),
+                            std::numeric_limits<double>::quiet_NaN());
+    for (int p = 0; p < n_pair_rows; ++p) {
+        const int a = pair_residues[2 * p] - residue_offset - 1;     // 0-based in the sequence
+        const int b = pair_residues[2 * p + 1] - residue_offset - 1;
+        if (a < 0 || b < 0 || a >= n || b >= n || a == b) continue;
+        out[static_cast<std::size_t>(p)] = c[std::size_t(a) * n + b];
+    }
+    return out;
+}
 
 int ProteinLanguageModel::compute(const std::string& sequence, std::vector<float>& out) const {
     if (!w_) IMP_THROW("ProteinLanguageModel: no model loaded", ValueException);

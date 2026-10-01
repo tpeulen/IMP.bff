@@ -70,6 +70,16 @@ public:
     //! The last layer averaged over the residues (the tokens `<cls>` and `<eos>`
     //! excluded).
     Floats get_embedding(const std::string& sequence) const;
+    //! Whether the file carries ESM's contact head (#get_contacts).
+    bool get_has_contact_head() const;
+    //! Residue contact probabilities, `n x n` (`n` residues, at most
+    //! #get_max_length): ESM's contact head, a logistic regression over the
+    //! symmetrised, average-product-corrected attention maps of every layer
+    //! and head (Rao et al., ICLR 2021). From the single sequence, no MSA.
+    /*! \throw ValueException when the file has no contact head */
+    void get_contacts(const std::string& sequence, double** out_matrix, int* n_out_rows,
+                      int* n_out_cols) const;
+
     //! #get_embedding through the projection head, unit length.
     /*! \throw ValueException when the file has no head */
     Floats get_projected_embedding(const std::string& sequence) const;
@@ -77,6 +87,8 @@ public:
 #ifndef SWIG
     //! #get_residue_embeddings into \p out (`n x d` floats); returns `n`.
     int compute(const std::string& sequence, std::vector<float>& out) const;
+    //! #get_contacts row by row; \p n gets the number of residues.
+    std::vector<double> contacts(const std::string& sequence, int* n) const;
     //! #get_projected_embedding (or the pooled embedding when \p project is
     //! false) of each of \p sequences, in parallel: `sequences.size() x width`.
     std::vector<float> embed(const std::vector<std::string>& sequences, bool project) const;
@@ -90,6 +102,24 @@ private:
     std::shared_ptr<const Weights> w_;
 };
 IMP_VALUES(ProteinLanguageModel, ProteinLanguageModels);
+
+//! Contact probabilities for pairs of structure residues: an alternative to
+//! #IMP::bff::probe_pair_coevolution as the per-pair cost of a
+//! #IMP::bff::ProbePairCostTerm, from the single sequence and already in
+//! `[0, 1]`.
+/*!
+    Residue `r` of the structure is position `r - residue_offset` (1-based)
+    of \p sequence; NaN when either residue is outside it (ineligible to the
+    cost term).
+
+    \param[in] model a protein language model with a contact head
+    \param[in] sequence the structure's sequence
+    \param[in] pair_residues,n_pair_rows,n_pair_cols two structure residue numbers per pair
+    \param[in] residue_offset structure numbering minus sequence numbering
+*/
+IMPBFFEXPORT std::vector<double> probe_pair_contacts(
+        const ProteinLanguageModel& model, const std::string& sequence, int* pair_residues,
+        int n_pair_rows, int n_pair_cols, int residue_offset = 0);
 
 IMPBFF_END_NAMESPACE
 

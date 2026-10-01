@@ -93,6 +93,7 @@ FLAT_NAMES = [
     "search_clustered_sequence_database",  # representatives, then members
     "create_clustered_sequence_database",  # one cluster-ordered store
     "ProteinLanguageModel",        # ESM-2 from GGUF, native forward pass
+    "probe_pair_contacts",         # ESM-2 contacts as a pair cost (alternative to DCA)
     "EmbeddingIndex",              # product-quantised nearest neighbours
     "create_embedding_index",
     "add_embedding_prefilter",     # model + index into the database: one file
