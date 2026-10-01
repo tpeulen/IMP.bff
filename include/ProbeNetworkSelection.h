@@ -22,6 +22,9 @@
  *   a cost per mutation, so reusing a chosen site is free.
  * - #IMP::bff::ProbePairCostTerm: a cost per pair, read as the probability that
  *   the pair is a problem (e.g. its sites co-evolve).
+ * - #IMP::bff::ProbePairBenefitTerm: a benefit per pair, read as the
+ *   probability that the pair sees a conformational change (e.g. from an
+ *   elastic network, #IMP::bff::get_pair_change_probabilities).
  *
  * Every term reports a dimensionless loss in `[0, 1]`, relative to nothing
  * selected, so the weights of #IMP::bff::ProbeNetworkSelection::add_term are
@@ -401,6 +404,49 @@ private:
     double log_ok_ = 0.0;   // sum over committed pairs of log(1 - c_p)
 };
 IMP_OBJECTS(ProbePairCostTerm, ProbePairCostTerms);
+
+//! A benefit per candidate pair: the chance that a selected pair sees a change.
+/*!
+    Each candidate pair carries a probability `d_p` in `[0, 1]` that its
+    distance changes between conformations, for example from an elastic
+    network (#IMP::bff::get_pair_change_probabilities). The loss is the
+    probability that no selected pair sees a change,
+
+    \f[ L = \prod_{p \in S} (1 - d_p), \f]
+
+    1 with nothing selected, as for the resolution and kinetics terms, and
+    falling with every pair likely to report a change. A pair whose
+    probability is NaN is not eligible. Pair-level only: in site mode each
+    pair a new site implies counts.
+*/
+class IMPBFFEXPORT ProbePairBenefitTerm : public ProbeNetworkTerm {
+public:
+    //! \param[in] probabilities one probability in `[0, 1]` per candidate pair, NaN for ineligible
+    ProbePairBenefitTerm(const std::vector<double>& probabilities);
+
+    int get_n_pairs() const override { return static_cast<int>(probabilities_.size()); }
+    bool get_is_eligible_pair(int pair) const override;
+    double get_loss() const override;
+    double get_loss_with(const std::vector<int>& pairs,
+                         const std::vector<int>& sites) const override;
+
+    //! The probability of pair \p pair.
+    double get_probability(int pair) const {
+        return probabilities_.at(static_cast<std::size_t>(pair));
+    }
+
+    IMP_OBJECT_METHODS(ProbePairBenefitTerm);
+
+protected:
+    void do_reset() override;
+    void do_commit(const std::vector<int>& pairs,
+                   const std::vector<int>& new_sites) override;
+
+private:
+    std::vector<double> probabilities_;
+    double log_none_ = 0.0;   // sum over committed pairs of log(1 - d_p)
+};
+IMP_OBJECTS(ProbePairBenefitTerm, ProbePairBenefitTerms);
 
 //! Greedy selection of a probe network by a weighted sum of term losses.
 /*!

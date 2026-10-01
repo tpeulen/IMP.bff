@@ -17,6 +17,7 @@ IMP_SWIG_OBJECT(IMP::bff, ProbeResolutionTerm, ProbeResolutionTerms);
 IMP_SWIG_OBJECT(IMP::bff, ProbeKineticsTerm, ProbeKineticsTerms);
 IMP_SWIG_OBJECT(IMP::bff, ProbeLabellingTerm, ProbeLabellingTerms);
 IMP_SWIG_OBJECT(IMP::bff, ProbePairCostTerm, ProbePairCostTerms);
+IMP_SWIG_OBJECT(IMP::bff, ProbePairBenefitTerm, ProbePairBenefitTerms);
 IMP_SWIG_OBJECT(IMP::bff, ProbeNetworkSelection, ProbeNetworkSelections);
 
 %feature("compactdefaultargs") IMP::bff::ProbeOligomerPairs::ProbeOligomerPairs;

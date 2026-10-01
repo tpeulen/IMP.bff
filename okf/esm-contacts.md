@@ -1,6 +1,6 @@
 ---
 title: ESM-2 contacts for the FRET network score -- measured against DCA, and as a dynamics signal
-status: done -- contacts native (650M); as a FRET pair cost they barely matter (pairs at FRET distances are not contacts); dynamics signal negative
+status: ESM-2 contacts native but no dynamics signal; the elastic network (ANM, k = 2, calibrated) is the dynamics term
 updated: 2026-10-01
 ---
 
@@ -123,6 +123,63 @@ Where ESM-2 is more promising for FRET design, not tested here:
 - **Long-range couplings:** the "categorical Jacobian" (Zhang et al., PNAS
   2024) gives an ESM-2 coupling map not limited to contacts. It is closer in
   meaning to DCA but costs 20·L forward passes.
+
+## Elastic network: the dynamics signal that works (2026-10-01)
+
+The anisotropic network model (ANM) from one state's Cα: 15 Å springs; the
+distance fluctuation of each pair in the k softest modes,
+`σ² = Σ_m (ê_ij · (u_j − u_i))² / λ_m`. The test is the same as for ESM-2:
+which pairs change by more than 5 Å in the other state (prototypes
+`enm.py`, `enm_variants.py`, `enm_heldout.py`, `enm_calibrate.py`).
+
+Choosing k on AdK, MBP and RBP, scored from both states (6 cases), at 5 Å:
+
+| score | mean AUC (min) | top 20 changing, mean (min) |
+|---|---|---|
+| k = 1 | 0.81 (0.69) | 0.89 (0.55) |
+| **k = 2** | **0.90 (0.76)** | **0.97 (0.85)** |
+| k = 3 | 0.90 (0.76) | 0.66 (0.00) |
+| 10 modes, 1/λ² | 0.90 (0.77) | 0.60 (0.00) |
+| *ESM-2 contacts (for comparison)* | *0.27–0.36* | *0–0.05* |
+
+On these three, the plain input distance gets AUC 0.66–0.91. With k ≥ 3 the
+top of the list can be taken over by subdomain motions of 3–3.7 Å (not
+termini: e.g. MBP residues 312–326), below the 5 Å threshold.
+
+**Held out:** GlnBP 1GGG/1WDN, LAO-BP 2LAO/1LST, lactoferrin 1LFH/1LFG,
+guanylate kinase 1EX6/1EX7. At 5 Å the AUC stays 0.81–0.85 for every
+variant, and about 80 % of the top 20 change (base rate 17 %). k = 2 drops
+from 0.97 to 0.76 in the top 20 and is no longer best, so choosing it was
+partly fitted to the first three. Pooled over all seven proteins, k = 1 and
+k = 2 are equal in the top 20 and k = 2 is better in AUC. It stays the
+default, and `n_modes` is a parameter.
+
+**Calibration to a probability:** P(|Δd| > 5 Å) = σ(a·x + b), with
+x = clip(log(σ²/σ²₉₅), −8, 4), the fluctuation relative to the structure's
+own 95th percentile over pairs |i − j| ≥ 6. It is fitted with each protein
+weighted once and checked leaving one protein out:
+
+| held out | AUC | mean p | observed | top 20 | p > 0.5: share changing |
+|---|---|---|---|---|---|
+| AdK | 0.87 | 0.13 | 0.30 | 1.00 | 0.98 |
+| MBP | 0.96 | 0.18 | 0.11 | 1.00 | 0.81 |
+| RBP | 0.90 | 0.21 | 0.10 | 0.95 | 0.48 |
+| GlnBP | 0.86 | 0.19 | 0.22 | 0.50 | 0.68 |
+| LAO-BP | 0.87 | 0.18 | 0.17 | 0.80 | 0.72 |
+| lactoferrin | 0.70 | 0.17 | 0.19 | 0.55 | 0.33 |
+| GK | 0.93 | 0.15 | 0.11 | 1.00 | 0.65 |
+
+All seven: **a = 0.666, b = 0.295** (k = 2). Lactoferrin is the known
+failure: its softest modes move the two lobes against each other, while
+the observed change is the cleft of one lobe.
+
+**In imp.bff:**
+- `ElasticNetworkModes(coordinates, cutoff)`;
+- `get_pair_distance_fluctuations(modes, pairs, n_modes)`;
+- `get_pair_change_probabilities(modes, pairs, n_modes, a, b)`;
+- `ProbePairBenefitTerm(probabilities)`: loss `Π(1 − d_p)`, 1 with nothing
+  selected, mixed by weight with the resolution, kinetics, labelling and
+  cost terms in `ProbeNetworkSelection`.
 
 ## Next
 

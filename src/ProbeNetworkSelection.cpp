@@ -531,6 +531,41 @@ double ProbePairCostTerm::get_loss_with(const std::vector<int>& pairs,
     return -std::expm1(log_ok);
 }
 
+ProbePairBenefitTerm::ProbePairBenefitTerm(const std::vector<double>& probabilities)
+    : ProbeNetworkTerm("ProbePairBenefitTerm"), probabilities_(probabilities) {
+    for (double d : probabilities_) {
+        if (!std::isnan(d) && !(d >= 0.0 && d <= 1.0)) {
+            IMP_THROW("pair probabilities must lie in [0, 1] (NaN for ineligible), not " << d,
+                      ValueException);
+        }
+    }
+}
+
+bool ProbePairBenefitTerm::get_is_eligible_pair(int pair) const {
+    return pair >= 0 && pair < static_cast<int>(probabilities_.size()) &&
+           !std::isnan(probabilities_[static_cast<std::size_t>(pair)]);
+}
+
+void ProbePairBenefitTerm::do_reset() { log_none_ = 0.0; }
+
+namespace {
+// log(1 - d), kept finite: a certain change (d = 1) drives the loss to ~0
+double log_no_change(double d) { return std::log1p(-std::min(d, 1.0 - 1e-15)); }
+}  // namespace
+
+void ProbePairBenefitTerm::do_commit(const std::vector<int>& pairs, const std::vector<int>&) {
+    for (int p : pairs) log_none_ += log_no_change(get_probability(p));
+}
+
+double ProbePairBenefitTerm::get_loss() const { return std::exp(log_none_); }
+
+double ProbePairBenefitTerm::get_loss_with(const std::vector<int>& pairs,
+                                           const std::vector<int>&) const {
+    double log_none = log_none_;
+    for (int p : pairs) log_none += log_no_change(get_probability(p));
+    return std::exp(log_none);
+}
+
 // --- ProbeNetworkSelection --------------------------------------------------------
 
 ProbeNetworkSelection::ProbeNetworkSelection(int n_pairs, std::string name)

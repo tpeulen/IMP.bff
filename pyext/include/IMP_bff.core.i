@@ -1374,6 +1374,7 @@ IMP_SWIG_VALUE(IMP::bff, MfdbAttribution, MfdbAttributions);
    structural resolution, the rate information of a kinetic scheme, and the
    Labelizer's site scores. After the FRET network, which the kinetics term
    simulates and scores with, and after the Labelizer. */
+%include "IMP_bff.elasticnetwork.i"
 %include "IMP_bff.probenetworkselection.i"
 
 /* The channels that deactivate an excited dye. They consume `States`, so they

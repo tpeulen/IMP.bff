@@ -94,6 +94,10 @@ FLAT_NAMES = [
     "create_clustered_sequence_database",  # one cluster-ordered store
     "ProteinLanguageModel",        # ESM-2 from GGUF, native forward pass
     "probe_pair_contacts",         # ESM-2 contacts as a pair cost (alternative to DCA)
+    "ElasticNetworkModes",         # ANM normal modes of a structure
+    "get_pair_distance_fluctuations",
+    "get_pair_change_probabilities",  # calibrated: P(distance changes > 5 A)
+    "ProbePairBenefitTerm",        # dynamics reward in the network selection
     "EmbeddingIndex",              # product-quantised nearest neighbours
     "create_embedding_index",
     "add_embedding_prefilter",     # model + index into the database: one file
