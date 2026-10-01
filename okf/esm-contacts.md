@@ -1,6 +1,6 @@
 ---
 title: ESM-2 contacts for the FRET network score -- measured against DCA, and as a dynamics signal
-status: Phase A done (model comparison); native contacts and the pair cost next
+status: done -- contacts native (650M); as a FRET pair cost they barely matter (pairs at FRET distances are not contacts); dynamics signal negative
 updated: 2026-10-01
 ---
 
@@ -92,13 +92,41 @@ only as the alternative pair cost. A dynamics term would need a different
 signal (e.g. elastic network normal modes from the structure), which is a
 separate question.
 
+## Native contacts (650M) and what they mean as a pair cost
+
+`ProteinLanguageModel::get_contacts` on ESM-2 650M
+(`/Volumes/SD1TB/sequences/esm2_650m_contacts.gguf`, 1.3 GB, F16) agrees
+with transformers to 0.0045 at most over the 20 chains. Precision is
+identical (0.864 / 0.749 / 0.582). On the CPU it takes a median 0.57 s per
+chain, 1.25 s at 370 residues (imp.bff `f6fe22d59`).
+
+**As the probe-pair cost it changes little.** On MBP (1OMP) the candidate
+FRET pairs are the 47,060 pairs with Cβ 20–80 Å and |i − j| ≥ 24. Their
+contact probabilities have a median of 0.006; 9 exceed 0.1 and 3 exceed 0.5.
+Pairs at FRET distances are not in contact, and ESM-2 says so correctly. DCA
+on the same pairs ranks differently (Spearman 0.19), and the two share 0 of
+their top 50 flagged pairs (1 of 200).
+
+FRETNet-Designer's penalty means "the two sites are coupled, so mutating
+both may disturb the function". At FRET distances that coupling is
+long-range (evolutionary or allosteric), not physical contact, and a contact
+head predicts physical contact only. `probe_pair_contacts` therefore works
+as a fast, MSA-free cost (1.7 s against about 80 s for search plus DCA on
+MBP), but with nearly zero for every FRET-range pair it barely steers the
+selection. It is not a substitute for the meaning of the co-evolution term.
+DCA remains the choice when that meaning is wanted.
+
+Where ESM-2 is more promising for FRET design, not tested here:
+- **Site tolerance:** the masked-marginal `log p(C) − log p(wild type)` per
+  site, i.e. how well a cysteine (the label site) is tolerated. That is a
+  site score for `ProbeLabellingTerm`, not a pair cost.
+- **Long-range couplings:** the "categorical Jacobian" (Zhang et al., PNAS
+  2024) gives an ESM-2 coupling map not limited to contacts. It is closer in
+  meaning to DCA but costs 20·L forward passes.
+
 ## Next
 
-- **Native contacts:** `ProteinLanguageModel::get_contacts` on ESM-2 650M.
-  The converter keeps `contact_head`, and the result is checked against
-  transformers' `predict_contacts`.
-- **Pair cost:** `get_probe_pair_contact_costs(contacts, residue pairs)` gives
-  costs for `ProbePairCostTerm`, one source alongside DCA.
+- Native contacts and `probe_pair_contacts`: done, see above.
 - **1UBQ:** 0 homologues in the fast search. Suspected cause: ubiquitin's
   near-identical members fill the candidate cap and are removed by the 95 %
   identity filter. Check against the k-mer path.
