@@ -89,6 +89,22 @@ downloaded on first use into a per-user cache. `imp_bff_fetch_data` takes it
 all at once, which is what you want before going offline or in a container
 image.
 
+Sequence databases and protein language models are fetched only when you name
+them; they are tens of GB, so set `IMP_BFF_SEQUENCE_DATA` to a disk with room,
+ideally an SSD. The download resumes after an interruption and is checked
+against its sha256:
+
+```bash
+imp_bff_fetch_data --sequences                  # what there is, with sizes
+imp_bff_fetch_data --sequences uniprot_sprot    # Swiss-Prot as a .pto, 0.24 GB
+imp_bff_fetch_data --sequences uniref_consurf   # UniRef + ESM-2 prefilter, 24.7 GB
+```
+
+```python
+o = IMP.bff.ConsurfOptions()
+o.database = IMP.bff.fetch_sequence_data("uniref_consurf")   # the one file ConSurf needs
+```
+
 ## Run the notebooks
 
 The notebooks are in the repository, not in the wheel, so clone it and install
