@@ -98,7 +98,13 @@ Install</h2>
 <div class="fragment"><div class="line">conda install -c conda-forge imp.bff</div>
 </div><!-- fragment --><p><code><a class="el" href="namespace_i_m_p_1_1bff.html#a5e7a2d928eae3750d3c40162412b067e" title="Which IMP.bff this translation unit was built as.">IMP.bff.get_build()</a></code> says which one you have: <code>"core"</code> or <code>"imp"</code>.</p>
 <p>The large data (rotamer libraries, coarse-grained probe inputs — 62 MB) is downloaded on first use into a per-user cache. <code>imp_bff_fetch_data</code> takes it all at once, which is what you want before going offline or in a container image.</p>
-<h2><a class="anchor" id="autotoc_md2"></a>
+<p>Sequence databases and protein language models are fetched only when you name them; they are tens of GB, so set <code>IMP_BFF_SEQUENCE_DATA</code> to a disk with room, ideally an SSD. The download resumes after an interruption and is checked against its sha256:</p>
+<div class="fragment"><div class="line">imp_bff_fetch_data --sequences                  # what there is, with sizes</div>
+<div class="line">imp_bff_fetch_data --sequences uniprot_sprot    # Swiss-Prot as a .pto, 0.24 GB</div>
+<div class="line">imp_bff_fetch_data --sequences uniref_consurf   # UniRef + ESM-2 prefilter, 24.7 GB</div>
+</div><!-- fragment --><div class="fragment"><div class="line">o = IMP.bff.ConsurfOptions()</div>
+<div class="line">o.database = IMP.bff.fetch_sequence_data(<span class="stringliteral">&quot;uniref_consurf&quot;</span>)   <span class="comment"># the one file ConSurf needs</span></div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md2"></a>
 Run the notebooks</h2>
 <p>The notebooks are in the repository, not in the wheel, so clone it and install the core beside them. <code>[notebooks]</code> adds what they import — Jupyter, matplotlib, scipy, scikit-learn, pandas, tttrlib and py3Dmol:</p>
 <div class="fragment"><div class="line">git clone https://github.com/tpeulen/IMP.bff</div>
@@ -310,7 +316,7 @@ Info</h1>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Oct 2 2026 13:18:32 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 2 2026 13:34:17 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
