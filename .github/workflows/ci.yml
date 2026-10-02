@@ -496,6 +496,38 @@ jobs:
           path: dist/pypi/*.whl
           if-no-files-found: error
 
+  # Every push to dev replaces the wheel on the rolling `pyodide-dev`
+  # pre-release, which the web pages (the Labelizer) build from.
+  pyodide_dev_release:
+    name: Pyodide wheel -> pyodide-dev release
+    needs: pyodide_wheel
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: pyodide-wheel
+          path: dist
+      - name: Replace the wheel on the pyodide-dev pre-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          notes="Pyodide wheel of the dev branch, replaced on every push (now ${GITHUB_SHA}). Not a release."
+          gh release view pyodide-dev -R "$REPO" >/dev/null 2>&1 ||
+            gh release create pyodide-dev -R "$REPO" --prerelease --target "$GITHUB_SHA" \
+               --title "Pyodide wheel (dev branch)" --notes "$notes"
+          gh release edit pyodide-dev -R "$REPO" --notes "$notes"
+          new=$(basename dist/*.whl)
+          gh release upload pyodide-dev -R "$REPO" "dist/$new" --clobber
+          # then drop the older wheels, so there is never a moment with none
+          gh release view pyodide-dev -R "$REPO" --json assets -q '.assets[].name' |
+            while read -r name; do
+              [ "$name" = "$new" ] || gh release delete-asset pyodide-dev "$name" -R "$REPO" -y
+            done
+
   # ── Publish the wheels to PyPI on a published GitHub Release ──────────────
   #
   # Trusted publishing: the PyPI project `imp-bff` must list this workflow as a
