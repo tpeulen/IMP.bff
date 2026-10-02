@@ -1,0 +1,31 @@
+{
+  "_about": "Sequence databases and protein language models served from DATA_URL. They are large, so they are fetched only when named (IMP.bff.fetch_sequence_data, imp_bff_fetch_data --sequences), never by fetch_data()'s all-fetch or by get_data_path(). The download resumes after an interruption and is checked against sha256.",
+  "uniref_consurf": {
+    "path": "sequence_databases/uniref_consurf.pto",
+    "bytes": 24688964656,
+    "sha256": "PENDING",
+    "description": "UniRef50 representatives (38.84 M) over their UniRef90 members (121.5 M), clustered, with the ESM-2 embedding prefilter (model + index) inside: the one file a ConSurf run needs (ConsurfOptions.database).",
+    "source": "UniProt UniRef50 and UniRef90, downloaded September 2026 (CC BY 4.0)"
+  },
+  "uniprot_sprot": {
+    "path": "sequence_databases/uniprot_sprot.pto",
+    "bytes": 236167035,
+    "sha256": "9772689c29a09805403876269a63bdbf2ee9bda08929c73d649d9a550b2d89a5",
+    "description": "UniProtKB/Swiss-Prot (575,748 reviewed sequences) as a sequence database: a small database for tests, examples and quick searches.",
+    "source": "UniProt UniProtKB/Swiss-Prot, downloaded September 2026 (CC BY 4.0)"
+  },
+  "esm2_35m": {
+    "path": "protein_language_model/esm2_t12_35M_head35m.gguf",
+    "bytes": 70569312,
+    "sha256": "e81a8d99e6bbf93d4e0b39ad1f260e48465b44f8caca1f42aebab046ed38e471",
+    "description": "ESM-2 t12 35M with the contrastive projection head of the embedding prefilter (ProteinLanguageModel). Already inside uniref_consurf.",
+    "source": "facebook/esm2_t12_35M_UR50D (MIT); head trained for imp.bff"
+  },
+  "esm2_650m_contacts": {
+    "path": "protein_language_model/esm2_t33_650M_contacts.gguf",
+    "bytes": 1299946080,
+    "sha256": "39361896d09e37c4acaa476e9c89817d21adb63502cb38745faaf2787e225a07",
+    "description": "ESM-2 t33 650M with its contact head (ProteinLanguageModel.get_contacts, probe_pair_contacts).",
+    "source": "facebook/esm2_t33_650M_UR50D (MIT)"
+  }
+}

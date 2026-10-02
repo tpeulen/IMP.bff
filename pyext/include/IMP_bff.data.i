@@ -140,16 +140,166 @@ if _os.path.isdir(_IMP_DATA) and not _os.environ.get("IMP_DATA"):
     _os.environ["IMP_DATA"] = _IMP_DATA
 
 
+# --- sequence databases and protein language models --------------------------
+# Too large for the registry above: data/sequence_registry.json names them
+# (path on DATA_URL, size, sha256, description), and they are fetched only
+# when asked for by name -- never by fetch_data()'s all-fetch, never on a
+# get_data_path() miss. The download writes `<file>.part`, resumes it with an
+# HTTP range request after an interruption, checks the sha256, then renames.
+
+
+def get_sequence_data_registry():
+    """The sequence databases and models: name -> {path, bytes, sha256,
+    description, source}."""
+    import json
+    candidates = []
+    pkg = _package_data_dir()
+    if pkg:
+        candidates.append(_os.path.join(pkg, "sequence_registry.json"))
+    try:
+        candidates.append(_installed_get_data_path("sequence_registry.json"))
+    except Exception:
+        pass
+    for p in candidates:
+        try:
+            with open(p) as fh:
+                return {k: v for k, v in json.load(fh).items() if not k.startswith("_")}
+        except OSError:
+            continue
+    return {}
+
+
+def get_sequence_data_dir():
+    """Where sequence data is fetched to: IMP_BFF_SEQUENCE_DATA, else the
+    data cache (get_data_cache_dir()). Databases are tens of GB, so point
+    IMP_BFF_SEQUENCE_DATA at a disk with room (ideally an SSD)."""
+    return _os.environ.get("IMP_BFF_SEQUENCE_DATA") or get_data_cache_dir()
+
+
+def _sha256_of(path, block=1 << 24):
+    import hashlib
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(block), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _download_resumable(url, target, size, progressbar=False, block=1 << 22, retries=5):
+    """Fetch `url` into `target` + ".part", resuming what is there; returns
+    the .part path once it holds `size` bytes."""
+    import http.client
+    import time
+    import urllib.request
+    part = target + ".part"
+    for attempt in range(retries + 1):
+        have = _os.path.getsize(part) if _os.path.exists(part) else 0
+        if have == size:
+            return part
+        if have > size:
+            _os.remove(part)
+            have = 0
+        req = urllib.request.Request(url, headers={"User-Agent": "imp.bff"})
+        if have:
+            req.add_header("Range", "bytes=%d-" % have)
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                if have and r.status != 206:      # the server ignored the range: start over
+                    have = 0
+                with open(part, "ab" if have else "wb") as out:
+                    done, t0, shown = have, time.time(), 0.0
+                    while True:
+                        chunk = r.read(block)
+                        if not chunk:
+                            break
+                        out.write(chunk)
+                        done += len(chunk)
+                        if progressbar and time.time() - shown > 2:
+                            shown = time.time()
+                            rate = (done - have) / max(shown - t0, 1e-9) / 1e6
+                            print("\r  %s: %.1f / %.1f GB, %.0f MB/s   " % (
+                                _os.path.basename(target), done / 1e9, size / 1e9, rate),
+                                end="", flush=True)
+            if progressbar:
+                print()
+            if _os.path.getsize(part) == size:
+                return part
+        except (OSError, http.client.HTTPException) as e:   # URLError, timeouts, resets, short reads
+            if attempt == retries:
+                raise IOException("download of %s failed: %s" % (url, e))
+            time.sleep(min(60, 2 ** attempt))
+    raise IOException("download of %s stopped short of %d bytes" % (url, size))
+
+
+def fetch_sequence_data(name, directory=None, progressbar=False):
+    """Fetch a sequence database or a protein language model by name
+    (get_sequence_data_registry()) and return its local path.
+
+    A file already there with the right size and checksum is not fetched
+    again; an interrupted download resumes. `directory` defaults to
+    get_sequence_data_dir().
+
+    >>> o = IMP.bff.ConsurfOptions()
+    >>> o.database = IMP.bff.fetch_sequence_data("uniref_consurf")   # 25 GB, once
+    """
+    registry = get_sequence_data_registry()
+    if name not in registry:
+        raise IOException("no sequence data named %r; known: %s" % (name, ", ".join(sorted(registry))))
+    entry = registry[name]
+    if not entry.get("sha256") or entry["sha256"] == "PENDING":
+        raise IOException("%s is not published yet (no checksum in the registry)" % name)
+    target = _os.path.join(directory or get_sequence_data_dir(), entry["path"])
+    _os.makedirs(_os.path.dirname(target), exist_ok=True)
+    if _os.path.exists(target) and _os.path.getsize(target) == entry["bytes"]:
+        stamp = target + ".sha256"
+        if _os.path.exists(stamp) and open(stamp).read().strip() == entry["sha256"]:
+            return target                           # verified before; skip re-hashing GBs
+        if _sha256_of(target) == entry["sha256"]:
+            open(stamp, "w").write(entry["sha256"] + "\n")
+            return target
+    url = DATA_URL.rstrip("/") + "/" + entry["path"]
+    part = _download_resumable(url, target, int(entry["bytes"]), progressbar)
+    if progressbar:
+        print("  checking sha256 ...", flush=True)
+    digest = _sha256_of(part)
+    if digest != entry["sha256"]:
+        _os.remove(part)
+        raise IOException("%s: sha256 %s, the registry says %s; the partial file was removed"
+                          % (url, digest, entry["sha256"]))
+    _os.replace(part, target)
+    open(target + ".sha256", "w").write(digest + "\n")
+    return target
+
+
 def _fetch_data_main(argv=None):
-    """`imp_bff_fetch_data`: fetch every registry file, or the ones named."""
+    """`imp_bff_fetch_data`: fetch every registry file, or the ones named;
+    with --sequences, sequence databases and protein language models."""
     import argparse
     ap = argparse.ArgumentParser(description=_fetch_data_main.__doc__)
-    ap.add_argument("names", nargs="*", help="registry entries; all when none")
+    ap.add_argument("names", nargs="*", help="registry entries; all when none "
+                    "(with --sequences: sequence data names, e.g. uniref_consurf)")
     ap.add_argument("--list", action="store_true", help="print the registry and exit")
     ap.add_argument("--cache", help="fetch into this directory (default: %s)" % get_data_cache_dir())
+    ap.add_argument("--sequences", action="store_true",
+                    help="sequence databases and protein language models, by name "
+                         "(see --list --sequences); fetched to IMP_BFF_SEQUENCE_DATA or --cache")
     a = ap.parse_args(argv)
     if a.cache:
         _os.environ["IMP_BFF_CACHE"] = a.cache
+        if a.sequences:
+            _os.environ["IMP_BFF_SEQUENCE_DATA"] = a.cache
+    if a.sequences:
+        registry = get_sequence_data_registry()
+        if a.list or not a.names:
+            for k, v in sorted(registry.items()):
+                state = " (not published yet)" if v.get("sha256") in (None, "", "PENDING") else ""
+                print("%-20s %8.2f GB  %s%s" % (k, v["bytes"] / 1e9, v["description"], state))
+            if not a.list and not a.names:
+                print("\nname what to fetch, e.g.: imp_bff_fetch_data --sequences uniprot_sprot")
+            return 0
+        for n in a.names:
+            print(fetch_sequence_data(n, progressbar=True))
+        return 0
     if a.list:
         for k, v in sorted(get_data_registry().items()):
             print(k, v)
