@@ -549,8 +549,12 @@ jobs:
       #
       # skip-existing, because re-running a release build must not fail on a
       # version PyPI already has: a version is immutable there.
+      #
+      # Or a token: with the PYPI_API_TOKEN secret set, the step uploads with
+      # it instead (an empty secret leaves the action on trusted publishing).
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
           skip-existing: true
           print-hash: true
 
