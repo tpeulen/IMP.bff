@@ -3,7 +3,7 @@
   "uniref_consurf": {
     "path": "sequence_databases/uniref_consurf.pto",
     "bytes": 24688964656,
-    "sha256": "PENDING",
+    "sha256": "dc9092dfa9b1f966d2e41dfb97fb39c84f40e846b3c5aaa0eaf64732de25ba0e",
     "description": "UniRef50 representatives (38.84 M) over their UniRef90 members (121.5 M), clustered, with the ESM-2 embedding prefilter (model + index) inside: the one file a ConSurf run needs (ConsurfOptions.database).",
     "source": "UniProt UniRef50 and UniRef90, downloaded September 2026 (CC BY 4.0)"
   },
