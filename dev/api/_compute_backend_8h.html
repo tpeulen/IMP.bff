@@ -113,7 +113,7 @@ Macros</h2></td></tr>
 <tr class="memitem:a8dd90c1181117330062f838e4ff00097" id="r_a8dd90c1181117330062f838e4ff00097"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_compute_backend_8h.html#a8dd90c1181117330062f838e4ff00097">IMPBFF_WITH_GPU</a>&#160;&#160;&#160;1</td></tr>
 <tr class="memdesc:a8dd90c1181117330062f838e4ff00097"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether this build can load a compute backend at all.  <br /></td></tr>
 <tr class="separator:a8dd90c1181117330062f838e4ff00097"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a83114c39e48bb0e98a18adacb00dfb95" id="r_a83114c39e48bb0e98a18adacb00dfb95"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_compute_backend_8h.html#a83114c39e48bb0e98a18adacb00dfb95">IMPBFF_COMPUTE_BACKEND_ABI</a>&#160;&#160;&#160;2</td></tr>
+<tr class="memitem:a83114c39e48bb0e98a18adacb00dfb95" id="r_a83114c39e48bb0e98a18adacb00dfb95"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_compute_backend_8h.html#a83114c39e48bb0e98a18adacb00dfb95">IMPBFF_COMPUTE_BACKEND_ABI</a>&#160;&#160;&#160;3</td></tr>
 <tr class="memdesc:a83114c39e48bb0e98a18adacb00dfb95"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bumped whenever <a class="el" href="struct_imp_bff_compute_backend.html" title="What a plugin offers. Version first, so a mismatch is caught, not crashed.">ImpBffComputeBackend</a> changes shape.  <br /></td></tr>
 <tr class="separator:a83114c39e48bb0e98a18adacb00dfb95"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4153e7e9e386b70fc948261f10b7de4f" id="r_a4153e7e9e386b70fc948261f10b7de4f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_compute_backend_8h.html#a4153e7e9e386b70fc948261f10b7de4f">IMPBFF_COMPUTE_BACKEND_SYMBOL</a>&#160;&#160;&#160;&quot;imp_bff_compute_backend&quot;</td></tr>
@@ -125,6 +125,14 @@ Typedefs</h2></td></tr>
 <tr class="memitem:af6bb4f815b22704e740bbdfc3f41d79c" id="r_af6bb4f815b22704e740bbdfc3f41d79c"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_compute_backend_8h.html#af6bb4f815b22704e740bbdfc3f41d79c">ImpBffMlpForwardFn</a>) (int n_layers, const int *n_in, const int *n_out, const int *activation, const double *weights, const double *biases, const double *x, int n_rows, double *y)</td></tr>
 <tr class="memdesc:af6bb4f815b22704e740bbdfc3f41d79c"><td class="mdescLeft">&#160;</td><td class="mdescRight">One forward pass of a dense MLP: the whole network, not one GEMM.  <br /></td></tr>
 <tr class="separator:af6bb4f815b22704e740bbdfc3f41d79c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afed7eec633a2a150fb68b8746eaa3462" id="r_afed7eec633a2a150fb68b8746eaa3462"><td class="memItemLeft" align="right" valign="top">typedef void *(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_compute_backend_8h.html#afed7eec633a2a150fb68b8746eaa3462">ImpBffMlpUploadFn</a>) (int n_layers, const int *n_in, const int *n_out, const int *activation, const int *format, const double *const *weights, const unsigned char *const *codes, const float *const *scales, const double *const *biases)</td></tr>
+<tr class="memdesc:afed7eec633a2a150fb68b8746eaa3462"><td class="mdescLeft">&#160;</td><td class="mdescRight">Put a network on the device and keep it there: f32 or FP4 weights.  <br /></td></tr>
+<tr class="separator:afed7eec633a2a150fb68b8746eaa3462"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2141367dbf21b1af2a7280cc4e55744a" id="r_a2141367dbf21b1af2a7280cc4e55744a"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_compute_backend_8h.html#a2141367dbf21b1af2a7280cc4e55744a">ImpBffMlpRunFn</a>) (void *network, const double *x, int n_rows, double *y)</td></tr>
+<tr class="separator:a2141367dbf21b1af2a7280cc4e55744a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7bad4b77c89ae14cc2abf26db83b0083" id="r_a7bad4b77c89ae14cc2abf26db83b0083"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_compute_backend_8h.html#a7bad4b77c89ae14cc2abf26db83b0083">ImpBffMlpReleaseFn</a>) (void *network)</td></tr>
+<tr class="memdesc:a7bad4b77c89ae14cc2abf26db83b0083"><td class="mdescLeft">&#160;</td><td class="mdescRight">Free an uploaded network. Null is ignored.  <br /></td></tr>
+<tr class="separator:a7bad4b77c89ae14cc2abf26db83b0083"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -143,6 +151,9 @@ Functions</h2></td></tr>
 <tr class="memitem:aec80d2219cbb47c560bfe211cd591e53" id="r_aec80d2219cbb47c560bfe211cd591e53"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT const <a class="el" href="struct_imp_bff_compute_backend.html">ImpBffComputeBackend</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_compute_backend_8h.html#aec80d2219cbb47c560bfe211cd591e53">get_compute_backend</a> ()</td></tr>
 <tr class="memdesc:aec80d2219cbb47c560bfe211cd591e53"><td class="mdescLeft">&#160;</td><td class="mdescRight">The backend in force, or null. For the kernels, not for callers.  <br /></td></tr>
 <tr class="separator:aec80d2219cbb47c560bfe211cd591e53"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a786e345ef1c5632eb5fcd094361a8946" id="r_a786e345ef1c5632eb5fcd094361a8946"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT unsigned long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_compute_backend_8h.html#a786e345ef1c5632eb5fcd094361a8946">get_compute_backend_generation</a> ()</td></tr>
+<tr class="memdesc:a786e345ef1c5632eb5fcd094361a8946"><td class="mdescLeft">&#160;</td><td class="mdescRight">Changes whenever the backend in force does (a load, a reset).  <br /></td></tr>
+<tr class="separator:a786e345ef1c5632eb5fcd094361a8946"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa0c1766d99c0b28be2271070cb6ee090" id="r_aa0c1766d99c0b28be2271070cb6ee090"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_compute_backend_8h.html#aa0c1766d99c0b28be2271070cb6ee090">built_with_gpu_support</a> ()</td></tr>
 <tr class="memdesc:aa0c1766d99c0b28be2271070cb6ee090"><td class="mdescLeft">&#160;</td><td class="mdescRight">False when this build was compiled with <a class="el" href="_compute_backend_8h.html#a8dd90c1181117330062f838e4ff00097" title="Whether this build can load a compute backend at all.">IMPBFF_WITH_GPU</a> set to 0.  <br /></td></tr>
 <tr class="separator:aa0c1766d99c0b28be2271070cb6ee090"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -161,13 +172,13 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define IMPBFF_COMPUTE_BACKEND_ABI&#160;&#160;&#160;2</td>
+          <td class="memname">#define IMPBFF_COMPUTE_BACKEND_ABI&#160;&#160;&#160;3</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Bumped whenever <a class="el" href="struct_imp_bff_compute_backend.html" title="What a plugin offers. Version first, so a mismatch is caught, not crashed.">ImpBffComputeBackend</a> changes shape. </p>
-<p>2 added <a class="el" href="_compute_backend_8h.html#af6bb4f815b22704e740bbdfc3f41d79c" title="One forward pass of a dense MLP: the whole network, not one GEMM.">ImpBffMlpForwardFn</a>. A plugin built against 1 declines cleanly rather than being read one field short. </p>
+<p>2 added <a class="el" href="_compute_backend_8h.html#af6bb4f815b22704e740bbdfc3f41d79c" title="One forward pass of a dense MLP: the whole network, not one GEMM.">ImpBffMlpForwardFn</a>, 3 the resident network (<a class="el" href="_compute_backend_8h.html#afed7eec633a2a150fb68b8746eaa3462" title="Put a network on the device and keep it there: f32 or FP4 weights.">ImpBffMlpUploadFn</a>, <a class="el" href="_compute_backend_8h.html#a2141367dbf21b1af2a7280cc4e55744a">ImpBffMlpRunFn</a>, <a class="el" href="_compute_backend_8h.html#a7bad4b77c89ae14cc2abf26db83b0083" title="Free an uploaded network. Null is ignored.">ImpBffMlpReleaseFn</a>). A plugin built against another version declines cleanly rather than being read a field short. </p>
 
 </div>
 </div>
@@ -235,6 +246,65 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="a7bad4b77c89ae14cc2abf26db83b0083" name="a7bad4b77c89ae14cc2abf26db83b0083"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7bad4b77c89ae14cc2abf26db83b0083">&#9670;&#160;</a></span>ImpBffMlpReleaseFn</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef void(* ImpBffMlpReleaseFn) (void *network)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Free an uploaded network. Null is ignored. </p>
+
+</div>
+</div>
+<a id="a2141367dbf21b1af2a7280cc4e55744a" name="a2141367dbf21b1af2a7280cc4e55744a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2141367dbf21b1af2a7280cc4e55744a">&#9670;&#160;</a></span>ImpBffMlpRunFn</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef int(* ImpBffMlpRunFn) (void *network, const double *x, int n_rows, double *y)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Evaluate an uploaded network on a batch, <code>x</code> already scaled, <code>y</code> in the network's own units: as <a class="el" href="_compute_backend_8h.html#af6bb4f815b22704e740bbdfc3f41d79c" title="One forward pass of a dense MLP: the whole network, not one GEMM.">ImpBffMlpForwardFn</a>, and like it may decline a batch too small to be worth the trip (0 when it did the work). </p>
+
+</div>
+</div>
+<a id="afed7eec633a2a150fb68b8746eaa3462" name="afed7eec633a2a150fb68b8746eaa3462"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afed7eec633a2a150fb68b8746eaa3462">&#9670;&#160;</a></span>ImpBffMlpUploadFn</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef void *(* ImpBffMlpUploadFn) (int n_layers, const int *n_in, const int *n_out, const int *activation, const int *format, const double *const  *weights, const unsigned char *const  *codes, const float *const  *scales, const double *const  *biases)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Put a network on the device and keep it there: f32 or FP4 weights. </p>
+<p><a class="el" href="_compute_backend_8h.html#af6bb4f815b22704e740bbdfc3f41d79c" title="One forward pass of a dense MLP: the whole network, not one GEMM.">ImpBffMlpForwardFn</a> sends the weights with every batch, which is right for a network whose parameters change between calls and wasteful for one that does not. This uploads them once and returns a handle that <a class="el" href="_compute_backend_8h.html#a2141367dbf21b1af2a7280cc4e55744a">ImpBffMlpRunFn</a> evaluates and <a class="el" href="_compute_backend_8h.html#a7bad4b77c89ae14cc2abf26db83b0083" title="Free an uploaded network. Null is ignored.">ImpBffMlpReleaseFn</a> frees.</p>
+<p>Layers are <code>y = activation(W x + b)</code> as for <a class="el" href="_compute_backend_8h.html#af6bb4f815b22704e740bbdfc3f41d79c" title="One forward pass of a dense MLP: the whole network, not one GEMM.">ImpBffMlpForwardFn</a>, each in its own format:</p><ul>
+<li><code>format[l] == 0</code>: <code>weights[l]</code> is W, row-major <code>n_out x n_in</code>, doubles;</li>
+<li><code>format[l] == 1</code>: W is FP4 (E2M1). <code>codes[l]</code> is <code>IMP::bff::internal::mlpfp4::Fp4Tensor</code>'s layout &ndash; each row padded to a multiple of 32 elements, two codes a byte, element 2i in the low nibble, <code>n_out x padded / 2</code> bytes &ndash; and <code>scales[l]</code> the decoded scale of each 16-element sub-block of each row, <code>n_out x padded / 16</code> floats, whatever block format they came from (fp4's row scale, mxfp4's E8M0, nvfp4's E4M3 times the tensor scale). The weight is <code>E2M1(code) * scale</code>.</li>
+</ul>
+<p>The arithmetic is f32 throughout: FP4 weights are decoded on the device and the activations are not quantised (W4A32). </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">weights,codes,scales,biases</td><td>one pointer a layer; a layer reads <code>weights</code> or <code>codes</code> and <code>scales</code> by its format, and the others may be null </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the handle, or null to decline &ndash; then the caller stays on the CPU </dd></dl>
+
+</div>
+</div>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="aa0c1766d99c0b28be2271070cb6ee090" name="aa0c1766d99c0b28be2271070cb6ee090"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa0c1766d99c0b28be2271070cb6ee090">&#9670;&#160;</a></span>built_with_gpu_support()</h2>
@@ -291,6 +361,26 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Why the last <a class="el" href="_compute_backend_8h.html#ace8d48be708ef49011ecaa8a943edaf6" title="Load a plugin and use it. The CPU stays the default until this succeeds.">load_compute_backend</a> failed; empty when none has. </p>
+
+</div>
+</div>
+<a id="a786e345ef1c5632eb5fcd094361a8946" name="a786e345ef1c5632eb5fcd094361a8946"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a786e345ef1c5632eb5fcd094361a8946">&#9670;&#160;</a></span>get_compute_backend_generation()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">IMPBFFEXPORT unsigned long get_compute_backend_generation </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Changes whenever the backend in force does (a load, a reset). </p>
+<p>A network kept on a device holds the generation it was uploaded under and uploads again when this differs: a handle from another backend &ndash; or from the same plugin, closed and opened again &ndash; must never reach this one. </p>
 
 </div>
 </div>
@@ -473,7 +563,7 @@ Variables</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Oct 3 2026 12:39:44 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Oct 3 2026 12:49:16 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

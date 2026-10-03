@@ -86,7 +86,7 @@ Collaboration diagram for QuantizedNeuralNet:</div>
 <div class="dyncontent">
 <div class="center"><img src="class_quantized_neural_net__coll__graph.png" border="0" usemap="#a_quantized_neural_net_coll__map" alt="Collaboration graph"/></div>
 <map name="a_quantized_neural_net_coll__map" id="a_quantized_neural_net_coll__map">
-<area shape="rect" title="A NeuralNet&#39;s forward pass with quantised weights, for deployment." alt="" coords="5,5,207,411"/>
+<area shape="rect" title="A NeuralNet&#39;s forward pass with quantised weights, for deployment." alt="" coords="5,5,207,431"/>
 </map>
 </div>
 <table class="memberdecls">
@@ -127,6 +127,9 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aa721abe188bc1993ea7465dd2d22b42a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a46c5201c822ca43bfca98c4c744bffbe" id="r_a46c5201c822ca43bfca98c4c744bffbe"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a46c5201c822ca43bfca98c4c744bffbe">get_bits_per_weight</a> () const</td></tr>
 <tr class="separator:a46c5201c822ca43bfca98c4c744bffbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a14d933b862ee09496529a473026b3685" id="r_a14d933b862ee09496529a473026b3685"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a14d933b862ee09496529a473026b3685">get_last_backend</a> () const</td></tr>
+<tr class="memdesc:a14d933b862ee09496529a473026b3685"><td class="mdescLeft">&#160;</td><td class="mdescRight">Where the last <a class="el" href="class_quantized_neural_net.html#a3604c1b41ea37e9f37ee090f73909531" title="Evaluate a batch, as NeuralNet::predict() does.">predict()</a> ran: <code>cpu</code>, or the backend's name.  <br /></td></tr>
+<tr class="separator:a14d933b862ee09496529a473026b3685"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3604c1b41ea37e9f37ee090f73909531" id="r_a3604c1b41ea37e9f37ee090f73909531"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_quantized_neural_net.html#a3604c1b41ea37e9f37ee090f73909531">predict</a> (const std::vector&lt; double &gt; &amp;x, int n_rows, double **out_view, int *n_out_view) const</td></tr>
 <tr class="memdesc:a3604c1b41ea37e9f37ee090f73909531"><td class="mdescLeft">&#160;</td><td class="mdescRight">Evaluate a batch, as <a class="el" href="class_neural_net.html#a4be3c3fa67d10506a45589fd4e6cb3e0" title="Evaluate a batch.">NeuralNet::predict()</a> does.  <br /></td></tr>
 <tr class="separator:a3604c1b41ea37e9f37ee090f73909531"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -156,7 +159,8 @@ Static Public Member Functions</h2></td></tr>
 <li><code>"ternary"</code>: BitNet b1.58 (W1.58A8) &ndash; weights in {-1, 0, +1} times one absmean scale a tensor (<code>round(w / mean|W|)</code> clipped to +-1), stored at 2 bits a weight; every layer input quantised to int8 per row (absmax), whatever <code>quantize_activations</code> says. <code>"ternary_row"</code>: one absmean a weight row (a PTQ option; BitNet is per tensor). <code>"ternary_tq1"</code> / <code>"ternary_tq1_row"</code>: the same, stored five trits a byte (1.6 bits a weight, llama.cpp's TQ1_0 packing) &ndash; only the storage differs. Ternary integer x int8 kernels in <code>internal/MlpTernary.h</code>. Post-training ternary quantisation of a float-trained network is coarse; a network trained with <code><a class="el" href="class_neural_net_train_options.html#a7fbe431ee8d16421531119f2d871a42b">NeuralNetTrainOptions.precision</a> = "ternary"</code> (quantisation-aware) is what this format is for (<a class="el" href="class_neural_net_training.html#adbba3651633e97b708078cb1aa98d0a3">NeuralNetTraining::get_quantized_network()</a>).</li>
 </ul>
 <p>The exact recipes are in <code>internal/MlpFp4.h</code>. The FP4 weights are held packed (two codes a byte, element 2i in the low nibble &ndash; ONNX FLOAT4E2M1 / PyTorch float4_e2m1fn_x2 order) with their scales, and <a class="el" href="class_quantized_neural_net.html#a3604c1b41ea37e9f37ee090f73909531" title="Evaluate a batch, as NeuralNet::predict() does.">predict()</a> runs integer-SIMD dot products on the codes (<code>internal/MlpFp4Kernels.h</code>, after llama.cpp's MXFP4/NVFP4 kernels): without <code>quantize_activations</code> each layer's input is quantised to int8 per block of 32 (16 for nvfp4) &ndash; W4A8; with it, to FP4 in the same format per row &ndash; W4A4, the arithmetic of NVFP4 GEMMs on Blackwell. CPUs have no FP4 unit: nothing is emulated in float, but the products are int8 products of the E2M1 values' doubles, scaled after. For <code>"int8"</code> and the ternary formats the activations are always quantised and <code>quantize_activations</code> is ignored (<a class="el" href="class_quantized_neural_net.html#a80c6c9526b887b5d62aa3023b040513e" title="Whether each layer&#39;s input is quantised in the weight format (W4A4).">get_quantize_activations()</a> returns true).</p>
-<p>Biases, activations and scalers stay double. It is an inference path only &ndash; no derivatives, no training, no accelerator; the source network is not changed. <a class="el" href="class_quantized_neural_net.html#a5f59ae9ea16a31477645513bf3361f70" title="The bff.quantized_neural_net msgpack document (bit-exact round trip).">to_msgpack()</a> / <a class="el" href="class_quantized_neural_net.html#ab995598925dd2681eceddcc948a363d3" title="Load a bff.quantized_neural_net msgpack document.">from_msgpack()</a> store it as a <code>bff.quantized_neural_net</code> msgpack document (codes and scales as bin fields), bit-exact. </p>
+<p>Biases, activations and scalers stay double. It is an inference path only &ndash; no derivatives, no training; the source network is not changed.</p>
+<p>On a GPU.** With a compute backend loaded (<code>IMP.bff.enable_gpu</code>), an fp4 / mxfp4 / nvfp4 network without <code>quantize_activations</code> is uploaded once &ndash; codes and scales, still 4 bits a weight &ndash; and a batch large enough to be worth the trip runs there: the codes decoded on the device, the products and sums in f32, the activations not quantised (W4A32). That is closer to the double reference than the CPU's W4A8 (about 1e-7 relative against 1e-2), so the two paths agree to the CPU's error, not bit for bit. <a class="el" href="class_quantized_neural_net.html#a14d933b862ee09496529a473026b3685" title="Where the last predict() ran: cpu, or the backend&#39;s name.">get_last_backend()</a> says which ran. int8, the ternary formats and W4A4 stay on the CPU. <a class="el" href="class_quantized_neural_net.html#a5f59ae9ea16a31477645513bf3361f70" title="The bff.quantized_neural_net msgpack document (bit-exact round trip).">to_msgpack()</a> / <a class="el" href="class_quantized_neural_net.html#ab995598925dd2681eceddcc948a363d3" title="Load a bff.quantized_neural_net msgpack document.">from_msgpack()</a> store it as a <code>bff.quantized_neural_net</code> msgpack document (codes and scales as bin fields), bit-exact. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ad72ac79da9da38f9797e0896a1103b29" name="ad72ac79da9da38f9797e0896a1103b29"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad72ac79da9da38f9797e0896a1103b29">&#9670;&#160;</a></span>QuantizedNeuralNet()</h2>
@@ -388,6 +392,25 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 <p>The FP4 (and ternary) kernel variant this build compiled: "neon-dotprod", "neon", "avx512-vnni", "avx2" or "generic". </p>
+
+</div>
+</div>
+<a id="a14d933b862ee09496529a473026b3685" name="a14d933b862ee09496529a473026b3685"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a14d933b862ee09496529a473026b3685">&#9670;&#160;</a></span>get_last_backend()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string QuantizedNeuralNet::get_last_backend </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Where the last <a class="el" href="class_quantized_neural_net.html#a3604c1b41ea37e9f37ee090f73909531" title="Evaluate a batch, as NeuralNet::predict() does.">predict()</a> ran: <code>cpu</code>, or the backend's name. </p>
 
 </div>
 </div>
@@ -629,7 +652,7 @@ Static Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Oct 3 2026 12:39:44 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Oct 3 2026 12:49:17 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

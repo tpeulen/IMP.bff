@@ -85,7 +85,7 @@ Collaboration diagram for ImpBffComputeBackend:</div>
 <div class="dyncontent">
 <div class="center"><img src="struct_imp_bff_compute_backend__coll__graph.png" border="0" usemap="#a_imp_bff_compute_backend_coll__map" alt="Collaboration graph"/></div>
 <map name="a_imp_bff_compute_backend_coll__map" id="a_imp_bff_compute_backend_coll__map">
-<area shape="rect" title="What a plugin offers. Version first, so a mismatch is caught, not crashed." alt="" coords="5,5,176,131"/>
+<area shape="rect" title="What a plugin offers. Version first, so a mismatch is caught, not crashed." alt="" coords="5,5,176,191"/>
 </map>
 </div>
 <table class="memberdecls">
@@ -103,6 +103,13 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a18be9fdee05b00ef81df147a3a006e7f" id="r_a18be9fdee05b00ef81df147a3a006e7f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="_compute_backend_8h.html#af6bb4f815b22704e740bbdfc3f41d79c">ImpBffMlpForwardFn</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_imp_bff_compute_backend.html#a18be9fdee05b00ef81df147a3a006e7f">mlp_forward</a></td></tr>
 <tr class="memdesc:a18be9fdee05b00ef81df147a3a006e7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">May be null: then networks stay on the CPU.  <br /></td></tr>
 <tr class="separator:a18be9fdee05b00ef81df147a3a006e7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae96ba1388e409b16738378ce4f5c25d6" id="r_ae96ba1388e409b16738378ce4f5c25d6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="_compute_backend_8h.html#afed7eec633a2a150fb68b8746eaa3462">ImpBffMlpUploadFn</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_imp_bff_compute_backend.html#ae96ba1388e409b16738378ce4f5c25d6">mlp_upload</a></td></tr>
+<tr class="memdesc:ae96ba1388e409b16738378ce4f5c25d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">May be null, all three together: then no network is kept on the device.  <br /></td></tr>
+<tr class="separator:ae96ba1388e409b16738378ce4f5c25d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2846bba82f2efe238f289a81124dd4b" id="r_ae2846bba82f2efe238f289a81124dd4b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="_compute_backend_8h.html#a2141367dbf21b1af2a7280cc4e55744a">ImpBffMlpRunFn</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_imp_bff_compute_backend.html#ae2846bba82f2efe238f289a81124dd4b">mlp_run</a></td></tr>
+<tr class="separator:ae2846bba82f2efe238f289a81124dd4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a30d3e4a3729fad77781eec2ccc4276f2" id="r_a30d3e4a3729fad77781eec2ccc4276f2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="_compute_backend_8h.html#a7bad4b77c89ae14cc2abf26db83b0083">ImpBffMlpReleaseFn</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_imp_bff_compute_backend.html#a30d3e4a3729fad77781eec2ccc4276f2">mlp_release</a></td></tr>
+<tr class="separator:a30d3e4a3729fad77781eec2ccc4276f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>What a plugin offers. Version first, so a mismatch is caught, not crashed. </p>
@@ -136,6 +143,50 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>May be null: then networks stay on the CPU. </p>
+
+</div>
+</div>
+<a id="a30d3e4a3729fad77781eec2ccc4276f2" name="a30d3e4a3729fad77781eec2ccc4276f2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a30d3e4a3729fad77781eec2ccc4276f2">&#9670;&#160;</a></span>mlp_release</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="_compute_backend_8h.html#a7bad4b77c89ae14cc2abf26db83b0083">ImpBffMlpReleaseFn</a> ImpBffComputeBackend::mlp_release</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae2846bba82f2efe238f289a81124dd4b" name="ae2846bba82f2efe238f289a81124dd4b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae2846bba82f2efe238f289a81124dd4b">&#9670;&#160;</a></span>mlp_run</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="_compute_backend_8h.html#a2141367dbf21b1af2a7280cc4e55744a">ImpBffMlpRunFn</a> ImpBffComputeBackend::mlp_run</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae96ba1388e409b16738378ce4f5c25d6" name="ae96ba1388e409b16738378ce4f5c25d6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae96ba1388e409b16738378ce4f5c25d6">&#9670;&#160;</a></span>mlp_upload</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="_compute_backend_8h.html#afed7eec633a2a150fb68b8746eaa3462">ImpBffMlpUploadFn</a> ImpBffComputeBackend::mlp_upload</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>May be null, all three together: then no network is kept on the device. </p>
 
 </div>
 </div>
@@ -177,7 +228,7 @@ Public Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Oct 3 2026 12:39:44 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Oct 3 2026 12:49:17 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
