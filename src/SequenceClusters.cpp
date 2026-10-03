@@ -19,7 +19,11 @@
 #include <map>
 #include <atomic>
 #include <thread>
+#ifdef _WIN32
+#include <cstdio>   // _setmaxstdio
+#else
 #include <sys/resource.h>
+#endif
 
 #ifdef IMP_BFF_HAS_ZLIB
 #include <zlib.h>
@@ -441,11 +445,17 @@ std::size_t create_clustered_sequence_database(const std::string& members,
     // 2. members into bucket files by cluster range, in one streaming pass
     const std::string dir = temporary.empty() ? out + ".clustered-tmp" : temporary;
     std::filesystem::create_directories(dir);
+    // 512 bucket files open at once: raise the open-file limit (the CRT's stdio
+    // limit on Windows, 512 by default)
+#ifdef _WIN32
+    if (_getmaxstdio() < 2048) _setmaxstdio(2048);
+#else
     struct rlimit lim;
     if (getrlimit(RLIMIT_NOFILE, &lim) == 0 && lim.rlim_cur < 2048) {
         lim.rlim_cur = std::min<rlim_t>(lim.rlim_max, 2048);
         setrlimit(RLIMIT_NOFILE, &lim);
     }
+#endif
     const std::size_t n_buckets = 512;
     const std::size_t groups = n_reps + 1;   // with the orphans' group
     auto bucket_of = [&](std::size_t k) { return k * n_buckets / groups; };

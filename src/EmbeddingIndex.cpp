@@ -8,7 +8,7 @@
 #include <IMP/bff/EmbeddingIndex.h>
 
 #include <ptolib/ptolib.h>
-#include <nlohmann/json.hpp>
+#include <IMP/bff/internal/json.h>
 
 #include <algorithm>
 #include <atomic>
