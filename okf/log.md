@@ -2,6 +2,10 @@
 
 ## 2026-10-03
 
+- **Windows CI green again: the whole-archive ptolib stays on IMP.bff-lib's own link** (46df6e34c; CI run 37138522093).
+  - LNK2005/LNK1169 on `_IMP_bff.pyd` (run 37124027581): the `WHOLE_ARCHIVE` link-library feature propagated onto every consumer's link line (keyword-less `target_link_libraries` is PUBLIC). On the swig pyd it landed *after* the imp_* import libraries — their thunks for `std::vector<double>` members (`PtoTag::floats`) were already pulled in when whole-archive `ptolib.cpp.obj` redefined them. First full Windows link since 45670ac90 (Sep 29); every Windows run between had been cancelled mid-build. `PRIVATE` keeps the tttrlib defense on `IMP.bff-lib`'s own link (where the feature sits *before* the imp_* libs, harmless — `imp_bff.dll` linked green in the same run) and drops ptolib from consumers entirely. Verified on a SHARED-lib scratch reproduction: `LINK_LIBRARIES` of the consumer contains no ptolib.
+  - bld.bat now asserts `_IMP_bff.pyd`/`_IMP_kernel.pyd` exist at the end: `ninja install`'s failure was lost across the echo-on interleave (errorlevel never propagated), rattler-build packaged a 29 MiB imp-2.25.0 with zero pyds, and the actions cache saved it. Cache key includes both changed files, so the poisoned entry is not reused.
+
 - **FP4 networks on the GPU; the network shader tiled** ([validation/fp4_nn_on_the_gpu.md](validation/fp4_nn_on_the_gpu.md); [neural-net.md](neural-net.md), "On a GPU").
   - Compute-door ABI 3: `mlp_upload` / `mlp_run` / `mlp_release` keep a network on the device, f32 or FP4 per layer (codes as `Fp4Tensor` holds them, one decoded f32 scale per 16-element sub-block). `get_compute_backend_generation()` keeps a handle from reaching another backend.
   - `QuantizedNeuralNet` (fp4 / mxfp4 / nvfp4, float activations) uploads once and runs W4A32 there: 2-8e-7 from the dequantised network, against the CPU W4A8's 1e-2. New `get_last_backend()`. int8, ternary and W4A4 stay on the CPU; FP4 needs 1 000 rows and 32 M multiply-adds before the device takes a batch.
