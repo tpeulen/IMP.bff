@@ -63,16 +63,17 @@ var searchData=
   ['start_60',['start',['../struct_sequence_segment.html#a68d1e6dc6b998c89719507d5244571c1',1,'SequenceSegment']]],
   ['stat_5ffile_61',['stat_file',['../struct_docking_trial.html#a12490ce1dcd3d65d5be5951d2e98aea9',1,'DockingTrial']]],
   ['stat_5fnames_62',['stat_names',['../struct_sample_result.html#add83955f91803d80b5a3b941f4024fff',1,'SampleResult']]],
-  ['static_5fefficiency_63',['static_efficiency',['../struct_f_r_e_t_pair_efficiencies.html#a42426e069b457a3aedc06816115d91ef',1,'FRETPairEfficiencies::static_efficiency'],['../struct_f_r_e_t_regimes.html#a689772173d5875fa3e724fd695a826d5',1,'FRETRegimes::static_efficiency'],['../struct_f_r_e_t_rotamer_frame_result.html#a0994379cc993193c50dddd4ee9604ac9',1,'FRETRotamerFrameResult::static_efficiency']]],
+  ['static_5fefficiency_63',['static_efficiency',['../struct_f_r_e_t_regimes.html#a689772173d5875fa3e724fd695a826d5',1,'FRETRegimes::static_efficiency'],['../struct_f_r_e_t_rotamer_frame_result.html#a0994379cc993193c50dddd4ee9604ac9',1,'FRETRotamerFrameResult::static_efficiency'],['../struct_f_r_e_t_pair_efficiencies.html#a42426e069b457a3aedc06816115d91ef',1,'FRETPairEfficiencies::static_efficiency']]],
   ['stats_64',['stats',['../struct_sample_result.html#acdda22540c583ed0ad3d94b85517b586',1,'SampleResult']]],
   ['status_65',['status',['../class_consurf_result.html#a48644d3eb7e454cd1580f5741ea6750e',1,'ConsurfResult::status'],['../struct_labelizer_score.html#aca9df2288212e3d812926593664825f4',1,'LabelizerScore::status']]],
   ['steady_5fstate_5fanisotropy_66',['steady_state_anisotropy',['../struct_n_p_s_direct_dye.html#aea64da320ed416bea4f287de9ffe6b5a',1,'NPSDirectDye']]],
   ['step_5fsize_67',['step_size',['../struct_nuts_options.html#a0dfb1ca5133ea2a30f121e54fc8c762f',1,'NutsOptions']]],
   ['step_5fstride_68',['step_stride',['../struct_d_c_d_header.html#aa9fea04f56500470a69eb4e8e18c4353',1,'DCDHeader']]],
   ['stop_5fevalue_69',['stop_evalue',['../class_sequence_cluster_search_options.html#a0207244b73f086342aecdd4106d326cd',1,'SequenceClusterSearchOptions']]],
-  ['stop_5fmin_5fidentity_70',['stop_min_identity',['../class_sequence_cluster_search_options.html#ae8b188bfe7993e72ffba09afaa6d0f75',1,'SequenceClusterSearchOptions']]],
-  ['structures_71',['structures',['../struct_f_p_s_project.html#a79827fd98884201f7dfbc0f81cb5bf35',1,'FPSProject']]],
-  ['success_72',['success',['../class_max_ent_solution.html#ade091fd598c93b3dac717668bcec2775',1,'MaxEntSolution']]],
-  ['system_73',['system',['../struct_a_v_rotamer_case.html#afee45938ed9b2d27ba1229e1bd55f2dc',1,'AVRotamerCase']]],
-  ['system_5fname_74',['system_name',['../struct_probe_trajectory_density_options.html#a6ff9699a74e891d0de27629d9f30cca7',1,'ProbeTrajectoryDensityOptions']]]
+  ['stop_5fmax_5fidentity_70',['stop_max_identity',['../class_sequence_cluster_search_options.html#a100cc2ca385ac214aaed08f5ec1b195b',1,'SequenceClusterSearchOptions']]],
+  ['stop_5fmin_5fidentity_71',['stop_min_identity',['../class_sequence_cluster_search_options.html#ae8b188bfe7993e72ffba09afaa6d0f75',1,'SequenceClusterSearchOptions']]],
+  ['structures_72',['structures',['../struct_f_p_s_project.html#a79827fd98884201f7dfbc0f81cb5bf35',1,'FPSProject']]],
+  ['success_73',['success',['../class_max_ent_solution.html#ade091fd598c93b3dac717668bcec2775',1,'MaxEntSolution']]],
+  ['system_74',['system',['../struct_a_v_rotamer_case.html#afee45938ed9b2d27ba1229e1bd55f2dc',1,'AVRotamerCase']]],
+  ['system_5fname_75',['system_name',['../struct_probe_trajectory_density_options.html#a6ff9699a74e891d0de27629d9f30cca7',1,'ProbeTrajectoryDensityOptions']]]
 ];

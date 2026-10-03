@@ -83,9 +83,9 @@ Collaboration diagram for SequenceClusterSearchOptions:</div>
 <div class="dyncontent">
 <div class="center"><img src="class_sequence_cluster_search_options__coll__graph.png" border="0" usemap="#a_sequence_cluster_search_options_coll__map" alt="Collaboration graph"/></div>
 <map name="a_sequence_cluster_search_options_coll__map" id="a_sequence_cluster_search_options_coll__map">
-<area shape="rect" title=" " alt="" coords="5,277,223,497"/>
+<area shape="rect" title=" " alt="" coords="5,277,223,517"/>
 <area shape="rect" title=" " alt="" coords="75,135,153,200"/>
-<area shape="poly" title=" " alt="" coords="117,200,117,261,111,261,111,200"/>
+<area shape="poly" title=" " alt="" coords="117,200,117,260,111,260,111,200"/>
 <area shape="rect" title=" " alt="" coords="49,5,179,85"/>
 <area shape="poly" title=" " alt="" coords="117,99,117,134,111,134,111,99"/>
 </map>
@@ -112,6 +112,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a0207244b73f086342aecdd4106d326cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae8b188bfe7993e72ffba09afaa6d0f75" id="r_ae8b188bfe7993e72ffba09afaa6d0f75"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_sequence_cluster_search_options.html#ae8b188bfe7993e72ffba09afaa6d0f75">stop_min_identity</a> = 0.35</td></tr>
 <tr class="separator:ae8b188bfe7993e72ffba09afaa6d0f75"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a100cc2ca385ac214aaed08f5ec1b195b" id="r_a100cc2ca385ac214aaed08f5ec1b195b"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_sequence_cluster_search_options.html#a100cc2ca385ac214aaed08f5ec1b195b">stop_max_identity</a> = 0.95</td></tr>
+<tr class="separator:a100cc2ca385ac214aaed08f5ec1b195b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8553e12bbf5c4d36c11b1511d354674a" id="r_a8553e12bbf5c4d36c11b1511d354674a"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_sequence_cluster_search_options.html#a8553e12bbf5c4d36c11b1511d354674a">embedding_model</a></td></tr>
 <tr class="separator:a8553e12bbf5c4d36c11b1511d354674a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abfb47d94a75f870512eaf3c296f99a28" id="r_abfb47d94a75f870512eaf3c296f99a28"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_sequence_cluster_search_options.html#abfb47d94a75f870512eaf3c296f99a28">embedding_index</a></td></tr>
@@ -238,7 +240,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Early stop: 0 searches the members of every cluster found. Otherwise clusters are taken best first (by their representative's E-value), in growing batches, until every query has this many hits that pass <code>stop_evalue</code> and <code>stop_min_identity</code> &ndash; the homologues ConSurf keeps, say four times its cap of 150. Faster; the homologues are then the closest ones rather than a sample of all. </p>
+<p>Early stop: 0 searches the members of every cluster found. Otherwise clusters are taken best first (by their representative's E-value), in growing batches, until every query has this many hits that pass <code>stop_evalue</code>, <code>stop_min_identity</code> and <code>stop_max_identity</code> &ndash; the homologues ConSurf keeps, say four times its cap of 150. Faster; the homologues are then the closest ones rather than a sample of all. </p>
 
 </div>
 </div>
@@ -269,6 +271,21 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a100cc2ca385ac214aaed08f5ec1b195b" name="a100cc2ca385ac214aaed08f5ec1b195b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a100cc2ca385ac214aaed08f5ec1b195b">&#9670;&#160;</a></span>stop_max_identity</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double SequenceClusterSearchOptions::stop_max_identity = 0.95</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Near-identical hits (ConSurf drops them as redundant) do not count towards <code>min_homologues</code>. </p>
 
 </div>
 </div>
@@ -307,7 +324,7 @@ Public Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Oct 3 2026 11:50:37 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Oct 3 2026 12:39:44 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
