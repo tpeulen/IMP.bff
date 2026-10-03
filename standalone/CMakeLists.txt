@@ -259,6 +259,13 @@ if(PTOLIB_SHARED)
 else()
   target_link_libraries(imp_bff PUBLIC "$<LINK_LIBRARY:WHOLE_ARCHIVE,ptolib::ptolib>")
 endif()
+# ptolib's zstd compresses on threads; older glibc (manylinux) keeps pthread
+# out of libc, so the executable would not link without it. Not in a Pyodide
+# build: -pthread there would make a wheel Pyodide cannot load.
+if(NOT EMSCRIPTEN)
+  find_package(Threads REQUIRED)
+  target_link_libraries(imp_bff PUBLIC Threads::Threads)
+endif()
 set_target_properties(imp_bff PROPERTIES VISIBILITY_INLINES_HIDDEN ON)
 # Optional: zlib reads gzip-compressed FASTA into a sequence database.
 option(IMPBFF_WITH_ZLIB "Read gzip-compressed FASTA (zlib)" ON)

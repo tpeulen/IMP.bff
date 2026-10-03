@@ -92,6 +92,8 @@ requirements:
     - hdf5
     - eigen
     - cereal
+    # bff reads gzip-compressed FASTA / idmapping into a sequence database
+    - zlib
   run:
     - python
     - numpy
