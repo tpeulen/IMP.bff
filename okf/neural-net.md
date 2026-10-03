@@ -721,6 +721,18 @@ shifting it into f32 and scaling by 2^126: Metal flushes the subnormal that
 0.5 becomes. Measurements:
 [validation/fp4_nn_on_the_gpu.md](validation/fp4_nn_on_the_gpu.md).
 
+### CPU forward copy elision (2026-10-03)
+
+The FP4 CPU forward path now borrows an unscaled caller input for the first
+layer instead of copying the whole batch into thread-local scratch. Scaled
+inputs retain the copy-and-transform path, and all later activations use the
+same scratch and kernels as before. This is portable across generic, NEON,
+NEON-dotprod, AVX2 and AVX-512 VNNI; the GPU path is untouched. The CPU-only
+gate is 168 passed / 71 skipped, and the complete before/after table is in
+[validation/nn_cpu_tuning.md](validation/nn_cpu_tuning.md). In the focused
+same-process run, the FP4 400k-row times were 338.207, 970.496 and 2,503.439
+ms for 4-64-64-2, 4-128-128-128-1 and 32-256-256-256-8 respectively.
+
 ## Ternary: BitNet b1.58 (2026-09-25)
 
 `internal/MlpTernary.h` (formats, quantisers, kernels, forward pass) and

@@ -1634,26 +1634,31 @@ inline void predict(const Prepared& p, const double* X, int n_rows, std::vector<
     if (n_rows <= 0 || m.layers.empty()) return;
     const std::size_t rows = static_cast<std::size_t>(n_rows);
     kd::PredictScratch& s = kd::predict_scratch();
-    s.a.assign(X, X + rows * static_cast<std::size_t>(m.n_inputs()));
-    mlpcore::detail::scale_in(s.a, n_rows, m.n_inputs(), m.x_scaler);
+    const double* a = X;
+    if (m.x_scaler.active()) {
+        s.a.assign(X, X + rows * static_cast<std::size_t>(m.n_inputs()));
+        mlpcore::detail::scale_in(s.a, n_rows, m.n_inputs(), m.x_scaler);
+        a = s.a.data();
+    }
     for (std::size_t li = 0; li < m.layers.size(); ++li) {
         const Fp4Layer& l = m.layers[li];
         s.z.resize(rows * static_cast<std::size_t>(l.n_out));
         if (l.full_precision) {
-            Gemm::nt(n_rows, l.n_out, l.n_in, s.a.data(), l.weight_f64.data(), s.z.data());
+            Gemm::nt(n_rows, l.n_out, l.n_in, a, l.weight_f64.data(), s.z.data());
             for (std::size_t r = 0; r < rows; ++r) {
                 double* zr = s.z.data() + r * static_cast<std::size_t>(l.n_out);
                 for (int o = 0; o < l.n_out; ++o) zr[o] += l.bias[static_cast<std::size_t>(o)];
             }
         } else {
             if (m.quantize_activations)
-                quantize_left(s.a.data(), n_rows, l.n_in, m.format, Rounding::NearestEven, nullptr, s.q8, s.qs);
+                quantize_left(a, n_rows, l.n_in, m.format, Rounding::NearestEven, nullptr, s.q8, s.qs);
             else
-                quantize_q8(s.a.data(), n_rows, l.n_in, q8_block(m.format), s.q8);
+                quantize_q8(a, n_rows, l.n_in, q8_block(m.format), s.q8);
             gemm_packed(s.q8, p.w[li], s.z.data(), l.bias.data());
         }
         s.a.resize(s.z.size());
         mlpcore::act_apply(s.z.data(), s.a.data(), s.z.size(), l.activation);
+        a = s.a.data();
     }
     y.assign(s.a.begin(), s.a.end());
     mlpcore::detail::unscale_out(y, n_rows, m.n_outputs(), m.y_scaler);
