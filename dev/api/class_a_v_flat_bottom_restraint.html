@@ -132,7 +132,7 @@ Public Member Functions</h2></td></tr>
 <p>The restraint form an MD engine wants, and the one this module was missing. #IMP::bff::ProbeAccessibleVolumeMeanDistanceRestraint scores a chi-squared, which pulls at every separation and never stops; a flat-bottom well is <b>zero</b> inside the experimental error bars and only pushes back outside them, so a trajectory can move freely through everything the data permits and is steered only where it does not.</p>
 <p>The functional form is AMBER's <code>&amp;rst</code>, so a restraint written here and one written for an MD engine are the same restraint:</p>
 <p class="formulaDsp">
-<picture><source srcset="form_288_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaDsp" alt="\[
+<picture><source srcset="form_289_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaDsp" alt="\[
 E(d) = \begin{cases}
   2k_2(r_1-r_2)(d-r_1) + k_2(r_1-r_2)^2 &amp; d &lt; r_1 \\
   k_2 (d-r_2)^2                         &amp; r_1 \le d &lt; r_2 \\
@@ -140,9 +140,9 @@ E(d) = \begin{cases}
   k_3 (d-r_3)^2                         &amp; r_3 &lt; d \le r_4 \\
   2k_3(r_4-r_3)(d-r_4) + k_3(r_4-r_3)^2 &amp; d &gt; r_4
 \end{cases}
-\]" src="form_288.png"/></picture>
+\]" src="form_289.png"/></picture>
 </p>
-<p>Outside <picture><source srcset="form_289_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$[r_1, r_4]$" src="form_289.png"/></picture> the well continues <b>linearly</b>, tangent to the parabola: the force is capped there rather than growing without bound, which is what keeps a badly-placed starting structure from blowing up the first integration step.</p>
+<p>Outside <picture><source srcset="form_290_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$[r_1, r_4]$" src="form_290.png"/></picture> the well continues <b>linearly</b>, tangent to the parabola: the force is capped there rather than growing without bound, which is what keeps a badly-placed starting structure from blowing up the first integration step.</p>
 <dl class="section note"><dt>Note</dt><dd>The four bounds are distances between the two particles. They are in whatever convention the caller converted to &ndash; for an experimental FRET distance that conversion is #IMP::bff::rmp_flat_bottom_bounds(), which is not a constant offset. </dd></dl>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a53a18f125298a1afc11e23033af0bdd8" name="a53a18f125298a1afc11e23033af0bdd8"></a>
@@ -437,7 +437,7 @@ E(d) = \begin{cases}
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Oct 3 2026 18:25:07 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Oct 3 2026 20:06:11 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
