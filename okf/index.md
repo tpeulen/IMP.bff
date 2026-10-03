@@ -27,6 +27,9 @@ shared index.
 
 # Concepts
 
+* [SMLM](smlm.md) — owning Gaussian spatial index, likelihood and selective 3D particle averaging.
+* [LocMoFit reference](smlm-locmofit-reference.md) — implemented methods, paper reference data and remaining method gaps.
+
 * [Overview](overview.md) - What imp.bff is, the sibling-repository stack it
   sits in, and where each kind of knowledge lives.
 * [`.drot` v10](drot-format.md) - The rotamer-library container, byte for

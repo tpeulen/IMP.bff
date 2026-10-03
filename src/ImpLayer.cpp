@@ -45,3 +45,4 @@
 #include "imp/ProbeDynamics.cpp"
 #include "imp/ProbeNetworkRestraint.cpp"
 #include "imp/StructureReader.cpp"
+#include "imp/SMLMRestraint.cpp"

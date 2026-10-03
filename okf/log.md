@@ -2,6 +2,8 @@
 
 ## 2026-10-03
 
+- **Native SMLM spatial trees, Gaussian scoring and rotational particle averaging** ([smlm.md](smlm.md), [paper/data record](smlm-locmofit-reference.md)). Owning KD-tree KDE/gradients, Gaussian overlap, LocMoFit observation likelihood/background/intrinsic blur, 6D fitting, AICc, selective uncertainty-aware maps and native MRC export. Strict native CSV input and IMP `SMLMRestraint` support structural emitter/rigid-body optimization. All five primary NPC CSVs (530,324 rows) and publication software are audited in [the reference manifest](smlm-reference-data.json). Human NPC example: 94 pores/12,676 measured rows with full pose provenance and normal ChiMOL density controls; no per-iteration Python callbacks.
+
 - **Windows CI: the link green, the three test failures behind it fixed** (535f3121f; CI runs 37138839825 → 37143223506).
   - Run 37138839825 proved the LNK2005 fix: Windows built, linked, packaged (pyds present) and ran the fast tests — 3455 passed / 3 failed, the first full Windows test execution since Sep 27.
   - `get_settings_path()` returned `%APPDATA%` before checking `XDG_CONFIG_HOME`; the XDG override now wins on every platform, and `resolve()` joins relative settings paths with a native separator instead of `/` (both: `test_bff_settings.py`).

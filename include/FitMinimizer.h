@@ -67,6 +67,7 @@
 // the module build, the standalone definitions otherwise -- so a header that
 // uses one has to include it rather than rely on a neighbour having done so.
 #include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/FitObjective.h>
 
 #include <IMP/Object.h>
 #include <IMP/Pointer.h>

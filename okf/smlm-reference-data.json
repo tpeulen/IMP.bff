@@ -1,0 +1,261 @@
+{
+  "schema": "imp.bff.smlm_reference_data/1",
+  "audited_on": "2026-10-03",
+  "path_base": "repository root",
+  "paper": {
+    "title": "Maximum-likelihood model fitting for quantitative analysis of SMLM data",
+    "authors": "Wu et al.",
+    "journal": "Nature Methods 20, 139–148 (2023)",
+    "doi": "10.1038/s41592-022-01676-z",
+    "url": "https://www.nature.com/articles/s41592-022-01676-z",
+    "methods_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9834062/",
+    "data_accession": "S-BIAD563",
+    "data_record_url": "https://www.ebi.ac.uk/biostudies/bioimages/studies/S-BIAD563",
+    "figures": [
+      "Fig2",
+      "Fig3",
+      "Fig5"
+    ]
+  },
+  "dataset": {
+    "species": "Homo sapiens",
+    "cell_line": "U2OS",
+    "label": "Nup96-SNAP, BG-Alexa Fluor 647",
+    "dimensions": 3,
+    "coordinate_units": "nm",
+    "precision_units": "nm",
+    "scope": "Downloaded five single-color 3D NPC localization CSVs and the cell1 saved SMAP session; not the complete study's camera frames, calibrations, or other experiments.",
+    "csv_columns": [
+      "xnm",
+      "ynm",
+      "znm",
+      "frame",
+      "locprecnm",
+      "locprecznm",
+      "phot",
+      "bg",
+      "layer",
+      "LLrel",
+      "sitenumbers"
+    ],
+    "coordinate_fields": [
+      "xnm",
+      "ynm",
+      "znm"
+    ],
+    "precision_fields": {
+      "x": "locprecnm",
+      "y": "locprecnm",
+      "z": "locprecznm"
+    },
+    "precision_semantics": "CSV exports carry scalar lateral localization sigma and axial localization sigma in nm; no per-axis xnmerr/ynmerr columns are present in these CSVs.",
+    "group_semantics": "Positive sitenumbers identify populated source sites. Nonpositive IDs are unassigned. Site IDs are scoped to each cell/file; their sum is not a count of unique global IDs or quality-selected pores.",
+    "count_policy": "Audit of all CSV records; no filtering, cropping, precision threshold, averaging, or model fit.",
+    "totals": {
+      "csv_files": 5,
+      "csv_bytes": 49890658,
+      "csv_rows": 530324,
+      "populated_positive_sites_scoped_by_cell": 4416,
+      "positive_site_rows": 405425,
+      "unassigned_rows": 124899,
+      "invalid_coordinate_or_sigma_rows": 0,
+      "invalid_site_id_rows": 0
+    }
+  },
+  "data_files": [
+    {
+      "cell": 1,
+      "path": ".omx/reference/locmofit/data/210121_U2OS_Nup96-SNAP-AF647_cell1_sml.csv",
+      "download_url": "https://ftp.ebi.ac.uk/biostudies/fire/S-BIAD/563/S-BIAD563/Files/nuclear_pore_complex/210121_U2OS_Nup96-SNAP-AF647_cell1_sml.csv",
+      "content": "localizations",
+      "bytes": 10549004,
+      "sha256": "c09e181e5c6722868581dcb93a0fa98485b2368bfa1050a035bdddabd2169f71",
+      "official_filelist_bytes_match": true,
+      "rows": 111791,
+      "populated_positive_site_count": 1142,
+      "positive_site_rows": 84103,
+      "unassigned_rows": 27688,
+      "positive_site_id_min": 1,
+      "positive_site_id_max": 1376,
+      "site_920_rows": 21,
+      "invalid_coordinate_or_sigma_rows": 0,
+      "invalid_site_id_rows": 0
+    },
+    {
+      "cell": 2,
+      "path": ".omx/reference/locmofit/data/210121_U2OS_Nup96-SNAP-AF647_cell2_sml.csv",
+      "download_url": "https://ftp.ebi.ac.uk/biostudies/fire/S-BIAD/563/S-BIAD563/Files/nuclear_pore_complex/210121_U2OS_Nup96-SNAP-AF647_cell2_sml.csv",
+      "content": "localizations",
+      "bytes": 9065286,
+      "sha256": "14f8a9905ada81c49b393f3bf4dd0f7ebd4b11424d025cd817c603a287c9ce2e",
+      "official_filelist_bytes_match": true,
+      "rows": 96755,
+      "populated_positive_site_count": 690,
+      "positive_site_rows": 70601,
+      "unassigned_rows": 26154,
+      "positive_site_id_min": 1,
+      "positive_site_id_max": 879,
+      "site_920_rows": 0,
+      "invalid_coordinate_or_sigma_rows": 0,
+      "invalid_site_id_rows": 0
+    },
+    {
+      "cell": 3,
+      "path": ".omx/reference/locmofit/data/210121_U2OS_Nup96-SNAP-AF647_cell3_sml.csv",
+      "download_url": "https://ftp.ebi.ac.uk/biostudies/fire/S-BIAD/563/S-BIAD563/Files/nuclear_pore_complex/210121_U2OS_Nup96-SNAP-AF647_cell3_sml.csv",
+      "content": "localizations",
+      "bytes": 6426005,
+      "sha256": "3db272907189c5eb00cc69428141e10447abee51bae0b0917e1b9e2ef873b377",
+      "official_filelist_bytes_match": true,
+      "rows": 68701,
+      "populated_positive_site_count": 553,
+      "positive_site_rows": 38668,
+      "unassigned_rows": 30033,
+      "positive_site_id_min": 2,
+      "positive_site_id_max": 680,
+      "site_920_rows": 0,
+      "invalid_coordinate_or_sigma_rows": 0,
+      "invalid_site_id_rows": 0
+    },
+    {
+      "cell": 4,
+      "path": ".omx/reference/locmofit/data/210121_U2OS_Nup96-SNAP-AF647_cell4_sml.csv",
+      "download_url": "https://ftp.ebi.ac.uk/biostudies/fire/S-BIAD/563/S-BIAD563/Files/nuclear_pore_complex/210121_U2OS_Nup96-SNAP-AF647_cell4_sml.csv",
+      "content": "localizations",
+      "bytes": 4943294,
+      "sha256": "ddd03540fe5ee55b740f1ecf3e8730db6e459b7f5c0823fc551756d383700890",
+      "official_filelist_bytes_match": true,
+      "rows": 53000,
+      "populated_positive_site_count": 355,
+      "positive_site_rows": 33468,
+      "unassigned_rows": 19532,
+      "positive_site_id_min": 1,
+      "positive_site_id_max": 428,
+      "site_920_rows": 0,
+      "invalid_coordinate_or_sigma_rows": 0,
+      "invalid_site_id_rows": 0
+    },
+    {
+      "cell": 5,
+      "path": ".omx/reference/locmofit/data/210121_U2OS_Nup96-SNAP-AF647_cell5_sml.csv",
+      "download_url": "https://ftp.ebi.ac.uk/biostudies/fire/S-BIAD/563/S-BIAD563/Files/nuclear_pore_complex/210121_U2OS_Nup96-SNAP-AF647_cell5_sml.csv",
+      "content": "localizations",
+      "bytes": 18907069,
+      "sha256": "0133ae870e749639c348483af585acdeec87dd6f5ad865e827af8012a7084ea7",
+      "official_filelist_bytes_match": true,
+      "rows": 200077,
+      "populated_positive_site_count": 1676,
+      "positive_site_rows": 178585,
+      "unassigned_rows": 21492,
+      "positive_site_id_min": 6,
+      "positive_site_id_max": 2144,
+      "site_920_rows": 251,
+      "invalid_coordinate_or_sigma_rows": 0,
+      "invalid_site_id_rows": 0
+    },
+    {
+      "cell": 1,
+      "path": ".omx/reference/locmofit/data/210121_U2OS_Nup96-SNAP-AF647_cell1_sml.mat",
+      "download_url": "https://ftp.ebi.ac.uk/biostudies/fire/S-BIAD/563/S-BIAD563/Files/nuclear_pore_complex/210121_U2OS_Nup96-SNAP-AF647_cell1_sml.mat",
+      "content": "localizations_and_fit",
+      "bytes": 108639738,
+      "sha256": "10df5847d6c449a696886925369efb92757f278405c4a884bed47b6fa33c392d",
+      "official_filelist_bytes_match": true,
+      "format": "MATLAB v5 SMAP session",
+      "count_audit": "Not parsed in this manifest audit; CSV row and site counts must not be substituted for MAT session counts.",
+      "fit_schema_note": "Saved site evaluation allParsArg.value contains fitted values; parsInit.init contains starting values. Saved poses require ROI/membership and transformation conventions, not just an Euler-angle array."
+    }
+  ],
+  "software": {
+    "paper_supplement": {
+      "title": "Supplementary Software 1: source code of LocMoFit v1.1",
+      "version": "1.1",
+      "path": "junk/LocMoFit-v1.1-supplement.zip",
+      "download_url": "https://static-content.springer.com/esm/art%3A10.1038%2Fs41592-022-01676-z/MediaObjects/41592_2022_1676_MOESM7_ESM.zip",
+      "bytes": 2782827,
+      "sha256": "f8ffb3cff1af1a7900aa512518f8b141f040cfd71823a463e9a052620e50bd81",
+      "file_count": 197,
+      "uncompressed_bytes": 5114611,
+      "upstream_commit": null,
+      "commit_note": "The publication ZIP has no audited Git commit identity; its SHA256 pins the exact paper software independently of the newer upstream checkout.",
+      "source_members": [
+        {
+          "path": "LocMoFit/@LocMoFit/LocMoFit.m",
+          "bytes": 87179,
+          "sha256": "2e458c49ce0a266e5b61e64ce4dedae8a048c2a4048fc7c6af6671fd5078021c"
+        },
+        {
+          "path": "LocMoFit/@LocMoFit/fit.m",
+          "bytes": 14703,
+          "sha256": "d59222571ad1108c29b797d8063c8546fa0eed9267f0d8acb561604c5922e336"
+        },
+        {
+          "path": "LocMoFit/@LocMoFit/locsHandler.m",
+          "bytes": 8094,
+          "sha256": "2d30d05249e025483387ece33eb857bf1c660071411858a3800094bfba219af8"
+        },
+        {
+          "path": "LocMoFit/helperFcn/rotcoord3.m",
+          "bytes": 2366,
+          "sha256": "bba74f2903c4a2104bc2f4749f2048e39e9a47d64147e02552e35b482589e28b"
+        }
+      ]
+    },
+    "upstream_checkout": {
+      "path": "junk/SMAP",
+      "repository_url": "https://github.com/jries/SMAP.git",
+      "commit_sha1": "d066594d7a5e5d35f2dbf9402cf7cfcfe07679c6",
+      "commit_url": "https://github.com/jries/SMAP/commit/d066594d7a5e5d35f2dbf9402cf7cfcfe07679c6",
+      "commit_datetime": "2026-08-28T15:34:01+02:00",
+      "commit_subject": "Merge branch 'develop'",
+      "locmofit_git_tree_sha1": "bcc11c96c739f88b5189112e30db1e6a4644b4ba",
+      "working_tree_clean_at_audit": true,
+      "version_note": "This 2026 upstream checkout is a separate reference from the publication's 2022 LocMoFit v1.1 supplement; byte equivalence is not asserted.",
+      "source_files": [
+        {
+          "path": "LocMoFit/@LocMoFit/LocMoFit.m",
+          "bytes": 92794,
+          "sha256": "025de875f3fd300cc1a04740e8d0850aa9139772230ccc9d2af3e1d5ce6081b5",
+          "source_url": "https://raw.githubusercontent.com/jries/SMAP/d066594d7a5e5d35f2dbf9402cf7cfcfe07679c6/LocMoFit/@LocMoFit/LocMoFit.m"
+        },
+        {
+          "path": "LocMoFit/@LocMoFit/fit.m",
+          "bytes": 14420,
+          "sha256": "a4014ff092233bff65c843ca65e54a808766c80689cf198dc4084b82506dd29d",
+          "source_url": "https://raw.githubusercontent.com/jries/SMAP/d066594d7a5e5d35f2dbf9402cf7cfcfe07679c6/LocMoFit/@LocMoFit/fit.m"
+        },
+        {
+          "path": "LocMoFit/@LocMoFit/locsHandler.m",
+          "bytes": 8440,
+          "sha256": "4732988eb87abfc17673c7276473efe8129b88a9ed1e9d67fdc08558df1daf34",
+          "source_url": "https://raw.githubusercontent.com/jries/SMAP/d066594d7a5e5d35f2dbf9402cf7cfcfe07679c6/LocMoFit/@LocMoFit/locsHandler.m"
+        },
+        {
+          "path": "LocMoFit/helperFcn/rotcoord3.m",
+          "bytes": 1075,
+          "sha256": "b1a75cd92c0782d4928608600dcf905c775b6050a9fc13cbcb55374101716b6d",
+          "source_url": "https://raw.githubusercontent.com/jries/SMAP/d066594d7a5e5d35f2dbf9402cf7cfcfe07679c6/LocMoFit/helperFcn/rotcoord3.m"
+        },
+        {
+          "path": "plugins/+ROIManager/+Evaluate/LocMoFitGUI.m",
+          "bytes": 73504,
+          "sha256": "6d394cb0b3b66dfa8705fb00d5079965e95c90470c0ec73d9ebf30d9db2b0a18",
+          "source_url": "https://raw.githubusercontent.com/jries/SMAP/d066594d7a5e5d35f2dbf9402cf7cfcfe07679c6/plugins/+ROIManager/+Evaluate/LocMoFitGUI.m"
+        }
+      ]
+    }
+  },
+  "audit": {
+    "method": "Read-only stdlib Python csv/zipfile/hashlib IO and git metadata inspection; no IMP/native modelling imports, builds, tests, or downloads.",
+    "checks": [
+      "SHA256 and exact byte length of every listed local data file and software archive.",
+      "All six data file sizes match the cached official BioImage Archive filelist_Nup96.json.",
+      "Paper supplement ZIP is byte-identical to the earlier cached download whose URL is linked in the primary article HTML.",
+      "All CSV coordinate/precision values are finite; both source sigma fields are positive; source site IDs are integral.",
+      "CSV site counts use distinct positive IDs separately for each cell.",
+      "Source-file SHA256 values and upstream Git identities distinguish publication software from the current checkout."
+    ],
+    "primary_metadata_cache": "/Users/tpeulen/dev/smlm/okf/data/biostudies_filelists/filelist_Nup96.json",
+    "primary_article_cache": "/Users/tpeulen/dev/smlm/okf/data/nature_article_cached.html"
+  }
+}

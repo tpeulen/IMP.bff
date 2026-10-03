@@ -22,6 +22,16 @@ name is reachable flat as `IMP.bff.<Name>`; the manual page
 
 ## Documentation
 
+SMLM localization scoring and selective 3D particle averaging are native C++:
+`SMLMIndex` owns a balanced Gaussian spatial tree, `SMLMGaussianOverlap` scores
+model covariance mixtures, and `SMLMPointModel` supplies the LocMoFit forward
+observation likelihood and rigid fitting. See the
+[SMLM manual](doc/manual/imaging/smlm.rst) and
+[method/reference-data record](okf/smlm-locmofit-reference.md). Native CSV input
+preserves measured precision and source particle IDs. `SMLMRestraint` connects
+expected fluorophore particles to IMP structural optimization with analytic
+forces and an owned localization tree, without a Python scoring callback.
+
 <https://tpeulen.github.io/IMP.bff/> — built and published by CI: `dev/` follows
 this branch, a release adds its own version and moves `stable/`. The
 [workshop](https://tpeulen.github.io/IMP.bff/dev/workshop/index.html) walks the

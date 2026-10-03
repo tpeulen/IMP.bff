@@ -1273,6 +1273,9 @@ IMP_SWIG_VALUE(IMP::bff, ProteinFrame, ProteinFrames);
 /* Leader clustering: how a conformer stack becomes a rotamer library. */
 %include "IMP/bff/Clustering.h"
 
+/* Precision-aware localization scoring and selective 3D particle averaging. */
+%include "IMP_bff.smlm.i"
+
 /* Bond connectivity, and the angles, torsions and rings that follow from it. */
 %include "IMP/bff/MolecularGraph.h"
 %template(VectorVectorInt) std::vector<std::vector<int> >;

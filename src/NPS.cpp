@@ -10,6 +10,7 @@
 #include <IMP/bff/Distributions.h>
 #include <IMP/bff/FRETOrientationFactor.h>
 #include <IMP/bff/SamplerDiagnostics.h>
+#include <IMP/bff/States.h>
 #include <IMP/algebra/Vector3D.h>
 
 #include <algorithm>

@@ -60,3 +60,6 @@
 /* The connection layer's Hierarchy and Particle overloads of core functions,
    last: they return the core's values and take the core's lattice. */
 %include "IMP_bff.hierarchybridge.i"
+
+/* Structural expected-emitter particles against fixed measured SMLM data. */
+%include "IMP_bff.smlmrestraint.i"
