@@ -561,3 +561,98 @@ def test_speed_report_256_256_128():
             b, t["double"] * 1e6, t["int8", False] * 1e6,
             " | ".join("%s W4A8 %.1f W4A4 %.1f" % (f, t[f, False] * 1e6, t[f, True] * 1e6)
                        for f in FORMATS)))
+
+
+# ---------------------------------------------------------------- on a GPU
+
+GPU = IMP.bff.get_compute_backend_name() != "cpu"
+
+
+def _dequantised_net(q, fmt):
+    """The float network the FP4 one stands for: its decoded weights, its
+    biases and scalers, as a NeuralNet -- the reference a W4A32 device is
+    held against."""
+    doc = msgpack.unpackb(q.to_msgpack(), raw=False)
+    layers = [{"n_in": L["n_in"], "n_out": L["n_out"], "activation": L["activation"],
+               "weight": _decode_weights(fmt, L).ravel().tolist(), "bias": L["bias"]}
+              for L in doc["layers"]]
+    out = {"format": "bff.neural_net", "version": 1, "layers": layers}
+    for k in ("x_scaler", "y_scaler"):
+        if doc.get(k):
+            out[k] = doc[k]
+    return IMP.bff.NeuralNet(msgpack.packb(out, use_bin_type=True))
+
+
+def _on_the_cpu(f):
+    IMP.bff.reset_compute_backend()
+    try:
+        return f()
+    finally:
+        IMP.bff.enable_gpu(quiet=True)
+
+
+def _odd_widths_net():
+    """Widths that are not multiples of 32 and every activation the shader
+    has, so the padding and the dispatch on the code are both exercised."""
+    r = np.random.default_rng(5)
+    widths = [5, 70, 40, 37, 33, 50, 45, 3]
+    acts = ["tanh", "relu", "logistic", "softplus", "silu", "sin", "identity"]
+    layers = [{"n_in": a, "n_out": c, "activation": act,
+               "weight": r.normal(0, 1 / np.sqrt(a), a * c).tolist(),
+               "bias": r.normal(0, 0.1, c).tolist()}
+              for a, c, act in zip(widths[:-1], widths[1:], acts)]
+    doc = {"format": "bff.neural_net", "version": 1, "layers": layers}
+    return IMP.bff.NeuralNet(msgpack.packb(doc, use_bin_type=True))
+
+
+@pytest.mark.skipif(not GPU, reason="no GPU backend loaded")
+@pytest.mark.parametrize("fmt", FORMATS)
+@pytest.mark.parametrize("which", ["odd_widths", "trained_3x64"])
+def test_fp4_on_the_gpu_is_the_decoded_network_in_f32(fmt, which):
+    """W4A32 on the device: the codes decoded exactly, the arithmetic f32, so
+    the answer is the dequantised float network's to single precision -- and
+    the CPU's W4A8 is within its own activation-quantisation error of both."""
+    net = _odd_widths_net() if which == "odd_widths" else _trained_3x64()
+    q = IMP.bff.QuantizedNeuralNet(net, fmt)
+    n_rows = 30001                               # not a multiple of the 32-row tile
+    X = np.random.default_rng(9).normal(0, 1, (n_rows, q.get_n_inputs()))
+    y_gpu = _batch(q, X)
+    assert q.get_last_backend() == IMP.bff.get_compute_backend_name()
+    ref = _on_the_cpu(lambda: _batch(_dequantised_net(q, fmt), X))
+    assert _rel_err(y_gpu, ref) < 1e-5
+    y_cpu = _on_the_cpu(lambda: _batch(q, X))
+    assert q.get_last_backend() == "cpu"
+    assert _rel_err(y_cpu, ref) < 5e-2
+
+
+@pytest.mark.skipif(not GPU, reason="no GPU backend loaded")
+def test_fp4_on_the_gpu_keeps_its_upload_and_drops_it_with_the_backend():
+    """The second batch reuses the uploaded network (same answer, bit for
+    bit); a reset and reload of the backend starts a new upload rather than
+    handing the old handle to the new backend."""
+    q = IMP.bff.QuantizedNeuralNet(_odd_widths_net(), "nvfp4")
+    X = np.random.default_rng(10).normal(0, 1, (20000, q.get_n_inputs()))
+    a, b = _batch(q, X), _batch(q, X)
+    assert q.get_last_backend() != "cpu"
+    np.testing.assert_array_equal(a, b)
+    IMP.bff.reset_compute_backend()
+    IMP.bff.enable_gpu(quiet=True)
+    c = _batch(q, X)
+    assert q.get_last_backend() != "cpu"
+    np.testing.assert_array_equal(a, c)
+
+
+@pytest.mark.skipif(not GPU, reason="no GPU backend loaded")
+def test_what_has_no_device_kernel_stays_on_the_cpu():
+    """W4A4, int8, ternary and batches too small for the trip run on the
+    CPU, and say so."""
+    net = _odd_widths_net()
+    X = np.random.default_rng(12).normal(0, 1, (20000, net.get_n_inputs()))
+    for q in (IMP.bff.QuantizedNeuralNet(net, "nvfp4", True),
+              IMP.bff.QuantizedNeuralNet(net, "int8"),
+              IMP.bff.QuantizedNeuralNet(net, "ternary")):
+        _batch(q, X)
+        assert q.get_last_backend() == "cpu", q.get_format()
+    q = IMP.bff.QuantizedNeuralNet(net, "fp4")
+    _batch(q, X[:10])
+    assert q.get_last_backend() == "cpu"

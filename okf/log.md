@@ -1,5 +1,13 @@
 # Update Log
 
+## 2026-10-03
+
+- **FP4 networks on the GPU; the network shader tiled** ([validation/fp4_nn_on_the_gpu.md](validation/fp4_nn_on_the_gpu.md); [neural-net.md](neural-net.md), "On a GPU").
+  - Compute-door ABI 3: `mlp_upload` / `mlp_run` / `mlp_release` keep a network on the device, f32 or FP4 per layer (codes as `Fp4Tensor` holds them, one decoded f32 scale per 16-element sub-block). `get_compute_backend_generation()` keeps a handle from reaching another backend.
+  - `QuantizedNeuralNet` (fp4 / mxfp4 / nvfp4, float activations) uploads once and runs W4A32 there: 2-8e-7 from the dequantised network, against the CPU W4A8's 1e-2. New `get_last_backend()`. int8, ternary and W4A4 stay on the CPU; FP4 needs 1 000 rows and 32 M multiply-adds before the device takes a batch.
+  - `gpu/mlp.wgsl` tiled (32 rows x 32 outputs a workgroup, weight tiles decoded once into workgroup memory, batch in and out unpadded). FP4 as fast as f32; the float `NeuralNet` 1.4-1.6x faster on 128/256-wide nets (M1 Pro, 32-256x3-8 at 400k rows: 964 -> 633 ms, FP4 604 ms), unchanged on 4-64-64-2.
+  - The E2M1 bit trick (shift into f32, x 2^126) decodes 0.5 as 0 on Metal, which flushes subnormals; the shader decodes through an integer instead. Prototype: `benchmark/gpu_mlp_fp4_wgsl.py`. Tests: 8 in `test_neural_net_fp4.py`, 4 in `test_compute_abi.py`.
+
 ## 2026-09-28
 
 - **Conservation and co-evolution from one alignment, native; the Labelizer computes ConSurf's scores itself** (T-20260928-02; [labelizer-correspondence.md](labelizer-correspondence.md), "Conservation").

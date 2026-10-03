@@ -27,8 +27,9 @@ namespace {
 struct State {
     const ImpBffComputeBackend* backend;
     void* handle;
+    unsigned long generation;
     std::string error;
-    State() : backend(0), handle(0) {}
+    State() : backend(0), handle(0), generation(0) {}
 };
 
 State& state() {
@@ -134,6 +135,7 @@ bool load_compute_backend(const std::string& library, const std::string& argumen
     close_handle(s.handle);
     s.handle = handle;
     s.backend = backend;
+    ++s.generation;
     return true;
 }
 
@@ -142,6 +144,7 @@ bool load_compute_backend(const std::string& library, const std::string& argumen
 void reset_compute_backend() {
     State& s = state();
     s.backend = 0;
+    ++s.generation;
     // The handle stays open: the backend's name and function pointers may
     // still be held by something mid-call, and closing under it is worse than
     // holding a few megabytes.
@@ -156,6 +159,8 @@ std::string get_compute_backend_name() {
 std::string get_compute_backend_error() { return state().error; }
 
 const ImpBffComputeBackend* get_compute_backend() { return state().backend; }
+
+unsigned long get_compute_backend_generation() { return state().generation; }
 
 bool built_with_gpu_support() { return IMPBFF_WITH_GPU != 0; }
 

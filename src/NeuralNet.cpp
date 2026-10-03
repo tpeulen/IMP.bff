@@ -26,6 +26,7 @@
 #include <cstdlib>
 #include <exception>
 #include <fstream>
+#include <mutex>
 #include <sstream>
 
 IMPBFF_BEGIN_NAMESPACE
@@ -504,6 +505,17 @@ struct QuantizedNeuralNet::Impl {
         else if (!is_int8())
             packed = internal::mlpfp4::kern::prepare(fp4);
     }
+    // The network on the compute backend, uploaded on the first predict()
+    // that the backend takes and kept: the weights cross once, not per
+    // batch. Tagged with the backend's generation, so that a handle from a
+    // backend since unloaded or replaced is dropped rather than handed to
+    // the new one. Copies start without one.
+    mutable std::mutex gpu_mutex;
+    mutable void* gpu_net = nullptr;
+    mutable unsigned long gpu_generation = 0;
+    mutable bool gpu_declined = false;
+    mutable std::string last_backend = "cpu";
+
     Impl() = default;
     Impl(const Impl& o)
         : format(o.format), quantize_activations(o.quantize_activations), int8(o.int8), fp4(o.fp4),
@@ -511,6 +523,88 @@ struct QuantizedNeuralNet::Impl {
         prepare();
     }
     Impl& operator=(const Impl&) = delete;
+    ~Impl() {
+        const ImpBffComputeBackend* backend = get_compute_backend();
+        if (gpu_net && backend && gpu_generation == get_compute_backend_generation() &&
+            backend->abi >= 3 && backend->mlp_release)
+            backend->mlp_release(gpu_net);
+    }
+
+    //! Whether the backend can take this network at all: FP4 weights with
+    //! float activations (W4A32 there; W4A4 has no device kernel).
+    bool gpu_eligible() const { return !is_int8() && !is_ternary() && !quantize_activations; }
+
+    //! Upload the FP4 layers (and any kept float layers) to `backend`.
+    void* upload(const ImpBffComputeBackend* backend) const {
+        namespace f4 = internal::mlpfp4;
+        const std::size_t n = fp4.layers.size();
+        std::vector<int> n_in(n), n_out(n), act(n), fmt(n);
+        std::vector<const double*> w(n, nullptr), b(n);
+        std::vector<const unsigned char*> codes(n, nullptr);
+        std::vector<std::vector<float>> scales(n);
+        std::vector<const float*> sp(n, nullptr);
+        for (std::size_t l = 0; l < n; ++l) {
+            const f4::Fp4Layer& L = fp4.layers[l];
+            n_in[l] = L.n_in;
+            n_out[l] = L.n_out;
+            act[l] = static_cast<int>(L.activation);
+            b[l] = L.bias.data();
+            if (L.full_precision) {
+                fmt[l] = 0;
+                w[l] = L.weight_f64.data();
+                continue;
+            }
+            // The decoded scale of every 16-element sub-block, whatever the
+            // block format: the device multiplies E2M1 values by these.
+            const f4::Fp4Tensor& t = L.weight;
+            const int nsb = static_cast<int>(t.padded()) / 16, nb = t.blocks_per_row();
+            std::vector<float>& s = scales[l];
+            s.resize(static_cast<std::size_t>(t.rows) * static_cast<std::size_t>(nsb));
+            for (int r = 0; r < t.rows; ++r)
+                for (int k = 0; k < nsb; ++k) {
+                    const std::size_t at = static_cast<std::size_t>(r) * nsb + k;
+                    if (t.format == f4::Format::FP4)
+                        s[at] = f4::detail::get_f32(t.scales.data() + static_cast<std::size_t>(r) * 4);
+                    else
+                        s[at] = static_cast<float>(f4::block_scale_value(
+                                t.format, t.scales[static_cast<std::size_t>(r) * nb + k * 16 / t.block],
+                                t.tensor_scale));
+                }
+            fmt[l] = 1;
+            codes[l] = t.codes.data();
+            sp[l] = s.data();
+        }
+        return backend->mlp_upload(static_cast<int>(n), n_in.data(), n_out.data(), act.data(),
+                                   fmt.data(), w.data(), codes.data(), sp.data(), b.data());
+    }
+
+    //! Run on the compute backend; false (and `y` untouched) when there is
+    //! none, it declines the network, or it declines the batch.
+    bool gpu_predict(const std::vector<double>& x, int n_rows, std::vector<double>& y) const {
+        const ImpBffComputeBackend* backend = get_compute_backend();
+        if (n_rows <= 0 || !gpu_eligible() || !backend || backend->abi < 3 ||
+            !backend->mlp_upload || !backend->mlp_run)
+            return false;
+        std::lock_guard<std::mutex> lock(gpu_mutex);
+        const unsigned long generation = get_compute_backend_generation();
+        if (gpu_generation != generation) {
+            gpu_net = nullptr;          // the old backend's; not ours to free now
+            gpu_declined = false;
+            gpu_generation = generation;
+        }
+        if (!gpu_net && !gpu_declined) {
+            gpu_net = upload(backend);
+            gpu_declined = gpu_net == nullptr;
+        }
+        if (!gpu_net) return false;
+        const int n_in = fp4.n_inputs(), n_out = fp4.n_outputs();
+        std::vector<double> xs(x), out(static_cast<std::size_t>(n_rows) * static_cast<std::size_t>(n_out));
+        mc::detail::scale_in(xs, n_rows, n_in, fp4.x_scaler);
+        if (backend->mlp_run(gpu_net, xs.data(), n_rows, out.data()) != 0) return false;
+        mc::detail::unscale_out(out, n_rows, n_out, fp4.y_scaler);
+        y.swap(out);
+        return true;
+    }
 };
 
 QuantizedNeuralNet::QuantizedNeuralNet(const NeuralNet& net, const std::string& format,
@@ -640,6 +734,8 @@ double QuantizedNeuralNet::get_bits_per_weight() const {
     const int n = get_n_weights();
     return n > 0 ? 8.0 * get_weight_bytes() / n : 0.0;
 }
+std::string QuantizedNeuralNet::get_last_backend() const { return impl_->last_backend; }
+
 std::string QuantizedNeuralNet::get_kernel_name() {
     return internal::mlpfp4::kern::kernel_name();
 }
@@ -652,7 +748,10 @@ void QuantizedNeuralNet::predict(const std::vector<double>& x, int n_rows,
         IMP_THROW("QuantizedNeuralNet::predict: x must be n_rows * n_inputs long",
                   IMP::ValueException);
     std::vector<double> y;
-    if (impl_->is_ternary())
+    impl_->last_backend = "cpu";
+    if (impl_->gpu_predict(x, n_rows, y))
+        impl_->last_backend = get_compute_backend_name();
+    else if (impl_->is_ternary())
         internal::mlpternary::predict<neural_net_detail::Gemm>(impl_->tpacked, x.data(), n_rows, y);
     else if (impl_->is_int8())
         internal::mlpquant::predict(impl_->int8, x.data(), n_rows, y);

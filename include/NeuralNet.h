@@ -397,8 +397,17 @@ private:
     returns true).
 
     Biases, activations and scalers stay double. It is an inference path
-    only -- no derivatives, no training, no accelerator; the source network
-    is not changed. to_msgpack() / from_msgpack() store it as a
+    only -- no derivatives, no training; the source network is not changed.
+
+    **On a GPU.** With a compute backend loaded (`IMP.bff.enable_gpu`), an
+    fp4 / mxfp4 / nvfp4 network without `quantize_activations` is uploaded
+    once -- codes and scales, still 4 bits a weight -- and a batch large
+    enough to be worth the trip runs there: the codes decoded on the device,
+    the products and sums in f32, the activations not quantised (W4A32). That
+    is closer to the double reference than the CPU's W4A8 (about 1e-7
+    relative against 1e-2), so the two paths agree to the CPU's error, not
+    bit for bit. get_last_backend() says which ran. int8, the ternary formats
+    and W4A4 stay on the CPU. to_msgpack() / from_msgpack() store it as a
     `bff.quantized_neural_net` msgpack document (codes and scales as bin
     fields), bit-exact.
 */
@@ -473,6 +482,9 @@ public:
     //! The FP4 (and ternary) kernel variant this build compiled:
     //! "neon-dotprod", "neon", "avx512-vnni", "avx2" or "generic".
     static std::string get_kernel_name();
+
+    //! Where the last predict() ran: `cpu`, or the backend's name.
+    std::string get_last_backend() const;
 
     //! Evaluate a batch, as NeuralNet::predict() does.
     /*!

@@ -54,6 +54,17 @@ def test_the_propagate_signature_has_the_same_parameters():
            params(PLUGIN.read_text(encoding="utf-8"))
 
 
+@pytest.mark.parametrize("fn", ["ImpBffMlpForwardFn", "ImpBffMlpUploadFn",
+                                "ImpBffMlpRunFn", "ImpBffMlpReleaseFn"])
+def test_the_network_signatures_have_the_same_parameters(fn):
+    def params(text):
+        m = re.search(r"\(\*%s\)\((.*?)\);" % fn, text, re.S)
+        assert m, fn
+        return [" ".join(p.split()) for p in m.group(1).split(",")]
+    assert params(HEADER.read_text(encoding="utf-8")) == \
+           params(PLUGIN.read_text(encoding="utf-8"))
+
+
 def test_both_module_recipes_build_the_plugin():
     """The plugin is one C file that links nothing and is found by path at run
     time, so IMP's module tooling never has to build it -- but somebody must.

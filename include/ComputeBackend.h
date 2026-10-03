@@ -109,6 +109,48 @@ typedef int (*ImpBffMlpForwardFn)(int n_layers, const int* n_in, const int* n_ou
                                   const double* biases, const double* x,
                                   int n_rows, double* y);
 
+//! Put a network on the device and keep it there: f32 or FP4 weights.
+/*!
+    #ImpBffMlpForwardFn sends the weights with every batch, which is right for
+    a network whose parameters change between calls and wasteful for one that
+    does not. This uploads them once and returns a handle that
+    #ImpBffMlpRunFn evaluates and #ImpBffMlpReleaseFn frees.
+
+    Layers are `y = activation(W x + b)` as for #ImpBffMlpForwardFn, each in
+    its own format:
+    - `format[l] == 0`: `weights[l]` is W, row-major `n_out x n_in`, doubles;
+    - `format[l] == 1`: W is FP4 (E2M1). `codes[l]` is
+      `IMP::bff::internal::mlpfp4::Fp4Tensor`'s layout -- each row padded to
+      a multiple of 32 elements, two codes a byte, element 2i in the low
+      nibble, `n_out x padded / 2` bytes -- and `scales[l]` the decoded scale
+      of each 16-element sub-block of each row, `n_out x padded / 16` floats,
+      whatever block format they came from (fp4's row scale, mxfp4's E8M0,
+      nvfp4's E4M3 times the tensor scale). The weight is
+      `E2M1(code) * scale`.
+
+    The arithmetic is f32 throughout: FP4 weights are decoded on the device
+    and the activations are not quantised (W4A32).
+    \param[in] weights,codes,scales,biases one pointer a layer; a layer
+               reads `weights` or `codes` and `scales` by its format, and the
+               others may be null
+    \return the handle, or null to decline -- then the caller stays on the
+            CPU
+*/
+typedef void* (*ImpBffMlpUploadFn)(int n_layers, const int* n_in, const int* n_out,
+                                   const int* activation, const int* format,
+                                   const double* const* weights,
+                                   const unsigned char* const* codes,
+                                   const float* const* scales,
+                                   const double* const* biases);
+
+//! Evaluate an uploaded network on a batch, `x` already scaled, `y` in the
+//! network's own units: as #ImpBffMlpForwardFn, and like it may decline a
+//! batch too small to be worth the trip (0 when it did the work).
+typedef int (*ImpBffMlpRunFn)(void* network, const double* x, int n_rows, double* y);
+
+//! Free an uploaded network. Null is ignored.
+typedef void (*ImpBffMlpReleaseFn)(void* network);
+
 //! What a plugin offers. Version first, so a mismatch is caught, not crashed.
 struct ImpBffComputeBackend {
     //! #IMPBFF_COMPUTE_BACKEND_ABI as the plugin was compiled against it.
@@ -119,14 +161,19 @@ struct ImpBffComputeBackend {
     ImpBffPropagateFn propagate;
     //! May be null: then networks stay on the CPU.
     ImpBffMlpForwardFn mlp_forward;
+    //! May be null, all three together: then no network is kept on the device.
+    ImpBffMlpUploadFn mlp_upload;
+    ImpBffMlpRunFn mlp_run;
+    ImpBffMlpReleaseFn mlp_release;
 };
 
 }  // extern "C"
 
 //! Bumped whenever #ImpBffComputeBackend changes shape.
-/*! 2 added #ImpBffMlpForwardFn. A plugin built against 1 declines cleanly
-    rather than being read one field short. */
-#define IMPBFF_COMPUTE_BACKEND_ABI 2
+/*! 2 added #ImpBffMlpForwardFn, 3 the resident network (#ImpBffMlpUploadFn,
+    #ImpBffMlpRunFn, #ImpBffMlpReleaseFn). A plugin built against another
+    version declines cleanly rather than being read a field short. */
+#define IMPBFF_COMPUTE_BACKEND_ABI 3
 
 //! The symbol a plugin exports: `const ImpBffComputeBackend* (*)(void)`.
 #define IMPBFF_COMPUTE_BACKEND_SYMBOL "imp_bff_compute_backend"
@@ -156,6 +203,12 @@ IMPBFFEXPORT std::string get_compute_backend_error();
 
 //! The backend in force, or null. For the kernels, not for callers.
 IMPBFFEXPORT const ImpBffComputeBackend* get_compute_backend();
+
+//! Changes whenever the backend in force does (a load, a reset).
+/*! A network kept on a device holds the generation it was uploaded under and
+    uploads again when this differs: a handle from another backend -- or from
+    the same plugin, closed and opened again -- must never reach this one. */
+IMPBFFEXPORT unsigned long get_compute_backend_generation();
 
 //! False when this build was compiled with #IMPBFF_WITH_GPU set to 0.
 /*! Then no plugin can be loaded whatever is installed, and the kernels run
