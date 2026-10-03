@@ -5603,7 +5603,15 @@ void StoreReader::Impl::open(const std::string& name, std::uint64_t base, std::u
     // starts on a page) and served from its own first byte.
     r.mapped_bytes = base + r.size;
 #ifdef _WIN32
-    r.file = CreateFileW(detail::utf8_to_wide(filename).c_str(), GENERIC_READ, FILE_SHARE_READ,
+    // FILE_SHARE_READ | FILE_SHARE_WRITE: a mapping must not veto writers.
+    // The format is append-only with a generation flip; POSIX readers and
+    // writers coexist on the same file, and every other Windows open here
+    // (_wfsopen _SH_DENYNO, _wsopen_s _SH_DENYNO) already shares writes.
+    // FILE_SHARE_READ alone made add_embedding_prefilter's _O_RDWR open
+    // fail with ERROR_SHARING_VIOLATION while a read-only mapping of the
+    // same database was alive.
+    r.file = CreateFileW(detail::utf8_to_wide(filename).c_str(), GENERIC_READ,
+                         FILE_SHARE_READ | FILE_SHARE_WRITE,
                          nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
     if (r.file == INVALID_HANDLE_VALUE) throw std::runtime_error("cannot open " + filename);
     r.mapping = CreateFileMappingW(r.file, nullptr, PAGE_READONLY, 0, 0, nullptr);

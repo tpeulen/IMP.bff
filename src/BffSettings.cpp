@@ -34,11 +34,17 @@ std::string expand_home(const std::string& path) {
     return home == nullptr ? path : std::string(home) + path.substr(1);
 }
 
+#ifdef _WIN32
+constexpr char kPathSep = '\\';
+#else
+constexpr char kPathSep = '/';
+#endif
+
 //! A path from the settings: `~` expanded, relative ones against the file.
 std::string resolve(const std::string& path, const std::string& settings_dir) {
     const std::string p = expand_home(path);
     if (p.empty() || is_absolute(p) || settings_dir.empty()) return p;
-    return settings_dir + "/" + p;
+    return settings_dir + kPathSep + p;
 }
 
 std::string string_map_entry(const nlohmann::json& value, const std::string& where) {
@@ -66,12 +72,14 @@ void refuse_unknown(const nlohmann::json& object, const std::set<std::string>& k
 std::string get_settings_path() {
     const char* explicit_path = std::getenv("IMP_BFF_SETTINGS");
     if (explicit_path != nullptr && *explicit_path != '\0') return expand_home(explicit_path);
+    const char* config = std::getenv("XDG_CONFIG_HOME");
+    if (config != nullptr && *config != '\0')
+        return expand_home(std::string(config) + kPathSep + std::string("imp.bff") +
+                           kPathSep + "settings.json");
 #ifdef _WIN32
     const char* appdata = std::getenv("APPDATA");
     if (appdata != nullptr) return std::string(appdata) + "\\imp.bff\\settings.json";
 #endif
-    const char* config = std::getenv("XDG_CONFIG_HOME");
-    if (config != nullptr && *config != '\0') return std::string(config) + "/imp.bff/settings.json";
     return expand_home("~/.config/imp.bff/settings.json");
 }
 
