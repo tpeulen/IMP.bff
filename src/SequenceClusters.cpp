@@ -21,6 +21,7 @@
 #include <thread>
 #ifdef _WIN32
 #include <cstdio>   // _setmaxstdio
+#include <intrin.h> // __popcnt64
 #else
 #include <sys/resource.h>
 #endif
@@ -369,6 +370,16 @@ std::size_t create_sequence_clusters(const std::string& members,
 
 namespace {
 
+// Set bits of a 64-bit word: the GCC/Clang builtin, MSVC's intrinsic (C++17 has
+// no std::popcount).
+inline unsigned popcount64(std::uint64_t v) {
+#ifdef _MSC_VER
+    return static_cast<unsigned>(__popcnt64(v));
+#else
+    return static_cast<unsigned>(__builtin_popcountll(v));
+#endif
+}
+
 //! One member record in a bucket file: cluster, row, then codes and header.
 struct MemberRecordHead {
     std::uint32_t cluster, row, n_codes, n_header;
@@ -416,7 +427,7 @@ struct KmerSet {
         if (m == 0) return 0.0;
         unsigned shared = 0;
         for (std::size_t w = 0; w < bits.size(); ++w)
-            shared += static_cast<unsigned>(__builtin_popcountll(bits[w] & o.bits[w]));
+            shared += popcount64(bits[w] & o.bits[w]);
         return double(shared) / m;
     }
 };
