@@ -17,6 +17,7 @@ import IMP.bff as bff
 
 NB_DIR = Path(__file__).resolve().parents[2] / "ipynb" / "example"
 NAMES = ("nps.ipynb", "nps_phase3.ipynb")
+PAPER_NAME = "nps_paper_structure.ipynb"
 
 
 def _notebook(name):
@@ -73,6 +74,97 @@ def test_phase3_example_has_proper_prior_and_radial_distance():
     assert "set_output_is_log_likelihood(True)" in cells
     assert "abs(np.median(radial) - r_opt) < 12.0" in cells
     assert "normalized Gaussian" in text
+
+
+def test_paper_structure_notebook_has_provenance_data_and_approximation_guardrails():
+    """The structural example must identify its sources and its limits."""
+    notebook = _notebook(PAPER_NAME)
+    nbformat.validate(notebook)
+    markdown = _sources(notebook, "markdown")
+    code = _sources(notebook, "code")
+    combined = markdown + "\n" + code
+
+    assert "10.1038/nmeth.1259" in combined
+    assert "1Y1W" in combined
+    assert "Rpb7-Cys150: 60.4 ± 0.6%, R0=65 Å" in markdown
+    assert "Rpb7-Cys94: 52.2 ± 1.1%, R0=66 Å" in markdown
+    assert "Rpb7-S16C: 73.6 ± 0.7%, R0=62 Å" in markdown
+    assert "approximation" in combined.lower()
+    assert "attachment-site surrogates" in combined
+    assert "5'" in combined and "ABSENT" in combined
+    assert "NPSNetworkDye" in code
+    assert "NPSMeasurement" in code
+    assert "nps_network_fret_efficiency" in code
+    assert "nps_network_log_likelihood" in code
+
+
+def test_paper_structure_plot_uses_backbones_and_distinct_candidate_labels():
+    """An atom-order polyline is not a nucleic-acid backbone or a legend."""
+    code = _sources(_notebook(PAPER_NAME), "code")
+    assert "backbone" in code
+    assert "O5'" in code and "res['P']" in code
+    assert "label='candidate 1" in code
+    assert "label='candidate 2" in code
+    assert "atom.coord for atom in model[chain_id].get_atoms()" not in code
+
+
+def test_paper_structure_trilateration_does_not_seed_known_answers():
+    """Derive sphere intersections from measured radii, not hardcoded roots."""
+    code = _sources(_notebook(PAPER_NAME), "code")
+    assert "np.cross" in code
+    assert "target_distances" in code
+    assert "seeds =" not in code
+
+
+def test_paper_structure_pdb_provenance_and_atoms():
+    """The notebook's offline structure input must be the pinned PDB stream."""
+    import gzip
+    import hashlib
+    import io
+    from Bio.PDB import PDBParser
+
+    path = NB_DIR / "data" / "1Y1W.pdb.gz"
+    with gzip.open(path, "rb") as stream:
+        raw = stream.read()
+    assert hashlib.sha256(raw).hexdigest() == (
+        "4225117bfc9f1dbb2c2edd278c7087cbf4acffe6af8654a74466726dbba9ca6f"
+    )
+    pdb_text = raw.decode("ascii")
+    # PDB author-chain IDs: D is the 32-kDa B32/Rpb4 subunit and G is
+    # the 19-kDa B16/Rpb7 subunit (distinct from mmCIF label_asym_id).
+    assert "MOLECULE: DNA-DIRECTED RNA POLYMERASE II 32 KDA POLYPEPTIDE;" in pdb_text
+    assert "CHAIN: D;" in pdb_text and "SYNONYM: B32;" in pdb_text
+    assert "MOLECULE: DNA-DIRECTED RNA POLYMERASE II 19 KDA POLYPEPTIDE;" in pdb_text
+    assert "CHAIN: G;" in pdb_text and "SYNONYM: B16;" in pdb_text
+    structure = PDBParser(QUIET=True).get_structure("1Y1W", io.StringIO(pdb_text))
+    model = structure[0]
+    assert "G" in model and "D" in model
+    assert model["G"][150]["SG"].get_name() == "SG"
+    assert model["G"][94]["SG"].get_name() == "SG"
+    assert model["G"][16]["OG"].get_name() == "OG"
+    assert model["D"][73]["OG"].get_name() == "OG"
+    assert len(list(model["P"].get_residues())) == 10
+
+
+def test_paper_structure_notebook_executes_in_clean_kernel():
+    """The offline paper example runs from a fresh kernel and emits its checks."""
+    from nbclient import NotebookClient
+    from nbclient.exceptions import CellExecutionError
+
+    notebook = _notebook(PAPER_NAME)
+    try:
+        result = NotebookClient(
+            notebook, timeout=360, kernel_name="python3",
+            resources={"metadata": {"path": str(NB_DIR)}}).execute()
+    except CellExecutionError as exc:
+        pytest.fail(f"{PAPER_NAME} did not execute: {exc}")
+    outputs = "\n".join(
+        out.get("text", "") for cell in result.cells if cell.cell_type == "code"
+        for out in cell.get("outputs", []) if out.output_type == "stream"
+    )
+    assert "candidate 1 measured / BFF predicted E" in outputs
+    assert "candidate 2 measured / BFF predicted E" in outputs
+    assert "clashes" in outputs
 
 
 @pytest.mark.parametrize("name", NAMES)
