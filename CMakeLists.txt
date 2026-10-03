@@ -110,7 +110,13 @@ if(TARGET IMP.bff-lib)
   # on Windows (CI run 37124027581). On this lib's own link the feature sits
   # before the imp_* libraries and is harmless; consumers reference no ptolib
   # symbol (public headers only forward-declare pto::StoreReader).
-  target_link_libraries(IMP.bff-lib PRIVATE "$<LINK_LIBRARY:WHOLE_ARCHIVE,ptolib::ptolib>")
+  # set_property, not the keyword signature: src/CMakeLists.txt's generated
+  # template calls plain target_link_libraries(IMP.bff-lib ...) (and plain
+  # IS the transitive form -- the propagation we are removing here); keyword
+  # and plain cannot mix on one target. APPEND to LINK_LIBRARIES is the
+  # keyword-PRIVATE storage.
+  set_property(TARGET IMP.bff-lib APPEND PROPERTY
+    LINK_LIBRARIES "$<LINK_LIBRARY:WHOLE_ARCHIVE,ptolib::ptolib>")
   set_target_properties(IMP.bff-lib PROPERTIES VISIBILITY_INLINES_HIDDEN ON)
   # Optional: zlib reads gzip-compressed FASTA into a sequence database.
   find_package(ZLIB QUIET)
