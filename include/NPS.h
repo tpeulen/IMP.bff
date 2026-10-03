@@ -183,10 +183,13 @@ IMPBFFEXPORT int nps_single_orientation_row_index(double m, double phi);
     with cTh from the sampled geometry, matching the committed direct branch.
 
     \param[in] cloud1, cloud2 flat (n, 4) clouds — x, y, z, weight per point
-    \param[in] dep1, dep2 depolarization factors; dep = 1 marks an isotropic
-               dye (one table row), dep < 1 puts the dye on the orientation
-               grid — iso/iso tables pass (1, 1), mixed (q, 1) or (1, q),
-               and the pair grid (q1, q2).
+    \param[in] dep1,dep2 table-layout selectors: 1.0 selects isotropic
+               averaging for that dye (one row when both are 1.0);
+               a value < 1 places it on the 25-slot orientation grid.
+               In contrast, physical NPSNetworkDye.dep = 1 is the rigid
+               direct-FRET limit and dep = 0 is fully depolarized. These
+               table-generator arguments must not be used to infer the
+               physical meaning of an evaluator dye's iso flag.
     \param[in] r_iso6 the isotropic Forster distance to the sixth power, A^6
     \param[in] n_samples pair draws per slot evaluation (shared across the
                table); 0 selects the default (60000)
@@ -269,13 +272,13 @@ IMPBFFEXPORT double nps_network_chi2(
         const NPSNetworkDyes& dyes,
         const NPSMeasurements& measurements);
 
-//! Scott's-rule kernel bandwidth of a weighted label-position cloud.
-/*! The scale of the cloud-based position prior: the weighted RMS spread
-    \f$\sigma_w\f$ (about the weighted mean, weights sum-normalised) times
-    Scott's factor \f$n^{-1/(d+4)}\f$ with \f$d=3\f$ (Scott 1992,
-    doi:10.1111/j.2517-6161.1992.tb01796.x). This replaces Fast-NPS's hard
-    box grid: the accessible volume's own cloud carries the prior's scale.
-    Weights are read from the cloud, never normalised in place.
+//! BFF's legacy scalar KDE bandwidth for a weighted 3D label cloud.
+/*! Weighted RMS Euclidean spread about the weighted mean times
+    \f$n^{-1/5}\f$ for \f$n\f$ cloud points. This exponent is the current
+    BFF implementation convention; it is **not** isotropic 3D Scott
+    scaling (\f$n^{-1/7}\f$). Changing it alters position priors and must
+    be validated separately. Weights are read from the cloud, never
+    normalised in place.
     \throws IMP::ValueException when the cloud is not a flat (n, 4)
         x/y/z/weight array, carries non-finite entries, or has no
         positive weight. */
@@ -330,8 +333,10 @@ IMPBFFEXPORT double nps_cloud_prior_score(
     and publishes the value on the "chi2" output port.
     set_output_is_log_likelihood() selects the reading: the default
     publishes \f$\chi^2\f$ (MCMCSampler's native objective currency),
-    log-likelihood mode publishes \f$-\log L\f$ so the sampler reads it
-    with set_output_is_log_likelihood(true).
+    log-likelihood mode publishes the actual normalized \f$\log L\f$
+    on the legacy-named "chi2" port. The sampler must then read that port
+    with its own set_output_is_log_likelihood(true); it treats the value
+    as \f$\log L\f$ and reports \f$-2\log L\f$ as its chi2 record.
 
     Because the node fixes the dye angles and links no angle ports, it
     can only sample a position-only posterior. Construction therefore
@@ -369,7 +374,7 @@ public:
                         int n_dyes,
                         std::string name = "NPSNetworkObjective%1%");
 
-    //! Publish -log L (true) or chi2 (false, the default) on "chi2".
+    //! Publish normalized log L (true) or chi2 (false, the default) on "chi2".
     void set_output_is_log_likelihood(bool v) {
         output_is_log_likelihood_ = v;
     }

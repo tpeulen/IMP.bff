@@ -754,11 +754,11 @@ std::vector<std::vector<double> > nps_convolved_efficiency_table(
     const std::size_t n1 = cloud1.size() / 4;
     const std::size_t n2 = cloud2.size() / 4;
 
-    // Regime semantics match the likelihood: dep = 1 is an isotropic dye
-    // (the reference maps ravg = 0.4 — the fundamental anisotropy, a fully
-    // isotropic report — to dep = sqrt(0.4/0.4) = 1), any dep < 1 puts the
-    // dye on the orientation grid. Both iso -> 1 row, one grid dye -> 25,
-    // both grid dyes -> 625 rows.
+    // Generator-specific layout convention: dep = 1 selects isotropic
+    // averaging (no orientation slot). In the *direct* evaluator, physical
+    // NPSNetworkDye.dep = sqrt(r_avg/0.4) = 1 is instead the rigid limit;
+    // the iso flag is separate. Do not infer direct-dye dynamics from this
+    // row-layout sentinel. Both iso -> 1 row, mixed -> 25, pair -> 625.
     const bool grid1 = dep1 < 1.0;
     const bool grid2 = dep2 < 1.0;
     const int grid_slots = (grid1 ? 25 : 1) * (grid2 ? 25 : 1);
@@ -1125,7 +1125,7 @@ void NPSNetworkObjective::evaluate() {
     }
     double value;
     if (output_is_log_likelihood_) {
-        value = -nps_network_log_likelihood(config, dyes_, measurements_);
+        value = nps_network_log_likelihood(config, dyes_, measurements_);
     } else {
         value = nps_network_chi2(config, dyes_, measurements_);
     }

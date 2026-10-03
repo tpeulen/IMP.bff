@@ -10,8 +10,8 @@ arviz-parity). S3 wires them together:
 
 - `NPSNetworkObjective`, a GraphNode whose update() evaluates the network
   log-likelihood at the configuration its linked input ports carry and
-  publishes it on the "chi2" output port (as -log L, the reading
-  set_output_is_log_likelihood() expects, or as chi2 directly) — so a
+  publishes it on the "chi2" output port (as normalized log L for the
+  sampler's log-likelihood reading, or as residual chi2 directly) — so a
   Python-side std::function is never needed and a Markov step never
   crosses into Python;
 - `nps_network_chi2`, the chi-square of the active measurements (the
@@ -128,17 +128,29 @@ def _objective(distance=70.0):
     return node, ports, dyes, meas
 
 
-def test_objective_publishes_minus_the_log_likelihood():
+def test_objective_publishes_log_likelihood_with_the_sampler_log_mode():
+    """MCMCSampler interprets its log-likelihood port as log L, not -log L."""
     node, ports, dyes, meas = _objective(70.0)
     node.update()
     logl = bff.nps_network_log_likelihood(
         _config_at(70.0), dyes, meas)
     got = node.get_output_port("chi2").get_value()
-    assert got == pytest.approx(-logl, rel=1e-12)
+    assert got == pytest.approx(logl, rel=1e-12)
+
+
+def test_sampler_records_minus_twice_the_actual_forward_log_likelihood():
+    sampler, dyes, meas = _sampler(n_steps=8)
+    chain = np.asarray(sampler.get_chain())
+    chi2 = np.asarray(sampler.get_chi2())
+    for row, recorded in zip(chain[:12], chi2[:12]):
+        config = [list(row[:3]) + [0.0, 0.0],
+                  list(row[3:]) + [0.0, 0.0]]
+        expected = -2.0 * bff.nps_network_log_likelihood(config, dyes, meas)
+        assert recorded == pytest.approx(expected, rel=1e-10, abs=1e-10)
 
 
 def test_objective_perfect_agreement_hits_the_oracle_value():
-    """sigma = 0.1 with model == data: -log L = -log(sigma sqrt(2 pi))
+    """sigma = 0.1 with model == data: log L = -log(sigma sqrt(2 pi))
     = 1.383646559789373, the value the PRD pins for this case."""
     dyes, meas = _world()
     config = _config_at(70.0)
@@ -152,7 +164,7 @@ def test_objective_perfect_agreement_hits_the_oracle_value():
     node.set_output_is_log_likelihood(True)
     node.update()
     assert node.get_output_port("chi2").get_value() == pytest.approx(
-        -1.383646559789373, rel=1e-10)
+        1.383646559789373, rel=1e-10)
 
 
 def test_objective_recomputes_when_a_port_moves():
@@ -164,7 +176,7 @@ def test_objective_recomputes_when_a_port_moves():
     second = node.get_output_port("chi2").get_value()
     logl = bff.nps_network_log_likelihood(
         _config_at(90.0), dyes, meas)
-    assert second == pytest.approx(-logl, rel=1e-12)
+    assert second == pytest.approx(logl, rel=1e-12)
     assert second != pytest.approx(first, rel=1e-6)
 
 
@@ -191,14 +203,13 @@ def _sampler(n_steps=250, seed=11):
     sampler.set_parameter_ports(ports)
     sampler.set_objective(node, "chi2")
     sampler.set_output_is_log_likelihood(True)
-    # seed the ensemble near the likelihood's optimum (r ~ R0 (5/7)^(1/6)):
-    # the wiring test is about a well-formed chain, not a cold-start race;
-    # every coordinate jitters (the degeneracy check refuses a cloud that
-    # does not span the parameter space)
+    # Seed near the isotropic FRET likelihood optimum: E = 0.6 implies
+    # (r/R0)^6 = (1-E)/E = 2/3. This fixture deliberately omits priors
+    # and is a wiring check, not a normalizable posterior demonstration.
     rng = np.random.default_rng(4)
     start = [[float(v) for v in rng.normal(0.0, 0.5, 6)] for _ in range(12)]
     for row in start:
-        row[3] += 52.0
+        row[3] += 55.0 * (2.0 / 3.0) ** (1.0 / 6.0)
     sampler.set_walker_start(start)
     sampler.run(n_steps)
     return sampler, dyes, meas
@@ -223,13 +234,17 @@ def test_cross_entropy_tracks_the_recorded_log_prob():
                                rel=1e-12)
 
 
-def test_chi2_consistency_check_on_the_chain():
-    """min chi2 over the chain must approach the data's dof (one active
-    FRET measurement): a sampler that never visits a near-fitting state
-    is miswired."""
+def test_best_recorded_log_likelihood_respects_gaussian_density_bound():
+    """With one fixed-sigma datum, log L cannot exceed -log(sigma sqrt(2pi)).
+
+    This is a direct bound on the normalized density, not a chi2 goodness-
+    of-fit test or an assertion about degrees of freedom of the sampler.
+    """
     sampler, dyes, meas = _sampler()
-    chi2 = np.asarray(sampler.get_chi2())
-    assert float(chi2.min()) < 4.0
+    recorded_minus2logl = np.asarray(sampler.get_chi2())
+    bound = 2.0 * math.log(meas[0].e_err * math.sqrt(2.0 * math.pi))
+    assert np.all(recorded_minus2logl >= bound - 1e-10)
+    assert recorded_minus2logl.min() < bound + 0.5
 
 
 def test_mean_mcse_uses_the_committed_estimator():
@@ -314,7 +329,7 @@ def test_objective_accepts_angle_free_depolarized_direct_dyes():
     node.update()
     logl = bff.nps_network_log_likelihood(_config_at(70.0), dyes, meas)
     assert node.get_output_port("chi2").get_value() == pytest.approx(
-        -logl, rel=1e-12)
+        logl, rel=1e-12)
 
 
 def test_objective_rejects_oriented_direct_dyes():
@@ -385,7 +400,7 @@ def test_objective_accepts_transfer_anisotropy_with_one_depolarized_dye():
     node.update()
     logl = bff.nps_network_log_likelihood(_config_at(70.0), dyes, meas)
     assert node.get_output_port("chi2").get_value() == pytest.approx(
-        -logl, rel=1e-12)
+        logl, rel=1e-12)
 
 
 def test_objective_rejects_out_of_range_measurement_dyes():
