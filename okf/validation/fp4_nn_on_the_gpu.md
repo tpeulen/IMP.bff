@@ -1,7 +1,7 @@
 ---
 type: validation
 title: "FP4 networks on the GPU: decoded per tile, as fast as f32, and the bit trick Metal breaks"
-description: QuantizedNeuralNet (fp4 / mxfp4 / nvfp4) now runs through the compute door with its weights kept on the device as 4-bit codes. The first kernel decoded a code per multiply-add and was 1.3-1.8x slower than f32; a tiled kernel that decodes each weight tile once into workgroup memory runs FP4 as fast as f32 (sometimes faster) and the f32 path 1.4-1.6x faster than before on 128/256-wide nets. W4A32, so 2-8e-7 from the dequantised network against the CPU W4A8's 1e-2. The E2M1-to-f32 bit trick (the analogue of int4's 0x6400) decodes 0.5 as 0 on Metal, which flushes subnormals; an integer decode is exact.
+description: QuantizedNeuralNet (fp4 / mxfp4 / nvfp4) now runs through the compute door with its weights kept on the device as 4-bit codes. The first kernel decoded a code per multiply-add and was 1.3-1.8x slower than f32; a tiled kernel that decodes each weight tile once into workgroup memory runs FP4 as fast as f32 (sometimes faster) and the f32 path 1.5-1.9x faster than the untiled kernel on 128/256-wide nets (64 rows x 64 outputs a workgroup, 256 threads, the input tile k-major so both tiles fill 16 384 bytes exactly). W4A32, so 2-8e-7 from the dequantised network against the CPU W4A8's 1e-2. The E2M1-to-f32 bit trick (the analogue of int4's 0x6400) decodes 0.5 as 0 on Metal, which flushes subnormals; an integer decode is exact.
 resource: /Users/tpeulen/dev/imp.bff
 tags: [validation, imp.bff, performance, gpu, webgpu, neural-net, fp4]
 timestamp: '2026-10-03T00:00:00Z'
@@ -31,14 +31,21 @@ transposed and uploaded every weight on every call.
 
 ## The kernel
 
-A workgroup of 64 threads owns 32 rows x 32 outputs and walks the contraction
-32 at a time: the input tile and the weight tile in workgroup memory, a 4 x 4
-register block a thread. FP4 codes are decoded and scaled on the way into
-workgroup memory -- once per workgroup, not once per row. Widths and row
-counts are padded to 32 with zeros, so the inner loop checks nothing; the
-batch itself crosses unpadded (`x_stride`, `y_stride`), because for a
-4-input, 2-output network the padding was 8x the bytes and made the narrow
-net 25 % slower than the old kernel until it was removed.
+A workgroup of 256 threads owns 64 rows x 64 outputs and walks the
+contraction 32 at a time: the input tile and the weight tile in workgroup
+memory, a 4 x 4 register block a thread (rows tr + 16 i, outputs to + 16 j).
+The input tile is stored k-major, transposed, so the two tiles fill 16 384
+bytes -- WebGPU's default workgroup-storage limit -- exactly; the row-major
+tile needs a pad column against bank conflicts and does not fit. FP4 codes
+are decoded and scaled on the way into workgroup memory -- once per
+workgroup, not once per row. A layer's outputs are padded to 64, the batch's
+inputs to 32 and its rows to 64, with zeros, so the inner loop checks
+nothing; the batch itself crosses unpadded (`x_stride`, `y_stride`),
+because for a 4-input, 2-output network the padding was 8x the bytes and
+made the narrow net 25 % slower than the old kernel until it was removed.
+The shape is measured, not assumed
+(`benchmark/gpu_mlp_tile_tuning.py`): 8 x 8 register blocks and vec4 loads
+were slower on the M1 Pro than 4 x 4 with 256 threads.
 
 ## The decoder
 
@@ -73,19 +80,21 @@ M1 Pro, through `predict()` from Python (list in, view out), minimum of 5;
 weights resident for FP4, uploaded per call for f32. Prototype:
 `benchmark/gpu_mlp_fp4_wgsl.py`.
 
-| net | rows | f32 GPU, old kernel | f32 GPU, tiled | FP4 GPU, tiled | f64 CPU | fp4 CPU |
-|---|---|---|---|---|---|---|
-| 4-64-64-2 | 10k | 4.7 | 3.6 | 2.2 | 9.0 | 8.1 |
-| 4-64-64-2 | 400k | 68.7 | 67.7 | 56.9 | 345 | 329 |
-| 4-128x3-1 | 3k | — | 3.1 | 1.5 | 9.5 | 7.2 |
-| 4-128x3-1 | 400k | 212.5 | 142.4 | 131.8 | 1314 | 972 |
-| 32-256x3-8 | 10k | 25.7 | 18.8 | 17.2 | 110 | 61 |
-| 32-256x3-8 | 400k | 963.8 | 633.1 | 603.6 | 6406 | 3277 |
+| net | rows | f32 GPU, untiled | f32 GPU, 32x32 tile | f32 GPU, 64x64 tile | FP4 GPU, 64x64 tile | f64 CPU | fp4 CPU |
+|---|---|---|---|---|---|---|---|
+| 4-64-64-2 | 10k | 4.7 | 3.6 | 3.7 | 3.4 | 8.4 | 8.5 |
+| 4-64-64-2 | 400k | 68.7 | 67.7 | 68.3 | 52.9 | 353 | 331 |
+| 4-128x3-1 | 3k | — | 3.1 | 3.0 | 1.4 | 10.2 | 7.5 |
+| 4-128x3-1 | 400k | 212.5 | 142.4 | 114.8 | 96.4 | 1400 | 1169 |
+| 32-256x3-8 | 10k | 25.7 | 18.8 | 17.7 | 17.5 | 138 | 62 |
+| 32-256x3-8 | 400k | 963.8 | 633.1 | 505.2 | 482.7 | 6872 | 2931 |
 
-(ms; old-kernel column from HEAD's plugin rebuilt against ABI 3.) The tiled
-kernel is ~180 GFLOP/s on the widest net (f32, 400k rows), against ~120
-before; M1 Pro's f32 peak is ~5 TFLOP/s, so 8 x 8 register blocks and vector loads are the next
-step.
+(ms; the untiled and 32x32 columns from HEAD's plugin rebuilt against ABI 3.)
+The 64x64 tile is ~224 GFLOP/s on the widest net (f32, 400k rows), against
+~180 at 32x32 and ~120 untiled; M1 Pro's f32 peak is ~5 TFLOP/s. The shape
+came from a sweep (`benchmark/gpu_mlp_tile_tuning.py`): larger register
+blocks (8 x 8) and vec4 loads were slower, so the remaining gap is where it
+is -- the shader is simple enough to stay memory-tile-bound.
 
 **Untiled FP4 was slower than f32** (1.3-1.8x): with a decode per weight per
 row the kernel is ALU-bound, and these weights fit in cache, so 4 bits buy no

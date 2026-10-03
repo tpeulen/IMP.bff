@@ -1,20 +1,26 @@
 // One dense layer, y = activation(W x + b), tiled through workgroup memory.
 //
-// A workgroup of 64 threads owns 32 rows x 32 outputs and walks the
+// A workgroup of 256 threads owns 64 rows x 64 outputs and walks the
 // contraction 32 at a time. The input tile and the weight tile go into
 // workgroup memory, and each thread keeps a register block of 4 rows x 4
-// outputs (rows tr + 8 i, outputs to + 8 j). A weight read from the buffer
-// is reused by 32 rows and an input by 32 outputs; the one-thread-per-output
-// kernel this replaced read both once per multiply-add and ran at a third of
-// the speed (okf/validation/fp4_nn_on_the_gpu.md).
+// outputs (rows tr + 16 i, outputs to + 16 j). A weight read from the buffer
+// is reused by 64 rows and an input by 64 outputs. The shape is measured
+// (benchmark/gpu_mlp_tile_tuning.py, okf/validation/fp4_nn_on_the_gpu.md):
+// against 64 threads on 32 x 32 it is 1.4-1.7x, while larger register
+// blocks (8 x 8) and vec4 reads were slower on an M1 Pro.
+//
+// The input tile is stored transposed, k-major, so the two tiles fill
+// 16 384 bytes -- WebGPU's default workgroup-storage limit -- exactly; the
+// row-major tile needs a pad column against bank conflicts and does not fit.
 //
 // The weights are f32 or FP4, per layer (`p.fmt`), and only the tile load
 // differs. FP4 codes are decoded and scaled on the way into workgroup memory
 // -- once per workgroup rather than once per row -- so FP4 runs as fast as
 // f32 while holding the weights in an eighth of the space.
 //
-// Every width is padded to a multiple of 32 and every row count to a multiple
-// of 32, with zeros, so nothing inside the loop is bounds-checked: padded
+// Every width is padded to a multiple of 64 (the batch's own to 32) and every
+// row count to a multiple of 64, with zeros, so nothing inside the loop is
+// bounds-checked: padded
 // weights are zero, and padded outputs are written as zero for the next layer
 // to read. The two ends are not padded -- the batch arrives `n_in` wide and
 // the answer leaves `n_out` wide -- because for the narrow networks this is
@@ -25,7 +31,7 @@
 // pass crosses the plugin boundary once however deep the network is.
 
 struct Params {
-    n_rows: u32,   // padded to a multiple of 32
+    n_rows: u32,   // padded to a multiple of 64
     n_in: u32,
     n_out: u32,
     act: u32,
@@ -33,8 +39,8 @@ struct Params {
     s_off: u32,    // in f32, FP4 only
     b_off: u32,
     fmt: u32,      // 0: f32 weights, 1: FP4 (E2M1) codes
-    p_in: u32,     // n_in padded to 32: the input row stride
-    p_out: u32,    // n_out padded to 32
+    p_in: u32,     // n_in padded: to 32 for the batch, to 64 after a layer
+    p_out: u32,    // n_out padded to 64
     x_stride: u32, // the input row stride: p_in, or n_in for the batch itself
     y_stride: u32, // the output row stride: p_out, or n_out for the answer
 };
@@ -51,8 +57,8 @@ struct Params {
 @group(0) @binding(4) var<storage, read>       bia:  array<f32>;
 @group(0) @binding(5) var<uniform>             p:    Params;
 
-var<workgroup> xs: array<f32, 1056>;   // 32 rows x (32 + 1): the pad spreads banks
-var<workgroup> ws: array<f32, 1024>;   // 32 k x 32 outputs
+var<workgroup> xs: array<f32, 2048>;   // 32 k x 64 rows
+var<workgroup> ws: array<f32, 2048>;   // 32 k x 64 outputs
 
 // The codes are IMP::bff::internal::Activation in declaration order.
 fn activate(v: f32, act: u32) -> f32 {
@@ -85,55 +91,55 @@ fn e2m1(c: u32) -> f32 {
 
 fn load_weights(lid: u32, k0: u32, o0: u32) {
     if (p.fmt == 0u) {
-        for (var e = lid; e < 1024u; e = e + 64u) {
-            ws[e] = bitcast<f32>(wgt[p.w_off + (k0 + e / 32u) * p.p_out + o0 + e % 32u]);
+        for (var e = lid; e < 2048u; e = e + 256u) {
+            ws[e] = bitcast<f32>(wgt[p.w_off + (k0 + e / 64u) * p.p_out + o0 + e % 64u]);
         }
         return;
     }
-    // 4 words a column of the tile, 32 columns: two words a thread.
-    for (var e = lid; e < 128u; e = e + 64u) {
-        let k8l = e / 32u;
-        let oo = e % 32u;
-        let k8 = k0 / 8u + k8l;
-        let w = wgt[p.w_off + k8 * p.p_out + o0 + oo];
-        let s = scl[p.s_off + (k8 / 2u) * p.p_out + o0 + oo];
-        for (var j = 0u; j < 8u; j = j + 1u) {
-            ws[(k8l * 8u + j) * 32u + oo] = e2m1((w >> (4u * j)) & 15u) * s;
-        }
+    // 4 words a column of the tile, 64 columns: one word a thread.
+    let k8l = lid / 64u;
+    let oo = lid % 64u;
+    let k8 = k0 / 8u + k8l;
+    let w = wgt[p.w_off + k8 * p.p_out + o0 + oo];
+    let s = scl[p.s_off + (k8 / 2u) * p.p_out + o0 + oo];
+    for (var j = 0u; j < 8u; j = j + 1u) {
+        ws[(k8l * 8u + j) * 64u + oo] = e2m1((w >> (4u * j)) & 15u) * s;
     }
 }
 
 // The output tile is wid.x; the row tile is wid.y + 65535 wid.z, since a
 // dispatch may not exceed 65 535 workgroups in a dimension (going over is a
 // validation error that aborts the process rather than returning one).
-@compute @workgroup_size(64)
+@compute @workgroup_size(256)
 fn layer(@builtin(local_invocation_index) lid: u32,
          @builtin(workgroup_id) wid: vec3<u32>) {
     let rt = wid.y + wid.z * 65535u;
-    if (rt * 32u >= p.n_rows) { return; }   // the same for the whole workgroup
-    let r0 = rt * 32u;
-    let o0 = wid.x * 32u;
-    let tr = lid / 8u;
-    let to = lid % 8u;
+    if (rt * 64u >= p.n_rows) { return; }   // the same for the whole workgroup
+    let r0 = rt * 64u;
+    let o0 = wid.x * 64u;
+    let tr = lid / 16u;
+    let to = lid % 16u;
     var acc: array<f32, 16>;
     for (var k0 = 0u; k0 < p.p_in; k0 = k0 + 32u) {
-        for (var e = lid; e < 1024u; e = e + 64u) {
+        // Read row-major (neighbouring threads, neighbouring addresses),
+        // stored k-major.
+        for (var e = lid; e < 2048u; e = e + 256u) {
             let k = k0 + e % 32u;
             var v = 0.0;
             if (k < p.n_in) { v = xin[(r0 + e / 32u) * p.x_stride + k]; }
-            xs[(e / 32u) * 33u + e % 32u] = v;
+            xs[(e % 32u) * 64u + e / 32u] = v;
         }
         load_weights(lid, k0, o0);
         workgroupBarrier();
         for (var kk = 0u; kk < 32u; kk = kk + 1u) {
-            let b0 = ws[kk * 32u + to];
-            let b1 = ws[kk * 32u + to + 8u];
-            let b2 = ws[kk * 32u + to + 16u];
-            let b3 = ws[kk * 32u + to + 24u];
-            let a0 = xs[tr * 33u + kk];
-            let a1 = xs[(tr + 8u) * 33u + kk];
-            let a2 = xs[(tr + 16u) * 33u + kk];
-            let a3 = xs[(tr + 24u) * 33u + kk];
+            let b0 = ws[kk * 64u + to];
+            let b1 = ws[kk * 64u + to + 16u];
+            let b2 = ws[kk * 64u + to + 32u];
+            let b3 = ws[kk * 64u + to + 48u];
+            let a0 = xs[kk * 64u + tr];
+            let a1 = xs[kk * 64u + tr + 16u];
+            let a2 = xs[kk * 64u + tr + 32u];
+            let a3 = xs[kk * 64u + tr + 48u];
             acc[0] = acc[0] + a0 * b0;   acc[1] = acc[1] + a0 * b1;
             acc[2] = acc[2] + a0 * b2;   acc[3] = acc[3] + a0 * b3;
             acc[4] = acc[4] + a1 * b0;   acc[5] = acc[5] + a1 * b1;
@@ -146,9 +152,9 @@ fn layer(@builtin(local_invocation_index) lid: u32,
         workgroupBarrier();
     }
     for (var i = 0u; i < 4u; i = i + 1u) {
-        let r = r0 + tr + 8u * i;
+        let r = r0 + tr + 16u * i;
         for (var j = 0u; j < 4u; j = j + 1u) {
-            let o = o0 + to + 8u * j;
+            let o = o0 + to + 16u * j;
             if (o < p.n_out) {
                 xout[r * p.y_stride + o] = activate(acc[4u * i + j] + bia[p.b_off + o], p.act);
             } else if (p.y_stride == p.p_out) {

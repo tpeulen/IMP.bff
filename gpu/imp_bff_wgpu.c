@@ -762,13 +762,16 @@ done:
 }
 
 /* ---- the network -------------------------------------------------------- */
-/* gpu/mlp.wgsl: one tiled dispatch per layer, 32 rows x 32 outputs a
-   workgroup, ping-ponging two activation buffers. Every width is padded to a
-   multiple of 32 and every row count to a multiple of 32, with zeros, so the
-   kernel checks no bounds inside its loop. The weights live on the device for
+/* gpu/mlp.wgsl: one tiled dispatch per layer, 64 rows x 64 outputs a
+   workgroup, the contraction 32 at a time, ping-ponging two activation
+   buffers. A layer's outputs are padded to a multiple of 64, the batch's
+   inputs to 32, and the row count to 64, with zeros, so the kernel checks no
+   bounds inside its loop. The weights live on the device for
    as long as the handle does (mlp_upload / mlp_run / mlp_release); the
    per-batch mlp_forward is the same three calls in a row. */
-#define MLP_TILE 32u
+#define MLP_ROWS 64u            /* rows a workgroup */
+#define MLP_OUTS 64u            /* outputs a workgroup */
+#define MLP_K 32u               /* the contraction a step; FP4 rows come padded to it */
 #define MLP_UNIFORM 48u
 
 static struct {
@@ -798,7 +801,7 @@ struct MlpNet {
     WGPUBindGroup* g;
 };
 
-static uint32_t pad32(uint32_t n) { return (n + MLP_TILE - 1u) / MLP_TILE * MLP_TILE; }
+static uint32_t pad_to(uint32_t n, uint32_t m) { return (n + m - 1u) / m * m; }
 
 static int build_mlp_pipeline(void) {
     WGPUShaderSourceWGSL wgsl;
@@ -901,8 +904,9 @@ static void* mlp_upload(int n_layers, const int* n_in, const int* n_out,
         q->n_out = (uint32_t)n_out[l];
         q->act = (uint32_t)activation[l];
         q->fmt = (uint32_t)format[l];
-        q->p_in = pad32(q->n_in);
-        q->p_out = pad32(q->n_out);
+        /* The input stride is the previous layer's padded output. */
+        q->p_in = l == 0 ? pad_to(q->n_in, MLP_K) : net->L[l - 1].p_out;
+        q->p_out = pad_to(q->n_out, MLP_OUTS);
         q->w_off = (uint32_t)n_w;
         q->s_off = (uint32_t)n_s;
         q->b_off = (uint32_t)n_b;
@@ -936,8 +940,10 @@ static void* mlp_upload(int n_layers, const int* n_in, const int* n_out,
         } else {
             /* The row's bytes, low nibble first, as little-endian words --
                assembled byte by byte, so the host's byte order does not
-               matter -- transposed to (k / 8) x p_out. */
-            const uint32_t row_bytes = q->p_in / 2u, nw = q->p_in / 8u, ns = q->p_in / 16u;
+               matter -- transposed to (k / 8) x p_out. The rows arrive padded
+               to 32 elements and p_in may be wider; the rest stays zero. */
+            const uint32_t padded = pad_to(q->n_in, MLP_K);
+            const uint32_t row_bytes = padded / 2u, nw = padded / 8u, ns = padded / 16u;
             for (o = 0; o < q->n_out; ++o) {
                 const unsigned char* b = codes[l] + (size_t)o * row_bytes;
                 for (k = 0; k < nw; ++k)
@@ -1037,9 +1043,9 @@ static int mlp_run(void* handle, const double* x, int n_rows, double* y) {
        independent, so a batch that does not fit is split. */
     {
         uint64_t fit = G.max_binding / ((uint64_t)net->widest * 4u);
-        fit = fit / MLP_TILE * MLP_TILE;
-        if (fit < MLP_TILE) return 1;                  /* one tile does not fit: not ours */
-        chunk = pad32((uint32_t)n_rows);
+        fit = fit / MLP_ROWS * MLP_ROWS;
+        if (fit < MLP_ROWS) return 1;                  /* one tile does not fit: not ours */
+        chunk = pad_to((uint32_t)n_rows, MLP_ROWS);
         if (chunk > fit) chunk = (uint32_t)fit;
     }
     if (!ensure_batch_buffers(net, chunk)) return 1;
@@ -1049,7 +1055,7 @@ static int mlp_run(void* handle, const double* x, int n_rows, double* y) {
 
     for (row0 = 0; row0 < n_rows; row0 += (int)chunk) {
         const uint32_t rows = ((uint32_t)(n_rows - row0) < chunk) ? (uint32_t)(n_rows - row0) : chunk;
-        const uint32_t rows_p = pad32(rows), tiles = rows_p / MLP_TILE;
+        const uint32_t rows_p = pad_to(rows, MLP_ROWS), tiles = rows_p / MLP_ROWS;
         WGPUCommandEncoder enc;
         WGPUCommandBuffer cb;
         size_t i;
@@ -1077,7 +1083,7 @@ static int mlp_run(void* handle, const double* x, int n_rows, double* y) {
             G.ComputePassEncoderSetPipeline(cp, M.layer);
             G.ComputePassEncoderSetBindGroup(cp, 0, net->g[l], 0, NULL);
             G.ComputePassEncoderDispatchWorkgroups(
-                    cp, q->p_out / MLP_TILE, tiles < MAX_GROUPS ? tiles : MAX_GROUPS,
+                    cp, q->p_out / MLP_OUTS, tiles < MAX_GROUPS ? tiles : MAX_GROUPS,
                     (tiles + MAX_GROUPS - 1u) / MAX_GROUPS);
             G.ComputePassEncoderEnd(cp);
             G.ComputePassEncoderRelease(cp);

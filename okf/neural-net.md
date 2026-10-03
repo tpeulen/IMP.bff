@@ -713,10 +713,12 @@ with its weights kept on the device as the 4-bit codes. W4A32: decoded on the
 device, f32 arithmetic, 2-8e-7 from the dequantised network (the CPU's W4A8:
 1e-2). `get_last_backend()` says where a call ran; int8, ternary and W4A4
 stay on the CPU, and so do batches under 1 000 rows / 32 M multiply-adds.
-`gpu/mlp.wgsl` is tiled (32 x 32 per workgroup, weights decoded once per
-tile) and serves the float `NeuralNet` too, 1.4-1.6x faster than before on
-128/256-wide nets. Don't decode E2M1 by shifting it into f32 and scaling by
-2^126: Metal flushes the subnormal that 0.5 becomes. Measurements:
+`gpu/mlp.wgsl` is tiled (64 x 64 per workgroup, 256 threads, the input tile
+k-major so both workgroup tiles fill 16 384 bytes exactly; weights decoded
+once per tile) and serves the float `NeuralNet` too, 1.2-1.4x the 32x32
+tile on 128/256-wide nets and 1.9x the untiled kernel. Don't decode E2M1 by
+shifting it into f32 and scaling by 2^126: Metal flushes the subnormal that
+0.5 becomes. Measurements:
 [validation/fp4_nn_on_the_gpu.md](validation/fp4_nn_on_the_gpu.md).
 
 ## Ternary: BitNet b1.58 (2026-09-25)
