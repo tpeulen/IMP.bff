@@ -2,6 +2,11 @@
 
 ## 2026-10-03
 
+- **Windows CI: the link green, the three test failures behind it fixed** (535f3121f; CI runs 37138839825 → 37143223506).
+  - Run 37138839825 proved the LNK2005 fix: Windows built, linked, packaged (pyds present) and ran the fast tests — 3455 passed / 3 failed, the first full Windows test execution since Sep 27.
+  - `get_settings_path()` returned `%APPDATA%` before checking `XDG_CONFIG_HOME`; the XDG override now wins on every platform, and `resolve()` joins relative settings paths with a native separator instead of `/` (both: `test_bff_settings.py`).
+  - `add_embedding_prefilter` could not reopen its database while a read-only mapping lived: ptolib's mapped reader opened `FILE_SHARE_READ` only. Upstream ptolib d70b0ad maps with `FILE_SHARE_READ | FILE_SHARE_WRITE` (matching the format's append + generation-flip design and the `_SH_DENYNO` of the other Windows opens); re-vendored as v0.3.2-23-gd70b0ad. ptolib 11/11 C++ tests green locally; `test_bff_settings.py` 10/10 and `test_sequence_clusters.py` 12/12 green on macOS.
+
 - **Windows CI green again: the whole-archive ptolib stays on IMP.bff-lib's own link** (46df6e34c; CI run 37138522093).
   - LNK2005/LNK1169 on `_IMP_bff.pyd` (run 37124027581): the `WHOLE_ARCHIVE` link-library feature propagated onto every consumer's link line (keyword-less `target_link_libraries` is PUBLIC). On the swig pyd it landed *after* the imp_* import libraries — their thunks for `std::vector<double>` members (`PtoTag::floats`) were already pulled in when whole-archive `ptolib.cpp.obj` redefined them. First full Windows link since 45670ac90 (Sep 29); every Windows run between had been cancelled mid-build. `PRIVATE` keeps the tttrlib defense on `IMP.bff-lib`'s own link (where the feature sits *before* the imp_* libs, harmless — `imp_bff.dll` linked green in the same run) and drops ptolib from consumers entirely. Verified on a SHARED-lib scratch reproduction: `LINK_LIBRARIES` of the consumer contains no ptolib.
   - bld.bat now asserts `_IMP_bff.pyd`/`_IMP_kernel.pyd` exist at the end: `ninja install`'s failure was lost across the echo-on interleave (errorlevel never propagated), rattler-build packaged a 29 MiB imp-2.25.0 with zero pyds, and the actions cache saved it. Cache key includes both changed files, so the poisoned entry is not reused.
