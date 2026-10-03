@@ -1057,6 +1057,58 @@ NPSNetworkObjective::NPSNetworkObjective(const NPSNetworkDyes& dyes,
         IMP_THROW("NPSNetworkObjective: n_dyes must be positive",
                   ValueException);
     }
+    // The node seeds m = 0, phi = 0 and links no angle ports, so it can
+    // only evaluate a position-only posterior: every active observable
+    // must be provably independent of the dye orientations it freezes.
+    // Angle-independence of each likelihood term (avg_kappa_2 / row
+    // selection / TA), from the committed leaves:
+    // - direct FRET: avg_kappa_2 loses its cThT/cTh1/cTh2 dependence
+    //   exactly when dep1 = 0 AND dep2 = 0 (kappa^2 = 2/3);
+    // - convolved FRET: iso/iso reads only row 0; a mixed pair reads the
+    //   25-row single-dye grid and a non-iso pair the 625-row grid, both
+    //   keyed by the frozen m/phi -- an arbitrary row would be pinned;
+    // - TA: dep1*dep2*(3 cThT^2 - 1)/5 is constant exactly when
+    //   dep1*dep2 = 0.
+    const char* because = "NPSNetworkObjective: the objective fixes the "
+                          "dye angles (m = 0, phi = 0) and has no angle "
+                          "ports, so an orientation-dependent likelihood "
+                          "would be silently conditioned on that "
+                          "orientation";
+    for (std::size_t m_index = 0; m_index < measurements_.size();
+            ++m_index) {
+        const NPSMeasurement& meas = measurements_[m_index];
+        if (meas.dye1 < 0 || static_cast<std::size_t>(meas.dye1) >= dyes_.size()
+                || meas.dye2 < 0
+                || static_cast<std::size_t>(meas.dye2) >= dyes_.size()) {
+            IMP_THROW("NPSNetworkObjective: measurement " << m_index
+                          << " references a dye outside the " << dyes_.size()
+                          << "-dye array",
+                      ValueException);
+        }
+        const NPSNetworkDye& meta1 = dyes_[meas.dye1];
+        const NPSNetworkDye& meta2 = dyes_[meas.dye2];
+        if (meas.fret_active) {
+            if (!meta1.dist_conv && !meta2.dist_conv) {
+                if (meta1.dep != 0.0 || meta2.dep != 0.0) {
+                    IMP_THROW(because
+                              << " (direct FRET needs dep1 = dep2 = 0, got "
+                              << meta1.dep << ", " << meta2.dep << ")",
+                              ValueException);
+                }
+            } else if (!(meta1.iso && meta2.iso)) {
+                IMP_THROW(because
+                          << " (distance-convolved FRET needs an iso/iso "
+                             "pair -- row 0 -- not an orientation-grid "
+                             "row)",
+                          ValueException);
+            }
+        }
+        if (meas.ta_active && meta1.dep * meta2.dep != 0.0) {
+            IMP_THROW(because << " (transfer anisotropy needs dep1*dep2 = "
+                              << "0, got " << meta1.dep * meta2.dep << ")",
+                      ValueException);
+        }
+    }
 }
 
 void NPSNetworkObjective::evaluate() {
@@ -1091,7 +1143,10 @@ double nps_cross_entropy(const std::vector<double>& chi2,
     double log_post_sum = 0.0;
     std::size_t kept = 0;
     for (std::size_t i = 0; i < chi2.size(); ++i) {
-        if (!std::isfinite(chi2[i])) continue;  // unscorable states skip
+        // unscorable states skip: chi2 = inf (the objective rejected the
+        // move) is symmetric with a non-finite recorded prior -- a NaN
+        // prior must not be averaged in as a NaN cross-entropy.
+        if (!std::isfinite(chi2[i]) || !std::isfinite(ln_prior[i])) continue;
         log_post_sum += -0.5 * chi2[i] + ln_prior[i];
         ++kept;
     }

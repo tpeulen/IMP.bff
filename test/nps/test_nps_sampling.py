@@ -37,7 +37,7 @@ def _world(e_obs=0.6, sigma=0.1):
     dyes = []
     for _ in range(2):
         dye = bff.NPSNetworkDye()
-        dye.dep = 1.0
+        dye.dep = 0.0  # r_avg = 0: fully depolarized, kappa^2 = 2/3
         dye.iso = True
         dye.dist_conv = False
         dyes.append(dye)
@@ -264,3 +264,146 @@ def test_diagnostics_functions_are_exposed():
 if __name__ == "__main__":
     import sys
     sys.exit(pytest.main([__file__, "-v"]))
+
+
+# ---------------------------------------------------------------------------
+# the objective is a position-only posterior: construction rejects
+# orientation-dependent likelihoods (the node fixes m = 0, phi = 0 and
+# exposes no angle ports, so any likelihood that reads dye orientation
+# would be silently conditioned on that arbitrary orientation)
+# ---------------------------------------------------------------------------
+
+def _angle_free_world():
+    """dep = 0 dyes: r_avg = 0, fully depolarized, kappa^2 = 2/3 -- the
+    one direct-branch chemistry whose likelihood provably ignores the
+    frozen angles (avg_k2 = 2/3 for every orientation)."""
+    dyes = []
+    for _ in range(2):
+        dye = bff.NPSNetworkDye()
+        dye.dep = 0.0
+        dye.iso = False
+        dye.dist_conv = False
+        dyes.append(dye)
+    meas = bff.NPSMeasurement()
+    meas.dye1 = 0
+    meas.dye2 = 1
+    meas.fret_active = True
+    meas.e_avg = 0.6
+    meas.e_err = 0.1
+    meas.r_iso6 = 55.0 ** 6
+    return dyes, [meas]
+
+
+def _ports(node, values):
+    ports = []
+    for i, start in enumerate(values):
+        p = bff.GraphPort([start])
+        ports.append(p)
+        link = bff.GraphPort([0.0])
+        link.set_link(p)
+        node.add_input_port("x%d" % i, link)
+    return ports
+
+
+def test_objective_accepts_angle_free_depolarized_direct_dyes():
+    dyes, meas = _angle_free_world()
+    node = bff.NPSNetworkObjective(dyes, meas, 2)
+    _ports(node, [0.0, 0.0, 0.0, 70.0, 0.0, 0.0])
+    node.add_output_port("chi2", bff.GraphPort([0.0]))
+    node.set_output_is_log_likelihood(True)
+    node.update()
+    logl = bff.nps_network_log_likelihood(_config_at(70.0), dyes, meas)
+    assert node.get_output_port("chi2").get_value() == pytest.approx(
+        -logl, rel=1e-12)
+
+
+def test_objective_rejects_oriented_direct_dyes():
+    """dep > 0 direct dyes: avg_kappa_2 reads cThT/cTh1/cTh2, which the
+    node can never sample (angles frozen at m=0, phi=0)."""
+    dyes, meas = _angle_free_world()
+    dyes[0].dep = 0.5
+    with pytest.raises(IMP.ValueException):
+        bff.NPSNetworkObjective(dyes, meas, 2)
+
+
+def test_objective_rejects_orientation_grid_pairs():
+    """Convolved non-iso pairs select their coefficient row by the dyes'
+    m/phi -- frozen angles would pin one arbitrary row of the 625."""
+    dyes, meas = _angle_free_world()
+    for d in dyes:
+        d.dist_conv = True
+        d.iso = False
+    meas[0].set_eff_conv_coeff(
+        [[0.4] + [0.0] * 11 for _ in range(625)])
+    with pytest.raises(IMP.ValueException):
+        bff.NPSNetworkObjective(dyes, meas, 2)
+
+
+def test_objective_accepts_iso_convoluted_pairs():
+    """iso/iso convolved pairs read row 0 only -- angle-free."""
+    dyes, meas = _angle_free_world()
+    for d in dyes:
+        d.dist_conv = True
+        d.iso = True
+    meas[0].set_eff_conv_coeff([[0.4] + [0.0] * 11])
+    node = bff.NPSNetworkObjective(dyes, meas, 2)
+    _ports(node, [0.0, 0.0, 0.0, 70.0, 0.0, 0.0])
+    node.add_output_port("chi2", bff.GraphPort([0.0]))
+    node.update()
+    # row 0 is the constant polynomial 0.4
+    assert node.get_output_port("chi2").get_value() == pytest.approx(
+        bff.nps_network_chi2(_config_at(70.0), dyes, meas), rel=1e-12)
+
+
+def test_objective_rejects_transfer_anisotropy_on_ordered_dyes():
+    """TA = dep1*dep2*(3 cThT^2 - 1)/5 reads the mutual angle; with both
+    dyes ordered (dep1*dep2 > 0) it is orientation-dependent."""
+    dyes, meas = _angle_free_world()
+    dyes[0].dep = 0.5
+    dyes[1].dep = 0.5
+    meas[0].ta_active = True
+    meas[0].r_t_avg = 0.1
+    meas[0].r_t_err = 0.02
+    with pytest.raises(IMP.ValueException):
+        bff.NPSNetworkObjective(dyes, meas, 2)
+
+
+def test_objective_accepts_transfer_anisotropy_with_one_depolarized_dye():
+    """dep1*dep2 = 0: TA is identically zero -- angle-free. FRET must be
+    off here: the direct branch needs BOTH dyes depolarized to lose its
+    c^2 * dep * (1 - dep) angle terms."""
+    dyes, meas = _angle_free_world()
+    dyes[0].dep = 0.5  # ordered donor, fully depolarized acceptor
+    meas[0].fret_active = False
+    meas[0].ta_active = True
+    meas[0].r_t_avg = 0.0
+    meas[0].r_t_err = 0.02
+    node = bff.NPSNetworkObjective(dyes, meas, 2)
+    _ports(node, [0.0, 0.0, 0.0, 70.0, 0.0, 0.0])
+    node.add_output_port("chi2", bff.GraphPort([0.0]))
+    node.set_output_is_log_likelihood(True)
+    node.update()
+    logl = bff.nps_network_log_likelihood(_config_at(70.0), dyes, meas)
+    assert node.get_output_port("chi2").get_value() == pytest.approx(
+        -logl, rel=1e-12)
+
+
+def test_objective_rejects_out_of_range_measurement_dyes():
+    dyes, meas = _angle_free_world()
+    meas[0].dye2 = 5  # no such dye in a 2-dye network
+    with pytest.raises(IMP.ValueException):
+        bff.NPSNetworkObjective(dyes, meas, 2)
+
+
+def test_cross_entropy_skips_non_finite_priors():
+    """A chain row with a non-finite prior is as unscorable as one with
+    chi2 = inf; it must be skipped, not averaged in as NaN."""
+    ce = bff.nps_cross_entropy([1.0, 2.0, 3.0],
+                               [0.5, float("nan"), -0.5])
+    finite = bff.nps_cross_entropy([1.0, 3.0], [0.5, -0.5])
+    assert ce == pytest.approx(finite, rel=1e-12)
+
+
+def test_cross_entropy_rejects_all_unscorable_records():
+    with pytest.raises(IMP.ValueException):
+        bff.nps_cross_entropy([1.0, 2.0], [float("nan"), float("inf")])

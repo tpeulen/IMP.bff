@@ -333,13 +333,25 @@ IMPBFFEXPORT double nps_cloud_prior_score(
     log-likelihood mode publishes \f$-\log L\f$ so the sampler reads it
     with set_output_is_log_likelihood(true).
 
+    Because the node fixes the dye angles and links no angle ports, it
+    can only sample a position-only posterior. Construction therefore
+    rejects orientation-dependent likelihoods: direct FRET requires
+    dep = 0 for both dyes of every active pair (\f$\kappa^2 = 2/3\f$,
+    the fully depolarized dye-model-2 chemistry of Muschielok &
+    Michaelis 2011), distance-convolved FRET requires an iso/iso pair
+    (row 0), and transfer anisotropy requires \f$dep_1 dep_2 = 0\f$.
+    Measurement dye indices must address the dye array. Violations
+    raise IMP::ValueException at construction instead of silently
+    conditioning the posterior on the frozen orientation.
+
     This is the whole Fast-NPS sampling objective without a Python
     std::function and without a per-move crossing: the ports link to the
     sampler's parameter ports, so a proposal lands here by reference and
     update() is pure C++. The dyes and measurements are copied at
     construction and never change.
     \throws IMP::ValueException at construction when n_dyes is not
-        positive. */
+        positive, a measurement references a dye outside the array, or
+        an active observable depends on the frozen dye orientation. */
 class IMPBFFEXPORT NPSNetworkObjective : public GraphNode {
     NPSNetworkDyes dyes_;
     NPSMeasurements measurements_;
