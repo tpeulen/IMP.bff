@@ -115,10 +115,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:ae3469ee039be6ee4ca00c6c73414f3c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">How many atoms carry a non-zero rate.  <br /></td></tr>
 <tr class="separator:ae3469ee039be6ee4ca00c6c73414f3c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a227d906ac242bac0e263f1e42ea50446" id="r_a227d906ac242bac0e263f1e42ea50446"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_p_e_t_term.html#a227d906ac242bac0e263f1e42ea50446">get_kQ</a> (double **out_view, int *n_out_view) const</td></tr>
-<tr class="memdesc:a227d906ac242bac0e263f1e42ea50446"><td class="mdescLeft">&#160;</td><td class="mdescRight">Per-atom <picture><source srcset="form_223_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k_Q$" src="form_223.png"/></picture>, as a numpy view.  <br /></td></tr>
+<tr class="memdesc:a227d906ac242bac0e263f1e42ea50446"><td class="mdescLeft">&#160;</td><td class="mdescRight">Per-atom <picture><source srcset="form_224_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k_Q$" src="form_224.png"/></picture>, as a numpy view.  <br /></td></tr>
 <tr class="separator:a227d906ac242bac0e263f1e42ea50446"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac5fe23651060896af9b10c0d42f5c2b4" id="r_ac5fe23651060896af9b10c0d42f5c2b4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_p_e_t_term.html#ac5fe23651060896af9b10c0d42f5c2b4">get_rC</a> (double **out_view, int *n_out_view) const</td></tr>
-<tr class="memdesc:ac5fe23651060896af9b10c0d42f5c2b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Per-atom <picture><source srcset="form_224_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r_C$" src="form_224.png"/></picture>, as a numpy view.  <br /></td></tr>
+<tr class="memdesc:ac5fe23651060896af9b10c0d42f5c2b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Per-atom <picture><source srcset="form_225_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r_C$" src="form_225.png"/></picture>, as a numpy view.  <br /></td></tr>
 <tr class="separator:ac5fe23651060896af9b10c0d42f5c2b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9ec5200be51b71c052642f203aec2424" id="r_a9ec5200be51b71c052642f203aec2424"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_p_e_t_term.html#a9ec5200be51b71c052642f203aec2424">get_arity</a> () const override</td></tr>
 <tr class="memdesc:a9ec5200be51b71c052642f203aec2424"><td class="mdescLeft">&#160;</td><td class="mdescRight">How many participants the term is defined over.  <br /></td></tr>
@@ -137,7 +137,7 @@ Public Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>2-body: photoinduced electron transfer between a dye and quencher atoms. </p>
-<p><picture><source srcset="form_221_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k(r) = \sum_a k_{Q,a} \exp(-(|r - r_a| - r_{dye}) / r_{C,a})$" src="form_221.png"/></picture></p>
+<p><picture><source srcset="form_222_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k(r) = \sum_a k_{Q,a} \exp(-(|r - r_a| - r_{dye}) / r_{C,a})$" src="form_222.png"/></picture></p>
 <p>The quenching atoms are part of the term, not a per-call argument: resolving which of a structure's atoms quench, and how hard, is a function of the residue and atom names and the dye's #IMP::bff::PETParameters, and it does not change from one set of dye states to the next. Doing it once at construction is also what lets the rate be a plain loop. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a60adae3b32a58b6ad62be104a23232dc" name="a60adae3b32a58b6ad62be104a23232dc"></a>
@@ -264,7 +264,7 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Per-atom <picture><source srcset="form_223_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k_Q$" src="form_223.png"/></picture>, as a numpy view. </p>
+<p>Per-atom <picture><source srcset="form_224_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k_Q$" src="form_224.png"/></picture>, as a numpy view. </p>
 
 </div>
 </div>
@@ -338,7 +338,7 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Per-atom <picture><source srcset="form_224_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r_C$" src="form_224.png"/></picture>, as a numpy view. </p>
+<p>Per-atom <picture><source srcset="form_225_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r_C$" src="form_225.png"/></picture>, as a numpy view. </p>
 
 </div>
 </div>
@@ -395,7 +395,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Oct 3 2026 17:00:34 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Oct 3 2026 18:11:59 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -300,15 +300,15 @@ Static Public Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The polarised lifetime spectrum a VV or VH detector sees. </p>
-<p>A magic-angle decay carries no anisotropy, so a VM model needs none of this. A polarisation-resolved one does: the measured decay is the <em>product</em> of the fluorescence decay and the anisotropy decay <picture><source srcset="form_213_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r(t) = \sum_i b_i e^{-t/\rho_i}$" src="form_213.png"/></picture>, and because both are sums of exponentials that product is again a sum of exponentials &ndash; over the Cartesian product of the two spectra, with the harmonic mean of the two time constants. That is the whole reason this can be a spectrum transform rather than a curve one, and it is why the instrument node downstream does not have to know a polarisation happened.</p>
+<p>A magic-angle decay carries no anisotropy, so a VM model needs none of this. A polarisation-resolved one does: the measured decay is the <em>product</em> of the fluorescence decay and the anisotropy decay <picture><source srcset="form_214_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r(t) = \sum_i b_i e^{-t/\rho_i}$" src="form_214.png"/></picture>, and because both are sums of exponentials that product is again a sum of exponentials &ndash; over the Cartesian product of the two spectra, with the harmonic mean of the two time constants. That is the whole reason this can be a spectrum transform rather than a curve one, and it is why the instrument node downstream does not have to know a polarisation happened.</p>
 <p class="formulaDsp">
-<picture><source srcset="form_214_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaDsp" alt="\[
+<picture><source srcset="form_215_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaDsp" alt="\[
   f_{VV} = f\,(1 + (2 - 3 l_1)\,r), \qquad
   f_{VH} = f\,(1 - (1 - 3 l_2)\,r) / G
-\]" src="form_214.png"/></picture>
+\]" src="form_215.png"/></picture>
 </p>
-<p><picture><source srcset="form_215_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$G = S_\parallel / S_\perp$" src="form_215.png"/></picture> is the sensitivity ratio, so the perpendicular channel records <picture><source srcset="form_216_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$1/G$" src="form_216.png"/></picture> of what an equally sensitive one would &ndash; it <b>divides</b>. <code>l1</code> and <code>l2</code> enter the amplitudes in the Schaffer/Eggeling parameterisation, <em>not</em> as a 2x2 mixing of an ideal pair; the two spellings use the same symbols for different quantities and only this one inverts back to the anisotropy it was built from.</p>
-<dl class="section user"><dt>The rotational amplitudes are normalised to r0, and that is a model</dt><dd>decision this node reproduces rather than invents. The fitted <picture><source srcset="form_217_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$b_i$" src="form_217.png"/></picture> are taken absolute, divided by their sum and multiplied by <code>r0</code>, so <code>r0</code> alone sets <picture><source srcset="form_218_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r(0)$" src="form_218.png"/></picture> and the <picture><source srcset="form_217_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$b_i$" src="form_217.png"/></picture> only divide it up. The correlation times are taken absolute for the same reason lifetimes are: a fit that walks one through zero would otherwise put a growing exponential in the model.</dd></dl>
+<p><picture><source srcset="form_216_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$G = S_\parallel / S_\perp$" src="form_216.png"/></picture> is the sensitivity ratio, so the perpendicular channel records <picture><source srcset="form_217_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$1/G$" src="form_217.png"/></picture> of what an equally sensitive one would &ndash; it <b>divides</b>. <code>l1</code> and <code>l2</code> enter the amplitudes in the Schaffer/Eggeling parameterisation, <em>not</em> as a 2x2 mixing of an ideal pair; the two spellings use the same symbols for different quantities and only this one inverts back to the anisotropy it was built from.</p>
+<dl class="section user"><dt>The rotational amplitudes are normalised to r0, and that is a model</dt><dd>decision this node reproduces rather than invents. The fitted <picture><source srcset="form_218_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$b_i$" src="form_218.png"/></picture> are taken absolute, divided by their sum and multiplied by <code>r0</code>, so <code>r0</code> alone sets <picture><source srcset="form_219_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r(0)$" src="form_219.png"/></picture> and the <picture><source srcset="form_218_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$b_i$" src="form_218.png"/></picture> only divide it up. The correlation times are taken absolute for the same reason lifetimes are: a fit that walks one through zero would otherwise put a growing exponential in the model.</dd></dl>
 <p>Ports:</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -316,9 +316,9 @@ Static Public Member Functions</h2></td></tr>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>lifetime_spectrum</code>   </td><td class="markdownTableBodyNone">the unpolarised interleaved spectrum, from upstream    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>r0</code>   </td><td class="markdownTableBodyNone">the fundamental anisotropy, <picture><source srcset="form_218_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r(0)$" src="form_218.png"/></picture>    </td></tr>
+<td class="markdownTableBodyNone"><code>r0</code>   </td><td class="markdownTableBodyNone">the fundamental anisotropy, <picture><source srcset="form_219_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r(0)$" src="form_219.png"/></picture>    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>g</code>   </td><td class="markdownTableBodyNone"><picture><source srcset="form_219_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$S_\parallel / S_\perp$" src="form_219.png"/></picture>    </td></tr>
+<td class="markdownTableBodyNone"><code>g</code>   </td><td class="markdownTableBodyNone"><picture><source srcset="form_220_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$S_\parallel / S_\perp$" src="form_220.png"/></picture>    </td></tr>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>l1</code>, <code>l2</code>   </td><td class="markdownTableBodyNone">the depolarisation mixing factors    </td></tr>
 <tr class="markdownTableRowOdd">
@@ -703,7 +703,7 @@ Static Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Oct 3 2026 17:00:34 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Oct 3 2026 18:11:59 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

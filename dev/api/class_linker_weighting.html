@@ -117,7 +117,7 @@ Public Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Weight per linker path length: how a flexible linker distributes its dye. </p>
-<p>An accessible volume treats every reachable voxel as equally likely. A real linker does not: a random coil rarely sits fully collapsed against its attachment point, so voxels a short path from the source are less likely than the count of them suggests. This is that correction &ndash; a tabulated <picture><source srcset="form_212_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$P(\ell)$" src="form_212.png"/></picture> over the <b>path length</b> <picture><source srcset="form_170_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\ell$" src="form_170.png"/></picture>, the geodesic through free space that #IMP::bff::PathMap already computes per voxel.</p>
+<p>An accessible volume treats every reachable voxel as equally likely. A real linker does not: a random coil rarely sits fully collapsed against its attachment point, so voxels a short path from the source are less likely than the count of them suggests. This is that correction &ndash; a tabulated <picture><source srcset="form_213_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$P(\ell)$" src="form_213.png"/></picture> over the <b>path length</b> <picture><source srcset="form_170_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\ell$" src="form_170.png"/></picture>, the geodesic through free space that #IMP::bff::PathMap already computes per voxel.</p>
 <p>The uniform weighting (the default) returns 1 everywhere, which is exactly the unweighted volume, so nothing changes unless a table is set.</p>
 <dl class="section note"><dt>Note</dt><dd>Out-of-range path lengths are <b>clamped</b> to the table's end values. The reference implementation returns NaN there, which a weight cannot be: one NaN voxel makes every mean position, distance and efficiency computed from the volume NaN too. </dd></dl>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
@@ -375,7 +375,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Oct 3 2026 17:00:34 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Oct 3 2026 18:11:59 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

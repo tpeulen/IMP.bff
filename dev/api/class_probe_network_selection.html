@@ -141,7 +141,7 @@ Public Member Functions</h2></td></tr>
 <div class="textblock"><p>Greedy selection of a probe network by a weighted sum of term losses. </p>
 <p>Each step adds the unit (a pair, or in site mode a labelling site with every pair it completes) that minimises</p>
 <p class="formulaDsp">
-<picture><source srcset="form_299_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaDsp" alt="\[ J = \sum_t w_t L_t, \]" src="form_299.png"/></picture>
+<picture><source srcset="form_300_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaDsp" alt="\[ J = \sum_t w_t L_t, \]" src="form_300.png"/></picture>
 </p>
 <p>the weighted sum of the terms' losses. A weight of 0 turns a term off; it is still reported. Ties go to the lowest index, as in #IMP::bff::select_probe_pairs.</p>
 <p>Site mode needs <a class="el" href="class_probe_network_selection.html#aa82999273933e1f7a2ca0ee51ba1fbd2" title="The two site indices of every candidate pair, n_pairs x 2.">set_pair_sites</a>. A pair is implied once both of its sites are chosen, a homotypic pair <code>(i, i)</code> as soon as <code>i</code> is (homo-oligomers, as #IMP::bff::select_probe_positions); #IMP::bff::ProbeOligomerPairs builds these rows for any number of protomers. In pair mode the sites, when set, are passed to the terms so the labelling term sees them. </p>
@@ -551,7 +551,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Oct 3 2026 17:00:34 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Oct 3 2026 18:11:59 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
