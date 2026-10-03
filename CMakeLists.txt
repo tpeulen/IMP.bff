@@ -103,7 +103,14 @@ if(TARGET IMP.bff-lib)
   # ptolib (maybe another version), and a symbol found there first was bound
   # to it -- the codec table of an older ptolib, and a crash. Every ptolib
   # symbol now resolves here; inline members stay here too.
-  target_link_libraries(IMP.bff-lib "$<LINK_LIBRARY:WHOLE_ARCHIVE,ptolib::ptolib>")
+  # PRIVATE, or the WHOLE_ARCHIVE feature propagates onto every consumer's
+  # link line -- on the swig pyd it lands after the imp_* import libraries,
+  # whose thunks for std::vector<double> members (PtoTag::floats) are already
+  # defined when whole-archive ptolib.cpp.obj is forced in: LNK2005/LNK1169
+  # on Windows (CI run 37124027581). On this lib's own link the feature sits
+  # before the imp_* libraries and is harmless; consumers reference no ptolib
+  # symbol (public headers only forward-declare pto::StoreReader).
+  target_link_libraries(IMP.bff-lib PRIVATE "$<LINK_LIBRARY:WHOLE_ARCHIVE,ptolib::ptolib>")
   set_target_properties(IMP.bff-lib PROPERTIES VISIBILITY_INLINES_HIDDEN ON)
   # Optional: zlib reads gzip-compressed FASTA into a sequence database.
   find_package(ZLIB QUIET)

@@ -106,3 +106,19 @@ if errorlevel 1 exit 1
 
 :: Don't distribute example application
 del "%LIBRARY_PREFIX%\bin\imp_example_app.exe"
+
+:: The batch must fail when the build it wraps failed. Today it does not:
+:: `ninja install` died at the _IMP_bff.pyd link (LNK1169, run 37124027581),
+:: the `if errorlevel 1 exit 1` after it never fired (cmd loses errorlevel
+:: across the echo-on/ninja output interleave), and rattler-build packaged a
+:: 29 MiB imp-2.25.0 with zero .pyd files -- the "success" was then cached and
+:: the test step failed with `No module named 'IMP'`. Assert the artifacts
+:: that a real install produces, so no partial package ever passes again.
+if not exist "%SP_DIR%\_IMP_bff.pyd" (
+  echo ERROR: %SP_DIR%\_IMP_bff.pyd was not installed - the build failed above
+  exit 1
+)
+if not exist "%SP_DIR%\_IMP_kernel.pyd" (
+  echo ERROR: %SP_DIR%\_IMP_kernel.pyd was not installed - the build failed above
+  exit 1
+)
