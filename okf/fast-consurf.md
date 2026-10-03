@@ -470,6 +470,24 @@ the first runs were slow, not the layout.
 `uniref.pto` and `uniref50_esm.pto` remain next to it for now (a duplicate
 of 23.4 + 1.2 GB on the card).
 
+## Benchmark: 100 Swiss-Prot chains (2026-10-03)
+
+100 further random Swiss-Prot chains (seed 7, 60–1000 residues, disjoint from
+the 20; `consurf_e2e/bench2.py`, `bench2.tsv`). Two have too few homologues
+in either method, leaving 98:
+
+| configuration | score ρ, median (10th pct, min) | grades exact, median | within 1, median (10th pct) |
+|---|---|---|---|
+| same k-mer search, 150 closest (sampling spread) | 0.920 (0.837, 0.697) | 0.530 | 0.782 (0.677) |
+| **embedding, 10k candidates, early stop 600** | **0.977 (0.944, 0.891)** | 0.657 | **0.944 (0.856)** |
+
+The fast path is closer to the reference than the sampling spread on 82 of 98
+chains (on the 20-chain set: all of them). The k-mer reference took 4,080 s
+for the batch of 100 (41 s per chain). The per-chain times of this run
+(median 46 s, SD card) are not usable: a Parallels VM (6.3 GB) on the 16 GB
+Mac drove the machine into swap during the run, and single chains took up to
+4,935 s. The SSD timing of the 20 chains (median 5.2 s) stands.
+
 ## Pending
 
 - **UniRef50 embedding** of all 38.84 M representatives on cordeshub
