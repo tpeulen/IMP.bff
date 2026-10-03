@@ -272,9 +272,12 @@ jobs:
             conda_exe=conda
           fi
           for attempt in 1 2 3; do
+            # test/nps/test_nps_notebooks.py reads and executes the public
+            # notebooks: nbformat/nbclient plus a real kernel, matplotlib,
+            # and Biopython are test-only dependencies, not IMP run deps.
             "$conda_exe" create -y -n bff-test --strict-channel-priority \
               -c ./imp-bld -c conda-forge \
-              imp pytest pooch ihm scipy && break
+              imp pytest pooch ihm scipy nbformat nbclient ipykernel matplotlib biopython && break
             [ "$attempt" -lt 3 ] || exit 1
             echo "retrying test env creation (attempt $attempt failed)"
             sleep 10
