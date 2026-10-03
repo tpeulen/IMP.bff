@@ -12,6 +12,7 @@
 
 #include <cstdio>
 #include <fstream>
+#include <algorithm>
 #include <map>
 #include <sstream>
 
@@ -96,16 +97,47 @@ ConsurfResults compute_consurf(const Strings& queries, const ConsurfOptions& opt
             const SequenceDatabase database(source.database);
             SequenceSearchOptions search = options.search;
             search.max_evalue = std::max(search.max_evalue, options.homologs.max_evalue);
-            const Strings queries(unique.begin(), unique.end());
-            if (database.get_has_members()) {
-                // one clustered store: representatives, then the hit clusters' members
-                hits = search_clustered_sequence_database(queries, database, search, options.clusters);
-            } else if (source.representatives.empty()) {
-                hits = search_sequence_database(queries, database, search);
-            } else {
-                hits = search_clustered_sequence_database(
+            auto run = [&](const Strings& queries, const SequenceSearchOptions& so) {
+                if (database.get_has_members())   // one clustered store: representatives, then members
+                    return search_clustered_sequence_database(queries, database, so, options.clusters);
+                if (source.representatives.empty()) return search_sequence_database(queries, database, so);
+                return search_clustered_sequence_database(
                         queries, SequenceDatabase(source.representatives),
-                        SequenceClusters(source.representatives), database, search, options.clusters);
+                        SequenceClusters(source.representatives), database, so, options.clusters);
+            };
+            hits = run(Strings(unique.begin(), unique.end()), search);
+            // A query whose candidates filled the cap and were mostly near-identical
+            // (ConSurf drops those) is searched again with a larger cap.
+            if (options.retry_max_candidates > search.max_candidates) {
+                std::vector<int> retry;
+                for (std::size_t k = 0; k < unique.size(); ++k) {
+                    int n = 0, near_identical = 0;
+                    for (const SequenceSearchHit& h : hits) {
+                        if (h.query != static_cast<int>(k)) continue;
+                        ++n;
+                        if (h.identity >= options.homologs.max_identity) ++near_identical;
+                    }
+                    const int kept = static_cast<int>(
+                            select_sequence_homologs(hits, options.homologs, static_cast<int>(k)).size());
+                    if (kept < options.homologs.min_homologs && n >= search.max_candidates &&
+                        2 * near_identical >= n)
+                        retry.push_back(static_cast<int>(k));
+                }
+                if (!retry.empty()) {
+                    Strings again;
+                    for (int k : retry) again.push_back(unique[static_cast<std::size_t>(k)]);
+                    SequenceSearchOptions wider = search;
+                    wider.max_candidates = options.retry_max_candidates;
+                    SequenceSearchHits more = run(again, wider);
+                    SequenceSearchHits merged;
+                    for (const SequenceSearchHit& h : hits)
+                        if (std::find(retry.begin(), retry.end(), h.query) == retry.end()) merged.push_back(h);
+                    for (SequenceSearchHit h : more) {
+                        h.query = retry[static_cast<std::size_t>(h.query)];
+                        merged.push_back(h);
+                    }
+                    hits.swap(merged);
+                }
             }
         }
         for (std::size_t k = 0; k < unique.size(); ++k) {

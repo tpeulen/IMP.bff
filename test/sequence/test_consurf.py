@@ -146,3 +146,44 @@ def test_nested_options_set_in_place():
     other = bff.ConsurfOptions()
     other.clusters = o.clusters
     assert other.clusters.min_homologues == 5 and other.clusters.embedding_candidates == 123
+
+
+def test_near_identical_hits_filling_the_cap_trigger_a_wider_search(tmp_path):
+    """Ubiquitin's case: the best-scoring candidates are all near-identical
+    copies, which ConSurf's 95 % rule drops, and the real homologues lie
+    beyond the candidate cap. The retry searches again with a larger cap."""
+    msa = bff.read_sequence_msa(FIXTURE, match_columns_only=False)
+    family = [msa.get_sequence(k).replace("-", "") for k in range(msa.get_n_sequences())]
+    query = family[0]
+    rng = random.Random(8)
+
+    def copy(s, n_mut):
+        s = list(s)
+        for i in rng.sample(range(len(s)), n_mut):
+            s[i] = rng.choice(AA)
+        return "".join(s)
+
+    with open(tmp_path / "db.fasta", "w") as fh:
+        for k in range(60):                                 # >= 98 % identical to the query
+            fh.write(f">copy{k}\n{copy(query, 2)}\n")
+        for k, s in enumerate(family[1:]):
+            fh.write(f">fam{k}\n{s}\n")
+        for k in range(500):
+            fh.write(f">decoy{k}\n" + "".join(rng.choice(AA) for _ in range(rng.randint(60, 300))) + "\n")
+    path = str(tmp_path / "db.pto")
+    bff.create_sequence_database(str(tmp_path / "db.fasta"), path)
+    o = bff.ConsurfOptions()
+    o.database = path
+    o.homologs = bff.SequenceHomologOptions.consurf_standalone()
+    o.search.max_candidates = 40                            # the copies alone fill it
+    o.retry_max_candidates = 0
+    capped = bff.compute_consurf([query], o)[0]
+    assert not capped.get_is_ok()
+    o.retry_max_candidates = 2000
+    wide = bff.compute_consurf([query], o)[0]
+    assert wide.get_is_ok(), wide.status
+    assert all(h.identifier.startswith("fam") for h in wide.homologs)
+
+
+def test_early_stop_does_not_count_near_identical_hits():
+    assert bff.SequenceClusterSearchOptions().stop_max_identity == 0.95

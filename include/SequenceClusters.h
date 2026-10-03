@@ -124,12 +124,15 @@ public:
     //! Early stop: 0 searches the members of every cluster found. Otherwise
     //! clusters are taken best first (by their representative's E-value), in
     //! growing batches, until every query has this many hits that pass
-    //! \p stop_evalue and \p stop_min_identity -- the homologues ConSurf
+    //! \p stop_evalue, \p stop_min_identity and \p stop_max_identity -- the homologues ConSurf
     //! keeps, say four times its cap of 150. Faster; the homologues are then
     //! the closest ones rather than a sample of all.
     int min_homologues = 0;
     double stop_evalue = 1e-4;
     double stop_min_identity = 0.35;
+    //! Near-identical hits (ConSurf drops them as redundant) do not count
+    //! towards \p min_homologues.
+    double stop_max_identity = 0.95;
     //! Embedding prefilter: a #IMP::bff::ProteinLanguageModel (GGUF, with a
     //! projection head) and an #IMP::bff::EmbeddingIndex of the
     //! representatives. When both are set, the first stage aligns only the

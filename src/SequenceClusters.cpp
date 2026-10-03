@@ -766,7 +766,8 @@ SequenceSearchHits search_members(const Strings& queries, const SequenceSearchHi
                 search_sequence_database_rows(queries, members, rows_for(done, end, first), options);
         for (const SequenceSearchHit& h : hits) {
             out.push_back(h);
-            if (h.evalue <= co.stop_evalue && h.identity >= co.stop_min_identity)
+            if (h.evalue <= co.stop_evalue && h.identity >= co.stop_min_identity &&
+                h.identity < co.stop_max_identity)
                 ++good[static_cast<std::size_t>(h.query)];
         }
         done = end;

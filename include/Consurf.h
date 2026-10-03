@@ -63,6 +63,12 @@ public:
     SequenceClusterSearchOptions clusters;
     SequenceHomologOptions homologs;
     SequenceConservationOptions conservation;
+    //! When a query ends with fewer than `homologs.min_homologs` homologues
+    //! because its candidates hit the cap (`search.max_candidates`) and were
+    //! mostly near-identical (removed by `homologs.max_identity`; e.g.
+    //! ubiquitin), it is searched again with this many candidates, so more
+    //! distant homologues get in. 0 disables the retry.
+    int retry_max_candidates = 20000;
 
     IMP_SHOWABLE_INLINE(ConsurfOptions, out << "ConsurfOptions(" << database << ")");
 };
