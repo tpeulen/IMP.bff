@@ -2,6 +2,8 @@
 
 ## 2026-10-03
 
+- **CPU compute-core and native sampling boundary verified**: separate unscaled value inference, allocation-free scalar graph writes, contiguous chains and director-safe GIL/exception boundaries. Parent: 571 passed / 65 skipped; source-aligned Gaussian 1.16x, copy-heavy NN 1.60–1.75x, flat export 79–115x (boundary only). [Raw evidence, limits and resume point](validation/compute-core-performance.md).
+
 - **Native SMLM spatial trees, Gaussian scoring and rotational particle averaging** ([smlm.md](smlm.md), [paper/data record](smlm-locmofit-reference.md)). Owning KD-tree KDE/gradients, Gaussian overlap, LocMoFit observation likelihood/background/intrinsic blur, 6D fitting, AICc, selective uncertainty-aware maps and native MRC export. Strict native CSV input and IMP `SMLMRestraint` support structural emitter/rigid-body optimization. All five primary NPC CSVs (530,324 rows) and publication software are audited in [the reference manifest](smlm-reference-data.json). Human NPC example: 94 pores/12,676 measured rows with full pose provenance and normal ChiMOL density controls; no per-iteration Python callbacks.
 
 - **Windows CI: the link green, the three test failures behind it fixed** (535f3121f; CI runs 37138839825 → 37143223506).

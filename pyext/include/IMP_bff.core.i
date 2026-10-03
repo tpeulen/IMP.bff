@@ -14,6 +14,23 @@ import json
 import numpy as np
 %}
 
+/* The SWIG launcher enables thread support, but wrapper release stays opt-in:
+   ordinary BFF methods retain the GIL. Suppress only wrapper releases, so
+   every director entry (including returns and cleanup) still acquires it. */
+%feature("nothreadallow") "";
+%{
+static void bff_handle_released_exception() {
+    // A Python director has already set the original exception and traceback.
+    if (PyErr_Occurred()) return;
+#if defined(IMPBFF_STANDALONE) || defined(IMPBFF_WITH_IMP)
+    // Both standalone variants use their own SWIG preamble and translator.
+    imp_bff_handle_exception();
+#else
+    handle_imp_exception();
+#endif
+}
+%}
+
 /* Does this build actually thread? The kernels ask; the compiler may not listen. */
 %include "IMP/bff/OpenMP.h"
 
@@ -930,6 +947,18 @@ IMP_SWIG_VALUE(IMP::bff, ModelSearchResult, ModelSearchResults);
 %shared_ptr(IMP::bff::TabularModelSearchProblem);
 %shared_ptr(IMP::bff::FittingModelSearchProblem);
 %shared_ptr(IMP::bff::ModelSearch);
+%exception IMP::bff::ModelSearch::run {
+    try {
+        // The C++ thread guard restores the GIL during stack unwinding,
+        // before the exception handler touches Python's error indicator.
+        SWIG_PYTHON_THREAD_BEGIN_ALLOW;
+        $action
+        SWIG_PYTHON_THREAD_END_ALLOW;
+    } catch (...) {
+        bff_handle_released_exception();
+        SWIG_fail;
+    }
+}
 %include "IMP/bff/ModelSearch.h"
 // SWIG 4.5 does not infer the vector proxy for this typedef when it first
 // appears as the return type of a virtual method.  Declare the proxy after
@@ -948,8 +977,14 @@ IMP_SWIG_VALUE(IMP::bff, ModelSearchPolicyTraining, ModelSearchPolicyTrainings);
 /* A family generating its own training data, and the proposer it trains. */
 %include "IMP/bff/ModelSearchSelfPlay.h"
 
+%feature("nothreadallow", "0") IMP::bff::MCMCSampler::run_releasing_gil;
+
 %extend IMP::bff::MCMCSampler {
+    void run_releasing_gil(int n_steps, int thin = 1) {
+        $self->run(n_steps, thin);
+    }
     %pythoncode {
+        run = run_releasing_gil
         algorithm = property(lambda self: self.get_algorithm(),
                              lambda self, v: self.set_algorithm(v))
         seed = property(lambda self: self.get_seed(),
@@ -998,6 +1033,7 @@ IMP_SWIG_VALUE(IMP::bff, ModelSearchPolicyTraining, ModelSearchPolicyTrainings);
         block_sizes = property(lambda self: self.get_block_sizes())
 
         chain = property(lambda self: np.asarray(self.get_chain()))
+        chain_flat = property(lambda self: np.asarray(self.get_chain_flat()))
         walkers = property(lambda self: np.asarray(self.get_walkers()))
         log_prob = property(lambda self: np.asarray(self.get_log_prob()))
         lnprior = property(lambda self: np.asarray(self.get_lnprior()))

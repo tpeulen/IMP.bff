@@ -383,6 +383,10 @@ class IMPBFFEXPORT MCMCSampler {
       reshape of its (n_steps, nwalkers, ndim) chain under flat=True.
   */
   std::vector<std::vector<double> > get_chain() const;
+  //! The recorded chain as one contiguous row-major matrix.
+  /*! This is the same ordering as get_chain(), without one heap allocation per
+      row, for consumers that cross the language boundary at segment ends. */
+  std::vector<double> get_chain_flat() const;
   //! One walker's recorded chain: (n_recorded, ndim).
   std::vector<std::vector<double> > get_chain_of_walker(int walker) const;
   //! The current walker positions: one row per walker.

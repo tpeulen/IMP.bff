@@ -900,6 +900,15 @@ std::vector<std::vector<double> > MCMCSampler::get_chain() const {
   return chain_;
 }
 
+std::vector<double> MCMCSampler::get_chain_flat() const {
+  if (chain_.empty()) return std::vector<double>();
+  const std::size_t ndim = chain_.front().size();
+  std::vector<double> out;
+  out.reserve(chain_.size() * ndim);
+  for (const std::vector<double>& row : chain_) out.insert(out.end(), row.begin(), row.end());
+  return out;
+}
+
 std::vector<std::vector<double> > MCMCSampler::get_chain_of_walker(
     int walker) const {
   std::vector<std::vector<double> > out;

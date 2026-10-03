@@ -1,3 +1,6 @@
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/SwigThreads.cmake")
+imp_bff_register_swig_threads()
+
 # Are we running cmake from this directory (out of tree build) ?
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   set (CMAKE_CXX_STANDARD 14)

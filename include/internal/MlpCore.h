@@ -650,6 +650,41 @@ inline void forward(const std::vector<DenseLayer>& layers,
     }
 }
 
+/// Value-only forward pass that borrows the caller's input buffer.
+///
+/// `forward()` must own `a[0]` because derivative and reverse passes retain
+/// the input in their workspace.  A prediction has no such lifetime
+/// requirement: copying a large batch into that slot only to read it once
+/// adds bandwidth and, for small batches, an allocation to every call.  Keep
+/// this path separate so training/backward semantics cannot accidentally use
+/// a borrowed buffer.
+template <class Gemm = PortableGemm>
+inline void forward_values(const std::vector<DenseLayer>& layers,
+                           const double* X, int n_rows, Workspace& ws) {
+    if (layers.empty()) throw std::runtime_error("mlpcore::forward_values: no layers");
+    if (n_rows < 0) throw std::runtime_error("mlpcore::forward_values: negative row count");
+    const size_t L = layers.size();
+    const int n_in = layers.front().n_in;
+    ws.n_rows = n_rows;
+    ws.order = 0;
+    if (ws.a.size() != L + 1) ws.a.resize(L + 1);
+    if (ws.z.size() != L) ws.z.resize(L);
+    for (size_t l = 0; l < L; ++l) {
+        const DenseLayer& ly = layers[l];
+        const size_t nz = static_cast<size_t>(n_rows) * ly.n_out;
+        const double* input = l == 0 ? X : ws.a[l].data();
+        ws.z[l].resize(nz);
+        Gemm::nt(n_rows, ly.n_out, ly.n_in, input, ly.weight.data(), ws.z[l].data());
+        for (int r = 0; r < n_rows; ++r) {
+            double* zr = ws.z[l].data() + static_cast<size_t>(r) * ly.n_out;
+            IMPBFF_MLPCORE_SIMD
+            for (int o = 0; o < ly.n_out; ++o) zr[o] += ly.bias[static_cast<size_t>(o)];
+        }
+        ws.a[l + 1].resize(nz);
+        act_apply(ws.z[l].data(), ws.a[l + 1].data(), nz, ly.activation);
+    }
+}
+
 /// Reverse pass through a forward() of the same order.
 ///
 /// Given the adjoints of the outputs -- `dY0` for the values, `dY1` for `J v`
@@ -892,17 +927,22 @@ inline void model_predict(const MlpModel& m, const double* X, int n_rows, int or
     if (order >= 1 && V == nullptr) throw std::runtime_error("mlpcore::model_predict: order >= 1 needs directions V");
     y.clear(); dy_dv.clear(); d2y_dv2.clear();
     if (n_rows <= 0) return;
-    std::vector<double> Xs(X, X + static_cast<size_t>(n_rows) * n_in), Vs;
-    detail::scale_in(Xs, n_rows, n_in, m.x_scaler);
-    if (order >= 1) {
-        Vs.assign(V, V + static_cast<size_t>(n_rows) * n_in);
-        detail::scale_by(Vs, n_rows, n_in, m.x_scaler, true);
-    }
-    // One workspace per thread, kept between calls: predict_batch is called
-    // per sample or per small batch in tight loops (the HMM surrogate), and
-    // re-allocating L+1 buffers each time was a measured 6 % on a small net.
     static thread_local Workspace ws;
-    forward<Gemm>(m.layers, Xs.data(), n_rows, ws, order, order >= 1 ? Vs.data() : nullptr);
+    if (order == 0 && !m.x_scaler.active()) {
+        forward_values<Gemm>(m.layers, X, n_rows, ws);
+    } else {
+        std::vector<double> Xs(X, X + static_cast<size_t>(n_rows) * n_in), Vs;
+        detail::scale_in(Xs, n_rows, n_in, m.x_scaler);
+        if (order >= 1) {
+            Vs.assign(V, V + static_cast<size_t>(n_rows) * n_in);
+            detail::scale_by(Vs, n_rows, n_in, m.x_scaler, true);
+        }
+        // One workspace per thread, kept between calls: predict_batch is called
+        // per sample or per small batch in tight loops (the HMM surrogate), and
+        // re-allocating L+1 buffers each time was a measured 6 % on a small net.
+        forward<Gemm>(m.layers, Xs.data(), n_rows, ws, order,
+                      order >= 1 ? Vs.data() : nullptr);
+    }
     y = ws.output();
     detail::unscale_out(y, n_rows, n_out, m.y_scaler);
     if (order >= 1) { dy_dv = ws.output_d1(); detail::scale_by(dy_dv, n_rows, n_out, m.y_scaler, false); }

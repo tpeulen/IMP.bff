@@ -488,7 +488,7 @@ if(IMPBFF_PYTHON)
   if(_swig_defs)
     set_property(SOURCE "${_entry}" PROPERTY COMPILE_DEFINITIONS ${_swig_defs})
   endif()
-  set_property(SOURCE "${_entry}" PROPERTY COMPILE_OPTIONS -castmode -naturalvar -fvirtual -Wextra -Dfinal= -DPySwigIterator=IMP_BFF_PySwigIterator -DSwigPyIterator=IMP_BFF_SwigPyIterator)
+  set_property(SOURCE "${_entry}" PROPERTY COMPILE_OPTIONS -threads -castmode -naturalvar -fvirtual -Wextra -Dfinal= -DPySwigIterator=IMP_BFF_PySwigIterator -DSwigPyIterator=IMP_BFF_SwigPyIterator)
   swig_add_library(_IMP_bff LANGUAGE python TYPE MODULE
     OUTPUT_DIR "${_pydir}" OUTFILE_DIR "${CMAKE_BINARY_DIR}/swig" SOURCES "${_entry}")
   target_include_directories(_IMP_bff PRIVATE "${CMAKE_BINARY_DIR}" "${Python3_NumPy_INCLUDE_DIRS}" "${RMF_INCLUDE_DIR}")

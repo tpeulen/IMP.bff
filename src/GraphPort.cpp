@@ -412,6 +412,19 @@ void GraphPort::store_doubles(const std::vector<double>& v) {
   double_cache_valid_ = false;
 }
 
+void GraphPort::store_scalar(double v) {
+  const int element = graph_port_value_type_element(value_type_);
+  buffer_.resize(1);
+  if (element == GRAPH_PORT_FLOAT) {
+    buffer_[0] = v;
+  } else if (element == GRAPH_PORT_BOOL) {
+    buffer_[0] = int_as_slot((v != 0.0 && !std::isnan(v)) ? 1 : 0);
+  } else {
+    buffer_[0] = int_as_slot(static_cast<long long>(std::trunc(v)));
+  }
+  double_cache_valid_ = false;
+}
+
 void GraphPort::store_ints(const std::vector<long long>& v) {
   const int element = graph_port_value_type_element(value_type_);
   buffer_.resize(v.size());
@@ -449,7 +462,7 @@ void GraphPort::write_value(double v, bool input_is_float) {
   if (input_is_float && sanitize_) v = sanitize(v);
   value_type_ = graph_port_value_type_of(element, false);
   is_vector_ = false;
-  store_doubles(std::vector<double>(1, v));   // coerces to the element type
+  store_scalar(v);                            // coerces to the element type
   finalize_storage();
   update_attached_node();
   propagate_to_followers();
@@ -465,7 +478,7 @@ void GraphPort::copy_from_link(const GraphPort& source) {
     if (sanitize_ && element == GRAPH_PORT_FLOAT) v = sanitize(v);
     value_type_ = graph_port_value_type_of(element, false);
     is_vector_ = false;
-    store_doubles(std::vector<double>(1, v));
+    store_scalar(v);
   } else {
     std::vector<double> incoming = source.get_values_ref();
     if (sanitize_ && element == GRAPH_PORT_FLOAT) {

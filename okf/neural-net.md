@@ -72,6 +72,13 @@ no property sugar); `predict_batch` (bff's `predict(x, n_rows)` is the batch).
 
 ## Validation
 
+The 2026-10-03 compute-core campaign added a value-only CPU forward routine
+that borrows an unscaled input batch without changing the owning workspace
+used by derivatives, backward, and training. The parity and reuse contracts
+are in `test/test_neural_net_value_contract.py`; measured paired results and
+the ARM64/x86 portability limits are in
+[`validation/compute-core-performance.md`](validation/compute-core-performance.md).
+
 - `test/test_neural_net_derivatives.py`: tttrlib's test_neural_net.py ported
   (FD checks of `backward`, `backward_derivatives`, `jacobian`, `hessian`,
   Taylor orders, a Poisson PINN, sklearn forward parity 1e-10), the fixtures

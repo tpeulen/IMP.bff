@@ -1,0 +1,4 @@
+@echo off
+setlocal DisableDelayedExpansion
+"@_python@" "@_helper_argument@" --swig "@_swig@" -- %*
+exit /b %errorlevel%

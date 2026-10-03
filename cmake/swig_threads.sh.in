@@ -1,0 +1,2 @@
+#!/bin/sh
+exec '@_python@' '@_helper_argument@' --swig '@_swig@' -- "$@"

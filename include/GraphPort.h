@@ -420,6 +420,8 @@ class IMPBFFEXPORT GraphPort : public GraphObject,
   double element_as_double(std::size_t i) const;
   //! Replace the buffer, reading the input as doubles / as exact integers.
   void store_doubles(const std::vector<double>& v);
+  //! Store one scalar without constructing a temporary one-element vector.
+  void store_scalar(double v);
   void store_ints(const std::vector<long long>& v);
   //! Clip if bounded; always drops the derived double view.
   void finalize_storage();
