@@ -8,11 +8,13 @@ var searchData=
   ['goal_5fnode_5',['goal_node',['../struct_r_r_t_tree.html#a0fd44b2e3d4392e330840963076ef198',1,'RRTTree']]],
   ['grade_6',['grade',['../struct_labelizer_conservation.html#ae901d4773bc3dc9953706c8537203208',1,'LabelizerConservation']]],
   ['grades_7',['grades',['../class_consurf_result.html#a95382b45cb9d1c27141ec2ab7de7b890',1,'ConsurfResult']]],
-  ['gradient_5fangle_8',['gradient_angle',['../class_max_ent_solution.html#a9a94ffc9885341bf20b030ab66336066',1,'MaxEntSolution']]],
-  ['grid_5fa_9',['grid_a',['../struct_probe_rotamer_drot_encoding.html#aeffef57b39b8f79765074f92ce0860ac',1,'ProbeRotamerDrotEncoding']]],
-  ['grid_5fdeg_10',['grid_deg',['../struct_probe_rotamer_drot_encoding.html#a5209a5fec42b8907471d48b55148cd52',1,'ProbeRotamerDrotEncoding']]],
-  ['grid_5forigin_5f_11',['grid_origin_',['../class_probe_accessible_volume.html#a4e9eca114a1298835ec311408fb651a7',1,'ProbeAccessibleVolume']]],
-  ['grid_5fresolution_12',['grid_resolution',['../struct_labelizer_f_r_e_t_options.html#a9071c29d5c4a44e3888e88142123d411',1,'LabelizerFRETOptions']]],
-  ['grid_5fsize_13',['grid_size',['../struct_f_p_s_a_v_global_parameters.html#a2e0aaef80b8bf9de592ae956fd643250',1,'FPSAVGlobalParameters']]],
-  ['grid_5fstep_5f_14',['grid_step_',['../class_probe_accessible_volume.html#aba459e8dcdbbbb8b017e82afa55453d3',1,'ProbeAccessibleVolume']]]
+  ['gradient_8',['gradient',['../struct_s_m_l_m_gaussian_overlap_result.html#abb3a86230fb5b33417978d0502928631',1,'SMLMGaussianOverlapResult::gradient'],['../struct_s_m_l_m_score_result.html#aeca797e0cabca788b3c3905a4793958b',1,'SMLMScoreResult::gradient']]],
+  ['gradient_5fangle_9',['gradient_angle',['../class_max_ent_solution.html#a9a94ffc9885341bf20b030ab66336066',1,'MaxEntSolution']]],
+  ['grid_5fa_10',['grid_a',['../struct_probe_rotamer_drot_encoding.html#aeffef57b39b8f79765074f92ce0860ac',1,'ProbeRotamerDrotEncoding']]],
+  ['grid_5fdeg_11',['grid_deg',['../struct_probe_rotamer_drot_encoding.html#a5209a5fec42b8907471d48b55148cd52',1,'ProbeRotamerDrotEncoding']]],
+  ['grid_5forigin_5f_12',['grid_origin_',['../class_probe_accessible_volume.html#a4e9eca114a1298835ec311408fb651a7',1,'ProbeAccessibleVolume']]],
+  ['grid_5fresolution_13',['grid_resolution',['../struct_labelizer_f_r_e_t_options.html#a9071c29d5c4a44e3888e88142123d411',1,'LabelizerFRETOptions']]],
+  ['grid_5fshape_14',['grid_shape',['../struct_s_m_l_m_average_result.html#a9417e379b4d23ae50429a2a7891e893a',1,'SMLMAverageResult']]],
+  ['grid_5fsize_15',['grid_size',['../struct_f_p_s_a_v_global_parameters.html#a2e0aaef80b8bf9de592ae956fd643250',1,'FPSAVGlobalParameters']]],
+  ['grid_5fstep_5f_16',['grid_step_',['../class_probe_accessible_volume.html#aba459e8dcdbbbb8b017e82afa55453d3',1,'ProbeAccessibleVolume']]]
 ];

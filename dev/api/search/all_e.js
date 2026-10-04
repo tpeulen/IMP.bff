@@ -32,14 +32,15 @@ var searchData=
   ['operator_3d_3d_29',['operator==',['../struct_probe_position.html#a621cbbe48bd75591af283c4532845bb3',1,'ProbePosition::operator==()'],['../struct_atom_bond.html#a4d656b2d3b40297cdf20b5e91825df86',1,'AtomBond::operator==()']]],
   ['optimization_2eh_30',['Optimization.h',['../_optimization_8h.html',1,'']]],
   ['optimizationstepresult_31',['OptimizationStepResult',['../_optimization_8h.html#a33a492d21e21698cdfe1c8c4e74acaa1',1,'Optimization.h']]],
-  ['optimize_5fselected_32',['optimize_selected',['../struct_docking_parameters.html#a090574180c40ff13e1dd1b0448881dff',1,'DockingParameters::optimize_selected'],['../struct_f_p_s_mode_parameters.html#a008c66d0e659cf463983099b2534435b',1,'FPSModeParameters::optimize_selected']]],
+  ['optimize_5fselected_32',['optimize_selected',['../struct_f_p_s_mode_parameters.html#a008c66d0e659cf463983099b2534435b',1,'FPSModeParameters::optimize_selected'],['../struct_docking_parameters.html#a090574180c40ff13e1dd1b0448881dff',1,'DockingParameters::optimize_selected']]],
   ['options_33',['options',['../class_nuts_kernel.html#ad5f29d9da209b9c6740f3b9433e9f6e3',1,'NutsKernel']]],
   ['order_34',['order',['../class_bayesian_p_spline_prior.html#a5f9dde09917094e7b01c87163f8230bc',1,'BayesianPSplinePrior']]],
   ['orientations_5f_35',['orientations_',['../class_states.html#af04e850fb5090e6152cd204bd3d0db2a',1,'States']]],
-  ['origin_36',['origin',['../struct_f_f_probe.html#aab7760d2b09c8f5008e9318c47d9e110',1,'FFProbe']]],
+  ['origin_36',['origin',['../struct_s_m_l_m_average_result.html#ae56dec570c197e0a6c092286ee022fa2',1,'SMLMAverageResult::origin'],['../struct_f_f_probe.html#aab7760d2b09c8f5008e9318c47d9e110',1,'FFProbe::origin']]],
   ['origin_5f_37',['origin_',['../class_label_distribution.html#a708e33310fd349390a65759aa1cd2fc7',1,'LabelDistribution']]],
   ['outer_5fproduct_5fhistogram_38',['outer_product_histogram',['../_photophysics_lifetime_spectrum_8h.html#ade2e4f827f1b07b4a52bff9fe361b2b3',1,'PhotophysicsLifetimeSpectrum.h']]],
   ['output_39',['output',['../struct_flexible_fitting_parameters.html#aab20f0349280df81d2dcf5c7ea6ffbf0',1,'FlexibleFittingParameters']]],
   ['output_5fdir_40',['output_dir',['../struct_probe_trajectory_density_options.html#a45842deb037892671217d0a1a5cbbb35',1,'ProbeTrajectoryDensityOptions::output_dir'],['../struct_docking_trial.html#aedff737564faa860f8d1eea880ba719d',1,'DockingTrial::output_dir'],['../struct_bootstrap_replica.html#a9f996ec43adf32667b4c7af02ebfebda',1,'BootstrapReplica::output_dir'],['../struct_docking_result.html#a607648dd0f1144d9090965e14ea32f42',1,'DockingResult::output_dir']]],
-  ['output_5froot_41',['output_root',['../struct_probe_system_simulation_options.html#a94b7e5e3dba266fd21575a0979c87df0',1,'ProbeSystemSimulationOptions']]]
+  ['output_5froot_41',['output_root',['../struct_probe_system_simulation_options.html#a94b7e5e3dba266fd21575a0979c87df0',1,'ProbeSystemSimulationOptions']]],
+  ['overlap_42',['overlap',['../struct_s_m_l_m_gaussian_overlap_result.html#a09cf92b44b8a237b92e77a13034ecd05',1,'SMLMGaussianOverlapResult']]]
 ];

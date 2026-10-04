@@ -56,5 +56,6 @@ var searchData=
   ['write_5frmf_53',['write_rmf',['../_rmf_i_o_8h.html#a2c210f33382818fb0ee114650c3d441c',1,'RmfIO.h']]],
   ['write_5frotamer_5flibrary_5frmf_54',['write_rotamer_library_rmf',['../_rmf_i_o_8h.html#a02c279803bb2e398545b950085af1bf8',1,'RmfIO.h']]],
   ['write_5fscore_5fcsv_55',['write_score_csv',['../_docking_8h.html#a781c9b399364bb3608a483fc2e1ec611',1,'Docking.h']]],
-  ['write_5fscreening_5fpairs_5fcsv_56',['write_screening_pairs_csv',['../_docking_8h.html#a9ae18b72c86ce7c6ff9855f7785ce1a8',1,'Docking.h']]]
+  ['write_5fscreening_5fpairs_5fcsv_56',['write_screening_pairs_csv',['../_docking_8h.html#a9ae18b72c86ce7c6ff9855f7785ce1a8',1,'Docking.h']]],
+  ['write_5fsmlm_5faverage_5fmrc_57',['write_smlm_average_mrc',['../_s_m_l_m_particles_8h.html#a732d291ca8ff3fe0caf27217ce335b06',1,'SMLMParticles.h']]]
 ];

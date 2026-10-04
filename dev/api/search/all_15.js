@@ -5,7 +5,7 @@ var searchData=
   ['validate_5fproject_2',['validate_project',['../_f_p_s_8h.html#a5592aca7eeed6bf6885e65c9edf1fa8b',1,'FPS.h']]],
   ['validation_5ffraction_3',['validation_fraction',['../class_neural_net_train_options.html#ab93b98584780cd6ee3786afe75894bec',1,'NeuralNetTrainOptions']]],
   ['value_4',['value',['../struct_mfdb_tag.html#a0535e2132b07de8c61c31ff30102126e',1,'MfdbTag::value'],['../struct_labelizer_score.html#ab72bfdb4bb8d8fead3bfb871d6ac979a',1,'LabelizerScore::value'],['../struct_labelizer_f_r_e_t_pair_score.html#a11034a6cad2f3940f375052b2d5ef53a',1,'LabelizerFRETPairScore::value']]],
-  ['values_5',['values',['../struct_kappa2_distribution.html#a2834dc28e7d004665148c9b8b6cacfe7',1,'Kappa2Distribution::values'],['../struct_labelizer_table.html#ae68f39af1999d83216856174382b8703',1,'LabelizerTable::values'],['../struct_potential_table.html#a29be8398b300517a492db88f00f29304',1,'PotentialTable::values']]],
+  ['values_5',['values',['../struct_kappa2_distribution.html#a2834dc28e7d004665148c9b8b6cacfe7',1,'Kappa2Distribution::values'],['../struct_labelizer_table.html#ae68f39af1999d83216856174382b8703',1,'LabelizerTable::values'],['../struct_potential_table.html#a29be8398b300517a492db88f00f29304',1,'PotentialTable::values'],['../struct_s_m_l_m_average_result.html#a77c57b8bc447dfd2e08c37a5267397cc',1,'SMLMAverageResult::values']]],
   ['variables_5fof_6',['variables_of',['../class_inference_factor_graph.html#a12b0feb6716d57b9757123ccac98e961',1,'InferenceFactorGraph']]],
   ['variance_7',['variance',['../class_fit_dataset.html#a0881e7cbe787a5fd0e60485d2f683da1',1,'FitDataset']]],
   ['variety_8',['variety',['../struct_labelizer_conservation.html#aca59ca91bbfa5420c4cae21281647669',1,'LabelizerConservation']]],

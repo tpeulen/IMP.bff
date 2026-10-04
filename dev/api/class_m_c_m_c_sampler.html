@@ -263,6 +263,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aa6b2cb08c765b7d7e711d9070ee17cbf" id="r_aa6b2cb08c765b7d7e711d9070ee17cbf"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::vector&lt; double &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_m_c_m_c_sampler.html#aa6b2cb08c765b7d7e711d9070ee17cbf">get_chain</a> () const</td></tr>
 <tr class="memdesc:aa6b2cb08c765b7d7e711d9070ee17cbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The recorded chain, flattened: one row per (step, walker).  <br /></td></tr>
 <tr class="separator:aa6b2cb08c765b7d7e711d9070ee17cbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a991cb293e70c31f62cf6d631e1664536" id="r_a991cb293e70c31f62cf6d631e1664536"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_m_c_m_c_sampler.html#a991cb293e70c31f62cf6d631e1664536">get_chain_flat</a> () const</td></tr>
+<tr class="memdesc:a991cb293e70c31f62cf6d631e1664536"><td class="mdescLeft">&#160;</td><td class="mdescRight">The recorded chain as one contiguous row-major matrix.  <br /></td></tr>
+<tr class="separator:a991cb293e70c31f62cf6d631e1664536"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d0fe6aaf4334b2727e604dc687404d0" id="r_a8d0fe6aaf4334b2727e604dc687404d0"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::vector&lt; double &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_m_c_m_c_sampler.html#a8d0fe6aaf4334b2727e604dc687404d0">get_chain_of_walker</a> (int walker) const</td></tr>
 <tr class="memdesc:a8d0fe6aaf4334b2727e604dc687404d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">One walker's recorded chain: (n_recorded, ndim).  <br /></td></tr>
 <tr class="separator:a8d0fe6aaf4334b2727e604dc687404d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -519,6 +522,26 @@ Public Member Functions</h2></td></tr>
 
 <p>The recorded chain, flattened: one row per (step, walker). </p>
 <p>(n_recorded * n_walkers, ndim) in chisurf's flat ordering &ndash; the reshape of its (n_steps, nwalkers, ndim) chain under flat=True. </p>
+
+</div>
+</div>
+<a id="a991cb293e70c31f62cf6d631e1664536" name="a991cb293e70c31f62cf6d631e1664536"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a991cb293e70c31f62cf6d631e1664536">&#9670;&#160;</a></span>get_chain_flat()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; double &gt; MCMCSampler::get_chain_flat </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The recorded chain as one contiguous row-major matrix. </p>
+<p>This is the same ordering as <a class="el" href="class_m_c_m_c_sampler.html#aa6b2cb08c765b7d7e711d9070ee17cbf" title="The recorded chain, flattened: one row per (step, walker).">get_chain()</a>, without one heap allocation per row, for consumers that cross the language boundary at segment ends. </p>
 
 </div>
 </div>
@@ -1806,7 +1829,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Oct 3 2026 22:40:19 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Oct 4 2026 07:12:36 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

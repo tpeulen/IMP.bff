@@ -1,0 +1,8 @@
+<map id="SMLMLikelihoodFitResult" name="SMLMLikelihoodFitResult">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,449,199,555"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="23,5,181,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,71,97,208,97,387,99,433,94,433,91,387,92,208,97,71"/>
+<area shape="rect" id="Node000003" href="$struct_s_m_l_m_likelihood_result.html" title="Observation PDF and both unweighted and weighted log likelihoods." alt="" coords="185,221,379,387"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="126,70,219,206,215,209,122,73"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="209,389,163,439,159,435,205,385"/>
+</map>
