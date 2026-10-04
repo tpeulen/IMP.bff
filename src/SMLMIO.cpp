@@ -148,6 +148,18 @@ SMLMIndex read_smlm_csv(const std::string& path, double coordinate_scale,
       ? std::vector<double>(3, 0.0) : origin;
   smlm_io_vector3(offset, "SMLM CSV origin");
   smlm_io_require(options.leaf_size > 0, "SMLM CSV leaf_size must be positive");
+  if (options.selection_column.empty()) {
+    smlm_io_require(options.selection_range.empty(),
+                    "SMLM CSV selection_range requires selection_column");
+  } else {
+    smlm_io_require(options.selection_range.size() == 2,
+                    "SMLM CSV selection_range must contain two bounds");
+    smlm_io_require(std::isfinite(options.selection_range[0]) &&
+                    std::isfinite(options.selection_range[1]),
+                    "SMLM CSV selection_range bounds must be finite");
+    smlm_io_require(options.selection_range[0] <= options.selection_range[1],
+                    "SMLM CSV selection_range bounds are reversed");
+  }
   if (options.allow_missing_z)
     smlm_io_require(std::isfinite(options.default_z), "SMLM CSV default_z must be finite");
   if (options.allow_missing_sigmas) {
@@ -197,13 +209,22 @@ SMLMIndex read_smlm_csv(const std::string& path, double coordinate_scale,
     smlm_io_require(found != columns.end(), path + ": missing requested weight column");
     weight_column = found->second;
   }
+  int selection_column = -1;
+  if (!options.selection_column.empty()) {
+    const auto found = columns.find(smlm_io_canonical(options.selection_column));
+    smlm_io_require(found != columns.end(), path + ": missing requested selection column: " +
+                    options.selection_column);
+    selection_column = found->second;
+  }
   std::vector<double> coordinates, sigmas, weights;
   std::vector<int> particle_ids;
+  std::size_t source_rows = 0;
   while (smlm_io_record(stream, fields, line_number, path)) {
     const std::string context = smlm_io_context(path, line_number);
     smlm_io_require(fields.size() == headers.size(), context + "CSV column count differs from header");
-    smlm_io_require(weights.size() < static_cast<std::size_t>(std::numeric_limits<int>::max()),
+    smlm_io_require(source_rows++ < static_cast<std::size_t>(std::numeric_limits<int>::max()),
                     context + "too many localizations");
+    double row_coordinates[3], row_sigmas[3];
     for (int axis = 0; axis < 3; ++axis) {
       const int column = coordinate_columns[axis];
       const double source = column >= 0
@@ -215,19 +236,18 @@ SMLMIndex read_smlm_csv(const std::string& path, double coordinate_scale,
           ? difference * coordinate_scale
           : source * coordinate_scale - offset[axis] * coordinate_scale;
       smlm_io_require(std::isfinite(coordinate), context + "scaled coordinate is not finite");
-      coordinates.push_back(coordinate);
+      row_coordinates[axis] = coordinate;
       const int sigma_column = resolved_sigmas[axis];
       const double sigma = (sigma_column >= 0
           ? smlm_io_number(fields, sigma_column, headers[sigma_column], context)
           : options.default_sigmas[axis]) * coordinate_scale;
       smlm_io_require(std::isfinite(sigma) && sigma > 0,
                       context + "positional sigmas must be finite and positive");
-      sigmas.push_back(sigma);
+      row_sigmas[axis] = sigma;
     }
     const double weight = weight_column < 0 ? 1.0
         : smlm_io_number(fields, weight_column, headers[weight_column], context);
     smlm_io_require(weight >= 0, context + "weights must be nonnegative");
-    weights.push_back(weight);
     int particle_id = -1;
     if (particle_column >= 0) {
       const double id = smlm_io_number(fields, particle_column, headers[particle_column], context);
@@ -236,6 +256,16 @@ SMLMIndex read_smlm_csv(const std::string& path, double coordinate_scale,
       if (id > 0 || (id == 0 && !options.zero_particle_id_is_unassigned))
         particle_id = static_cast<int>(id);
     }
+    // Selection never bypasses validation of measurements or IDs in this row.
+    if (selection_column >= 0) {
+      const double selected_value = smlm_io_number(
+          fields, selection_column, headers[selection_column], context);
+      if (selected_value < options.selection_range[0] ||
+          selected_value > options.selection_range[1]) continue;
+    }
+    coordinates.insert(coordinates.end(), row_coordinates, row_coordinates + 3);
+    sigmas.insert(sigmas.end(), row_sigmas, row_sigmas + 3);
+    weights.push_back(weight);
     particle_ids.push_back(particle_id);
   }
   return SMLMIndex(coordinates, sigmas, weights, particle_ids, options.leaf_size);

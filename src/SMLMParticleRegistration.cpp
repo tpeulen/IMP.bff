@@ -104,4 +104,40 @@ SMLMParticleRegistrationResult register_smlm_particles(const SMLMIndex& index,
   }
   return out;
 }
+
+SMLMParticleRegistrationResult transfer_smlm_registration(
+    const SMLMParticleRegistrationResult& reference, const SMLMIndex& target,
+    int min_localizations) {
+  const std::size_t count=reference.particle_ids.size();
+  if(min_localizations<1 || reference.transforms.size()!=12*count)
+    throw std::invalid_argument("paired registration needs proper frames and positive target count");
+  const auto check_size=[count](std::size_t size) {
+    if(size!=0 && size!=count)
+      throw std::invalid_argument("paired reference diagnostics must follow particle IDs");
+  };
+  check_size(reference.initial_nll.size());check_size(reference.final_nll.size());
+  check_size(reference.signal_fraction.size());check_size(reference.iterations.size());
+  check_size(reference.converged.size());
+  SMLMParticleRegistrationResult out;out.rejected_ids=reference.rejected_ids;
+  std::set<int> unique;
+  for(std::size_t i=0;i<count;++i) {
+    const int id=reference.particle_ids[i];
+    if(id<0 || !unique.insert(id).second)
+      throw std::invalid_argument("paired reference IDs must be unique and assigned");
+    const auto begin=reference.transforms.begin()+12*i;
+    const std::vector<double> pose(begin,begin+12);
+    transform_smlm_points(std::vector<double>{0,0,0},pose);
+    if(target.get_particle_localizations(id).size()<static_cast<std::size_t>(min_localizations)) {
+      out.rejected_ids.push_back(id);continue;
+    }
+    out.particle_ids.push_back(id);
+    out.transforms.insert(out.transforms.end(),pose.begin(),pose.end());
+    if(!reference.initial_nll.empty())out.initial_nll.push_back(reference.initial_nll[i]);
+    if(!reference.final_nll.empty())out.final_nll.push_back(reference.final_nll[i]);
+    if(!reference.signal_fraction.empty())out.signal_fraction.push_back(reference.signal_fraction[i]);
+    if(!reference.iterations.empty())out.iterations.push_back(reference.iterations[i]);
+    if(!reference.converged.empty())out.converged.push_back(reference.converged[i]);
+  }
+  return out;
+}
 IMPBFF_END_NAMESPACE

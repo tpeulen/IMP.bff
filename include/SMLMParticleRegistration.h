@@ -43,5 +43,16 @@ IMPBFFEXPORT SMLMParticleRegistrationResult register_smlm_particles(
     const SMLMIndex& index, const SMLMParticleFrames& initial_frames,
     const SMLMPointModel& model,
     const SMLMParticleRegistrationOptions& options = SMLMParticleRegistrationOptions());
+
+//! Apply reference-only registration to a paired target channel by source ID.
+/*! Target coordinates must already share the reference's calibrated source
+    frame and physical unit. Copies proper source -> reference transforms and
+    reference fit diagnostics unchanged for particles with at least the given
+    target localization count. Missing/underpopulated targets are rejected.
+    No target geometry is fitted, scored, scaled, snapped or symmetrized; use
+    average_smlm_particles on the target index to rotate its own covariance. */
+IMPBFFEXPORT SMLMParticleRegistrationResult transfer_smlm_registration(
+    const SMLMParticleRegistrationResult& reference,
+    const SMLMIndex& target, int min_localizations = 1);
 IMPBFF_END_NAMESPACE
 #endif

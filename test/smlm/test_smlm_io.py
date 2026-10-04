@@ -130,6 +130,137 @@ def test_missing_values_require_explicit_caller_defaults(tmp_path):
     np.testing.assert_allclose(sigmas(index), [[1, 2, 3]])
 
 
+@pytest.mark.parametrize("layer, rows", [(1, [0, 2]), (2, [1, 3])])
+def test_csv_layer_equality_preserves_all_selected_measurements(tmp_path, layer, rows):
+    path = write_csv(tmp_path,
+        "x,y,z,lpx,lpy,lpz,phot,group,layer\n"
+        "1,2,3,0.125,0.25,0.5,0,7,1\n"
+        "4,5,6,0.25,0.5,1,20,7,2\n"
+        "7,8,9,0.5,1,2,30,0,1\n"
+        "10,11,12,1,2,4,40,12,2\n")
+    options = bff.SMLMCSVOptions()
+    assert options.selection_column == ""
+    assert list(options.selection_range) == []
+    options.weight_column = "phot"
+    options.zero_particle_id_is_unassigned = False
+    source = bff.read_smlm_csv(path, 10.0, [1, 2, 3], options)
+    assert source.get_number_of_localizations() == 4
+    options.selection_column = "layer"
+    options.selection_range = [layer, layer]
+    selected = bff.read_smlm_csv(path, 10.0, [1, 2, 3], options)
+    Path(path).unlink()  # The returned index owns its data after the CSV is gone.
+    assert selected.get_number_of_localizations() == 2
+    np.testing.assert_array_equal(xyz(selected), xyz(source)[rows])
+    np.testing.assert_array_equal(sigmas(selected), sigmas(source)[rows])
+    np.testing.assert_array_equal(selected.get_weights(), np.asarray(source.get_weights())[rows])
+    np.testing.assert_array_equal(selected.get_particle_ids(), np.asarray(source.get_particle_ids())[rows])
+
+
+@pytest.mark.parametrize("column", [
+    "Detection Score [a.u.]", " detection_score_au ", "DETECTION SCORE AU",
+])
+def test_csv_numeric_selection_is_inclusive_and_matches_canonical_headers(tmp_path, column):
+    path = write_csv(tmp_path,
+        'x,y,z,lpx,lpy,lpz,"Detection Score [a.u.]"\n'
+        "1,2,3,0.1,0.2,0.3,0.249\n"
+        "2,3,4,0.1,0.2,0.3,0.25\n"
+        "3,4,5,0.1,0.2,0.3,0.375\n"
+        "4,5,6,0.1,0.2,0.3,0.5\n"
+        "5,6,7,0.1,0.2,0.3,0.501\n")
+    options = bff.SMLMCSVOptions()
+    options.selection_column = column
+    options.selection_range = [0.25, 0.5]
+    selected = bff.read_smlm_csv(path, 10.0, [1, 2, 3], options)
+    np.testing.assert_array_equal(xyz(selected), [[10, 10, 10], [20, 20, 20], [30, 30, 30]])
+
+
+def test_csv_selection_of_coordinate_field_uses_source_values(tmp_path):
+    path = write_csv(tmp_path,
+        '"X [nm]",y,z,lpx,lpy,lpz\n'
+        "1,2,3,0.1,0.2,0.3\n"
+        "2,3,4,0.1,0.2,0.3\n"
+        "3,4,5,0.1,0.2,0.3\n")
+    options = bff.SMLMCSVOptions()
+    options.selection_column = "x_nm"
+    options.selection_range = [1, 2]
+    selected = bff.read_smlm_csv(path, 10.0, [1, 2, 3], options)
+    np.testing.assert_array_equal(xyz(selected), [[0, 0, 0], [10, 10, 10]])
+
+
+def test_csv_selection_with_no_matches_returns_empty_owning_index(tmp_path):
+    path = write_csv(tmp_path, "x,y,z,lpx,lpy,lpz,layer\n1,2,3,0.1,0.2,0.3,1\n")
+    options = bff.SMLMCSVOptions()
+    options.selection_column = "layer"
+    options.selection_range = [2, 2]
+    selected = bff.read_smlm_csv(path, 1.0, [], options)
+    assert selected.get_number_of_localizations() == 0
+    assert list(selected.get_coordinates()) == []
+    assert list(selected.get_sigmas()) == []
+    assert list(selected.get_weights()) == []
+    assert list(selected.get_particle_ids()) == []
+
+
+def test_csv_selection_disabled_ignores_unrequested_extra_fields(tmp_path):
+    path = write_csv(tmp_path,
+        "x,y,z,lpx,lpy,lpz,layer,channel\n"
+        "1,2,3,0.1,0.2,0.3,not numeric,nan\n")
+    assert bff.read_smlm_csv(path).get_number_of_localizations() == 1
+
+
+@pytest.mark.parametrize("column, bounds, message", [
+    ("", [1, 2], "requires selection_column"),
+    ("layer", [], "two bounds"),
+    ("layer", [1], "two bounds"),
+    ("layer", [1, 2, 3], "two bounds"),
+    ("layer", [2, 1], "reversed"),
+    ("layer", [float("nan"), 2], "finite"),
+    ("layer", [1, float("nan")], "finite"),
+    ("layer", [float("-inf"), 2], "finite"),
+    ("layer", [1, float("inf")], "finite"),
+    ("layer", [float("inf"), 2], "finite"),
+    ("layer", [1, float("-inf")], "finite"),
+    ("missing field", [1, 2], "missing requested selection column"),
+    ("   ", [1, 2], "missing requested selection column"),
+])
+def test_csv_invalid_selection_is_rejected(tmp_path, column, bounds, message):
+    path = write_csv(tmp_path, "x,y,z,lpx,lpy,lpz,layer\n1,2,3,0.1,0.2,0.3,1\n")
+    options = bff.SMLMCSVOptions()
+    options.selection_column = column
+    options.selection_range = bounds
+    with pytest.raises((ValueError, RuntimeError), match=message):
+        bff.read_smlm_csv(path, 1.0, [], options)
+
+
+@pytest.mark.parametrize("row, message", [
+    ("bad,2,3,0.1,0.2,0.3,1,7,2", "numeric x"),
+    ("nan,2,3,0.1,0.2,0.3,1,7,2", "nonfinite"),
+    ("1,2,inf,0.1,0.2,0.3,1,7,2", "nonfinite"),
+    ("1,2,3,0,0.2,0.3,1,7,2", "positive"),
+    ("1,2,3,0.1,nan,0.3,1,7,2", "nonfinite"),
+    ("1,2,3,0.1,0.2,0.3,-1,7,2", "nonnegative"),
+    ("1,2,3,0.1,0.2,0.3,inf,7,2", "nonfinite"),
+    ("1,2,3,0.1,0.2,0.3,1,1.5,2", "particle IDs"),
+    ("1,2,3,0.1,0.2,0.3,1,2147483648,2", "particle IDs"),
+    ("1,2,3,0.1,0.2,0.3,1,nan,2", "nonfinite"),
+    ("1,2,3,0.1,0.2,0.3,1,7,nan", "numeric layer"),
+    ("1,2,3,0.1,0.2,0.3,1,7,inf", "numeric layer"),
+    ("1,2,3,0.1,0.2,0.3,1,7,2junk", "numeric layer"),
+    ("1,2,3,0.1,0.2,0.3,1,7,", "numeric layer"),
+    ("1,2,3,0.1,0.2,0.3,1,7", "column count"),
+])
+def test_csv_selection_still_validates_every_source_row(tmp_path, row, message):
+    path = write_csv(tmp_path,
+        "x,y,z,lpx,lpy,lpz,weight,group,layer\n"
+        "1,2,3,0.1,0.2,0.3,1,7,1\n" + row + "\n")
+    options = bff.SMLMCSVOptions()
+    options.weight_column = "weight"
+    options.selection_column = "layer"
+    options.selection_range = [1, 1]
+    with pytest.raises((ValueError, RuntimeError), match="line 3") as error:
+        bff.read_smlm_csv(path, 1.0, [], options)
+    assert message in str(error.value)
+
+
 def test_inclusive_region_preserves_source_measurements_and_ids():
     index = bff.SMLMIndex([0, 0, 0, 1, 2, 3, 2, 3, 4],
                          [1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3], [9, -1, 12])

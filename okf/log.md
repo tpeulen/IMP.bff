@@ -2,6 +2,8 @@
 
 ## 2026-10-04
 
+- **Paired multi-component NPC support** ([smlm.md](smlm.md), [source audit](smlm-multicomponent-reference.json)): native explicit CSV field selection and reference-pose transfer preserve target geometry/uncertainty. All six paper labels render in ChiMOL; Nup62 uses verified assigned raw channels, not duplicate/mixed CSV layers. Core249 and installed314 tests pass.
+
 - **Package-test toolchain isolation**: CI installs SWIG/C++ tools in the test prefix; director fixtures now select native compilers and link Python on MSVC. Fixes the two missing-tool failures after 3,762 passing macOS IMP tests; 28 focused compiler/director regressions pass locally.
 
 - **Portable SMLM coarse-start ranking** ([smlm.md](smlm.md)): rank scalar indexes rather than Eigen pose payloads; preserves stable ties and avoids MSVC C2338 in CI 37185022491. Standalone suite: 205 passed, including an orientation-unidentifiable tie regression.

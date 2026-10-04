@@ -10,7 +10,7 @@
 
 IMPBFF_BEGIN_NAMESPACE
 
-//! Explicit opt-ins for incomplete source tables; defaults require measured 3D.
+//! Explicit CSV opt-ins; defaults require measured 3D and retain every row.
 struct IMPBFFEXPORT SMLMCSVOptions {
   bool allow_missing_z = false;
   //! Source-unit z used only if allow_missing_z and the z column is absent.
@@ -20,6 +20,11 @@ struct IMPBFFEXPORT SMLMCSVOptions {
   std::vector<double> default_sigmas;
   //! Empty means unit weights, even when photon/intensity columns are present.
   std::string weight_column;
+  //! Empty disables selection; otherwise names one numeric CSV field.
+  std::string selection_column;
+  //! Two finite inclusive source-field bounds [min, max], required for selection.
+  //! Must be empty when selection_column is empty.
+  std::vector<double> selection_range;
   //! SMAP/LocMoFit uses 0 for unassigned. Set false for zero-based source IDs.
   bool zero_particle_id_is_unassigned = true;
   int leaf_size = 16;
@@ -43,7 +48,17 @@ struct IMPBFFEXPORT SMLMCSVOptions {
     zero_particle_id_is_unassigned=false for zero-based groups. Missing IDs
     become -1. Multiple aliases of the same field are rejected. Malformed
     records, nonfinite numbers and nonpositive sigmas always raise ValueException
-    with source record context; rows are never silently dropped. */
+    with source record context. Every row is validated, including rows outside
+    an explicitly requested selection. By default all rows are retained;
+    selection_column opts into retaining only rows whose numeric field lies
+    within selection_range = [min, max], inclusively. The column uses the same
+    canonical header matching, must exist, and is read as a finite number on
+    every row. Bounds must be finite with min <= max, and refer to the source
+    field without coordinate scaling or origin subtraction. A range without a
+    column is rejected. No protein/channel interpretation or implicit filtering
+    is performed. Selected rows keep their source order, coordinates, sigmas,
+    weights and IDs (with the explicit unit/ID conventions above); no matches
+    produces an empty owning index. Rows are never silently dropped. */
 IMPBFFEXPORT SMLMIndex read_smlm_csv(
     const std::string& path, double coordinate_scale = 1.0,
     const std::vector<double>& origin = std::vector<double>(),

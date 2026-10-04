@@ -18,6 +18,9 @@ by default; set `SMLMCSVOptions.zero_particle_id_is_unassigned=false` explicitly
 for zero-based particle identities. Negative IDs remain unassigned.
 `select_smlm_particles` and `select_smlm_region` perform native one-time
 selection, retaining measurement uncertainties and source group IDs.
+Explicit `SMLMCSVOptions.selection_column/selection_range` select a named numeric
+field's inclusive interval. Disabled by default, selection still validates every
+source row and never guesses a biological channel from its numeric value.
 
 `SMLMIndex` uses a median-balanced KD-tree split along the widest coordinate
 extent. Leaves default to 16 rows. Nodes retain bounding boxes and per-axis
@@ -69,6 +72,12 @@ The default angular period is a full circle; a reduced period is valid only
 with documented symmetry of the fixed model. Source positions are never snapped,
 scaled or duplicated. The resulting maps are reference-assisted averages; the
 source-to-reference transforms, fit scores and stopping flags must be retained.
+`transfer_smlm_registration` carries reference-only poses to a paired target
+index by shared acquisition-scoped particle IDs. Missing/underpopulated targets
+are rejected, diagnostics remain reference diagnostics, and target geometry
+never chooses a transform. Target averaging rotates its own covariance. The
+caller must establish shared calibration, units and ROI namespace; equal IDs
+across unrelated cell files are not evidence of pairing.
 Coarse starts are stably ranked by scalar indexes, not moved Eigen matrices:
 this preserves tied-sample order without MSVC's over-aligned temporary-buffer
 failure in the native wheel and IMP-module builds.
