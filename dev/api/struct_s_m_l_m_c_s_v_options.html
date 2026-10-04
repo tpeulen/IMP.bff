@@ -77,7 +77,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Explicit opt-ins for incomplete source tables; defaults require measured 3D.  
+<p>Explicit CSV opt-ins; defaults require measured 3D and retain every row.  
  <a href="struct_s_m_l_m_c_s_v_options.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_s_m_l_m_i_o_8h_source.html">SMLMIO.h</a>&gt;</code></p>
@@ -86,11 +86,11 @@ Collaboration diagram for SMLMCSVOptions:</div>
 <div class="dyncontent">
 <div class="center"><img src="struct_s_m_l_m_c_s_v_options__coll__graph.png" border="0" usemap="#a_s_m_l_m_c_s_v_options_coll__map" alt="Collaboration graph"/></div>
 <map name="a_s_m_l_m_c_s_v_options_coll__map" id="a_s_m_l_m_c_s_v_options_coll__map">
-<area shape="rect" title="Explicit opt&#45;ins for incomplete source tables; defaults require measured 3D." alt="" coords="61,263,254,423"/>
+<area shape="rect" title="Explicit CSV opt&#45;ins; defaults require measured 3D and retain every row." alt="" coords="61,277,254,437"/>
 <area shape="rect" title=" " alt="" coords="5,135,163,200"/>
-<area shape="poly" title=" " alt="" coords="83,200,88,238,91,247,86,249,83,239,78,201"/>
+<area shape="poly" title=" " alt="" coords="83,200,83,226,88,253,91,261,86,263,83,254,78,227,77,200"/>
 <area shape="rect" title=" " alt="" coords="191,135,270,200"/>
-<area shape="poly" title=" " alt="" coords="220,201,204,240,200,248,195,246,199,238,215,199"/>
+<area shape="poly" title=" " alt="" coords="223,201,204,254,200,263,195,261,199,252,218,199"/>
 <area shape="rect" title=" " alt="" coords="165,5,296,85"/>
 <area shape="poly" title=" " alt="" coords="233,99,233,134,228,134,228,99"/>
 </map>
@@ -116,6 +116,11 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:af1f3e02d9f0e882e8fa1ea6becd55ba3" id="r_af1f3e02d9f0e882e8fa1ea6becd55ba3"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_s_m_l_m_c_s_v_options.html#af1f3e02d9f0e882e8fa1ea6becd55ba3">weight_column</a></td></tr>
 <tr class="memdesc:af1f3e02d9f0e882e8fa1ea6becd55ba3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Empty means unit weights, even when photon/intensity columns are present.  <br /></td></tr>
 <tr class="separator:af1f3e02d9f0e882e8fa1ea6becd55ba3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8f455c46d45f0ef85fb7684b0f452b97" id="r_a8f455c46d45f0ef85fb7684b0f452b97"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_s_m_l_m_c_s_v_options.html#a8f455c46d45f0ef85fb7684b0f452b97">selection_column</a></td></tr>
+<tr class="memdesc:a8f455c46d45f0ef85fb7684b0f452b97"><td class="mdescLeft">&#160;</td><td class="mdescRight">Empty disables selection; otherwise names one numeric CSV field.  <br /></td></tr>
+<tr class="separator:a8f455c46d45f0ef85fb7684b0f452b97"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af742fe3452a044c10885b76811098c0d" id="r_af742fe3452a044c10885b76811098c0d"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_s_m_l_m_c_s_v_options.html#af742fe3452a044c10885b76811098c0d">selection_range</a></td></tr>
+<tr class="separator:af742fe3452a044c10885b76811098c0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af0eea6d0d622446b4599bbb67c620435" id="r_af0eea6d0d622446b4599bbb67c620435"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_s_m_l_m_c_s_v_options.html#af0eea6d0d622446b4599bbb67c620435">zero_particle_id_is_unassigned</a> = true</td></tr>
 <tr class="memdesc:af0eea6d0d622446b4599bbb67c620435"><td class="mdescLeft">&#160;</td><td class="mdescRight">SMAP/LocMoFit uses 0 for unassigned. Set false for zero-based source IDs.  <br /></td></tr>
 <tr class="separator:af0eea6d0d622446b4599bbb67c620435"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -123,7 +128,7 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a42975fe50327ad7e761da9869ef978fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Explicit opt-ins for incomplete source tables; defaults require measured 3D. </p>
+<div class="textblock"><p>Explicit CSV opt-ins; defaults require measured 3D and retain every row. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a75efc37d24b7d6f2029db3d752a03c07" name="a75efc37d24b7d6f2029db3d752a03c07"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a75efc37d24b7d6f2029db3d752a03c07">&#9670;&#160;</a></span>IMP_SHOWABLE_INLINE()</h2>
@@ -228,6 +233,37 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a8f455c46d45f0ef85fb7684b0f452b97" name="a8f455c46d45f0ef85fb7684b0f452b97"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8f455c46d45f0ef85fb7684b0f452b97">&#9670;&#160;</a></span>selection_column</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string SMLMCSVOptions::selection_column</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Empty disables selection; otherwise names one numeric CSV field. </p>
+
+</div>
+</div>
+<a id="af742fe3452a044c10885b76811098c0d" name="af742fe3452a044c10885b76811098c0d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af742fe3452a044c10885b76811098c0d">&#9670;&#160;</a></span>selection_range</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;double&gt; SMLMCSVOptions::selection_range</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Two finite inclusive source-field bounds [min, max], required for selection. Must be empty when selection_column is empty. </p>
+
+</div>
+</div>
 <a id="af1f3e02d9f0e882e8fa1ea6becd55ba3" name="af1f3e02d9f0e882e8fa1ea6becd55ba3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af1f3e02d9f0e882e8fa1ea6becd55ba3">&#9670;&#160;</a></span>weight_column</h2>
 
@@ -266,7 +302,7 @@ Public Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 09:51:02 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Oct 4 2026 10:01:36 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

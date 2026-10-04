@@ -118,8 +118,14 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    <span class="keyword">const</span> <a class="code hl_class" href="class_s_m_l_m_index.html">SMLMIndex</a>&amp; index, <span class="keyword">const</span> <a class="code hl_struct" href="struct_s_m_l_m_particle_frames.html">SMLMParticleFrames</a>&amp; initial_frames,</div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <span class="keyword">const</span> <a class="code hl_class" href="class_s_m_l_m_point_model.html">SMLMPointModel</a>&amp; model,</div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    <span class="keyword">const</span> <a class="code hl_struct" href="struct_s_m_l_m_particle_registration_options.html">SMLMParticleRegistrationOptions</a>&amp; options = <a class="code hl_struct" href="struct_s_m_l_m_particle_registration_options.html">SMLMParticleRegistrationOptions</a>());</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>IMPBFF_END_NAMESPACE</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span> </div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno"><a class="line" href="_s_m_l_m_particle_registration_8h.html#a51df5e69c00dba0797fd590847e25658">   54</a></span>IMPBFFEXPORT <a class="code hl_struct" href="struct_s_m_l_m_particle_registration_result.html">SMLMParticleRegistrationResult</a> <a class="code hl_function" href="_s_m_l_m_particle_registration_8h.html#a51df5e69c00dba0797fd590847e25658">transfer_smlm_registration</a>(</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <span class="keyword">const</span> <a class="code hl_struct" href="struct_s_m_l_m_particle_registration_result.html">SMLMParticleRegistrationResult</a>&amp; reference,</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    <span class="keyword">const</span> <a class="code hl_class" href="class_s_m_l_m_index.html">SMLMIndex</a>&amp; target, <span class="keywordtype">int</span> min_localizations = 1);</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>IMPBFF_END_NAMESPACE</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span><span class="preprocessor">#endif</span></div>
+<div class="ttc" id="a_s_m_l_m_particle_registration_8h_html_a51df5e69c00dba0797fd590847e25658"><div class="ttname"><a href="_s_m_l_m_particle_registration_8h.html#a51df5e69c00dba0797fd590847e25658">transfer_smlm_registration</a></div><div class="ttdeci">IMPBFFEXPORT SMLMParticleRegistrationResult transfer_smlm_registration(const SMLMParticleRegistrationResult &amp;reference, const SMLMIndex &amp;target, int min_localizations=1)</div><div class="ttdoc">Apply reference-only registration to a paired target channel by source ID.</div></div>
 <div class="ttc" id="a_s_m_l_m_particle_registration_8h_html_af74b2e86602e25d0006adb2922306cee"><div class="ttname"><a href="_s_m_l_m_particle_registration_8h.html#af74b2e86602e25d0006adb2922306cee">register_smlm_particles</a></div><div class="ttdeci">IMPBFFEXPORT SMLMParticleRegistrationResult register_smlm_particles(const SMLMIndex &amp;index, const SMLMParticleFrames &amp;initial_frames, const SMLMPointModel &amp;model, const SMLMParticleRegistrationOptions &amp;options=SMLMParticleRegistrationOptions())</div><div class="ttdoc">Coarse azimuth search followed by full 6D observation-likelihood refinement.</div></div>
 <div class="ttc" id="aclass_s_m_l_m_index_html"><div class="ttname"><a href="class_s_m_l_m_index.html">SMLMIndex</a></div><div class="ttdoc">Immutable owning balanced KD-tree over three-dimensional localizations.</div><div class="ttdef"><b>Definition</b> SMLM.h:37</div></div>
 <div class="ttc" id="aclass_s_m_l_m_point_model_html"><div class="ttname"><a href="class_s_m_l_m_point_model.html">SMLMPointModel</a></div><div class="ttdoc">Persistent owning expected emitter positions and normalized model weights.</div><div class="ttdef"><b>Definition</b> SMLMLikelihood.h:69</div></div>
@@ -133,7 +139,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 09:51:01 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Oct 4 2026 10:01:35 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

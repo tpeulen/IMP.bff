@@ -99,7 +99,7 @@ Include dependency graph for SMLMIO.h:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_s_m_l_m_c_s_v_options.html">SMLMCSVOptions</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Explicit opt-ins for incomplete source tables; defaults require measured 3D.  <a href="struct_s_m_l_m_c_s_v_options.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Explicit CSV opt-ins; defaults require measured 3D and retain every row.  <a href="struct_s_m_l_m_c_s_v_options.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
@@ -155,7 +155,7 @@ Functions</h2></td></tr>
 
 <p>Read one CSV into an owning native index; no iterative Python marshalling. </p>
 <p>Coordinate and sigma units are chosen explicitly by the caller: output coordinates = coordinate_scale * (source coordinates - origin), output sigmas = coordinate_scale * source sigmas. origin has three entries in SOURCE coordinate units; an omitted/empty origin means zero. Scale must be finite and positive. No pixel/nm inference or automatic unit conversion is performed.</p>
-<p>Header matching is case-insensitive with non-alphanumeric characters removed (e.g. x_nm and quoted x [nm] both match xnm). Per-axis positional uncertainty wins over scalar xy uncertainty. PSF widths and photon errors are not positional sigmas. Positive sitenumbers/particle IDs are preserved; negative source IDs become -1. Zero becomes -1 by default (SMAP); set zero_particle_id_is_unassigned=false for zero-based groups. Missing IDs become -1. Multiple aliases of the same field are rejected. Malformed records, nonfinite numbers and nonpositive sigmas always raise ValueException with source record context; rows are never silently dropped. </p>
+<p>Header matching is case-insensitive with non-alphanumeric characters removed (e.g. x_nm and quoted x [nm] both match xnm). Per-axis positional uncertainty wins over scalar xy uncertainty. PSF widths and photon errors are not positional sigmas. Positive sitenumbers/particle IDs are preserved; negative source IDs become -1. Zero becomes -1 by default (SMAP); set zero_particle_id_is_unassigned=false for zero-based groups. Missing IDs become -1. Multiple aliases of the same field are rejected. Malformed records, nonfinite numbers and nonpositive sigmas always raise ValueException with source record context. Every row is validated, including rows outside an explicitly requested selection. By default all rows are retained; selection_column opts into retaining only rows whose numeric field lies within selection_range = [min, max], inclusively. The column uses the same canonical header matching, must exist, and is read as a finite number on every row. Bounds must be finite with min &lt;= max, and refer to the source field without coordinate scaling or origin subtraction. A range without a column is rejected. No protein/channel interpretation or implicit filtering is performed. Selected rows keep their source order, coordinates, sigmas, weights and IDs (with the explicit unit/ID conventions above); no matches produces an empty owning index. Rows are never silently dropped. </p>
 
 </div>
 </div>
@@ -236,7 +236,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 09:51:02 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Oct 4 2026 10:01:35 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

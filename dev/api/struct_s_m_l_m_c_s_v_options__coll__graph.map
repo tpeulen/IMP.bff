@@ -1,9 +1,9 @@
 <map id="SMLMCSVOptions" name="SMLMCSVOptions">
-<area shape="rect" id="Node000001" title="Explicit opt&#45;ins for incomplete source tables; defaults require measured 3D." alt="" coords="61,263,254,423"/>
+<area shape="rect" id="Node000001" title="Explicit CSV opt&#45;ins; defaults require measured 3D and retain every row." alt="" coords="61,277,254,437"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,135,163,200"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,200,88,238,91,247,86,249,83,239,78,201"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,200,83,226,88,253,91,261,86,263,83,254,78,227,77,200"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="191,135,270,200"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="220,201,204,240,200,248,195,246,199,238,215,199"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="223,201,204,254,200,263,195,261,199,252,218,199"/>
 <area shape="rect" id="Node000004" title=" " alt="" coords="165,5,296,85"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="233,99,233,134,228,134,228,99"/>
 </map>
