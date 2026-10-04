@@ -41,17 +41,15 @@ constexpr char kDirSep = '/';
 #endif
 
 //! A path from the settings: `~` expanded, relative ones against the file.
-//! `/` inside a configured path becomes the platform's separator: a settings
-//! file written on one OS is read on another, and callers compare against
-//! paths the OS built (Python's pathlib normalises both ways).
+//! Absolute spellings are preserved verbatim; for a relative path, `/` becomes
+//! the platform's separator before joining the native settings directory.
 std::string resolve(const std::string& path, const std::string& settings_dir) {
     std::string p = expand_home(path);
-    if (p.empty()) return p;
+    if (p.empty() || is_absolute(p) || settings_dir.empty()) return p;
 #ifdef _WIN32
     for (char& c : p)
         if (c == '/') c = '\\';
 #endif
-    if (is_absolute(p) || settings_dir.empty()) return p;
     return settings_dir + kDirSep + p;
 }
 
