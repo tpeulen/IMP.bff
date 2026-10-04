@@ -1,5 +1,9 @@
 # Update Log
 
+## 2026-10-04
+
+- **Portable SMLM coarse-start ranking** ([smlm.md](smlm.md)): rank scalar indexes rather than Eigen pose payloads; preserves stable ties and avoids MSVC C2338 in CI 37185022491. Standalone suite: 205 passed, including an orientation-unidentifiable tie regression.
+
 ## 2026-10-03
 
 - **CPU compute-core and native sampling boundary verified**: separate unscaled value inference, allocation-free scalar graph writes, contiguous chains and director-safe GIL/exception boundaries. Parent: 571 passed / 65 skipped; source-aligned Gaussian 1.16x, copy-heavy NN 1.60–1.75x, flat export 79–115x (boundary only). [Raw evidence, limits and resume point](validation/compute-core-performance.md).

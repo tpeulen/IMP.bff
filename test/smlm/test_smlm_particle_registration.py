@@ -59,3 +59,22 @@ def test_registration_rejects_invalid_policy(field, value):
     setattr(options, field, value)
     with pytest.raises((ValueError, RuntimeError)):
         bff.register_smlm_particles(index, frames, bff.SMLMPointModel(points.ravel()), options)
+
+
+def test_equal_azimuth_scores_preserve_initial_pose_sample_order():
+    # A single emitter at the origin has no identifiable orientation. All
+    # azimuth scores tie exactly; stable ranking must retain the first sample.
+    points = np.concatenate((np.eye(3)*10, -np.eye(3)*10))
+    index = bff.SMLMIndex(points.ravel(), [2]*6, [], [7]*6)
+    angle = 0.4
+    initial = np.array([[np.cos(angle), -np.sin(angle), 0, 0],
+                        [np.sin(angle), np.cos(angle), 0, 0], [0, 0, 1, 0]])
+    frames = bff.SMLMParticleFrames()
+    frames.particle_ids = [7]
+    frames.transforms = initial.ravel()
+    options = bff.SMLMParticleRegistrationOptions()
+    options.angular_samples = 24
+    options.max_iterations = 5
+    result = bff.register_smlm_particles(index, frames, bff.SMLMPointModel([0, 0, 0]), options)
+    assert list(result.particle_ids) == [7]
+    np.testing.assert_allclose(np.asarray(result.transforms).reshape(3, 4), initial, atol=1e-14)

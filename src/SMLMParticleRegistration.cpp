@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <numeric>
 #include <stdexcept>
 #include <set>
 
@@ -70,13 +71,20 @@ SMLMParticleRegistrationResult register_smlm_particles(const SMLMIndex& index,
           Eigen::AngleAxisd(theta,Eigen::Vector3d::UnitZ()).toRotationMatrix();
       starts.emplace_back(model.evaluate(observed,likelihood,flat(pose)).mean_nll,pose);
     }
-    std::stable_sort(starts.begin(),starts.end(),[](const auto& a,const auto& b){return a.first<b.first;});
+    // MSVC's stable_sort temporary buffer rejects over-aligned Eigen payloads.
+    // Rank scalar indexes instead, preserving sample order for tied scores and
+    // leaving the native pose storage and its alignment untouched.
+    std::vector<std::size_t> order(starts.size());
+    std::iota(order.begin(),order.end(),std::size_t{0});
+    std::stable_sort(order.begin(),order.end(),[&](std::size_t a,std::size_t b){
+      return starts[a].first<starts[b].first;
+    });
     SMLMLikelihoodFitOptions fit_options;fit_options.max_iterations=options.max_iterations;
     fit_options.max_translation_step=options.max_translation_step;
     fit_options.max_rotation_step=options.max_rotation_step;
     SMLMLikelihoodFitResult best;best.likelihood.mean_nll=std::numeric_limits<double>::infinity();
     for(std::size_t j=0;j<std::min<std::size_t>(2,starts.size());++j) {
-      auto fitted=fit_smlm_likelihood_rigid(observed,model,likelihood,flat(starts[j].second),fit_options);
+      auto fitted=fit_smlm_likelihood_rigid(observed,model,likelihood,flat(starts[order[j]].second),fit_options);
       if(fitted.likelihood.mean_nll<best.likelihood.mean_nll) best=std::move(fitted);
     }
     double signal=0.0,total=0.0;

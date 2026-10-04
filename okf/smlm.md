@@ -69,6 +69,9 @@ The default angular period is a full circle; a reduced period is valid only
 with documented symmetry of the fixed model. Source positions are never snapped,
 scaled or duplicated. The resulting maps are reference-assisted averages; the
 source-to-reference transforms, fit scores and stopping flags must be retained.
+Coarse starts are stably ranked by scalar indexes, not moved Eigen matrices:
+this preserves tied-sample order without MSVC's over-aligned temporary-buffer
+failure in the native wheel and IMP-module builds.
 
 `average_smlm_particles` rotates FULL covariance R diag(sigma²) Rᵀ; it evaluates
 rotated kernels in source coordinates. Particle count/score gates exclude whole
