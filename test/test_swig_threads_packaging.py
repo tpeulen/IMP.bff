@@ -145,8 +145,9 @@ file(WRITE "${{CMAKE_BINARY_DIR}}/launcher.txt" "${{SWIG_EXECUTABLE}}")
     launcher = Path((build / "launcher.txt").read_text())
     assert launcher.suffix == ".cmd"
     content = launcher.read_text()
-    assert '"' + sys.executable + '"' in content
-    assert '"' + str(HELPER) + '"' in content
-    assert '"' + str(real) + '"' in content
+    normalized = content.replace("\\", "/")
+    assert '"' + Path(sys.executable).as_posix() + '"' in normalized
+    assert '"' + HELPER.as_posix() + '"' in normalized
+    assert '"' + real.as_posix() + '"' in normalized
     assert "%*" in content
     assert "exit /b %errorlevel%" in content.lower()

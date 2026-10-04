@@ -49,6 +49,10 @@ def _compile_command(compiler, cpp, extension, standalone):
         abi = ("t" if sysconfig.get_config_var("Py_GIL_DISABLED") else "") + ("_d" if debug else "")
         library = sysconfig.get_config_var("LIBRARY") or (
             f"python{sys.version_info[0]}{sys.version_info[1]}{abi}.lib")
+        # Conda Python may name its runtime DLL here. LINK needs its matching
+        # import library from the running interpreter's libs directory.
+        if library.lower().endswith(".dll"):
+            library = library[:-4]+".lib"
         return [*compiler, *flags, str(cpp), "/Fe" + str(extension), "/link",
                 *library_flags, library]
     flags = ["-std=c++14", "-shared", "-fPIC", "-I" + sysconfig.get_path("include")]

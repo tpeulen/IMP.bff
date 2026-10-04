@@ -57,7 +57,7 @@ def test_unix_compile_command(monkeypatch, tmp_path, platform, standalone):
 @pytest.mark.parametrize("compiler", [
     ["cl"], [r"C:\Program Files\MSVC\CL.EXE"], ["sccache", "clang-cl.exe"],
 ])
-@pytest.mark.parametrize("configured_library", [None, "python313.lib"])
+@pytest.mark.parametrize("configured_library", [None, "python313.lib", "python313.dll"])
 def test_msvc_compile_command(monkeypatch, tmp_path, standalone, compiler, configured_library):
     monkeypatch.setattr(boundary.sys, "platform", "win32")
     monkeypatch.setattr(boundary.sys, "version_info", (3, 13, 0))
