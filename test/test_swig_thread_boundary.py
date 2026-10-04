@@ -4,23 +4,64 @@ The standalone lane takes its flags from the tracked UseSWIG source property.
 No full standalone numerical build is needed to exercise the GIL boundary.
 """
 
-from pathlib import Path
+import os
 import re
 import shlex
 import shutil
 import subprocess
 import sys
 import sysconfig
+from pathlib import Path
 
 import pytest
-
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def _compiler():
+    defaults = ["cl", "clang-cl"] if sys.platform == "win32" else ["c++", "clang++", "g++"]
+    for configured in [os.environ.get("CXX"), sysconfig.get_config_var("CXX"), *defaults]:
+        if not configured:
+            continue
+        # POSIX shlex consumes backslashes in Windows compiler paths.
+        command = shlex.split(configured, posix=sys.platform != "win32")
+        if sys.platform == "win32":
+            command = [argument.strip('"') for argument in command]
+        if command and shutil.which(command[0]):
+            return command
+    raise AssertionError("C++ compiler required (set CXX or install a native compiler)")
+
+
+def _compile_command(compiler, cpp, extension, standalone):
+    msvc = any(Path(arg.replace("\\", "/")).name.lower() in
+               ("cl", "cl.exe", "clang-cl", "clang-cl.exe") for arg in compiler)
+    if msvc:
+        debug = bool(sysconfig.get_config_var("Py_DEBUG"))
+        flags = ["/nologo", "/std:c++14", "/LD", "/MDd" if debug else "/MD", "/EHsc",
+                 "/I" + sysconfig.get_path("include")]
+        if standalone:
+            flags += ["/DIMPBFF_STANDALONE=1"]
+        # Virtual environments need the base interpreter's import library too.
+        directories = [sysconfig.get_config_var("LIBDIR"), sysconfig.get_config_var("LIBPL"),
+                       str(Path(sys.prefix) / "libs"), str(Path(sys.base_prefix) / "libs")]
+        library_flags = ["/LIBPATH:" + directory for directory in dict.fromkeys(directories)
+                         if directory]
+        abi = ("t" if sysconfig.get_config_var("Py_GIL_DISABLED") else "") + ("_d" if debug else "")
+        library = sysconfig.get_config_var("LIBRARY") or (
+            f"python{sys.version_info[0]}{sys.version_info[1]}{abi}.lib")
+        return [*compiler, *flags, str(cpp), "/Fe" + str(extension), "/link",
+                *library_flags, library]
+    flags = ["-std=c++14", "-shared", "-fPIC", "-I" + sysconfig.get_path("include")]
+    if sys.platform == "darwin":
+        flags += ["-undefined", "dynamic_lookup"]
+    if standalone:
+        flags += ["-DIMPBFF_STANDALONE=1"]
+    return [*compiler, *flags, str(cpp), "-o", str(extension)]
+
+
 def _run(args, directory):
     result = subprocess.run(args, cwd=directory, capture_output=True,
-                            text=True, timeout=60)
+                            text=True, timeout=60, check=False)
     assert result.returncode == 0, result.stdout + result.stderr
     return result
 
@@ -28,12 +69,12 @@ def _run(args, directory):
 @pytest.mark.parametrize("standalone", [False, True], ids=["imp", "standalone"])
 def test_shared_directors_and_exception_boundary(tmp_path, standalone):
     swig = shutil.which("swig")
-    compiler = shlex.split(sysconfig.get_config_var("CXX"))
-    assert swig and shutil.which(compiler[0]), "SWIG and a C++ compiler required"
+    assert swig, "SWIG required"
+    compiler = _compiler()
     core = (ROOT / "pyext/include/IMP_bff.core.i").read_text()
     policy = core[core.index('/* The SWIG launcher'):core.index('/* Does this build')]
     exception = re.search(
-        r'%exception IMP::bff::ModelSearch::run \{.*?\n\}', core, re.S
+        r'%exception IMP::bff::ModelSearch::run \{.*?\n\}', core, re.DOTALL
     ).group()
     macros = (ROOT / "standalone/pyext/IMP_bff_standalone.macros.i").read_text()
     # Use the established standalone exception hierarchy and translator too.
@@ -96,17 +137,13 @@ class ModelSearch {
     generated = cpp.read_text()
     for method in ("evaluate", "do_evaluate", "get_node_type"):
         body = re.search(r'SwigDirector_GraphNode::' + method + r'\([^)]*\)[^{]*\{(.*?)\n\}',
-                         generated, re.S).group(1)
+                         generated, re.DOTALL).group(1)
         assert "SWIG_PYTHON_THREAD_BEGIN_BLOCK" in body, method
-    setter = re.search(r'_wrap_GraphNode_set_value\([^\n]+\{(.*?)\n\}', generated, re.S).group(1)
+    setter = re.search(r'_wrap_GraphNode_set_value\([^\n]+\{(.*?)\n\}', generated, re.DOTALL).group(1)
     assert "SWIG_PYTHON_THREAD_BEGIN_ALLOW" not in setter
     suffix = sysconfig.get_config_var("EXT_SUFFIX")
-    flags = ["-std=c++14", "-shared", "-fPIC", "-I" + sysconfig.get_path("include")]
-    if sys.platform == "darwin":
-        flags += ["-undefined", "dynamic_lookup"]
-    if standalone:
-        flags += ["-DIMPBFF_STANDALONE=1"]
-    _run([*compiler, *flags, str(cpp), "-o", str(tmp_path / ("_boundary" + suffix))], tmp_path)
+    extension = tmp_path / ("_boundary" + suffix)
+    _run(_compile_command(compiler, cpp, extension, standalone), tmp_path)
     script = r'''
 import boundary as b
 class SentinelError(LookupError): pass

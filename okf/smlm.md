@@ -138,6 +138,12 @@ ChiMOL's native density/IO/demo checks passed 45 tests with actual offscreen
 rendering and histogram-marker events. Source artifacts and raw bulk data are
 cached, not shipped as repository dependencies.
 
+CI installs SWIG and the native compiler in its separate package-test prefix:
+the isolated conda build prefix cannot supply tools to the GIL/director compile
+fixtures. Those fixtures select environment/sysconfig compilers with native
+fallbacks; Windows uses MSVC DLL flags and the running Python's import library.
+They remain real runtime tests, not skips hiding a missing test toolchain.
+
 Build in an isolated standalone directory while the shared IMP tree is claimed.
 No new dependencies. The backend is CPU-only and remains usable without IMP.
 Future work: class-specific iterative averaging, independent reference learning,
