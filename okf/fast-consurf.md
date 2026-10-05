@@ -521,6 +521,39 @@ three runs:
   Window vectors are the planned fix and are being tested on exactly these
   chains.
 
+## Window vectors and the k-mer fallback (2026-10-05)
+
+**Window vectors.** Representatives longer than 256 residues (16.1 M of
+38.84 M) were cut into 256-residue windows, stride 128. That gave 63.4 M
+windows, embedded with the same 35M model and head: 21.9 h on the RTX 4000
+Ada, about 810 windows/s. The combined index holds 102.3 M vectors (3.68 GB,
+built in 26 min). A `rows` column maps each vector to its representative, so
+a row is reported once.
+
+On the 61 ConSurf-DB chains, against the server, fallback off:
+
+| run | ρ median | within 1 | no result | < 30 homologues | time median (SD card) |
+|---|---|---|---|---|---|
+| k-mer two-stage | 0.908 | 0.697 | 0 | 5 | 29 s |
+| fast, whole-sequence index | 0.873 | 0.675 | 4 | 14 | 21 s |
+| fast, + windows | 0.873 | 0.679 | 3 | 10 | 91 s |
+
+Windows rescue some families (4AFB 4 → 52 homologues, 1ERN 11 → 55, 3KIF
+13 → 32), but not all (1ET6, 5F4T and 2QFB stay empty). The median is
+unchanged (21 chains better, 14 worse). On the SD card the larger index
+costs about 70 s per query, because 3.7 GB does not stay in the page cache.
+It stays an option (`uniref50_esm_windows`, a separate download passed as
+`embedding_index`), not the default.
+
+**The k-mer fallback** (`kmer_fallback_min_homologs`, default 30, imp.bff
+d526ff9f9) is what closes the gap. A query left with fewer than 30
+homologues after the embedding stage is searched again with the k-mer first
+stage. On the 14 weak chains this reproduces the k-mer result on every
+one (e.g. 1ERN ρ 0.356 → 0.968; the 4 chains without result get 12–150
+homologues). The cost is a k-mer scan for those queries, 5–9 min on the SD
+card. **Default: whole-sequence index plus fallback**, in `uniref_consurf.pto`
+as published.
+
 ## Pending
 
 - **UniRef50 embedding** of all 38.84 M representatives on cordeshub

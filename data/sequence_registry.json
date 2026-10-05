@@ -27,5 +27,12 @@
     "sha256": "39361896d09e37c4acaa476e9c89817d21adb63502cb38745faaf2787e225a07",
     "description": "ESM-2 t33 650M with its contact head (ProteinLanguageModel.get_contacts, probe_pair_contacts).",
     "source": "facebook/esm2_t33_650M_UR50D (MIT)"
+  },
+  "uniref50_esm_windows": {
+    "path": "sequence_databases/uniref50_esm_windows.pto",
+    "bytes": 3682108095,
+    "sha256": "5b27d3db606e971d2aa066bc140ef9d773df7fa305cf45d6a06c4c507641289a",
+    "description": "Optional larger embedding index for uniref_consurf: the 38.84 M whole-sequence vectors plus 63.4 M vectors of 256-residue windows (stride 128) of representatives longer than 256 residues. Pass as SequenceClusterSearchOptions.embedding_index (model: the uniref_consurf file). Fewer families missed (on 61 ConSurf-DB chains: 10 instead of 14 below 30 homologues), same median quality; worth it on an SSD, slow on slow storage.",
+    "source": "UniProt UniRef50 (CC BY 4.0); facebook/esm2_t12_35M_UR50D (MIT) + head"
   }
 }
