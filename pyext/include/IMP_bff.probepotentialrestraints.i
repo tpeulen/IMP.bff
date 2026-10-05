@@ -20,7 +20,11 @@ IMP_SWIG_OBJECT(IMP::bff, MiyazawaJerniganPairScore,
 IMP_SWIG_OBJECT(IMP::bff, UNRESCentroidPairScore, UNRESCentroidPairScores);
 IMP_SWIG_OBJECT(IMP::bff, LennardJonesBeadPairScore,
                 LennardJonesBeadPairScores);
+IMP_SWIG_OBJECT(IMP::bff, SoftSphereOverlapPairScore,
+                SoftSphereOverlapPairScores);
 IMP_SWIG_OBJECT(IMP::bff, GoRestraint, GoRestraints);
+IMP_SWIG_OBJECT(IMP::bff, SiteAccessibleAreaRestraint,
+                SiteAccessibleAreaRestraints);
 IMP_SWIG_OBJECT(IMP::bff, HydrogenBondRestraint, HydrogenBondRestraints);
 IMP_SWIG_OBJECT(IMP::bff, GeneralizedBornRestraint,
                 GeneralizedBornRestraints);

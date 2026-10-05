@@ -95,6 +95,9 @@ FLAT_NAMES = [
     "ProteinLanguageModel",        # ESM-2 from GGUF, native forward pass
     "probe_pair_contacts",         # ESM-2 contacts as a pair cost (alternative to DCA)
     "ElasticNetworkModes",         # ANM normal modes of a structure
+    "get_site_contact_energy",     # contact terms on arrays (ContactPotentials.h)
+    "SoftSphereOverlapPairScore",  # the same clash term as an IMP PairScore
+    "SiteAccessibleAreaRestraint",  # gated residue area as an IMP Restraint
     "get_pair_distance_fluctuations",
     "get_pair_change_probabilities",  # calibrated: P(distance changes > 5 A)
     "ProbePairBenefitTerm",        # dynamics reward in the network selection

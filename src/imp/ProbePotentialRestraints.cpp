@@ -9,6 +9,7 @@
 #include <IMP/bff/ProbePotentialTables.h>
 #include <IMP/bff/SolventAccessibleSurface.h>
 #include <IMP/bff/ZMatrix.h>
+#include <IMP/bff/internal/ContactKernels.h>
 #include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/internal/Text.h>
 
@@ -273,19 +274,9 @@ double clash_energy(const std::vector<double>& xyz,
         IMP_THROW("clash_tolerance divides the overlap and cannot be zero",
                   ValueException);
     }
-    const std::size_t n = std::min(xyz.size() / 3, vdw.size());
-    double e = 0.0;
-    for (std::size_t i = 0; i < n; ++i) {
-        for (std::size_t j = i + 1; j < n; ++j) {
-            const double rij = distance_of(xyz, i, j);
-            const double sigma = vdw[i] + vdw[j];
-            if (rij > covalent_radius && rij < sigma) {
-                const double overlap = (sigma - rij) / clash_tolerance;
-                e += overlap * overlap;
-            }
-        }
-    }
-    return e;
+    const int n = static_cast<int>(std::min(xyz.size() / 3, vdw.size()));
+    return internal::contact::soft_sphere_overlap_sum(
+            xyz.data(), vdw.data(), n, clash_tolerance, covalent_radius);
 }
 
 void GoContacts::get_energies(double** out_view, int* n_out_view) const {
@@ -324,12 +315,7 @@ namespace {
 
 //! The truncated-LJ energy of one contact at one distance.
 inline double go_pair_energy(double epsilon, double rm, double r) {
-    if (r > rm && r < rm * 2.5 && r > 0.0) {
-        const double sr = 2.0 * std::pow(rm / r, 6);
-        // The 0.00818 shift puts the truncated well at zero at 2.5 rm.
-        return epsilon * (-sr + sr * sr / 4.0 + 0.00818);
-    }
-    return -epsilon;
+    return internal::contact::lj_well(epsilon, rm, r);
 }
 
 }  // namespace
@@ -365,30 +351,13 @@ double generalized_born_energy(const std::vector<double>& xyz,
                                const std::vector<double>& charges,
                                double epsilon, double epsilon0,
                                double cutoff) {
-    const std::size_t n =
-            std::min(xyz.size() / 3, std::min(radii.size(), charges.size()));
-    const double cutoff2 = cutoff * cutoff;
-    const double pre = 1.0 / (8.0 * M_PI) * (1.0 / epsilon0 - 1.0 / epsilon);
-    double energy = 0.0;
-    for (std::size_t i = 0; i < n; ++i) {
-        const double qi = charges[i];
-        if (qi == 0.0) continue;
-        for (std::size_t j = i; j < n; ++j) {
-            const double qj = charges[j];
-            if (qj == 0.0) continue;
-            const double rij2 = squared_distance_of(xyz, i, j);
-            if (rij2 > cutoff2) continue;
-            const double aij2 = radii[i] * radii[j];
-            if (aij2 == 0.0) continue;
-            const double qij = qi * qj;
-            const double d = rij2 / (4.0 * aij2);
-            const double fgbr = std::sqrt(rij2 + aij2 * std::exp(-d));
-            // `cutoff`, not `cutoff * cutoff`: see the note in the header.
-            const double fgbc = std::sqrt(cutoff + aij2 * std::exp(-d));
-            energy += qij / fgbr - qij / fgbc;
-        }
-    }
-    return energy * pre;
+    const int n = static_cast<int>(
+            std::min(xyz.size() / 3, std::min(radii.size(), charges.size())));
+    // `cutoff`, not `cutoff * cutoff`, as the reference distance: see the
+    // note in the header.
+    return internal::contact::generalized_born_sum(
+            xyz.data(), radii.data(), charges.data(), n, epsilon, epsilon0,
+            cutoff, cutoff);
 }
 
 double residue_asa(const std::vector<double>& xyz, int n_sphere, double probe,
@@ -532,90 +501,44 @@ void HydrogenBondRestraint::set_channels(bool ch, bool on, bool oh, bool cn) {
     cn_ = cn;
 }
 
-namespace {
-
-//! One channel of the lookup at a distance, or zero past its end.
-inline double hbond_bin(const std::vector<double>& table, int n_bins,
-                        int channel, double dist, double bin_width) {
-    const int b = static_cast<int>(dist / bin_width);
-    if (b < 0 || b >= n_bins) return 0.0;
-    return table[static_cast<std::size_t>(channel) * n_bins + b];
-}
-
-}  // namespace
-
 double HydrogenBondRestraint::unprotected_evaluate(
         IMP::DerivativeAccumulator* accum) const {
     IMP_UNUSED(accum);   // a binned lookup has no useful gradient
     IMP::Model* m = get_model();
     const int n = static_cast<int>(n_.size());
-    const double cutoff_h2 = cutoff_h_ * cutoff_h_;
-    double e = 0.0;
-    n_hbonds_ = 0;
-
-    // The C-alpha of residue k is the entry of pis_ that precedes its four
-    // bonding atoms; it was pushed first, so its slot is recoverable from the
-    // count of slots taken before it. Rather than recompute that, the walk
-    // below keeps the coordinates it needs.
-    std::vector<IMP::algebra::Vector3D> ca(n);
+    // Every particle the restraint reads, flat, in pis_ order: n_, c_, o_
+    // and h_ are slots into it already.
+    std::vector<double> xyz(pis_.size() * 3);
+    for (unsigned int k = 0; k < pis_.size(); ++k) {
+        const IMP::algebra::Vector3D v =
+                IMP::core::XYZ(m, pis_[k]).get_coordinates();
+        xyz[3 * k] = v[0];
+        xyz[3 * k + 1] = v[1];
+        xyz[3 * k + 2] = v[2];
+    }
+    // The C-alpha of residue k precedes its bonding atoms in pis_.
+    std::vector<int> ca(n);
     {
         int slot = 0;
         for (int k = 0; k < n; ++k) {
-            ca[k] = IMP::core::XYZ(m, pis_[slot]).get_coordinates();
-            // one C-alpha plus however many of N, C, O, H were present
+            ca[k] = slot;
             slot += 1 + (n_[k] >= 0) + (c_[k] >= 0) + (o_[k] >= 0) +
                     (h_[k] >= 0);
         }
     }
-
-    for (int i = 0; i < n; ++i) {
-        for (int j = i + 1; j < n; ++j) {
-            // Applied, unlike the kernel this came from: see the header.
-            if (IMP::algebra::get_distance(ca[i], ca[j]) > cutoff_ca_) {
-                continue;
-            }
-            for (int direction = 0; direction < 2; ++direction) {
-                // donor -> acceptor: the donor lends its amide H to the
-                // acceptor's carbonyl O.
-                const int donor = direction == 0 ? j : i;
-                const int acceptor = direction == 0 ? i : j;
-                if (h_[donor] < 0 || n_[donor] < 0 || o_[acceptor] < 0 ||
-                    c_[acceptor] < 0) {
-                    continue;
-                }
-                const IMP::algebra::Vector3D h =
-                        coordinates_at(m, pis_, h_[donor]);
-                const IMP::algebra::Vector3D o =
-                        coordinates_at(m, pis_, o_[acceptor]);
-                if ((h - o).get_squared_magnitude() >= cutoff_h2) continue;
-                ++n_hbonds_;
-                const IMP::algebra::Vector3D nn =
-                        coordinates_at(m, pis_, n_[donor]);
-                const IMP::algebra::Vector3D cc =
-                        coordinates_at(m, pis_, c_[acceptor]);
-                if (oh_) {
-                    e += hbond_bin(table_, n_bins_, 2,
-                                   IMP::algebra::get_distance(h, o),
-                                   bin_width_);
-                }
-                if (on_) {
-                    e += hbond_bin(table_, n_bins_, 1,
-                                   IMP::algebra::get_distance(nn, o),
-                                   bin_width_);
-                }
-                if (ch_) {
-                    e += hbond_bin(table_, n_bins_, 0,
-                                   IMP::algebra::get_distance(cc, h),
-                                   bin_width_);
-                }
-                if (cn_) {
-                    e += hbond_bin(table_, n_bins_, 3,
-                                   IMP::algebra::get_distance(nn, cc),
-                                   bin_width_);
-                }
-            }
-        }
-    }
+    // Applied, unlike the kernel this came from: see the header.
+    const double cutoff_ca2 = cutoff_ca_ * cutoff_ca_;
+    auto gate = [&](int i, int j) {
+        return !(internal::contact::dist2(xyz.data(), ca[i], ca[j]) >
+                 cutoff_ca2);
+    };
+    const bool channels[4] = {ch_, on_, oh_, cn_};
+    long n_bonds = 0;
+    const double e = internal::contact::backbone_hbond_sum(
+            xyz.data(), n_.data(), c_.data(), o_.data(), h_.data(), n, gate,
+            table_.data(), n_bins_, cutoff_h_ * cutoff_h_, bin_width_,
+            channels, &n_bonds);
+    n_hbonds_ = static_cast<int>(n_bonds);
     return e;
 }
 
@@ -657,6 +580,82 @@ double GeneralizedBornRestraint::unprotected_evaluate(
 }
 
 IMP::ModelObjectsTemp GeneralizedBornRestraint::do_get_inputs() const {
+    return IMP::get_particles(get_model(), pis_);
+}
+
+// ---------------------------------------------------------------------------
+// SoftSphereOverlapPairScore
+// ---------------------------------------------------------------------------
+
+SoftSphereOverlapPairScore::SoftSphereOverlapPairScore(double scale,
+                                                       double min_distance)
+    : IMP::PairScore("SoftSphereOverlapPairScore%1%"), scale_(scale),
+      min_distance_(min_distance) {
+    if (scale_ == 0.0) {
+        IMP_THROW("the scale divides the overlap and cannot be zero",
+                  ValueException);
+    }
+}
+
+double SoftSphereOverlapPairScore::evaluate_index(
+        IMP::Model* m, const IMP::ParticleIndexPair& p,
+        IMP::DerivativeAccumulator* da) const {
+    IMP::core::XYZR a(m, std::get<0>(p)), b(m, std::get<1>(p));
+    const IMP::algebra::Vector3D delta = a.get_coordinates() - b.get_coordinates();
+    const double r = delta.get_magnitude();
+    double dedr = 0.0;
+    const double e = internal::contact::soft_sphere_overlap(
+            r, a.get_radius() + b.get_radius(), scale_, min_distance_,
+            da ? &dedr : nullptr);
+    if (da && dedr != 0.0 && r > 0.0) {
+        const IMP::algebra::Vector3D g = delta * (dedr / r);
+        a.add_to_derivatives(g, *da);
+        b.add_to_derivatives(-g, *da);
+    }
+    return e;
+}
+
+IMP::ModelObjectsTemp SoftSphereOverlapPairScore::do_get_inputs(
+        IMP::Model* m, const IMP::ParticleIndexes& pis) const {
+    return IMP::get_particles(m, pis);
+}
+
+// ---------------------------------------------------------------------------
+// SiteAccessibleAreaRestraint
+// ---------------------------------------------------------------------------
+
+SiteAccessibleAreaRestraint::SiteAccessibleAreaRestraint(
+        IMP::Model* m, const IMP::ParticleIndexes& pis, int n_sphere,
+        double probe, double radius, double occluder_cutoff)
+    : IMP::Restraint(m, "SiteAccessibleAreaRestraint%1%"), pis_(pis),
+      points_(sphere_points(n_sphere)), probe_(probe), radius_(radius),
+      occluder_cutoff_(occluder_cutoff) {}
+
+double SiteAccessibleAreaRestraint::unprotected_evaluate(
+        IMP::DerivativeAccumulator* accum) const {
+    IMP_UNUSED(accum);   // the area is a count of samples
+    IMP::Model* m = get_model();
+    const int n = static_cast<int>(pis_.size());
+    std::vector<double> xyz(3 * pis_.size());
+    std::vector<int> site(n);
+    for (int k = 0; k < n; ++k) {
+        const IMP::algebra::Vector3D v =
+                IMP::core::XYZ(m, pis_[k]).get_coordinates();
+        xyz[3 * k] = v[0];
+        xyz[3 * k + 1] = v[1];
+        xyz[3 * k + 2] = v[2];
+        site[k] = k;
+    }
+    const double cut2 = occluder_cutoff_ * occluder_cutoff_;
+    auto gate = [&](int i, int j) {
+        return internal::contact::dist2(xyz.data(), i, j) < cut2;
+    };
+    return internal::contact::site_area_sum(
+            xyz.data(), site.data(), n, gate, points_.data(),
+            static_cast<int>(points_.size() / 3), probe_, radius_);
+}
+
+IMP::ModelObjectsTemp SiteAccessibleAreaRestraint::do_get_inputs() const {
     return IMP::get_particles(get_model(), pis_);
 }
 

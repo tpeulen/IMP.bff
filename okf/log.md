@@ -12008,3 +12008,7 @@ Owner: parsed models stay abstract in BFF, catalogues stay ChiSurf YAML, entries
   (uninitialized cThT on FRET+TA convolved pairs; generation-vs-lookup
   azimuth-grid inconsistency). PRD-154 §S3 updated.
 - **2026-10-05** — `bff.nnls` (Lawson-Hanson) and `bff.bvls` (Stark-Parker) in C++ (`LinearLeastSquares.h`), one active-set core over an incrementally updated thin QR (MGS2 add, Givens remove, O(m p) per step; a refactorise-per-step first version was 100x slower than scipy at 4096x200). Parity vs scipy 1.18 over 300 random problems incl. rank-deficient and cond~1e8: objective equal to round-off, x to 1e-9 where unique; speed 1-2x scipy. Route 3 of chisurf's scipy retirement (`chisurf/okf/subsystems/scipy-retirement.md`). Test: `test/numerics/test_linear_least_squares.py`.
+
+## 2026-10-06 — coarse-grained contact potentials: one C++ kernel each, two doors
+
+- ProteinMC's seven terms (MJ, UNRES centroid, backbone H-bond, Go, soft-sphere clash, Generalized Born, gated residue area) now share one implementation (`include/internal/ContactKernels.h`) between the IMP objects (statistical PairScores reused from IMP; new `SoftSphereOverlapPairScore` with derivatives and `SiteAccessibleAreaRestraint`; H-bond/Go/GB restraints moved onto the kernels) and new array functions (`ContactPotentials.h`) that imp-tricks' `IMP.cgmol` calls. Parity restraint = array = numba oracle at 1e-10 on 148L; at or under numba speed except H-bond (1.6x). See `okf/contact-potentials.md`.

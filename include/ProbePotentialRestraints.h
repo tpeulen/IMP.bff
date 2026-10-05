@@ -214,6 +214,35 @@ public:
     IMP_OBJECT_METHODS(LennardJonesBeadPairScore);
 };
 
+//! Soft-sphere overlap between two spheres, bonded neighbours left out.
+/*!
+    \f$E = ((\sigma - r)/s)^2\f$ on \f$d_{min} < r < \sigma\f$ with
+    \f$\sigma = r_i + r_j\f$ from #IMP::core::XYZR, and 0 otherwise -- the
+    coarse-grained clash term, with derivatives. Score a
+    #IMP::container::ClosePairContainer of distance \f$2 r_{max}\f$ with it.
+
+    #IMP::core::SoftSpherePairScore is the same overlap with \f$k = 2/s^2\f$,
+    but it has no \f$d_{min}\f$: the pairs closer than that, which this
+    potential counts as bonded and skips, it scores. The arithmetic is the one
+    #get_soft_sphere_overlap_energy sums on arrays.
+*/
+class IMPBFFEXPORT SoftSphereOverlapPairScore : public IMP::PairScore {
+    double scale_, min_distance_;
+public:
+    //! \param[in] scale the overlap's denominator \f$s\f$: larger is softer
+    //! \param[in] min_distance pairs this close or closer are not scored, A
+    SoftSphereOverlapPairScore(double scale = 2.0, double min_distance = 1.5);
+    double get_scale() const { return scale_; }
+    double get_min_distance() const { return min_distance_; }
+    virtual double evaluate_index(
+            IMP::Model* m, const IMP::ParticleIndexPair& p,
+            IMP::DerivativeAccumulator* da) const override;
+    virtual IMP::ModelObjectsTemp do_get_inputs(
+            IMP::Model* m, const IMP::ParticleIndexes& pis) const override;
+    IMP_PAIR_SCORE_METHODS(SoftSphereOverlapPairScore);
+    IMP_OBJECT_METHODS(SoftSphereOverlapPairScore);
+};
+
 // ---------------------------------------------------------------------------
 // The terms IMP has no form for
 // ---------------------------------------------------------------------------
@@ -369,6 +398,43 @@ public:
             IMP::DerivativeAccumulator* accum) const override;
     virtual IMP::ModelObjectsTemp do_get_inputs() const override;
     IMP_OBJECT_METHODS(GeneralizedBornRestraint);
+};
+
+//! Shrake-Rupley accessible area of one site per residue (Restraint).
+/*!
+    Each site is sampled at \p radius on \p n_sphere points of
+    #IMP::bff::sphere_points; a sample is buried when it lies within
+    \f$radius + probe\f$ of another site closer than \p occluder_cutoff to its
+    own. The score is the total area,
+    \f$\sum_i 4\pi\, radius^2\, n_i^{acc} / n_{sphere}\f$, A^2 -- a burial
+    term whose weight sets its sign and strength. No derivatives: the area is
+    a count of samples.
+
+    The arithmetic is #get_site_accessible_area's; that function takes the
+    occluder gate as a matrix (a caller's C-alpha distances), this one measures
+    the sites. #residue_solvent_accessible_surface is the exact form, where
+    every site occludes.
+*/
+class IMPBFFEXPORT SiteAccessibleAreaRestraint : public IMP::Restraint {
+    IMP::ParticleIndexes pis_;
+    std::vector<double> points_;
+    double probe_, radius_, occluder_cutoff_;
+public:
+    //! \param[in] m,pis the sites, one per residue
+    /*! \param[in] n_sphere samples per site
+        \param[in] probe the probe radius, A
+        \param[in] radius the radius every site is sampled at, A
+        \param[in] occluder_cutoff sites further apart than this do not
+                   occlude each other, A; the default is
+                   \f$2(radius + probe)\f$, beyond which none can */
+    SiteAccessibleAreaRestraint(IMP::Model* m, const IMP::ParticleIndexes& pis,
+                                int n_sphere = 590, double probe = 1.0,
+                                double radius = 2.5,
+                                double occluder_cutoff = 7.0);
+    virtual double unprotected_evaluate(
+            IMP::DerivativeAccumulator* accum) const override;
+    virtual IMP::ModelObjectsTemp do_get_inputs() const override;
+    IMP_OBJECT_METHODS(SiteAccessibleAreaRestraint);
 };
 
 //! The Ramachandran pseudo-energy of a chain's backbone dihedrals.

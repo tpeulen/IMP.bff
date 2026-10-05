@@ -764,6 +764,10 @@ IMP_SWIG_DIRECTOR(IMP::bff, FitMinimizerObserver);
    nnls and lsq_linear. */
 %include "IMP_bff.linearleastsquares.i"
 
+/* Coarse-grained contact potentials over coordinate arrays (cell lists,
+   tabulated type-pair terms, Generalized Born, gated site area). */
+%include "IMP_bff.contactpotentials.i"
+
 /*
  * msgpack is bff's native format for every network document
  * (IMP::bff::MsgpackBytes, NeuralNet.h); ONNX, safetensors and GGUF are
