@@ -181,6 +181,39 @@ the observed change is the cleft of one lobe.
   selected, mixed by weight with the resolution, kinetics, labelling and
   cost terms in `ProbeNetworkSelection`.
 
+### Domains: automatic segmentation and an information criterion (2026-10-05)
+
+Question: does segmenting the structure into rigid domains, with the number
+of domains chosen by an information criterion, fix the two-lobe failure
+(lactoferrin)? Prototypes: `segment.py`, `segment_ic.py`, `enm_domains.py`.
+The concepts follow RAInDrOPS (salilab, GPL; read for the method, written
+independently): contiguous segments as graph nodes, rigid-body labels sampled
+by annealing, labellings kept connected in the contact graph.
+
+- **Score of a labelling:** the residual after explaining the 3 softest ANM
+  modes with one rigid-body motion per domain (6 parameters per domain and
+  mode, least squares).
+- **BIC fails here.** On 7 open/closed proteins with known domain counts
+  (AdK 3, MBP 2, RBP 2, GlnBP 2, LAO-BP 2, GK 3, lactoferrin 4), BIC with a
+  Gaussian iid residual picks the right count on at most 2 of 7, whatever the
+  effective sample size (coordinates, residues, segments, segments × modes).
+  The residual is flexibility inside the domains: smooth and correlated, not
+  independent noise. The residual curves do show the elbow. A stopping rule
+  (add a domain while the residual falls at least 2.5-fold) gets 4 of 7, but
+  "true" counts are themselves ambiguous (structural vs dynamic domains).
+- **Per-domain modes hurt.** Scoring each pair by the larger of its global
+  and within-domain change probability lowers the AUC on 13 of 14 cases;
+  within-domain fluctuations promote pairs that do not change (MBP top 20:
+  1.00 → 0.20). Lactoferrin improves in one direction only (top 20
+  0.20 → 0.90).
+
+Not built. A principled place for Bayesian reasoning is the weighting of the
+dynamics term instead. Draw an ensemble along the softest modes with thermal
+amplitudes and score candidate networks by the expected posterior RMSD over
+it (the resolution term). That is a Bayesian expected loss with no separate
+weight, and the worked example below already does it ("resolution over an
+ensemble from the same network").
+
 **Worked example:** `ipynb/example/elastic_network_fret_pairs.ipynb` (MBP; it
 plans from 1OMP only and checks against 1ANF).
 
