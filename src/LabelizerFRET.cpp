@@ -311,6 +311,19 @@ std::vector<LfSite> lf_place_sites(
     return out;
 }
 
+//! The model a row's distance actually came from.
+/*! A site whose accessible volume came back empty has no cloud, and
+    lf_pair_distance() then measures between the two attachment points. The row
+    has to say so. It is the only thing standing between "this pair is ranked
+    73rd" and a reader believing a dye was placed there: on hGBP1, 123 of 1953
+    pairs rest on a site with no volume, and on BmrA 247 of 7750 do. */
+ProbeModel lf_row_probe_model(const LabelizerFRETOptions& options,
+                              bool every_site_has_a_cloud) {
+    if (options.probe_model == PROBE_MODEL_ACCESSIBLE_VOLUME && !every_site_has_a_cloud)
+        return PROBE_MODEL_CBETA;
+    return options.probe_model;
+}
+
 bool lf_by_score(const LabelizerFRETPairScore& a, const LabelizerFRETPairScore& b) {
     return a.value > b.value;
 }
@@ -368,7 +381,8 @@ std::vector<LabelizerFRETPairScore> labelizer_fret_pair_scores(
             p.joined_label_score = labelizer_joined_label_score(ls, options.model);
             p.distance = lf_pair_distance(sites[i], sites[j], options);
             p.distance_2 = std::numeric_limits<double>::quiet_NaN();
-            p.probe_model = options.probe_model;
+            p.probe_model = lf_row_probe_model(
+                    options, sites[i].has_av && sites[j].has_av);
             p.value = labelizer_pair_score_single(p.joined_label_score, p.distance,
                                            options.forster_radius);
             out.push_back(p);
@@ -406,7 +420,8 @@ std::vector<LabelizerFRETPairScore> labelizer_fret_pair_scores(
             out[k].distance = lf_pair_distance(refined[by_key[k1]],
                                                refined[by_key[k2]],
                                                refine_options);
-            out[k].probe_model = options.refine_probe_model;
+            out[k].probe_model = lf_row_probe_model(
+                    refine_options, refined[by_key[k1]].has_av && refined[by_key[k2]].has_av);
             out[k].value = labelizer_pair_score_single(out[k].joined_label_score,
                                                 out[k].distance,
                                                 options.forster_radius);
@@ -476,7 +491,8 @@ std::vector<LabelizerFRETPairScore> labelizer_pair_scores_two_states(
             p.joined_label_score = labelizer_joined_label_score(ls, options.model);
             p.distance = lf_pair_distance(a[i], a[j], options);
             p.distance_2 = lf_pair_distance(bi, bj, options);
-            p.probe_model = options.probe_model;
+            p.probe_model = lf_row_probe_model(
+                    options, a[i].has_av && a[j].has_av && bi.has_av && bj.has_av);
             p.value = labelizer_pair_score_double(p.joined_label_score, p.distance,
                                            p.distance_2, options.forster_radius);
             out.push_back(p);

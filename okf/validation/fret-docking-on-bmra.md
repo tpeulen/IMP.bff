@@ -70,28 +70,56 @@ on the same sites. The notebook draws its synthetic measurements around the
 recovery test is not scored against a different forward model than the one it
 optimises.
 
-## 5. The pair screen ranks pairs whose dye has nowhere to go
+## 5. The pair screen claimed a dye model it had not used -- fixed
 
-Found while writing `doc/workshop/02_which_pair.ipynb`, confirmed separately.
+`labelizer_fret_pair_scores` scores a pair from the two sites' accessible
+volumes. When a volume comes back empty it measures between the two attachment
+points instead -- which is a reasonable fallback -- and it used to label the
+row `PROBE_MODEL_ACCESSIBLE_VOLUME` anyway, so nothing downstream could tell
+the two apart.
 
-`labelizer_fret_pair_scores` scores a pair from the two sites' volumes, and
-when a volume comes back empty it falls back to the attachment point and
-**still scores and ranks the row**. On BmrA's closed state, with the stock
-`LabelizerFRETOptions`:
+Measured on BmrA's closed state with the screen's **own** default options
+(linker 20/4.5, r1 9.0, grid 1.5):
 
-- residues A422 and B422 have **zero accessible voxels** -- the library says so
-  on stderr, `AV P30014: no accessible voxel ... clearance below half the
-  linker width walls the source in`;
-- both clear the label-score threshold at 1.52, because the label score asks
-  whether a cysteine belongs at that position, not whether a dye on a 20 A
-  linker can reach anywhere from it;
-- **247 of 7750 pairs involve residue 422**, and they carry ordinary-looking
-  scores and distances: `A551-B422` sits at rank 96 with value 1.5702 and a
-  quoted distance of 51.9 A.
+- 125 sites clear the label-score threshold, and **12 of them have no
+  accessible volume at all** (A125, A208, A219, A376, A421, A474 and their
+  chain-B twins);
+- those twelve sites carry **1422 of the 7750 pairs** -- 18 % of the screen --
+  and every one of those rows was presented as a volume-based distance.
 
-A warning on stderr is not enough for a number that goes into a ranked table a
-user reads. Either the row should carry a status the caller can filter on, as
-`LabelizerScore.status` already does for unscored residues, or the pair should
-be dropped from the screen. Until then, a screen's shortlist has to be audited
-by rebuilding its sites' volumes -- which is what notebook 02 does, and how
-this was found.
+The fix marks the row instead of removing it: a row whose distance came from
+the attachment points now carries `PROBE_MODEL_CBETA`, in the single-state
+screen, the two-state screen and the refinement pass alike. A caller filters
+on `probe_model`, the way the field was always meant to be read, and the
+ranking is unchanged for anyone who does not.
+
+**A correction to an earlier version of this note**, worth keeping because it
+is the kind of mistake that is easy to repeat: the first write-up named
+residue 422 as a dead site with 247 pairs resting on it. That was measured
+with the *workshop's* dye geometry (r1 3.5 with a 5 A clearance), not the
+screen's. Under the screen's own parameters A422 has 32 voxels -- thin, not
+absent. The defect is real and larger than first reported; the example was
+wrong because two different dye geometries were compared as though they were
+one.
+
+### Which builder drew the volume: the screen does not always use the core one
+
+Worth knowing before comparing one build's screen against another's, and the
+thing that made the first version of this fix's test fail. `IMP.bff` installs
+an accessible-volume *door*, and an IMP build replaces the core builder with
+IMP's own (`get_av_from_structure`: IMP::atom's reader and IMP's radii) at
+load time. `labelizer_get_av_door_name()` says which one is in place --
+`"imp"` in a conda build, the core one in a pip build.
+
+They do not agree site for site. On `test/input/labelizer/1DDB-39.pdb`, of 195
+residues the core builder finds no volume at 46 and the IMP builder at 42,
+agreeing on 39: about ten sites change their answer with the build. A27 is one
+of them -- 1085 voxels under the core reader, none under IMP's -- which is why
+a check that rebuilds a site's volume has to rebuild it through the installed
+door, or it ends up measuring the distance between the two readers instead of
+the thing it meant to test. `test/label/test_labelizer_fret.py` picks the
+builder from the door name for exactly that reason.
+
+The site counts above were taken from the screen itself and hold for both: 12
+of 125 sites empty either way on BmrA's closed state, which the pair
+arithmetic confirms (7750 - 1422 = 6328 = C(113, 2)).
