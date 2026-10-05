@@ -554,6 +554,30 @@ homologues). The cost is a k-mer scan for those queries, 5–9 min on the SD
 card. **Default: whole-sequence index plus fallback**, in `uniref_consurf.pto`
 as published.
 
+## 100 Swiss-Prot chains with the current defaults (2026-10-05)
+
+The 100-chain set again, with what compute_consurf does today: the embedding
+prefilter, early stop 600, the k-mer fallback below 30 homologues, and the
+near-identical retry. Against the same k-mer reference (`bench2.tsv`, label
+`defaults`):
+
+| run | result | score ρ, median (10th pct, min) | within 1, median (10th pct) |
+|---|---|---|---|
+| sampling spread (150 closest) | 98 | 0.920 (0.837, 0.697) | 0.782 (0.677) |
+| fast, before the fallback (`whole`) | 98 | 0.977 (0.944, 0.891) | 0.944 (0.856) |
+| **fast, current defaults** | 98 | **0.978 (0.953, 0.891)** | **0.948 (0.862)** |
+
+- **The fallback triggered on 8 chains,** the same 8 that had fewer than 30
+  homologues before. 4 of them improve, none gets worse. The lower tail
+  rises (10th percentile ρ 0.944 → 0.953).
+- **No result on 2 chains,** exactly as for the k-mer reference itself (3
+  and 0 homologues in UniRef).
+- **Times are not usable again:** the Parallels VM (6.4 GB, its disk image
+  on the same SD card) was running and the Mac had 8.5–9.2 GB in swap.
+  Median 51 s per chain on the SD card, fallback chains several minutes.
+  The internal SSD had only 3.8 GB free, so the SSD run was not repeated;
+  the earlier one (20 chains, median 5.2 s) stands.
+
 ## Pending
 
 - **UniRef50 embedding** of all 38.84 M representatives on cordeshub
