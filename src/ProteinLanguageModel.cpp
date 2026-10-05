@@ -308,6 +308,11 @@ struct ProteinLanguageModel::Weights {
     // contact head: logistic regression over layers x heads attention maps
     language_model::Row contact_w;   // empty: no contact head
     float contact_b = 0.f;
+    // language-model head: dense, GELU, LayerNorm, then the token embeddings (tied) and a bias
+    language_model::Linear lm_dense;
+    language_model::Norm lm_norm;
+    language_model::Row lm_bias;     // empty: no language-model head
+    int aa_token[20];
 
     //! The last layer for the residues; with \p contacts, also the contact
     //! logits' accumulator (`n x n`, before the bias and the sigmoid).
@@ -457,6 +462,13 @@ ProteinLanguageModel::ProteinLanguageModel(const std::string& path) : path_(path
         w->head2.load(g, "head.mlp.4", w->projection, hidden);
         w->skip.load(g, "head.skip", w->projection, w->d, false);
     }
+    if (g.has("lm_head.bias")) {
+        w->lm_dense.load(g, "lm_head.dense", w->d, w->d);
+        w->lm_norm.load(g, "lm_head.layer_norm", w->d);
+        w->lm_bias = g.vector("lm_head.bias", int(vocabulary.size()));
+        static const char* const aa = "ACDEFGHIKLMNPQRSTVWY";
+        for (int a = 0; a < 20; ++a) w->aa_token[a] = index(std::string(1, aa[a]));
+    }
     if (g.has("contact_head.regression.weight")) {
         w->contact_w = g.matrix("contact_head.regression.weight", 1, w->layers * w->heads).row(0);
         w->contact_b = g.has("contact_head.regression.bias")
@@ -471,6 +483,68 @@ int ProteinLanguageModel::get_number_of_layers() const { return w_ ? w_->layers 
 int ProteinLanguageModel::get_projection_length() const { return w_ ? w_->projection : 0; }
 int ProteinLanguageModel::get_max_length() const { return w_ ? w_->max_length : 0; }
 bool ProteinLanguageModel::get_has_contact_head() const { return w_ && w_->contact_w.size() > 0; }
+bool ProteinLanguageModel::get_has_language_model_head() const { return w_ && w_->lm_bias.size() > 0; }
+
+std::vector<double> ProteinLanguageModel::log_probabilities(const std::string& sequence, int* n) const {
+    if (!w_) IMP_THROW("ProteinLanguageModel: no model loaded", ValueException);
+    if (w_->lm_bias.size() == 0)
+        IMP_THROW("ProteinLanguageModel: " << path_ << " has no language-model head", ValueException);
+    language_model::Matrix h = w_->forward(sequence);                 // n x d, final LayerNorm applied
+    language_model::Matrix x = w_->lm_dense(h);
+    language_model::gelu(x);
+    x = w_->lm_norm(x, w_->eps);
+    *n = int(x.rows());
+    std::vector<double> out(std::size_t(*n) * 20);
+    for (int i = 0; i < *n; ++i) {
+        // logits over the whole vocabulary (log-softmax normalises over all tokens, as ESM does)
+        Eigen::VectorXf logits = w_->embeddings * x.row(i).transpose();
+        logits += w_->lm_bias.transpose();
+        const float top = logits.maxCoeff();
+        const double lse = double(top) + std::log((logits.array() - top).exp().sum());
+        for (int a = 0; a < 20; ++a) out[std::size_t(i) * 20 + a] = double(logits[w_->aa_token[a]]) - lse;
+    }
+    return out;
+}
+
+void ProteinLanguageModel::get_log_probabilities(const std::string& sequence, double** out_matrix,
+                                                 int* n_out_rows, int* n_out_cols) const {
+    int n = 0;
+    const std::vector<double> lp = log_probabilities(sequence, &n);
+    if (out_matrix == nullptr || n_out_rows == nullptr || n_out_cols == nullptr) return;
+    int n_flat = 0;
+    double* buffer = internal::new_double_view(lp.size(), out_matrix, &n_flat);
+    *n_out_rows = 0;
+    *n_out_cols = 20;
+    if (buffer == nullptr) return;
+    if (!lp.empty()) std::memcpy(buffer, lp.data(), lp.size() * sizeof(double));
+    *n_out_rows = n;
+}
+
+Floats ProteinLanguageModel::get_site_tolerance(const std::string& sequence, const std::string& residue) const {
+    static const std::string alphabet = "ACDEFGHIKLMNPQRSTVWY";
+    int target = -1;
+    if (!residue.empty()) {
+        if (residue.size() != 1 || alphabet.find(char(std::toupper(residue[0]))) == std::string::npos)
+            IMP_THROW("get_site_tolerance: residue must be one amino-acid letter or empty", ValueException);
+        target = int(alphabet.find(char(std::toupper(residue[0]))));
+    }
+    int n = 0;
+    const std::vector<double> lp = log_probabilities(sequence, &n);
+    Floats out(std::size_t(n), std::numeric_limits<double>::quiet_NaN());
+    for (int i = 0; i < n; ++i) {
+        const std::size_t wt = alphabet.find(char(std::toupper(sequence[std::size_t(i)])));
+        if (wt == std::string::npos) continue;                          // X, B, Z ...: no wild-type term
+        const double* row = &lp[std::size_t(i) * 20];
+        if (target >= 0) {
+            out[std::size_t(i)] = row[target] - row[wt];
+        } else {
+            double mean = 0;
+            for (int a = 0; a < 20; ++a) mean += row[a];
+            out[std::size_t(i)] = mean / 20.0 - row[wt];
+        }
+    }
+    return out;
+}
 
 std::vector<double> ProteinLanguageModel::contacts(const std::string& sequence, int* n) const {
     if (!w_) IMP_THROW("ProteinLanguageModel: no model loaded", ValueException);

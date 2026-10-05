@@ -84,11 +84,32 @@ public:
     /*! \throw ValueException when the file has no head */
     Floats get_projected_embedding(const std::string& sequence) const;
 
+    //! Whether the file carries ESM's language-model head (#get_log_probabilities).
+    bool get_has_language_model_head() const;
+    //! Per residue, the log-probabilities of the 20 amino acids
+    //! (`ACDEFGHIKLMNPQRSTVWY`), `n x 20`, from one pass over the unmasked
+    //! sequence (normalised over ESM's whole vocabulary).
+    /*! \throw ValueException when the file has no language-model head */
+    void get_log_probabilities(const std::string& sequence, double** out_matrix, int* n_out_rows,
+                               int* n_out_cols) const;
+    //! How well each site tolerates a substitution, from one pass:
+    //! `log p(residue) - log p(wild type)`, or with \p residue empty the mean
+    //! over all 20 amino acids minus the wild type (general tolerance). Higher
+    //! is more tolerant; NaN where the wild type is not one of the 20.
+    /*! On 178 ProteinGym deep mutational scans (X to cysteine variants, ESM-2
+        650M) the general tolerance correlates better with the measured
+        fitness (median Spearman 0.36) than the cysteine-specific score
+        (0.27; 0.31 with the site masked): a label site's cost
+        (okf/esm-contacts.md). */
+    Floats get_site_tolerance(const std::string& sequence, const std::string& residue = "") const;
+
 #ifndef SWIG
     //! #get_residue_embeddings into \p out (`n x d` floats); returns `n`.
     int compute(const std::string& sequence, std::vector<float>& out) const;
     //! #get_contacts row by row; \p n gets the number of residues.
     std::vector<double> contacts(const std::string& sequence, int* n) const;
+    //! #get_log_probabilities row by row; \p n gets the number of residues.
+    std::vector<double> log_probabilities(const std::string& sequence, int* n) const;
     //! #get_projected_embedding (or the pooled embedding when \p project is
     //! false) of each of \p sequences, in parallel: `sequences.size() x width`.
     std::vector<float> embed(const std::vector<std::string>& sequences, bool project) const;

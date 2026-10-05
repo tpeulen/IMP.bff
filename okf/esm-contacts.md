@@ -181,6 +181,29 @@ the observed change is the cleft of one lobe.
   selected, mixed by weight with the resolution, kinetics, labelling and
   cost terms in `ProbeNetworkSelection`.
 
+### Cysteine tolerance (2026-10-05)
+
+Label sites are mutated to cysteine. Does ESM-2 tell which sites tolerate it?
+The ground truth is ProteinGym v1.3 deep mutational scans: in 178 assays
+(≥ 20 X→C single mutants, sequence ≤ 1022), the X→C variants' measured
+fitness (`DMS_score`) against zero-shot scores from the wild-type sequence
+(Meier et al. 2021). Per-assay Spearman, median (25th–75th pct):
+
+| score | ESM-2 35M | ESM-2 650M |
+|---|---|---|
+| log p(C) − log p(wt), one pass (wt-marginal) | 0.13 | 0.27 |
+| the same with the site masked (155 assays ≤ 600 residues) | 0.16 | 0.31 (0.15–0.43) |
+| **mean log p over the 20 amino acids − log p(wt)**, one pass | 0.22 | **0.36 (0.19–0.50)** |
+
+The general tolerance of a site predicts the cysteine's effect better than
+the cysteine-specific score does (on 63 % of assays). Many assays measure
+functions that a single cysteine barely touches, so all correlations are
+modest. Native: `ProteinLanguageModel::get_log_probabilities` (n × 20) and
+`get_site_tolerance(sequence, residue="")` (general, or one residue vs wild
+type). The language-model head (decoder tied to the token embeddings) is now
+in the 650M GGUF; 1.1 s for 221 residues on the CPU. Prototype:
+`prototypes/esm_retrieval` → cordeshub `proteingym/cys_tolerance.py`.
+
 ### Domains: automatic segmentation and an information criterion (2026-10-05)
 
 Question: does segmenting the structure into rigid domains, with the number

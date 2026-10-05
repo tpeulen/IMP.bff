@@ -23,9 +23,9 @@
   },
   "esm2_650m_contacts": {
     "path": "protein_language_model/esm2_t33_650M_contacts.gguf",
-    "bytes": 1299946080,
-    "sha256": "39361896d09e37c4acaa476e9c89817d21adb63502cb38745faaf2787e225a07",
-    "description": "ESM-2 t33 650M with its contact head (ProteinLanguageModel.get_contacts, probe_pair_contacts).",
+    "bytes": 1303238656,
+    "sha256": "825bc7a718ae783e472074a4cfd490c89207bedd05bdddb5fbde439604fb216d",
+    "description": "ESM-2 t33 650M with its contact head and its language-model head (ProteinLanguageModel.get_contacts, probe_pair_contacts; get_log_probabilities, get_site_tolerance).",
     "source": "facebook/esm2_t33_650M_UR50D (MIT)"
   },
   "uniref50_esm_windows": {

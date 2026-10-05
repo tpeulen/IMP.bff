@@ -18,13 +18,22 @@ TINY_REF = os.path.join(HERE, "..", "input", "sequence", "esm2_tiny_ref.tsv")
 
 
 def references(path):
-    """(sequence, pooled, projected, contacts n x n row by row) per line; a
-    column may be empty (no projection head; contacts only for short ones)."""
+    """(sequence, pooled, projected, contacts n x n, log-probabilities n x 20) per
+    line; a column may be empty (no projection head; contacts and
+    log-probabilities only for short sequences)."""
     out = []
     for line in open(path):
-        fields = line.rstrip("\n").split("\t") + [""]
+        fields = line.rstrip("\n").split("\t") + ["", ""]
         nums = [[float(v) for v in f.split(",")] if f else [] for f in fields[1:4]]
         out.append((fields[0], *nums))
+    return out
+
+
+def log_probabilities(path):
+    out = []
+    for line in open(path):
+        fields = line.rstrip("\n").split("\t") + ["", ""]
+        out.append((fields[0], [float(v) for v in fields[4].split(",")] if fields[4] else []))
     return out
 
 
@@ -136,3 +145,35 @@ def test_esm2_contact_model():
         n = len(seq)
         # F16 weights against an FP32 reference
         assert np.max(np.abs(m.get_contacts(seq) - np.array(contacts).reshape(n, n))) < 2e-2
+    for seq, lp in log_probabilities(path.replace(".gguf", "_ref.tsv")):
+        if lp and m.get_has_language_model_head():
+            assert np.max(np.abs(m.get_log_probabilities(seq) - np.array(lp).reshape(len(seq), 20))) < 5e-2
+
+
+def test_tiny_log_probabilities_match_transformers():
+    import numpy as np
+    m = bff.ProteinLanguageModel(TINY)
+    assert m.get_has_language_model_head()
+    checked = 0
+    for seq, lp in log_probabilities(TINY_REF):
+        if not lp:
+            continue
+        got = m.get_log_probabilities(seq)
+        assert got.shape == (len(seq), 20)
+        assert np.max(np.abs(got - np.array(lp).reshape(len(seq), 20))) < 1e-4
+        checked += 1
+    assert checked >= 2
+
+
+def test_site_tolerance_is_read_off_the_log_probabilities():
+    import numpy as np
+    m = bff.ProteinLanguageModel(TINY)
+    seq = "ACDEFGHIKLMNPQRSTVWY"
+    lp = m.get_log_probabilities(seq)
+    wt = lp[np.arange(len(seq)), np.arange(20)]           # the sequence is the alphabet
+    assert np.allclose(m.get_site_tolerance(seq, "C"), lp[:, 1] - wt)
+    assert np.allclose(m.get_site_tolerance(seq, "c"), lp[:, 1] - wt)
+    assert np.allclose(m.get_site_tolerance(seq), lp.mean(1) - wt)
+    assert np.isnan(m.get_site_tolerance("AXA")[1])
+    with pytest.raises(bff.ValueException):
+        m.get_site_tolerance(seq, "CC")

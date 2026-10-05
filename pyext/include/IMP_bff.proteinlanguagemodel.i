@@ -13,5 +13,6 @@ IMP_SWIG_VALUE(IMP::bff, ProteinLanguageModel, ProteinLanguageModels);
     (double** out_matrix, int* n_out_rows, int* n_out_cols)
 };
 %feature("compactdefaultargs") IMP::bff::probe_pair_contacts;
+%feature("compactdefaultargs") IMP::bff::ProteinLanguageModel::get_site_tolerance;
 
 %include "IMP/bff/ProteinLanguageModel.h"
