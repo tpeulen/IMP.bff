@@ -69,6 +69,13 @@ public:
     //! ubiquitin), it is searched again with this many candidates, so more
     //! distant homologues get in. 0 disables the retry.
     int retry_max_candidates = 20000;
+    //! With an embedding prefilter (explicit or the database's own), a query
+    //! left with fewer than this many homologues is searched again with the
+    //! k-mer first stage: the embedding misses whole families now and then
+    //! (on 61 ConSurf-DB chains, 13 had < 30 homologues where the k-mer
+    //! search found 38-150). Costs a k-mer scan of the representatives for
+    //! those queries only. 0 disables the fallback.
+    int kmer_fallback_min_homologs = 30;
 
     IMP_SHOWABLE_INLINE(ConsurfOptions, out << "ConsurfOptions(" << database << ")");
 };

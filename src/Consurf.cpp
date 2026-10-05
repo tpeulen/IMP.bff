@@ -139,6 +139,42 @@ ConsurfResults compute_consurf(const Strings& queries, const ConsurfOptions& opt
                     hits.swap(merged);
                 }
             }
+            // The embedding prefilter missed the family: k-mer first stage for those queries.
+            const std::string prefilter_file =
+                    database.get_has_members() ? database.get_path() : source.representatives;
+            const bool embedding = !options.clusters.embedding_model.empty() ||
+                    (options.clusters.use_database_prefilter && !prefilter_file.empty() &&
+                     get_has_embedding_prefilter(SequenceDatabase(prefilter_file).get_path()));
+            const bool clustered = database.get_has_members() || !source.representatives.empty();
+            if (embedding && clustered && options.kmer_fallback_min_homologs > 0) {
+                std::vector<int> fallback;
+                for (std::size_t k = 0; k < unique.size(); ++k)
+                    if (static_cast<int>(select_sequence_homologs(hits, options.homologs, static_cast<int>(k)).size()) <
+                        options.kmer_fallback_min_homologs)
+                        fallback.push_back(static_cast<int>(k));
+                if (!fallback.empty()) {
+                    Strings again;
+                    for (int k : fallback) again.push_back(unique[static_cast<std::size_t>(k)]);
+                    SequenceClusterSearchOptions kmer = options.clusters;
+                    kmer.embedding_model.clear();
+                    kmer.embedding_index.clear();
+                    kmer.use_database_prefilter = false;
+                    SequenceSearchHits more =
+                            database.get_has_members()
+                                    ? search_clustered_sequence_database(again, database, search, kmer)
+                                    : search_clustered_sequence_database(
+                                              again, SequenceDatabase(source.representatives),
+                                              SequenceClusters(source.representatives), database, search, kmer);
+                    SequenceSearchHits merged;
+                    for (const SequenceSearchHit& h : hits)
+                        if (std::find(fallback.begin(), fallback.end(), h.query) == fallback.end()) merged.push_back(h);
+                    for (SequenceSearchHit h : more) {
+                        h.query = fallback[static_cast<std::size_t>(h.query)];
+                        merged.push_back(h);
+                    }
+                    hits.swap(merged);
+                }
+            }
         }
         for (std::size_t k = 0; k < unique.size(); ++k) {
             ConsurfResult& r = per_unique[k];

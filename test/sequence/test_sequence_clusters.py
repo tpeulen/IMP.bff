@@ -326,3 +326,27 @@ def test_a_database_carrying_its_own_prefilter_is_the_whole_search(clustered, tm
     assert bff.get_has_embedding_prefilter(one)
     assert bff.EmbeddingIndex(one).get_number_of_vectors() == reps.get_number_of_sequences()
     assert key(bff.search_clustered_sequence_database(queries, db, bff.SequenceSearchOptions(), o2)) == key(kmer_before)
+
+
+def test_consurf_falls_back_to_kmer_when_the_embedding_finds_too_few(clustered, tmp_path):
+    """An embedding that proposes the wrong representatives (here: a single
+    candidate) leaves the query short of homologues; compute_consurf then
+    redoes stage 1 with the k-mer scan."""
+    d, family = clustered
+    model, index = _embedding_prefilter(d, str(d / "reps.pto"), tmp_path)
+    one = str(tmp_path / "one.pto")
+    bff.create_clustered_sequence_database(str(d / "members.pto"), str(d / "reps.pto"), one)
+    bff.add_embedding_prefilter(one, model, index)
+    o = bff.ConsurfOptions()
+    o.database = one
+    o.homologs = bff.SequenceHomologOptions.consurf_standalone()
+    o.clusters.embedding_candidates = 1                # the tiny model's nearest: likely a decoy
+    o.kmer_fallback_min_homologs = 0
+    starved = bff.compute_consurf([family[3]], o)[0]
+    o.kmer_fallback_min_homologs = 30
+    rescued = bff.compute_consurf([family[3]], o)[0]
+    o.clusters.use_database_prefilter = False
+    kmer = bff.compute_consurf([family[3]], o)[0]
+    assert rescued.get_is_ok(), rescued.status
+    assert len(rescued.homologs) == len(kmer.homologs)
+    assert len(rescued.homologs) > (len(starved.homologs) if starved.get_is_ok() else 0)
