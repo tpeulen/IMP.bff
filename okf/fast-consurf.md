@@ -488,6 +488,39 @@ for the batch of 100 (41 s per chain). The per-chain times of this run
 Mac drove the machine into swap during the run, and single chains took up to
 4,935 s. The SSD timing of the 20 chains (median 5.2 s) stands.
 
+## Against the ConSurf server (ConSurf-DB, 2026-10-04)
+
+61 PDB chains with ConSurf-DB's precomputed server runs (a random,
+reproducible draw from RCSB's current entries, seed 11, chain A, 60–1000
+residues, plus 1LK2; `prototypes/esm_retrieval/consurfdb/fetch.py`,
+`compare.py`, `compare.tsv`). Each chain was run on the server's own
+sequence; scores and grades were compared with the server's. The server
+differs in every stage: its own search (HMMER/MMseqs2), UniRef90 of its date,
+up to 300 homologues, a MAFFT realignment. 57 chains have a result in all
+three runs:
+
+| imp.bff run | score ρ vs server, median (25th, 10th pct) | grades exact | within 1, median (10th pct) | no result |
+|---|---|---|---|---|
+| k-mer two-stage, 150 homologues | 0.908 (0.823, 0.756) | 0.363 | 0.692 (0.533) | 0 |
+| k-mer two-stage, 300 homologues (as the server) | 0.909 (0.838, 0.756) | 0.361 | 0.696 (0.533) | 0 |
+| fast path (embedding, early stop 600) | 0.873 (0.800, 0.744) | 0.345 | 0.675 (0.537) | **4** |
+
+- **Scores:** the native pipeline reproduces the server's per-residue scores
+  at ρ ≈ 0.91. Exact grade agreement is much lower (0.36), because grades
+  are bins of the scores and both runs sample different homologues and
+  alignments; within one grade it is 0.69. 150 or 300 homologues make no
+  difference.
+- **The fast path:** per chain, as good as the k-mer path on the median
+  (paired ρ difference −0.001; better on 25 of 57). But the embedding misses
+  whole families on a few chains:
+  - no result on 4 chains where the k-mer path finds 12–150 homologues
+    (1ET6 A, 2QFB A, 4AFB A, 5F4T A);
+  - too few homologues on others (1ERN A: 11 homologues, ρ 0.36 against
+    the k-mer path's 0.97).
+
+  Window vectors are the planned fix and are being tested on exactly these
+  chains.
+
 ## Pending
 
 - **UniRef50 embedding** of all 38.84 M representatives on cordeshub
