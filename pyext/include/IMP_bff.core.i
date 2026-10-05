@@ -760,6 +760,10 @@ IMP_SWIG_DIRECTOR(IMP::bff, FitMinimizerObserver);
 %apply(double* IN_ARRAY2, int DIM1, int DIM2) {(double* in_candidates, int n_rows, int n_cols)};
 %include "IMP/bff/FitMinimizer.h"
 
+/* NNLS and BVLS: the constrained linear solves scipy.optimize offers as
+   nnls and lsq_linear. */
+%include "IMP_bff.linearleastsquares.i"
+
 /*
  * msgpack is bff's native format for every network document
  * (IMP::bff::MsgpackBytes, NeuralNet.h); ONNX, safetensors and GGUF are

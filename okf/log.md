@@ -12007,3 +12007,4 @@ Owner: parsed models stay abstract in BFF, catalogues stay ChiSurf YAML, entries
   χ²=inf instead of returning NaN. Upstream reference bugs documented
   (uninitialized cThT on FRET+TA convolved pairs; generation-vs-lookup
   azimuth-grid inconsistency). PRD-154 §S3 updated.
+- **2026-10-05** — `bff.nnls` (Lawson-Hanson) and `bff.bvls` (Stark-Parker) in C++ (`LinearLeastSquares.h`), one active-set core over an incrementally updated thin QR (MGS2 add, Givens remove, O(m p) per step; a refactorise-per-step first version was 100x slower than scipy at 4096x200). Parity vs scipy 1.18 over 300 random problems incl. rank-deficient and cond~1e8: objective equal to round-off, x to 1e-9 where unique; speed 1-2x scipy. Route 3 of chisurf's scipy retirement (`chisurf/okf/subsystems/scipy-retirement.md`). Test: `test/numerics/test_linear_least_squares.py`.
