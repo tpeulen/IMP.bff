@@ -204,6 +204,24 @@ type). The language-model head (decoder tied to the token embeddings) is now
 in the 650M GGUF; 1.1 s for 221 residues on the CPU. Prototype:
 `prototypes/esm_retrieval` → cordeshub `proteingym/cys_tolerance.py`.
 
+**AlphaFold pLDDT** (ProteinGym's AF2 models, pLDDT from the Cα B-factor),
+same 178 assays, X→C fitness, median Spearman:
+
+| score | median ρ |
+|---|---|
+| ESM-2 650M general tolerance | **0.360** |
+| exposure (fewer Cα within 10 Å in the AF2 model) | 0.279 |
+| low pLDDT | 0.155 |
+| ESM + low pLDDT (rank sum) | 0.303 |
+| ESM + ½ low pLDDT | 0.338 |
+| ESM + exposure | 0.354 |
+
+pLDDT alone is weak, and adding it, or exposure, to the ESM score does not
+help (the combination is better on only 66 of 178 assays). Most assay
+proteins are confidently predicted (mean pLDDT around 90), so pLDDT has
+little spread at the sites that matter. pLDDT is not added as a tolerance
+term.
+
 ### Domains: automatic segmentation and an information criterion (2026-10-05)
 
 Question: does segmenting the structure into rigid domains, with the number
