@@ -172,11 +172,19 @@ struct IMPBFFEXPORT LabelizerOptions {
     std::string exclusion_residue;
     //! Half-sphere radius the tryptophan and charge terms weight exposure by.
     double hse_radius;
+    //! The structure is a predicted model whose B-factor column holds a
+    //! per-residue confidence (AlphaFold's pLDDT): #labelizer_score_structure
+    //! then adds a `model_confidence` row per residue (the C-alpha's value).
+    //! It never enters the combined label score; the network design reads it
+    //! (#labelizer_confidence_by_key, #IMP::bff::probe_pair_confidence_costs,
+    //! #IMP::bff::ElasticNetworkModes). Off for crystal structures, whose
+    //! B-factor means something else.
+    bool bfactor_is_confidence;
 
     LabelizerOptions()
         : model(LABELIZER_MODEL_PUBLISHED), probe_radius(1.4), n_sphere_points(590),
           exclusion_distance(6.0), exclusion_exposure(0.4),
-          exclusion_residue("MET"), hse_radius(13.0) {}
+          exclusion_residue("MET"), hse_radius(13.0), bfactor_is_confidence(false) {}
 };
 
 // ---------------------------------------------------------------------------
@@ -304,6 +312,12 @@ IMPBFFEXPORT std::vector<LabelizerScore> labelizer_score_structure(
     \return `"<chain><seq_id>" -> value`, only for positions with `status`
             `scored` */
 IMPBFFEXPORT std::map<std::string, double> labelizer_combined_by_key(
+        const std::vector<LabelizerScore>& scores);
+
+//! The model confidence per residue key (pLDDT for an AlphaFold model), from
+//! the `model_confidence` rows #labelizer_score_structure adds with
+//! #LabelizerOptions::bfactor_is_confidence; empty without them.
+IMPBFFEXPORT std::map<std::string, double> labelizer_confidence_by_key(
         const std::vector<LabelizerScore>& scores);
 
 IMPBFF_END_NAMESPACE

@@ -98,6 +98,8 @@ FLAT_NAMES = [
     "get_pair_distance_fluctuations",
     "get_pair_change_probabilities",  # calibrated: P(distance changes > 5 A)
     "ProbePairBenefitTerm",        # dynamics reward in the network selection
+    "probe_pair_confidence_costs",  # pLDDT: pairs with an unreliable site ineligible
+    "labelizer_confidence_by_key",  # pLDDT rows of the Labelizer, by residue key
     "EmbeddingIndex",              # product-quantised nearest neighbours
     "create_embedding_index",
     "add_embedding_prefilter",     # model + index into the database: one file

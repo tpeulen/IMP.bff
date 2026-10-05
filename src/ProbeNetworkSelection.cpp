@@ -531,6 +531,23 @@ double ProbePairCostTerm::get_loss_with(const std::vector<int>& pairs,
     return -std::expm1(log_ok);
 }
 
+std::vector<double> probe_pair_confidence_costs(const std::vector<double>& site_confidence,
+                                               int* pair_sites, int n_site_rows, int n_site_cols,
+                                               double min_confidence) {
+    if (n_site_cols != 2) IMP_THROW("probe_pair_confidence_costs: two sites per pair", ValueException);
+    const int n = static_cast<int>(site_confidence.size());
+    std::vector<double> out(static_cast<std::size_t>(n_site_rows), std::numeric_limits<double>::quiet_NaN());
+    for (int p = 0; p < n_site_rows; ++p) {
+        const int a = pair_sites[2 * p], b = pair_sites[2 * p + 1];
+        if (a < 0 || b < 0 || a >= n || b >= n)
+            IMP_THROW("probe_pair_confidence_costs: no site " << (a < 0 || a >= n ? a : b), IndexException);
+        if (site_confidence[static_cast<std::size_t>(a)] >= min_confidence &&
+            site_confidence[static_cast<std::size_t>(b)] >= min_confidence)
+            out[static_cast<std::size_t>(p)] = 0.0;
+    }
+    return out;
+}
+
 ProbePairBenefitTerm::ProbePairBenefitTerm(const std::vector<double>& probabilities)
     : ProbeNetworkTerm("ProbePairBenefitTerm"), probabilities_(probabilities) {
     for (double d : probabilities_) {

@@ -255,6 +255,24 @@ cutoff)`. Points below the threshold are left out of the network; pairs
 with such a point are NaN, i.e. not eligible in the selection. pLDDT is the
 B-factor column of an AlphaFold model (`read_structure_table(...).get_bfactor()`).
 
+**In the Labelizer and the network design** (owner, 2026-10-05: network-side,
+not in the published label score):
+- `LabelizerOptions.bfactor_is_confidence = True` makes
+  `labelizer_score_structure` add a `model_confidence` row per residue (the
+  Cα B-factor, i.e. pLDDT for an AlphaFold model). The combined label score
+  is unchanged.
+- `labelizer_confidence_by_key(scores)` returns that per residue key, like
+  `labelizer_combined_by_key`.
+- `probe_pair_confidence_costs(site_confidence, pair_sites, 70)` gives 0 for
+  pairs whose two sites reach the threshold and NaN otherwise. As a
+  `ProbePairCostTerm` this makes pairs with an unreliable site ineligible in
+  `ProbeNetworkSelection`.
+- With `ElasticNetworkModes(coordinates, confidence, 70)` the dynamics term
+  ignores the same residues.
+
+The pair layer (`LabelizerFRET.cpp`) is not touched: it carries another
+agent's open fix (T-20260918).
+
 ### Domains: automatic segmentation and an information criterion (2026-10-05)
 
 Question: does segmenting the structure into rigid domains, with the number

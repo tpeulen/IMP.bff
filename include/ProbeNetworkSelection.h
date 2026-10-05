@@ -405,6 +405,22 @@ private:
 };
 IMP_OBJECTS(ProbePairCostTerm, ProbePairCostTerms);
 
+//! Pair costs from a per-site model confidence, for a #IMP::bff::ProbePairCostTerm:
+//! 0 when both sites reach \p min_confidence, NaN (not eligible) otherwise.
+/*!
+    With a predicted structure (an AlphaFold model, pLDDT per residue), a site
+    below the threshold has no reliable position, so neither its distances nor
+    the elastic network's view of it can guide the design; on AlphaFold models
+    the low-pLDDT residues also took over the network's softest modes
+    (okf/esm-contacts.md). NaN confidence counts as below.
+    \param[in] site_confidence per site (e.g. from #IMP::bff::labelizer_confidence_by_key)
+    \param[in] pair_sites,n_site_rows,n_site_cols two site indices (0-based) per pair
+    \param[in] min_confidence the threshold (pLDDT 70 by default)
+*/
+IMPBFFEXPORT std::vector<double> probe_pair_confidence_costs(const std::vector<double>& site_confidence,
+                                                          int* pair_sites, int n_site_rows,
+                                                          int n_site_cols, double min_confidence = 70.0);
+
 //! A benefit per candidate pair: the chance that a selected pair sees a change.
 /*!
     Each candidate pair carries a probability `d_p` in `[0, 1]` that its

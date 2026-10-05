@@ -28,6 +28,7 @@ IMP_SWIG_OBJECT(IMP::bff, ProbeNetworkSelection, ProbeNetworkSelections);
 %feature("compactdefaultargs") IMP::bff::ProbeLabellingTerm::ProbeLabellingTerm;
 %feature("compactdefaultargs") IMP::bff::ProbeNetworkSelection::ProbeNetworkSelection;
 %feature("compactdefaultargs") IMP::bff::ProbeNetworkSelection::select;
+%feature("compactdefaultargs") IMP::bff::probe_pair_confidence_costs;
 
 %apply(double* IN_ARRAY2, int DIM1, int DIM2) {
     (double* predicted_measurements, int n_frames, int n_pairs),
