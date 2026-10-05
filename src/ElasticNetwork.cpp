@@ -49,13 +49,39 @@ int checked_modes(const ElasticNetworkModes& m, int n_modes) {
 
 ElasticNetworkModes::ElasticNetworkModes(double* coordinates, int n_points, int n_dim,
                                          double cutoff)
-    : n_(n_points), cutoff_(cutoff) {
+    : n_all_(n_points), cutoff_(cutoff) {
     if (n_dim != 3) IMP_THROW("ElasticNetworkModes: coordinates must be n x 3", ValueException);
-    if (n_points < 3) IMP_THROW("ElasticNetworkModes: at least three points", ValueException);
-    xyz_.assign(coordinates, coordinates + 3 * n_points);
+    network_index_.resize(static_cast<std::size_t>(n_points));
+    for (int i = 0; i < n_points; ++i) network_index_[static_cast<std::size_t>(i)] = i;
+    build(std::vector<double>(coordinates, coordinates + 3 * n_points));
+}
+
+ElasticNetworkModes::ElasticNetworkModes(double* coordinates, int n_points, int n_dim,
+                                         double* confidence, int n_confidence,
+                                         double min_confidence, double cutoff)
+    : n_all_(n_points), cutoff_(cutoff) {
+    if (n_dim != 3) IMP_THROW("ElasticNetworkModes: coordinates must be n x 3", ValueException);
+    if (n_confidence != n_points)
+        IMP_THROW("ElasticNetworkModes: " << n_confidence << " confidences for " << n_points
+                  << " points", ValueException);
+    network_index_.assign(static_cast<std::size_t>(n_points), -1);
+    std::vector<double> kept;
+    for (int i = 0; i < n_points; ++i) {
+        if (!(confidence[i] >= min_confidence)) continue;            // NaN is left out too
+        network_index_[static_cast<std::size_t>(i)] = static_cast<int>(kept.size() / 3);
+        kept.insert(kept.end(), coordinates + 3 * i, coordinates + 3 * i + 3);
+    }
+    build(kept);
+}
+
+void ElasticNetworkModes::build(const std::vector<double>& xyz) {
+    n_ = static_cast<int>(xyz.size() / 3);
+    if (n_ < 3) IMP_THROW("ElasticNetworkModes: at least three points in the network", ValueException);
+    xyz_ = xyz;
+    const int n_points = n_;
     const int N = 3 * n_points;
     Eigen::MatrixXd H = Eigen::MatrixXd::Zero(N, N);
-    const double c2 = cutoff * cutoff;
+    const double c2 = cutoff_ * cutoff_;
     for (int i = 0; i < n_points; ++i)
         for (int j = i + 1; j < n_points; ++j) {
             double d[3], r2 = 0;
@@ -84,7 +110,7 @@ ElasticNetworkModes::ElasticNetworkModes(double* coordinates, int n_points, int 
     }
     if (!eigenvalues_.empty() && eigenvalues_.front() <= 1e-8 * std::max(1.0, eigenvalues_.back()))
         IMP_THROW("ElasticNetworkModes: more than six zero modes; the network falls apart at "
-                  << cutoff << " A (raise the cut-off)", ValueException);
+                  << cutoff_ << " A (raise the cut-off)", ValueException);
 }
 
 void ElasticNetworkModes::get_mode(int k, double** out_matrix, int* n_out_rows,
@@ -105,13 +131,13 @@ std::vector<double> get_pair_distance_fluctuations(const ElasticNetworkModes& mo
                                                    int n_pair_rows, int n_pair_cols, int n_modes) {
     if (n_pair_cols != 2) IMP_THROW("get_pair_distance_fluctuations: two points per pair", ValueException);
     const int k = elastic_network::checked_modes(modes, n_modes);
-    const int n = modes.get_number_of_points();
     std::vector<double> out(static_cast<std::size_t>(n_pair_rows),
                             std::numeric_limits<double>::quiet_NaN());
     for (int p = 0; p < n_pair_rows; ++p) {
-        const int i = pairs[2 * p], j = pairs[2 * p + 1];
-        if (i < 0 || j < 0 || i >= n || j >= n || i == j) continue;
-        out[static_cast<std::size_t>(p)] = elastic_network::fluctuation(modes, i, j, k);
+        const int a = pairs[2 * p], b = pairs[2 * p + 1];
+        if (a == b || !modes.get_is_in_network(a) || !modes.get_is_in_network(b)) continue;
+        out[static_cast<std::size_t>(p)] =
+                elastic_network::fluctuation(modes, modes.network_index(a), modes.network_index(b), k);
     }
     return out;
 }
@@ -122,7 +148,7 @@ std::vector<double> get_pair_change_probabilities(const ElasticNetworkModes& mod
     const std::vector<double> var =
             get_pair_distance_fluctuations(modes, pairs, n_pair_rows, n_pair_cols, n_modes);
     // the structure's own scale: the 95th percentile over pairs |i - j| >= 6
-    const int n = modes.get_number_of_points();
+    const int n = modes.get_number_of_network_points();
     std::vector<double> all;
     for (int i = 0; i < n; ++i)
         for (int j = i + 6; j < n; ++j) all.push_back(elastic_network::fluctuation(modes, i, j, n_modes));

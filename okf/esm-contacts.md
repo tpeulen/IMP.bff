@@ -222,6 +222,39 @@ proteins are confidently predicted (mean pLDDT around 90), so pLDDT has
 little spread at the sites that matter. pLDDT is not added as a tolerance
 term.
 
+### AlphaFold confidence in the network definition (2026-10-05)
+
+pLDDT does not say what to label, but it can say what to measure: it
+belongs in the elastic network. Tested on the 7 open/closed proteins with
+their AlphaFold DB models (pLDDT, PAE; mapped by sequence offset;
+`prototypes/esm_retrieval/contacts/enm_af.py`, `pae_measure.py`,
+`enm_afmodel.py`):
+
+| network | mean AUC (> 5 Å changes) | top 20 changing |
+|---|---|---|
+| **crystal structure**, uniform springs | 0.864 | 0.85 |
+| crystal structure, springs × pLDDT² | 0.865 | 0.82 |
+| crystal structure, springs × exp(−(PAE/8 Å)²) | 0.869 | 0.85 |
+| **AlphaFold model**, all residues | 0.795 | 0.49 |
+| **AlphaFold model, pLDDT < 70 left out** | **0.820** | **0.74** |
+| AlphaFold model, pLDDT-weighted springs | 0.795 | 0.44 |
+
+- **On a crystal structure,** AlphaFold confidence changes nothing: these
+  proteins are predicted at pLDDT 95–98, PAE 2–4 Å.
+- **On an AlphaFold model,** the design case without a crystal structure,
+  the low-confidence residues (22–27 per binding protein: signal peptides,
+  tails) take over the softest modes. Leaving them out fixes it (RBP top 20
+  0.00 → 0.95, MBP AUC 0.64 → 0.95 with the calibrated probabilities).
+  Down-weighting their springs does not: they stay attached.
+- **PAE as the prior uncertainty of a distance** (what to measure) carries
+  signal (AUC 0.61–0.88 for changing pairs) but less than the ENM (0.72–0.97);
+  combined, it helps only lactoferrin.
+
+In imp.bff: `ElasticNetworkModes(coordinates, confidence, min_confidence=70,
+cutoff)`. Points below the threshold are left out of the network; pairs
+with such a point are NaN, i.e. not eligible in the selection. pLDDT is the
+B-factor column of an AlphaFold model (`read_structure_table(...).get_bfactor()`).
+
 ### Domains: automatic segmentation and an information criterion (2026-10-05)
 
 Question: does segmenting the structure into rigid domains, with the number

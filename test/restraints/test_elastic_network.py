@@ -97,3 +97,26 @@ def test_selection_by_benefit_prefers_pairs_that_change():
     sel.add_term(bff.ProbePairBenefitTerm(d), 1.0)
     units, _ = sel.select(2)
     assert sorted(int(u) for u in units) == [1, 3]
+
+
+def test_low_confidence_points_are_left_out_of_the_network():
+    xyz, _ = hinge()
+    rng = np.random.default_rng(4)
+    # a floppy tail of 15 points off one end, low confidence
+    tail = xyz[0] + np.cumsum(rng.normal(size=(15, 3)) * 3.0, axis=0)
+    full = np.concatenate([tail, xyz])
+    conf = np.concatenate([np.full(15, 40.0), np.full(len(xyz), 95.0)])
+    m = bff.ElasticNetworkModes(full, conf, 70.0, 12.0)
+    assert m.get_number_of_points() == len(full)
+    assert m.get_number_of_network_points() == len(xyz)
+    assert not m.get_is_in_network(0) and m.get_is_in_network(15)
+    # the network is exactly the one without the tail
+    ref = bff.ElasticNetworkModes(xyz, 12.0)
+    assert np.allclose(m.get_eigenvalues(), ref.get_eigenvalues())
+    pairs = np.array([[15, 15 + len(xyz) - 1], [0, 20]], dtype=np.int32)
+    f = bff.get_pair_distance_fluctuations(m, pairs, 1)
+    f_ref = bff.get_pair_distance_fluctuations(ref, np.array([[0, len(xyz) - 1]], dtype=np.int32), 1)
+    assert abs(f[0] - f_ref[0]) < 1e-9 * max(1.0, abs(f_ref[0]))
+    assert math.isnan(f[1])                                  # the tail point is not in the network
+    with pytest.raises(bff.ValueException):
+        bff.ElasticNetworkModes(full, conf[:-1], 70.0, 12.0)

@@ -7,13 +7,13 @@
 IMP_SWIG_VALUE(IMP::bff, ElasticNetworkModes, ElasticNetworkModesList);
 
 %ignore IMP::bff::ElasticNetworkModes::ElasticNetworkModes();
-%feature("compactdefaultargs") IMP::bff::ElasticNetworkModes::ElasticNetworkModes;
 %feature("compactdefaultargs") IMP::bff::get_pair_distance_fluctuations;
 %feature("compactdefaultargs") IMP::bff::get_pair_change_probabilities;
 
 %apply(double* IN_ARRAY2, int DIM1, int DIM2) {
     (double* coordinates, int n_points, int n_dim)
 };
+%apply(double* IN_ARRAY1, int DIM1) {(double* confidence, int n_confidence)};
 %apply(int* IN_ARRAY2, int DIM1, int DIM2) {
     (int* pairs, int n_pair_rows, int n_pair_cols)
 };

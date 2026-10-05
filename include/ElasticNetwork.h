@@ -56,14 +56,31 @@ public:
     /*! \throw ValueException when there are fewer than three points or the
                coordinates are not `n x 3` */
     ElasticNetworkModes(double* coordinates, int n_points, int n_dim, double cutoff = 15.0);
+    //! The same, leaving out every point whose \p confidence is below
+    //! \p min_confidence: e.g. AlphaFold's pLDDT (the B-factor column of its
+    //! models) with 70. Disordered tails and signal peptides otherwise take
+    //! the softest modes; on the AlphaFold models of seven open/closed
+    //! proteins, leaving out pLDDT < 70 raised the top-20 precision for pairs
+    //! changing by > 5 A from 0.49 to 0.74 (AUC 0.795 -> 0.820), while
+    //! pLDDT-weighted springs did not help. Pairs with a left-out point are
+    //! NaN in #get_pair_distance_fluctuations / #get_pair_change_probabilities.
+    ElasticNetworkModes(double* coordinates, int n_points, int n_dim, double* confidence,
+                        int n_confidence, double min_confidence = 70.0, double cutoff = 15.0);
 
-    int get_number_of_points() const { return n_; }
+    //! All points given, including any left out of the network.
+    int get_number_of_points() const { return n_all_; }
+    //! Whether point \p i is part of the network.
+    bool get_is_in_network(int i) const {
+        return i >= 0 && i < n_all_ && network_index_[static_cast<std::size_t>(i)] >= 0;
+    }
+    //! The points in the network.
+    int get_number_of_network_points() const { return n_; }
     double get_cutoff() const { return cutoff_; }
     //! Modes above the six rigid-body ones, softest first.
     int get_number_of_modes() const { return static_cast<int>(eigenvalues_.size()); }
     //! Their eigenvalues, ascending.
     std::vector<double> get_eigenvalues() const { return eigenvalues_; }
-    //! Mode \p k as displacements, `n x 3` (unit norm over all points).
+    //! Mode \p k as displacements of the network's points, `n x 3` (unit norm).
     void get_mode(int k, double** out_matrix, int* n_out_rows, int* n_out_cols) const;
 
 #ifndef SWIG
@@ -71,14 +88,18 @@ public:
     //! Mode \p k: `3n` values, point by point.
     const double* mode(int k) const { return &vectors_[static_cast<std::size_t>(k) * 3 * n_]; }
     const std::vector<double>& coordinates() const { return xyz_; }
+    //! Index of point \p i in the network, -1 when left out.
+    int network_index(int i) const { return network_index_[static_cast<std::size_t>(i)]; }
 #endif
 
     IMP_SHOWABLE_INLINE(ElasticNetworkModes, out << "ElasticNetworkModes(" << n_ << " points, "
                                                  << get_number_of_modes() << " modes)");
 
 private:
-    int n_ = 0;
+    void build(const std::vector<double>& xyz);
+    int n_ = 0, n_all_ = 0;
     double cutoff_ = 15.0;
+    std::vector<int> network_index_;     // per point given: its index in the network, or -1
     std::vector<double> xyz_;            // n x 3
     std::vector<double> eigenvalues_;    // non-rigid, ascending
     std::vector<double> vectors_;        // per mode, 3n
