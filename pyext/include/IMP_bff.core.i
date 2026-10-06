@@ -744,6 +744,11 @@ IMP_SWIG_OBJECT(IMP::bff, FitMinimizerObserver, MinimizerObservers);
    to exactly this. (`RRTCollision` has a bare feature because it is a call
    argument and cannot outlive its caller's reference; this one can.) */
 IMP_SWIG_DIRECTOR(IMP::bff, FitMinimizerObserver);
+/* The residual function a scipy-shaped caller hands the minimiser instead of
+   a graph objective; held across the whole run, so the same lifetime answer
+   as the observer. */
+IMP_SWIG_OBJECT(IMP::bff, FitResidualFunction, FitResidualFunctions);
+IMP_SWIG_DIRECTOR(IMP::bff, FitResidualFunction);
 %shared_ptr(IMP::bff::FitMinimizer);
 /* The GraphNode-director lifetime fix (T-20260901-13; rationale at the GraphNode
    director block above): the C++ side keeps a shared_ptr to the objective
@@ -758,6 +763,22 @@ IMP_SWIG_DIRECTOR(IMP::bff, FitMinimizerObserver);
    column per free parameter, so a scan hands over its whole grid at once and
    pays one crossing rather than one per point. */
 %apply(double* IN_ARRAY2, int DIM1, int DIM2) {(double* in_candidates, int n_rows, int n_cols)};
+/* A residual function returns an ndarray, usually hundreds to thousands
+   long, once per evaluation. The default std::vector conversion walks it as
+   a Python sequence -- ~0.3 ms for 1000 points, five times the arithmetic
+   it carries -- so the return is read through the buffer instead. Named
+   for `evaluate`: no other director returns std::vector<double> under that
+   name. */
+%typemap(directorout) std::vector<double> evaluate {
+  PyObject* bff_arr = PyArray_FROMANY($input, NPY_DOUBLE, 0, 1,
+                                      NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST);
+  if (!bff_arr) throw Swig::DirectorMethodException();
+  const npy_intp bff_n = PyArray_SIZE(reinterpret_cast<PyArrayObject*>(bff_arr));
+  const double* bff_d =
+      static_cast<const double*>(PyArray_DATA(reinterpret_cast<PyArrayObject*>(bff_arr)));
+  $result.assign(bff_d, bff_d + bff_n);
+  Py_DECREF(bff_arr);
+}
 %include "IMP/bff/FitMinimizer.h"
 
 /* NNLS and BVLS: the constrained linear solves scipy.optimize offers as

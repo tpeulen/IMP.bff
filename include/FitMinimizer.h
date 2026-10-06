@@ -130,6 +130,33 @@ class IMPBFFEXPORT FitMinimizerObserver : public IMP::Object {
   IMP_OBJECT_METHODS(FitMinimizerObserver);
 };
 
+//! A residual vector as a function of the parameter vector.
+/*!
+    The other way to give a FitMinimizer something to minimise: instead of
+    free-parameter ports and a node-graph objective, a function `x -> r(x)`.
+    This is the shape of `scipy.optimize.least_squares(fun, x0)`, and it is
+    what lets a caller with an arbitrary model -- a Python closure, most of
+    the time -- use bff's bounded Levenberg-Marquardt without building a
+    graph for it.
+
+    A SWIG director: a Python subclass overrides `evaluate()`. Owned through
+    an IMP::Pointer for the same reason the observer is -- the minimiser
+    holds it across the whole run. The residual length must not depend on
+    `x`.
+*/
+class IMPBFFEXPORT FitResidualFunction : public IMP::Object {
+ public:
+  explicit FitResidualFunction(std::string name = "FitResidualFunction%1%")
+      : IMP::Object(name) {}
+
+  //! The residuals at `x` (external, bounded coordinates).
+  virtual std::vector<double> evaluate(const std::vector<double>& x) {
+    return std::vector<double>();
+  }
+
+  IMP_OBJECT_METHODS(FitResidualFunction);
+};
+
 //! Levenberg-Marquardt iterations a well-posed fit typically needs.
 /*! chisurf's `_EXPECTED_ITERATIONS`. Each iteration costs `n + 1` residual
     evaluations -- `n` for the forward-difference Jacobian and one for the
@@ -203,7 +230,19 @@ class IMPBFFEXPORT FitMinimizer {
   */
   void set_objective(std::shared_ptr<FitObjective> objective);
   std::shared_ptr<FitObjective> get_objective() const;
+  //! Whether there is something to minimise: an objective or a function.
   bool has_objective() const;
+
+  //! Minimise a residual function instead of a graph objective.
+  /*!
+      The scipy-shaped entry point: with a function there are no parameter
+      ports, so the free vector is sized by `set_initial_values()` and bounded
+      by `set_bounds()`. Setting a function drops any objective and ports,
+      and setting an objective drops the function -- the minimiser evaluates
+      exactly one of them.
+  */
+  void set_residual_function(FitResidualFunction* function);
+  FitResidualFunction* get_residual_function() const;
 
   //! Where progress is reported and cancellation is asked for.
   /*! Null (the default) means neither. */
@@ -471,6 +510,8 @@ class IMPBFFEXPORT FitMinimizer {
   //! Owned, because it outlives the call that set it: a Python observer
   //! held only by a raw pointer would be collected between iterations.
   IMP::Pointer<FitMinimizerObserver> observer_;
+  //! The function-shaped objective, when there is no graph.
+  IMP::Pointer<FitResidualFunction> residual_function_;
 
   std::vector<double> initial_values_;
   std::vector<double> lower_;

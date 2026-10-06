@@ -577,6 +577,7 @@ void FitMinimizer::set_objective(std::shared_ptr<FitObjective> objective) {
     throw FitMinimizerConfigurationError("set_objective: the objective is a null pointer");
   objective->get_residuals_port();
   objective_ = objective;
+  if (objective) residual_function_ = nullptr;
 }
 
 std::shared_ptr<FitObjective> FitMinimizer::get_objective() const {
@@ -584,7 +585,7 @@ std::shared_ptr<FitObjective> FitMinimizer::get_objective() const {
 }
 
 bool FitMinimizer::has_objective() const {
-  return objective_ != nullptr;
+  return objective_ != nullptr || residual_function_;
 }
 
 void FitMinimizer::set_observer(FitMinimizerObserver* observer) {
@@ -757,8 +758,21 @@ double FitMinimizer::off_bound_start(double xe, unsigned int i) const {
 
 // ------------------------------------------------------------- evaluation
 
+void FitMinimizer::set_residual_function(FitResidualFunction* function) {
+  residual_function_ = function;
+  if (function) {
+    objective_ = nullptr;
+    parameters_.clear();
+  }
+}
+
+FitResidualFunction* FitMinimizer::get_residual_function() const {
+  return residual_function_.get();
+}
+
 std::vector<double> FitMinimizer::evaluate_external(
     const std::vector<double>& xe) {
+  if (residual_function_) return residual_function_->evaluate(xe);
   for (unsigned int i = 0; i < ndim_; ++i) parameters_[i]->set_value(xe[i]);
   objective_->update();
   return objective_->get_residuals();
@@ -837,8 +851,11 @@ void FitMinimizer::compute_objective_batch(double* in_candidates, int n_rows,
   }
 
   // What the ports hold now, so a surface scan does not move somebody's fit.
+  // A residual function has no ports and nothing to restore.
+  const bool graph = !residual_function_;
   std::vector<double> saved(ndim_);
-  for (unsigned int i = 0; i < ndim_; ++i) saved[i] = parameters_[i]->get_value();
+  if (graph)
+    for (unsigned int i = 0; i < ndim_; ++i) saved[i] = parameters_[i]->get_value();
 
   double* out = internal::new_double_view(static_cast<std::size_t>(rows),
                                           out_view, n_out_view);
@@ -859,8 +876,10 @@ void FitMinimizer::compute_objective_batch(double* in_candidates, int n_rows,
 
   // Put the ports back and leave the graph consistent with them, so the model
   // curve a caller reads off the graph is the one the ports say it is.
-  for (unsigned int i = 0; i < ndim_; ++i) parameters_[i]->set_value(saved[i]);
-  objective_->update();
+  if (graph) {
+    for (unsigned int i = 0; i < ndim_; ++i) parameters_[i]->set_value(saved[i]);
+    objective_->update();
+  }
 }
 
 void FitMinimizer::reset() {
@@ -898,8 +917,10 @@ int FitMinimizer::run() {
 
   // Leave the ports -- and the graph hanging off them -- at the solution, so
   // that a caller reads the fitted curve without evaluating anything again.
-  for (unsigned int i = 0; i < ndim_; ++i) parameters_[i]->set_value(x_[i]);
-  objective_->update();
+  if (!residual_function_) {
+    for (unsigned int i = 0; i < ndim_; ++i) parameters_[i]->set_value(x_[i]);
+    objective_->update();
+  }
 
   // The covariance, from the R the optimiser already has, with the columns
   // taken back to external coordinates. `leastsqbound` only builds this for a
