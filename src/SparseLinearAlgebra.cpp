@@ -6,7 +6,7 @@
  */
 #include <IMP/bff/SparseLinearAlgebra.h>
 #include <IMP/Pointer.h>
-#include <IMP/exception.h>
+#include <IMP/bff/IMPCompatibility.h>
 
 #include <Eigen/OrderingMethods>
 #include <Eigen/SparseCore>

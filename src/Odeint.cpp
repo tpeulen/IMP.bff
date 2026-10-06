@@ -6,7 +6,7 @@
  */
 #include <IMP/bff/Odeint.h>
 #include <IMP/bff/internal/Lsoda.h>
-#include <IMP/exception.h>
+#include <IMP/bff/IMPCompatibility.h>
 
 #include <algorithm>
 #include <limits>

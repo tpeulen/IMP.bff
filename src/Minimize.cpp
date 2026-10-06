@@ -6,7 +6,7 @@
  */
 #include <IMP/bff/Minimize.h>
 #include <IMP/bff/internal/Lbfgsb.h>
-#include <IMP/exception.h>
+#include <IMP/bff/IMPCompatibility.h>
 
 #include <algorithm>
 #include <cmath>
