@@ -785,6 +785,10 @@ IMP_SWIG_DIRECTOR(IMP::bff, FitResidualFunction);
    nnls and lsq_linear. */
 %include "IMP_bff.linearleastsquares.i"
 
+/* Bounded scalar minimisation: the L-BFGS-B and Nelder-Mead methods of
+   scipy.optimize.minimize. */
+%include "IMP_bff.minimize.i"
+
 /* Coarse-grained contact potentials over coordinate arrays (cell lists,
    tabulated type-pair terms, Generalized Born, gated site area). */
 %include "IMP_bff.contactpotentials.i"
