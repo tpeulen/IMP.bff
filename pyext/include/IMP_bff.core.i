@@ -796,6 +796,9 @@ IMP_SWIG_DIRECTOR(IMP::bff, FitResidualFunction);
 /* odeint: LSODA, scipy.integrate.odeint. */
 %include "IMP_bff.odeint.i"
 
+/* Sparse LU: scipy.sparse.linalg.spsolve / factorized. */
+%include "IMP_bff.sparselinearalgebra.i"
+
 /* Coarse-grained contact potentials over coordinate arrays (cell lists,
    tabulated type-pair terms, Generalized Born, gated site area). */
 %include "IMP_bff.contactpotentials.i"
