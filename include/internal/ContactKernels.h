@@ -112,6 +112,49 @@ void for_close_pairs(const double* xyz, int n, double cutoff,
 }
 
 // ---------------------------------------------------------------------------
+// Gates
+// ---------------------------------------------------------------------------
+
+//! A gate read from a caller's row-major \f$n \times n\f$ matrix: a pair
+//! passes when `g[i, j] <= cut` (NaN never passes).
+struct MatrixGate {
+  const double* g;
+  int n;
+  double cut;
+  bool operator()(int i, int j) const {
+    return g[static_cast<long>(i) * n + j] <= cut;
+  }
+};
+
+//! Call \p f(i, j) for every pair i < j < n the gate passes.
+template <class Gate, class F>
+void for_gated_upper_pairs(int n, const Gate& gate, F&& f) {
+  for (int i = 0; i < n; ++i) {
+    for (int j = i + 1; j < n; ++j) {
+      if (gate(i, j)) f(i, j);
+    }
+  }
+}
+
+//! The same for a matrix gate, by a branchless scan of each row.
+/*! A coarse-grained gate passes a few percent of the pairs, so the scan is
+    the cost; compacting a row's passing columns first keeps it free of
+    mispredicted branches, which is what a scalar test-and-continue pays. */
+template <class F>
+void for_gated_upper_pairs(int n, const MatrixGate& gate, F&& f) {
+  std::vector<int> cand(n > 0 ? n : 1);
+  for (int i = 0; i < n; ++i) {
+    const double* row = gate.g + static_cast<long>(i) * gate.n;
+    int k = 0;
+    for (int j = i + 1; j < n; ++j) {
+      cand[k] = j;
+      k += row[j] <= gate.cut;
+    }
+    for (int t = 0; t < k; ++t) f(i, cand[t]);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Pair terms
 // ---------------------------------------------------------------------------
 
@@ -201,31 +244,28 @@ inline double generalized_born_sum(const double* xyz, const double* radii,
     table returns NaN energy, which the callers turn into an error. */
 template <class Gate>
 double site_contact_sum(const double* xyz, const int* site_atom,
-                        const int* site_type, int n_sites, Gate&& gate,
+                        const int* site_type, int n_sites, const Gate& gate,
                         const double* table, int n_rows, int n_cols,
                         double cutoff, long* n_contacts) {
   const double cut2 = cutoff * cutoff;
   double e = 0.0;
   long n = 0;
-  for (int i = 0; i < n_sites; ++i) {
-    const int ai = site_atom[i];
-    if (ai < 0) continue;
-    const int ti = site_type[i];
-    for (int j = i + 1; j < n_sites; ++j) {
-      const int aj = site_atom[j];
-      if (aj < 0 || !gate(i, j)) continue;
-      if (dist2(xyz, ai, aj) < cut2) {
-        const int tj = site_type[j];
-        if (ti < 0 || tj < 0 || ti >= n_rows || tj >= n_cols) {
-          return std::nan("");
-        }
-        e += table[static_cast<long>(ti) * n_cols + tj];
-        ++n;
+  bool bad = false;
+  for_gated_upper_pairs(n_sites, gate, [&](int i, int j) {
+    const int ai = site_atom[i], aj = site_atom[j];
+    if (ai < 0 || aj < 0) return;
+    if (dist2(xyz, ai, aj) < cut2) {
+      const int ti = site_type[i], tj = site_type[j];
+      if (ti < 0 || tj < 0 || ti >= n_rows || tj >= n_cols) {
+        bad = true;
+        return;
       }
+      e += table[static_cast<long>(ti) * n_cols + tj];
+      ++n;
     }
-  }
+  });
   *n_contacts = n;
-  return e;
+  return bad ? std::nan("") : e;
 }
 
 //! Type-pair distance-binned sum over gated site pairs.
@@ -235,36 +275,33 @@ double site_contact_sum(const double* xyz, const int* site_atom,
     type or bin falls outside the table. */
 template <class Gate>
 double site_binned_sum(const double* xyz, const int* site_atom,
-                       const int* site_type, int n_sites, Gate&& gate,
+                       const int* site_type, int n_sites, const Gate& gate,
                        const double* values, int n_types, int n_bins,
                        double min_distance, double max_distance,
                        double bin_width, double repulsion, long* n_pairs) {
   double e = 0.0;
   long n_close = 0, n = 0;
-  for (int i = 0; i < n_sites; ++i) {
-    const int ai = site_atom[i];
-    if (ai < 0) continue;
-    const int ti = site_type[i];
-    for (int j = i + 1; j < n_sites; ++j) {
-      const int aj = site_atom[j];
-      if (aj < 0 || !gate(i, j)) continue;
-      ++n;
-      const double d = std::sqrt(dist2(xyz, ai, aj));
-      if (d < min_distance) {
-        ++n_close;
-        continue;
-      }
-      const int tj = site_type[j];
-      const long b = static_cast<long>(std::min(d, max_distance) / bin_width);
-      if (ti < 0 || tj < 0 || ti >= n_types || tj >= n_types || b < 0 ||
-          b >= n_bins) {
-        return std::nan("");
-      }
-      e += values[(static_cast<long>(ti) * n_types + tj) * n_bins + b];
+  bool bad = false;
+  for_gated_upper_pairs(n_sites, gate, [&](int i, int j) {
+    const int ai = site_atom[i], aj = site_atom[j];
+    if (ai < 0 || aj < 0) return;
+    ++n;
+    const double d = std::sqrt(dist2(xyz, ai, aj));
+    if (d < min_distance) {
+      ++n_close;
+      return;
     }
-  }
+    const int ti = site_type[i], tj = site_type[j];
+    const long b = static_cast<long>(std::min(d, max_distance) / bin_width);
+    if (ti < 0 || tj < 0 || ti >= n_types || tj >= n_types || b < 0 ||
+        b >= n_bins) {
+      bad = true;
+      return;
+    }
+    e += values[(static_cast<long>(ti) * n_types + tj) * n_bins + b];
+  });
   *n_pairs = n;
-  return e + repulsion * static_cast<double>(n_close);
+  return bad ? std::nan("") : e + repulsion * static_cast<double>(n_close);
 }
 
 //! Four-channel backbone hydrogen-bond sum over gated residue pairs.
@@ -278,37 +315,46 @@ double site_binned_sum(const double* xyz, const int* site_atom,
 template <class Gate>
 double backbone_hbond_sum(const double* xyz, const int* n_atom,
                           const int* c_atom, const int* o_atom,
-                          const int* h_atom, int n_res, Gate&& gate,
+                          const int* h_atom, int n_res, const Gate& gate,
                           const double* table, int n_bins, double cutoff_h2,
                           double bin_width, const bool channels[4],
                           long* n_bonds) {
-  double e = 0.0;
+  // Per-channel sums in registers; the channel switches are applied once at
+  // the end, so the hot loop carries no flag tests and no division.
+  double e0 = 0.0, e1 = 0.0, e2 = 0.0, e3 = 0.0;
   long nb = 0;
-  auto add = [&](int channel, double r) {
-    if (!channels[channel]) return;
-    const long b = static_cast<long>(r / bin_width);
-    if (b >= 0 && b < n_bins) e += table[static_cast<long>(channel) * n_bins + b];
+  const double inv_w = 1.0 / bin_width;
+  const double* t0 = table;
+  const double* t1 = table + n_bins;
+  const double* t2 = table + 2L * n_bins;
+  const double* t3 = table + 3L * n_bins;
+  auto bin = [&](const double* t, double r) -> double {
+    const long b = static_cast<long>(r * inv_w);
+    return (b >= 0 && b < n_bins) ? t[b] : 0.0;
   };
   auto bond = [&](int d, int a) {
-    const int h = h_atom[d], o = o_atom[a], n = n_atom[d], c = c_atom[a];
-    if (o < 0 || n < 0 || c < 0) return;
+    const int h = h_atom[d], o = o_atom[a];
+    if (o < 0) return;
     const double doh = dist2(xyz, h, o);
     if (!(doh < cutoff_h2)) return;
+    const int n = n_atom[d], c = c_atom[a];
+    if (n < 0 || c < 0) return;
     ++nb;
-    add(2, std::sqrt(doh));
-    add(1, std::sqrt(dist2(xyz, n, o)));
-    add(0, std::sqrt(dist2(xyz, c, h)));
-    add(3, std::sqrt(dist2(xyz, n, c)));
+    e2 += bin(t2, std::sqrt(doh));
+    e1 += bin(t1, std::sqrt(dist2(xyz, n, o)));
+    e0 += bin(t0, std::sqrt(dist2(xyz, c, h)));
+    e3 += bin(t3, std::sqrt(dist2(xyz, n, c)));
   };
-  for (int i = 0; i < n_res; ++i) {
-    const int hi = h_atom[i];
-    for (int j = i + 1; j < n_res; ++j) {
-      if (!gate(i, j)) continue;
-      const int hj = h_atom[j];
-      if (hj > 0 && hi != 0) bond(j, i);
-      if (hi > 0 && hj != 0) bond(i, j);
-    }
-  }
+  for_gated_upper_pairs(n_res, gate, [&](int i, int j) {
+    const int hi = h_atom[i], hj = h_atom[j];
+    if (hj > 0 && hi != 0) bond(j, i);
+    if (hi > 0 && hj != 0) bond(i, j);
+  });
+  double e = 0.0;
+  if (channels[2]) e += e2;
+  if (channels[1]) e += e1;
+  if (channels[0]) e += e0;
+  if (channels[3]) e += e3;
   *n_bonds = nb;
   return e;
 }
@@ -317,7 +363,7 @@ double backbone_hbond_sum(const double* xyz, const int* n_atom,
 //! `gate(i, j)`. \f$\sum_i 4\pi r^2 n_i^{acc} / n_{points}\f$.
 template <class Gate>
 double site_area_sum(const double* xyz, const int* site_atom, int n_sites,
-                     Gate&& gate, const double* points, int n_points,
+                     const Gate& gate, const double* points, int n_points,
                      double probe, double radius) {
   if (n_points == 0) return 0.0;
   const double contact2 = (radius + probe) * (radius + probe);

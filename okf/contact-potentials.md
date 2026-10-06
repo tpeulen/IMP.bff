@@ -19,26 +19,26 @@ timestamp: '2026-10-06T00:00:00Z'
    | term | 164 res (984 atoms) | 600 res (3600 atoms) |
    |---|---|---|
    | MJ | 14.6 / 152 / 12.9 us | 254 / 1945 / 173 us |
-   | H-bond | 13.3 / 212 / 22.4 us | 151 / 1929 / 243 us |
+   | H-bond | 14.7 / 212 / 24.6 us | 128 / 1929 / 124 us |
    | UNRES centroid | 14.2 / 129 / 13.2 us | 232 / 1631 / 136 us |
    | Go | 29.5 / 344 / 17.0 us | 764 / 5271 / 225 us |
    | clash | 788 / 4461 / 474 us | 11190 / 29383 / 2458 us |
    | ASA | 231 / 4618 / 224 us | 1478 / 23320 / 1309 us |
    | GB | 1555 / 5304 / 443 us | 20010 / 52558 / 4031 us |
 
-   Every term is at or under numba **except H-bond, 1.6-1.7x numba**. Of its
-   187 us at 600 residues, 3 us is the int32 column conversions; the rest is
-   the kernel's scalar gate scan.
-2. **Built? No. Tested? No. -- the H-bond fix in progress.** The working tree
-   (uncommitted, *not* in the commit) has `for_gated_upper_pairs` in
-   `include/internal/ContactKernels.h`: a `MatrixGate` overload that compacts
-   each row's passing columns branch-free before visiting them, used by the
-   contact, binned and H-bond sums (the `MatrixGate` struct moves from
-   `src/ContactPotentials.cpp` into the header). Next: build under
-   `/tmp/imp-bff-build.lock`, rerun the 30 bff tests + imp-tricks parity, rerun
-   the bench (H-bond target <= numba); commit only if green. A copy of the
-   edit is at the chisurf session scratchpad `keep_ContactKernels.branchless.h`
-   in case the tree is reset.
+   Every term is at or under numba at 600 residues; H-bond is ~1.7x at 164 (item 2).
+2. **H-bond: at numba at 600 residues, ~1.7x at 164 (2026-10-06).** The
+   `MatrixGate` overload of `for_gated_upper_pairs` (row-wise branch-free
+   compaction of passing columns) plus a tightened `backbone_hbond_sum`
+   (per-channel sums in registers, one multiply by 1/w instead of a divide,
+   cheap rejects before the N/C loads) took it from 243 to 124 us at 600
+   residues (numba 128) and 22 to 24.6 us at 164 (numba 14.7) -- the small
+   case is per-pair codegen, not the gate scan: with every pair gated out bff
+   is 6.7 us against numba's 8.0. Measure with imp-tricks
+   `tests/test_numba_parity._residues(n, 0)` vs
+   `tests/numba_oracles/cgmol_statpot._hbond_kernel`, best of 50, warm. The
+   ~10 us left at 164 is under 2% of a ProteinMC energy call (GB alone is
+   ~440 us) -- not worth chasing until a profile says otherwise.
 3. **Open: derivatives.** Only `SoftSphereOverlapPairScore` returns them. GB
    and the Go well are differentiable and a minimiser would want gradients; the
    tabulated terms (MJ, UNRES, H-bond) and the area are step functions.

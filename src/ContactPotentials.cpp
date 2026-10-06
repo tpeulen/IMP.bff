@@ -43,16 +43,6 @@ void check_indices(const int* idx, int n, int n_atoms, const char* who) {
 }
 
 
-//! A gate read from a caller's row-major matrix: pass when `g[i, j] <= cut`.
-struct MatrixGate {
-  const double* g;
-  int n;
-  double cut;
-  bool operator()(int i, int j) const {
-    return !(g[static_cast<long>(i) * n + j] > cut);
-  }
-};
-
 }  // namespace contact_api
 
 std::vector<double> get_site_contact_energy(
@@ -74,7 +64,7 @@ std::vector<double> get_site_contact_energy(
   long n = 0;
   const double e = internal::contact::site_contact_sum(
           in_xyz, in_site_atom, in_site_type, n_sites,
-          MatrixGate{in_gate, n_sites, gate_cutoff}, in_table, n_table_rows,
+          internal::contact::MatrixGate{in_gate, n_sites, gate_cutoff}, in_table, n_table_rows,
           n_table_cols, cutoff, &n);
   if (std::isnan(e)) {
     IMP_THROW(who << ": a site type is outside the table", ValueException);
@@ -109,7 +99,7 @@ std::vector<double> get_site_binned_pair_energy(
   long n = 0;
   const double e = internal::contact::site_binned_sum(
           in_xyz, in_site_atom, in_site_type, n_sites,
-          MatrixGate{in_gate, n_sites, gate_cutoff}, in_values, n_types,
+          internal::contact::MatrixGate{in_gate, n_sites, gate_cutoff}, in_values, n_types,
           n_bins, min_distance, max_distance, bin_width, repulsion, &n);
   if (std::isnan(e)) {
     IMP_THROW(who << ": a site type or distance bin is past the table end",
@@ -148,7 +138,7 @@ std::vector<double> get_backbone_hbond_energy(
   long n = 0;
   const double e = internal::contact::backbone_hbond_sum(
           in_xyz, in_n_atom, in_c_atom, in_o_atom, in_h_atom, n_res,
-          MatrixGate{in_gate, n_res, gate_cutoff}, in_hbond_table,
+          internal::contact::MatrixGate{in_gate, n_res, gate_cutoff}, in_hbond_table,
           n_hbond_bins, cutoff_h2, bin_width, channels, &n);
   return std::vector<double>{static_cast<double>(n), e};
 }
