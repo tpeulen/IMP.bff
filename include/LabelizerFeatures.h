@@ -69,6 +69,8 @@ struct IMPBFFEXPORT LabelizerStructure {
     std::vector<double> xyz;
     //! `N` van der Waals radii.
     std::vector<double> vdw;
+    //! `N` temperature factors from the same selected atoms as the coordinates.
+    std::vector<double> bfactor;
     //! `N` atom names, stripped of padding.
     std::vector<std::string> atom_name;
     //! Residues in file order.

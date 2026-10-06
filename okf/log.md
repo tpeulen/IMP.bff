@@ -1,5 +1,9 @@
 # Update Log
 
+## 2026-10-07
+
+- Portable confidence root: reuse the selected-model core record for CA temperature factors instead of linking an IMP-only reader;7scientific cases and F-tail checks pass in the isolated candidate. Residual callback conversion remains the next provider gate. [Resume](numerics-build.md).
+
 ## 2026-10-06
 
 - Portable numerical driver root: Minimize, Odeint and SparseLinearAlgebra use the existing compatibility header;3isolated real-source syntax tests now pass after3missing-header failures. Discovered rebuilding the current provider for ChiSurf's F-test click. [Resume](numerics-build.md).

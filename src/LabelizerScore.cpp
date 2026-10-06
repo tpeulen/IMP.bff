@@ -8,7 +8,6 @@
 
 #include <IMP/bff/LabelizerScore.h>
 #include <IMP/bff/Consurf.h>
-#include <IMP/bff/StructureReader.h>
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -703,25 +702,14 @@ std::vector<LabelizerScore> labelizer_score_structure(const std::string& pdb_pat
     out.insert(out.end(), combined.begin(), combined.end());
     if (options.bfactor_is_confidence) {
         // a predicted model: the C-alpha's B-factor is the residue's confidence (pLDDT)
-        const StructureTable t = read_structure_table(pdb_path);
-        std::map<std::string, double> confidence;
-        for (int a = 0; a < t.get_n_atoms(); ++a) {
-            std::string name = t.atom_name[static_cast<std::size_t>(a)];
-            name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
-            if (name == "CA")
-                confidence[labelizer_residue_key(t.chain[static_cast<std::size_t>(a)],
-                                                 t.res_id[static_cast<std::size_t>(a)])] =
-                        t.bfactor[static_cast<std::size_t>(a)];
-        }
         for (const LabelizerResidue& r : s.residues) {
             LabelizerScore row;
             row.asym_id = r.chain;
             row.seq_id = r.seq_id;
             row.comp_id = r.comp_id;
             row.score_type = "model_confidence";
-            const auto it = confidence.find(labelizer_residue_key(r.chain, r.seq_id));
-            if (it != confidence.end()) {
-                row.value = it->second;
+            if (r.ca >= 0) {
+                row.value = s.bfactor[static_cast<std::size_t>(r.ca)];
                 row.status = "scored";
             }
             out.push_back(row);

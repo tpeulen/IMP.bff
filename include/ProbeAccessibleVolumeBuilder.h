@@ -93,10 +93,12 @@ struct IMPBFFEXPORT PDBAtomRecord {
     std::string res_name, atom_name;
     double x, y, z;
     double vdw_radius;
+    //! Temperature factor, columns 61-66; zero when absent or unparseable.
+    double bfactor;
     //! The element symbol — see #IMP::bff::element_symbol_from_pdb_line.
     std::string element;
     PDBAtomRecord()
-        : serial(0), resseq(0), x(0), y(0), z(0), vdw_radius(1.70) {}
+        : serial(0), resseq(0), x(0), y(0), z(0), vdw_radius(1.70), bfactor(0) {}
     IMP_SHOWABLE_INLINE(PDBAtomRecord,
                         out << "PDBAtomRecord(" << chain << resseq << ":"
                             << atom_name << ")");

@@ -23,3 +23,17 @@ distribution arrays against the numerical oracle. ChiSurf's former pinned
 provider lacks the newer arrays even though the owning source already has
 them. Rebuild wrapper and binary together; never substitute a client-side
 statistics fallback. Cross-stack progress belongs to ChiSurf PRD-154 W7.
+
+## Selected-model confidence in core builds (2026-10-07)
+
+The owned core link had an undefined read_structure_table reference because
+LabelizerScore read pLDDT through an IMP-only adapter. The existing portable
+PDB record now retains the temperature factor and LabelizerStructure carries
+a parallel selected-atom vector. Confidence comes from that selected model's
+CA index, preserving the arithmetic and documented zero default for absent
+or invalid factors. It cannot be overwritten by a later MODEL block.
+Seven portable scientific cases passed, including the actual148L fixture,
+model selection, factor text variants and unchanged record inventory.
+The candidate also passed scalar/array F-tail oracles; its Python residual
+callback still needs the owning SWIG director-input conversion repaired.
+No candidate wheel has been installed as a shipping provider.

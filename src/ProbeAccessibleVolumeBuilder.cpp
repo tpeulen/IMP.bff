@@ -119,6 +119,15 @@ std::vector<PDBAtomRecord> parse_pdb(const std::string& path) {
         row.chain = internal::trimmed(line.substr(21, 1));
         row.atom_name = internal::trimmed(line.substr(12, 4));
         row.res_name = internal::trimmed(line.substr(17, 3));
+        // An optional B-factor must not discard an otherwise valid atom.
+        if (line.size() > 60) {
+            const std::string factor = internal::trimmed(line.substr(60, 6));
+            char* factor_end = 0;
+            const double value = std::strtod(factor.c_str(), &factor_end);
+            if (factor_end != factor.c_str() && *factor_end == '\0') {
+                row.bfactor = value;
+            }
+        }
         // The serial is what CONECT records refer to. A record whose serial
         // does not parse keeps 0 rather than being dropped: the coordinates are
         // what most callers want, and only the bond reader needs the serial.

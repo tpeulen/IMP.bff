@@ -249,6 +249,7 @@ LabelizerStructure labelizer_read_structure(const std::string& pdb_path, bool pr
         s.xyz.push_back(r.y);
         s.xyz.push_back(r.z);
         s.vdw.push_back(r.vdw_radius);
+        s.bfactor.push_back(r.bfactor);
         const std::string name = lf_strip(r.atom_name);
         s.atom_name.push_back(name);
 
