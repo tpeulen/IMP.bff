@@ -1,0 +1,369 @@
+---
+okf_version: "0.2"
+status: proposal
+---
+
+# Counterfactuals in FRET modelling, and a directed factor graph
+
+Written 2026-10-06, from a discussion with the owner. This page has two parts.
+The first part makes the case that interventions and counterfactuals can make
+FRET models say things they can't say today, with nine worked examples. The
+second part proposes how `InferenceFactorGraph` should carry direction so it
+can represent them. Nothing here is implemented yet. The examples are worked
+numerically in
+[`doc/workshop/09_counterfactuals.ipynb`](../doc/workshop/09_counterfactuals.ipynb),
+on smFRET data simulated with tttrlib (`SimEngine` photon simulation and
+`sim_state_at_times` kinetics). The simulator's per-photon state log is the
+ground truth every claim is checked against.
+
+## 1. The ladder
+
+Pearl separates three kinds of question. Each needs more model than the one
+before.
+
+| Level | Question | Needs |
+|---|---|---|
+| 1. Association | p(y \| x): what do I see when I see x? | A joint distribution (a factor graph) |
+| 2. Intervention | p(y \| do(x)): what happens if I *set* x? | A directed graph: cut x's incoming arrows, fix x |
+| 3. Counterfactual | p(y_x′ \| x, y): this molecule showed y under x. What would it have shown under x′? | A structural causal model (SCM): mechanisms plus explicit exogenous noise U |
+
+A counterfactual is computed in three steps:
+
+1. **Abduction:** infer this unit's noise, p(U | observed).
+2. **Action:** apply do(x′).
+3. **Prediction:** push the same U through the modified model.
+
+A *twin network* draws this as a single graph: a factual copy and a
+counterfactual copy of the endogenous variables that share their exogenous
+parents. Counterfactual inference then becomes ordinary Bayesian inference on a
+larger graph. That is why it belongs in a factor graph.
+
+Three facts fix how counterfactuals may be used:
+
+- **Level 1 ≠ level 2.** If closed molecules bind ligand better, then
+  P(closed | bound) is larger than P(closed | do(bound)). Ensemble correlation
+  is not mechanism. (In notebook cell 1, the two values are 0.66 and 0.30.)
+- **Level 2 ≠ level 3.** Two SCMs can share the same arrows *and* the same
+  interventional distributions, yet give opposite counterfactuals. Take
+  Y = U versus Y = T xor U, with U ~ Bernoulli(½). Both give p(Y | do(T)) = ½.
+  But for a unit with T = 1 and Y = 1, the first says Y would still have been 1
+  under T = 0, and the second says 0. **The functional form, and the way the
+  noise enters, decides the answer.**
+- **So a restraint on a counterfactual is an assumption, never evidence.** In
+  the graph it is a PRIOR-role factor (role `assumption`), never a LIKELIHOOD.
+  Otherwise the data that informed the mechanism are counted twice.
+
+## 2. FRET as a structural causal model
+
+```
+U_conf ──► X (conformation) ◄── L (label present / site / ligand / mutation)
+                 │
+U_dye  ──► D (dye positions) ◄── site, linker
+                 │
+                R_DA ──► E, donor decay ◄── κ², R0, Q_D(X)   (photophysics)
+                               │
+U_phot ───────────────────────► photons (colour, micro/macro time)
+```
+
+Every experimental handle is a do(): choosing the labelling site, labelling
+donor-only, titrating ligand or quencher, making a mutant, crosslinking a
+hinge. Every exogenous U is something the data can partly reveal for each
+molecule (abduction). Photon noise is the U we can see best, because single-
+molecule data record it photon by photon.
+
+## 3. Nine examples
+
+The level of each example is stated honestly. Level-3 statements are only
+worth more than level-2 ones when the *same molecule* is observed. Ensemble
+data can't tell them apart.
+
+### 3.1 Real intermediate or dynamic averaging? (level 3, per burst)
+
+- **Question:** a burst shows an intermediate E. Is it a third state, or two
+  states exchanging within the burst?
+- **Counterfactual:** the E and ⟨τ⟩_f this burst would have shown had the
+  conformation been frozen, do(k = 0), keeping the burst's own photon noise
+  and starting state.
+- **Known in practice:** the *static FRET line* is the population version of
+  this counterfactual. The twin network gives the per-burst version.
+  Abducting each burst's state path from its photons (forward-filtering,
+  backward-sampling over photon arrivals, as H2MM does) gives P(dynamic | burst)
+  and a counterfactual position on the static line.
+- **Notebook:**
+  - **Data:** tttrlib simulates diffusing molecules with two states
+    exchanging at 0.3 ms⁻¹, 17 % donor-only molecules and background, plus a
+    buffer run. Bursts come from tttrlib's burst search.
+  - **Inference:** all eight parameters (both efficiencies, τ₀, both rates,
+    the donor-only fraction, both background rates) are inferred in an IMP.bff
+    Bayesian graph (GraphPorts with priors, burst and buffer likelihood
+    GraphNodes, `MCMCSampler`).
+  - **Parameters:** every one is recovered except the exchange rates, which
+    come out about 25 % high (0.38 against 0.30 ms⁻¹). That cause is open.
+  - **Counterfactual:** abduction over posterior draws classifies 92 % of
+    1056 bursts correctly as dynamic or static, and identifies 100 % of
+    donor-only bursts.
+  - **Sweep:** at 0.1 and 1.0 ms⁻¹, 94 % of bursts are classified correctly.
+- **Data:** existing MFD bursts.
+- **What it adds:** separates bursts by mechanism instead of fitting a
+  population mixture, and makes "static line" a computed object rather than a
+  drawn curve.
+
+### 3.2 Allostery: which path carries the signal? (level 3, mediation)
+
+- **Setup:** effector L at site 1. Pair 1 reads the hinge M, pair 2 reads the
+  active site Y.
+- **Effects:**
+  - The *natural indirect effect*, Y(L=1, M(L=0)) → Y(L=1, M(L=1)), is the part
+    of the allosteric response transmitted through the hinge.
+  - The *natural direct effect* is the remainder.
+  - Both combine two worlds for the same molecule, so they are counterfactual
+    by definition (Pearl 2001).
+- **Notebook (linear SCM, true NIE = 0.80, NDE = 0.30):**
+
+  | Experimental design | What it gives |
+  |---|---|
+  | Pairs measured on separate molecules | The total effect only (1.10) |
+  | Both pairs on the same molecule (three-colour, or trace pairs) | NIE/NDE correctly, *unless* a latent cause W moves both hinge and active site |
+  | Same molecule, with such a W present | The naive estimate gives NIE = −0.16: wrong sign |
+  | An intervention on the mediator (hinge-locking crosslink or mutant, do(M)) | NIE = 0.80 again |
+
+- **What it adds:** pathway decomposition of allosteric coupling. The causal
+  graph also says *which* experiment identifies it. A double-mutant cycle is
+  the level-2 shadow of the same question.
+
+### 3.3 Conformational selection or induced fit? (level 3, per binding event)
+
+- **Data:** surface-immobilised TIRF traces in which the binding event is
+  visible (labelled ligand, or a FRET jump).
+- **Counterfactual:** the probability of necessity,
+  PN = P(open at t_b + Δ under do(no ligand) | bound, closed at t_b + Δ).
+- **Model:** conformational dynamics as a Gumbel-max SCM (Oberst & Sontag
+  2019). Each step's Gumbel noise is shared between the factual and ligand-free
+  worlds, and abducted from the observed transitions.
+- **Notebook:** on frame traces from tttrlib's four-state kinetics, PN is
+  0.14 for conformational selection and 0.80 for induced fit. The per-event distributions separate.
+- **What it adds:** reads the mechanism off each binding event, so a mix of
+  both mechanisms is visible as a bimodal PN, which ensemble kinetic model
+  comparison averages away.
+
+### 3.4 Is the intermediate necessary? (level 3, kinetic networks)
+
+- **Setup:** A ⇄ I ⇄ B from H2MM or HMM.
+- **Counterfactual:** for this A → B trajectory, would B have been reached by
+  time t had I been blocked? Use the same Gumbel-max construction, with I
+  removed in the twin.
+- **What it adds:** a per-trajectory probability that the path *uses* I. That
+  is stronger than "a model with I fits better", and directly comparable to
+  mutants that destabilise I.
+
+### 3.5 Distance or photophysics? (level 3, mediation)
+
+- **Setup:** the conformation changes R_DA *and* the donor's quantum yield
+  (PET quenching by Trp, sticking). Both reach E.
+- **Counterfactual:** the natural direct effect,
+  E(state B, Q_D as in state A), is the part of ΔE that comes from distance.
+- **Data:** lifetimes per state (the donor-only and donor–acceptor decays
+  already measured).
+- **What it adds:** a γ correction per state derived from the graph, and a
+  restraint that states explicitly "this ΔE is distance, not quenching".
+
+### 3.6 Label perturbation as an inferred quantity (level 2)
+
+- **Usual assumption:** "Dyes don't perturb the structure" means deleting the
+  arrow L → X. Every FRET-restrained model makes this silently.
+- **Proposal:** keep the arrow with strength β and prior β ~ N(0, σ). Several
+  labelling sites are several do(site) interventions, so with a structural
+  model β is identifiable.
+- **Result:** the published structure is then the counterfactual "unlabelled"
+  structure, with the perturbation uncertainty propagated.
+
+### 3.7 The second pair, predicted for the same molecules (level 3)
+
+- **Steps:** abduct each molecule's conformation from its pair-A burst, then
+  predict what pair B would read on *those* molecules.
+- **Uses:**
+  - **Pair choice:** choose the B whose counterfactual readout is most
+    informative given A. This is labelizer's question, asked per molecule
+    (see [labelizer](../doc/labelizer.md)).
+  - **Model check:** once B is measured, a mismatch between the predicted
+    per-molecule joint distribution and the measured one flags a structural
+    model that an ensemble fit to B alone would absorb.
+
+### 3.8 Mutants and variants (level 2, transportability)
+
+- **Setup:** a mutant panel is a set of do(sequence) interventions.
+- **What it adds:** with mechanisms shared across mutants, the panel predicts
+  populations and ligand response for unmeasured variants. Per-mutant fits
+  can't do this. It isn't a counterfactual, but it needs the same directed
+  graph.
+
+### 3.9 Testing a FRET network: can a correct analysis be wrong? (level 3)
+
+- **Question:** a network was designed, measured and fitted correctly, yet
+  the conclusion can still be wrong when an assumption fails. A sticking dye,
+  an AV model that misses a linker interaction, or κ² far from 2/3 all act as a
+  **bias at one labelling site**, carried into every pair that uses it, and
+  the fit absorbs it into the structure. Can counterfactuals catch this?
+- **Answer:** not by magic. A bias the network can't tell apart from
+  structure is not identifiable. But making the assumption an exogenous
+  variable (one bias b_s per site, with a prior) turns it into four answerable
+  questions:
+  1. **Abduction:** network redundancy (each site in several pairs) makes b_s
+     partly identifiable.
+  2. **do(b = 0):** what the data would have been with ideal dyes, keeping
+     this experiment's noise, and what the standard analysis then picks.
+  3. **do(b_s = 0), one site at a time:** the site the conclusion *hinges* on
+     (probability of necessity, applied to an assumption). That is the dye to
+     re-measure: label a different residue nearby, or swap donor and acceptor.
+  4. **Counterfactual replay:** had the structure been f′, with this
+     experiment's abducted biases and noise, would the pipeline have found
+     f′? This is a calibration curve for *this* data set. Simulation-based
+     calibration with fresh noise (level 2) can't show it.
+- **Notebook:** IMP.bff accessible volumes on the 58 frames of the recorded
+  hGBP1 transition, 8 sites and 21 readable pairs. The truth is frame 45, and
+  a +6 Å bias at site 18 is hidden from the analysis.
+  - The standard χ² analysis reports frame 57 with P(true frame) = 0 and a
+    reduced χ² of 1.8, so nothing looks wrong.
+  - The bias-aware model returns frame 45 (P = 0.53) and abducts 5.2 Å at
+    site 18.
+  - Only do(b₁₈ = 0) restores the true frame.
+  - The replay shows the network collapsing frames 42–57 onto the end state,
+    whereas with fresh noise (level 2) it recovers every frame.
+- **What it adds:** a network test that asks "had the structure been
+  different, would this data set have shown it?" rather than "is the fit
+  good?". It also gives a ranked list of which assumptions a published
+  structure depends on.
+
+### Summary
+
+| # | Topic | Level | New data? |
+|---|---|---|---|
+| 3.1 | Dynamic or real intermediate, per burst | 3 | No (MFD) |
+| 3.2 | Allosteric pathway (mediation) | 3 | Two pairs on the same molecule; do(M) when confounded |
+| 3.3 | Conformational selection or induced fit, per event | 3 | TIRF traces with visible binding |
+| 3.4 | Necessity of an intermediate | 3 | No (H2MM) |
+| 3.5 | Distance or photophysics | 3 | Lifetimes per state |
+| 3.6 | Label perturbation β | 2 | Several labelling sites |
+| 3.7 | Second pair, same molecules | 3 | Pair A; B to check |
+| 3.8 | Mutant transfer | 2 | Mutant panel |
+| 3.9 | FRET network bias test | 3 | No (the existing network); re-labelling to confirm |
+
+## 4. Graph design: direction carried by factors
+
+**Today.** `InferenceFactorGraph` (`include/InferenceFactorGraph.h`) has
+undirected factors (PRIOR, LIKELIHOOD, HYPER, LINK) that it moralises into
+cliques. Notebook cell 5 builds the mediation example and gets one clique
+{L, W, M, Y}. The reversed model, in which the active site drives the hinge,
+gives the identical graph. Direction, and with it do() and twin networks, is
+not representable.
+
+**Proposal: a mixed graph in which the factor carries the arrow.**
+
+- `add_factor(key, kind, scope, fit_index, size, children=[])`.
+  - **With children,** the factor is a conditional p(children | scope ∖
+    children): a mechanism, i.e. directed edges from the rest of the scope
+    into each child.
+  - **Without children,** it is an undirected potential, exactly today's
+    PRIOR, HYPER and LINK. Existing graphs don't change.
+- **Bidirected edges** (a latent common cause, such as W in 3.2) need no new
+  edge type. They are a variable with `role = "exogenous"` that is a parent of
+  both sides. Abduction then has something to infer, and its size enters
+  `block_cost` like any variable.
+- **Unchanged:** moralising a directed factor gives the same clique over its
+  scope. The moral graph, elimination order, treewidth, junction tree and
+  sampling blocks are identical. Direction is extra information, never a
+  different answer to an existing query.
+- **New queries:** `parents_of(var)`, `children_of(var)`, `is_acyclic()`,
+  `get_exogenous_variables()`.
+- **New operations,** each returning a new graph:
+  - `intervene(var)` removes every factor that has `var` as a child (the
+    mutilated graph) and marks `var` as held evidence.
+  - `twin(vars, suffix="@cf")` copies the descendants of `vars` with
+    suffixed keys. Exogenous ancestors stay shared, which is what couples the
+    two worlds.
+  - A counterfactual restraint is then an ordinary PRIOR factor with role
+    `assumption` over factual and `@cf` keys.
+- **Cycles.** Kinetic schemes (A ⇄ B) are cyclic as mechanisms but are one
+  node: a rate matrix inside `KineticSchemeNode`. The variable-level graph
+  stays acyclic, and `is_acyclic()` enforces it.
+- **Serialisation.** `children` joins the factor record in `to_json()`, so a
+  graph saved beside its data (PRD-139) carries its causal structure.
+
+**Alternative considered.** Keep direction only in the `GraphNode`/`GraphPort`
+evaluation graph (already a DAG of structural equations) and derive the factor
+graph from it by moralisation. It was rejected as the *primary* home because
+the factor graph is the object saved with data and handed to inference. It
+should state its own causal structure rather than depend on whichever
+evaluation graph produced it. The evaluation graph remains the natural place
+to *execute* do() and twin (unlink a port, clone a subgraph).
+
+## 5. Limits
+
+- **Identifiability.** Counterfactuals are generally not identified from
+  observational or interventional data. They rest on the SCM's functional
+  form (3.1 assumes Markov switching with exponential microtimes; 3.3 assumes
+  Gumbel-max dynamics). Results must state that model.
+- **Abduction is inference.** Photon noise can't be inverted, so U has a
+  posterior that needs forward-filtering, backward-sampling, sampling or
+  Laplace. The ucfret no-sampler requirement means Laplace over the twin's
+  dimensions.
+- **Cost.** Each extra world duplicates the descendants of the intervention.
+  `block_cost` and treewidth grow accordingly; the graph shows it before
+  anything runs.
+- **No double counting.** A counterfactual restraint is a prior. If the same
+  data also enter as a likelihood, the restraint must be conditionally
+  independent of them given the mechanism, or it must be dropped.
+
+## 6. Plan
+
+1. **PRD: direction in `InferenceFactorGraph`** (section 4):
+   - `children=` on `add_factor`, and the `exogenous` and `assumption` roles;
+   - `parents_of`, `children_of`, `is_acyclic`, `intervene`, `twin`;
+   - the JSON round trip.
+   Tests: the mediation graph of 3.2, where the moralised cliques stay
+   unchanged and the intervened and twin graphs are asserted.
+2. **A C++ photon-HMM burst likelihood node.** Measured 2026-10-06 on 500
+   bursts × 150 photons with eight parameters:
+   - `MCMCSampler` costs 5.72 ms per evaluation against 5.76 ms for the bare
+     numpy likelihood, so the sampler and graph runtime add nothing;
+   - all the time is the photon-by-photon forward recursion, written in
+     Python in the notebook's `GraphNode`.
+   - The fix is a C++ `GraphNode`: a forward algorithm over photons with
+     colour and micro-time emission, a background mixture, a donor-only
+     branch and a gradient. It allows full bursts (no 150-photon cap),
+     longer chains and NUTS.
+   - Placement needs a decision. Photon likelihoods are tttrlib's by the
+     placement rule, but the consumer is the bff graph, and the consumer
+     wins. One option is that the kernel lives in tttrlib (next to `HMM`)
+     and the node in bff wraps it.
+   - Also wanted: the per-burst abduction (FFBS plus twin re-emission) in C++.
+3. **A network bias test (3.9) as a bff tool:**
+   - inputs: a site-incidence matrix, a model-distance table over candidate
+     structures, and a bias prior;
+   - outputs: the abducted site biases, the hinge table over do(b_s = 0),
+     and the counterfactual replay;
+   - it could become a subcommand of the `imp_bff` executable next to the
+     network tools;
+   - it extends naturally to κ², linker-model and label-perturbation biases
+     (3.6).
+4. **Section 2 of the notebook:**
+   - diagnose the 25 % overestimate of the exchange rates, testing the
+     background-fraction approximation, burst selection and the photon cap;
+   - then add IRF, crosstalk and γ as graph variables, and polarisation.
+
+## References
+
+- J. Pearl, *Direct and indirect effects*, UAI 2001; *Causality*, 2nd ed., 2009.
+- M. Oberst, D. Sontag, *Counterfactual off-policy evaluation with Gumbel-max
+  structural causal models*, ICML 2019.
+- V. Veitch et al., *Counterfactual invariance to spurious correlations*,
+  NeurIPS 2021 ([arXiv:2106.00545](https://arxiv.org/abs/2106.00545)).
+- D. Ibeling, T. Icard, *Probabilistic reasoning across the causal hierarchy*,
+  AAAI 2020 ([arXiv:2001.02889](https://arxiv.org/abs/2001.02889)).
+- Y. Perov et al., *MultiVerse: causal reasoning using importance sampling in
+  probabilistic programming*, AABI 2020
+  ([PMLR 118](https://proceedings.mlr.press/v118/perov20a.html)).
+- ChiRho, a causal probabilistic programming language on Pyro (multi-world
+  tensors).
+- A. Vlontzos et al., *Estimating categorical counterfactuals via deep twin
+  networks* ([arXiv:2109.01904](https://arxiv.org/abs/2109.01904)).

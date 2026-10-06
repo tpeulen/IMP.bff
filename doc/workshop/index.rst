@@ -35,3 +35,4 @@ the single-chain topology, which notebook 07 demonstrates rather than asserts.
    06_docking_homodimer
    07_distance_networks
    08_ensemble_maxent
+   09_counterfactuals

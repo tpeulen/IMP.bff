@@ -78,6 +78,7 @@ says which package is in the interpreter: `"core"` (pip) or `"imp"` (conda).
 | `06_docking_homodimer.ipynb` | Given the distances, where does the second protomer sit? |
 | `07_distance_networks.ipynb` | Reading a network: which measurements a model still disagrees with, and what the pattern means. |
 | `08_ensemble_maxent.ipynb` | Not one structure but a population, with as little assumed as the data allow. |
+| `09_counterfactuals.ipynb` | Beyond fitting: interventions and counterfactuals. Per burst, would it have looked static? Which path carries an allosteric signal? Selection or induced fit, per binding event? Can a correctly fitted FRET network still be wrong? (tttrlib-simulated smFRET, IMP.bff Bayesian graph) |
 
 ## What is real and what is simulated
 
