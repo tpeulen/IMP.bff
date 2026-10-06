@@ -73,6 +73,28 @@ class TestResidualFunction(unittest.TestCase):
         jac = np.asarray(m.compute_jacobian(m.get_x())).reshape(3, t.size)
         np.testing.assert_allclose(jac[2], 1.0, rtol=1e-6)
 
+    def test_start_at_the_midpoint_of_a_box_moves(self):
+        """A start at a two-sided box's midpoint is fitted, not returned.
+
+        There the internal parameter is ~1e-17 (asin's rounding), so the
+        forward-difference step ``eps * |xi|`` is ~1e-25: nonzero, yet it
+        moves the parameter by nothing. The Jacobian column was zero and the
+        gtol test ended the fit after two evaluations, at the start. A
+        log-midpoint start (tau0 = sqrt(lo * hi)) hits this exactly.
+        """
+        t = np.linspace(0.0, 5.0, 512)
+        y = 2.0 * np.exp(-t / 3.0)
+
+        class LogTau(bff.FitResidualFunction):
+            def evaluate(self, p):
+                return 2.0 * np.exp(-t / np.exp(p[0])) - y
+
+        lo, hi = np.log(0.5), np.log(6.0)
+        m = _minimizer(LogTau(), [0.5 * (lo + hi)], [lo], [hi])
+        m.run()
+        self.assertAlmostEqual(m.get_x()[0], np.log(3.0), places=5)
+        self.assertGreater(m.get_number_of_evaluations(), 2)
+
     def test_python_exception_propagates(self):
         m = _minimizer(Raises(), [1.0], [-np.inf], [np.inf])
         with self.assertRaises(ZeroDivisionError):

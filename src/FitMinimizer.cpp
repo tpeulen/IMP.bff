@@ -651,6 +651,13 @@ double FitMinimizer::to_internal(double xe, unsigned int i) const {
   }
   double t = 2.0 * (xe - lower_[i]) / (upper_[i] - lower_[i]) - 1.0;
   t = std::min(1.0, std::max(-1.0, t));
+  // The box's midpoint maps to t ~ +-2e-16 (rounding in the line above), not
+  // 0. That residue is noise, but LM reads it as scale: the first trust
+  // region is `factor * |diag * x|`, so a fit whose parameters all start at
+  // their midpoints got a ~1e-14 radius and stopped on ftol at the start.
+  // At an exact 0, MINPACK's own fallbacks (step `eps`, radius `factor`)
+  // apply. Snapping moves the external start by <= ~1e-15 of the box.
+  if (std::fabs(t) <= 4.0 * std::numeric_limits<double>::epsilon()) return 0.0;
   return std::asin(t);
 }
 
@@ -719,7 +726,14 @@ double FitMinimizer::fdjac2_step(double xi, unsigned int i, double eps) const {
   const bool lo_free = is_unbounded(lower_[i]);
   const bool up_free = is_unbounded(upper_[i]);
   double h = eps * std::fabs(xi);
-  if (h == 0.0) h = eps;
+  // MINPACK falls back to `eps` only for an exactly-zero step. Through the
+  // two-sided transform the midpoint of a box is `xi ~ 1e-17` (asin's
+  // rounding), not 0, so `eps * |xi|` is ~1e-25: nonzero, but it moves the
+  // external parameter by nothing, the column is zero, and the gtol test
+  // ends the fit at its start. A log-midpoint start (tau0 = sqrt(lo * hi))
+  // lands there exactly. A step that does not move the parameter it probes
+  // is the zero step MINPACK meant.
+  if (h == 0.0 || to_external(xi + h, i) == to_external(xi, i)) h = eps;
   if (lo_free || up_free) return h;  // unchanged: one-sided or unbounded.
 
   const double xe = to_external(xi, i);
