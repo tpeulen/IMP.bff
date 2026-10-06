@@ -793,6 +793,9 @@ IMP_SWIG_DIRECTOR(IMP::bff, FitResidualFunction);
    scipy.optimize.minimize. */
 %include "IMP_bff.minimize.i"
 
+/* odeint: LSODA, scipy.integrate.odeint. */
+%include "IMP_bff.odeint.i"
+
 /* Coarse-grained contact potentials over coordinate arrays (cell lists,
    tabulated type-pair terms, Generalized Born, gated site area). */
 %include "IMP_bff.contactpotentials.i"
