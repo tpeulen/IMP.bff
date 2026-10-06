@@ -1,0 +1,58 @@
+/* Translated from Cython into C++ by SciPy developers in 2024.
+ *
+ * Original author: Josh Wilson, 2016.
+ */
+
+/* Evaluate polynomials.
+ *
+ * All of the coefficients are stored in reverse order, i.e. if the
+ * polynomial is
+ *
+ *     u_n x^n + u_{n - 1} x^{n - 1} + ... + u_0,
+ *
+ * then coeffs[0] = u_n, coeffs[1] = u_{n - 1}, ..., coeffs[n] = u_0.
+ *
+ * References
+ * ----------
+ * [1] Knuth, "The Art of Computer Programming, Volume II"
+ */
+
+#pragma once
+
+#include "cephes/polevl.h"
+#include "config.h"
+
+namespace xsf {
+
+XSF_HOST_DEVICE inline cxx::complex<double> evalpoly(const double *coeffs, int degree, cxx::complex<double> z) {
+    /* Evaluate a polynomial with real coefficients at a complex point.
+     *
+     * Uses equation (3) in section 4.6.4 of [1]. Note that it is more
+     * efficient than Horner's method.
+     */
+    if (degree == 0) {
+        return coeffs[0];
+    }
+    double a = coeffs[0];
+    double b = coeffs[1];
+    double r = 2 * z.real();
+    double s = cxx::norm(z);
+    double tmp;
+
+    for (int j = 2; j < degree + 1; j++) {
+        tmp = b;
+        b = cxx::fma(-s, a, coeffs[j]);
+        a = cxx::fma(r, a, tmp);
+    }
+
+    return z * a + b;
+}
+
+XSF_HOST_DEVICE inline double evalpoly(const double *coeffs, int degree, double x) {
+    if (degree == 0) {
+        return coeffs[0];
+    }
+    return cephes::polevl(x, coeffs, degree);
+}
+
+} // namespace xsf

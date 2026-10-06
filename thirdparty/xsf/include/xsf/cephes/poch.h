@@ -1,0 +1,89 @@
+/*
+ * Pochhammer symbol (a)_m = gamma(a + m) / gamma(a)
+ */
+
+#pragma once
+
+#include "../config.h"
+#include "gamma.h"
+
+namespace xsf {
+namespace cephes {
+
+    namespace detail {
+
+        XSF_HOST_DEVICE inline double is_nonpos_int(double x) {
+            return x <= 0 && x == cxx::ceil(x) && cxx::abs(x) < 1e13;
+        }
+    } // namespace detail
+
+    XSF_HOST_DEVICE inline double poch(double a, double m) {
+        double r = 1.0;
+
+        /*
+         * 1. Reduce magnitude of `m` to |m| < 1 by using recurrence relations.
+         *
+         * This may end up in over/underflow, but then the function itself either
+         * diverges or goes to zero. In case the remainder goes to the opposite
+         * direction, we end up returning 0*INF = NAN, which is OK.
+         */
+
+        /* Recurse down */
+        while (m >= 1.0) {
+            if (a + m == 1) {
+                break;
+            }
+            m -= 1.0;
+            r *= (a + m);
+            if (!cxx::isfinite(r) || r == 0) {
+                break;
+            }
+        }
+
+        /* Recurse up */
+        while (m <= -1.0) {
+            if (a + m == 0) {
+                break;
+            }
+            r /= (a + m);
+            m += 1.0;
+            if (!cxx::isfinite(r) || r == 0) {
+                break;
+            }
+        }
+
+        /*
+         * 2. Evaluate function with reduced `m`
+         *
+         * Now either `m` is not big, or the `r` product has over/underflown.
+         * If so, the function itself does similarly.
+         */
+
+        if (m == 0) {
+            /* Easy case */
+            return r;
+        } else if (a > 1e4 && cxx::abs(m) <= 1) {
+            /* Avoid loss of precision */
+            return r * cxx::pow(a, m) *
+                   (1 + m * (m - 1) / (2 * a) + m * (m - 1) * (m - 2) * (3 * m - 1) / (24 * a * a) +
+                    m * m * (m - 1) * (m - 1) * (m - 2) * (m - 3) / (48 * a * a * a));
+        }
+
+        /* Check for infinity */
+        if (detail::is_nonpos_int(a + m) && !detail::is_nonpos_int(a) && a + m != m) {
+            return cxx::numeric_limits<double>::infinity();
+        }
+
+        /* Check for zero */
+        if (!detail::is_nonpos_int(a + m) && detail::is_nonpos_int(a)) {
+            return 0;
+        }
+
+        return r * cxx::exp(lgam(a + m) - lgam(a)) * gammasgn(a + m) * gammasgn(a);
+    }
+
+    XSF_HOST_DEVICE inline float poch(float a, float m) {
+        return static_cast<float>(poch(static_cast<double>(a), static_cast<double>(m)));
+    }
+} // namespace cephes
+} // namespace xsf

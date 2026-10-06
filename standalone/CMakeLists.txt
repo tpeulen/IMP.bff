@@ -344,6 +344,8 @@ if(cereal_FOUND)
 else()
   target_include_directories(imp_bff PUBLIC "${CEREAL_INCLUDE_DIR}")
 endif()
+# SciPy's special-function headers, private to src/Numerics.cpp.
+target_include_directories(imp_bff PRIVATE "${IMPBFF_ROOT}/thirdparty/xsf/include")
 if(IMPBFF_OPENMP_FLAGS)
   target_compile_options(imp_bff PRIVATE ${IMPBFF_OPENMP_FLAGS})
   target_link_libraries(imp_bff PRIVATE ${IMPBFF_OPENMP_LIBS})

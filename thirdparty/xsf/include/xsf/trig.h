@@ -1,0 +1,165 @@
+/* Translated from Cython into C++ by SciPy developers in 2023.
+ *
+ * Original author: Josh Wilson, 2016.
+ */
+
+/* Implement sin(pi*z) and cos(pi*z) for complex z. Since the periods
+ * of these functions are integral (and thus better representable in
+ * floating point), it's possible to compute them with greater accuracy
+ * than sin(z), cos(z).
+ */
+
+#pragma once
+
+#include "cephes/sindg.h"
+#include "cephes/tandg.h"
+#include "cephes/trig.h"
+#include "cephes/unity.h"
+#include "config.h"
+#include "cpu/numbers.h"
+#include "evalpoly.h"
+
+namespace xsf {
+
+template <typename T>
+XSF_HOST_DEVICE T sinpi(T x) {
+    return cephes::sinpi(x);
+}
+
+template <typename T>
+XSF_HOST_DEVICE cxx::complex<T> sinpi(cxx::complex<T> z) {
+    T x = z.real();
+    T piy = numbers::pi_v<T> * z.imag();
+    T abspiy = cxx::abs(piy);
+    T sinpix = cephes::sinpi(x);
+    T cospix = cephes::cospi(x);
+
+    if (abspiy < 700) {
+        return {sinpix * cxx::cosh(piy), cospix * cxx::sinh(piy)};
+    }
+
+    /* Have to be careful--sinh/cosh could overflow while cos/sin are small.
+     * At this large of values
+     *
+     * cosh(y) ~ exp(y)/2
+     * sinh(y) ~ sgn(y)*exp(y)/2
+     *
+     * so we can compute exp(y/2), scale by the right factor of sin/cos
+     * and then multiply by exp(y/2) to avoid overflow. */
+    T exphpiy = cxx::exp(abspiy / 2);
+    T coshfac;
+    T sinhfac;
+    if (exphpiy == cxx::numeric_limits<T>::infinity()) {
+        if (sinpix == T(0.0)) {
+            // Preserve the sign of zero.
+            coshfac = cxx::copysign(T(0.0), sinpix);
+        } else {
+            coshfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), sinpix);
+        }
+        if (cospix == T(0.0)) {
+            // Preserve the sign of zero.
+            sinhfac = cxx::copysign(T(0.0), cospix);
+        } else {
+            sinhfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), cospix);
+        }
+        return {coshfac, sinhfac};
+    }
+
+    coshfac = T(0.5) * sinpix * exphpiy;
+    sinhfac = T(0.5) * cospix * exphpiy;
+    return {coshfac * exphpiy, sinhfac * exphpiy};
+}
+
+template <typename T>
+XSF_HOST_DEVICE T cospi(T x) {
+    return cephes::cospi(x);
+}
+
+template <typename T>
+XSF_HOST_DEVICE cxx::complex<T> cospi(cxx::complex<T> z) {
+    T x = z.real();
+    T piy = numbers::pi_v<T> * z.imag();
+    T abspiy = cxx::abs(piy);
+    T sinpix = cephes::sinpi(x);
+    T cospix = cephes::cospi(x);
+
+    if (abspiy < 700) {
+        return {cospix * cxx::cosh(piy), -sinpix * cxx::sinh(piy)};
+    }
+
+    // See csinpi(z) for an idea of what's going on here.
+    T exphpiy = cxx::exp(abspiy / 2);
+    T coshfac;
+    T sinhfac;
+    if (exphpiy == cxx::numeric_limits<T>::infinity()) {
+        if (sinpix == T(0.0)) {
+            // Preserve the sign of zero.
+            coshfac = cxx::copysign(T(0.0), cospix);
+        } else {
+            coshfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), cospix);
+        }
+        if (cospix == T(0.0)) {
+            // Preserve the sign of zero.
+            sinhfac = cxx::copysign(T(0.0), sinpix);
+        } else {
+            sinhfac = cxx::copysign(cxx::numeric_limits<T>::infinity(), sinpix);
+        }
+        return {coshfac, sinhfac};
+    }
+
+    coshfac = T(0.5) * cospix * exphpiy;
+    sinhfac = T(0.5) * sinpix * exphpiy;
+    return {coshfac * exphpiy, sinhfac * exphpiy};
+}
+
+template <typename T>
+XSF_HOST_DEVICE T sindg(T x) {
+    return cephes::sindg(x);
+}
+
+template <>
+XSF_HOST_DEVICE inline float sindg(float x) {
+    return sindg(static_cast<double>(x));
+}
+
+template <typename T>
+XSF_HOST_DEVICE T cosdg(T x) {
+    return cephes::cosdg(x);
+}
+
+template <>
+XSF_HOST_DEVICE inline float cosdg(float x) {
+    return cosdg(static_cast<double>(x));
+}
+
+template <typename T>
+XSF_HOST_DEVICE T tandg(T x) {
+    return cephes::tandg(x);
+}
+
+template <>
+XSF_HOST_DEVICE inline float tandg(float x) {
+    return tandg(static_cast<double>(x));
+}
+
+template <typename T>
+XSF_HOST_DEVICE T cotdg(T x) {
+    return cephes::cotdg(x);
+}
+
+template <>
+XSF_HOST_DEVICE inline float cotdg(float x) {
+    return cotdg(static_cast<double>(x));
+}
+
+XSF_HOST_DEVICE inline double radian(double d, double m, double s) { return cephes::radian(d, m, s); }
+
+XSF_HOST_DEVICE inline float radian(float d, float m, float s) {
+    return radian(static_cast<double>(d), static_cast<double>(m), static_cast<double>(s));
+}
+
+XSF_HOST_DEVICE inline double cosm1(double x) { return cephes::cosm1(x); }
+
+XSF_HOST_DEVICE inline float cosm1(float x) { return cosm1(static_cast<double>(x)); }
+
+} // namespace xsf

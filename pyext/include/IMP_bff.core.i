@@ -785,6 +785,10 @@ IMP_SWIG_DIRECTOR(IMP::bff, FitResidualFunction);
    nnls and lsq_linear. */
 %include "IMP_bff.linearleastsquares.i"
 
+/* Special functions, distribution functions and expm: the scalar numerics
+   scipy.special / scipy.stats / scipy.linalg.expm supplied. */
+%include "IMP_bff.numerics.i"
+
 /* Bounded scalar minimisation: the L-BFGS-B and Nelder-Mead methods of
    scipy.optimize.minimize. */
 %include "IMP_bff.minimize.i"

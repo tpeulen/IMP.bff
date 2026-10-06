@@ -121,6 +121,10 @@ if(TARGET IMP.bff-lib)
   set_property(TARGET IMP.bff-lib APPEND PROPERTY
     LINK_LIBRARIES "$<LINK_LIBRARY:WHOLE_ARCHIVE,ptolib::ptolib>")
   set_target_properties(IMP.bff-lib PROPERTIES VISIBILITY_INLINES_HIDDEN ON)
+  # SciPy's special-function headers (thirdparty/xsf), for src/Numerics.cpp
+  # only: private, never installed, no public header includes them.
+  target_include_directories(IMP.bff-lib PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/xsf/include")
   # Optional: zlib reads gzip-compressed FASTA into a sequence database.
   find_package(ZLIB QUIET)
   if(ZLIB_FOUND)
