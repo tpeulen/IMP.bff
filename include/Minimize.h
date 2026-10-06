@@ -13,6 +13,8 @@
  *   differenced forward with SciPy's absolute step `eps` (1e-8), flipped or
  *   shortened at a bound the way `scipy.optimize._numdiff` does, so the
  *   gradients -- and therefore the iterates -- are SciPy's.
+ * - root_brentq(): `scipy.optimize.brentq` (what `root_scalar` with a
+ *   bracket runs), ported from SciPy's C.
  * - minimize_nelder_mead(): the downhill simplex of
  *   `scipy.optimize._minimize_neldermead`, step for step: the same initial
  *   simplex (5 % / 0.00025 perturbations), reflection, expansion,
@@ -124,6 +126,31 @@ IMPBFFEXPORT MinimizeResult minimize_nelder_mead(
     int maxiter = 0, int maxfev = 0, double xatol = 1e-4,
     double fatol = 1e-4, bool adaptive = false,
     const std::vector<double>& initial_simplex = std::vector<double>());
+
+//! What a bracketed root search found, shaped like SciPy's `RootResults`.
+struct IMPBFFEXPORT RootResult {
+  //! The root estimate.
+  double root = 0.0;
+  //! Iterations.
+  int iterations = 0;
+  //! Function evaluations.
+  int function_calls = 0;
+  //! True when the tolerance was met.
+  bool converged = false;
+  //! SciPy's flag: "converged" or "convergence error".
+  std::string flag;
+};
+
+//! A root of the scalar `f` in `[a, b]` by Brent's method.
+/*! SciPy's `brentq` (Charles Harris' C, `scipy/optimize/Zeros/brentq.c`),
+    step for step, with its defaults. `f` is a MinimizeObjective evaluated
+    at the one-element vector `[x]`. Throws ValueException when `f(a)` and
+    `f(b)` have the same sign, as SciPy raises ValueError.
+*/
+IMPBFFEXPORT RootResult root_brentq(MinimizeObjective* f, double a, double b,
+                                    double xtol = 2e-12,
+                                    double rtol = 8.881784197001252e-16,
+                                    int maxiter = 100);
 
 IMPBFF_END_NAMESPACE
 

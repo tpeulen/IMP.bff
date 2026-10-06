@@ -588,4 +588,85 @@ MinimizeResult minimize_nelder_mead(MinimizeObjective* objective,
 
 #undef BFF_MINIMIZE_NO_CONTRACT
 
+RootResult root_brentq(MinimizeObjective* f, double a, double b, double xtol,
+                       double rtol, int maxiter) {
+  // scipy/optimize/Zeros/brentq.c, kept line for line so the iterates are
+  // SciPy's; only the callback and the result record differ.
+  if (!f) IMP_THROW("root_brentq: no function", ValueException);
+  if (xtol <= 0) IMP_THROW("root_brentq: xtol too small (" << xtol << " <= 0)", ValueException);
+  if (rtol < 8.881784197001252e-16) {
+    IMP_THROW("root_brentq: rtol too small (" << rtol << " < 8.88e-16)", ValueException);
+  }
+  std::vector<double> xv(1);
+  auto eval = [&](double x) {
+    xv[0] = x;
+    return f->evaluate(xv);
+  };
+  RootResult r;
+  double xpre = a, xcur = b;
+  double xblk = 0., fpre, fcur, fblk = 0., spre = 0., scur = 0., sbis;
+  double delta, stry, dpre, dblk;
+  fpre = eval(xpre);
+  fcur = eval(xcur);
+  r.function_calls = 2;
+  if (fpre == 0) {
+    r.root = xpre; r.converged = true; r.flag = "converged";
+    return r;
+  }
+  if (fcur == 0) {
+    r.root = xcur; r.converged = true; r.flag = "converged";
+    return r;
+  }
+  if (std::signbit(fpre) == std::signbit(fcur)) {
+    IMP_THROW("f(a) and f(b) must have different signs", ValueException);
+  }
+  for (int i = 0; i < maxiter; i++) {
+    r.iterations++;
+    if (fpre != 0 && fcur != 0 && (std::signbit(fpre) != std::signbit(fcur))) {
+      xblk = xpre;
+      fblk = fpre;
+      spre = scur = xcur - xpre;
+    }
+    if (std::fabs(fblk) < std::fabs(fcur)) {
+      xpre = xcur; xcur = xblk; xblk = xpre;
+      fpre = fcur; fcur = fblk; fblk = fpre;
+    }
+    delta = (xtol + rtol * std::fabs(xcur)) / 2;
+    sbis = (xblk - xcur) / 2;
+    if (fcur == 0 || std::fabs(sbis) < delta) {
+      r.root = xcur; r.converged = true; r.flag = "converged";
+      return r;
+    }
+    if (std::fabs(spre) > delta && std::fabs(fcur) < std::fabs(fpre)) {
+      if (xpre == xblk) {
+        stry = -fcur * (xcur - xpre) / (fcur - fpre);  // interpolate
+      } else {  // extrapolate
+        dpre = (fpre - fcur) / (xpre - xcur);
+        dblk = (fblk - fcur) / (xblk - xcur);
+        stry = -fcur * (fblk * dblk - fpre * dpre) / (dblk * dpre * (fblk - fpre));
+      }
+      if (2 * std::fabs(stry) < std::min(std::fabs(spre), 3 * std::fabs(sbis) - delta)) {
+        spre = scur;  // good short step
+        scur = stry;
+      } else {
+        spre = sbis;  // bisect
+        scur = sbis;
+      }
+    } else {
+      spre = sbis;  // bisect
+      scur = sbis;
+    }
+    xpre = xcur; fpre = fcur;
+    if (std::fabs(scur) > delta) {
+      xcur += scur;
+    } else {
+      xcur += (sbis > 0 ? delta : -delta);
+    }
+    fcur = eval(xcur);
+    r.function_calls++;
+  }
+  r.root = xcur; r.converged = false; r.flag = "convergence error";
+  return r;
+}
+
 IMPBFF_END_NAMESPACE
