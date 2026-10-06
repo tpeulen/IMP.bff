@@ -37,3 +37,17 @@ model selection, factor text variants and unchanged record inventory.
 The candidate also passed scalar/array F-tail oracles; its Python residual
 callback still needs the owning SWIG director-input conversion repaired.
 No candidate wheel has been installed as a shipping provider.
+
+## Owned callback arrays and incremental wrappers (2026-10-07)
+
+The shared director-input conversion copies borrowed const vector<double>
+arguments into owned float64 NumPy arrays using the existing adoption seam.
+Python residual and ODE overrides can retain their parameters after the C++
+buffer is released; callback TypeError still crosses the director boundary,
+and None still clears an optional residual callback.
+Standalone CMake now lists included SWIG interfaces, Python helpers and
+headers as wrapper dependencies. Changing only an included interface reran
+SWIG without touching the entry file (exit0, wrapper timestamp advanced).
+24 focused residual/scalar-array-F/exponential-fit/LSODA cases passed against
+the candidate core provider. Build and install the immutable committed source
+next, then rerun ChiSurf's F-test and native dwell-label cases through pixi.

@@ -5,6 +5,7 @@ with an arbitrary model (a Python closure) gets bff's bounded MINPACK
 Levenberg-Marquardt directly. scipy is the oracle where it is installed.
 """
 
+import gc
 import unittest
 
 import numpy as np
@@ -46,6 +47,51 @@ def _minimizer(fn, x0, lb, ub):
 
 
 class TestResidualFunction(unittest.TestCase):
+    def test_callback_parameters_are_owned_numeric_arrays(self):
+        """A callback may retain parameters after later evaluations and C++ cleanup."""
+        class Retaining(bff.FitResidualFunction):
+            def __init__(self):
+                super().__init__()
+                self.parameters = []
+                self.expected = []
+
+            def evaluate(self, parameters):
+                """Retain the numeric input while returning a simple residual."""
+                if not isinstance(parameters, np.ndarray):
+                    raise TypeError("callback parameters must be a numeric ndarray")
+                self.parameters.append(parameters)
+                self.expected.append(parameters.copy())
+                return np.array([parameters[0] - 2.0, parameters[0] - 2.0])
+
+        function = Retaining()
+        minimizer = _minimizer(function, [1.0], [-np.inf], [np.inf])
+        minimizer.run()
+        retained, expected = function.parameters, function.expected
+        self.assertGreater(len(retained), 1)
+        del minimizer, function
+        gc.collect()
+        for parameters, snapshot in zip(retained, expected):
+            np.testing.assert_array_equal(parameters, snapshot)
+            self.assertEqual(parameters.dtype, np.float64)
+
+    def test_none_clears_an_optional_residual_callback(self):
+        """Clearing a callback remains distinct from supplying an empty parameter array."""
+        minimizer = bff.FitMinimizer()
+        minimizer.set_residual_function(Raises())
+        minimizer.set_residual_function(None)
+        self.assertIsNone(minimizer.get_residual_function())
+        self.assertFalse(minimizer.has_objective())
+
+    def test_a_callback_signature_error_keeps_its_python_exception(self):
+        """An override requiring an extra argument reports TypeError across C++."""
+        class WrongSignature(bff.FitResidualFunction):
+            def evaluate(self, parameters, extra):
+                return [parameters[0] - extra]
+
+        minimizer = _minimizer(WrongSignature(), [1.0], [-np.inf], [np.inf])
+        with self.assertRaises(TypeError):
+            minimizer.run()
+
     def test_fits_and_converges(self):
         t, y = _data()
         m = _minimizer(Exponential(t, y), [1.0, 1.0, 0.0], [0, 0.1, -1], [10, 10, 1])

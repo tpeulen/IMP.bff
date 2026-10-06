@@ -286,6 +286,14 @@ static PyObject* imp_bff_adopt_vector_double(std::vector<double>* v) {
     if ($result == NULL) SWIG_fail;
 }
 
+// C++ callbacks use the same numeric surface as ordinary returns. Copy the
+// borrowed argument before adopting it: a Python override can retain it after
+// this evaluation or after the optimiser releases its parameter buffer.
+%typemap(directorin, fragment="NumPy_Macros") const std::vector<double>& {
+    $input = imp_bff_adopt_vector_double(new std::vector<double>($1));
+    if ($input == NULL) throw Swig::DirectorMethodException();
+}
+
 // The int sibling: an occupancy/field grid `std::vector<int>`. Anything
 // array-like is converted through `PyArray_FromAny` to a flat C-contiguous
 // int32 copy, so a uint8 mask, a float grid, or an F-contiguous float32

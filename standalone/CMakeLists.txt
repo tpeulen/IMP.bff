@@ -493,6 +493,14 @@ if(IMPBFF_PYTHON)
   set_property(SOURCE "${_entry}" PROPERTY COMPILE_OPTIONS -threads -castmode -naturalvar -fvirtual -Wextra -Dfinal= -DPySwigIterator=IMP_BFF_PySwigIterator -DSwigPyIterator=IMP_BFF_SwigPyIterator)
   swig_add_library(_IMP_bff LANGUAGE python TYPE MODULE
     OUTPUT_DIR "${_pydir}" OUTFILE_DIR "${CMAKE_BINARY_DIR}/swig" SOURCES "${_entry}")
+  # UseSWIG otherwise watches only the entry file: included typemaps and
+  # Python helpers must regenerate the wrapper when their contents change.
+  file(GLOB _swig_inputs CONFIGURE_DEPENDS
+    "${IMPBFF_ROOT}/pyext/include/*.i"
+    "${IMPBFF_ROOT}/pyext/include/*.py"
+    "${CMAKE_CURRENT_SOURCE_DIR}/pyext/*.i")
+  set_property(TARGET _IMP_bff PROPERTY SWIG_DEPENDS
+    ${_swig_inputs} ${_public_headers} ${_internal_headers} "${_agg}")
   target_include_directories(_IMP_bff PRIVATE "${CMAKE_BINARY_DIR}" "${Python3_NumPy_INCLUDE_DIRS}" "${RMF_INCLUDE_DIR}")
   target_link_libraries(_IMP_bff PRIVATE imp_bff Python3::Module)
   set_target_properties(_IMP_bff PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${_pydir}" PREFIX "" SUFFIX "${Python3_SOABI_SUFFIX}")

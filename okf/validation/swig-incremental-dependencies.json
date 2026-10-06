@@ -1,0 +1,10 @@
+{
+  "exit_code": 0,
+  "before_mtime_ns": 1791325707700501685,
+  "after_mtime_ns": 1791325733827478605,
+  "swig_ran": true,
+  "entry_touched": false,
+  "input": "/private/tmp/prd154-bff-committed-source/pyext/include/IMP_bff.types.i",
+  "wrapper": "/private/tmp/prd154-bff-pixi-test-core/swig/IMP_bff_standalonePYTHON_wrap.cxx",
+  "log": "/private/tmp/prd154-bff-swig-dependency-proof.log"
+}
