@@ -108,6 +108,38 @@ std::vector<double> FRETInstrument::get_background_density(int channel) const {
   return std::vector<double>(n_bins_, 1.0 / n_bins_);
 }
 
+void FRETInstrument::set_microtime_groups(const std::vector<int>& groups) {
+  if (groups.empty()) {
+    groups_.clear();
+    n_groups_ = 0;
+    return;
+  }
+  if (static_cast<int>(groups.size()) != n_bins_)
+    IMP_THROW("set_microtime_groups: need one group per bin (" << n_bins_ << ")",
+              IMP::ValueException);
+  int g = 0;
+  for (int x : groups) {
+    if (x < 0) IMP_THROW("set_microtime_groups: groups must be >= 0", IMP::ValueException);
+    g = std::max(g, x + 1);
+  }
+  std::vector<char> used(g, 0);
+  for (int x : groups) used[x] = 1;
+  for (int k = 0; k < g; ++k)
+    if (!used[k])
+      IMP_THROW("set_microtime_groups: group " << k << " has no bin", IMP::ValueException);
+  groups_ = groups;
+  n_groups_ = g;
+}
+
+std::vector<double> FRETInstrument::group_bins(const std::vector<double>& fine) const {
+  if (static_cast<int>(fine.size()) != n_bins_)
+    IMP_THROW("group_bins: need " << n_bins_ << " values", IMP::ValueException);
+  if (groups_.empty()) return fine;
+  std::vector<double> out(n_groups_, 0.0);
+  for (int b = 0; b < n_bins_; ++b) out[groups_[b]] += fine[b];
+  return out;
+}
+
 std::vector<std::string> FRETInstrument::get_parameter_names() const {
   std::vector<std::string> n;
   const char* chrom[2] = {"donor", "acceptor"};
@@ -223,8 +255,10 @@ std::vector<double> FRETMeasurement::get_emission(const FRETHiddenProcess& proce
   const int nh = process.get_n_states(), nd = donor_.get_n_states(),
             na = acceptor_.get_n_states();
   const int n = nh * nd * na, C = instrument_.get_n_channels(), nb = instrument_.get_n_bins();
+  const std::vector<int>& groups = instrument_.get_microtime_groups();
+  const int ng = instrument_.get_n_photon_bins();
   const double tau0 = get_reference_lifetime();
-  std::vector<double> out(static_cast<std::size_t>(C) * nb * n, 0.0);
+  std::vector<double> out(static_cast<std::size_t>(C) * ng * n, 0.0);
   std::vector<double> table(static_cast<std::size_t>(C) * nb);
   const std::vector<double>& dt = donor_.get_lifetimes();
   const std::vector<double>& dq = donor_.get_quantum_yields();
@@ -245,10 +279,12 @@ std::vector<double> FRETMeasurement::get_emission(const FRETHiddenProcess& proce
                                                   de[d], at[a], aq[a], ae[a], ac[a], rw[j + 1],
                                                   table.data());
         const int s = (h * nd + d) * na + a;
+        // fine bin b reports photon bin g (groups), or itself
         for (int c = 0; c < C; ++c)
           for (int b = 0; b < nb; ++b)
-            out[(static_cast<std::size_t>(c) * nb + b) * n + s] =
-                table[static_cast<std::size_t>(c) * nb + b] + instrument_.get_background(c) * bgd[c][b];
+            out[(static_cast<std::size_t>(c) * ng + (groups.empty() ? b : groups[b])) * n + s] +=
+                brightness_ * table[static_cast<std::size_t>(c) * nb + b] +
+                instrument_.get_background(c) * bgd[c][b];
       }
   }
   return out;
@@ -256,7 +292,7 @@ std::vector<double> FRETMeasurement::get_emission(const FRETHiddenProcess& proce
 
 std::vector<double> FRETMeasurement::get_detection_rates(const FRETHiddenProcess& process) const {
   const std::vector<double> e = get_emission(process);
-  const int C = instrument_.get_n_channels(), nb = instrument_.get_n_bins();
+  const int C = instrument_.get_n_channels(), nb = instrument_.get_n_photon_bins();
   const int n = static_cast<int>(e.size() / (static_cast<std::size_t>(C) * nb));
   std::vector<double> out(static_cast<std::size_t>(C) * n, 0.0);
   for (int c = 0; c < C; ++c)

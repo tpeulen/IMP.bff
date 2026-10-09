@@ -76,7 +76,7 @@ NetOp build_operator(const FRETHiddenProcess& process, const FRETMeasurement& m,
   const int n = op.n;
   op.emission = m.get_emission(process);
   op.C = m.get_instrument().get_n_channels();
-  op.nb = m.get_instrument().get_n_bins();
+  op.nb = m.get_instrument().get_n_photon_bins();
   op.ltot.assign(n, 0.0);
   for (int c = 0; c < op.C; ++c)
     for (int b = 0; b < op.nb; ++b)

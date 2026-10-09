@@ -93,6 +93,23 @@ class IMPBFFEXPORT FRETHiddenProcess {
   //! parameter, `log k`).
   void set_rate(int source, int target, double rate);
   double get_rate(int source, int target) const;
+  //! Discrete: switch the parameters to populations and exchange fluxes, a
+  //! reversible chain by construction. The current rates are converted:
+  //! `pi` is their stationary distribution and, per connected pair `i < j`
+  //! (both rates > 0), `s_ij = (pi_i k_ij + pi_j k_ji) / 2`. Afterwards
+  //! `k_ij = s_ij / pi_i` with `pi = w / sum(w)` from unnormalised weights
+  //! `w`; the parameters are `population[k]` (`log w`, one scale gauge left
+  //! to a prior or a fixed weight) and `flux[i-j]` (`log s`), so Gaussian
+  //! priors on them are an MSM's population and flux priors
+  //! (prototypes/fret_network_landscape/ensemble_prior.py). `false`
+  //! converts back to the rates.
+  void set_reversible(bool reversible);
+  bool get_is_reversible() const { return reversible_; }
+  //! Reversible: the unnormalised population weight of conformer `k`.
+  void set_population(int k, double weight);
+  //! Reversible: the exchange flux `s_ij = pi_i k_ij = pi_j k_ji` (> 0).
+  void set_flux(int i, int j, double flux);
+  double get_flux(int i, int j) const;
   //! Landscape: knot heights (kT) and `D`.
   void set_landscape(const std::vector<double>& knot_heights);
   const std::vector<double>& get_knot_heights() const { return mu_; }
@@ -108,7 +125,8 @@ class IMPBFFEXPORT FRETHiddenProcess {
   std::vector<double> get_stationary() const;
 
   //! Parameters, natural scale: discrete `rate[i->j]` for every nonzero
-  //! rate; landscape `mu[k]` then `D`.
+  //! rate, or (reversible) `population[k]` then `flux[i-j]`; landscape
+  //! `mu[k]` then `D`.
   std::vector<std::string> get_parameter_names() const;
   std::vector<double> get_parameter_values() const;
   void set_parameter_values(const std::vector<double>& values);
@@ -125,6 +143,11 @@ class IMPBFFEXPORT FRETHiddenProcess {
   // discrete
   std::vector<double> rates_;  // [target * n + source]
   std::vector<std::pair<int, int> > rate_index_;
+  // discrete, reversible: weights, edges i < j and their fluxes
+  bool reversible_ = false;
+  std::vector<double> weights_, flux_;
+  std::vector<std::pair<int, int> > edges_;
+  void sync_rates();
   // landscape
   double q_min_ = 0.0, q_max_ = 1.0, diffusion_ = 1.0;
   int n_knots_ = 0;
@@ -261,6 +284,18 @@ class IMPBFFEXPORT FRETInstrument {
   double get_background(int channel) const { return bg_.at(channel); }
   std::vector<double> get_background_density(int channel) const;
 
+  //! Coarse photon microtimes: `groups[b]` (one per bin, values `0..G-1`,
+  //! each used) is the bin a photon in fine bin `b` reports. The emission is
+  //! still computed on the fine axis (IRF, decays) and then summed per group,
+  //! so `groups = [0]*(n/2) + [1]*(n/2)` keeps only which PIE pulse a photon
+  //! followed. Empty: photons report the fine bin.
+  void set_microtime_groups(const std::vector<int>& groups);
+  const std::vector<int>& get_microtime_groups() const { return groups_; }
+  //! Bins a photon's microtime indexes: the number of groups, or `n_bins`.
+  int get_n_photon_bins() const { return groups_.empty() ? n_bins_ : n_groups_; }
+  //! A per-fine-bin vector summed into the photon bins.
+  std::vector<double> group_bins(const std::vector<double>& fine) const;
+
   //! Parameters, natural scale: `excitation[pulse,chromophore]`,
   //! `emission[chromophore,channel]`, `gain[channel]`, `background[channel]`.
   std::vector<std::string> get_parameter_names() const;
@@ -279,6 +314,8 @@ class IMPBFFEXPORT FRETInstrument {
   std::vector<std::vector<double> > irf_;  // [pulse*C + channel]
   std::vector<double> gain_, bg_;
   std::vector<std::vector<double> > bg_density_;
+  std::vector<int> groups_;
+  int n_groups_ = 0;
 };
 IMP_VALUES(FRETInstrument, FRETInstruments);
 
@@ -313,6 +350,14 @@ class IMPBFFEXPORT FRETMeasurement {
   //! Excitation power multiplying the dyes' light-driven rates (default 1).
   void set_power(double power);
   double get_power() const { return power_; }
+  //! Signal brightness: multiplies every channel's signal, not the
+  //! background (default 1; the parameter `<pair>.brightness`, fixed until
+  //! freed). For diffusing molecules it is the mean focus brightness a burst
+  //! photon's molecule has, relative to the rates at the focus centre; unlike
+  //! the per-channel gains it leaves the channels' ratio, hence the distance,
+  //! alone.
+  void set_brightness(double brightness);
+  double get_brightness() const { return brightness_; }
 
   //! Discrete map: conformer `state` at `mean`, with `offsets`/`weights`
   //! around it (empty: a single distance).
@@ -353,8 +398,9 @@ class IMPBFFEXPORT FRETMeasurement {
   //! included, row-major `C x n`: the distance distribution of each hidden
   //! state is integrated as a mixture over its quadrature.
   std::vector<double> get_detection_rates(const FRETHiddenProcess& process) const;
-  //! The photon factor `sum_j w_j lambda_c(r_j) f_c(t | r_j) + beta_c b_c(t)`
-  //! per channel, microtime bin and joint state, `C x n_bins x n`: expected
+  //! The photon factor `b sum_j w_j lambda_c(r_j) f_c(t | r_j) + beta_c b_c(t)`
+  //! (b the brightness) per channel, photon microtime bin and joint state,
+  //! `C x get_n_photon_bins() x n` (fine bins summed per microtime group): expected
   //! photons per macrotime unit in that channel and bin (the mixture over
   //! the distance distribution, not a product of averages). Summed over the
   //! bins it is get_detection_rates().
@@ -379,7 +425,7 @@ class IMPBFFEXPORT FRETMeasurement {
   std::string name_;
   FRETDye donor_, acceptor_;
   FRETInstrument instrument_;
-  double r0_ = 52.0, tau0_ = -1.0, power_ = 1.0;
+  double r0_ = 52.0, tau0_ = -1.0, power_ = 1.0, brightness_ = 1.0;
   // discrete map
   std::vector<double> means_;
   std::vector<std::vector<double> > offsets_, weights_;

@@ -64,6 +64,9 @@ std::vector<double> FRETHiddenProcess::get_coordinates() const {
 
 void FRETHiddenProcess::set_rate(int source, int target, double rate) {
   if (landscape_) IMP_THROW("set_rate: a landscape has no explicit rates", IMP::ValueException);
+  if (reversible_)
+    IMP_THROW("set_rate: a reversible process takes set_population and set_flux",
+              IMP::ValueException);
   if (source < 0 || target < 0 || source >= n_ || target >= n_ || source == target)
     IMP_THROW("set_rate: bad states " << source << " -> " << target, IMP::ValueException);
   if (!(rate >= 0.0)) IMP_THROW("set_rate: rate must be >= 0", IMP::ValueException);
@@ -82,6 +85,85 @@ void FRETHiddenProcess::rebuild_rate_index() {
     for (int t = 0; t < n_; ++t)
       if (s != t && rates_[static_cast<std::size_t>(t) * n_ + s] > 0.0)
         rate_index_.push_back(std::make_pair(s, t));
+}
+
+void FRETHiddenProcess::set_reversible(bool reversible) {
+  if (landscape_)
+    IMP_THROW("set_reversible: a landscape is reversible already", IMP::ValueException);
+  if (reversible == reversible_) return;
+  if (!reversible) {
+    reversible_ = false;
+    weights_.clear();
+    flux_.clear();
+    edges_.clear();
+    return;  // rates_ already hold the chain's rates
+  }
+  const std::vector<double> pi = get_stationary();
+  std::vector<double> flux;
+  std::vector<std::pair<int, int> > edges;
+  for (int i = 0; i < n_; ++i)
+    for (int j = i + 1; j < n_; ++j) {
+      const double kij = get_rate(i, j), kji = get_rate(j, i);
+      if (kij == 0.0 && kji == 0.0) continue;
+      if (!(kij > 0.0 && kji > 0.0))
+        IMP_THROW("set_reversible: " << i << " <-> " << j
+                                     << " has a rate in one direction only",
+                  IMP::ValueException);
+      edges.push_back(std::make_pair(i, j));
+      flux.push_back(0.5 * (pi[i] * kij + pi[j] * kji));
+    }
+  for (double p : pi)
+    if (!(p > 0.0))
+      IMP_THROW("set_reversible: every conformer needs a positive stationary population",
+                IMP::ValueException);
+  reversible_ = true;
+  weights_ = pi;
+  edges_ = edges;
+  flux_ = flux;
+  sync_rates();
+}
+
+void FRETHiddenProcess::set_population(int k, double weight) {
+  if (!reversible_) IMP_THROW("set_population: call set_reversible first", IMP::ValueException);
+  if (k < 0 || k >= n_ || !(weight > 0.0))
+    IMP_THROW("set_population: conformer " << k << ", weight > 0", IMP::ValueException);
+  weights_[k] = weight;
+  sync_rates();
+}
+
+void FRETHiddenProcess::set_flux(int i, int j, double flux) {
+  if (!reversible_) IMP_THROW("set_flux: call set_reversible first", IMP::ValueException);
+  if (i > j) std::swap(i, j);
+  if (i < 0 || j >= n_ || i == j || !(flux > 0.0))
+    IMP_THROW("set_flux: bad pair " << i << " <-> " << j << " or flux <= 0", IMP::ValueException);
+  for (std::size_t e = 0; e < edges_.size(); ++e)
+    if (edges_[e].first == i && edges_[e].second == j) {
+      flux_[e] = flux;
+      sync_rates();
+      return;
+    }
+  edges_.push_back(std::make_pair(i, j));
+  flux_.push_back(flux);
+  sync_rates();
+}
+
+double FRETHiddenProcess::get_flux(int i, int j) const {
+  if (i > j) std::swap(i, j);
+  for (std::size_t e = 0; e < edges_.size(); ++e)
+    if (edges_[e].first == i && edges_[e].second == j) return flux_[e];
+  return 0.0;
+}
+
+void FRETHiddenProcess::sync_rates() {
+  double total = 0.0;
+  for (double w : weights_) total += w;
+  std::fill(rates_.begin(), rates_.end(), 0.0);
+  for (std::size_t e = 0; e < edges_.size(); ++e) {
+    const int i = edges_[e].first, j = edges_[e].second;
+    rates_[static_cast<std::size_t>(j) * n_ + i] = flux_[e] * total / weights_[i];
+    rates_[static_cast<std::size_t>(i) * n_ + j] = flux_[e] * total / weights_[j];
+  }
+  rebuild_rate_index();
 }
 
 void FRETHiddenProcess::set_landscape(const std::vector<double>& knot_heights) {
@@ -121,6 +203,13 @@ std::vector<double> FRETHiddenProcess::get_generator() const {
 
 std::vector<double> FRETHiddenProcess::get_stationary() const {
   if (landscape_) return sqra_stationary_distribution(get_landscape());
+  if (reversible_) {
+    std::vector<double> p(weights_);
+    double total = 0.0;
+    for (double w : p) total += w;
+    for (double& w : p) w /= total;
+    return p;
+  }
   return fret_network_detail::stationary_of(get_generator());
 }
 
@@ -129,6 +218,10 @@ std::vector<std::string> FRETHiddenProcess::get_parameter_names() const {
   if (landscape_) {
     for (int k = 0; k < n_knots_; ++k) n.push_back("hidden.mu[" + std::to_string(k) + "]");
     n.push_back("hidden.D");
+  } else if (reversible_) {
+    for (int k = 0; k < n_; ++k) n.push_back("hidden.population[" + std::to_string(k) + "]");
+    for (const auto& e : edges_)
+      n.push_back("hidden.flux[" + std::to_string(e.first) + "-" + std::to_string(e.second) + "]");
   } else {
     for (const auto& p : rate_index_)
       n.push_back("hidden.rate[" + std::to_string(p.first) + "->" + std::to_string(p.second) + "]");
@@ -141,6 +234,9 @@ std::vector<double> FRETHiddenProcess::get_parameter_values() const {
   if (landscape_) {
     v = mu_;
     v.push_back(diffusion_);
+  } else if (reversible_) {
+    v = weights_;
+    v.insert(v.end(), flux_.begin(), flux_.end());
   } else {
     for (const auto& p : rate_index_)
       v.push_back(rates_[static_cast<std::size_t>(p.second) * n_ + p.first]);
@@ -154,6 +250,10 @@ void FRETHiddenProcess::set_parameter_values(const std::vector<double>& v) {
   if (landscape_) {
     std::copy(v.begin(), v.begin() + n_knots_, mu_.begin());
     diffusion_ = v[n_knots_];
+  } else if (reversible_) {
+    std::copy(v.begin(), v.begin() + n_, weights_.begin());
+    std::copy(v.begin() + n_, v.end(), flux_.begin());
+    sync_rates();
   } else {
     for (std::size_t i = 0; i < rate_index_.size(); ++i)
       rates_[static_cast<std::size_t>(rate_index_[i].second) * n_ + rate_index_[i].first] = v[i];
@@ -165,6 +265,8 @@ std::vector<int> FRETHiddenProcess::get_parameter_transforms() const {
   if (landscape_) {
     t.assign(n_knots_, FRET_TRANSFORM_IDENTITY);
     t.push_back(FRET_TRANSFORM_LOG);
+  } else if (reversible_) {
+    t.assign(weights_.size() + flux_.size(), FRET_TRANSFORM_LOG);
   } else {
     t.assign(rate_index_.size(), FRET_TRANSFORM_LOG);
   }
@@ -385,6 +487,11 @@ void FRETMeasurement::set_power(double power) {
   power_ = power;
 }
 
+void FRETMeasurement::set_brightness(double brightness) {
+  if (!(brightness > 0.0)) IMP_THROW("set_brightness: must be > 0", IMP::ValueException);
+  brightness_ = brightness;
+}
+
 void FRETMeasurement::set_state_distance(int state, double mean,
                                          const std::vector<double>& offsets,
                                          const std::vector<double>& weights) {
@@ -562,6 +669,7 @@ std::vector<std::string> FRETMeasurement::get_parameter_names(
   }
   n.push_back(p + "forster_radius");
   n.push_back(p + "reference_lifetime");
+  n.push_back(p + "brightness");
   for (const std::string& s : donor_.get_parameter_names()) n.push_back(p + s);
   for (const std::string& s : acceptor_.get_parameter_names()) n.push_back(p + s);
   for (const std::string& s : instrument_.get_parameter_names()) n.push_back(p + s);
@@ -580,6 +688,7 @@ std::vector<double> FRETMeasurement::get_parameter_values(
   }
   v.push_back(r0_);
   v.push_back(get_reference_lifetime());
+  v.push_back(brightness_);
   for (double x : donor_.get_parameter_values()) v.push_back(x);
   for (double x : acceptor_.get_parameter_values()) v.push_back(x);
   for (double x : instrument_.get_parameter_values()) v.push_back(x);
@@ -600,6 +709,7 @@ void FRETMeasurement::set_parameter_values(const FRETHiddenProcess& process,
   }
   r0_ = v[j++];
   tau0_ = v[j++];
+  brightness_ = v[j++];
   const std::size_t nd = donor_.get_parameter_names().size();
   donor_.set_parameter_values(std::vector<double>(v.begin() + j, v.begin() + j + nd));
   j += nd;
@@ -621,6 +731,7 @@ std::vector<int> FRETMeasurement::get_parameter_transforms(
   }
   t.push_back(FRET_TRANSFORM_LOG);
   t.push_back(FRET_TRANSFORM_LOG);
+  t.push_back(FRET_TRANSFORM_LOG);
   for (int x : donor_.get_parameter_transforms()) t.push_back(x);
   for (int x : acceptor_.get_parameter_transforms()) t.push_back(x);
   t.insert(t.end(), instrument_.get_parameter_values().size(), FRET_TRANSFORM_LOG);
@@ -631,6 +742,7 @@ std::vector<int> FRETMeasurement::get_parameter_kinds(const FRETHiddenProcess& p
   check_process(process);
   std::vector<int> k(process.get_is_landscape() ? map_.size() + 1 : means_.size(),
                      FRET_PARAMETER_EMISSION);
+  k.push_back(FRET_PARAMETER_EMISSION);
   k.push_back(FRET_PARAMETER_EMISSION);
   k.push_back(FRET_PARAMETER_EMISSION);
   for (int x : donor_.get_parameter_kinds()) k.push_back(x);

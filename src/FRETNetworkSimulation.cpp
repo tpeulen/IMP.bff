@@ -45,7 +45,7 @@ Simulated simulate(const FRETHiddenProcess& process, const FRETMeasurement& m,
   const FRETInstrument& ins = m.get_instrument();
   const int n = m.get_n_states(process);
   const int C = ins.get_n_channels();
-  const int nb = std::max(ins.get_n_bins(), 1);
+  const int nb = std::max(ins.get_n_photon_bins(), 1);
   const std::vector<double> K = m.get_generator(process);  // K[target, source]
   const std::vector<double> lambda = m.get_detection_rates(process);  // C x n
   const std::vector<double> emission = m.get_emission(process);  // C x nb x n
@@ -56,7 +56,7 @@ Simulated simulate(const FRETHiddenProcess& process, const FRETMeasurement& m,
   std::vector<std::vector<double> > bg_density(C);
   for (int c = 0; c < C; ++c) {
     background[c] = ins.get_background(c);
-    bg_density[c] = ins.get_background_density(c);
+    bg_density[c] = ins.group_bins(ins.get_background_density(c));
     for (int s = 0; s < n; ++s)
       signal[c * n + s] = std::max(lambda[c * n + s] - background[c], 0.0);
   }

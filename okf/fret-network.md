@@ -30,7 +30,12 @@ All C++ (`include/FRETNetwork.h`, `include/FRETNetworkSimulation.h`,
    from 30 % of the centre brightness. With it, D = 1.70 ± 0.54 and 100 % of
    the landscape is within 2σ, but the bands are wide. The evidence is in the
    local prototype `prototypes/fret_network_landscape/` (`log.md`, scripts
-   01–04, PyTorch). The fix is the next item.
+   01–04, PyTorch). Since 2026-10-10 that scale is `<pair>.brightness`
+   (`FRETMeasurement::set_brightness`, log scale, fixed until freed): it
+   multiplies the signal of every channel, not the background. Unlike the
+   per-channel gains, it leaves the channels' ratio, and so the distance,
+   alone. The principled fix, a brightness that varies within a burst, is
+   the next item.
 3. **A presence/focus factor is planned, not built.** It is a hidden factor
    (absent / in focus, optionally 0/1/2 molecules), under which only background
    emits. It lets the whole photon stream be one segment: no burst search and
@@ -48,8 +53,16 @@ All C++ (`include/FRETNetwork.h`, `include/FRETNetworkSimulation.h`,
    transition-region distances, which a weak prior lets wander.
    *Trap:* build the MSM at a lag where its implied timescales have converged.
    At a short lag a coarse MSM underestimates the relaxation (0.042 at 0.05 ms,
-   exact 0.075). The C++ `FRETHiddenProcess` would need the population/flux
-   parametrisation and these priors to take it.
+   exact 0.075). Since 2026-10-10 the C++ takes it:
+   - `FRETHiddenProcess::set_reversible(true)` converts a discrete chain to
+     parameters `population[k]` (log w, π = w/Σw) and `flux[i-j]` (log s,
+     `k_ij = s_ij/π_i`), reversible by construction;
+   - Gaussian priors on those parameters (`set_parameter_prior`) are the MSM
+     prior;
+   - the per-microstate distance spreads go in as `set_state_distance`
+     offsets and weights.
+
+   The populations keep one scale gauge, which the prior fixes.
 5. **Position-parameterised structure prior.** Today each pair's distance map
    has an independent Gaussian prior from structure
    (`set_map_prior_from_path`, per-state `set_parameter_prior`). The planned
@@ -64,6 +77,21 @@ All C++ (`include/FRETNetwork.h`, `include/FRETNetworkSimulation.h`,
 7. **Burst-selection bias is documented, not corrected.** Segments start from
    the detection-weighted distribution; the threshold's preference for bright
    states is not modelled.
+
+8. **The torch prototype runs on the C++ (2026-10-10).**
+   `prototypes/fret_network_landscape/bff_cpp.py` builds every torch model as
+   a `FRETNetworkModel`. Its script 09 checks the log-likelihood, the gradient
+   and (MSM) the prior against torch on 300 k photons: |ΔlogL| ≤ 0.2 of
+   1.39 M (torch interpolates the emission table in r), and the prior agrees
+   exactly. Three additions made the map one to one:
+   - the brightness (item 2);
+   - the reversible mode (item 4);
+   - **microtime groups**: `FRETInstrument::set_microtime_groups` computes
+     the emission on the fine bins and sums it into the coarse bins photons
+     report. For example, "which PIE pulse" alone, a microtimes-off ablation
+     that keeps PIE: `n_bins = 1` would drop the pulse too.
+
+   Tests: `test/landscape/test_fret_network_ports.py`.
 
 ## Choosing the pairs
 
