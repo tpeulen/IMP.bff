@@ -118,7 +118,13 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a463ccbbd124c9fdcd733e2a6267545de" id="r_a463ccbbd124c9fdcd733e2a6267545de"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="class_fit_objective.html">FitObjective</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fit_minimizer.html#a463ccbbd124c9fdcd733e2a6267545de">get_objective</a> () const</td></tr>
 <tr class="separator:a463ccbbd124c9fdcd733e2a6267545de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad4c7d531254fef86671b769fd749fe49" id="r_ad4c7d531254fef86671b769fd749fe49"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fit_minimizer.html#ad4c7d531254fef86671b769fd749fe49">has_objective</a> () const</td></tr>
+<tr class="memdesc:ad4c7d531254fef86671b769fd749fe49"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether there is something to minimise: an objective or a function.  <br /></td></tr>
 <tr class="separator:ad4c7d531254fef86671b769fd749fe49"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4c23950e67547c330734a15d73e51b4d" id="r_a4c23950e67547c330734a15d73e51b4d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fit_minimizer.html#a4c23950e67547c330734a15d73e51b4d">set_residual_function</a> (<a class="el" href="class_fit_residual_function.html">FitResidualFunction</a> *function)</td></tr>
+<tr class="memdesc:a4c23950e67547c330734a15d73e51b4d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Minimise a residual function instead of a graph objective.  <br /></td></tr>
+<tr class="separator:a4c23950e67547c330734a15d73e51b4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46450fff6882d8f5f6daa516f1e1c84d" id="r_a46450fff6882d8f5f6daa516f1e1c84d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_fit_residual_function.html">FitResidualFunction</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fit_minimizer.html#a46450fff6882d8f5f6daa516f1e1c84d">get_residual_function</a> () const</td></tr>
+<tr class="separator:a46450fff6882d8f5f6daa516f1e1c84d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6cc7b6dedc37f1533e46fdf73e0b7f32" id="r_a6cc7b6dedc37f1533e46fdf73e0b7f32"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fit_minimizer.html#a6cc7b6dedc37f1533e46fdf73e0b7f32">set_observer</a> (<a class="el" href="class_fit_minimizer_observer.html">FitMinimizerObserver</a> *observer)</td></tr>
 <tr class="memdesc:a6cc7b6dedc37f1533e46fdf73e0b7f32"><td class="mdescLeft">&#160;</td><td class="mdescRight">Where progress is reported and cancellation is asked for.  <br /></td></tr>
 <tr class="separator:a6cc7b6dedc37f1533e46fdf73e0b7f32"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -896,6 +902,23 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a46450fff6882d8f5f6daa516f1e1c84d" name="a46450fff6882d8f5f6daa516f1e1c84d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a46450fff6882d8f5f6daa516f1e1c84d">&#9670;&#160;</a></span>get_residual_function()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_fit_residual_function.html">FitResidualFunction</a> * FitMinimizer::get_residual_function </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a49abc060e3c2f5c0653b20a63cb0278e" name="a49abc060e3c2f5c0653b20a63cb0278e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a49abc060e3c2f5c0653b20a63cb0278e">&#9670;&#160;</a></span>get_residuals()</h2>
 
@@ -1001,6 +1024,8 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Whether there is something to minimise: an objective or a function. </p>
 
 </div>
 </div>
@@ -1302,6 +1327,27 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a4c23950e67547c330734a15d73e51b4d" name="a4c23950e67547c330734a15d73e51b4d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4c23950e67547c330734a15d73e51b4d">&#9670;&#160;</a></span>set_residual_function()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FitMinimizer::set_residual_function </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_fit_residual_function.html">FitResidualFunction</a> *&#160;</td>
+          <td class="paramname"><em>function</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Minimise a residual function instead of a graph objective. </p>
+<p>The scipy-shaped entry point: with a function there are no parameter ports, so the free vector is sized by <code><a class="el" href="class_fit_minimizer.html#aae30826b76db6abd5e93c99a49b9a3d9" title="The starting point. Defaults to the ports&#39; current values.">set_initial_values()</a></code> and bounded by <code><a class="el" href="class_fit_minimizer.html#aaed8b2451f3c322bd612572dc981c1d4" title="Bounds, overriding whatever the ports carry.">set_bounds()</a></code>. Setting a function drops any objective and ports, and setting an objective drops the function &ndash; the minimiser evaluates exactly one of them. </p>
+
+</div>
+</div>
 <a id="a024c24c7778c8a656c46a43884cfe3cc" name="a024c24c7778c8a656c46a43884cfe3cc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a024c24c7778c8a656c46a43884cfe3cc">&#9670;&#160;</a></span>set_xtol()</h2>
 
@@ -1328,7 +1374,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 10:01:35 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 9 2026 22:12:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

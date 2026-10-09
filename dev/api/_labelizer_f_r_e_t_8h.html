@@ -285,12 +285,12 @@ Functions</h2></td></tr>
 <p>The reference's analytic estimate of the dye's mean position. </p>
 <p>An "alpha cone": the dye mean is placed along the outward direction — from the centroid of the atoms near the site towards the Cbeta — at a distance that shrinks as the site becomes buried (<code>fret_score.py:326</code>):</p>
 <p class="formulaDsp">
-<picture><source srcset="form_168_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaDsp" alt="\[
+<picture><source srcset="form_186_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaDsp" alt="\[
     \mathrm{mean} = c_\beta + \left(\tfrac{3}{4} - \frac{d}{R}\right)
                     (\ell + \mathrm{off})\,\hat{n}
-\]" src="form_168.png"/></picture>
+\]" src="form_186.png"/></picture>
 </p>
-<p>where <picture><source srcset="form_42_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$d$" src="form_42.png"/></picture> is the distance from the Cbeta to the centroid of the atoms within <picture><source srcset="form_169_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R$" src="form_169.png"/></picture> of it, <picture><source srcset="form_170_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\ell$" src="form_170.png"/></picture> the linker length, and the offset, when not given, is <picture><source srcset="form_171_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$b + 0.54\ell - 0.0225\ell^2$" src="form_171.png"/></picture> with <picture><source srcset="form_172_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$b = \max(1.7,\, 2\min(r_i) - 1.7)$" src="form_172.png"/></picture> — an empirical fit of how far the linker actually reaches.</p>
+<p>where <picture><source srcset="form_60_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$d$" src="form_60.png"/></picture> is the distance from the Cbeta to the centroid of the atoms within <picture><source srcset="form_187_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R$" src="form_187.png"/></picture> of it, <picture><source srcset="form_188_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\ell$" src="form_188.png"/></picture> the linker length, and the offset, when not given, is <picture><source srcset="form_189_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$b + 0.54\ell - 0.0225\ell^2$" src="form_189.png"/></picture> with <picture><source srcset="form_190_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$b = \max(1.7,\, 2\min(r_i) - 1.7)$" src="form_190.png"/></picture> — an empirical fit of how far the linker actually reaches.</p>
 <p>It costs one neighbour search where an accessible volume costs a grid search, which is what makes screening every pair of a protein affordable.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -506,7 +506,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The pair score of two conformations: best when the efficiency changes most. </p>
-<p><picture><source srcset="form_166_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$jls \cdot |E(d_1) - E(d_2)|$" src="form_166.png"/></picture> (<code>fret_score.py:225</code>). </p>
+<p><picture><source srcset="form_184_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$jls \cdot |E(d_1) - E(d_2)|$" src="form_184.png"/></picture> (<code>fret_score.py:225</code>). </p>
 
 </div>
 </div>
@@ -549,7 +549,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The negative-control pair score: a pair that should <em>not</em> change. </p>
-<p><picture><source srcset="form_167_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$jls \cdot (1 - |1 - (E_1 + E_2)|) \cdot \max(0, 1 - 20|E_1 - E_2|)$" src="form_167.png"/></picture> (<code>fret_score.py:243</code>) — rewarding a mid-range mean efficiency and punishing any change in it. The reference computes this and then discards it, the line that would have stored it being commented out at <code>fret_score.py:528</code>; it is exposed here because a control pair is a real experimental need and the formula was already written. </p>
+<p><picture><source srcset="form_185_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$jls \cdot (1 - |1 - (E_1 + E_2)|) \cdot \max(0, 1 - 20|E_1 - E_2|)$" src="form_185.png"/></picture> (<code>fret_score.py:243</code>) — rewarding a mid-range mean efficiency and punishing any change in it. The reference computes this and then discards it, the line that would have stored it being commented out at <code>fret_score.py:528</code>; it is exposed here because a control pair is a real experimental need and the formula was already written. </p>
 
 </div>
 </div>
@@ -586,7 +586,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The pair score of one conformation: best when the efficiency is one half. </p>
-<p><picture><source srcset="form_164_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$jls \cdot (1 - 2|E - 0.5|)$" src="form_164.png"/></picture> (<code>fret_score.py:263</code>). A pair is most informative where the transfer efficiency responds most steeply to the distance, which is at <picture><source srcset="form_165_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R \approx R_0$" src="form_165.png"/></picture>. </p>
+<p><picture><source srcset="form_182_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$jls \cdot (1 - 2|E - 0.5|)$" src="form_182.png"/></picture> (<code>fret_score.py:263</code>). A pair is most informative where the transfer efficiency responds most steeply to the distance, which is at <picture><source srcset="form_183_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R \approx R_0$" src="form_183.png"/></picture>. </p>
 
 </div>
 </div>
@@ -735,7 +735,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 10:01:35 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 9 2026 22:12:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

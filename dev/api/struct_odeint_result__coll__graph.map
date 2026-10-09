@@ -1,0 +1,11 @@
+<map id="OdeintResult" name="OdeintResult">
+<area shape="rect" id="Node000001" title="What odeint() returns: the solution and scipy&#39;s full&#45;output infodict." alt="" coords="173,321,281,507"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,135,163,200"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,199,167,305,162,308,100,201"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="187,135,266,200"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="229,200,229,305,224,305,224,200"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="161,5,292,85"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="229,99,229,134,224,134,224,99"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="291,135,421,200"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="349,201,332,248,309,299,292,327,288,325,304,296,327,246,344,199"/>
+</map>

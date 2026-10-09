@@ -86,11 +86,11 @@ Collaboration diagram for LabelizerOptions:</div>
 <div class="dyncontent">
 <div class="center"><img src="struct_labelizer_options__coll__graph.png" border="0" usemap="#a_labelizer_options_coll__map" alt="Collaboration graph"/></div>
 <map name="a_labelizer_options_coll__map" id="a_labelizer_options_coll__map">
-<area shape="rect" title="What the scoring run may be told, beyond the model itself." alt="" coords="5,263,163,428"/>
-<area shape="rect" title=" " alt="" coords="45,135,123,200"/>
-<area shape="poly" title=" " alt="" coords="87,200,87,246,81,246,81,200"/>
-<area shape="rect" title=" " alt="" coords="19,5,149,85"/>
-<area shape="poly" title=" " alt="" coords="87,99,87,134,81,134,81,99"/>
+<area shape="rect" title="What the scoring run may be told, beyond the model itself." alt="" coords="5,263,175,448"/>
+<area shape="rect" title=" " alt="" coords="51,135,129,200"/>
+<area shape="poly" title=" " alt="" coords="93,200,93,246,87,246,87,200"/>
+<area shape="rect" title=" " alt="" coords="25,5,155,85"/>
+<area shape="poly" title=" " alt="" coords="93,99,93,134,87,134,87,99"/>
 </map>
 </div>
 <table class="memberdecls">
@@ -121,6 +121,8 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a4a3c3cbe431821f150b7176a57439906" id="r_a4a3c3cbe431821f150b7176a57439906"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_labelizer_options.html#a4a3c3cbe431821f150b7176a57439906">hse_radius</a></td></tr>
 <tr class="memdesc:a4a3c3cbe431821f150b7176a57439906"><td class="mdescLeft">&#160;</td><td class="mdescRight">Half-sphere radius the tryptophan and charge terms weight exposure by.  <br /></td></tr>
 <tr class="separator:a4a3c3cbe431821f150b7176a57439906"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e4f1e0b9095d98304caa90fc856905b" id="r_a3e4f1e0b9095d98304caa90fc856905b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_labelizer_options.html#a3e4f1e0b9095d98304caa90fc856905b">bfactor_is_confidence</a></td></tr>
+<tr class="separator:a3e4f1e0b9095d98304caa90fc856905b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>What the scoring run may be told, beyond the model itself. </p>
@@ -151,6 +153,21 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="a3e4f1e0b9095d98304caa90fc856905b" name="a3e4f1e0b9095d98304caa90fc856905b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3e4f1e0b9095d98304caa90fc856905b">&#9670;&#160;</a></span>bfactor_is_confidence</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool LabelizerOptions::bfactor_is_confidence</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The structure is a predicted model whose B-factor column holds a per-residue confidence (AlphaFold's pLDDT): <a class="el" href="_labelizer_score_8h.html#a3dd85deae0f5fd97defead7dfd2ef743" title="Score a structure end to end: features, parameters, and the combination.">labelizer_score_structure</a> then adds a <code>model_confidence</code> row per residue (the C-alpha's value). It never enters the combined label score; the network design reads it (<a class="el" href="_labelizer_score_8h.html#a286ac86425f101fc9afa991db110b8b6">labelizer_confidence_by_key</a>, #IMP::bff::probe_pair_confidence_costs, #IMP::bff::ElasticNetworkModes). Off for crystal structures, whose B-factor means something else. </p>
+
+</div>
+</div>
 <a id="ac83daa60626babdebc5eab961f86bd9a" name="ac83daa60626babdebc5eab961f86bd9a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac83daa60626babdebc5eab961f86bd9a">&#9670;&#160;</a></span>exclusion_distance</h2>
 
@@ -268,7 +285,7 @@ Public Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 10:01:36 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 9 2026 22:12:28 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

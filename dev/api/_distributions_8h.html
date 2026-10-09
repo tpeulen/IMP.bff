@@ -216,7 +216,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Distance distribution between two isotropic 3-D Gaussians. </p>
-<p>For a non-zero separation <picture><source srcset="form_42_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$d$" src="form_42.png"/></picture> this is <picture><source srcset="form_43_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$p(r) = (r/d)\,[\,N(r; d, \sigma) - N(r; -d, \sigma)\,]$" src="form_43.png"/></picture>; at <picture><source srcset="form_44_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$d = 0$" src="form_44.png"/></picture> it degenerates to the Maxwell form <picture><source srcset="form_45_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$2 r^2/\sigma^2 \cdot N(r; 0, \sigma)$" src="form_45.png"/></picture>, which the separate branch below exists to avoid dividing by.</p>
+<p>For a non-zero separation <picture><source srcset="form_60_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$d$" src="form_60.png"/></picture> this is <picture><source srcset="form_61_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$p(r) = (r/d)\,[\,N(r; d, \sigma) - N(r; -d, \sigma)\,]$" src="form_61.png"/></picture>; at <picture><source srcset="form_62_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$d = 0$" src="form_62.png"/></picture> it degenerates to the Maxwell form <picture><source srcset="form_63_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$2 r^2/\sigma^2 \cdot N(r; 0, \sigma)$" src="form_63.png"/></picture>, which the separate branch below exists to avoid dividing by.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">distances</td><td>the distance axis </td></tr>
@@ -534,7 +534,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Generalized normal density with a <b>skew</b> parameter. </p>
-<p>Not the exponential-power family: the shape parameter skews by transforming the axis, <picture><source srcset="form_40_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$z = -\log(1 - \kappa (x - \mu)/\sigma)/\kappa$" src="form_40.png"/></picture>, and the standard normal density is evaluated at <picture><source srcset="form_41_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$z$" src="form_41.png"/></picture>. <code>shape = 0</code> is the untransformed normal; positive skews left, negative right. Points where the transform argument would go non-positive are clamped to the smallest representable step rather than producing a NaN.</p>
+<p>Not the exponential-power family: the shape parameter skews by transforming the axis, <picture><source srcset="form_58_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$z = -\log(1 - \kappa (x - \mu)/\sigma)/\kappa$" src="form_58.png"/></picture>, and the standard normal density is evaluated at <picture><source srcset="form_59_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$z$" src="form_59.png"/></picture>. <code>shape = 0</code> is the untransformed normal; positive skews left, negative right. Points where the transform argument would go non-positive are clamped to the smallest representable step rather than producing a NaN.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">x</td><td>the axis </td></tr>
@@ -739,7 +739,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Poisson probabilities for k = 0 .. n-1. </p>
-<p>Uses the recursion <picture><source srcset="form_39_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$p_0 = e^{-\lambda},\; p_k = p_{k-1}\lambda/k$" src="form_39.png"/></picture> rather than evaluating a factorial, which overflows well before the probabilities become negligible.</p>
+<p>Uses the recursion <picture><source srcset="form_57_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$p_0 = e^{-\lambda},\; p_k = p_{k-1}\lambda/k$" src="form_57.png"/></picture> rather than evaluating a factorial, which overflows well before the probabilities become negligible.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">lam</td><td>rate parameter </td></tr>
@@ -754,7 +754,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 10:01:35 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 9 2026 22:12:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

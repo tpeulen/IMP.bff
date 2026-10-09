@@ -85,7 +85,7 @@ Collaboration diagram for ElasticNetworkModes:</div>
 <div class="dyncontent">
 <div class="center"><img src="class_elastic_network_modes__coll__graph.png" border="0" usemap="#a_elastic_network_modes_coll__map" alt="Collaboration graph"/></div>
 <map name="a_elastic_network_modes_coll__map" id="a_elastic_network_modes_coll__map">
-<area shape="rect" title="The normal modes of an anisotropic elastic network." alt="" coords="5,5,199,271"/>
+<area shape="rect" title="The normal modes of an anisotropic elastic network." alt="" coords="5,5,199,365"/>
 </map>
 </div>
 <table class="memberdecls">
@@ -95,8 +95,17 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a5c3cce65177ad5df3b03f4b6e304e3a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6b073968529b3217f83597519591c86d" id="r_a6b073968529b3217f83597519591c86d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_elastic_network_modes.html#a6b073968529b3217f83597519591c86d">ElasticNetworkModes</a> (double *<a class="el" href="class_elastic_network_modes.html#abe90549cfef3e5ed441c5976441020a0">coordinates</a>, int n_points, int n_dim, double cutoff=15.0)</td></tr>
 <tr class="separator:a6b073968529b3217f83597519591c86d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00f59527616a65aec17a9d1507d9d992" id="r_a00f59527616a65aec17a9d1507d9d992"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_elastic_network_modes.html#a00f59527616a65aec17a9d1507d9d992">ElasticNetworkModes</a> (double *<a class="el" href="class_elastic_network_modes.html#abe90549cfef3e5ed441c5976441020a0">coordinates</a>, int n_points, int n_dim, double *confidence, int n_confidence, double min_confidence=70.0, double cutoff=15.0)</td></tr>
+<tr class="separator:a00f59527616a65aec17a9d1507d9d992"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a46936f7cc78eda70e17858fb1bb2d864" id="r_a46936f7cc78eda70e17858fb1bb2d864"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_elastic_network_modes.html#a46936f7cc78eda70e17858fb1bb2d864">get_number_of_points</a> () const</td></tr>
+<tr class="memdesc:a46936f7cc78eda70e17858fb1bb2d864"><td class="mdescLeft">&#160;</td><td class="mdescRight">All points given, including any left out of the network.  <br /></td></tr>
 <tr class="separator:a46936f7cc78eda70e17858fb1bb2d864"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeec66347b58b8873b5aaccea63d5f96a" id="r_aeec66347b58b8873b5aaccea63d5f96a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_elastic_network_modes.html#aeec66347b58b8873b5aaccea63d5f96a">get_is_in_network</a> (int i) const</td></tr>
+<tr class="memdesc:aeec66347b58b8873b5aaccea63d5f96a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether point <code>i</code> is part of the network.  <br /></td></tr>
+<tr class="separator:aeec66347b58b8873b5aaccea63d5f96a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8057401b2ae5c7882e989fbc1ae37880" id="r_a8057401b2ae5c7882e989fbc1ae37880"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_elastic_network_modes.html#a8057401b2ae5c7882e989fbc1ae37880">get_number_of_network_points</a> () const</td></tr>
+<tr class="memdesc:a8057401b2ae5c7882e989fbc1ae37880"><td class="mdescLeft">&#160;</td><td class="mdescRight">The points in the network.  <br /></td></tr>
+<tr class="separator:a8057401b2ae5c7882e989fbc1ae37880"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae9267512432a1bc207b3854feabca0b" id="r_aae9267512432a1bc207b3854feabca0b"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_elastic_network_modes.html#aae9267512432a1bc207b3854feabca0b">get_cutoff</a> () const</td></tr>
 <tr class="separator:aae9267512432a1bc207b3854feabca0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0835ad71ff558cd57ee457724280aefb" id="r_a0835ad71ff558cd57ee457724280aefb"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_elastic_network_modes.html#a0835ad71ff558cd57ee457724280aefb">get_number_of_modes</a> () const</td></tr>
@@ -106,7 +115,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:aad33d7ca82718c57b7400a3a7156b49b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Their eigenvalues, ascending.  <br /></td></tr>
 <tr class="separator:aad33d7ca82718c57b7400a3a7156b49b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0fb9c71e582b2f8e970c175a56473d4a" id="r_a0fb9c71e582b2f8e970c175a56473d4a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_elastic_network_modes.html#a0fb9c71e582b2f8e970c175a56473d4a">get_mode</a> (int k, double **out_matrix, int *n_out_rows, int *n_out_cols) const</td></tr>
-<tr class="memdesc:a0fb9c71e582b2f8e970c175a56473d4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mode <code>k</code> as displacements, <code>n x 3</code> (unit norm over all points).  <br /></td></tr>
+<tr class="memdesc:a0fb9c71e582b2f8e970c175a56473d4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mode <code>k</code> as displacements of the network's points, <code>n x 3</code> (unit norm).  <br /></td></tr>
 <tr class="separator:a0fb9c71e582b2f8e970c175a56473d4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5b300a7f40a9a7a53f12815511d5164f" id="r_a5b300a7f40a9a7a53f12815511d5164f"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; double &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_elastic_network_modes.html#a5b300a7f40a9a7a53f12815511d5164f">eigenvalues</a> () const</td></tr>
 <tr class="separator:a5b300a7f40a9a7a53f12815511d5164f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -115,6 +124,9 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ae83faea331652f2111d58dbb17b14573"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abe90549cfef3e5ed441c5976441020a0" id="r_abe90549cfef3e5ed441c5976441020a0"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; double &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_elastic_network_modes.html#abe90549cfef3e5ed441c5976441020a0">coordinates</a> () const</td></tr>
 <tr class="separator:abe90549cfef3e5ed441c5976441020a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a23aa7c931af9ff507fbb10c08d865ac5" id="r_a23aa7c931af9ff507fbb10c08d865ac5"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_elastic_network_modes.html#a23aa7c931af9ff507fbb10c08d865ac5">network_index</a> (int i) const</td></tr>
+<tr class="memdesc:a23aa7c931af9ff507fbb10c08d865ac5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index of point <code>i</code> in the network, -1 when left out.  <br /></td></tr>
+<tr class="separator:a23aa7c931af9ff507fbb10c08d865ac5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a04cf64215ad15acad091577cf99b252a" id="r_a04cf64215ad15acad091577cf99b252a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_elastic_network_modes.html#a04cf64215ad15acad091577cf99b252a">IMP_SHOWABLE_INLINE</a> (<a class="el" href="class_elastic_network_modes.html">ElasticNetworkModes</a>, out&lt;&lt; &quot;ElasticNetworkModes(&quot;&lt;&lt; n_&lt;&lt; &quot; points, &quot;&lt;&lt; get_number_of_modes()&lt;&lt; &quot; modes)&quot;)</td></tr>
 <tr class="separator:a04cf64215ad15acad091577cf99b252a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -122,7 +134,7 @@ Public Member Functions</h2></td></tr>
 <div class="textblock"><p>The normal modes of an anisotropic elastic network. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a5c3cce65177ad5df3b03f4b6e304e3a5" name="a5c3cce65177ad5df3b03f4b6e304e3a5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5c3cce65177ad5df3b03f4b6e304e3a5">&#9670;&#160;</a></span>ElasticNetworkModes() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a5c3cce65177ad5df3b03f4b6e304e3a5">&#9670;&#160;</a></span>ElasticNetworkModes() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -147,7 +159,7 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a id="a6b073968529b3217f83597519591c86d" name="a6b073968529b3217f83597519591c86d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6b073968529b3217f83597519591c86d">&#9670;&#160;</a></span>ElasticNetworkModes() <span class="overload">[2/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a6b073968529b3217f83597519591c86d">&#9670;&#160;</a></span>ElasticNetworkModes() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -190,6 +202,65 @@ Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="a00f59527616a65aec17a9d1507d9d992" name="a00f59527616a65aec17a9d1507d9d992"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a00f59527616a65aec17a9d1507d9d992">&#9670;&#160;</a></span>ElasticNetworkModes() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ElasticNetworkModes::ElasticNetworkModes </td>
+          <td>(</td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>coordinates</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_points</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_dim</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>confidence</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_confidence</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>min_confidence</em> = <code>70.0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>cutoff</em> = <code>15.0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The same, leaving out every point whose <code>confidence</code> is below <code>min_confidence:</code> e.g. AlphaFold's pLDDT (the B-factor column of its models) with 70. Disordered tails and signal peptides otherwise take the softest modes; on the AlphaFold models of seven open/closed proteins, leaving out pLDDT &lt; 70 raised the top-20 precision for pairs changing by &gt; 5 A from 0.49 to 0.74 (AUC 0.795 -&gt; 0.820), while pLDDT-weighted springs did not help. Pairs with a left-out point are NaN in <a class="el" href="_elastic_network_8h.html#a1e38adf1e74068227b02ce647f49c2d9" title="Distance fluctuation of each pair in the n_modes softest modes.">get_pair_distance_fluctuations</a> / <a class="el" href="_elastic_network_8h.html#a923951d12086efa1b21d33684a6caf9c">get_pair_change_probabilities</a>. </p>
 
 </div>
 </div>
@@ -296,6 +367,34 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="aeec66347b58b8873b5aaccea63d5f96a" name="aeec66347b58b8873b5aaccea63d5f96a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeec66347b58b8873b5aaccea63d5f96a">&#9670;&#160;</a></span>get_is_in_network()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ElasticNetworkModes::get_is_in_network </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>i</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Whether point <code>i</code> is part of the network. </p>
+
+</div>
+</div>
 <a id="a0fb9c71e582b2f8e970c175a56473d4a" name="a0fb9c71e582b2f8e970c175a56473d4a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0fb9c71e582b2f8e970c175a56473d4a">&#9670;&#160;</a></span>get_mode()</h2>
 
@@ -334,7 +433,7 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Mode <code>k</code> as displacements, <code>n x 3</code> (unit norm over all points). </p>
+<p>Mode <code>k</code> as displacements of the network's points, <code>n x 3</code> (unit norm). </p>
 
 </div>
 </div>
@@ -365,6 +464,33 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a8057401b2ae5c7882e989fbc1ae37880" name="a8057401b2ae5c7882e989fbc1ae37880"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8057401b2ae5c7882e989fbc1ae37880">&#9670;&#160;</a></span>get_number_of_network_points()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int ElasticNetworkModes::get_number_of_network_points </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The points in the network. </p>
+
+</div>
+</div>
 <a id="a46936f7cc78eda70e17858fb1bb2d864" name="a46936f7cc78eda70e17858fb1bb2d864"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a46936f7cc78eda70e17858fb1bb2d864">&#9670;&#160;</a></span>get_number_of_points()</h2>
 
@@ -387,6 +513,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>All points given, including any left out of the network. </p>
 
 </div>
 </div>
@@ -446,13 +574,41 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a23aa7c931af9ff507fbb10c08d865ac5" name="a23aa7c931af9ff507fbb10c08d865ac5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a23aa7c931af9ff507fbb10c08d865ac5">&#9670;&#160;</a></span>network_index()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int ElasticNetworkModes::network_index </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>i</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Index of point <code>i</code> in the network, -1 when left out. </p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>/home/runner/work/IMP.bff/IMP.bff/include/<a class="el" href="_elastic_network_8h_source.html">ElasticNetwork.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 10:01:35 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 9 2026 22:12:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -1,3 +1,21 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$class_inference_gaussian_elimination.html" title="Variable elimination over an InferenceFactorGraph with Gaussian factors." alt="" coords="5,5,223,31"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,211,119,236"/>
+<area shape="rect" id="Node000001" href="$class_a_v_flat_bottom_restraint.html" title="A flat&#45;bottom distance restraint between two labelling positions." alt="" coords="188,5,359,31"/>
+<area shape="poly" id="edge31_Node000000_Node000001" title=" " alt="" coords="68,197,81,161,101,118,129,76,165,40,186,28,189,33,168,44,133,79,106,121,86,163,73,198"/>
+<area shape="rect" id="Node000002" href="$class_generalized_born_restraint.html" title="Generalized&#45;Born implicit solvation over a set of atoms." alt="" coords="179,55,368,80"/>
+<area shape="poly" id="edge32_Node000000_Node000002" title=" " alt="" coords="74,197,110,142,135,113,165,89,189,78,191,83,168,94,139,117,114,145,78,200"/>
+<area shape="rect" id="Node000003" href="$class_go_restraint.html" title="A Go model over a set of beads: truncated Lennard&#45;Jones on native contacts." alt="" coords="224,104,323,129"/>
+<area shape="poly" id="edge33_Node000000_Node000003" title=" " alt="" coords="83,199,120,167,165,138,194,127,223,120,224,126,196,132,168,143,123,172,87,203"/>
+<area shape="rect" id="Node000004" href="$class_hydrogen_bond_restraint.html" title="Backbone hydrogen bonds, from a four&#45;channel distance lookup." alt="" coords="185,153,362,179"/>
+<area shape="poly" id="edge34_Node000000_Node000004" title=" " alt="" coords="115,204,166,189,215,176,217,181,167,194,116,209"/>
+<area shape="rect" id="Node000005" href="$class_probe_accessible_volume_mean_distance_restraint.html" title="Score the separation of two mean dye positions against a measurement." alt="" coords="167,203,380,243"/>
+<area shape="poly" id="edge35_Node000000_Node000005" title=" " alt="" coords="132,221,166,221,166,226,132,226"/>
+<area shape="rect" id="Node000006" href="$class_probe_network_restraint.html" title="A restraint that uses an annotated volumetric network to score particle distances." alt="" coords="187,268,360,293"/>
+<area shape="poly" id="edge36_Node000000_Node000006" title=" " alt="" coords="116,238,167,253,217,265,215,271,166,258,115,243"/>
+<area shape="rect" id="Node000007" href="$class_ramachandran_restraint.html" title="The Ramachandran pseudo&#45;energy of a chain&#39;s backbone dihedrals." alt="" coords="184,317,363,343"/>
+<area shape="poly" id="edge37_Node000000_Node000007" title=" " alt="" coords="88,244,124,274,168,302,202,315,200,320,165,307,121,279,84,248"/>
+<area shape="rect" id="Node000008" href="$class_s_m_l_m_restraint.html" title="Expected emitter particles scored against an owned measured SMLM cloud." alt="" coords="213,367,333,392"/>
+<area shape="poly" id="edge38_Node000000_Node000008" title=" " alt="" coords="78,246,114,300,139,328,168,352,190,363,214,370,212,375,188,368,165,356,135,332,110,304,74,249"/>
+<area shape="rect" id="Node000009" href="$class_site_accessible_area_restraint.html" title="Shrake&#45;Rupley accessible area of one site per residue (Restraint)." alt="" coords="171,416,376,441"/>
+<area shape="poly" id="edge39_Node000000_Node000009" title=" " alt="" coords="73,248,86,283,106,325,133,366,168,401,191,414,188,418,165,405,129,370,101,327,81,285,68,250"/>
 </map>

@@ -165,15 +165,15 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The exact FRET efficiency of an exchanging ensemble. </p>
-<p>Solves the master equation of the labelled population rather than assuming a limit: with <picture><source srcset="form_137_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$P$" src="form_137.png"/></picture> the transition probability matrix over <code>dt</code>, the rate matrix is <picture><source srcset="form_138_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$M = (P - I)/dt$" src="form_138.png"/></picture> and the integrated populations <picture><source srcset="form_139_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$G_j = \int_0^\infty p_j\,dt$" src="form_139.png"/></picture> solve <picture><source srcset="form_140_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(k_{rad} I + K_{FRET} - M)^T G = w$" src="form_140.png"/></picture>. The efficiency is <picture><source srcset="form_141_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\sum_i k_{FRET,i} G_i$" src="form_141.png"/></picture> — the fraction of excitations that leave by transfer.</p>
-<p>The transpose is load-bearing.** <code>P[i][j]</code> is the probability of <picture><source srcset="form_142_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$i \to j$" src="form_142.png"/></picture>, so populations evolve as a <em>row</em> vector and <picture><source srcset="form_143_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$G$" src="form_143.png"/></picture> solves the transposed system. Solving <picture><source srcset="form_144_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$A G = w$" src="form_144.png"/></picture> instead is right only for a symmetric <picture><source srcset="form_145_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$M$" src="form_145.png"/></picture>, and for a real transition matrix it gives the wrong fast-exchange limit.</p>
+<p>Solves the master equation of the labelled population rather than assuming a limit: with <picture><source srcset="form_155_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$P$" src="form_155.png"/></picture> the transition probability matrix over <code>dt</code>, the rate matrix is <picture><source srcset="form_156_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$M = (P - I)/dt$" src="form_156.png"/></picture> and the integrated populations <picture><source srcset="form_157_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$G_j = \int_0^\infty p_j\,dt$" src="form_157.png"/></picture> solve <picture><source srcset="form_158_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(k_{rad} I + K_{FRET} - M)^T G = w$" src="form_158.png"/></picture>. The efficiency is <picture><source srcset="form_159_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\sum_i k_{FRET,i} G_i$" src="form_159.png"/></picture> — the fraction of excitations that leave by transfer.</p>
+<p>The transpose is load-bearing.** <code>P[i][j]</code> is the probability of <picture><source srcset="form_160_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$i \to j$" src="form_160.png"/></picture>, so populations evolve as a <em>row</em> vector and <picture><source srcset="form_161_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$G$" src="form_161.png"/></picture> solves the transposed system. Solving <picture><source srcset="form_162_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$A G = w$" src="form_162.png"/></picture> instead is right only for a symmetric <picture><source srcset="form_163_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$M$" src="form_163.png"/></picture>, and for a real transition matrix it gives the wrong fast-exchange limit.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">p_matrix</td><td>transition probabilities over <code>dt</code>, flat <code>n * n</code>, rows summing to 1 </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">fret_rates</td><td>per state, 1/ns </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">tau0</td><td>donor lifetime without acceptor, ns </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">dt</td><td>the time step <code>p_matrix</code> was measured over, ns </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">weights</td><td>the stationary distribution; empty takes the eigenvector of <picture><source srcset="form_146_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$P^T$" src="form_146.png"/></picture> at eigenvalue 1 </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">weights</td><td>the stationary distribution; empty takes the eigenvector of <picture><source srcset="form_164_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$P^T$" src="form_164.png"/></picture> at eigenvalue 1 </td></tr>
   </table>
   </dd>
 </dl>
@@ -249,13 +249,13 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The exact efficiency for two exchanging ensembles. </p>
-<p>The joint kinetics is the Kronecker product of the two transition matrices, which is <picture><source srcset="form_147_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(n_d n_a)^2$" src="form_147.png"/></picture> — expensive for large libraries and the reason this is not the default.</p>
+<p>The joint kinetics is the Kronecker product of the two transition matrices, which is <picture><source srcset="form_165_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(n_d n_a)^2$" src="form_165.png"/></picture> — expensive for large libraries and the reason this is not the default.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">dist_matrix,kappa2_matrix</td><td>flat <code>nd * na</code> </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">p_d,p_a</td><td>transition matrices, flat <code>nd * nd</code> and <code>na * na</code> </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">weights_d,weights_a</td><td>stationary distributions </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">forster_radius</td><td><picture><source srcset="form_121_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_0$" src="form_121.png"/></picture> at <picture><source srcset="form_122_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\kappa^2 = 2/3$" src="form_122.png"/></picture>, A </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">forster_radius</td><td><picture><source srcset="form_139_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_0$" src="form_139.png"/></picture> at <picture><source srcset="form_140_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\kappa^2 = 2/3$" src="form_140.png"/></picture>, A </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">tau0</td><td>donor lifetime, ns </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">dt</td><td>the transition time step, ns </td></tr>
   </table>
@@ -313,7 +313,7 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">dist_matrix,kappa2_matrix</td><td>flat <code>n_donor * n_acceptor</code> </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">weights_d,weights_a</td><td>per-state weights </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">forster_radius</td><td><picture><source srcset="form_121_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_0$" src="form_121.png"/></picture> at <picture><source srcset="form_122_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\kappa^2 = 2/3$" src="form_122.png"/></picture>, A </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">forster_radius</td><td><picture><source srcset="form_139_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_0$" src="form_139.png"/></picture> at <picture><source srcset="form_140_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\kappa^2 = 2/3$" src="form_140.png"/></picture>, A </td></tr>
   </table>
   </dd>
 </dl>
@@ -351,7 +351,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 10:01:35 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 9 2026 22:12:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

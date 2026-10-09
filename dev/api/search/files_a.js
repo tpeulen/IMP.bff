@@ -5,5 +5,6 @@ var searchData=
   ['labelizerio_2eh_2',['LabelizerIO.h',['../_labelizer_i_o_8h.html',1,'']]],
   ['labelizerscore_2eh_3',['LabelizerScore.h',['../_labelizer_score_8h.html',1,'']]],
   ['lifetimespectrummixture_2eh_4',['LifetimeSpectrumMixture.h',['../_lifetime_spectrum_mixture_8h.html',1,'']]],
-  ['linker_2eh_5',['Linker.h',['../_linker_8h.html',1,'']]]
+  ['linearleastsquares_2eh_5',['LinearLeastSquares.h',['../_linear_least_squares_8h.html',1,'']]],
+  ['linker_2eh_6',['Linker.h',['../_linker_8h.html',1,'']]]
 ];

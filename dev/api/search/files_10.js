@@ -22,11 +22,12 @@ var searchData=
   ['smlmparticles_2eh_19',['SMLMParticles.h',['../_s_m_l_m_particles_8h.html',1,'']]],
   ['smlmrestraint_2eh_20',['SMLMRestraint.h',['../_s_m_l_m_restraint_8h.html',1,'']]],
   ['solventaccessiblesurface_2eh_21',['SolventAccessibleSurface.h',['../_solvent_accessible_surface_8h.html',1,'']]],
-  ['specialfunctions_2eh_22',['SpecialFunctions.h',['../_special_functions_8h.html',1,'']]],
-  ['spectrumgrid_2eh_23',['SpectrumGrid.h',['../_spectrum_grid_8h.html',1,'']]],
-  ['states_2eh_24',['States.h',['../_states_8h.html',1,'']]],
-  ['stripmask_2eh_25',['StripMask.h',['../_strip_mask_8h.html',1,'']]],
-  ['structureio_2eh_26',['StructureIO.h',['../_structure_i_o_8h.html',1,'']]],
-  ['structurereader_2eh_27',['StructureReader.h',['../_structure_reader_8h.html',1,'']]],
-  ['structuretable_2eh_28',['StructureTable.h',['../_structure_table_8h.html',1,'']]]
+  ['sparselinearalgebra_2eh_22',['SparseLinearAlgebra.h',['../_sparse_linear_algebra_8h.html',1,'']]],
+  ['specialfunctions_2eh_23',['SpecialFunctions.h',['../_special_functions_8h.html',1,'']]],
+  ['spectrumgrid_2eh_24',['SpectrumGrid.h',['../_spectrum_grid_8h.html',1,'']]],
+  ['states_2eh_25',['States.h',['../_states_8h.html',1,'']]],
+  ['stripmask_2eh_26',['StripMask.h',['../_strip_mask_8h.html',1,'']]],
+  ['structureio_2eh_27',['StructureIO.h',['../_structure_i_o_8h.html',1,'']]],
+  ['structurereader_2eh_28',['StructureReader.h',['../_structure_reader_8h.html',1,'']]],
+  ['structuretable_2eh_29',['StructureTable.h',['../_structure_table_8h.html',1,'']]]
 ];

@@ -1,0 +1,5 @@
+<map id="SparseLU" name="SparseLU">
+<area shape="rect" id="Node000001" title="An LU factorisation of a square sparse matrix, reusable for many solves." alt="" coords="5,119,196,264"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="57,5,145,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,84,103,118,98,118,98,84"/>
+</map>

@@ -18,5 +18,6 @@ var searchData=
   ['holdout_5fevery_15',['holdout_every',['../class_f_r_e_t_landscape_initial_guess_options.html#a4634051791a9797eb5fc280472fa1364',1,'FRETLandscapeInitialGuessOptions']]],
   ['homologs_16',['homologs',['../class_consurf_options.html#a84dbb2895fd19f19290199efe4bc7e67',1,'ConsurfOptions::homologs'],['../class_consurf_result.html#a8ea7ffad9c02d6fe5aea0062c2666909',1,'ConsurfResult::homologs']]],
   ['hse_5fradius_17',['hse_radius',['../struct_labelizer_options.html#a4a3c3cbe431821f150b7176a57439906',1,'LabelizerOptions']]],
-  ['hydrodynamic_5fradius_18',['hydrodynamic_radius',['../struct_probe.html#a747afdea10ba0cbd1c482112f32d9d08',1,'Probe']]]
+  ['hu_18',['hu',['../struct_odeint_result.html#acdb28505e0bf963e4e0bb893d7cf697f',1,'OdeintResult']]],
+  ['hydrodynamic_5fradius_19',['hydrodynamic_radius',['../struct_probe.html#a747afdea10ba0cbd1c482112f32d9d08',1,'Probe']]]
 ];

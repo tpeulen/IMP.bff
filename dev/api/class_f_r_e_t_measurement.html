@@ -117,6 +117,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a51d81c4aaa86d74f6e854db7a0c463b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a72d5493f230dc94aae90265c4fb7021e" id="r_a72d5493f230dc94aae90265c4fb7021e"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_measurement.html#a72d5493f230dc94aae90265c4fb7021e">get_power</a> () const</td></tr>
 <tr class="separator:a72d5493f230dc94aae90265c4fb7021e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69a34e64686c1e61a67ee640059f861a" id="r_a69a34e64686c1e61a67ee640059f861a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_measurement.html#a69a34e64686c1e61a67ee640059f861a">set_brightness</a> (double brightness)</td></tr>
+<tr class="separator:a69a34e64686c1e61a67ee640059f861a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a743716030bf5e4f99a37590793fecd1c" id="r_a743716030bf5e4f99a37590793fecd1c"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_measurement.html#a743716030bf5e4f99a37590793fecd1c">get_brightness</a> () const</td></tr>
+<tr class="separator:a743716030bf5e4f99a37590793fecd1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3506d9e2b806083c59d189113ed74bbe" id="r_a3506d9e2b806083c59d189113ed74bbe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_measurement.html#a3506d9e2b806083c59d189113ed74bbe">set_state_distance</a> (int state, double mean, const std::vector&lt; double &gt; &amp;offsets=std::vector&lt; double &gt;(), const std::vector&lt; double &gt; &amp;weights=std::vector&lt; double &gt;())</td></tr>
 <tr class="separator:a3506d9e2b806083c59d189113ed74bbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6bc485f85e7a182001d33333a821c28b" id="r_a6bc485f85e7a182001d33333a821c28b"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_measurement.html#a6bc485f85e7a182001d33333a821c28b">set_state_distance_from_clouds</a> (int state, const std::vector&lt; double &gt; &amp;donor_cloud, const std::vector&lt; double &gt; &amp;acceptor_cloud, const std::vector&lt; double &gt; &amp;axis, int n_samples=20000, int seed=0)</td></tr>
@@ -239,6 +243,31 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a743716030bf5e4f99a37590793fecd1c" name="a743716030bf5e4f99a37590793fecd1c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a743716030bf5e4f99a37590793fecd1c">&#9670;&#160;</a></span>get_brightness()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">double FRETMeasurement::get_brightness </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a74d7b6210308bc6e5bb55f38be758cb2" name="a74d7b6210308bc6e5bb55f38be758cb2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a74d7b6210308bc6e5bb55f38be758cb2">&#9670;&#160;</a></span>get_detection_rates()</h2>
 
@@ -298,7 +327,7 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The photon factor <code>sum_j w_j lambda_c(r_j) f_c(t | r_j) + beta_c b_c(t)</code> per channel, microtime bin and joint state, <code>C x n_bins x n</code>: expected photons per macrotime unit in that channel and bin (the mixture over the distance distribution, not a product of averages). Summed over the bins it is <a class="el" href="class_f_r_e_t_measurement.html#a74d7b6210308bc6e5bb55f38be758cb2">get_detection_rates()</a>. </p>
+<p>The photon factor <code>b sum_j w_j lambda_c(r_j) f_c(t | r_j) + beta_c b_c(t)</code> (b the brightness) per channel, photon microtime bin and joint state, <code>C x get_n_photon_bins() x n</code> (fine bins summed per microtime group): expected photons per macrotime unit in that channel and bin (the mixture over the distance distribution, not a product of averages). Summed over the bins it is <a class="el" href="class_f_r_e_t_measurement.html#a74d7b6210308bc6e5bb55f38be758cb2">get_detection_rates()</a>. </p>
 
 </div>
 </div>
@@ -779,6 +808,25 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a69a34e64686c1e61a67ee640059f861a" name="a69a34e64686c1e61a67ee640059f861a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a69a34e64686c1e61a67ee640059f861a">&#9670;&#160;</a></span>set_brightness()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FRETMeasurement::set_brightness </td>
+          <td>(</td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>brightness</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Signal brightness: multiplies every channel's signal, not the background (default 1; the parameter <code>&lt;pair&gt;.brightness</code>, fixed until freed). For diffusing molecules it is the mean focus brightness a burst photon's molecule has, relative to the rates at the focus centre; unlike the per-channel gains it leaves the channels' ratio, hence the distance, alone. </p>
+
+</div>
+</div>
 <a id="a706bb9f33b03bc540f1053526953994d" name="a706bb9f33b03bc540f1053526953994d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a706bb9f33b03bc540f1053526953994d">&#9670;&#160;</a></span>set_distance_map()</h2>
 
@@ -1054,7 +1102,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 10:01:36 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 9 2026 22:12:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

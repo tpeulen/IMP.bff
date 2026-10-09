@@ -10,6 +10,7 @@ var searchData=
   ['kernel_7',['kernel',['../struct_sample_result.html#ad52ec12e5f60bc71183a67d50be9c04a',1,'SampleResult']]],
   ['kind_8',['kind',['../structinternal_1_1_transfer_component.html#a29636b35a2f75d6d8a5160b8ee6121ba',1,'internal::TransferComponent::kind'],['../struct_potential_table.html#ac9b7059b86453043c7667d07aa6e3026',1,'PotentialTable::kind'],['../struct_sequence_segment.html#ab7f7b2adec0f350412d4c502267384c5',1,'SequenceSegment::kind']]],
   ['kinetic_5fenergy_9',['kinetic_energy',['../struct_probe_simulation_trajectory.html#aaec45bb0f844b44a05ad92d065d7c8cf',1,'ProbeSimulationTrajectory']]],
-  ['kmer_5fthreshold_10',['kmer_threshold',['../class_sequence_search_options.html#a004508a07c1469b25da7ca55c3cca30e',1,'SequenceSearchOptions']]],
-  ['kq_11',['kq',['../struct_residue_quenching.html#a5a8dc692ab69b37ba249558fc6fc3a50',1,'ResidueQuenching::kQ'],['../struct_p_e_t_reference.html#a8b0c4867a1c47f84479a3fd4e0727998',1,'PETReference::kQ']]]
+  ['kmer_5ffallback_5fmin_5fhomologs_10',['kmer_fallback_min_homologs',['../class_consurf_options.html#ae1b22c81911acb596b069d17145d24f7',1,'ConsurfOptions']]],
+  ['kmer_5fthreshold_11',['kmer_threshold',['../class_sequence_search_options.html#a004508a07c1469b25da7ca55c3cca30e',1,'SequenceSearchOptions']]],
+  ['kq_12',['kq',['../struct_residue_quenching.html#a5a8dc692ab69b37ba249558fc6fc3a50',1,'ResidueQuenching::kQ'],['../struct_p_e_t_reference.html#a8b0c4867a1c47f84479a3fd4e0727998',1,'PETReference::kQ']]]
 ];

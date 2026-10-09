@@ -161,6 +161,8 @@ Functions</h2></td></tr>
 <tr class="separator:a777a7e4a2aec54c5189517d0f18e0c0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4ded45fb81b6b19ae26d71594133a434" id="r_a4ded45fb81b6b19ae26d71594133a434"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_probe_network_selection_8h.html#a4ded45fb81b6b19ae26d71594133a434">IMP_OBJECTS</a> (<a class="el" href="class_probe_pair_cost_term.html">ProbePairCostTerm</a>, ProbePairCostTerms)</td></tr>
 <tr class="separator:a4ded45fb81b6b19ae26d71594133a434"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ad5032953be302ac3577ff99f7b55be" id="r_a0ad5032953be302ac3577ff99f7b55be"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_probe_network_selection_8h.html#a0ad5032953be302ac3577ff99f7b55be">probe_pair_confidence_costs</a> (const std::vector&lt; double &gt; &amp;site_confidence, int *pair_sites, int n_site_rows, int n_site_cols, double min_confidence=70.0)</td></tr>
+<tr class="separator:a0ad5032953be302ac3577ff99f7b55be"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afe56ac8722921533ddaf032ce7331357" id="r_afe56ac8722921533ddaf032ce7331357"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_probe_network_selection_8h.html#afe56ac8722921533ddaf032ce7331357">IMP_OBJECTS</a> (<a class="el" href="class_probe_pair_benefit_term.html">ProbePairBenefitTerm</a>, ProbePairBenefitTerms)</td></tr>
 <tr class="separator:afe56ac8722921533ddaf032ce7331357"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3ac901d97ca1d630688ac6fdac812ae9" id="r_a3ac901d97ca1d630688ac6fdac812ae9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_probe_network_selection_8h.html#a3ac901d97ca1d630688ac6fdac812ae9">IMP_OBJECTS</a> (<a class="el" href="class_probe_network_selection.html">ProbeNetworkSelection</a>, ProbeNetworkSelections)</td></tr>
@@ -391,10 +393,65 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a0ad5032953be302ac3577ff99f7b55be" name="a0ad5032953be302ac3577ff99f7b55be"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0ad5032953be302ac3577ff99f7b55be">&#9670;&#160;</a></span>probe_pair_confidence_costs()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">IMPBFFEXPORT std::vector&lt; double &gt; probe_pair_confidence_costs </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; double &gt; &amp;&#160;</td>
+          <td class="paramname"><em>site_confidence</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>pair_sites</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_site_rows</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_site_cols</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>min_confidence</em> = <code>70.0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Pair costs from a per-site model confidence, for a #IMP::bff::ProbePairCostTerm: 0 when both sites reach <code>min_confidence</code>, NaN (not eligible) otherwise.</p>
+<p>With a predicted structure (an AlphaFold model, pLDDT per residue), a site below the threshold has no reliable position, so neither its distances nor the elastic network's view of it can guide the design; on AlphaFold models the low-pLDDT residues also took over the network's softest modes (okf/esm-contacts.md). NaN confidence counts as below. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">site_confidence</td><td>per site (e.g. from #IMP::bff::labelizer_confidence_by_key) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pair_sites,n_site_rows,n_site_cols</td><td>two site indices (0-based) per pair </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">min_confidence</td><td>the threshold (pLDDT 70 by default) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 10:01:35 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 9 2026 22:12:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

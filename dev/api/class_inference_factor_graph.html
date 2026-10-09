@@ -86,7 +86,7 @@ Collaboration diagram for InferenceFactorGraph:</div>
 <div class="dyncontent">
 <div class="center"><img src="class_inference_factor_graph__coll__graph.png" border="0" usemap="#a_inference_factor_graph_coll__map" alt="Collaboration graph"/></div>
 <map name="a_inference_factor_graph_coll__map" id="a_inference_factor_graph_coll__map">
-<area shape="rect" title="The variables and factors of a model&#39;s posterior, with graph queries." alt="" coords="5,5,209,285"/>
+<area shape="rect" title="The variables and factors of a model&#39;s posterior, with graph queries." alt="" coords="5,5,209,765"/>
 </map>
 </div>
 <table class="memberdecls">
@@ -199,6 +199,46 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ac0ecb7f3f6a73f1aabdd75d96a6c2cd6" id="r_ac0ecb7f3f6a73f1aabdd75d96a6c2cd6"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_inference_factor_graph.html#ac0ecb7f3f6a73f1aabdd75d96a6c2cd6">describe</a> () const</td></tr>
 <tr class="memdesc:ac0ecb7f3f6a73f1aabdd75d96a6c2cd6"><td class="mdescLeft">&#160;</td><td class="mdescRight">A short human-readable structure report.  <br /></td></tr>
 <tr class="separator:ac0ecb7f3f6a73f1aabdd75d96a6c2cd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Direction: factors that are mechanisms</div></td></tr>
+<tr><td colspan="2"><div class="groupText"><p>A factor that names <em>children</em> is a conditional p(children | rest of its scope): a mechanism, drawn as arrows from every other scope variable into each child. A factor without children stays an undirected potential, which is what every factor was before, so nothing about an existing graph changes. Moralising a directed factor gives the same clique over its scope, so the moral graph, the elimination orders, the cliques, the treewidth and the sampling blocks are identical with or without direction: direction is extra information, never a different answer to an old query.</p>
+<p>What direction adds is causal reasoning on the structure: parents and children, acyclicity, and the two graph operations a counterfactual needs &ndash; <a class="el" href="class_inference_factor_graph.html#a5253a87611f616163bbfa453e325baba" title="The mutilated graph of do(keys): their mechanisms removed, the keys held.">get_intervened</a> (do(), the mutilated graph) and <a class="el" href="class_inference_factor_graph.html#a32cdd8fbc823c0526a8d59274b38eac0" title="The twin network for do(keys): this graph plus a counterfactual world.">get_twin</a> (a factual and a counterfactual copy that share their exogenous inputs). A latent common cause is a variable with role "exogenous" that is a parent of both sides; it needs no edge type of its own. </p>
+</div></td></tr>
+<tr class="memitem:a13408a532a00912435e910b5540031e5" id="r_a13408a532a00912435e910b5540031e5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_inference_factor_graph.html#a13408a532a00912435e910b5540031e5">set_factor_children</a> (const std::string &amp;factor_key, const std::vector&lt; std::string &gt; &amp;children)</td></tr>
+<tr class="memdesc:a13408a532a00912435e910b5540031e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Declare which variables of a factor's scope the factor generates.  <br /></td></tr>
+<tr class="separator:a13408a532a00912435e910b5540031e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a98a3dc7213d2c74f59c7e31dca5705b8" id="r_a98a3dc7213d2c74f59c7e31dca5705b8"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_inference_factor_graph.html#a98a3dc7213d2c74f59c7e31dca5705b8">get_factor_children</a> (const std::string &amp;factor_key) const</td></tr>
+<tr class="memdesc:a98a3dc7213d2c74f59c7e31dca5705b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The children a factor generates; empty for an undirected factor or unknown key.  <br /></td></tr>
+<tr class="separator:a98a3dc7213d2c74f59c7e31dca5705b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab107f0365800ae6ca43d2297ea69fa84" id="r_ab107f0365800ae6ca43d2297ea69fa84"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_inference_factor_graph.html#ab107f0365800ae6ca43d2297ea69fa84">get_factor_is_directed</a> (const std::string &amp;factor_key) const</td></tr>
+<tr class="memdesc:ab107f0365800ae6ca43d2297ea69fa84"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether a factor names children.  <br /></td></tr>
+<tr class="separator:ab107f0365800ae6ca43d2297ea69fa84"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a261dc785c6da14fe5cb2a0ecb4808fe8" id="r_a261dc785c6da14fe5cb2a0ecb4808fe8"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_inference_factor_graph.html#a261dc785c6da14fe5cb2a0ecb4808fe8">get_mechanism_of</a> (const std::string &amp;key) const</td></tr>
+<tr class="memdesc:a261dc785c6da14fe5cb2a0ecb4808fe8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The factor whose children include a variable (its mechanism), "" if none.  <br /></td></tr>
+<tr class="separator:a261dc785c6da14fe5cb2a0ecb4808fe8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc7fd1091f54b052c6daae334f335b89" id="r_adc7fd1091f54b052c6daae334f335b89"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_inference_factor_graph.html#adc7fd1091f54b052c6daae334f335b89">get_parents</a> (const std::string &amp;key) const</td></tr>
+<tr class="memdesc:adc7fd1091f54b052c6daae334f335b89"><td class="mdescLeft">&#160;</td><td class="mdescRight">The variables a variable's mechanism reads: its parents, in variable order.  <br /></td></tr>
+<tr class="separator:adc7fd1091f54b052c6daae334f335b89"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae81704582268730be1ed16a6a9072273" id="r_ae81704582268730be1ed16a6a9072273"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_inference_factor_graph.html#ae81704582268730be1ed16a6a9072273">get_children</a> (const std::string &amp;key) const</td></tr>
+<tr class="memdesc:ae81704582268730be1ed16a6a9072273"><td class="mdescLeft">&#160;</td><td class="mdescRight">The variables generated by mechanisms that read a variable.  <br /></td></tr>
+<tr class="separator:ae81704582268730be1ed16a6a9072273"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac314d60f96fb70c894e36984053760eb" id="r_ac314d60f96fb70c894e36984053760eb"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_inference_factor_graph.html#ac314d60f96fb70c894e36984053760eb">get_descendants</a> (const std::vector&lt; std::string &gt; &amp;keys) const</td></tr>
+<tr class="memdesc:ac314d60f96fb70c894e36984053760eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The variables reachable along arrows from a set, the set included.  <br /></td></tr>
+<tr class="separator:ac314d60f96fb70c894e36984053760eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab166ab393d90dfdf453a48316b00262c" id="r_ab166ab393d90dfdf453a48316b00262c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_inference_factor_graph.html#ab166ab393d90dfdf453a48316b00262c">get_is_acyclic</a> () const</td></tr>
+<tr class="memdesc:ab166ab393d90dfdf453a48316b00262c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the arrows contain no cycle.  <br /></td></tr>
+<tr class="separator:ab166ab393d90dfdf453a48316b00262c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aafefc1632e7878427a866a10e83eabeb" id="r_aafefc1632e7878427a866a10e83eabeb"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_inference_factor_graph.html#aafefc1632e7878427a866a10e83eabeb">get_exogenous_variables</a> () const</td></tr>
+<tr class="memdesc:aafefc1632e7878427a866a10e83eabeb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Variables whose role is "exogenous": the noise a counterfactual abducts.  <br /></td></tr>
+<tr class="separator:aafefc1632e7878427a866a10e83eabeb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afa64059175149170e14857e678a88f69" id="r_afa64059175149170e14857e678a88f69"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_inference_factor_graph.html#afa64059175149170e14857e678a88f69">get_intervened_variables</a> () const</td></tr>
+<tr class="memdesc:afa64059175149170e14857e678a88f69"><td class="mdescLeft">&#160;</td><td class="mdescRight">Variables an intervention has set (see <a class="el" href="class_inference_factor_graph.html#a5253a87611f616163bbfa453e325baba" title="The mutilated graph of do(keys): their mechanisms removed, the keys held.">get_intervened</a>).  <br /></td></tr>
+<tr class="separator:afa64059175149170e14857e678a88f69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5253a87611f616163bbfa453e325baba" id="r_a5253a87611f616163bbfa453e325baba"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_inference_factor_graph.html">InferenceFactorGraph</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_inference_factor_graph.html#a5253a87611f616163bbfa453e325baba">get_intervened</a> (const std::vector&lt; std::string &gt; &amp;keys) const</td></tr>
+<tr class="memdesc:a5253a87611f616163bbfa453e325baba"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mutilated graph of do(keys): their mechanisms removed, the keys held.  <br /></td></tr>
+<tr class="separator:a5253a87611f616163bbfa453e325baba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a32cdd8fbc823c0526a8d59274b38eac0" id="r_a32cdd8fbc823c0526a8d59274b38eac0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_inference_factor_graph.html">InferenceFactorGraph</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_inference_factor_graph.html#a32cdd8fbc823c0526a8d59274b38eac0">get_twin</a> (const std::vector&lt; std::string &gt; &amp;keys, const std::string &amp;suffix=&quot;@cf&quot;) const</td></tr>
+<tr class="memdesc:a32cdd8fbc823c0526a8d59274b38eac0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The twin network for do(keys): this graph plus a counterfactual world.  <br /></td></tr>
+<tr class="separator:a32cdd8fbc823c0526a8d59274b38eac0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The variables and factors of a model's posterior, with graph queries. </p>
@@ -510,6 +550,26 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="ae81704582268730be1ed16a6a9072273" name="ae81704582268730be1ed16a6a9072273"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae81704582268730be1ed16a6a9072273">&#9670;&#160;</a></span>get_children()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::string &gt; InferenceFactorGraph::get_children </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>key</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The variables generated by mechanisms that read a variable. </p>
+
+</div>
+</div>
 <a id="a6b25146ca770c0554c7d3e02a06c2b85" name="a6b25146ca770c0554c7d3e02a06c2b85"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6b25146ca770c0554c7d3e02a06c2b85">&#9670;&#160;</a></span>get_cliques()</h2>
 
@@ -527,6 +587,26 @@ Public Member Functions</h2></td></tr>
 
 <p>The maximal cliques induced by the default elimination order. </p>
 <p>Each eliminated variable together with its then-remaining neighbours forms a clique of the triangulated graph; non-maximal cliques are dropped. Cliques are the blocks a sampler or a scan should move jointly. Largest first. </p>
+
+</div>
+</div>
+<a id="ac314d60f96fb70c894e36984053760eb" name="ac314d60f96fb70c894e36984053760eb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac314d60f96fb70c894e36984053760eb">&#9670;&#160;</a></span>get_descendants()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::string &gt; InferenceFactorGraph::get_descendants </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&#160;</td>
+          <td class="paramname"><em>keys</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The variables reachable along arrows from a set, the set included. </p>
 
 </div>
 </div>
@@ -557,6 +637,45 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="aafefc1632e7878427a866a10e83eabeb" name="aafefc1632e7878427a866a10e83eabeb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aafefc1632e7878427a866a10e83eabeb">&#9670;&#160;</a></span>get_exogenous_variables()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::string &gt; InferenceFactorGraph::get_exogenous_variables </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Variables whose role is "exogenous": the noise a counterfactual abducts. </p>
+
+</div>
+</div>
+<a id="a98a3dc7213d2c74f59c7e31dca5705b8" name="a98a3dc7213d2c74f59c7e31dca5705b8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a98a3dc7213d2c74f59c7e31dca5705b8">&#9670;&#160;</a></span>get_factor_children()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::string &gt; InferenceFactorGraph::get_factor_children </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>factor_key</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The children a factor generates; empty for an undirected factor or unknown key. </p>
+
+</div>
+</div>
 <a id="a63628d61feecbd9b085c445af18398ee" name="a63628d61feecbd9b085c445af18398ee"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a63628d61feecbd9b085c445af18398ee">&#9670;&#160;</a></span>get_factor_evidence()</h2>
 
@@ -574,6 +693,26 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The held variables a factor reads; empty if none or unknown. </p>
+
+</div>
+</div>
+<a id="ab107f0365800ae6ca43d2297ea69fa84" name="ab107f0365800ae6ca43d2297ea69fa84"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab107f0365800ae6ca43d2297ea69fa84">&#9670;&#160;</a></span>get_factor_is_directed()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool InferenceFactorGraph::get_factor_is_directed </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>factor_key</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Whether a factor names children. </p>
 
 </div>
 </div>
@@ -616,6 +755,70 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a5253a87611f616163bbfa453e325baba" name="a5253a87611f616163bbfa453e325baba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5253a87611f616163bbfa453e325baba">&#9670;&#160;</a></span>get_intervened()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_inference_factor_graph.html">InferenceFactorGraph</a> InferenceFactorGraph::get_intervened </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&#160;</td>
+          <td class="paramname"><em>keys</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The mutilated graph of do(keys): their mechanisms removed, the keys held. </p>
+<p>A variable without a mechanism (exogenous, or already intervened) is just marked as held. A mechanism that generates several children can only be removed whole, so intervening on some of its children but not all throws. </p><dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::invalid_argument</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="afa64059175149170e14857e678a88f69" name="afa64059175149170e14857e678a88f69"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afa64059175149170e14857e678a88f69">&#9670;&#160;</a></span>get_intervened_variables()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::string &gt; InferenceFactorGraph::get_intervened_variables </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Variables an intervention has set (see <a class="el" href="class_inference_factor_graph.html#a5253a87611f616163bbfa453e325baba" title="The mutilated graph of do(keys): their mechanisms removed, the keys held.">get_intervened</a>). </p>
+
+</div>
+</div>
+<a id="ab166ab393d90dfdf453a48316b00262c" name="ab166ab393d90dfdf453a48316b00262c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab166ab393d90dfdf453a48316b00262c">&#9670;&#160;</a></span>get_is_acyclic()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool InferenceFactorGraph::get_is_acyclic </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Whether the arrows contain no cycle. </p>
+
+</div>
+</div>
 <a id="a9c6290da1603116ba5d1f6f93fe40a0d" name="a9c6290da1603116ba5d1f6f93fe40a0d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9c6290da1603116ba5d1f6f93fe40a0d">&#9670;&#160;</a></span>get_junction_tree_edges()</h2>
 
@@ -633,6 +836,26 @@ Public Member Functions</h2></td></tr>
 
 <p>The junction (clique) tree edges over <a class="el" href="class_inference_factor_graph.html#a6b25146ca770c0554c7d3e02a06c2b85" title="The maximal cliques induced by the default elimination order.">get_cliques()</a>. </p>
 <p>Each edge carries the separator of the two cliques it joins. The tree is the maximum-weight spanning tree of the clique graph weighted by separator size, the standard construction guaranteeing the running-intersection property. A disconnected fit gives a forest. </p>
+
+</div>
+</div>
+<a id="a261dc785c6da14fe5cb2a0ecb4808fe8" name="a261dc785c6da14fe5cb2a0ecb4808fe8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a261dc785c6da14fe5cb2a0ecb4808fe8">&#9670;&#160;</a></span>get_mechanism_of()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string InferenceFactorGraph::get_mechanism_of </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>key</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The factor whose children include a variable (its mechanism), "" if none. </p>
 
 </div>
 </div>
@@ -713,6 +936,26 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="adc7fd1091f54b052c6daae334f335b89" name="adc7fd1091f54b052c6daae334f335b89"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adc7fd1091f54b052c6daae334f335b89">&#9670;&#160;</a></span>get_parents()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::string &gt; InferenceFactorGraph::get_parents </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>key</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The variables a variable's mechanism reads: its parents, in variable order. </p>
+
+</div>
+</div>
 <a id="a293df8eb1f8af98c98674b6861ea3f84" name="a293df8eb1f8af98c98674b6861ea3f84"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a293df8eb1f8af98c98674b6861ea3f84">&#9670;&#160;</a></span>get_sampling_blocks()</h2>
 
@@ -770,6 +1013,37 @@ Public Member Functions</h2></td></tr>
 
 <p>max clique size - 1: the model's structural difficulty. </p>
 <p>The cost of exact marginalisation is exponential in this number, and it is the dimension a blocked sampler would have to move jointly. A star-shaped global fit (many datasets, a few shared globals) has a small treewidth however many datasets it holds; a single dataset whose likelihood couples all its parameters has n_free - 1. </p>
+
+</div>
+</div>
+<a id="a32cdd8fbc823c0526a8d59274b38eac0" name="a32cdd8fbc823c0526a8d59274b38eac0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a32cdd8fbc823c0526a8d59274b38eac0">&#9670;&#160;</a></span>get_twin()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_inference_factor_graph.html">InferenceFactorGraph</a> InferenceFactorGraph::get_twin </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&#160;</td>
+          <td class="paramname"><em>keys</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>suffix</em> = <code>&quot;@cf&quot;</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The twin network for do(keys): this graph plus a counterfactual world. </p>
+<p>Every descendant of <code>keys</code> (the keys included) is copied with <code>suffix</code> appended to its key, every mechanism generating only descendants is copied with its scope mapped into the copy, and the copied keys are then intervened on. Variables that are not descendants &ndash; the exogenous inputs above all &ndash; are shared by both worlds, which is what makes the copy a counterfactual rather than an independent simulation. Undirected factors (data likelihoods, priors) are not copied: the data belong to the factual world. A restraint on the counterfactual world is a factor added to the result over factual and suffixed keys; it is an assumption, so it belongs with role-"assumption" variables or as a prior, never as a likelihood. Copied variables get flat indices after the largest existing one. </p>
 
 </div>
 </div>
@@ -951,6 +1225,42 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a13408a532a00912435e910b5540031e5" name="a13408a532a00912435e910b5540031e5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a13408a532a00912435e910b5540031e5">&#9670;&#160;</a></span>set_factor_children()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void InferenceFactorGraph::set_factor_children </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>factor_key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&#160;</td>
+          <td class="paramname"><em>children</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Declare which variables of a factor's scope the factor generates. </p>
+<p>Every child must be in the factor's scope, and a variable has at most one mechanism: naming it a child of a second factor throws. An empty list makes the factor undirected again. </p><dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::invalid_argument</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="a9519a00b5ded68e4aefbe6ae8d5bcdfb" name="a9519a00b5ded68e4aefbe6ae8d5bcdfb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9519a00b5ded68e4aefbe6ae8d5bcdfb">&#9670;&#160;</a></span>set_factor_evidence()</h2>
 
@@ -1033,7 +1343,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 10:01:36 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 9 2026 22:12:28 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

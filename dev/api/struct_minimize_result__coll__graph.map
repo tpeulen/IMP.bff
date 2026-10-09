@@ -1,0 +1,9 @@
+<map id="MinimizeResult" name="MinimizeResult">
+<area shape="rect" id="Node000001" title="What a minimisation found, shaped like SciPy&#39;s OptimizeResult." alt="" coords="115,336,231,521"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,135,163,200"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,201,79,254,81,283,88,311,108,351,103,354,83,313,76,284,73,254,76,200"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="225,135,303,200"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="263,201,254,254,237,313,234,322,229,320,232,311,248,253,258,200"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="199,5,329,85"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="267,99,267,134,261,134,261,99"/>
+</map>

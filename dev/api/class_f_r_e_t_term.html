@@ -110,10 +110,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ac6de714dfd66e39d42b04a8718c04bc3" id="r_ac6de714dfd66e39d42b04a8718c04bc3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_term.html#ac6de714dfd66e39d42b04a8718c04bc3">FRETTerm</a> (const <a class="el" href="struct_probe.html">Probe</a> &amp;donor, const <a class="el" href="struct_probe.html">Probe</a> &amp;acceptor, double refractive_index=1.4, double kappa2=std::numeric_limits&lt; double &gt;::quiet_NaN(), double r_min=7.0)</td></tr>
 <tr class="separator:ac6de714dfd66e39d42b04a8718c04bc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac273dd2f748ce01bb0517011f578f51c" id="r_ac273dd2f748ce01bb0517011f578f51c"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_term.html#ac273dd2f748ce01bb0517011f578f51c">get_forster_radius</a> () const</td></tr>
-<tr class="memdesc:ac273dd2f748ce01bb0517011f578f51c"><td class="mdescLeft">&#160;</td><td class="mdescRight"><picture><source srcset="form_121_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_0$" src="form_121.png"/></picture> in Angstrom, derived from the pair and the medium.  <br /></td></tr>
+<tr class="memdesc:ac273dd2f748ce01bb0517011f578f51c"><td class="mdescLeft">&#160;</td><td class="mdescRight"><picture><source srcset="form_139_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_0$" src="form_139.png"/></picture> in Angstrom, derived from the pair and the medium.  <br /></td></tr>
 <tr class="separator:ac273dd2f748ce01bb0517011f578f51c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adba106e4eac2e7821cb7b6fbce5d9b9a" id="r_adba106e4eac2e7821cb7b6fbce5d9b9a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_term.html#adba106e4eac2e7821cb7b6fbce5d9b9a">get_used_isotropic_kappa2</a> () const</td></tr>
-<tr class="memdesc:adba106e4eac2e7821cb7b6fbce5d9b9a"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when no <picture><source srcset="form_123_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\kappa^2$" src="form_123.png"/></picture> was given, so the isotropic 2/3 is assumed.  <br /></td></tr>
+<tr class="memdesc:adba106e4eac2e7821cb7b6fbce5d9b9a"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when no <picture><source srcset="form_141_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\kappa^2$" src="form_141.png"/></picture> was given, so the isotropic 2/3 is assumed.  <br /></td></tr>
 <tr class="separator:adba106e4eac2e7821cb7b6fbce5d9b9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acaf80dbaa5f88781e809a742e9fa5bbb" id="r_acaf80dbaa5f88781e809a742e9fa5bbb"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_term.html#acaf80dbaa5f88781e809a742e9fa5bbb">get_kappa2</a> () const</td></tr>
 <tr class="separator:acaf80dbaa5f88781e809a742e9fa5bbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -134,8 +134,8 @@ Public Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>2-body: Förster transfer between two dyes. </p>
-<p><picture><source srcset="form_224_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k(r) = (1/\tau_0) (R_0/r)^6 \kappa^2 / (2/3)$" src="form_224.png"/></picture></p>
-<p>R0 is derived, not supplied** — from the two dyes' spectra, the donor's quantum yield, the medium's refractive index and <picture><source srcset="form_123_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\kappa^2$" src="form_123.png"/></picture>. Passing it in was how <code>forster_radius=52.0</code> came to be a default in a dozen signatures. </p>
+<p><picture><source srcset="form_256_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k(r) = (1/\tau_0) (R_0/r)^6 \kappa^2 / (2/3)$" src="form_256.png"/></picture></p>
+<p>R0 is derived, not supplied** — from the two dyes' spectra, the donor's quantum yield, the medium's refractive index and <picture><source srcset="form_141_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\kappa^2$" src="form_141.png"/></picture>. Passing it in was how <code>forster_radius=52.0</code> came to be a default in a dozen signatures. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ac6de714dfd66e39d42b04a8718c04bc3" name="ac6de714dfd66e39d42b04a8718c04bc3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac6de714dfd66e39d42b04a8718c04bc3">&#9670;&#160;</a></span>FRETTerm()</h2>
@@ -238,7 +238,7 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p><picture><source srcset="form_121_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_0$" src="form_121.png"/></picture> in Angstrom, derived from the pair and the medium. </p>
+<p><picture><source srcset="form_139_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_0$" src="form_139.png"/></picture> in Angstrom, derived from the pair and the medium. </p>
 
 </div>
 </div>
@@ -320,7 +320,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>True when no <picture><source srcset="form_123_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\kappa^2$" src="form_123.png"/></picture> was given, so the isotropic 2/3 is assumed. </p>
+<p>True when no <picture><source srcset="form_141_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\kappa^2$" src="form_141.png"/></picture> was given, so the isotropic 2/3 is assumed. </p>
 
 </div>
 </div>
@@ -377,7 +377,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 10:01:36 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 9 2026 22:12:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

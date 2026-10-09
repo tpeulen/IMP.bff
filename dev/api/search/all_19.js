@@ -6,6 +6,7 @@ var searchData=
   ['z_5floc_5f_3',['z_loc_',['../class_density_grid.html#a3d32924955747812d271210f7f27917a',1,'DensityGrid']]],
   ['z_5fscale_4',['z_scale',['../namespacemcmc__detail.html#a5df9731a9d65c70a76b483728a43c37c',1,'mcmc_detail']]],
   ['zero_5fparticle_5fid_5fis_5funassigned_5',['zero_particle_id_is_unassigned',['../struct_s_m_l_m_c_s_v_options.html#af0eea6d0d622446b4599bbb67c620435',1,'SMLMCSVOptions']]],
-  ['zmatrix_6',['zmatrix',['../class_z_matrix.html',1,'ZMatrix'],['../class_z_matrix.html#ab3021b169a8735ce360f4887722c8437',1,'ZMatrix::ZMatrix()']]],
-  ['zmatrix_2eh_7',['ZMatrix.h',['../_z_matrix_8h.html',1,'']]]
+  ['zeta_5farray_6',['zeta_array',['../_numerics_8h.html#afad26cd3ae00612907b8cae640d1d200',1,'Numerics.h']]],
+  ['zmatrix_7',['zmatrix',['../class_z_matrix.html#ab3021b169a8735ce360f4887722c8437',1,'ZMatrix::ZMatrix()'],['../class_z_matrix.html',1,'ZMatrix']]],
+  ['zmatrix_2eh_8',['ZMatrix.h',['../_z_matrix_8h.html',1,'']]]
 ];

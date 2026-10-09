@@ -296,7 +296,7 @@ Functions</h2></td></tr>
 <li>creates a probe particle per labelling position, tethered to its attachment atom at the volume's own offset, and</li>
 <li>adds an #IMP::bff::AVFlatBottomRestraint between the two probes.</li>
 </ol>
-<p>The force constants follow the error bars, as the reference implementation does: <picture><source srcset="form_291_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k = F_{max} / (2\sigma)$" src="form_291.png"/></picture> on each side, so a model one error bar outside the well feels <code>f_max</code> and no restraint can pull harder than that however wrong it is.</p>
+<p>The force constants follow the error bars, as the reference implementation does: <picture><source srcset="form_323_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k = F_{max} / (2\sigma)$" src="form_323.png"/></picture> on each side, so a model one error bar outside the well feels <code>f_max</code> and no restraint can pull harder than that however wrong it is.</p>
 <p>The volumes are computed <b>once</b>, on the starting structure. That is the approximation this buys its speed with, and it is the same one #IMP::bff::ProbeAccessibleVolumeMeanDistanceRestraint makes: the shape of a volume is taken not to change as the structure moves. For a trajectory that stays near its start &ndash; which a restrained refinement does &ndash; the error is small; for one that does not, rebuild and call again.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -583,7 +583,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 10:01:35 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 9 2026 22:12:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

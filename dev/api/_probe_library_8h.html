@@ -1127,8 +1127,8 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The Forster radius of a donor/acceptor pair named in a container, Angstrom. </p>
-<p>The convenience a labelling run wants: two names in, <picture><source srcset="form_121_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_0$" src="form_121.png"/></picture> out, with the spectra and the quantum yield coming from a file whose vocabulary is checkable. Names resolve through #IMP::bff::resolve_probe_name, so <code>"Alexa488"</code> works as well as <code>"AlexaFluor488"</code>.</p>
-<p>Angstrom**, like every length in this package &ndash; #IMP::bff::LabelizerFRETOptions::forster_radius (default 52), #IMP::bff::av_distance, #IMP::bff::fret_efficiency. This function used to be the one place nanometres met Angstrom, because #IMP::bff::forster_radius returned nm; since 2026-08-25 that conversion lives inside <code>forster_radius</code> itself, so this one simply forwards. The reason it mattered either way: a caller who forgets the factor of ten scores every pair against an <picture><source srcset="form_121_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_0$" src="form_121.png"/></picture> ten times too small, which does not look like an error &ndash; it looks like a protein where no pair is worth measuring.</p>
+<p>The convenience a labelling run wants: two names in, <picture><source srcset="form_139_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_0$" src="form_139.png"/></picture> out, with the spectra and the quantum yield coming from a file whose vocabulary is checkable. Names resolve through #IMP::bff::resolve_probe_name, so <code>"Alexa488"</code> works as well as <code>"AlexaFluor488"</code>.</p>
+<p>Angstrom**, like every length in this package &ndash; #IMP::bff::LabelizerFRETOptions::forster_radius (default 52), #IMP::bff::av_distance, #IMP::bff::fret_efficiency. This function used to be the one place nanometres met Angstrom, because #IMP::bff::forster_radius returned nm; since 2026-08-25 that conversion lives inside <code>forster_radius</code> itself, so this one simply forwards. The reason it mattered either way: a caller who forgets the factor of ten scores every pair against an <picture><source srcset="form_139_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_0$" src="form_139.png"/></picture> ten times too small, which does not look like an error &ndash; it looks like a protein where no pair is worth measuring.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">path</td><td>a dye container </td></tr>
@@ -1138,7 +1138,7 @@ Variables</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><picture><source srcset="form_121_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_0$" src="form_121.png"/></picture> in <b>Angstrom</b> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><picture><source srcset="form_139_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_0$" src="form_139.png"/></picture> in <b>Angstrom</b> </dd></dl>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
     <tr><td class="paramname">ValueException</td><td>when either dye is missing or lacks a spectrum </td></tr>
@@ -1462,7 +1462,7 @@ Variables</h2></td></tr>
 <p>A dye library as one <code>.mmfdb.pto</code>: probes, their optical properties and their spectra, in the vocabulary the database already uses. </p>
 <p>(formerly IMP/bff/ProbeContainer.h, now a section of this file) </p>
 <p>The bundled library is a CIF with two bff-native categories, <code>_bff_probe</code> and <code>_bff_probe_spectrum</code>, invented because no dictionary in the stack declared an item for a quantum yield, an extinction coefficient or a fluorescence spectrum. Those items exist now — <code>_mmfdb_optical_property.*</code> and <code>_mmfdb_spectrum.*</code>, dictionary 1.8 — and they describe the <code>probes</code>, <code>optical_properties</code> and <code>spectra</code> tables this stack's databases already have. So a dye library can be written in the same words a database row uses, and this writes it.</p>
-<p>The point is not the file format. It is that a labelling run reads its dyes from something whose every name resolves to a dictionary item, so <picture><source srcset="form_121_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_0$" src="form_121.png"/></picture> can be traced back to the quantum yield and the two spectra it was derived from rather than taken on trust from a number in a config.</p>
+<p>The point is not the file format. It is that a labelling run reads its dyes from something whose every name resolves to a dictionary item, so <picture><source srcset="form_139_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_0$" src="form_139.png"/></picture> can be traced back to the quantum yield and the two spectra it was derived from rather than taken on trust from a number in a config.</p>
 <p>Kinds are under <code>mfdb.</code> — the generic probe namespace, not <code>label.</code>, because nothing here is specific to label-site scoring; <code>drot.</code> and <code>rot.bbdep.</code> belong to the rotamer containers.</p>
 <dl class="section author"><dt>Authors</dt><dd>Thomas-Otavio Peulen Copyright 2007-2026 <a class="el" href="namespace_i_m_p.html">IMP</a> Inventors. All rights reserved. The probe table: one row per dye, at <code>species</code> grain. </dd></dl>
 
@@ -1495,7 +1495,7 @@ Variables</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 10:01:35 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 9 2026 22:12:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -122,12 +122,22 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a88dba0a240c97e6dd605e458dbab1441" id="r_a88dba0a240c97e6dd605e458dbab1441"><td class="memItemLeft" align="right" valign="top">Floats&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_protein_language_model.html#a88dba0a240c97e6dd605e458dbab1441">get_projected_embedding</a> (const std::string &amp;sequence) const</td></tr>
 <tr class="memdesc:a88dba0a240c97e6dd605e458dbab1441"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_protein_language_model.html#a75b67b6d1196ed34ced3dff46bc37a7b">get_embedding</a> through the projection head, unit length.  <br /></td></tr>
 <tr class="separator:a88dba0a240c97e6dd605e458dbab1441"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4bc57068edb970630a48c3c3b6d335d8" id="r_a4bc57068edb970630a48c3c3b6d335d8"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_protein_language_model.html#a4bc57068edb970630a48c3c3b6d335d8">get_has_language_model_head</a> () const</td></tr>
+<tr class="memdesc:a4bc57068edb970630a48c3c3b6d335d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the file carries ESM's language-model head (<a class="el" href="class_protein_language_model.html#aa3e691e5f05336397712dd36be3a48b8">get_log_probabilities</a>).  <br /></td></tr>
+<tr class="separator:a4bc57068edb970630a48c3c3b6d335d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa3e691e5f05336397712dd36be3a48b8" id="r_aa3e691e5f05336397712dd36be3a48b8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_protein_language_model.html#aa3e691e5f05336397712dd36be3a48b8">get_log_probabilities</a> (const std::string &amp;sequence, double **out_matrix, int *n_out_rows, int *n_out_cols) const</td></tr>
+<tr class="separator:aa3e691e5f05336397712dd36be3a48b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53676d172e462a62007134fcf80c90ca" id="r_a53676d172e462a62007134fcf80c90ca"><td class="memItemLeft" align="right" valign="top">Floats&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_protein_language_model.html#a53676d172e462a62007134fcf80c90ca">get_site_tolerance</a> (const std::string &amp;sequence, const std::string &amp;residue=&quot;&quot;) const</td></tr>
+<tr class="separator:a53676d172e462a62007134fcf80c90ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a53c21b1ec7e4ddd7a23fe5322ca4537c" id="r_a53c21b1ec7e4ddd7a23fe5322ca4537c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_protein_language_model.html#a53c21b1ec7e4ddd7a23fe5322ca4537c">compute</a> (const std::string &amp;sequence, std::vector&lt; float &gt; &amp;out) const</td></tr>
 <tr class="memdesc:a53c21b1ec7e4ddd7a23fe5322ca4537c"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_protein_language_model.html#a9891a3b1c2339e9b4c273eed7dd6044d" title="The last layer for each residue: n x get_embedding_length, row by row.">get_residue_embeddings</a> into <code>out</code> (<code>n x d</code> floats); returns <code>n</code>.  <br /></td></tr>
 <tr class="separator:a53c21b1ec7e4ddd7a23fe5322ca4537c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a731745c2c50e94447d8040ed7995ba1d" id="r_a731745c2c50e94447d8040ed7995ba1d"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_protein_language_model.html#a731745c2c50e94447d8040ed7995ba1d">contacts</a> (const std::string &amp;sequence, int *n) const</td></tr>
 <tr class="memdesc:a731745c2c50e94447d8040ed7995ba1d"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_protein_language_model.html#a8dd188bc71d7c51399f222fe3a8d0ed8">get_contacts</a> row by row; <code>n</code> gets the number of residues.  <br /></td></tr>
 <tr class="separator:a731745c2c50e94447d8040ed7995ba1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f208e8dfd218c93e3f6e440f2776e98" id="r_a9f208e8dfd218c93e3f6e440f2776e98"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_protein_language_model.html#a9f208e8dfd218c93e3f6e440f2776e98">log_probabilities</a> (const std::string &amp;sequence, int *n) const</td></tr>
+<tr class="memdesc:a9f208e8dfd218c93e3f6e440f2776e98"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_protein_language_model.html#aa3e691e5f05336397712dd36be3a48b8">get_log_probabilities</a> row by row; <code>n</code> gets the number of residues.  <br /></td></tr>
+<tr class="separator:a9f208e8dfd218c93e3f6e440f2776e98"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a260fd364016e3f675109a3bb7748b277" id="r_a260fd364016e3f675109a3bb7748b277"><td class="memItemLeft" align="right" valign="top">std::vector&lt; float &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_protein_language_model.html#a260fd364016e3f675109a3bb7748b277">embed</a> (const std::vector&lt; std::string &gt; &amp;sequences, bool project) const</td></tr>
 <tr class="separator:a260fd364016e3f675109a3bb7748b277"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9adf8a344bed2b3d08e7000fff67d4d4" id="r_a9adf8a344bed2b3d08e7000fff67d4d4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_protein_language_model.html#a9adf8a344bed2b3d08e7000fff67d4d4">IMP_SHOWABLE_INLINE</a> (<a class="el" href="class_protein_language_model.html">ProteinLanguageModel</a>, out&lt;&lt; &quot;ProteinLanguageModel(&quot;&lt;&lt; path_&lt;&lt; &quot;)&quot;)</td></tr>
@@ -394,6 +404,72 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a4bc57068edb970630a48c3c3b6d335d8" name="a4bc57068edb970630a48c3c3b6d335d8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4bc57068edb970630a48c3c3b6d335d8">&#9670;&#160;</a></span>get_has_language_model_head()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ProteinLanguageModel::get_has_language_model_head </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Whether the file carries ESM's language-model head (<a class="el" href="class_protein_language_model.html#aa3e691e5f05336397712dd36be3a48b8">get_log_probabilities</a>). </p>
+
+</div>
+</div>
+<a id="aa3e691e5f05336397712dd36be3a48b8" name="aa3e691e5f05336397712dd36be3a48b8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa3e691e5f05336397712dd36be3a48b8">&#9670;&#160;</a></span>get_log_probabilities()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ProteinLanguageModel::get_log_probabilities </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>sequence</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double **&#160;</td>
+          <td class="paramname"><em>out_matrix</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_rows</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n_out_cols</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Per residue, the log-probabilities of the 20 amino acids (<code>ACDEFGHIKLMNPQRSTVWY</code>), <code>n x 20</code>, from one pass over the unmasked sequence (normalised over ESM's whole vocabulary).</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">ValueException</td><td>when the file has no language-model head </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="a8e6244f5eade7d0f8778063a2f578675" name="a8e6244f5eade7d0f8778063a2f578675"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8e6244f5eade7d0f8778063a2f578675">&#9670;&#160;</a></span>get_max_length()</h2>
 
@@ -566,6 +642,36 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a53676d172e462a62007134fcf80c90ca" name="a53676d172e462a62007134fcf80c90ca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a53676d172e462a62007134fcf80c90ca">&#9670;&#160;</a></span>get_site_tolerance()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Floats ProteinLanguageModel::get_site_tolerance </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>sequence</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>residue</em> = <code>&quot;&quot;</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>How well each site tolerates a substitution, from one pass: <code>log p(residue) - log p(wild type)</code>, or with <code>residue</code> empty the mean over all 20 amino acids minus the wild type (general tolerance). Higher is more tolerant; NaN where the wild type is not one of the 20.</p>
+<p>On 178 ProteinGym deep mutational scans (X to cysteine variants, ESM-2 650M) the general tolerance correlates better with the measured fitness (median Spearman 0.36) than the cysteine-specific score (0.27; 0.31 with the site masked): a label site's cost (okf/esm-contacts.md). </p>
+
+</div>
+</div>
 <a id="a9adf8a344bed2b3d08e7000fff67d4d4" name="a9adf8a344bed2b3d08e7000fff67d4d4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9adf8a344bed2b3d08e7000fff67d4d4">&#9670;&#160;</a></span>IMP_SHOWABLE_INLINE()</h2>
 
@@ -594,13 +700,43 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a9f208e8dfd218c93e3f6e440f2776e98" name="a9f208e8dfd218c93e3f6e440f2776e98"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9f208e8dfd218c93e3f6e440f2776e98">&#9670;&#160;</a></span>log_probabilities()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; double &gt; ProteinLanguageModel::log_probabilities </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>sequence</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>n</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p><a class="el" href="class_protein_language_model.html#aa3e691e5f05336397712dd36be3a48b8">get_log_probabilities</a> row by row; <code>n</code> gets the number of residues. </p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>/home/runner/work/IMP.bff/IMP.bff/include/<a class="el" href="_protein_language_model_8h_source.html">ProteinLanguageModel.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 10:01:36 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 9 2026 22:12:28 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

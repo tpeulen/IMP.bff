@@ -14,10 +14,11 @@ var searchData=
   ['labelledgraph_11',['LabelledGraph',['../class_labelled_graph.html',1,'']]],
   ['lennardjonesbeadpairscore_12',['LennardJonesBeadPairScore',['../class_lennard_jones_bead_pair_score.html',1,'']]],
   ['lifetimespectrummixture_13',['LifetimeSpectrumMixture',['../class_lifetime_spectrum_mixture.html',1,'']]],
-  ['linkergeometry_14',['LinkerGeometry',['../class_linker_geometry.html',1,'']]],
-  ['linkersamplingresult_15',['LinkerSamplingResult',['../struct_linker_sampling_result.html',1,'']]],
-  ['linkerweighting_16',['LinkerWeighting',['../class_linker_weighting.html',1,'']]],
-  ['ljarrays_17',['LJArrays',['../struct_l_j_arrays.html',1,'']]],
-  ['ljsitepair_18',['LJSitePair',['../struct_l_j_site_pair.html',1,'']]],
-  ['loadedstructure_19',['LoadedStructure',['../class_loaded_structure.html',1,'']]]
+  ['linearleastsquaresresult_14',['LinearLeastSquaresResult',['../struct_linear_least_squares_result.html',1,'']]],
+  ['linkergeometry_15',['LinkerGeometry',['../class_linker_geometry.html',1,'']]],
+  ['linkersamplingresult_16',['LinkerSamplingResult',['../struct_linker_sampling_result.html',1,'']]],
+  ['linkerweighting_17',['LinkerWeighting',['../class_linker_weighting.html',1,'']]],
+  ['ljarrays_18',['LJArrays',['../struct_l_j_arrays.html',1,'']]],
+  ['ljsitepair_19',['LJSitePair',['../struct_l_j_site_pair.html',1,'']]],
+  ['loadedstructure_20',['LoadedStructure',['../class_loaded_structure.html',1,'']]]
 ];

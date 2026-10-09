@@ -206,7 +206,7 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The body's reference frame <b>as the untransformed PDB gives it</b>. </p>
-<p>Needed, and easy to leave out &ndash; which is a bug, so it is written down. <code>IMP::atom::create_rigid_body</code> does <b>not</b> start a body at the identity: it sets the frame from the members' principal axes, so the pose #IMP::bff::capture_poses records is not the transform to apply to the coordinates a <code>load</code> line reads. The transform a PyMOL script needs is <picture><source srcset="form_116_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$T_{pose} \circ T_{input}^{-1}$" src="form_116.png"/></picture>, and this is <picture><source srcset="form_117_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$T_{input}$" src="form_117.png"/></picture>. Measured on HIV-RT: the body-0 quaternion at the input pose is (0.8870, -0.1975, -0.4164, 0.0301), an 55 degree rotation, not (1, 0, 0, 0). </p>
+<p>Needed, and easy to leave out &ndash; which is a bug, so it is written down. <code>IMP::atom::create_rigid_body</code> does <b>not</b> start a body at the identity: it sets the frame from the members' principal axes, so the pose #IMP::bff::capture_poses records is not the transform to apply to the coordinates a <code>load</code> line reads. The transform a PyMOL script needs is <picture><source srcset="form_134_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$T_{pose} \circ T_{input}^{-1}$" src="form_134.png"/></picture>, and this is <picture><source srcset="form_135_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$T_{input}$" src="form_135.png"/></picture>. Measured on HIV-RT: the body-0 quaternion at the input pose is (0.8870, -0.1975, -0.4164, 0.0301), an 55 degree rotation, not (1, 0, 0, 0). </p>
 
 </div>
 </div>
@@ -263,7 +263,7 @@ Public Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 10:01:35 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 9 2026 22:12:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

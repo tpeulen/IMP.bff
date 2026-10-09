@@ -1,18 +1,18 @@
 <map id="ConsurfOptions" name="ConsurfOptions">
-<area shape="rect" id="Node000001" title="The settings of each step of #IMP::bff::compute_consurf." alt="" coords="421,595,614,660"/>
+<area shape="rect" id="Node000001" title="The settings of each step of #IMP::bff::compute_consurf." alt="" coords="405,595,630,680"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="346,135,425,200"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="346,172,280,180,199,199,158,214,119,235,84,261,56,294,36,325,21,356,12,385,8,414,11,442,19,471,34,500,56,530,78,548,111,564,152,578,200,589,305,606,405,616,404,622,304,611,199,594,151,583,109,569,75,553,52,534,30,503,14,473,5,443,3,414,7,384,16,354,31,323,52,290,81,257,116,231,155,210,197,194,279,175,346,167"/>
-<area shape="rect" id="Node000005" href="$class_sequence_cluster_search_options.html" title=" " alt="" coords="180,292,397,532"/>
-<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="356,202,340,225,319,277,314,275,335,223,352,199"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="346,172,279,180,198,199,157,214,119,235,84,261,55,294,35,325,21,356,12,385,8,414,11,442,19,471,34,500,55,530,76,548,107,564,191,590,290,609,388,622,388,628,290,615,190,595,105,569,73,552,51,534,29,503,14,473,5,443,3,414,6,384,16,354,31,323,51,290,80,257,116,231,155,210,197,194,278,175,345,167"/>
+<area shape="rect" id="Node000005" href="$class_sequence_cluster_search_options.html" title=" " alt="" coords="179,292,397,532"/>
+<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="356,202,340,225,318,277,313,275,335,223,352,199"/>
 <area shape="rect" id="Node000006" href="$class_sequence_homolog_options.html" title="How #IMP::bff::select_sequence_homologs chooses; the defaults are ConSurf&#39;s." alt="" coords="421,299,614,525"/>
-<area shape="poly" id="edge7_Node000006_Node000002" title=" " alt="" coords="427,184,452,200,473,222,490,251,502,283,497,285,485,254,469,226,448,205,424,188"/>
+<area shape="poly" id="edge7_Node000006_Node000002" title=" " alt="" coords="427,184,451,200,473,222,490,251,502,283,497,285,485,254,469,226,448,205,424,188"/>
 <area shape="rect" id="Node000007" href="$class_sequence_conservation_options.html" title="How #IMP::bff::compute_sequence_conservation fits and infers." alt="" coords="639,329,852,495"/>
-<area shape="poly" id="edge9_Node000007_Node000002" title=" " alt="" coords="426,171,498,188,539,202,576,222,632,265,679,314,675,318,628,269,574,226,536,207,497,193,425,176"/>
+<area shape="poly" id="edge9_Node000007_Node000002" title=" " alt="" coords="425,171,498,188,538,202,576,222,631,265,679,314,675,318,628,269,573,226,536,207,497,193,424,176"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="320,5,451,85"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="388,99,388,134,383,134,383,99"/>
 <area shape="rect" id="Node000004" href="$class_sequence_search_options.html" title="How #IMP::bff::search_sequence_database searches." alt="" coords="877,319,1070,505"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="901,507,866,534,809,563,748,586,688,603,631,614,630,609,687,597,747,581,807,558,863,530,898,503"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="399,524,447,569,464,582,460,586,444,573,395,528"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="900,507,865,534,813,563,757,585,647,617,645,612,755,580,811,558,863,530,897,503"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="399,522,447,569,461,581,457,585,444,573,395,526"/>
 <area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="520,525,520,578,515,578,515,525"/>
-<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="681,497,644,536,605,573,586,587,583,583,601,569,641,532,677,493"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="678,497,605,573,589,586,585,582,601,569,675,493"/>
 </map>

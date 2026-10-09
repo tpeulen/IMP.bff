@@ -108,6 +108,18 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a37872042a705b3640fb39817f8c012bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4e2294dbb308fb86e75546bf8e4be2ba" id="r_a4e2294dbb308fb86e75546bf8e4be2ba"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_hidden_process.html#a4e2294dbb308fb86e75546bf8e4be2ba">get_rate</a> (int source, int target) const</td></tr>
 <tr class="separator:a4e2294dbb308fb86e75546bf8e4be2ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a091bb318903da9f1dee5ebebc669489a" id="r_a091bb318903da9f1dee5ebebc669489a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_hidden_process.html#a091bb318903da9f1dee5ebebc669489a">set_reversible</a> (bool reversible)</td></tr>
+<tr class="separator:a091bb318903da9f1dee5ebebc669489a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a85aa458603bba7ff0ca7dd30e12918b6" id="r_a85aa458603bba7ff0ca7dd30e12918b6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_hidden_process.html#a85aa458603bba7ff0ca7dd30e12918b6">get_is_reversible</a> () const</td></tr>
+<tr class="separator:a85aa458603bba7ff0ca7dd30e12918b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4a25b638e25c9da92fe92ae82c90b87f" id="r_a4a25b638e25c9da92fe92ae82c90b87f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_hidden_process.html#a4a25b638e25c9da92fe92ae82c90b87f">set_population</a> (int k, double weight)</td></tr>
+<tr class="memdesc:a4a25b638e25c9da92fe92ae82c90b87f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reversible: the unnormalised population weight of conformer <code>k</code>.  <br /></td></tr>
+<tr class="separator:a4a25b638e25c9da92fe92ae82c90b87f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a240a8d45c278e4852bf349e9372054b8" id="r_a240a8d45c278e4852bf349e9372054b8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_hidden_process.html#a240a8d45c278e4852bf349e9372054b8">set_flux</a> (int i, int j, double flux)</td></tr>
+<tr class="memdesc:a240a8d45c278e4852bf349e9372054b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reversible: the exchange flux <code>s_ij = pi_i k_ij = pi_j k_ji</code> (&gt; 0).  <br /></td></tr>
+<tr class="separator:a240a8d45c278e4852bf349e9372054b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aad189f2fcf6e159d1434ce9cf47333f9" id="r_aad189f2fcf6e159d1434ce9cf47333f9"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_hidden_process.html#aad189f2fcf6e159d1434ce9cf47333f9">get_flux</a> (int i, int j) const</td></tr>
+<tr class="separator:aad189f2fcf6e159d1434ce9cf47333f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afcab6e54a565d8a05c22ede688cd04f4" id="r_afcab6e54a565d8a05c22ede688cd04f4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_hidden_process.html#afcab6e54a565d8a05c22ede688cd04f4">set_landscape</a> (const std::vector&lt; double &gt; &amp;knot_heights)</td></tr>
 <tr class="memdesc:afcab6e54a565d8a05c22ede688cd04f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Landscape: knot heights (kT) and <code>D</code>.  <br /></td></tr>
 <tr class="separator:afcab6e54a565d8a05c22ede688cd04f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -259,6 +271,34 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="aad189f2fcf6e159d1434ce9cf47333f9" name="aad189f2fcf6e159d1434ce9cf47333f9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aad189f2fcf6e159d1434ce9cf47333f9">&#9670;&#160;</a></span>get_flux()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double FRETHiddenProcess::get_flux </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>i</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>j</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a313a8219b2b25d91f44c40ed19f6a495" name="a313a8219b2b25d91f44c40ed19f6a495"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a313a8219b2b25d91f44c40ed19f6a495">&#9670;&#160;</a></span>get_generator()</h2>
 
@@ -289,6 +329,31 @@ Public Member Functions</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">bool FRETHiddenProcess::get_is_landscape </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a85aa458603bba7ff0ca7dd30e12918b6" name="a85aa458603bba7ff0ca7dd30e12918b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a85aa458603bba7ff0ca7dd30e12918b6">&#9670;&#160;</a></span>get_is_reversible()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool FRETHiddenProcess::get_is_reversible </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -422,7 +487,7 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Parameters, natural scale: discrete <code>rate[i-&gt;j]</code> for every nonzero rate; landscape <code>mu[k]</code> then <code>D</code>. </p>
+<p>Parameters, natural scale: discrete <code>rate[i-&gt;j]</code> for every nonzero rate, or (reversible) <code>population[k]</code> then <code>flux[i-j]</code>; landscape <code>mu[k]</code> then <code>D</code>. </p>
 
 </div>
 </div>
@@ -553,6 +618,42 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a240a8d45c278e4852bf349e9372054b8" name="a240a8d45c278e4852bf349e9372054b8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a240a8d45c278e4852bf349e9372054b8">&#9670;&#160;</a></span>set_flux()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FRETHiddenProcess::set_flux </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>i</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>j</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>flux</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reversible: the exchange flux <code>s_ij = pi_i k_ij = pi_j k_ji</code> (&gt; 0). </p>
+
+</div>
+</div>
 <a id="afcab6e54a565d8a05c22ede688cd04f4" name="afcab6e54a565d8a05c22ede688cd04f4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afcab6e54a565d8a05c22ede688cd04f4">&#9670;&#160;</a></span>set_landscape()</h2>
 
@@ -591,6 +692,36 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a4a25b638e25c9da92fe92ae82c90b87f" name="a4a25b638e25c9da92fe92ae82c90b87f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4a25b638e25c9da92fe92ae82c90b87f">&#9670;&#160;</a></span>set_population()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FRETHiddenProcess::set_population </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>k</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>weight</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reversible: the unnormalised population weight of conformer <code>k</code>. </p>
+
+</div>
+</div>
 <a id="a37872042a705b3640fb39817f8c012bf" name="a37872042a705b3640fb39817f8c012bf"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a37872042a705b3640fb39817f8c012bf">&#9670;&#160;</a></span>set_rate()</h2>
 
@@ -626,13 +757,32 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a091bb318903da9f1dee5ebebc669489a" name="a091bb318903da9f1dee5ebebc669489a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a091bb318903da9f1dee5ebebc669489a">&#9670;&#160;</a></span>set_reversible()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FRETHiddenProcess::set_reversible </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>reversible</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Discrete: switch the parameters to populations and exchange fluxes, a reversible chain by construction. The current rates are converted: <code>pi</code> is their stationary distribution and, per connected pair <code>i &lt; j</code> (both rates &gt; 0), <code>s_ij = (pi_i k_ij + pi_j k_ji) / 2</code>. Afterwards <code>k_ij = s_ij / pi_i</code> with <code>pi = w / sum(w)</code> from unnormalised weights <code>w</code>; the parameters are <code>population[k]</code> (<code>log w</code>, one scale gauge left to a prior or a fixed weight) and <code>flux[i-j]</code> (<code>log s</code>), so Gaussian priors on them are an MSM's population and flux priors (prototypes/fret_network_landscape/ensemble_prior.py). <code>false</code> converts back to the rates. </p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>/home/runner/work/IMP.bff/IMP.bff/include/<a class="el" href="_f_r_e_t_network_8h_source.html">FRETNetwork.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 10:01:35 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 9 2026 22:12:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

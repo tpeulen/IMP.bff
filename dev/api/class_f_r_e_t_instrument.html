@@ -130,6 +130,16 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a0ba8ec867bead30ad145032a002c85a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab6177cbff80931788899a244fc518599" id="r_ab6177cbff80931788899a244fc518599"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_instrument.html#ab6177cbff80931788899a244fc518599">get_background_density</a> (int channel) const</td></tr>
 <tr class="separator:ab6177cbff80931788899a244fc518599"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a7affa50b338e948f993d7e8c45bab5" id="r_a6a7affa50b338e948f993d7e8c45bab5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_instrument.html#a6a7affa50b338e948f993d7e8c45bab5">set_microtime_groups</a> (const std::vector&lt; int &gt; &amp;groups)</td></tr>
+<tr class="separator:a6a7affa50b338e948f993d7e8c45bab5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6b743c40130888ec5173765735c5f0c2" id="r_a6b743c40130888ec5173765735c5f0c2"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; int &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_instrument.html#a6b743c40130888ec5173765735c5f0c2">get_microtime_groups</a> () const</td></tr>
+<tr class="separator:a6b743c40130888ec5173765735c5f0c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a01384dab3e9dd152adcd7b709849484c" id="r_a01384dab3e9dd152adcd7b709849484c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_instrument.html#a01384dab3e9dd152adcd7b709849484c">get_n_photon_bins</a> () const</td></tr>
+<tr class="memdesc:a01384dab3e9dd152adcd7b709849484c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bins a photon's microtime indexes: the number of groups, or <code>n_bins</code>.  <br /></td></tr>
+<tr class="separator:a01384dab3e9dd152adcd7b709849484c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d380cf170bd484f8717599745c9c4c8" id="r_a6d380cf170bd484f8717599745c9c4c8"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_instrument.html#a6d380cf170bd484f8717599745c9c4c8">group_bins</a> (const std::vector&lt; double &gt; &amp;fine) const</td></tr>
+<tr class="memdesc:a6d380cf170bd484f8717599745c9c4c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">A per-fine-bin vector summed into the photon bins.  <br /></td></tr>
+<tr class="separator:a6d380cf170bd484f8717599745c9c4c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abce2d18807d43ef614e2086fd5914c73" id="r_abce2d18807d43ef614e2086fd5914c73"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_instrument.html#abce2d18807d43ef614e2086fd5914c73">get_parameter_names</a> () const</td></tr>
 <tr class="separator:abce2d18807d43ef614e2086fd5914c73"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad927d20c07c908752076834dfa6bd483" id="r_ad927d20c07c908752076834dfa6bd483"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_instrument.html#ad927d20c07c908752076834dfa6bd483">get_parameter_values</a> () const</td></tr>
@@ -412,6 +422,31 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a6b743c40130888ec5173765735c5f0c2" name="a6b743c40130888ec5173765735c5f0c2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6b743c40130888ec5173765735c5f0c2">&#9670;&#160;</a></span>get_microtime_groups()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::vector&lt; int &gt; &amp; FRETInstrument::get_microtime_groups </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a276eb103fd9f1aff2aeb7cfbb3843048" name="a276eb103fd9f1aff2aeb7cfbb3843048"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a276eb103fd9f1aff2aeb7cfbb3843048">&#9670;&#160;</a></span>get_n_bins()</h2>
 
@@ -459,6 +494,33 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a01384dab3e9dd152adcd7b709849484c" name="a01384dab3e9dd152adcd7b709849484c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a01384dab3e9dd152adcd7b709849484c">&#9670;&#160;</a></span>get_n_photon_bins()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int FRETInstrument::get_n_photon_bins </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Bins a photon's microtime indexes: the number of groups, or <code>n_bins</code>. </p>
 
 </div>
 </div>
@@ -569,6 +631,26 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6d380cf170bd484f8717599745c9c4c8" name="a6d380cf170bd484f8717599745c9c4c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6d380cf170bd484f8717599745c9c4c8">&#9670;&#160;</a></span>group_bins()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; double &gt; FRETInstrument::group_bins </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; double &gt; &amp;&#160;</td>
+          <td class="paramname"><em>fine</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A per-fine-bin vector summed into the photon bins. </p>
 
 </div>
 </div>
@@ -699,6 +781,25 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a6a7affa50b338e948f993d7e8c45bab5" name="a6a7affa50b338e948f993d7e8c45bab5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6a7affa50b338e948f993d7e8c45bab5">&#9670;&#160;</a></span>set_microtime_groups()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FRETInstrument::set_microtime_groups </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; int &gt; &amp;&#160;</td>
+          <td class="paramname"><em>groups</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Coarse photon microtimes: <code>groups[b]</code> (one per bin, values <code>0..G-1</code>, each used) is the bin a photon in fine bin <code>b</code> reports. The emission is still computed on the fine axis (IRF, decays) and then summed per group, so <code>groups = [0]*(n/2) + [1]*(n/2)</code> keeps only which PIE pulse a photon followed. Empty: photons report the fine bin. </p>
+
+</div>
+</div>
 <a id="a8b343c8f885d07634d251cf32383fe60" name="a8b343c8f885d07634d251cf32383fe60"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8b343c8f885d07634d251cf32383fe60">&#9670;&#160;</a></span>set_parameter_values()</h2>
 
@@ -723,7 +824,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 10:01:36 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 9 2026 22:12:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

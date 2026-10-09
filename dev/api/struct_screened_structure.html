@@ -111,7 +111,7 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a007a44744307b5ead40357580155efc2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The assembly's total score, and what the ranking is by.  <br /></td></tr>
 <tr class="separator:a007a44744307b5ead40357580155efc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a326713e567a1c916167d42fb89a4a840" id="r_a326713e567a1c916167d42fb89a4a840"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_screened_structure.html#a326713e567a1c916167d42fb89a4a840">chi2_r</a></td></tr>
-<tr class="memdesc:a326713e567a1c916167d42fb89a4a840"><td class="mdescLeft">&#160;</td><td class="mdescRight"><picture><source srcset="form_47_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\chi^2$" src="form_47.png"/></picture> per <em>scored</em> distance &ndash; FPS's <code>E</code>, and what it ranks by.  <br /></td></tr>
+<tr class="memdesc:a326713e567a1c916167d42fb89a4a840"><td class="mdescLeft">&#160;</td><td class="mdescRight"><picture><source srcset="form_65_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\chi^2$" src="form_65.png"/></picture> per <em>scored</em> distance &ndash; FPS's <code>E</code>, and what it ranks by.  <br /></td></tr>
 <tr class="separator:a326713e567a1c916167d42fb89a4a840"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a085d4498361a790628f7fbbec2681e59" id="r_a085d4498361a790628f7fbbec2681e59"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_screened_structure.html#a085d4498361a790628f7fbbec2681e59">sigma1</a></td></tr>
 <tr class="memdesc:a085d4498361a790628f7fbbec2681e59"><td class="mdescLeft">&#160;</td><td class="mdescRight">Distances deviating by more than 1, 2 and 3 times their error.  <br /></td></tr>
@@ -132,7 +132,7 @@ Public Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>One structure of a screened library, with what it scored and how it failed. </p>
-<p>A rank alone says which structure is least bad; it does not say <em>which</em> restraint the others miss, and that is the question a screen is run to answer. The diagnostics are FPS's (<code>FilterEngine.CalculateChi2</code> filling a <code>FilteringResult</code>): the reduced <picture><source srcset="form_47_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\chi^2$" src="form_47.png"/></picture>, the σ-violation counts, the number of distances with no model value, the reference-frame fit, and the per-pair table itself. </p>
+<p>A rank alone says which structure is least bad; it does not say <em>which</em> restraint the others miss, and that is the question a screen is run to answer. The diagnostics are FPS's (<code>FilterEngine.CalculateChi2</code> filling a <code>FilteringResult</code>): the reduced <picture><source srcset="form_65_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\chi^2$" src="form_65.png"/></picture>, the σ-violation counts, the number of distances with no model value, the reference-frame fit, and the per-pair table itself. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a06084c2e875cabdcb0e9e8ae584e7b5c" name="a06084c2e875cabdcb0e9e8ae584e7b5c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a06084c2e875cabdcb0e9e8ae584e7b5c">&#9670;&#160;</a></span>ScreenedStructure() <span class="overload">[1/2]</span></h2>
@@ -237,7 +237,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p><picture><source srcset="form_47_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\chi^2$" src="form_47.png"/></picture> per <em>scored</em> distance &ndash; FPS's <code>E</code>, and what it ranks by. </p>
+<p><picture><source srcset="form_65_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\chi^2$" src="form_65.png"/></picture> per <em>scored</em> distance &ndash; FPS's <code>E</code>, and what it ranks by. </p>
 <p>Distances with no model value are left out of both the sum and the count, exactly as FPS leaves them out; <a class="el" href="struct_screened_structure.html#a007a44744307b5ead40357580155efc2" title="The assembly&#39;s total score, and what the ranking is by.">score</a>, by contrast, goes infinite on the first of them. NaN when none could be scored. Carries no clash term and no factor of a half, so on a single body with no clashes <code>2 * score == chi2_r * (n - invalid_r)</code> (measured on T4L/3GUN, <code>chi2_C2_33p</code>: <b>22.5732 and 0.684037</b> over 33 pairs &ndash; re-measured 2026-09-01, when the accessible contact volume the file asks for stopped being ignored and the obstacle radii became Olga's; it read 22.5277 / 1.36532 before either). </p>
 
 </div>
@@ -320,7 +320,7 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The assembly's total score, and what the ranking is by. </p>
-<p>Half the <picture><source srcset="form_47_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\chi^2$" src="form_47.png"/></picture> sum plus the excluded-volume term: a Gaussian restraint is worth <picture><source srcset="form_76_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$-\log L = (d/\sigma)^2/2$" src="form_76.png"/></picture>, which is what <code><a class="el" href="class_a_v_pair_distance_measurement.html#ad5ce20e129d5bc26030d9cb1909233fd" title="Score a model distance against the experimental distance.">AVPairDistanceMeasurement::score_model</a></code> returns, so that FRET mixes with <a class="el" href="namespace_i_m_p.html">IMP</a>'s other terms at the right weight. Infinite as soon as one distance has no model value. </p>
+<p>Half the <picture><source srcset="form_65_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\chi^2$" src="form_65.png"/></picture> sum plus the excluded-volume term: a Gaussian restraint is worth <picture><source srcset="form_94_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$-\log L = (d/\sigma)^2/2$" src="form_94.png"/></picture>, which is what <code><a class="el" href="class_a_v_pair_distance_measurement.html#ad5ce20e129d5bc26030d9cb1909233fd" title="Score a model distance against the experimental distance.">AVPairDistanceMeasurement::score_model</a></code> returns, so that FRET mixes with <a class="el" href="namespace_i_m_p.html">IMP</a>'s other terms at the right weight. Infinite as soon as one distance has no model value. </p>
 
 </div>
 </div>
@@ -375,7 +375,7 @@ Public Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 10:01:36 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 9 2026 22:12:28 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

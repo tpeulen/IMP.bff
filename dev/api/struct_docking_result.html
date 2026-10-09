@@ -341,7 +341,7 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Did the descent stop moving before the budget ran out? </p>
-<p><b>Not FPS's definition, deliberately.</b> FPS reports <code>niter &lt; MaxIterations</code> (<code>SpringEngine.cs:295</code>), which is unconditionally <code>true</code> under <code>SelectedThenAll</code> (its D5) and says nothing about the gradient. Here it is measured: the score at the end of two consecutive optimisation chunks differing by less than <picture><source srcset="form_75_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$10^{-6}\max(1, |E|)$" src="form_75.png"/></picture>. A run that was stopped early is never converged. </p>
+<p><b>Not FPS's definition, deliberately.</b> FPS reports <code>niter &lt; MaxIterations</code> (<code>SpringEngine.cs:295</code>), which is unconditionally <code>true</code> under <code>SelectedThenAll</code> (its D5) and says nothing about the gradient. Here it is measured: the score at the end of two consecutive optimisation chunks differing by less than <picture><source srcset="form_93_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$10^{-6}\max(1, |E|)$" src="form_93.png"/></picture>. A run that was stopped early is never converged. </p>
 
 </div>
 </div>
@@ -359,7 +359,7 @@ Public Attributes</h2></td></tr>
 
 <p>FPS's <code>Ebond</code>: the part of <a class="el" href="struct_docking_result.html#aef1c932ec2dce5b241f7e5687e980c39">score</a> that the bond distances contribute. </p>
 <p>A subset of <a class="el" href="struct_docking_result.html#aef1c932ec2dce5b241f7e5687e980c39">score</a>, never an addition to it.** FPS accumulates it in the same loop that accumulates the total (<code>SpringEngine.cs:445</code>) and writes it as the <code>chi2_bond</code> column; adding the two together double-counts every crosslink. Zero when the file declares no bonds, which is the ordinary case.</p>
-<p>In this module's units, i.e. half a <picture><source srcset="form_47_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\chi^2$" src="form_47.png"/></picture> per distance, so <code>e_bond / score</code> is directly the fraction of the restraint energy that is not FRET. </p>
+<p>In this module's units, i.e. half a <picture><source srcset="form_65_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\chi^2$" src="form_65.png"/></picture> per distance, so <code>e_bond / score</code> is directly the fraction of the restraint energy that is not FRET. </p>
 
 </div>
 </div>
@@ -532,7 +532,7 @@ Public Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 10:01:35 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 9 2026 22:12:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

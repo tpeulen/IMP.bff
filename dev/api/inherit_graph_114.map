@@ -1,3 +1,49 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$struct_imp_bff_compute_backend.html" title="What a plugin offers. Version first, so a mismatch is caught, not crashed." alt="" coords="5,5,184,31"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,301,101,327"/>
+<area shape="rect" id="Node000001" href="$class_density_grid.html" title="A regular grid of doubles, with spheres sampled into it." alt="" coords="224,5,323,31"/>
+<area shape="poly" id="edge4_Node000000_Node000001" title=" " alt="" coords="53,287,59,234,73,167,85,132,102,98,122,67,148,40,165,29,184,21,223,14,224,19,185,26,167,33,151,44,126,70,106,101,90,134,78,169,64,235,58,287"/>
+<area shape="rect" id="Node000003" href="$class_docking_stop.html" title="A cooperative stop for a run that may take minutes." alt="" coords="221,55,325,80"/>
+<area shape="poly" id="edge6_Node000000_Node000003" title=" " alt="" coords="55,287,64,243,81,190,108,135,126,111,148,89,183,71,220,64,221,69,184,76,151,93,130,114,112,138,85,192,69,245,61,288"/>
+<area shape="rect" id="Node000004" href="$class_fit_minimizer_observer.html" title="What a caller is told while a minimisation runs, and how it stops one." alt="" coords="192,104,355,129"/>
+<area shape="poly" id="edge7_Node000000_Node000004" title=" " alt="" coords="59,287,70,253,88,212,114,172,148,139,169,127,191,119,193,124,171,132,151,143,118,175,93,215,75,255,64,289"/>
+<area shape="rect" id="Node000005" href="$class_fit_residual_function.html" title="A residual vector as a function of the parameter vector." alt="" coords="199,153,348,179"/>
+<area shape="poly" id="edge8_Node000000_Node000005" title=" " alt="" coords="64,287,97,236,120,210,148,188,172,176,197,169,199,174,174,181,151,192,124,213,101,239,69,290"/>
+<area shape="rect" id="Node000006" href="$class_interaction_term.html" title="One deactivation channel." alt="" coords="211,203,335,228"/>
+<area shape="poly" id="edge9_Node000000_Node000006" title=" " alt="" coords="75,289,108,262,148,237,179,226,210,219,212,224,180,231,150,242,111,266,79,294"/>
+<area shape="rect" id="Node000010" href="$class_minimize_objective.html" title="A scalar objective, optionally with its gradient." alt="" coords="201,252,345,277"/>
+<area shape="poly" id="edge13_Node000000_Node000010" title=" " alt="" coords="112,295,149,286,202,275,203,280,150,291,114,300"/>
+<area shape="rect" id="Node000011" href="$class_occupancy_grid.html" title="Occupancy counts of atoms, inflated by one extra radius, on the AV lattice." alt="" coords="213,301,333,327"/>
+<area shape="poly" id="edge14_Node000000_Node000011" title=" " alt="" coords="115,311,213,311,213,317,115,317"/>
+<area shape="rect" id="Node000013" href="$class_ode_function.html" title="The right&#45;hand side dy/dt = f(y, t) of an ODE system." alt="" coords="222,351,325,376"/>
+<area shape="poly" id="edge16_Node000000_Node000013" title=" " alt="" coords="116,327,150,335,222,351,221,356,149,341,114,332"/>
+<area shape="rect" id="Node000014" href="$class_probe_accessible_volume_occupancy_registry.html" title="One AVOccupancyMap per (spacing, extra&#45;radius) class, created on demand." alt="" coords="149,401,397,441"/>
+<area shape="poly" id="edge17_Node000000_Node000014" title=" " alt="" coords="79,334,112,361,151,385,183,398,181,403,148,390,109,365,76,338"/>
+<area shape="rect" id="Node000015" href="$class_probe_network_selection.html" title="Greedy selection of a probe network by a weighted sum of term losses." alt="" coords="186,465,361,491"/>
+<area shape="poly" id="edge18_Node000000_Node000015" title=" " alt="" coords="67,338,99,396,122,426,151,450,187,466,184,471,148,455,118,429,94,399,62,341"/>
+<area shape="rect" id="Node000016" href="$class_probe_network_term.html" title="One score of a probe network: a loss in [0, 1] over a set of pairs." alt="" coords="200,515,347,540"/>
+<area shape="poly" id="edge19_Node000000_Node000016" title=" " alt="" coords="63,340,73,376,91,420,116,464,151,500,174,513,201,521,199,526,172,518,148,504,112,467,86,422,68,378,58,341"/>
+<area shape="rect" id="Node000022" href="$class_r_r_t_collision.html" title="Does this configuration clash?" alt="" coords="222,564,325,589"/>
+<area shape="poly" id="edge25_Node000000_Node000022" title=" " alt="" coords="60,340,67,386,83,443,110,501,129,527,151,549,167,560,185,567,222,574,221,580,183,572,164,564,148,553,125,530,106,503,78,444,62,387,54,340"/>
+<area shape="rect" id="Node000023" href="$class_sparse_l_u.html" title="An LU factorisation of a square sparse matrix, reusable for many solves." alt="" coords="232,613,315,639"/>
+<area shape="poly" id="edge26_Node000000_Node000023" title=" " alt="" coords="58,340,62,395,76,466,88,503,104,539,125,572,151,600,169,612,190,619,232,625,231,631,188,625,167,617,148,604,121,575,99,541,83,505,71,467,57,396,52,341"/>
+<area shape="rect" id="Node000002" href="$class_path_map.html" title=" " alt="" coords="544,5,623,31"/>
+<area shape="poly" id="edge5_Node000001_Node000002" title=" " alt="" coords="336,15,544,15,544,21,336,21"/>
+<area shape="rect" id="Node000007" href="$class_f_r_e_t_term.html" title="2&#45;body: Förster transfer between two dyes." alt="" coords="540,153,627,179"/>
+<area shape="poly" id="edge10_Node000006_Node000007" title=" " alt="" coords="349,201,539,170,540,175,349,206"/>
+<area shape="rect" id="Node000008" href="$class_p_e_t_term.html" title="2&#45;body: photoinduced electron transfer between a dye and quencher atoms." alt="" coords="544,203,623,228"/>
+<area shape="poly" id="edge11_Node000006_Node000008" title=" " alt="" coords="349,213,544,213,544,218,349,218"/>
+<area shape="rect" id="Node000009" href="$class_radiative_term.html" title="1&#45;body: the dye&#39;s own decay, ." alt="" coords="525,252,641,277"/>
+<area shape="poly" id="edge12_Node000006_Node000009" title=" " alt="" coords="349,225,525,253,525,258,348,230"/>
+<area shape="rect" id="Node000012" href="$class_probe_accessible_volume_occupancy_map.html" title="The occupancy raster over IMP particles." alt="" coords="445,301,721,327"/>
+<area shape="poly" id="edge15_Node000011_Node000012" title=" " alt="" coords="347,311,445,311,445,317,347,317"/>
+<area shape="rect" id="Node000017" href="$class_probe_kinetics_term.html" title="Dynamics: how well the rates of a kinetic scheme are determined." alt="" coords="512,416,655,441"/>
+<area shape="poly" id="edge20_Node000016_Node000017" title=" " alt="" coords="360,514,396,500,410,488,419,476,428,463,444,450,477,437,511,430,512,435,479,442,447,455,432,466,423,479,414,492,399,504,362,519"/>
+<area shape="rect" id="Node000018" href="$class_probe_labelling_term.html" title="Labelling: how well the chosen sites label, and how many mutations." alt="" coords="508,465,659,491"/>
+<area shape="poly" id="edge21_Node000016_Node000018" title=" " alt="" coords="360,511,507,487,508,493,361,516"/>
+<area shape="rect" id="Node000019" href="$class_probe_pair_benefit_term.html" title="A benefit per candidate pair: the chance that a selected pair sees a change." alt="" coords="503,515,664,540"/>
+<area shape="poly" id="edge22_Node000016_Node000019" title=" " alt="" coords="360,525,502,525,502,530,360,530"/>
+<area shape="rect" id="Node000020" href="$class_probe_pair_cost_term.html" title="A cost per candidate pair: the chance that a selected pair is a problem." alt="" coords="511,564,655,589"/>
+<area shape="poly" id="edge23_Node000016_Node000020" title=" " alt="" coords="361,538,511,563,511,568,360,544"/>
+<area shape="rect" id="Node000021" href="$class_probe_resolution_term.html" title="Structural resolution: Olga&#39;s expected RMSD." alt="" coords="503,613,663,639"/>
+<area shape="poly" id="edge24_Node000016_Node000021" title=" " alt="" coords="361,534,399,549,414,562,423,575,432,588,447,600,474,611,504,618,503,623,473,616,444,604,428,592,419,578,410,565,396,554,359,539"/>
 </map>

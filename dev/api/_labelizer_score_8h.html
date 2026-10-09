@@ -160,6 +160,8 @@ Functions</h2></td></tr>
 <tr class="memitem:a60dc7e8e5339f57e0a5a6fbe9000f30f" id="r_a60dc7e8e5339f57e0a5a6fbe9000f30f"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT std::map&lt; std::string, double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_labelizer_score_8h.html#a60dc7e8e5339f57e0a5a6fbe9000f30f">labelizer_combined_by_key</a> (const std::vector&lt; <a class="el" href="struct_labelizer_score.html">LabelizerScore</a> &gt; &amp;scores)</td></tr>
 <tr class="memdesc:a60dc7e8e5339f57e0a5a6fbe9000f30f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The combined score per residue key, for the pair layer.  <br /></td></tr>
 <tr class="separator:a60dc7e8e5339f57e0a5a6fbe9000f30f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a286ac86425f101fc9afa991db110b8b6" id="r_a286ac86425f101fc9afa991db110b8b6"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT std::map&lt; std::string, double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_labelizer_score_8h.html#a286ac86425f101fc9afa991db110b8b6">labelizer_confidence_by_key</a> (const std::vector&lt; <a class="el" href="struct_labelizer_score.html">LabelizerScore</a> &gt; &amp;scores)</td></tr>
+<tr class="separator:a286ac86425f101fc9afa991db110b8b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
 <a id="a1ccf5dbbe50a0e73028d86bfc6b54af6" name="a1ccf5dbbe50a0e73028d86bfc6b54af6"></a>
@@ -319,6 +321,25 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><code>"&lt;chain&gt;&lt;seq_id&gt;" -&gt; value</code>, only for positions with <code>status</code> <code>scored</code> </dd></dl>
+
+</div>
+</div>
+<a id="a286ac86425f101fc9afa991db110b8b6" name="a286ac86425f101fc9afa991db110b8b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a286ac86425f101fc9afa991db110b8b6">&#9670;&#160;</a></span>labelizer_confidence_by_key()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">IMPBFFEXPORT std::map&lt; std::string, double &gt; labelizer_confidence_by_key </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_labelizer_score.html">LabelizerScore</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>scores</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The model confidence per residue key (pLDDT for an AlphaFold model), from the <code>model_confidence</code> rows <a class="el" href="_labelizer_score_8h.html#a3dd85deae0f5fd97defead7dfd2ef743" title="Score a structure end to end: features, parameters, and the combination.">labelizer_score_structure</a> adds with <a class="el" href="struct_labelizer_options.html#a3e4f1e0b9095d98304caa90fc856905b">LabelizerOptions::bfactor_is_confidence</a>; empty without them. </p>
 
 </div>
 </div>
@@ -687,7 +708,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 4 2026 10:01:35 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 9 2026 22:12:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
