@@ -59,6 +59,8 @@ static void bff_handle_released_exception() {
 /* Gaussian factors in canonical form and exact variable elimination over the
    factor graph above (aGrUM's CLG inference). */
 %include "IMP_bff.inferencegaussian.i"
+/* Native counterfactuals: causal models, network bias test, Markov-chain twins. */
+%include "IMP_bff.counterfactual.i"
 
 /*
  * The reactive GraphPort/GraphNode runtime ported from chinet (phase 1 of removing

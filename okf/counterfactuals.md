@@ -1,6 +1,6 @@
 ---
 okf_version: "0.2"
-status: proposal
+status: implemented (native C++ since 2026-10-09)
 ---
 
 # Counterfactuals in FRET modelling, and a directed factor graph
@@ -9,7 +9,8 @@ Written 2026-10-06, from a discussion with the owner. This page has two parts.
 The first part makes the case that interventions and counterfactuals can make
 FRET models say things they can't say today, with nine worked examples. The
 second part proposes how `InferenceFactorGraph` should carry direction so it
-can represent them. Nothing here is implemented yet. The examples are worked
+can represent them. Both are implemented in IMP.bff C++ (section 4a). The
+examples are worked
 numerically in
 [`doc/workshop/09_counterfactuals.ipynb`](../doc/workshop/09_counterfactuals.ipynb),
 on smFRET data simulated with tttrlib (`SimEngine` photon simulation and
@@ -248,54 +249,75 @@ data can't tell them apart.
 | 3.8 | Mutant transfer | 2 | Mutant panel |
 | 3.9 | FRET network bias test | 3 | No (the existing network); re-labelling to confirm |
 
-## 4. Graph design: direction carried by factors
+## 4. Graph design: direction carried by factors (implemented)
 
-**Today.** `InferenceFactorGraph` (`include/InferenceFactorGraph.h`) has
-undirected factors (PRIOR, LIKELIHOOD, HYPER, LINK) that it moralises into
-cliques. Notebook cell 5 builds the mediation example and gets one clique
-{L, W, M, Y}. The reversed model, in which the active site drives the hinge,
-gives the identical graph. Direction, and with it do() and twin networks, is
-not representable.
+**Before 2026-10-09.** `InferenceFactorGraph` had only undirected factors
+(PRIOR, LIKELIHOOD, HYPER, LINK), which it moralises into cliques. The mediation
+example gives one clique {L, W, M, Y}, and so does the reversed model in which
+the active site drives the hinge. Direction, and with it do() and twin
+networks, could not be represented.
 
-**Proposal: a mixed graph in which the factor carries the arrow.**
+**Now: a mixed graph in which the factor carries the arrow.**
 
-- `add_factor(key, kind, scope, fit_index, size, children=[])`.
+- `set_factor_children(factor, children)`.
   - **With children,** the factor is a conditional p(children | scope ∖
-    children): a mechanism, i.e. directed edges from the rest of the scope
-    into each child.
-  - **Without children,** it is an undirected potential, exactly today's
-    PRIOR, HYPER and LINK. Existing graphs don't change.
-- **Bidirected edges** (a latent common cause, such as W in 3.2) need no new
-  edge type. They are a variable with `role = "exogenous"` that is a parent of
-  both sides. Abduction then has something to infer, and its size enters
-  `block_cost` like any variable.
+    children): a mechanism, i.e. arrows from the rest of the scope into each
+    child.
+  - **Without children,** it is an undirected potential, exactly as PRIOR,
+    HYPER and LINK were before.
+  - A variable has at most one mechanism, and children must be in the scope.
+- **Bidirected edges** (a latent common cause, such as W in 3.2) need no edge
+  type of their own. They are a variable with `role = "exogenous"` that is a
+  parent of both sides.
 - **Unchanged:** moralising a directed factor gives the same clique over its
   scope. The moral graph, elimination order, treewidth, junction tree and
-  sampling blocks are identical. Direction is extra information, never a
-  different answer to an existing query.
-- **New queries:** `parents_of(var)`, `children_of(var)`, `is_acyclic()`,
-  `get_exogenous_variables()`.
-- **New operations,** each returning a new graph:
-  - `intervene(var)` removes every factor that has `var` as a child (the
-    mutilated graph) and marks `var` as held evidence.
-  - `twin(vars, suffix="@cf")` copies the descendants of `vars` with
-    suffixed keys. Exogenous ancestors stay shared, which is what couples the
-    two worlds.
-  - A counterfactual restraint is then an ordinary PRIOR factor with role
-    `assumption` over factual and `@cf` keys.
-- **Cycles.** Kinetic schemes (A ⇄ B) are cyclic as mechanisms but are one
-  node: a rate matrix inside `KineticSchemeNode`. The variable-level graph
-  stays acyclic, and `is_acyclic()` enforces it.
-- **Serialisation.** `children` joins the factor record in `to_json()`, so a
-  graph saved beside its data (PRD-139) carries its causal structure.
+  sampling blocks are identical; tests assert it.
+- **Queries:** `get_parents`, `get_children`, `get_descendants`,
+  `get_mechanism_of`, `get_is_acyclic`, `get_exogenous_variables`,
+  `get_intervened_variables`.
+- **Operations,** each returning a new graph:
+  - `get_intervened(keys)` removes the mechanisms of the keys (the mutilated
+    graph) and marks them held. A mechanism that generates several children
+    is removed only whole.
+  - `get_twin(keys, suffix="@cf")` copies the descendants of the keys and
+    their mechanisms with suffixed keys, then intervenes on the copied keys.
+    Exogenous ancestors stay shared, which couples the two worlds. Data
+    likelihoods are not copied: the data belong to the factual world.
+  - A counterfactual restraint is an ordinary PRIOR over factual and `@cf`
+    keys, with role `assumption`.
+- **Cycles:** kinetic schemes (A ⇄ B) are one node, a rate matrix inside
+  `KineticSchemeNode`. `get_is_acyclic()` checks the variable-level graph, and
+  `describe()` reports "mechanisms : n (acyclic)" or "(CYCLIC)".
+- **Serialisation:** `children` per factor and `intervened` per graph in
+  `to_json()`, round-tripped exactly by `from_json()`.
 
 **Alternative considered.** Keep direction only in the `GraphNode`/`GraphPort`
 evaluation graph (already a DAG of structural equations) and derive the factor
 graph from it by moralisation. It was rejected as the *primary* home because
-the factor graph is the object saved with data and handed to inference. It
-should state its own causal structure rather than depend on whichever
-evaluation graph produced it. The evaluation graph remains the natural place
-to *execute* do() and twin (unlink a port, clone a subgraph).
+the factor graph is the object saved with data and handed to inference.
+
+## 4a. Native counterfactual engines (C++)
+
+| Class | What it does | Test | C++ example |
+|---|---|---|---|
+| `InferenceFactorGraph` (directed factors) | parents and children, acyclicity, `get_intervened`, `get_twin`, JSON | `test/factorgraph/test_directed_factors.py` | `examples/counterfactual/twin_factor_graph.cpp` |
+| `CausalLinearGaussian` | linear-Gaussian SCM: interventional and conditional worlds, abduction of the noise, counterfactual worlds, natural direct and indirect effects (population or one unit), samples | `test/counterfactual/test_causal_linear_gaussian.py` | `allosteric_mediation.cpp` |
+| `CounterfactualDistanceNetwork` | site biases as exogenous variables: standard and bias-aware posteriors, abducted biases and noise, do(b = 0), per-site hinge, counterfactual and fresh-noise replay | `test/counterfactual/test_counterfactual_distance_network.py` | `network_site_bias.cpp` |
+| `CounterfactualMarkovChain` | Gumbel-max counterfactual trajectories of an observed Markov chain, occupancy, probability of necessity | `test/counterfactual/test_counterfactual_markov_chain.py` | `ligand_necessity.cpp` |
+
+- **Tests:** every number is checked against an independent numpy
+  construction.
+- **Examples:** the four C++ examples are built and run as part of the
+  module's example tests (`examples/Files.cmake`).
+- **Notebook:** `doc/workshop/09_counterfactuals.ipynb` calls the same classes
+  in sections 3, 4, 6 and 7. Section 2's photon model is still numpy; its C++
+  home is the planned stream mode of `BurstML` (plan item 2).
+- **Result:** the C++ results reproduce the notebook's earlier numpy ones
+  exactly:
+  - PN 0.14 for conformational selection and 0.80 for induced fit;
+  - the network fit at frame 57 under the standard analysis and frame 45 with
+    biases, 5.2 Å abducted at site 18;
+  - natural effects 1.10 = 0.30 direct + 0.80 indirect.
 
 ## 5. Limits
 
@@ -316,36 +338,118 @@ to *execute* do() and twin (unlink a port, clone a subgraph).
 
 ## 6. Plan
 
-1. **PRD: direction in `InferenceFactorGraph`** (section 4):
-   - `children=` on `add_factor`, and the `exogenous` and `assumption` roles;
-   - `parents_of`, `children_of`, `is_acyclic`, `intervene`, `twin`;
-   - the JSON round trip.
-   Tests: the mediation graph of 3.2, where the moralised cliques stay
-   unchanged and the intervened and twin graphs are asserted.
-2. **A C++ photon-HMM burst likelihood node.** Measured 2026-10-06 on 500
-   bursts × 150 photons with eight parameters:
-   - `MCMCSampler` costs 5.72 ms per evaluation against 5.76 ms for the bare
-     numpy likelihood, so the sampler and graph runtime add nothing;
-   - all the time is the photon-by-photon forward recursion, written in
-     Python in the notebook's `GraphNode`.
-   - The fix is a C++ `GraphNode`: a forward algorithm over photons with
-     colour and micro-time emission, a background mixture, a donor-only
-     branch and a gradient. It allows full bursts (no 150-photon cap),
-     longer chains and NUTS.
-   - Placement needs a decision. Photon likelihoods are tttrlib's by the
-     placement rule, but the consumer is the bff graph, and the consumer
-     wins. One option is that the kernel lives in tttrlib (next to `HMM`)
-     and the node in bff wraps it.
-   - Also wanted: the per-burst abduction (FFBS plus twin re-emission) in C++.
-3. **A network bias test (3.9) as a bff tool:**
-   - inputs: a site-incidence matrix, a model-distance table over candidate
-     structures, and a bias prior;
-   - outputs: the abducted site biases, the hinge table over do(b_s = 0),
-     and the counterfactual replay;
-   - it could become a subcommand of the `imp_bff` executable next to the
-     network tools;
-   - it extends naturally to κ², linker-model and label-perturbation biases
-     (3.6).
+1. **Direction in `InferenceFactorGraph` and the native engines: done**
+   (2026-10-09, section 4a).
+2. **The burst likelihood: build on tttrlib's `BurstML`, wrap it as a bff node.**
+   - **Why the time goes elsewhere today.** Measured 2026-10-06 on 500
+     bursts × 150 photons with eight parameters: `MCMCSampler` costs 5.72 ms
+     per evaluation against 5.76 ms for the bare numpy likelihood. The bff
+     sampler and graph add nothing; the Python photon recursion in the
+     notebook's `GraphNode` is the cost.
+   - **What `BurstML` is.** tttrlib's `BurstML` is the Gopich–Szabo
+     maximum-likelihood burst model: diffusion through the focus on a radial
+     grid, kinetics between states, and photon colours with per-colour
+     background. Its own header credits Hoffmann et al.; that attribution
+     needs correcting in tttrlib. It is already C++, validated to 1e-12
+     against the original MEX, and it makes the burst definition (gap t_th,
+     minimum n_th photons) part of the likelihood.
+   - **Test on the notebook's tttrlib simulation** (two states, k = 0.3 ms⁻¹
+     each way, background 1 / 0.5 kHz, 947 bursts split at a 0.1 ms gap):
+     - E = 0.201 / 0.796, populations 0.50;
+     - exchange-rate sum 0.68 ms⁻¹, i.e. k ≈ 0.34 against 0.30 (13 % high,
+       against 25 % for the notebook's model). This supports the suspicion
+       that the notebook's per-burst constant background fraction, which
+       ignores diffusion, causes part of its bias;
+     - background under-estimated (0.32 / 0.71 against 0.5 / 1.0 kHz);
+     - 107 ms per evaluation at jmax = 30, and `fit().errors` came back
+       empty.
+   - **What `BurstML` lacks for the graphs here.** The work belongs in
+     tttrlib (photons), and bff wraps it as a likelihood `GraphNode` for
+     `MCMCSampler`:
+     - micro-time emission (donor lifetime per state), without which there is
+       no τ₀ and no E–τ static-line counterfactual;
+     - a donor-only species as a disconnected state;
+     - per-burst posterior state paths (forward-filter, backward-sample in
+       the eigenbasis) for the abduction step;
+     - a gradient, for NUTS;
+     - speed: cache the eigendecomposition across parameters that don't
+       change it, and allow a smaller jmax;
+     - the empty Hessian errors.
+
+   - **The burst definition made Bayesian** (prototype, 2026-10-07,
+     [`prototypes/burst_free_likelihood/`](../prototypes/burst_free_likelihood/README.md)).
+     - **Model:** add a "no molecule in the focus" state with entry and exit at
+       the edge of the radial grid, and write the likelihood for the whole
+       photon stream as a Markov-modulated Poisson process. Background is
+       emitted in every state, and donor micro-times are included.
+     - **Fit:** on the same tttrlib simulation, k = 0.301 ± 0.016 and
+       0.328 ± 0.018 ms⁻¹ (second seed 0.325 / 0.312), against 0.30.
+       Background, efficiencies and τ₀ all lie within 1.6 sd of the truth.
+       The bias of the burst-based fits (0.38 for the notebook's model, 0.34
+       for `BurstML`) is gone.
+     - **Photons:** the per-photon posterior assigns 98.2 % of photons
+       correctly to molecule or background, against 90.4 % for a burst
+       search, which misses 24 % of molecule photons.
+     - **Cost:** 0.27 s per evaluation on 300 000 photons in numpy.
+     - **Counterfactuals on the stream.** Posterior paths of the whole
+       stream are sampled by forward-filtering, backward-sampling. Each photon
+       gets a molecule-or-background label and noise uniforms, and two twins
+       are run:
+       - **do(k = 0):** P(dynamic) per transit is calibrated (predicted 0.20
+         gives observed 0.22, 0.81 gives 0.76, 0.99 gives 0.97) and 92 %
+         correct on bright transits;
+       - **do(background = 0):** brings ⟨τ⟩_f from 2.9 ns off to within
+         0.19 ns of the molecule's own photons. Transits defined by the
+         posterior carry 16 % background on average.
+       - Together they reproduce the static-line test without bursts:
+         background-free static transits sit on the line, and frozen twins
+         land on it.
+     - **Next:** this becomes `BurstML`'s stream mode (empty state, micro-time
+       emission, posterior paths), with the axial coordinate, donor-only
+       molecules and detector dead time still to add.
+
+3. **The network bias test (3.9) in network design (labelizer and Olga).**
+   Surveyed 2026-10-07. Nothing in labelizer or the Olga code models a
+   systematic per-site error:
+   - `ProbeResolutionTerm` uses one scalar `measurement_error` for all pairs,
+     with independent per-pair χ²;
+   - `ProbeLabellingTerm` models the probability that labelling fails, not a
+     distance bias;
+   - the selector rewards reusing a site but has no minimum number of pairs
+     per site.
+
+   The data the test needs are already inside `labelizer/network.py`
+   `select_network`: the model table `d`/`eff` (conformers × pairs), the
+   site incidence (`pairs`, passed to `set_pair_sites`), `ensemble.rmsd`, and
+   per-site keys. Hook points, in order of value:
+   a. **`ProbeBiasRobustnessTerm`**, a new `ProbeNetworkTerm` in
+      `include/ProbeNetworkSelection.h`. It computes Olga's expected RMSD
+      under the marginal likelihood with covariance S = σ²I + τ_b² A Aᵀ:
+      the site biases are integrated out, as in notebook 09. That needs a
+      Mahalanobis χ² per pair of frames, not the per-pair kernels in
+      `internal/ProbePairKernels.h`. `get_loss_with(pairs, sites)` already
+      receives both pairs and sites.
+   b. **Redundancy:** penalise sites that appear in fewer than k pairs. A site
+      in one or two pairs has an unidentifiable bias (3.9). This can be a term
+      or eligibility logic in `select()`; site mode already groups pairs by
+      site.
+   c. **Hinge and blind-spot report** after selection, in `labelizer/network.py`
+      next to `mode_resolution`:
+      - leave one site's bias free and report the worst-case loss;
+      - replay over the candidate conformers with biases drawn from the prior
+        (at design time there is no data to abduct), and report the confusion
+        between true and recovered conformer;
+      - shown in the app next to `rmsd_curve` (`labelizer/jobs.py`).
+   d. **Per-site prior widths τ_s** from data that already exists:
+      `ProbeModelComparison.h` records the AV-versus-rotamer disagreement per
+      site (`d_mean_position`, `sigma_av`/`sigma_rot`, `interpenetration_weight`),
+      and the dye-behaviour fields of the labelizer site features. A term can
+      take them as a per-site map, as `ProbeLabellingTerm` takes label scores.
+   e. **On measured data,** do(b = 0), the per-site hinge and the replay belong
+      in the analysis: `InferenceFactorGraph` / FRETNetwork with per-site bias
+      variables (role `exogenous`). Today they exist only in notebook 09
+      section 6.
+
 4. **Section 2 of the notebook:**
    - diagnose the 25 % overestimate of the exchange rates, testing the
      background-fraction approximation, burst selection and the photon cap;

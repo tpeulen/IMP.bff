@@ -79,7 +79,10 @@ because the two sides each held their own idea of the same object.
 
 The exceptions are exact:
 
-* **tests, examples and documentation** are Python;
+* **tests, examples and documentation** are Python; *except* that **C++ examples are welcome**
+  (owner, 2026-10-09: "examples in cpp") — `examples/**/*.cpp` listed in
+  `examples/Files.cmake` are built and run as module example tests; see
+  `examples/counterfactual/`;
 * **`prototypes/`** is exempt entirely — it is where an idea is tried, not
   where it ships;
 * **programs** are C++ too: one executable, `bin/imp_bff.cpp`, whose

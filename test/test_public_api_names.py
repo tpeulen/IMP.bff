@@ -42,6 +42,7 @@ FLAT_NAMES = [
     "fit_weighted_residuals",      # deterministic residual helper
     "InferenceFactorGraph",        # inference structure
     "MCMCSampler",                 # Markov-chain sampling engine
+    "CausalLinearGaussian",        # native counterfactuals
     "select_probe_pairs",           # generic measurement selection
     "select_probe_positions",       # generic position selection
     "ProbeNetworkSelection",        # greedy selection, weighted term mix

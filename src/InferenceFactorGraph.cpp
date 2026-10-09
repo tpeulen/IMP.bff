@@ -790,9 +790,19 @@ std::string InferenceFactorGraph::to_json() const {
       for (int p : f.evidence) evidence.push_back(variables_[p].key);
       o["evidence"] = evidence;
     }
+    if (!f.children.empty()) {
+      nlohmann::json children = nlohmann::json::array();
+      for (int p : f.children) children.push_back(variables_[p].key);
+      o["children"] = children;
+    }
     facs.push_back(o);
   }
   j["factors"] = facs;
+  if (!intervened_.empty()) {
+    nlohmann::json held = nlohmann::json::array();
+    for (int p : intervened_) held.push_back(variables_[p].key);
+    j["intervened"] = held;
+  }
   return j.dump(2);
 }
 
@@ -829,8 +839,277 @@ void InferenceFactorGraph::from_json(const std::string& json) {
       for (const auto& e : f.at("evidence")) evidence.push_back(e.get<std::string>());
       fresh.set_factor_evidence(f.at("key").get<std::string>(), evidence);
     }
+    if (f.contains("children")) {
+      std::vector<std::string> children;
+      for (const auto& c : f.at("children")) children.push_back(c.get<std::string>());
+      fresh.set_factor_children(f.at("key").get<std::string>(), children);
+    }
+  }
+  if (j.contains("intervened")) {
+    for (const auto& k : j.at("intervened")) {
+      fresh.intervened_.insert(fresh.position_of(k.get<std::string>(), "from_json"));
+    }
   }
   *this = fresh;
+}
+
+// ---------------------------------------------------------------- direction
+
+int InferenceFactorGraph::position_of(const std::string& key, const char* what) const {
+  const auto it = variable_index_of_.find(key);
+  if (it == variable_index_of_.end()) {
+    IMP_THROW(std::string(what) << ": unknown variable " << key, IMP::ValueException);
+  }
+  return it->second;
+}
+
+void InferenceFactorGraph::set_factor_children(const std::string& factor_key,
+                                               const std::vector<std::string>& children) {
+  const auto found = factor_index_of_.find(factor_key);
+  if (found == factor_index_of_.end()) {
+    IMP_THROW("set_factor_children: unknown factor " << factor_key, IMP::ValueException);
+  }
+  Factor& f = factors_[static_cast<std::size_t>(found->second)];
+  std::vector<int> positions;
+  for (const auto& k : children) {
+    const int p = position_of(k, "set_factor_children");
+    if (std::find(f.scope.begin(), f.scope.end(), p) == f.scope.end()) {
+      IMP_THROW("set_factor_children: " << k << " is not in the scope of " <<
+                                  factor_key, IMP::ValueException);
+    }
+    // One mechanism per variable: a second factor generating it would make
+    // "intervene on it" ambiguous.
+    for (std::size_t g = 0; g < factors_.size(); ++g) {
+      if (static_cast<int>(g) == found->second) continue;
+      const auto& other = factors_[g].children;
+      if (std::find(other.begin(), other.end(), p) != other.end()) {
+        IMP_THROW("set_factor_children: " << k <<
+                                    " already has a mechanism, factor " << factors_[g].key, IMP::ValueException);
+      }
+    }
+    if (std::find(positions.begin(), positions.end(), p) == positions.end()) {
+      positions.push_back(p);
+    }
+  }
+  f.children = positions;
+}
+
+std::vector<std::string> InferenceFactorGraph::get_factor_children(
+    const std::string& factor_key) const {
+  std::vector<std::string> keys;
+  const auto found = factor_index_of_.find(factor_key);
+  if (found == factor_index_of_.end()) return keys;
+  for (int p : factors_[static_cast<std::size_t>(found->second)].children) {
+    keys.push_back(variables_[static_cast<std::size_t>(p)].key);
+  }
+  return keys;
+}
+
+bool InferenceFactorGraph::get_factor_is_directed(const std::string& factor_key) const {
+  const auto found = factor_index_of_.find(factor_key);
+  return found != factor_index_of_.end() &&
+         !factors_[static_cast<std::size_t>(found->second)].children.empty();
+}
+
+std::string InferenceFactorGraph::get_mechanism_of(const std::string& key) const {
+  const auto it = variable_index_of_.find(key);
+  if (it == variable_index_of_.end()) return std::string();
+  for (const auto& f : factors_) {
+    if (std::find(f.children.begin(), f.children.end(), it->second) != f.children.end()) {
+      return f.key;
+    }
+  }
+  return std::string();
+}
+
+namespace {
+// Positions sorted by flat-vector index (ties by insertion order), as keys.
+std::vector<std::string> keys_in_variable_order(
+    const std::set<int>& positions,
+    const std::vector<std::pair<int, std::string> >& index_and_key) {
+  std::vector<std::pair<std::pair<int, int>, std::string> > rows;
+  for (int p : positions) {
+    rows.push_back({{index_and_key[static_cast<std::size_t>(p)].first, p},
+                    index_and_key[static_cast<std::size_t>(p)].second});
+  }
+  std::sort(rows.begin(), rows.end());
+  std::vector<std::string> keys;
+  for (const auto& r : rows) keys.push_back(r.second);
+  return keys;
+}
+}  // namespace
+
+std::vector<std::string> InferenceFactorGraph::get_parents(const std::string& key) const {
+  const int p = position_of(key, "get_parents");
+  std::set<int> parents;
+  for (const auto& f : factors_) {
+    if (std::find(f.children.begin(), f.children.end(), p) == f.children.end()) continue;
+    for (int q : f.scope) {
+      if (std::find(f.children.begin(), f.children.end(), q) == f.children.end()) {
+        parents.insert(q);
+      }
+    }
+  }
+  std::vector<std::pair<int, std::string> > ik;
+  for (const auto& v : variables_) ik.push_back({v.index, v.key});
+  return keys_in_variable_order(parents, ik);
+}
+
+std::vector<std::string> InferenceFactorGraph::get_children(const std::string& key) const {
+  const int p = position_of(key, "get_children");
+  std::set<int> children;
+  for (const auto& f : factors_) {
+    if (f.children.empty()) continue;
+    const bool reads = std::find(f.scope.begin(), f.scope.end(), p) != f.scope.end() &&
+                       std::find(f.children.begin(), f.children.end(), p) == f.children.end();
+    if (reads) children.insert(f.children.begin(), f.children.end());
+  }
+  std::vector<std::pair<int, std::string> > ik;
+  for (const auto& v : variables_) ik.push_back({v.index, v.key});
+  return keys_in_variable_order(children, ik);
+}
+
+std::vector<std::string> InferenceFactorGraph::get_descendants(
+    const std::vector<std::string>& keys) const {
+  std::set<int> seen;
+  std::vector<int> stack;
+  for (const auto& k : keys) {
+    const int p = position_of(k, "get_descendants");
+    if (seen.insert(p).second) stack.push_back(p);
+  }
+  while (!stack.empty()) {
+    const int p = stack.back();
+    stack.pop_back();
+    for (const auto& c : get_children(variables_[static_cast<std::size_t>(p)].key)) {
+      const int q = variable_index_of_.at(c);
+      if (seen.insert(q).second) stack.push_back(q);
+    }
+  }
+  std::vector<std::pair<int, std::string> > ik;
+  for (const auto& v : variables_) ik.push_back({v.index, v.key});
+  return keys_in_variable_order(seen, ik);
+}
+
+bool InferenceFactorGraph::get_is_acyclic() const {
+  // Kahn's algorithm over the arrows parent -> child.
+  const std::size_t n = variables_.size();
+  std::vector<std::set<int> > out(n);
+  std::vector<int> in_degree(n, 0);
+  for (const auto& f : factors_) {
+    for (int c : f.children) {
+      for (int q : f.scope) {
+        if (std::find(f.children.begin(), f.children.end(), q) != f.children.end()) continue;
+        if (out[static_cast<std::size_t>(q)].insert(c).second) ++in_degree[static_cast<std::size_t>(c)];
+      }
+    }
+  }
+  std::vector<int> ready;
+  for (std::size_t i = 0; i < n; ++i) {
+    if (in_degree[i] == 0) ready.push_back(static_cast<int>(i));
+  }
+  std::size_t removed = 0;
+  while (!ready.empty()) {
+    const int p = ready.back();
+    ready.pop_back();
+    ++removed;
+    for (int c : out[static_cast<std::size_t>(p)]) {
+      if (--in_degree[static_cast<std::size_t>(c)] == 0) ready.push_back(c);
+    }
+  }
+  return removed == n;
+}
+
+std::vector<std::string> InferenceFactorGraph::get_exogenous_variables() const {
+  std::set<int> positions;
+  for (std::size_t i = 0; i < variables_.size(); ++i) {
+    if (variables_[i].role == "exogenous") positions.insert(static_cast<int>(i));
+  }
+  std::vector<std::pair<int, std::string> > ik;
+  for (const auto& v : variables_) ik.push_back({v.index, v.key});
+  return keys_in_variable_order(positions, ik);
+}
+
+std::vector<std::string> InferenceFactorGraph::get_intervened_variables() const {
+  std::vector<std::pair<int, std::string> > ik;
+  for (const auto& v : variables_) ik.push_back({v.index, v.key});
+  return keys_in_variable_order(intervened_, ik);
+}
+
+InferenceFactorGraph InferenceFactorGraph::copy_with_factors(
+    const std::vector<bool>& keep) const {
+  InferenceFactorGraph g;
+  for (const auto& v : variables_) {
+    g.add_variable(v.key, v.name, v.index, v.fit_index, v.size, v.role);
+  }
+  for (std::size_t i = 0; i < factors_.size(); ++i) {
+    if (!keep[i]) continue;
+    const Factor& f = factors_[i];
+    std::vector<std::string> scope;
+    for (int p : f.scope) scope.push_back(variables_[static_cast<std::size_t>(p)].key);
+    g.add_factor(f.key, f.kind, scope, f.fit_index, f.size);
+    if (!f.evidence.empty()) g.set_factor_evidence(f.key, get_factor_evidence(f.key));
+    if (!f.children.empty()) g.set_factor_children(f.key, get_factor_children(f.key));
+  }
+  g.intervened_ = intervened_;
+  return g;
+}
+
+InferenceFactorGraph InferenceFactorGraph::get_intervened(
+    const std::vector<std::string>& keys) const {
+  std::set<int> targets;
+  for (const auto& k : keys) targets.insert(position_of(k, "get_intervened"));
+  std::vector<bool> keep(factors_.size(), true);
+  for (std::size_t i = 0; i < factors_.size(); ++i) {
+    const auto& ch = factors_[i].children;
+    if (ch.empty()) continue;
+    std::size_t hit = 0;
+    for (int c : ch) hit += targets.count(c);
+    if (hit == 0) continue;
+    if (hit != ch.size()) {
+      IMP_THROW("get_intervened: mechanism " << factors_[i].key
+                << " generates several variables and only some are intervened on; split the factor",
+                IMP::ValueException);
+    }
+    keep[i] = false;
+  }
+  InferenceFactorGraph g = copy_with_factors(keep);
+  g.intervened_.insert(targets.begin(), targets.end());
+  return g;
+}
+
+InferenceFactorGraph InferenceFactorGraph::get_twin(const std::vector<std::string>& keys,
+                                                    const std::string& suffix) const {
+  if (suffix.empty()) IMP_THROW("get_twin: the suffix must not be empty", IMP::ValueException);
+  const std::vector<std::string> world = get_descendants(keys);
+  std::set<int> in_world;
+  for (const auto& k : world) in_world.insert(variable_index_of_.at(k));
+  InferenceFactorGraph g = copy_with_factors(std::vector<bool>(factors_.size(), true));
+  int next_index = -1;
+  for (const auto& v : variables_) next_index = std::max(next_index, v.index);
+  for (const auto& k : world) {
+    const Variable& v = variables_[static_cast<std::size_t>(variable_index_of_.at(k))];
+    g.add_variable(v.key + suffix, v.name, ++next_index, -1, v.size, v.role);
+  }
+  auto mapped = [&](int p) {
+    const std::string& key = variables_[static_cast<std::size_t>(p)].key;
+    return in_world.count(p) ? key + suffix : key;
+  };
+  for (const auto& f : factors_) {
+    if (f.children.empty()) continue;
+    bool inside = true;
+    for (int c : f.children) inside = inside && in_world.count(c) > 0;
+    if (!inside) continue;
+    std::vector<std::string> scope, children, evidence;
+    for (int p : f.scope) scope.push_back(mapped(p));
+    for (int p : f.children) children.push_back(mapped(p));
+    for (int p : f.evidence) evidence.push_back(mapped(p));
+    g.add_factor(f.key + suffix, f.kind, scope, -1, f.size);
+    g.set_factor_children(f.key + suffix, children);
+    if (!evidence.empty()) g.set_factor_evidence(f.key + suffix, evidence);
+  }
+  std::vector<std::string> targets;
+  for (const auto& k : keys) targets.push_back(k + suffix);
+  return g.get_intervened(targets);
 }
 
 void InferenceFactorGraph::save(const std::string& path) const {
@@ -907,6 +1186,18 @@ std::string InferenceFactorGraph::describe() const {
   lines << "priors         : " << get_number_of_factors_of_kind(INFERENCE_FACTOR_PRIOR) << "\n";
   if (get_number_of_factors_of_kind(INFERENCE_FACTOR_HYPER)) {
     lines << "hyper factors  : " << get_number_of_factors_of_kind(INFERENCE_FACTOR_HYPER) << "\n";
+  }
+  std::size_t mechanisms = 0;
+  for (const auto& f : factors_) mechanisms += f.children.empty() ? 0 : 1;
+  if (mechanisms) {
+    lines << "mechanisms     : " << mechanisms
+          << (get_is_acyclic() ? " (acyclic)" : " (CYCLIC)") << "\n";
+  }
+  if (!intervened_.empty()) {
+    lines << "intervened     : ";
+    const auto held = get_intervened_variables();
+    for (std::size_t i = 0; i < held.size(); ++i) lines << (i ? ", " : "") << held[i];
+    lines << "\n";
   }
   lines << "treewidth      : " << get_treewidth() << "\n";
   lines << "components     : " << connected_components().size() << "\n";
