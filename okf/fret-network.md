@@ -27,8 +27,9 @@ All C++ (`include/FRETNetwork.h`, `include/FRETNetworkSimulation.h`,
    2.35 ± 0.22 (1 ms), true 1.50. It also puts the barrier ~0.5 kT high and
    overshoots a distance map by ~10 Å. The C++ and the PyTorch fits agree.
    A free signal scale per pair fits 0.30: burst photons come, on average,
-   from 30 % of the centre brightness. With it, D = 1.70 ± 0.54 and 100 % of
-   the landscape is within 2σ, but the bands are wide. The evidence is in the
+   from 30 % of the centre brightness. With it, D = 1.70 ± 0.24 and 100 % of
+   the landscape is within 2σ. (± 0.54, reported until 2026-10-10, came from a
+   prototype Hessian bug; see item 8.) The evidence is in the
    local prototype `prototypes/fret_network_landscape/` (`log.md`, scripts
    01–04, PyTorch). Since 2026-10-10 that scale is `<pair>.brightness`
    (`FRETMeasurement::set_brightness`, log scale, fixed until freed): it
@@ -81,9 +82,9 @@ All C++ (`include/FRETNetwork.h`, `include/FRETNetworkSimulation.h`,
 8. **The torch prototype runs on the C++ (2026-10-10).**
    `prototypes/fret_network_landscape/bff_cpp.py` builds every torch model as
    a `FRETNetworkModel`. Its script 09 checks the log-likelihood, the gradient
-   and (MSM) the prior against torch on 300 k photons: |ΔlogL| ≤ 0.2 of
-   1.39 M (torch interpolates the emission table in r), and the prior agrees
-   exactly. Three additions made the map one to one:
+   and (MSM) the prior against torch on 300 k photons: |ΔlogL| < 0.001 of
+   1.39 M, gradients to 0.002, and the prior agrees exactly. Three additions
+   made the map one to one:
    - the brightness (item 2);
    - the reversible mode (item 4);
    - **microtime groups**: `FRETInstrument::set_microtime_groups` computes
@@ -92,6 +93,18 @@ All C++ (`include/FRETNetwork.h`, `include/FRETNetworkSimulation.h`,
      that keeps PIE: `n_bins = 1` would drop the pulse too.
 
    Tests: `test/landscape/test_fret_network_ports.py`.
+
+   `laplace(theta, information)` takes `FRET_INFORMATION_FISHER` (the
+   default: the score outer product), `_OBSERVED` (central differences of the
+   exact gradient) or `_SANDWICH`. The C++ fit of the prototype's
+   free-brightness model reaches torch's optimum. Its Fisher and observed
+   bands agree (D ± 0.24).
+   *Trap, found through this:* the prototype interpolated the emission table
+   linearly in r. Its autograd Hessian therefore missed the table's curvature
+   and doubled σ_D (± 0.54), and finite differences tripped on the kinks. A
+   C1 cubic table fixed both, and the bands match the C++ observed Hessian.
+   With correct bands, microtimes narrow u(q) 1.8× and the maps 1.3–1.4× on
+   1 ms PIE bursts.
 
 ## Choosing the pairs
 
