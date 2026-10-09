@@ -7,6 +7,7 @@ var searchData=
   ['fpsfieldtype_4',['FPSFieldType',['../_f_p_s_8h.html#a88bf94745e3d877ae07f55d1f189b3ea',1,'FPS.h']]],
   ['fpsperturbationmodel_5',['FPSPerturbationModel',['../_docking_8h.html#aa3106f5419fd2bd63c2a262667880bd7',1,'Docking.h']]],
   ['fretarrivalmodel_6',['FRETArrivalModel',['../_f_r_e_t_network_8h.html#abfff819387ccd02eb69aef3b83589e9e',1,'FRETNetwork.h']]],
-  ['fretparameterkind_7',['FRETParameterKind',['../_f_r_e_t_network_8h.html#ad4e41232efae65f6353966b0aadc7288',1,'FRETNetwork.h']]],
-  ['fretparametertransform_8',['FRETParameterTransform',['../_f_r_e_t_network_8h.html#adf4ef8d85a2885a6b5db84639d56d4e9',1,'FRETNetwork.h']]]
+  ['fretlaplaceinformation_7',['FRETLaplaceInformation',['../_f_r_e_t_network_8h.html#a8f395d255e8387d269ffe5f5f7cf7192',1,'FRETNetwork.h']]],
+  ['fretparameterkind_8',['FRETParameterKind',['../_f_r_e_t_network_8h.html#ad4e41232efae65f6353966b0aadc7288',1,'FRETNetwork.h']]],
+  ['fretparametertransform_9',['FRETParameterTransform',['../_f_r_e_t_network_8h.html#adf4ef8d85a2885a6b5db84639d56d4e9',1,'FRETNetwork.h']]]
 ];

@@ -84,7 +84,7 @@ var searchData=
   ['labelling_20sites_20of_20a_20structure_81',['imp_bff labelizer &amp;ndash; score the labelling sites of a structure',['../index.html#imp_bff_labelizer',1,'']]],
   ['labelling_5fjson_82',['labelling_json',['../struct_f_p_s_project.html#a6edc8d8fc60c50531adefcc747ece406',1,'FPSProject']]],
   ['labels_83',['labels',['../struct_f_p_s_export_options.html#ae20d6b3b45392cab49729bcf86b07c8e',1,'FPSExportOptions']]],
-  ['laplace_84',['laplace',['../class_f_r_e_t_landscape_model.html#ad09d62757c101307009f3f4a5bc40e97',1,'FRETLandscapeModel::laplace()'],['../class_f_r_e_t_network_model.html#ae85808224f3012ba701c0db98f959a73',1,'FRETNetworkModel::laplace()']]],
+  ['laplace_84',['laplace',['../class_f_r_e_t_landscape_model.html#ad09d62757c101307009f3f4a5bc40e97',1,'FRETLandscapeModel::laplace()'],['../class_f_r_e_t_network_model.html#ad810c2fb5f847538252eae9fc9620fb1',1,'FRETNetworkModel::laplace()']]],
   ['last_5faccepted_5f_85',['last_accepted_',['../classinternal_1_1_walker_kernel_base.html#a7e9683c280c4239053dc14d2dfc51ef3',1,'internal::WalkerKernelBase']]],
   ['lattice_5fwindow_86',['lattice_window',['../_path_map_8h.html#a65ba10eac981e1de588aa9b43554d56f',1,'PathMap.h']]],
   ['leaf_5fsize_87',['leaf_size',['../struct_s_m_l_m_c_s_v_options.html#a42975fe50327ad7e761da9869ef978fd',1,'SMLMCSVOptions']]],

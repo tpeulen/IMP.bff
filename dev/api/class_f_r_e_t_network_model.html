@@ -175,8 +175,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a1d2b84037ce2c12cc40616fac623718c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a76bc0e60b059c5f7a8e2d5b418b5af93" id="r_a76bc0e60b059c5f7a8e2d5b418b5af93"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_f_r_e_t_landscape_fit.html">FRETLandscapeFit</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_network_model.html#a76bc0e60b059c5f7a8e2d5b418b5af93">fit</a> (const std::vector&lt; double &gt; &amp;theta0, const <a class="el" href="class_f_r_e_t_landscape_fit_options.html">FRETLandscapeFitOptions</a> &amp;options=<a class="el" href="class_f_r_e_t_landscape_fit_options.html">FRETLandscapeFitOptions</a>()) const</td></tr>
 <tr class="separator:a76bc0e60b059c5f7a8e2d5b418b5af93"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae85808224f3012ba701c0db98f959a73" id="r_ae85808224f3012ba701c0db98f959a73"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_f_r_e_t_network_laplace.html">FRETNetworkLaplace</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_network_model.html#ae85808224f3012ba701c0db98f959a73">laplace</a> (const std::vector&lt; double &gt; &amp;theta) const</td></tr>
-<tr class="separator:ae85808224f3012ba701c0db98f959a73"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad810c2fb5f847538252eae9fc9620fb1" id="r_ad810c2fb5f847538252eae9fc9620fb1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_f_r_e_t_network_laplace.html">FRETNetworkLaplace</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_f_r_e_t_network_model.html#ad810c2fb5f847538252eae9fc9620fb1">laplace</a> (const std::vector&lt; double &gt; &amp;theta, int information=<a class="el" href="_f_r_e_t_network_8h.html#a8f395d255e8387d269ffe5f5f7cf7192a1990ff0c77fd94162e3206247007c492">FRET_INFORMATION_FISHER</a>) const</td></tr>
+<tr class="separator:ad810c2fb5f847538252eae9fc9620fb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>One hidden process, observed by several FRET measurements. </p>
@@ -530,8 +530,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ae85808224f3012ba701c0db98f959a73" name="ae85808224f3012ba701c0db98f959a73"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae85808224f3012ba701c0db98f959a73">&#9670;&#160;</a></span>laplace()</h2>
+<a id="ad810c2fb5f847538252eae9fc9620fb1" name="ad810c2fb5f847538252eae9fc9620fb1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad810c2fb5f847538252eae9fc9620fb1">&#9670;&#160;</a></span>laplace()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -540,11 +540,22 @@ Public Member Functions</h2></td></tr>
           <td class="memname"><a class="el" href="class_f_r_e_t_network_laplace.html">FRETNetworkLaplace</a> FRETNetworkModel::laplace </td>
           <td>(</td>
           <td class="paramtype">const std::vector&lt; double &gt; &amp;&#160;</td>
-          <td class="paramname"><em>theta</em></td><td>)</td>
-          <td> const</td>
+          <td class="paramname"><em>theta</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>information</em> = <code><a class="el" href="_f_r_e_t_network_8h.html#a8f395d255e8387d269ffe5f5f7cf7192a1990ff0c77fd94162e3206247007c492">FRET_INFORMATION_FISHER</a></code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Laplace approximation at <code>theta</code>: the covariance is the inverse of the information matrix <code>information</code> (FRETLaplaceInformation). Fisher and observed information agree when the model is right; a large difference between them (or a sandwich much wider than both) says it is not, e.g. one brightness for molecules crossing a focus. </p>
 
 </div>
 </div>
@@ -1175,7 +1186,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Oct 9 2026 22:12:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Fri Oct 9 2026 23:07:53 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

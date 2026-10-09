@@ -17,10 +17,13 @@ var searchData=
   ['fps_5fstring_14',['FPS_STRING',['../_f_p_s_8h.html#a88bf94745e3d877ae07f55d1f189b3eaa8a88b08863b547f058b78e5186bd9bee',1,'FPS.h']]],
   ['fret_5farrival_5fconditional_15',['FRET_ARRIVAL_CONDITIONAL',['../_f_r_e_t_network_8h.html#abfff819387ccd02eb69aef3b83589e9ea3b59d334e0d7e51c75bc33c5960855cc',1,'FRETNetwork.h']]],
   ['fret_5farrival_5ffull_16',['FRET_ARRIVAL_FULL',['../_f_r_e_t_network_8h.html#abfff819387ccd02eb69aef3b83589e9ea11dd51f741ae51c9b29b220b99b5704f',1,'FRETNetwork.h']]],
-  ['fret_5fparameter_5femission_17',['FRET_PARAMETER_EMISSION',['../_f_r_e_t_network_8h.html#ad4e41232efae65f6353966b0aadc7288a34757129acbec5e5e795759fcf099b4b',1,'FRETNetwork.h']]],
-  ['fret_5fparameter_5fgenerator_18',['FRET_PARAMETER_GENERATOR',['../_f_r_e_t_network_8h.html#ad4e41232efae65f6353966b0aadc7288a44e96727ba2eb98e01fa038c2d6ef48c',1,'FRETNetwork.h']]],
-  ['fret_5fparameter_5fstart_19',['FRET_PARAMETER_START',['../_f_r_e_t_network_8h.html#ad4e41232efae65f6353966b0aadc7288a391ce368015327e97d75c9cb9f85c00f',1,'FRETNetwork.h']]],
-  ['fret_5ftransform_5fidentity_20',['FRET_TRANSFORM_IDENTITY',['../_f_r_e_t_network_8h.html#adf4ef8d85a2885a6b5db84639d56d4e9a362c7c23fe9a25fbdc5fa61020a5af8b',1,'FRETNetwork.h']]],
-  ['fret_5ftransform_5flog_21',['FRET_TRANSFORM_LOG',['../_f_r_e_t_network_8h.html#adf4ef8d85a2885a6b5db84639d56d4e9aec23655fe546f69451c5306aa63f4ba1',1,'FRETNetwork.h']]],
-  ['fret_5ftransform_5flogit_22',['FRET_TRANSFORM_LOGIT',['../_f_r_e_t_network_8h.html#adf4ef8d85a2885a6b5db84639d56d4e9a0d9bd58a87ea84a88b491c121e18491c',1,'FRETNetwork.h']]]
+  ['fret_5finformation_5ffisher_17',['FRET_INFORMATION_FISHER',['../_f_r_e_t_network_8h.html#a8f395d255e8387d269ffe5f5f7cf7192a1990ff0c77fd94162e3206247007c492',1,'FRETNetwork.h']]],
+  ['fret_5finformation_5fobserved_18',['FRET_INFORMATION_OBSERVED',['../_f_r_e_t_network_8h.html#a8f395d255e8387d269ffe5f5f7cf7192aff628235fa16ebd0c7194dc815e5b339',1,'FRETNetwork.h']]],
+  ['fret_5finformation_5fsandwich_19',['FRET_INFORMATION_SANDWICH',['../_f_r_e_t_network_8h.html#a8f395d255e8387d269ffe5f5f7cf7192a096c5608637b498478aea2d97ca0e5f2',1,'FRETNetwork.h']]],
+  ['fret_5fparameter_5femission_20',['FRET_PARAMETER_EMISSION',['../_f_r_e_t_network_8h.html#ad4e41232efae65f6353966b0aadc7288a34757129acbec5e5e795759fcf099b4b',1,'FRETNetwork.h']]],
+  ['fret_5fparameter_5fgenerator_21',['FRET_PARAMETER_GENERATOR',['../_f_r_e_t_network_8h.html#ad4e41232efae65f6353966b0aadc7288a44e96727ba2eb98e01fa038c2d6ef48c',1,'FRETNetwork.h']]],
+  ['fret_5fparameter_5fstart_22',['FRET_PARAMETER_START',['../_f_r_e_t_network_8h.html#ad4e41232efae65f6353966b0aadc7288a391ce368015327e97d75c9cb9f85c00f',1,'FRETNetwork.h']]],
+  ['fret_5ftransform_5fidentity_23',['FRET_TRANSFORM_IDENTITY',['../_f_r_e_t_network_8h.html#adf4ef8d85a2885a6b5db84639d56d4e9a362c7c23fe9a25fbdc5fa61020a5af8b',1,'FRETNetwork.h']]],
+  ['fret_5ftransform_5flog_24',['FRET_TRANSFORM_LOG',['../_f_r_e_t_network_8h.html#adf4ef8d85a2885a6b5db84639d56d4e9aec23655fe546f69451c5306aa63f4ba1',1,'FRETNetwork.h']]],
+  ['fret_5ftransform_5flogit_25',['FRET_TRANSFORM_LOGIT',['../_f_r_e_t_network_8h.html#adf4ef8d85a2885a6b5db84639d56d4e9a0d9bd58a87ea84a88b491c121e18491c',1,'FRETNetwork.h']]]
 ];

@@ -56,7 +56,7 @@ var searchData=
   ['labelizerscore_53',['LabelizerScore',['../struct_labelizer_score.html#a12183d8d8a4df6ec5605e524e85ead68',1,'LabelizerScore']]],
   ['labelizertable_54',['LabelizerTable',['../struct_labelizer_table.html#a69f83782a08d2b957e39d845850b9b99',1,'LabelizerTable']]],
   ['labelledgraph_55',['labelledgraph',['../class_labelled_graph.html#a99de00a732bc6594d8c6578cd5744d47',1,'LabelledGraph::LabelledGraph(const std::vector&lt; std::pair&lt; std::string, std::string &gt; &gt; &amp;bonds)'],['../class_labelled_graph.html#a66913386b5b697d0db79b8436db88be6',1,'LabelledGraph::LabelledGraph()']]],
-  ['laplace_56',['laplace',['../class_f_r_e_t_network_model.html#ae85808224f3012ba701c0db98f959a73',1,'FRETNetworkModel::laplace()'],['../class_f_r_e_t_landscape_model.html#ad09d62757c101307009f3f4a5bc40e97',1,'FRETLandscapeModel::laplace()']]],
+  ['laplace_56',['laplace',['../class_f_r_e_t_network_model.html#ad810c2fb5f847538252eae9fc9620fb1',1,'FRETNetworkModel::laplace()'],['../class_f_r_e_t_landscape_model.html#ad09d62757c101307009f3f4a5bc40e97',1,'FRETLandscapeModel::laplace()']]],
   ['lattice_5fwindow_57',['lattice_window',['../_path_map_8h.html#a65ba10eac981e1de588aa9b43554d56f',1,'PathMap.h']]],
   ['learn_58',['learn',['../class_dual_averaging_step_size.html#a2065565c342b971ffadc3aa8a49d6f9a',1,'DualAveragingStepSize']]],
   ['learn_5flog_59',['learn_log',['../class_dual_averaging_step_size.html#a6d260d9b41fdef28f320b5aa9409f3a1',1,'DualAveragingStepSize']]],
