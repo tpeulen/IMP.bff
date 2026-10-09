@@ -639,10 +639,45 @@ FRETLandscapeFit FRETNetworkModel::fit(const std::vector<double>& theta0,
 #endif
 }
 
-FRETNetworkLaplace FRETNetworkModel::laplace(const std::vector<double>& theta) const {
+namespace {
+
+//! -d^2 log p(theta | data) / dz^2 by central differences of the exact gradient.
+Eigen::MatrixXd fret_network_observed_precision(const FRETNetworkModel& m,
+                                                const std::vector<double>& theta) {
   const int n = static_cast<int>(theta.size());
-  const Eigen::MatrixXd H = fret_network_precision(*this, theta);
-  const Eigen::MatrixXd S = H.ldlt().solve(Eigen::MatrixXd::Identity(n, n));
+  Eigen::MatrixXd H(n, n);
+  for (int j = 0; j < n; ++j) {
+    const double h = 1e-4 * std::max(1.0, std::fabs(theta[j]));
+    std::vector<double> tp(theta), tm(theta);
+    tp[j] += h;
+    tm[j] -= h;
+    const std::vector<double> a = m.log_posterior_gradient(tp), b = m.log_posterior_gradient(tm);
+    for (int i = 0; i < n; ++i) H(i, j) = -(a[i] - b[i]) / (2.0 * h);
+  }
+  return 0.5 * (H + H.transpose());
+}
+
+}  // namespace
+
+FRETNetworkLaplace FRETNetworkModel::laplace(const std::vector<double>& theta,
+                                             int information) const {
+  const int n = static_cast<int>(theta.size());
+  const Eigen::MatrixXd I = Eigen::MatrixXd::Identity(n, n);
+  Eigen::MatrixXd H, S;
+  if (information == FRET_INFORMATION_FISHER) {
+    H = fret_network_precision(*this, theta);
+    S = H.ldlt().solve(I);
+  } else if (information == FRET_INFORMATION_OBSERVED) {
+    H = fret_network_observed_precision(*this, theta);
+    S = H.ldlt().solve(I);
+  } else if (information == FRET_INFORMATION_SANDWICH) {
+    const Eigen::MatrixXd Hinv = fret_network_observed_precision(*this, theta).ldlt().solve(I);
+    S = Hinv * fret_network_precision(*this, theta) * Hinv;
+    S = 0.5 * (S + S.transpose());
+    H = S.ldlt().solve(I);
+  } else {
+    IMP_THROW("laplace: unknown information " << information, IMP::ValueException);
+  }
   FRETNetworkLaplace out;
   out.names_ = get_free_parameter_names();
   out.theta_ = theta;

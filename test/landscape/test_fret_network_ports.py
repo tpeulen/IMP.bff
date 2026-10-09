@@ -239,3 +239,45 @@ def test_grouped_likelihood_is_the_coarsened_photons():
     # the simulator on a grouped instrument reports coarse bins
     sim = bff.simulate_fret_measurement(hp, coarse_m, o)
     assert set(sim.get_microtimes()) <= {0, 1}
+
+
+# --- Laplace information ----------------------------------------------------------------
+
+
+def test_laplace_observed_fisher_and_sandwich():
+    hp, m = _setup_pie(8)
+    o = bff.FRETSimulationOptions()
+    o.n_molecules, o.duration, o.seed = 300, 2.0, 7
+    net = bff.FRETNetworkModel(hp)
+    net.add_measurement(m, bff.simulate_fret_measurement(hp, m, o))
+    net.set_arrival_model(0, 1)
+    # the conformational parameters only: at the truth (not the MAP) the
+    # observed Hessian of the weakly determined dye rates can be indefinite
+    for name in net.get_free_parameter_names():
+        if ".donor." in name or ".acceptor." in name:
+            net.set_parameter_free(name, False)
+    theta = list(net.get_theta())
+    fisher = net.laplace(theta)
+    observed = net.laplace(theta, bff.FRET_INFORMATION_OBSERVED)
+    sandwich = net.laplace(theta, bff.FRET_INFORMATION_SANDWICH)
+    n = len(theta)
+    H = np.asarray(observed.get_precision()).reshape(n, n)
+    g = lambda t: np.asarray(net.log_posterior_gradient(list(t)))  # noqa: E731
+    for j in range(n):
+        tp, tm = np.array(theta), np.array(theta)
+        tp[j] += 1e-4
+        tm[j] -= 1e-4
+        np.testing.assert_allclose(-(g(tp) - g(tm)) / 2e-4, H[:, j], rtol=1e-3,
+                                   atol=1e-3 * np.abs(H).max())
+    # the data were simulated from this model, at these parameters: on the
+    # well-determined rates the three agree to sampling error (the distances,
+    # 45 and 65 A with R0 55, are far from quadratic at 300 molecules)
+    np.testing.assert_allclose(observed.get_sigmas()[:2], fisher.get_sigmas()[:2], rtol=0.25)
+    # the sandwich is H^-1 (J + P) H^-1 of the other two
+    Hinv = np.linalg.inv(H)
+    JP = np.asarray(fisher.get_precision()).reshape(n, n)
+    S = np.asarray(sandwich.get_covariance()).reshape(n, n)
+    np.testing.assert_allclose(S, Hinv @ JP @ Hinv, rtol=1e-8, atol=1e-10 * np.abs(S).max())
+    assert np.all(np.linalg.eigvalsh(S) > 0)
+    with pytest.raises(Exception):
+        net.laplace(theta, 7)

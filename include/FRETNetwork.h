@@ -448,6 +448,19 @@ enum FRETArrivalModel {
   FRET_ARRIVAL_CONDITIONAL = 1
 };
 
+//! Which information matrix FRETNetworkModel::laplace() inverts.
+enum FRETLaplaceInformation {
+  //! Empirical Fisher: the sum over segments of the score outer products,
+  //! plus the prior precision. One gradient pass; the default.
+  FRET_INFORMATION_FISHER = 0,
+  //! Observed: minus the Hessian of the log posterior (central differences
+  //! of the exact gradient, 2 n gradient passes).
+  FRET_INFORMATION_OBSERVED = 1,
+  //! Sandwich `H^-1 (J + P) H^-1` (H observed, J empirical Fisher, P prior):
+  //! robust to a misspecified model.
+  FRET_INFORMATION_SANDWICH = 2
+};
+
 //! Photons of one measurement, cut into segments.
 /*! Arrays: macrotime (the rate unit's time), channel, microtime bin (may be
     empty when the instrument has no microtimes), and segments as inclusive
@@ -615,7 +628,13 @@ class IMPBFFEXPORT FRETNetworkModel {
   //! block by the damped Laplace precision, as FRETLandscapeModel::fit.
   FRETLandscapeFit fit(const std::vector<double>& theta0,
                        const FRETLandscapeFitOptions& options = FRETLandscapeFitOptions()) const;
-  FRETNetworkLaplace laplace(const std::vector<double>& theta) const;
+  //! Laplace approximation at `theta`: the covariance is the inverse of the
+  //! information matrix `information` (FRETLaplaceInformation). Fisher and
+  //! observed information agree when the model is right; a large
+  //! difference between them (or a sandwich much wider than both) says it
+  //! is not, e.g. one brightness for molecules crossing a focus.
+  FRETNetworkLaplace laplace(const std::vector<double>& theta,
+                             int information = FRET_INFORMATION_FISHER) const;
 
   IMP_SHOWABLE_INLINE(FRETNetworkModel, out << "FRETNetworkModel(" << meas_.size()
                                             << " measurements)");
