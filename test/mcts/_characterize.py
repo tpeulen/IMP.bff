@@ -21,14 +21,32 @@ import collections
 import IMP.bff as bff
 
 
-def _actions(problem, structure_key):
-    """The actions declared out of one structure, by structure key alone."""
-    state = bff.ModelSearchState(structure_key, structure_key, 0.0, False)
+def _fit_settings(problem) -> bool:
+    return (hasattr(problem, "get_action_space")
+            and problem.get_action_space() == bff.ACTION_SPACE_FIT_SETTINGS)
+
+
+def _nodes(problem) -> list[str]:
+    """What the search tells apart: structures, or structures with fit settings."""
+    structures = sorted(problem.get_structure_keys())
+    if not _fit_settings(problem):
+        return structures
+    return sorted(f"{structure}|{settings.get_key()}" for structure in structures
+                  for settings in problem.get_fit_settings_candidates())
+
+
+def _actions(problem, node):
+    """The actions declared out of one search node, by its key alone."""
+    structure, settings = node, ""
+    if _fit_settings(problem):
+        # A settings key never holds the separator; a structure key may.
+        structure, _, settings = node.rpartition("|")
+    state = bff.ModelSearchState(node, structure, settings, 0.0, False)
     return list(problem.get_actions(state))
 
 
 def action_graph(problem) -> dict:
-    """Every declared transition, keyed by the structure it leaves."""
+    """Every declared transition, keyed by the search node it leaves."""
     return {
         key: [
             {
@@ -39,7 +57,7 @@ def action_graph(problem) -> dict:
             }
             for action in _actions(problem, key)
         ]
-        for key in sorted(problem.get_structure_keys())
+        for key in _nodes(problem)
     }
 
 
@@ -49,7 +67,12 @@ def _shortest_paths(graph: dict, start: str) -> dict[str, list[str]]:
     queue = collections.deque([start])
     while queue:
         current = queue.popleft()
-        for edge in graph.get(current, []):
+        # A fit-settings move is taken before a structural one, so a node is
+        # reached the way a fit-settings search rescues it: fitted the other
+        # way first, then moved. Structure-only graphs have no such moves.
+        edges = sorted(graph.get(current, []),
+                       key=lambda edge: not edge["action"].startswith("fit-settings:"))
+        for edge in edges:
             target = edge["to"]
             if target in paths or target == current:
                 continue
@@ -75,13 +98,16 @@ def _walk(problem, root, path: list[str]):
 def _fitted(problem, state) -> dict:
     """What one evaluated state holds: its score and canonical registry."""
     key = state.get_key()
-    return {
+    record = {
         "structure": state.get_structure_key(),
         "reward": state.get_reward(),
         "acceptable": bool(state.get_acceptable()),
         "values": [float(v) for v in problem.get_cached_values(key)],
         "fixed": [int(f) for f in problem.get_cached_fixed(key)],
     }
+    if state.get_fit_settings_key():
+        record["fit_settings"] = state.get_fit_settings_key()
+    return record
 
 
 def characterize(problem) -> dict:
@@ -96,7 +122,10 @@ def characterize(problem) -> dict:
         "root": _fitted(problem, root),
         "structures": {},
     }
-    for structure, path in sorted(_shortest_paths(graph, root.get_structure_key()).items()):
+    if _fit_settings(problem):
+        record["fit_settings"] = [settings.get_key()
+                                  for settings in problem.get_fit_settings_candidates()]
+    for structure, path in sorted(_shortest_paths(graph, root.get_search_key()).items()):
         if not path:
             continue
         state = _walk(problem, root, path)

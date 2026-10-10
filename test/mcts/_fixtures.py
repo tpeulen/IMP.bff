@@ -124,9 +124,104 @@ def kinetic_fcs_tcspc_spec():
     return spec
 
 
+def _decay(irf, dt, period, lifetimes, n0, background=0.0):
+    """A noiseless decay of discrete lifetimes, as the bound measurement shape."""
+    source = bff.TCSPCDecay("source")
+    source.set_number_of_lifetimes(len(lifetimes))
+    source.add_output_port("source", bff.GraphPort([0.0], False, True))
+    source.set_response_array(np.ascontiguousarray(irf))
+    source.set_timing(dt, period)
+    source.set_convolution_range(len(irf), len(irf))
+    for i, (amplitude, tau) in enumerate(lifetimes):
+        source.get_input_port(f"a{i}").value = amplitude
+        source.get_input_port(f"t{i}").value = tau
+    source.get_input_port("n0").value = n0
+    source.get_input_port("background").value = background
+    source.set_normalize_amplitudes(True)
+    source.update()
+    data = bff.FitDataset()
+    data.set_values_array(np.ascontiguousarray(np.asarray(source.get_output_port("source").value)))
+    data.set_noise_family(bff.FIT_NOISE_FAMILY_POISSON)
+    return data
+
+
+def _fret_channels(dd, da, aa, *, acceptor=True):
+    """Donor, acceptor-under-donor and acceptor-under-acceptor decays.
+
+    Two FRET species (donor lifetimes 0.9 and 3.2 ns) seen by the donor and,
+    as crosstalk, by the acceptor channel, which also carries the acceptor's
+    own 2.6 ns decay. Self-play replaces the values; these fix shape, IRF and
+    noise family.
+    """
+    _, irf, dt, period = _tcspc_dataset()
+    species = [(0.6, 0.9), (0.4, 3.2)]
+    channels = {
+        dd: _decay(irf, dt, period, species, 30000.0, 2.0),
+        da: _decay(irf, dt, period, species + [(0.5, 2.6)], 12000.0, 2.0),
+    }
+    if acceptor:
+        channels[aa] = _decay(irf, dt, period, [(1.0, 2.6)], 15000.0, 1.0)
+    response = bff.FitDataset()
+    response.set_values_array(np.ascontiguousarray(irf))
+    return channels, response, dt, period
+
+
+def smfret_mfd_spec(acceptor=True):
+    """smFRET/MFD bursts: DD and DA decays, and AA when the acceptor was excited.
+
+    Without ``acceptor`` the AA decay is not bound -- an MFD measurement
+    without acceptor excitation -- and the family withholds the move that
+    needs it.
+    """
+    channels, response, dt, period = _fret_channels(
+        "decay_dd", "decay_da", "decay_aa", acceptor=acceptor)
+    spec = bff.ModelSearchSpec.from_name("smfret_mfd")
+    for name, data in channels.items():
+        spec.set_dataset(name, data)
+    spec.set_dataset("response", response)
+    spec.set_scalar("dt", dt)
+    spec.set_scalar("period", period)
+    return spec
+
+
+def pie_alex_spec():
+    """PIE/ALEX: prompt DD and DA windows and the delayed AA window."""
+    channels, response, dt, period = _fret_channels("prompt_dd", "prompt_da", "delayed_aa")
+    spec = bff.ModelSearchSpec.from_name("pie_alex")
+    for name, data in channels.items():
+        spec.set_dataset(name, data)
+    spec.set_dataset("response", response)
+    spec.set_scalar("dt", dt)
+    spec.set_scalar("period", period)
+    return spec
+
+
+#: An evaluation budget the one-lifetime fit converges within and the
+#: two-lifetime fit does not (measured: root needs > 20, two lifetimes > 45).
+SHORT_BUDGET = 36
+
+
+def tcspc_lifetime_fit_settings():
+    """The lifetime family searched over structures and fit settings.
+
+    Under a budget too short for two lifetimes to converge, a structure-only
+    search cannot leave one lifetime; a second way of fitting -- a patient
+    evaluation budget -- lets it reach the two the decay was built from.
+    """
+    problem = tcspc_lifetime()
+    problem.set_minimizer_maxfev(SHORT_BUDGET)
+    problem.add_fit_settings_candidate(bff.ModelSearchFitSettings(
+        "declared", "leastsq", 0.0, 0.0, 0.0, 0, 0.0, "declared", True))
+    problem.add_fit_settings_candidate(bff.ModelSearchFitSettings(
+        "patient", "leastsq", 0.0, 0.0, 0.0, 2000, 0.0, "declared", True))
+    problem.set_action_space(bff.ACTION_SPACE_FIT_SETTINGS)
+    return problem
+
+
 #: Golden-record name -> the function that builds its problem.
 FIXTURES = {
     "fcs_analytical": fcs_analytical,
     "fcs_two_dimensional_single": fcs_two_dimensional_single,
     "tcspc_lifetime": tcspc_lifetime,
+    "tcspc_lifetime_fit_settings": tcspc_lifetime_fit_settings,
 }

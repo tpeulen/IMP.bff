@@ -273,9 +273,128 @@ def test_a_joint_residual_also_shows_its_worst_block_on_its_own():
     joint = list(np.concatenate([good, bad]))
     features = np.asarray(bff.get_policy_state_features(joint, 3, [300, 80]))
     np.testing.assert_allclose(features[32:64], bff.get_residual_profile(list(bad), 32))
-    assert features[-1] == pytest.approx(np.log(2))
+    assert features[N_BLOCKS] == pytest.approx(np.log(2))
     single = np.asarray(bff.get_policy_state_features(list(good), 3))
     np.testing.assert_allclose(single[32:64], single[:32])
+
+
+#: After two 32-bin profiles and seven statistics: the modality token.
+N_BLOCKS = 70
+KIND = slice(71, 71 + bff.BLOCK_KIND_COUNT)
+DISTINCT_KINDS = 71 + bff.BLOCK_KIND_COUNT
+
+
+def test_the_state_says_what_kind_of_measurement_its_worst_block_is():
+    rng = np.random.default_rng(4)
+    good = rng.normal(size=200)
+    bad = 4.0 * np.cos(np.linspace(0, np.pi, 60)) + rng.normal(size=60)
+    joint = list(np.concatenate([good, bad]))
+    kinds = [bff.BLOCK_TCSPC, bff.BLOCK_FCS]
+
+    features = np.asarray(bff.get_policy_state_features(joint, 2, [200, 60], kinds))
+
+    assert features.size == bff.get_policy_state_width()
+    one_hot = features[KIND]
+    assert one_hot[bff.BLOCK_FCS] == 1.0 and one_hot.sum() == 1.0
+    assert features[DISTINCT_KINDS] == pytest.approx(np.log(2))
+    # Undeclared is one generic block, never a guess.
+    plain = np.asarray(bff.get_policy_state_features(joint, 2, [200, 60]))
+    assert plain[KIND][bff.BLOCK_GENERIC] == 1.0 and plain[DISTINCT_KINDS] == 0.0
+    # The rest of the state does not depend on the token.
+    np.testing.assert_allclose(plain[:71], features[:71])
+    assert bff.get_block_kind("pie_alex") == bff.BLOCK_PIE_ALEX
+    assert bff.get_block_kind_name(bff.BLOCK_BURST_MFD) == "burst_mfd"
+    with pytest.raises(ValueError, match="kinds are"):
+        bff.get_block_kind("sonar")
+
+
+def test_a_description_declares_the_kind_of_every_block():
+    sys_path_fixtures()
+    import _fixtures
+
+    problem = _fixtures.kinetic_fcs_tcspc_spec().build()
+    key = problem.get_structure_keys()[0]
+    assert list(problem.get_structure_block_kinds(key)) == [bff.BLOCK_TCSPC, bff.BLOCK_FCS]
+    pie = _fixtures.pie_alex_spec().build()
+    assert set(pie.get_structure_block_kinds(pie.get_structure_keys()[0])) == {bff.BLOCK_PIE_ALEX}
+
+
+def sys_path_fixtures():
+    import pathlib
+    import sys
+
+    here = str(pathlib.Path(__file__).resolve().parent)
+    if here not in sys.path:
+        sys.path.insert(0, here)
+
+
+def _strong_acceptor_measurement(seed):
+    """MFD bursts from one FRET species with a strong acceptor term."""
+    sys_path_fixtures()
+    import _fixtures
+
+    spec = _fixtures.smfret_mfd_spec()
+    spec.set_parameter_value("crosstalk.direct", 4.0, True)
+    play = bff.ModelSearchSelfPlay(spec)
+    play.set_spread(0.05)
+    play.set_photon_simulation(bff.PhotonExperiment.get_available())
+    return play.simulate("smfret_mfd.species.1.acceptor.1", seed)
+
+
+def _run(spec, simulations=16):
+    config = bff.ModelSearchConfig()
+    config.set_number_of_simulations(simulations)
+    config.set_dirichlet_fraction(0.0)
+    config.set_seed(3)
+    search = bff.ModelSearch(spec.build())
+    search.set_config(config)
+    return search.run()
+
+
+def test_a_move_whose_measurement_is_missing_asks_for_it():
+    """No AA photons: the acceptor term cannot be fitted, and the search says so."""
+    measured = _strong_acceptor_measurement(11)
+    with_aa = _run(measured)
+    assert with_aa.get_outcome() == "selected"
+    assert with_aa.get_best_state().get_structure_key() == "smfret_mfd.species.1.acceptor.1"
+    assert list(with_aa.get_missing_observables()) == []
+
+    measured.unset_dataset("decay_aa")
+    problem = measured.build()
+    root = problem.get_initial_state()
+    assert "add-acceptor-term" not in [a.get_key() for a in problem.get_actions(root)]
+    assert list(problem.get_withheld_actions(root.get_structure_key())) == ["add-acceptor-term"]
+
+    without = _run(measured)
+    assert without.get_outcome() == "request_information"
+    assert list(without.get_missing_observables()) == ["decay_aa"]
+    assert not without.get_acceptable()
+
+
+def test_a_move_requiring_an_undeclared_dataset_is_refused():
+    sys_path_fixtures()
+    import _fixtures
+
+    document = json.loads(open(bff.get_data_path("model_search/smfret_mfd.json")).read())
+    for move in document["moves"]:
+        if move["action"] == "add-species":
+            move["requires"] = ["sonar"]
+    spec = bff.ModelSearchSpec.from_json(json.dumps(document))
+    bound = _fixtures.smfret_mfd_spec()
+    for name in ("decay_dd", "decay_da", "response"):
+        spec.set_dataset(name, bound.get_dataset(name))
+    spec.set_scalar("dt", 0.05)
+    spec.set_scalar("period", 12.5)
+    with pytest.raises(ValueError, match="sonar"):
+        spec.build()
+
+
+def test_cancelled_and_tabular_searches_report_their_outcome():
+    result = _search(_problem()).run()
+    assert result.get_outcome() == "selected"
+    search = _search(_problem())
+    search.request_cancel()
+    assert search.run().get_outcome() == "cancelled"
 
 
 def test_the_residual_profile_is_compressed_bucket_z_scores():

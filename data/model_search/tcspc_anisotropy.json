@@ -8,6 +8,11 @@
   "vm",
   "response"
  ],
+ "dataset_kinds": {
+  "vv": "polarized",
+  "vh": "polarized",
+  "vm": "polarized"
+ },
  "scalars": [
   "dt",
   "period"

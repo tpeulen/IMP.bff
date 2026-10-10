@@ -26,6 +26,7 @@ import pathlib
 import sys
 import time
 
+import msgpack
 import IMP.bff as bff
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -62,6 +63,9 @@ def main(argv=None):
                         help="reuse saved episodes instead of playing")
     parser.add_argument("--save-episodes", type=pathlib.Path, default=None)
     parser.add_argument("--out", type=pathlib.Path, default=DATA / "action_policy.msgpack")
+    parser.add_argument("--temperature", type=float, default=3.0,
+                        help="written into the document: the temperature the search "
+                             "applies it at, and the one bench_action_policy gates")
     args = parser.parse_args(argv)
 
     photons = not args.no_photons and bff.PhotonExperiment.get_available()
@@ -94,8 +98,11 @@ def main(argv=None):
     for name in families:
         print(f"  {name:30s} {accuracy[name]:.3f}  priors {baseline[name]:.3f}")
 
-    # get_network() is already the msgpack document: written as it is.
-    args.out.write_bytes(trained.get_network())
+    # get_network() is the msgpack document; it carries the temperature the
+    # policy is gated and applied at, which training itself does not choose.
+    document = msgpack.unpackb(trained.get_network(), raw=False)
+    document["temperature"] = float(args.temperature)
+    args.out.write_bytes(msgpack.packb(document, use_bin_type=True))
     report = {
         "format": "bff.model_search.action_policy_report.v1",
         "seed": args.seed,
@@ -118,6 +125,8 @@ def main(argv=None):
         "baseline_loss": trained.get_baseline_loss(),
         "best_epoch": trained.get_best_epoch(),
         "weight_decay": args.weight_decay,
+        "temperature": args.temperature,
+        "state_width": bff.get_policy_state_width(),
         "seconds_by_game": timing,
     }
     args.out.with_name(args.out.stem + ".report.json").write_text(json.dumps(report, indent=1))

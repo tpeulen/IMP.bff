@@ -988,6 +988,7 @@ IMP_SWIG_VALUE(IMP::bff, ModelSearchState, ModelSearchStates);
 IMP_SWIG_VALUE(IMP::bff, ModelSearchAction, ModelSearchActions);
 IMP_SWIG_VALUE(IMP::bff, ModelSearchConfig, ModelSearchConfigs);
 IMP_SWIG_VALUE(IMP::bff, ModelSearchResult, ModelSearchResults);
+IMP_SWIG_VALUE(IMP::bff, ModelSearchFitSettings, ModelSearchFitSettingsList);
 %shared_ptr(IMP::bff::ModelSearchProblem);
 %shared_ptr(IMP::bff::TabularModelSearchProblem);
 %shared_ptr(IMP::bff::FittingModelSearchProblem);

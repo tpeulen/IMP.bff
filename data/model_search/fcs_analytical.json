@@ -5,6 +5,9 @@
  "datasets": [
   "curve"
  ],
+ "dataset_kinds": {
+  "curve": "fcs"
+ },
  "scalars": [],
  "parameters": {
   "fcs.N": {

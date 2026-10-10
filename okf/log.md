@@ -1,5 +1,9 @@
 # Update Log
 
+## 2026-10-10
+
+- **Model search: modality token, request_information, MFD/PIE games, fit-settings action space** ([search](themes/search.md)). The policy state carries the worst block's measurement kind (width 71 -> 78); a move may require a dataset and is withheld without it, and a search whose best fit is not acceptable then ends `request_information`; `when_bound` stages keep topologies comparable; `smfret_mfd` and `pie_alex` self-play games; `ACTION_SPACE_FIT_SETTINGS` searches how each structure is fitted. Retrained policy (hidden 32, 23,624 episodes over 11 games, held-out 0.816 vs priors 0.230) passes the gate at seed 91000: 296/315/324 of 330 right at budgets 2/4/8 against the priors' 277/302/319, with 566/754/913 evaluations against 717/912/1164.
+
 ## 2026-10-07
 
 - Portable confidence root: reuse the selected-model core record for CA temperature factors instead of linking an IMP-only reader;7scientific cases and F-tail checks pass in the isolated candidate. Residual callback conversion remains the next provider gate. [Resume](numerics-build.md).

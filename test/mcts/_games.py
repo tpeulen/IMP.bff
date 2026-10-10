@@ -68,6 +68,8 @@ GAMES = {
     "tcspc_anisotropy": tcspc_anisotropy,
     "equations": equations,
     "kinetic_fcs_tcspc": _fixtures.kinetic_fcs_tcspc_spec,
+    "smfret_mfd": _fixtures.smfret_mfd_spec,
+    "pie_alex": _fixtures.pie_alex_spec,
 }
 for _family in test_fret_families.FAMILIES:
     GAMES[_family] = (lambda family=_family: _tcspc_family(family))

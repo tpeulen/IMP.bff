@@ -381,6 +381,27 @@ SpecJson expand(const SpecJson& node,
 }
 
 
+//! Whether an entry's `when_bound` measurement is bound (true without one).
+/*! A node, a joint member or a free entry may be written
+    `{"when_bound": "<slot>", ...}`: it takes part only when that measurement
+    is supplied, in every topology alike. */
+bool bound_or_unconditional(const SpecJson& entry,
+                            const std::map<std::string, FitDataset>& datasets,
+                            const std::string& where) {
+  const SpecJson::const_iterator slot = entry.find("when_bound");
+  if (slot == entry.end()) return true;
+  if (!slot->is_string()) refuse(where + " 'when_bound' names a dataset");
+  return datasets.count(slot->get<std::string>()) != 0;
+}
+
+//! A joint member: a node name, or `{"member": name, "when_bound": slot}`.
+std::string member_name(const SpecJson& entry, const std::string& where) {
+  if (entry.is_string()) return entry.get<std::string>();
+  if (entry.is_object()) return require_string(entry, "member", where + " member");
+  refuse(where + " each member is a node name");
+  return std::string();
+}
+
 //! Whether a measurement slot is one a description lets a caller omit.
 bool is_optional_dataset(const SpecJson& document, const std::string& slot) {
   SpecJson::const_iterator optional = document.find("optional_datasets");
@@ -539,6 +560,9 @@ void expand_template(SpecJson& document,
         one["to"] = keys[target];
         one["prior"] = prior;
         one["terminal"] = false;
+        // The measurements this move cannot be made without; see the
+        // 'actions' loop in build, which withholds it when one is unbound.
+        if (m->contains("requires")) one["requires"] = (*m)["requires"];
         actions.push_back(one);
       }
     }
@@ -1146,6 +1170,25 @@ std::shared_ptr<FittingModelSearchProblem> ModelSearchSpec::build_over(
     }
     add_dataset_scalars(wanted_datasets[i], found->second, scope);
   }
+  // An optional measurement is described when it is bound; unbound, it has
+  // no points (`<slot>_size` is 0) and nothing else, so a sample size can
+  // count it either way while any other statistic of it stays an error.
+  {
+    const SpecJson::const_iterator optional = document.find("optional_datasets");
+    if (optional != document.end() && optional->is_array()) {
+      for (SpecJson::const_iterator it = optional->begin(); it != optional->end(); ++it) {
+        if (!it->is_string()) continue;
+        const std::string slot = it->get<std::string>();
+        const std::map<std::string, FitDataset>::const_iterator found =
+            impl_->datasets.find(slot);
+        if (found != impl_->datasets.end()) {
+          add_dataset_scalars(slot, found->second, scope);
+        } else {
+          scope[slot + "_size"] = 0.0;
+        }
+      }
+    }
+  }
   const std::vector<std::string> wanted_scalars = get_scalar_names();
   for (std::size_t i = 0; i < wanted_scalars.size(); ++i) {
     if (!impl_->scalars.count(wanted_scalars[i])) {
@@ -1278,6 +1321,10 @@ std::shared_ptr<FittingModelSearchProblem> ModelSearchSpec::build_over(
       const SpecJson& node_spec = *nit;
       const std::string node_where = where + " node '" + node_key + "'";
       if (!node_spec.is_object()) refuse(node_where + " must be an object");
+      // A stage that only exists when a measurement does -- the acceptor
+      // seen on its own -- is left out of every topology alike when nobody
+      // bound it, so topologies stay comparable on the same data.
+      if (!bound_or_unconditional(node_spec, impl_->datasets, node_where)) continue;
       const std::string type = require_string(node_spec, "type", node_where);
       std::shared_ptr<GraphNode> node;
       try {
@@ -1409,8 +1456,12 @@ std::shared_ptr<FittingModelSearchProblem> ModelSearchSpec::build_over(
       if (!members_it->is_array()) refuse(node_where + " 'members' must be an array");
       for (SpecJson::const_iterator mit = members_it->begin();
            mit != members_it->end(); ++mit) {
-        if (!mit->is_string()) refuse(node_where + " each member is a node name");
-        const std::string member_key = mit->get<std::string>();
+        if (mit->is_object()) {
+          if (!bound_or_unconditional(*mit, impl_->datasets, node_where + " member")) continue;
+        } else if (!mit->is_string()) {
+          refuse(node_where + " each member is a node name");
+        }
+        const std::string member_key = member_name(*mit, node_where);
         std::map<std::string, std::shared_ptr<GraphNode> >::const_iterator
             member = built.find(member_key);
         if (member == built.end()) {
@@ -1600,8 +1651,12 @@ std::shared_ptr<FittingModelSearchProblem> ModelSearchSpec::build_over(
       if (fit->is_object()) {
         id = require_string(*fit, "parameter", where + " free entry");
         SpecJson::const_iterator when = fit->find("when");
-        if (when == fit->end()) refuse(where + " free entry '" + id + "' needs a 'when'");
-        if (evaluate_rule(*when, where + " free '" + id + "' when", scope) == 0.0) continue;
+        if (when == fit->end() && !fit->contains("when_bound")) {
+          refuse(where + " free entry '" + id + "' needs a 'when' or a 'when_bound'");
+        }
+        if (when != fit->end() &&
+            evaluate_rule(*when, where + " free '" + id + "' when", scope) == 0.0) continue;
+        if (!bound_or_unconditional(*fit, impl_->datasets, where + " free '" + id + "'")) continue;
       } else {
         id = fit->get<std::string>();
       }
@@ -1662,6 +1717,33 @@ std::shared_ptr<FittingModelSearchProblem> ModelSearchSpec::build_over(
                            fixed_mask);
     problem->set_structure_parameter_uses(
         key, std::vector<std::string>(used_ids.begin(), used_ids.end()));
+
+    // The modality token: what kind of measurement each residual block is,
+    // in the order a joint objective lays its members' blocks end to end.
+    {
+      const SpecJson::const_iterator kinds_it = document.find("dataset_kinds");
+      const auto kind_of = [&](const std::string& node_key) {
+        if (kinds_it == document.end() || !nodes.contains(node_key)) return 0;
+        const SpecJson& node_spec = nodes[node_key];
+        const SpecJson::const_iterator bind = node_spec.find("bind");
+        if (bind == node_spec.end() || !bind->contains("data")) return 0;
+        const std::string slot = (*bind)["data"].get<std::string>();
+        if (!kinds_it->contains(slot)) return 0;
+        return get_block_kind((*kinds_it)[slot].get<std::string>());
+      };
+      std::vector<int> kinds;
+      const SpecJson& objective_spec = nodes[objective_key];
+      const SpecJson::const_iterator members = objective_spec.find("members");
+      if (members != objective_spec.end() && members->is_array()) {
+        for (SpecJson::const_iterator mit = members->begin(); mit != members->end(); ++mit) {
+          if (mit->is_object() && !bound_or_unconditional(*mit, impl_->datasets, where)) continue;
+          kinds.push_back(kind_of(member_name(*mit, where)));
+        }
+      } else {
+        kinds.push_back(kind_of(objective_key));
+      }
+      problem->set_structure_block_kinds(key, kinds);
+    }
 
     // Which node's curve is compared against which measurement. The objective
     // bound to a measurement reads its model from one node, so this is not a
@@ -1820,6 +1902,33 @@ std::shared_ptr<FittingModelSearchProblem> ModelSearchSpec::build_over(
       bool terminal = false;
       if (action.contains("terminal")) {
         terminal = action["terminal"].get<bool>();
+      }
+      // A move that needs a measurement nobody bound is not offered: the
+      // search reports which one it lacks rather than choosing among what
+      // remains as if the data could have answered.
+      std::vector<std::string> missing;
+      if (action.contains("requires")) {
+        const SpecJson& needs = action["requires"];
+        if (!needs.is_array()) refuse(where + " 'requires' must be an array");
+        for (SpecJson::const_iterator rit = needs.begin(); rit != needs.end(); ++rit) {
+          if (!rit->is_string()) refuse(where + " 'requires' names datasets");
+          const std::string slot = rit->get<std::string>();
+          bool declared = is_optional_dataset(document, slot);
+          const SpecJson::const_iterator declared_it = document.find("datasets");
+          if (declared_it != document.end() && declared_it->is_array()) {
+            for (SpecJson::const_iterator d = declared_it->begin(); d != declared_it->end(); ++d) {
+              declared = declared || (d->is_string() && d->get<std::string>() == slot);
+            }
+          }
+          if (!declared) {
+            refuse(where + " requires '" + slot + "', which the family does not declare");
+          }
+          if (!impl_->datasets.count(slot)) missing.push_back(slot);
+        }
+      }
+      if (!missing.empty()) {
+        problem->add_withheld_action(from, name, to, missing);
+        continue;
       }
       problem->add_action(from, name, to, prior, terminal);
     }

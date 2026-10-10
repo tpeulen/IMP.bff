@@ -168,10 +168,51 @@ class ActionPolicy {
 };
 
 const int kPolicyResidualBins = 32;
-const int kPolicyStateStatistics = 7;
+//! Seven residual statistics, the worst block's kind as a one-hot, and the
+//! number of distinct kinds.
+const int kPolicyStateStatistics = 7 + BLOCK_KIND_COUNT + 1;
 const int kPolicyActionWidth = 7;
 
+const char* const kBlockKindNames[BLOCK_KIND_COUNT] = {
+    "generic", "tcspc", "polarized", "fcs", "burst_mfd", "pie_alex"};
+
+//! Separates a structure from its fit settings in a search key.
+const char kFitSettingsSeparator = '|';
+
+//! Split at the last separator: a settings key never holds one, while a
+//! structure key may (a global fit names its members' structures with it).
+std::pair<std::string, std::string> split_search_key(const std::string& key) {
+  const std::size_t at = key.rfind(kFitSettingsSeparator);
+  if (at == std::string::npos) return std::make_pair(key, std::string());
+  return std::make_pair(key.substr(0, at), key.substr(at + 1));
+}
+
+std::string join_search_key(const std::string& structure,
+                            const std::string& settings) {
+  return settings.empty() ? structure
+                          : structure + kFitSettingsSeparator + settings;
+}
+
 }  // namespace
+
+int get_block_kind(const std::string& name) {
+  for (int k = 0; k < BLOCK_KIND_COUNT; ++k) {
+    if (name == kBlockKindNames[k]) return k;
+  }
+  std::ostringstream message;
+  message << "unknown block kind '" << name << "'; the kinds are";
+  for (int k = 0; k < BLOCK_KIND_COUNT; ++k) {
+    message << (k ? ", " : " ") << kBlockKindNames[k];
+  }
+  throw ModelSearchConfigurationError(message.str());
+}
+
+std::string get_block_kind_name(int kind) {
+  if (kind < 0 || kind >= BLOCK_KIND_COUNT) {
+    throw ModelSearchConfigurationError("block kind out of range");
+  }
+  return kBlockKindNames[kind];
+}
 
 std::vector<double> get_residual_profile(const std::vector<double>& residual,
                                          int width) {
@@ -206,11 +247,13 @@ int get_policy_action_width() { return kPolicyActionWidth; }
 
 std::vector<double> get_policy_state_features(const std::vector<double>& residual,
                                               int n_free,
-                                              const std::vector<int>& block_sizes) {
+                                              const std::vector<int>& block_sizes,
+                                              const std::vector<int>& block_kinds) {
   std::vector<double> features = get_residual_profile(residual, kPolicyResidualBins);
   // The worst-fitting block of a joint residual, on its own: laid end to end
   // the members' scales and lengths blur which measurement the model misses.
   std::size_t worst_begin = 0, worst_end = residual.size();
+  std::size_t worst_index = 0;
   int n_blocks = 1;
   std::size_t total = 0;
   for (int size : block_sizes) total += static_cast<std::size_t>(std::max(0, size));
@@ -218,6 +261,7 @@ std::vector<double> get_policy_state_features(const std::vector<double>& residua
     n_blocks = static_cast<int>(block_sizes.size());
     double worst = -1.0;
     std::size_t at = 0;
+    std::size_t index = 0;
     for (int size : block_sizes) {
       const std::size_t end = at + static_cast<std::size_t>(std::max(0, size));
       double sum = 0.0;
@@ -233,8 +277,10 @@ std::vector<double> get_policy_state_features(const std::vector<double>& residua
         worst = mean;
         worst_begin = at;
         worst_end = end;
+        worst_index = index;
       }
       at = end;
+      ++index;
     }
   }
   const std::vector<double> block(residual.begin() + worst_begin, residual.begin() + worst_end);
@@ -278,6 +324,22 @@ std::vector<double> get_policy_state_features(const std::vector<double>& residua
   features.push_back(std::log1p(static_cast<double>(std::max(0, n_free))));
   features.push_back(std::log10(std::max(block_chi2 / std::max<double>(1.0, block.size()), 1e-12)));
   features.push_back(std::log(static_cast<double>(n_blocks)));
+  // The modality token: which kind of measurement the worst block is, and
+  // how many kinds the residual mixes. Kinds that do not line up with the
+  // blocks are read as one generic block rather than misattributed.
+  int worst_kind = BLOCK_GENERIC;
+  std::set<int> kinds;
+  if (!block_kinds.empty() &&
+      (block_kinds.size() == block_sizes.size() ||
+       (block_kinds.size() == 1 && block_sizes.size() <= 1))) {
+    for (int kind : block_kinds) {
+      kinds.insert(kind >= 0 && kind < BLOCK_KIND_COUNT ? kind : BLOCK_GENERIC);
+    }
+    const int declared = block_kinds[std::min(worst_index, block_kinds.size() - 1)];
+    worst_kind = declared >= 0 && declared < BLOCK_KIND_COUNT ? declared : BLOCK_GENERIC;
+  }
+  for (int k = 0; k < BLOCK_KIND_COUNT; ++k) features.push_back(k == worst_kind ? 1.0 : 0.0);
+  features.push_back(std::log(static_cast<double>(std::max<std::size_t>(1, kinds.size()))));
   return features;
 }
 
@@ -310,9 +372,23 @@ ModelSearchState::ModelSearchState(
     : key_(key), structure_key_(structure_key), reward_(reward),
       acceptable_(acceptable) {}
 
+ModelSearchState::ModelSearchState(const std::string& key,
+                                   const std::string& structure_key,
+                                   const std::string& fit_settings_key,
+                                   double reward, bool acceptable)
+    : key_(key), structure_key_(structure_key),
+      fit_settings_key_(fit_settings_key), reward_(reward),
+      acceptable_(acceptable) {}
+
 const std::string& ModelSearchState::get_key() const { return key_; }
 const std::string& ModelSearchState::get_structure_key() const {
   return structure_key_;
+}
+const std::string& ModelSearchState::get_fit_settings_key() const {
+  return fit_settings_key_;
+}
+std::string ModelSearchState::get_search_key() const {
+  return join_search_key(structure_key_, fit_settings_key_);
 }
 double ModelSearchState::get_reward() const { return reward_; }
 bool ModelSearchState::get_acceptable() const { return acceptable_; }
@@ -337,6 +413,32 @@ ModelSearchProblem::~ModelSearchProblem() {}
 void ModelSearchProblem::request_cancel() {}
 void ModelSearchProblem::clear_cancel() {}
 void ModelSearchProblem::activate_state(const ModelSearchState&) {}
+std::vector<std::string> ModelSearchProblem::get_missing_observables(
+    const ModelSearchState&) {
+  return std::vector<std::string>();
+}
+
+ModelSearchFitSettings::ModelSearchFitSettings()
+    : key_("declared"), algorithm_("leastsq"), ftol_(0.0), xtol_(0.0),
+      gtol_(0.0), maxfev_(0), factor_(0.0), start_("declared"),
+      use_bounds_(true) {}
+
+ModelSearchFitSettings::ModelSearchFitSettings(
+    const std::string& key, const std::string& algorithm, double ftol,
+    double xtol, double gtol, int maxfev, double factor,
+    const std::string& start, bool use_bounds)
+    : key_(key), algorithm_(algorithm), ftol_(ftol), xtol_(xtol), gtol_(gtol),
+      maxfev_(maxfev), factor_(factor), start_(start), use_bounds_(use_bounds) {}
+
+const std::string& ModelSearchFitSettings::get_key() const { return key_; }
+const std::string& ModelSearchFitSettings::get_algorithm() const { return algorithm_; }
+double ModelSearchFitSettings::get_ftol() const { return ftol_; }
+double ModelSearchFitSettings::get_xtol() const { return xtol_; }
+double ModelSearchFitSettings::get_gtol() const { return gtol_; }
+int ModelSearchFitSettings::get_maxfev() const { return maxfev_; }
+double ModelSearchFitSettings::get_factor() const { return factor_; }
+const std::string& ModelSearchFitSettings::get_start() const { return start_; }
+bool ModelSearchFitSettings::get_use_bounds() const { return use_bounds_; }
 
 struct TabularModelSearchProblem::Impl {
   std::map<std::string, ModelSearchState> states;
@@ -501,6 +603,11 @@ struct StructureRecord {
   //! measurement name -> the node whose curve is compared against it.
   std::map<std::string, std::string> curves;
   std::vector<std::string> curve_order;
+  //! ModelSearchBlockKind of each residual block, in block order.
+  std::vector<int> block_kinds;
+  //! Moves declared out of this structure that the bound data cannot
+  //! support, and the measurements each lacks.
+  std::vector<std::pair<std::string, std::vector<std::string> > > withheld;
 };
 
 }  // namespace
@@ -533,8 +640,47 @@ struct FittingModelSearchProblem::Impl {
   std::map<std::string, PublishedOutput> outputs;
   int last_status = 0;
   std::string last_failure;
+  //! See FittingModelSearchProblem::set_action_space.
+  int action_space = ACTION_SPACE_STRUCTURE;
+  ModelSearchFitSettingsList fit_settings;
+  double fit_settings_prior = 0.25;
 
   Impl() : cancelled(false) {}
+
+  //! The candidate a state's settings key names; null for the declared way.
+  const ModelSearchFitSettings* settings_for(const std::string& key) const {
+    if (action_space != ACTION_SPACE_FIT_SETTINGS) return nullptr;
+    for (std::size_t i = 0; i < fit_settings.size(); ++i) {
+      if (fit_settings[i].get_key() == key) return &fit_settings[i];
+    }
+    throw ModelSearchConfigurationError("unknown fit settings '" + key + "'");
+  }
+
+  //! The root's settings key; empty when only structures are searched.
+  std::string root_settings_key() const {
+    return action_space == ACTION_SPACE_FIT_SETTINGS && !fit_settings.empty()
+               ? fit_settings[0].get_key()
+               : std::string();
+  }
+
+  //! Put one candidate's optimiser settings onto a minimiser.
+  void configure(FitMinimizer& minimizer, const ModelSearchFitSettings* settings,
+                 std::size_t n_free) const {
+    int budget = maxfev;
+    if (settings) {
+      minimizer.set_algorithm(settings->get_algorithm());
+      if (settings->get_ftol() > 0.0) minimizer.set_ftol(settings->get_ftol());
+      if (settings->get_xtol() > 0.0) minimizer.set_xtol(settings->get_xtol());
+      if (settings->get_gtol() > 0.0) minimizer.set_gtol(settings->get_gtol());
+      if (settings->get_factor() > 0.0) minimizer.set_factor(settings->get_factor());
+      if (settings->get_maxfev() > 0) budget = settings->get_maxfev();
+      if (!settings->get_use_bounds()) {
+        const std::vector<double> open(n_free, std::numeric_limits<double>::quiet_NaN());
+        minimizer.set_bounds(open, open);
+      }
+    }
+    if (budget > 0) minimizer.set_maxfev(budget);
+  }
 
   void validate_registry() const {
     std::set<GraphPort*> owners;
@@ -786,6 +932,19 @@ struct FittingModelSearchProblem::Impl {
       starts.push_back(record.extra_starts[i]);
     }
     return starts;
+  }
+
+  //! The starts one candidate's fit settings ask for.
+  /*! `parent` is the snapshot the move leaves from, null at the root. */
+  std::vector<std::vector<double> > starts_for(
+      const StructureRecord& record, const ModelSearchFitSettings* settings,
+      const FitSearchSnapshot* parent) const {
+    if (!settings || settings->get_start() == "declared") return starts_for(record);
+    if (settings->get_start() == "primary" || !parent) {
+      return std::vector<std::vector<double> >(1, record.initial_values);
+    }
+    // "parent": the values the parent was fitted to, a warm start.
+    return std::vector<std::vector<double> >(1, parent->values);
   }
 
   std::pair<double, bool> score_current(
@@ -1107,6 +1266,163 @@ bool FittingModelSearchProblem::get_has_action_policy() const {
   return impl_->action_policy.active();
 }
 
+void FittingModelSearchProblem::add_withheld_action(
+    const std::string& parent_structure, const std::string& action_key,
+    const std::string& result_structure,
+    const std::vector<std::string>& missing) {
+  require_key(action_key, "action");
+  StructureRecord& parent = impl_->structure(parent_structure);
+  impl_->structure(result_structure);
+  if (missing.empty()) {
+    throw ModelSearchConfigurationError(
+        "a withheld move must name the measurements it lacks");
+  }
+  parent.withheld.push_back(std::make_pair(action_key, missing));
+}
+
+std::vector<std::string> FittingModelSearchProblem::get_withheld_actions(
+    const std::string& structure_key) const {
+  std::vector<std::string> keys;
+  const StructureRecord& record = impl_->structure(structure_key);
+  for (std::size_t i = 0; i < record.withheld.size(); ++i) {
+    keys.push_back(record.withheld[i].first);
+  }
+  return keys;
+}
+
+std::vector<std::string> FittingModelSearchProblem::get_missing_observables(
+    const ModelSearchState& state) {
+  std::vector<std::string> missing;
+  const std::map<std::string, StructureRecord>::const_iterator found =
+      impl_->structures.find(state.get_structure_key());
+  if (found == impl_->structures.end()) return missing;
+  for (std::size_t i = 0; i < found->second.withheld.size(); ++i) {
+    for (const std::string& name : found->second.withheld[i].second) {
+      if (std::find(missing.begin(), missing.end(), name) == missing.end()) {
+        missing.push_back(name);
+      }
+    }
+  }
+  return missing;
+}
+
+void FittingModelSearchProblem::set_structure_block_kinds(
+    const std::string& structure_key, const std::vector<int>& kinds) {
+  for (int kind : kinds) {
+    if (kind < 0 || kind >= BLOCK_KIND_COUNT) {
+      throw ModelSearchConfigurationError("block kind out of range");
+    }
+  }
+  impl_->structure(structure_key).block_kinds = kinds;
+}
+
+std::vector<int> FittingModelSearchProblem::get_structure_block_kinds(
+    const std::string& structure_key) const {
+  return impl_->structure(structure_key).block_kinds;
+}
+
+void FittingModelSearchProblem::set_action_space(int space) {
+  if (space != ACTION_SPACE_STRUCTURE && space != ACTION_SPACE_FIT_SETTINGS) {
+    throw ModelSearchConfigurationError("unknown model-search action space");
+  }
+  if (space == ACTION_SPACE_FIT_SETTINGS && impl_->fit_settings.empty()) {
+    throw ModelSearchConfigurationError(
+        "a fit-settings search needs fit-settings candidates; declare them first "
+        "(add_default_fit_settings_candidates)");
+  }
+  if (space != impl_->action_space) {
+    // States were scored under the other space's keys and settings.
+    impl_->snapshots.clear();
+    impl_->snapshot_structures.clear();
+  }
+  impl_->action_space = space;
+}
+
+int FittingModelSearchProblem::get_action_space() const {
+  return impl_->action_space;
+}
+
+void FittingModelSearchProblem::add_fit_settings_candidate(
+    const ModelSearchFitSettings& settings) {
+  const std::string& key = settings.get_key();
+  require_key(key, "fit settings");
+  if (key.find(kFitSettingsSeparator) != std::string::npos) {
+    throw ModelSearchConfigurationError("a fit-settings key must not contain '|'");
+  }
+  for (std::size_t i = 0; i < impl_->fit_settings.size(); ++i) {
+    if (impl_->fit_settings[i].get_key() == key) {
+      throw ModelSearchConfigurationError("duplicate fit settings '" + key + "'");
+    }
+  }
+  {
+    FitMinimizer probe;
+    try {
+      probe.set_algorithm(settings.get_algorithm());
+    } catch (const std::exception& error) {
+      throw ModelSearchConfigurationError("fit settings '" + key + "': " + error.what());
+    }
+  }
+  const std::string& start = settings.get_start();
+  if (start != "declared" && start != "primary" && start != "parent") {
+    throw ModelSearchConfigurationError(
+        "fit settings '" + key + "' start '" + start +
+        "' is none of declared, primary, parent");
+  }
+  if (!(settings.get_ftol() >= 0.0) || !(settings.get_xtol() >= 0.0) ||
+      !(settings.get_gtol() >= 0.0) || settings.get_maxfev() < 0 ||
+      !(settings.get_factor() >= 0.0) || settings.get_factor() > 100.0 ||
+      (settings.get_factor() > 0.0 && settings.get_factor() < 0.1)) {
+    throw ModelSearchConfigurationError(
+        "fit settings '" + key + "': tolerances and the evaluation budget must be "
+        "non-negative and the step factor zero or in [0.1, 100]");
+  }
+  impl_->fit_settings.push_back(settings);
+}
+
+void FittingModelSearchProblem::add_default_fit_settings_candidates() {
+  // MINPACK's (and chisurf's) tolerance, so the first candidate is exactly
+  // the way a structure-only search fits.
+  const double tol = 1.49012e-8;
+  const ModelSearchFitSettings defaults[] = {
+      ModelSearchFitSettings("declared", "leastsq", 0.0, 0.0, 0.0, 0, 0.0, "declared", true),
+      ModelSearchFitSettings("loose", "leastsq", tol * 1e2, tol * 1e2, 0.0, 0, 0.0, "declared", true),
+      ModelSearchFitSettings("tight", "leastsq", tol * 1e-2, tol * 1e-2, 0.0, 0, 0.0, "declared",
+                             true),
+      ModelSearchFitSettings("primary", "leastsq", 0.0, 0.0, 0.0, 0, 0.0, "primary", true),
+      ModelSearchFitSettings("parent", "leastsq", 0.0, 0.0, 0.0, 0, 0.0, "parent", true),
+      ModelSearchFitSettings("small-step", "leastsq", 0.0, 0.0, 0.0, 0, 1.0, "declared", true)};
+  for (const ModelSearchFitSettings& one : defaults) {
+    bool present = false;
+    for (std::size_t i = 0; i < impl_->fit_settings.size(); ++i) {
+      present = present || impl_->fit_settings[i].get_key() == one.get_key();
+    }
+    if (!present) add_fit_settings_candidate(one);
+  }
+}
+
+void FittingModelSearchProblem::clear_fit_settings_candidates() {
+  if (impl_->action_space == ACTION_SPACE_FIT_SETTINGS) {
+    throw ModelSearchConfigurationError(
+        "leave the fit-settings action space before clearing its candidates");
+  }
+  impl_->fit_settings.clear();
+}
+
+ModelSearchFitSettingsList FittingModelSearchProblem::get_fit_settings_candidates() const {
+  return impl_->fit_settings;
+}
+
+void FittingModelSearchProblem::set_fit_settings_prior(double share) {
+  if (!std::isfinite(share) || share < 0.0) {
+    throw ModelSearchConfigurationError("the fit-settings prior must be non-negative");
+  }
+  impl_->fit_settings_prior = share;
+}
+
+double FittingModelSearchProblem::get_fit_settings_prior() const {
+  return impl_->fit_settings_prior;
+}
+
 int FittingModelSearchProblem::get_number_of_free_parameters(
     const std::string& structure_key) const {
   const StructureRecord& record = impl_->structure(structure_key);
@@ -1121,14 +1437,19 @@ std::vector<double> FittingModelSearchProblem::get_policy_rows(
     const std::string& structure_key, const std::vector<double>& residual,
     const ModelSearchActions& actions, const std::vector<int>& block_sizes) const {
   const int source_free = get_number_of_free_parameters(structure_key);
-  const std::vector<double> state =
-      get_policy_state_features(residual, source_free, block_sizes);
+  const std::vector<double> state = get_policy_state_features(
+      residual, source_free, block_sizes, impl_->structure(structure_key).block_kinds);
   double declared = 0.0;
   for (std::size_t i = 0; i < actions.size(); ++i) declared += std::max(0.0, actions[i].get_prior());
   std::vector<double> rows;
   rows.reserve(actions.size() * (state.size() + kPolicyActionWidth));
   for (std::size_t i = 0; i < actions.size(); ++i) {
-    const std::string& target = actions[i].get_predicted_state_key();
+    // A fit-settings search names "<structure>|<settings>"; the features
+    // describe the structure, and a settings move is a self loop.
+    const std::string target =
+        impl_->action_space == ACTION_SPACE_FIT_SETTINGS
+            ? split_search_key(actions[i].get_predicted_state_key()).first
+            : actions[i].get_predicted_state_key();
     const std::vector<double> action = get_policy_action_features(
         source_free, get_number_of_free_parameters(target), actions[i].get_terminal(),
         target == structure_key,
@@ -1227,8 +1548,11 @@ ModelSearchState FittingModelSearchProblem::get_initial_state() {
     // The root is scored like any other candidate, so it is fitted from
     // every declared start too; otherwise the one topology nothing has to
     // move to would be the one judged on a single seed.
+    const std::string settings_key = impl_->root_settings_key();
+    const ModelSearchFitSettings* settings =
+        settings_key.empty() ? nullptr : impl_->settings_for(settings_key);
     const std::vector<std::vector<double> > starts =
-        impl_->starts_for(selected);
+        impl_->starts_for(selected, settings, nullptr);
     bool have_best = false;
     double best_reward = 0.0;
     bool best_acceptable = false;
@@ -1250,7 +1574,7 @@ ModelSearchState FittingModelSearchProblem::get_initial_state() {
         }
         FitMinimizer minimizer;
         minimizer.set_parameter_ports(free_ports);
-        if (impl_->maxfev > 0) minimizer.set_maxfev(impl_->maxfev);
+        impl_->configure(minimizer, settings, free_ports.size());
         minimizer.set_objective(selected.objective);
         impl_->last_status = minimizer.run();
         if (impl_->last_status < 1 || impl_->last_status > 4) {
@@ -1289,8 +1613,8 @@ ModelSearchState FittingModelSearchProblem::get_initial_state() {
     impl_->snapshot_structures[impl_->initial_structure] =
         impl_->initial_structure;
     return ModelSearchState(impl_->initial_structure,
-                            impl_->initial_structure, score.first,
-                            score.second);
+                            impl_->initial_structure, settings_key,
+                            score.first, score.second);
   } catch (...) {
     impl_->restore_values(previous);
     impl_->active_structure = previous_structure;
@@ -1302,16 +1626,45 @@ ModelSearchActions FittingModelSearchProblem::get_actions(
     const ModelSearchState& state) {
   const std::map<std::string, ModelSearchActions>::const_iterator found =
       impl_->actions.find(state.get_structure_key());
-  if (found == impl_->actions.end()) return ModelSearchActions();
-  if (!impl_->action_policy.active()) return found->second;
+  ModelSearchActions offered;
+  if (found != impl_->actions.end()) offered = found->second;
+  if (impl_->action_space == ACTION_SPACE_FIT_SETTINGS) {
+    // Structural moves keep the settings; settings moves keep the structure.
+    const std::string settings = state.get_fit_settings_key().empty()
+                                     ? impl_->root_settings_key()
+                                     : state.get_fit_settings_key();
+    double declared = 0.0;
+    ModelSearchActions both;
+    for (std::size_t i = 0; i < offered.size(); ++i) {
+      declared += std::max(0.0, offered[i].get_prior());
+      both.push_back(ModelSearchAction(
+          offered[i].get_key(),
+          join_search_key(offered[i].get_predicted_state_key(), settings),
+          offered[i].get_prior(), offered[i].get_terminal()));
+    }
+    const std::size_t others = impl_->fit_settings.size() - 1;
+    const double each = others
+        ? impl_->fit_settings_prior * (declared > 0.0 ? declared : 1.0) /
+              static_cast<double>(others)
+        : 0.0;
+    for (std::size_t i = 0; i < impl_->fit_settings.size(); ++i) {
+      const std::string& key = impl_->fit_settings[i].get_key();
+      if (key == settings) continue;
+      both.push_back(ModelSearchAction("fit-settings:" + key,
+                                       join_search_key(state.get_structure_key(), key),
+                                       each, false));
+    }
+    offered.swap(both);
+  }
+  if (offered.empty() || !impl_->action_policy.active()) return offered;
   const std::map<std::string, FitSearchSnapshot>::const_iterator snapshot =
       impl_->snapshots.find(state.get_key());
   if (snapshot == impl_->snapshots.end() || snapshot->second.residual.empty()) {
-    return found->second;
+    return offered;
   }
   return impl_->action_policy.apply(
-      found->second, get_policy_rows(state.get_structure_key(), snapshot->second.residual,
-                                     found->second, snapshot->second.blocks));
+      offered, get_policy_rows(state.get_structure_key(), snapshot->second.residual,
+                               offered, snapshot->second.blocks));
 }
 
 ModelSearchState FittingModelSearchProblem::evaluate(
@@ -1332,15 +1685,26 @@ ModelSearchState FittingModelSearchProblem::evaluate(
     throw ModelSearchConfigurationError(
         "parent state structure does not match its cached snapshot");
   }
-  const std::string target_key = action.get_predicted_state_key();
+  const std::pair<std::string, std::string> predicted =
+      impl_->action_space == ACTION_SPACE_FIT_SETTINGS
+          ? split_search_key(action.get_predicted_state_key())
+          : std::make_pair(action.get_predicted_state_key(), std::string());
+  const std::string target_key = predicted.first;
+  const std::string settings_key =
+      impl_->action_space == ACTION_SPACE_FIT_SETTINGS
+          ? (predicted.second.empty() ? impl_->root_settings_key() : predicted.second)
+          : std::string();
   const StructureRecord& source =
       impl_->structure(parent.get_structure_key());
   const StructureRecord& target = impl_->structure(target_key);
   try {
+    const ModelSearchFitSettings* settings =
+        settings_key.empty() ? nullptr : impl_->settings_for(settings_key);
     // Every declared start is tried and the best kept. A topology's score is
     // meant to be the best fit it admits, so one seed that happens to land in
     // a poor basin must not be allowed to speak for the model.
-    const std::vector<std::vector<double> > starts = impl_->starts_for(target);
+    const std::vector<std::vector<double> > starts =
+        impl_->starts_for(target, settings, &parent_snapshot->second);
     bool have_best = false;
     double best_reward = 0.0;
     bool best_acceptable = false;
@@ -1371,7 +1735,7 @@ ModelSearchState FittingModelSearchProblem::evaluate(
         }
         FitMinimizer minimizer;
         minimizer.set_parameter_ports(free_ports);
-        if (impl_->maxfev > 0) minimizer.set_maxfev(impl_->maxfev);
+        impl_->configure(minimizer, settings, free_ports.size());
         minimizer.set_objective(target.objective);
         IMP::Pointer<FitSearchCancelObserver> observer(
             new FitSearchCancelObserver(&impl_->cancelled));
@@ -1427,7 +1791,8 @@ ModelSearchState FittingModelSearchProblem::evaluate(
     best_snapshot.blocks = impl_->blocks_of(target);
     impl_->snapshots[key] = best_snapshot;
     impl_->snapshot_structures[key] = target_key;
-    return ModelSearchState(key, target_key, best_reward, best_acceptable);
+    return ModelSearchState(key, target_key, settings_key, best_reward,
+                            best_acceptable);
   } catch (const std::exception& error) {
     impl_->last_failure = error.what();
     impl_->last_status = 0;
@@ -1891,7 +2256,7 @@ unsigned int ModelSearchConfig::get_seed() const { return seed_; }
 
 ModelSearchResult::ModelSearchResult()
     : n_states_evaluated_(0), n_simulations_(0), improvement_(0.0),
-      acceptable_(false), cancelled_(false) {}
+      acceptable_(false), cancelled_(false), outcome_("selected") {}
 
 const ModelSearchState& ModelSearchResult::get_root_state() const {
   return root_state_;
@@ -1911,6 +2276,10 @@ int ModelSearchResult::get_number_of_simulations() const {
 double ModelSearchResult::get_improvement() const { return improvement_; }
 bool ModelSearchResult::get_acceptable() const { return acceptable_; }
 bool ModelSearchResult::get_cancelled() const { return cancelled_; }
+const std::string& ModelSearchResult::get_outcome() const { return outcome_; }
+const std::vector<std::string>& ModelSearchResult::get_missing_observables() const {
+  return missing_observables_;
+}
 
 struct ModelSearch::Impl {
   std::shared_ptr<ModelSearchProblem> problem;
@@ -1975,7 +2344,7 @@ ModelSearchResult ModelSearch::run() {
 
   std::unique_ptr<TreeNode> root(new TreeNode);
   root->state = initial;
-  root->structure_key = initial.get_structure_key();
+  root->structure_key = initial.get_search_key();
   root->evaluated = true;
   root->visits = 1;
 
@@ -2071,7 +2440,7 @@ ModelSearchResult ModelSearch::run() {
                                              node->parent_action);
       ++evaluator_calls;
       require_state(node->state, "evaluated state");
-      node->structure_key = node->state.get_structure_key();
+      node->structure_key = node->state.get_search_key();
       node->evaluated = true;
       for (TreeNode* ancestor = node->parent; ancestor;
            ancestor = ancestor->parent) {
@@ -2119,6 +2488,19 @@ ModelSearchResult ModelSearch::run() {
   result.acceptable_ = best->state.get_acceptable();
   result.cancelled_ = done < cfg.get_number_of_simulations() &&
                       impl_->cancel_requested.load();
+  if (result.cancelled_) {
+    result.outcome_ = "cancelled";
+  } else if (!best->state.get_acceptable()) {
+    // The best fit does not describe the data and a move out of it needed a
+    // measurement nobody bound: the answer is what to measure, not the best
+    // of what was left.
+    const std::vector<std::string> missing =
+        impl_->problem->get_missing_observables(best->state);
+    if (!missing.empty()) {
+      result.outcome_ = "request_information";
+      result.missing_observables_ = missing;
+    }
+  }
 
   TreeNode* path_node = root.get();
   while (path_node->expanded && !path_node->children.empty()) {

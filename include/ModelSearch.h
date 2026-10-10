@@ -61,9 +61,19 @@ class IMPBFFEXPORT ModelSearchState {
   ModelSearchState(const std::string& key,
                       const std::string& structure_key, double reward,
                       bool acceptable = false);
+  //! A state of a search over structures *and* fit settings.
+  ModelSearchState(const std::string& key, const std::string& structure_key,
+                   const std::string& fit_settings_key, double reward,
+                   bool acceptable = false);
   const std::string& get_key() const;
   //! Canonical structural identity; several fitted snapshots may share it.
   const std::string& get_structure_key() const;
+  //! The fit settings the state was fitted with; empty outside a
+  //! fit-settings search (see FittingModelSearchProblem::set_action_space).
+  const std::string& get_fit_settings_key() const;
+  //! What the tree tells states apart by: the structure, and the fit
+  //! settings when there are any (`"<structure>|<settings>"`).
+  std::string get_search_key() const;
   double get_reward() const;
   bool get_acceptable() const;
   IMP_SHOWABLE_INLINE(ModelSearchState,
@@ -73,6 +83,7 @@ class IMPBFFEXPORT ModelSearchState {
  private:
   std::string key_;
   std::string structure_key_;
+  std::string fit_settings_key_;
   double reward_;
   bool acceptable_;
 };
@@ -108,6 +119,28 @@ IMP_VALUES(ModelSearchAction, ModelSearchActions);
 IMPBFFEXPORT std::vector<double> get_residual_profile(
     const std::vector<double>& residual, int width);
 
+//! Which kind of measurement one block of a (joint) residual is.
+/*! The modality token of a policy's state: the same residual shape means
+    something different in a decay, a correlation curve and the acceptor
+    channel of a PIE experiment, and a family-agnostic network can only tell
+    them apart if the state says which it is looking at. A description
+    declares it per dataset (`"dataset_kinds"`); undeclared is generic. */
+enum ModelSearchBlockKind {
+  BLOCK_GENERIC = 0,
+  BLOCK_TCSPC = 1,
+  BLOCK_POLARIZED = 2,
+  BLOCK_FCS = 3,
+  BLOCK_BURST_MFD = 4,
+  BLOCK_PIE_ALEX = 5,
+  BLOCK_KIND_COUNT = 6
+};
+
+//! A block kind from its name in a description (`"tcspc"`, `"pie_alex"`, ...).
+/*! 	hrows ModelSearchConfigurationError naming the kinds there are. */
+IMPBFFEXPORT int get_block_kind(const std::string& name);
+//! The name a description uses for a block kind.
+IMPBFFEXPORT std::string get_block_kind_name(int kind);
+
 //! How many features describe a fitted state to an action policy.
 IMPBFFEXPORT int get_policy_state_width();
 //! How many features describe a candidate move to an action policy.
@@ -119,12 +152,15 @@ IMPBFFEXPORT int get_policy_action_width();
     log10 of the reduced chi-square, the lag-1 autocorrelation, the compressed
     Wald-Wolfowitz runs z-score, the share of positive residuals, log(1 +
     free parameters), log10 of the worst block's mean squared residual and
-    log of the number of blocks. Nothing names a dataset, a node or a
-    parameter, which is what lets one network serve every model family and
-    every kind of measurement. */
+    log of the number of blocks; then the modality token -- a one-hot of the
+    worst block's #ModelSearchBlockKind (`block_kinds`, one per block; empty
+    is generic) -- and log of the number of distinct kinds in the residual.
+    Nothing names a dataset, a node or a parameter, which is what lets one
+    network serve every model family and every kind of measurement. */
 IMPBFFEXPORT std::vector<double> get_policy_state_features(
     const std::vector<double>& residual, int n_free,
-    const std::vector<int>& block_sizes = std::vector<int>());
+    const std::vector<int>& block_sizes = std::vector<int>(),
+    const std::vector<int>& block_kinds = std::vector<int>());
 
 //! A candidate move as an action policy sees it, whatever the family.
 /*! Terminal, returns to the same structure, the change in free parameters
@@ -157,7 +193,71 @@ class IMPBFFEXPORT ModelSearchProblem {
   virtual void clear_cancel();
   //! Make a cached state current after search (the root when cancelled).
   virtual void activate_state(const ModelSearchState& state);
+  //! Measurements a move out of this state needed and nothing supplied.
+  /*! Non-empty when the problem withheld a corrective move for lack of an
+      observable (an acceptor-excitation correction without AA photons). The
+      search reports `request_information` instead of pretending the best
+      of what remained is the answer. Empty by default. */
+  virtual std::vector<std::string> get_missing_observables(
+      const ModelSearchState& state);
 };
+
+//! Which moves a fitting search makes. See FittingModelSearchProblem::set_action_space.
+enum ModelSearchActionSpace {
+  //! Moves between structures; every candidate is fitted the declared way.
+  ACTION_SPACE_STRUCTURE = 0,
+  //! Moves between structures and between the settings each is fitted with.
+  ACTION_SPACE_FIT_SETTINGS = 1
+};
+
+//! How one candidate is fitted: optimiser, tolerances, starts and bounds.
+/*! A structure that does not converge from its declared starts loses a
+    model comparison it might win, and which optimiser settings reach its
+    optimum is as much a property of the data as which structure explains
+    it. A fit-settings search therefore treats the settings as a second
+    action space, scored by the same reward and read by the same residual
+    features as the structural one.
+
+    - `algorithm`: what FitMinimizer::set_algorithm accepts (`"leastsq"`).
+    - `ftol`, `xtol`, `gtol`: MINPACK's tolerances; zero keeps the minimiser's.
+    - `maxfev`: residual evaluations; zero keeps the problem's budget.
+    - `factor`: the initial step bound, in (0.1, 100]; zero keeps 100.
+    - `start`: `"declared"` (every declared start, the default), `"primary"`
+      (the first declared start only: cheaper) or `"parent"` (the values the
+      parent state was fitted to: a warm start).
+    - `use_bounds`: whether the declared bounds constrain the fit. Off lets a
+      fit leave the physical range a description declares, so no default
+      candidate turns it off.
+*/
+class IMPBFFEXPORT ModelSearchFitSettings {
+ public:
+  ModelSearchFitSettings();
+  ModelSearchFitSettings(const std::string& key, const std::string& algorithm,
+                         double ftol, double xtol, double gtol, int maxfev,
+                         double factor, const std::string& start,
+                         bool use_bounds);
+  const std::string& get_key() const;
+  const std::string& get_algorithm() const;
+  double get_ftol() const;
+  double get_xtol() const;
+  double get_gtol() const;
+  int get_maxfev() const;
+  double get_factor() const;
+  const std::string& get_start() const;
+  bool get_use_bounds() const;
+  IMP_SHOWABLE_INLINE(ModelSearchFitSettings,
+                      out << "ModelSearchFitSettings(" << key_ << ")");
+
+ private:
+  std::string key_;
+  std::string algorithm_;
+  double ftol_, xtol_, gtol_;
+  int maxfev_;
+  double factor_;
+  std::string start_;
+  bool use_bounds_;
+};
+IMP_VALUES(ModelSearchFitSettings, ModelSearchFitSettingsList);
 
 //! A callback-free finite problem, useful for persisted/pre-scored graphs.
 /*!
@@ -272,6 +372,54 @@ class IMPBFFEXPORT FittingModelSearchProblem
                   const std::string& action_key,
                   const std::string& result_structure, double prior = 1.0,
                   bool terminal = false);
+  //! Record a move the family declares but the bound data cannot support.
+  /*! The move is not offered; `missing` names the measurements it needed.
+      A search that ends on `parent_structure` without an acceptable fit
+      reports `request_information` with them (ModelSearchResult::get_outcome). */
+  void add_withheld_action(const std::string& parent_structure,
+                           const std::string& action_key,
+                           const std::string& result_structure,
+                           const std::vector<std::string>& missing);
+  //! The withheld moves out of a structure, as their action keys.
+  std::vector<std::string> get_withheld_actions(
+      const std::string& structure_key) const;
+  std::vector<std::string> get_missing_observables(
+      const ModelSearchState& state) override;
+
+  //! The kind of each residual block of a structure, in block order.
+  /*! One entry per member of a joint objective (one for a single one); see
+      #ModelSearchBlockKind. Undeclared reads as one generic block. */
+  void set_structure_block_kinds(const std::string& structure_key,
+                                 const std::vector<int>& kinds);
+  std::vector<int> get_structure_block_kinds(
+      const std::string& structure_key) const;
+
+  //! Search structures only (the default) or structures and fit settings.
+  /*! In #ACTION_SPACE_FIT_SETTINGS every state is a structure fitted with
+      one of the declared candidates (#add_fit_settings_candidate): moves
+      between structures keep the settings, and from every state a move to
+      each other candidate refits the same structure with it. The first
+      candidate is the root's. A state's structure key stays the structure;
+      ModelSearchState::get_fit_settings_key says how it was fitted.
+      Changing the space discards cached search states.
+      \throws ModelSearchConfigurationError for an unknown space, or the fit
+      settings space without candidates. */
+  void set_action_space(int space);
+  int get_action_space() const;
+  //! Declare one way of fitting a candidate. \throws ModelSearchConfigurationError
+  //! for a duplicate or malformed key, an algorithm FitMinimizer does not
+  //! know, or an unknown start strategy.
+  void add_fit_settings_candidate(const ModelSearchFitSettings& settings);
+  //! The default candidates: the declared way first, then looser and tighter
+  //! tolerances, the primary start only, the parent's values as the start,
+  //! and a small initial step. Bounds stay on in all of them.
+  void add_default_fit_settings_candidates();
+  void clear_fit_settings_candidates();
+  ModelSearchFitSettingsList get_fit_settings_candidates() const;
+  //! The declared prior shared by the settings moves out of a state,
+  //! relative to the structural moves' total (default 0.25).
+  void set_fit_settings_prior(double share);
+  double get_fit_settings_prior() const;
 
   //! Weight the declared move priors by a family-agnostic network.
   /*! The network scores one row per available move -- the state features of
@@ -573,6 +721,15 @@ class IMPBFFEXPORT ModelSearchResult {
   double get_improvement() const;
   bool get_acceptable() const;
   bool get_cancelled() const;
+  //! How the search ended: `"selected"`, `"request_information"` or
+  //! `"cancelled"`.
+  /*! `request_information` means the best state is not an acceptable fit
+      and a move out of it was withheld because a measurement it needs is
+      missing (#get_missing_observables): the answer is "measure this", not
+      the best of what was left. */
+  const std::string& get_outcome() const;
+  //! The measurements a `request_information` outcome asks for.
+  const std::vector<std::string>& get_missing_observables() const;
   IMP_SHOWABLE_INLINE(ModelSearchResult,
                       out << "ModelSearchResult(" << n_simulations_
                           << " simulations, best=" << best_state_.get_key()
@@ -588,6 +745,8 @@ class IMPBFFEXPORT ModelSearchResult {
   double improvement_;
   bool acceptable_;
   bool cancelled_;
+  std::string outcome_;
+  std::vector<std::string> missing_observables_;
 };
 IMP_VALUES(ModelSearchResult, ModelSearchResults);
 

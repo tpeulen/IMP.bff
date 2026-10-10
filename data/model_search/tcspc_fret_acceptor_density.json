@@ -155,6 +155,9 @@
  "datasets": [
   "decay"
  ],
+ "dataset_kinds": {
+  "decay": "tcspc"
+ },
  "scalars": [
   "dt",
   "period"

@@ -94,6 +94,9 @@
  "datasets": [
   "decay"
  ],
+ "dataset_kinds": {
+  "decay": "tcspc"
+ },
  "optional_datasets": [
   "response",
   "linearization",

@@ -1,0 +1,411 @@
+{
+ "actions": {
+  "lifetime.components.1|declared": [
+   {
+    "action": "stop",
+    "prior": 0.25,
+    "terminal": true,
+    "to": "lifetime.components.1|declared"
+   },
+   {
+    "action": "add-component",
+    "prior": 0.5,
+    "terminal": false,
+    "to": "lifetime.components.2|declared"
+   },
+   {
+    "action": "fit-settings:patient",
+    "prior": 0.1875,
+    "terminal": false,
+    "to": "lifetime.components.1|patient"
+   }
+  ],
+  "lifetime.components.1|patient": [
+   {
+    "action": "stop",
+    "prior": 0.25,
+    "terminal": true,
+    "to": "lifetime.components.1|patient"
+   },
+   {
+    "action": "add-component",
+    "prior": 0.5,
+    "terminal": false,
+    "to": "lifetime.components.2|patient"
+   },
+   {
+    "action": "fit-settings:declared",
+    "prior": 0.1875,
+    "terminal": false,
+    "to": "lifetime.components.1|declared"
+   }
+  ],
+  "lifetime.components.2|declared": [
+   {
+    "action": "stop",
+    "prior": 0.25,
+    "terminal": true,
+    "to": "lifetime.components.2|declared"
+   },
+   {
+    "action": "add-component",
+    "prior": 0.5,
+    "terminal": false,
+    "to": "lifetime.components.3|declared"
+   },
+   {
+    "action": "remove-component",
+    "prior": 0.25,
+    "terminal": false,
+    "to": "lifetime.components.1|declared"
+   },
+   {
+    "action": "fit-settings:patient",
+    "prior": 0.25,
+    "terminal": false,
+    "to": "lifetime.components.2|patient"
+   }
+  ],
+  "lifetime.components.2|patient": [
+   {
+    "action": "stop",
+    "prior": 0.25,
+    "terminal": true,
+    "to": "lifetime.components.2|patient"
+   },
+   {
+    "action": "add-component",
+    "prior": 0.5,
+    "terminal": false,
+    "to": "lifetime.components.3|patient"
+   },
+   {
+    "action": "remove-component",
+    "prior": 0.25,
+    "terminal": false,
+    "to": "lifetime.components.1|patient"
+   },
+   {
+    "action": "fit-settings:declared",
+    "prior": 0.25,
+    "terminal": false,
+    "to": "lifetime.components.2|declared"
+   }
+  ],
+  "lifetime.components.3|declared": [
+   {
+    "action": "stop",
+    "prior": 0.25,
+    "terminal": true,
+    "to": "lifetime.components.3|declared"
+   },
+   {
+    "action": "remove-component",
+    "prior": 0.25,
+    "terminal": false,
+    "to": "lifetime.components.2|declared"
+   },
+   {
+    "action": "fit-settings:patient",
+    "prior": 0.125,
+    "terminal": false,
+    "to": "lifetime.components.3|patient"
+   }
+  ],
+  "lifetime.components.3|patient": [
+   {
+    "action": "stop",
+    "prior": 0.25,
+    "terminal": true,
+    "to": "lifetime.components.3|patient"
+   },
+   {
+    "action": "remove-component",
+    "prior": 0.25,
+    "terminal": false,
+    "to": "lifetime.components.2|patient"
+   },
+   {
+    "action": "fit-settings:declared",
+    "prior": 0.125,
+    "terminal": false,
+    "to": "lifetime.components.3|declared"
+   }
+  ]
+ },
+ "fit_settings": [
+  "declared",
+  "patient"
+ ],
+ "initial_structure": "lifetime.components.1",
+ "parameter_ids": [
+  "lifetime.amplitude.0",
+  "lifetime.tau.0",
+  "lifetime.amplitude.1",
+  "lifetime.tau.1",
+  "lifetime.amplitude.2",
+  "lifetime.tau.2",
+  "instrument.scatter",
+  "instrument.background",
+  "instrument.n0",
+  "instrument.timeshift",
+  "instrument.response_background",
+  "instrument.irf_width",
+  "instrument.irf_shape",
+  "instrument.irf_position"
+ ],
+ "root": {
+  "acceptable": false,
+  "fit_settings": "declared",
+  "fixed": [
+   1,
+   0,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   0,
+   0,
+   1,
+   1,
+   1,
+   1
+  ],
+  "reward": -602.5187435824051,
+  "structure": "lifetime.components.1",
+  "values": [
+   1.0,
+   2.656000592337329,
+   1.0,
+   12.5,
+   1.0,
+   12.5,
+   0.0,
+   0.0,
+   13211.118316717118,
+   -0.851538837323865,
+   0.0,
+   0.1,
+   -0.31,
+   0.7000000000000001
+  ]
+ },
+ "structure_keys": [
+  "lifetime.components.1",
+  "lifetime.components.2",
+  "lifetime.components.3"
+ ],
+ "structures": {
+  "lifetime.components.1|patient": {
+   "acceptable": false,
+   "fit_settings": "patient",
+   "fixed": [
+    1,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1
+   ],
+   "path": [
+    "fit-settings:patient"
+   ],
+   "reward": -602.5187435824051,
+   "structure": "lifetime.components.1",
+   "values": [
+    1.0,
+    2.656000592337329,
+    1.0,
+    12.5,
+    1.0,
+    12.5,
+    0.0,
+    0.0,
+    13211.118316717118,
+    -0.851538837323865,
+    0.0,
+    0.1,
+    -0.31,
+    0.7000000000000001
+   ]
+  },
+  "lifetime.components.2|declared": {
+   "acceptable": false,
+   "fit_settings": "declared",
+   "fixed": [
+    1,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1
+   ],
+   "path": [
+    "add-component"
+   ],
+   "reward": -602.5187435824051,
+   "structure": "lifetime.components.1",
+   "values": [
+    1.0,
+    2.656000592337329,
+    1.0,
+    12.5,
+    1.0,
+    12.5,
+    0.0,
+    0.0,
+    13211.118316717118,
+    -0.851538837323865,
+    0.0,
+    0.1,
+    -0.31,
+    0.7000000000000001
+   ]
+  },
+  "lifetime.components.2|patient": {
+   "acceptable": false,
+   "fit_settings": "patient",
+   "fixed": [
+    1,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1
+   ],
+   "path": [
+    "fit-settings:patient",
+    "add-component"
+   ],
+   "reward": -13.143741950351624,
+   "structure": "lifetime.components.2",
+   "values": [
+    0.5,
+    0.700023826031383,
+    0.26923522018967483,
+    3.8000082187158983,
+    0.5,
+    12.5,
+    0.0,
+    0.0,
+    19999.66241661938,
+    -0.00011563798170755035,
+    0.0,
+    0.1,
+    -0.31,
+    0.7000000000000001
+   ]
+  },
+  "lifetime.components.3|declared": {
+   "acceptable": false,
+   "fit_settings": "declared",
+   "fixed": [
+    1,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1
+   ],
+   "path": [
+    "add-component",
+    "add-component"
+   ],
+   "reward": -602.5187435824051,
+   "structure": "lifetime.components.1",
+   "values": [
+    1.0,
+    2.656000592337329,
+    1.0,
+    12.5,
+    1.0,
+    12.5,
+    0.0,
+    0.0,
+    13211.118316717118,
+    -0.851538837323865,
+    0.0,
+    0.1,
+    -0.31,
+    0.7000000000000001
+   ]
+  },
+  "lifetime.components.3|patient": {
+   "acceptable": false,
+   "fit_settings": "patient",
+   "fixed": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1
+   ],
+   "path": [
+    "fit-settings:patient",
+    "add-component",
+    "add-component"
+   ],
+   "reward": -18.401234186125823,
+   "structure": "lifetime.components.3",
+   "values": [
+    0.3333333333333333,
+    0.6933402555077411,
+    0.40688549918802397,
+    0.7054977332755726,
+    0.3985443231621786,
+    3.8000821753901697,
+    0.0,
+    0.0,
+    20000.21590143586,
+    4.55405611887727e-06,
+    0.0,
+    0.1,
+    -0.31,
+    0.7000000000000001
+   ]
+  }
+ }
+}

@@ -1,0 +1,345 @@
+{
+ "schema": "bff.model_search.v1",
+ "family": "pie_alex",
+ "title": "PIE / ALEX: prompt and delayed windows",
+ "_comment": "Pulsed interleaved excitation: the prompt window holds the donor-excited DD and DA decays, the delayed window the acceptor-excited AA decay, which fixes the acceptor lifetime. FRET species share their quenched donor lifetimes and fractions across DD and DA; the direct-excitation term adds the acceptor's own decay to the prompt DA window.",
+ "datasets": [
+  "prompt_dd",
+  "prompt_da",
+  "response",
+  "delayed_aa"
+ ],
+ "dataset_kinds": {
+  "prompt_dd": "pie_alex",
+  "prompt_da": "pie_alex",
+  "delayed_aa": "pie_alex"
+ },
+ "scalars": [
+  "dt",
+  "period"
+ ],
+ "optional_scalars": {
+  "max_species": 2
+ },
+ "axes": {
+  "n": {
+   "from": 1,
+   "to": "max_species"
+  },
+  "x": {
+   "from": 0,
+   "to": 1
+  }
+ },
+ "parameters": {
+  "repeat": {
+   "index": "i",
+   "count": "n_max",
+   "body": {
+    "fret.amplitude.{i}": {
+     "name": "x{i}",
+     "initial": "1/({i}+1)",
+     "lower": 0.0,
+     "upper": null,
+     "group": "species"
+    },
+    "fret.tau.{i}": {
+     "name": "tau{i}",
+     "initial": "min(period,max(dt,3.2/(1+2.5*{i})))",
+     "lower": "max(dt*0.01,1e-12)",
+     "upper": "period",
+     "group": "species"
+    }
+   }
+  },
+  "acceptor.tau": {
+   "name": "tau(A)",
+   "initial": "min(period,max(dt,1.6))",
+   "lower": "max(dt*0.01,1e-12)",
+   "upper": "period",
+   "group": "acceptor"
+  },
+  "crosstalk.direct": {
+   "name": "direct",
+   "initial": 1.0,
+   "lower": 0.0,
+   "upper": 10.0,
+   "group": "acceptor"
+  },
+  "prompt_dd.background": {
+   "name": "bg(DD)",
+   "initial": "prompt_dd_min",
+   "lower": 0.0,
+   "upper": "prompt_dd_max",
+   "group": "background"
+  },
+  "prompt_da.background": {
+   "name": "bg(DA)",
+   "initial": "prompt_da_min",
+   "lower": 0.0,
+   "upper": "prompt_da_max",
+   "group": "background"
+  },
+  "delayed_aa.background": {
+   "name": "bg(AA)",
+   "initial": 0.0,
+   "lower": 0.0,
+   "upper": "prompt_dd_max+prompt_da_max+1",
+   "group": "background"
+  }
+ },
+ "initial_axes": {
+  "n": 1,
+  "x": 0
+ },
+ "template": {
+  "key": "pie_alex.species.{n}.direct.{x}",
+  "nodes": {
+   "dd": {
+    "type": "TCSPCDecay",
+    "config": {
+     "instrument_units": "counts",
+     "autoscale": true,
+     "normalize_amplitudes": true,
+     "absolute_amplitudes": true
+    },
+    "config_rules": {
+     "number_of_lifetimes": "{n}",
+     "timing": [
+      "dt",
+      "period"
+     ],
+     "convolution_range": [
+      "prompt_dd_size",
+      "prompt_dd_size"
+     ],
+     "scale_range": [
+      0,
+      "prompt_dd_size"
+     ]
+    },
+    "bind": {
+     "response": "response",
+     "data": "prompt_dd"
+    },
+    "inputs": {
+     "repeat": {
+      "index": "i",
+      "count": "n",
+      "body": {
+       "a{i}": "#fret.amplitude.{i}",
+       "t{i}": "#fret.tau.{i}"
+      }
+     },
+     "background": "#prompt_dd.background"
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "dd_fit": {
+    "type": "FitChiSquared",
+    "bind": {
+     "data": "prompt_dd"
+    },
+    "inputs": {
+     "model": "dd"
+    },
+    "outputs": {
+     "@name": "float",
+     "residuals": "float_vector"
+    }
+   },
+   "da": {
+    "type": "TCSPCDecay",
+    "config": {
+     "instrument_units": "counts",
+     "autoscale": true,
+     "normalize_amplitudes": true,
+     "absolute_amplitudes": true
+    },
+    "config_rules": {
+     "number_of_lifetimes": "{n}+{x}",
+     "timing": [
+      "dt",
+      "period"
+     ],
+     "convolution_range": [
+      "prompt_da_size",
+      "prompt_da_size"
+     ],
+     "scale_range": [
+      0,
+      "prompt_da_size"
+     ]
+    },
+    "bind": {
+     "response": "response",
+     "data": "prompt_da"
+    },
+    "inputs": {
+     "repeat": [
+      {
+       "index": "i",
+       "count": "n",
+       "body": {
+        "a{i}": "#fret.amplitude.{i}",
+        "t{i}": "#fret.tau.{i}"
+       }
+      },
+      {
+       "index": "k",
+       "count": "x",
+       "body": {
+        "a{n}": "#crosstalk.direct",
+        "t{n}": "#acceptor.tau"
+       }
+      }
+     ],
+     "background": "#prompt_da.background"
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "da_fit": {
+    "type": "FitChiSquared",
+    "bind": {
+     "data": "prompt_da"
+    },
+    "inputs": {
+     "model": "da"
+    },
+    "outputs": {
+     "@name": "float",
+     "residuals": "float_vector"
+    }
+   },
+   "aa": {
+    "type": "TCSPCDecay",
+    "config": {
+     "instrument_units": "counts",
+     "autoscale": true,
+     "normalize_amplitudes": true,
+     "absolute_amplitudes": true
+    },
+    "config_rules": {
+     "number_of_lifetimes": "1",
+     "timing": [
+      "dt",
+      "period"
+     ],
+     "convolution_range": [
+      "delayed_aa_size",
+      "delayed_aa_size"
+     ],
+     "scale_range": [
+      0,
+      "delayed_aa_size"
+     ]
+    },
+    "bind": {
+     "response": "response",
+     "data": "delayed_aa"
+    },
+    "inputs": {
+     "a0": "#fret.amplitude.0",
+     "t0": "#acceptor.tau",
+     "background": "#delayed_aa.background"
+    },
+    "outputs": {
+     "@name": "float_vector"
+    }
+   },
+   "aa_fit": {
+    "type": "FitChiSquared",
+    "bind": {
+     "data": "delayed_aa"
+    },
+    "inputs": {
+     "model": "aa"
+    },
+    "outputs": {
+     "@name": "float",
+     "residuals": "float_vector"
+    }
+   },
+   "joint": {
+    "type": "FitJointChiSquared",
+    "members": [
+     "dd_fit",
+     "da_fit",
+     "aa_fit"
+    ],
+    "outputs": {
+     "@name": "float",
+     "residuals": "float_vector"
+    }
+   }
+  },
+  "objective": "joint",
+  "free": [
+   {
+    "each": {
+     "index": "i",
+     "from": 1,
+     "count": "n",
+     "body": "fret.amplitude.{i}"
+    }
+   },
+   {
+    "each": {
+     "index": "i",
+     "count": "n",
+     "body": "fret.tau.{i}"
+    }
+   },
+   "prompt_dd.background",
+   "prompt_da.background",
+   {
+    "each": {
+     "index": "k",
+     "count": "x",
+     "body": "crosstalk.direct"
+    }
+   },
+   "acceptor.tau",
+   "delayed_aa.background"
+  ],
+  "ess": "prompt_dd_size+prompt_da_size+delayed_aa_size",
+  "selection": "bic",
+  "acceptable_above": 0.001,
+  "label": "{n} FRET species, direct {x}"
+ },
+ "moves": [
+  {
+   "action": "stop",
+   "prior": 0.25,
+   "terminal": true
+  },
+  {
+   "action": "add-species",
+   "axis": "n",
+   "delta": 1,
+   "prior": 0.35
+  },
+  {
+   "action": "remove-species",
+   "axis": "n",
+   "delta": -1,
+   "prior": 0.15
+  },
+  {
+   "action": "add-direct-excitation",
+   "axis": "x",
+   "delta": 1,
+   "prior": 0.15
+  },
+  {
+   "action": "drop-direct-excitation",
+   "axis": "x",
+   "delta": -1,
+   "prior": 0.1
+  }
+ ]
+}

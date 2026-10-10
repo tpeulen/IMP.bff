@@ -229,3 +229,41 @@ def test_counts_are_recorded_by_the_photon_engine():
     # Shape follows the pattern: the early channels hold most photons.
     assert recorded[:10].sum() > recorded[30:40].sum() * 5
     assert list(bff.PhotonExperiment.record_pattern(list(expected), 3)) == list(recorded)
+
+
+@pytest.mark.parametrize("game, datasets", [
+    ("smfret_mfd", ("decay_dd", "decay_da", "decay_aa")),
+    ("pie_alex", ("prompt_dd", "prompt_da", "delayed_aa")),
+])
+def test_fret_games_simulate_every_channel_and_recover_the_generating_structure(game, datasets):
+    """Each channel is recorded as photons, and the answer is the one that made it."""
+    import _games
+    from bench_search_strategy import enumerate_all
+
+    spec = _games.spec(game)
+    play = bff.ModelSearchSelfPlay(spec)
+    play.set_spread(0.05)
+    play.set_photon_simulation(bff.PhotonExperiment.get_available())
+    keys = list(spec.build().get_structure_keys())
+    assert len(keys) == 4
+    right = 0
+    for index, truth in enumerate(keys):
+        simulated = play.simulate(truth, 40 + index)
+        for name in datasets:
+            values = np.asarray(simulated.get_dataset_values(name))
+            assert values.sum() > 1e4 and np.all(values == np.round(values))
+        right += enumerate_all(simulated.build)["structure"] == truth
+    # Near its declared parameters every topology is distinguishable.
+    assert right == len(keys)
+
+
+def test_fret_games_play_policy_episodes():
+    import _games
+
+    for game in ("smfret_mfd", "pie_alex"):
+        play = bff.ModelSearchSelfPlay(_games.spec(game))
+        play.set_spread(0.3)
+        play.set_photon_simulation(bff.PhotonExperiment.get_available())
+        data = play.generate_policy(4, 9)
+        assert data.get_number_of_episodes() > 0
+        assert list(data.get_families()) == [game]

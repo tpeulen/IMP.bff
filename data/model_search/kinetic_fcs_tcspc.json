@@ -28,6 +28,10 @@
   "response",
   "curve"
  ],
+ "dataset_kinds": {
+  "decay": "tcspc",
+  "curve": "fcs"
+ },
  "scalars": [
   "dt",
   "period"
