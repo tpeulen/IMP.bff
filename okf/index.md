@@ -27,6 +27,7 @@ shared index.
 
 # Concepts
 
+* [Source themes](themes/index.md) — how `src/` is split (util, graph, fit, bayesian, spectroscopy, fret, search, learn, probe, structure, sequence, smlm) and where each header belongs.
 * [SMLM](smlm.md) — owning Gaussian spatial index, likelihood and selective 3D particle averaging.
 * [Counterfactuals](counterfactuals.md) — interventions and counterfactuals in FRET modelling (nine examples, including a counterfactual test of FRET networks for hidden bias) and the proposal to let `InferenceFactorGraph` factors carry direction.
 * [LocMoFit reference](smlm-locmofit-reference.md) — implemented methods, paper reference data and remaining method gaps.
