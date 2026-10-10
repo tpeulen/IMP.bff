@@ -32,7 +32,7 @@
     "policy": {
      "right": 30,
      "runs": 30,
-     "evaluations": 56
+     "evaluations": 49
     }
    },
    "8": {
@@ -44,7 +44,7 @@
     "policy": {
      "right": 30,
      "runs": 30,
-     "evaluations": 60
+     "evaluations": 58
     }
    }
   },
@@ -58,7 +58,7 @@
     "policy": {
      "right": 14,
      "runs": 30,
-     "evaluations": 79
+     "evaluations": 68
     }
    },
    "4": {
@@ -68,9 +68,9 @@
      "evaluations": 120
     },
     "policy": {
-     "right": 17,
+     "right": 22,
      "runs": 30,
-     "evaluations": 116
+     "evaluations": 113
     }
    },
    "8": {
@@ -80,9 +80,9 @@
      "evaluations": 186
     },
     "policy": {
-     "right": 27,
+     "right": 26,
      "runs": 30,
-     "evaluations": 178
+     "evaluations": 173
     }
    }
   },
@@ -106,9 +106,9 @@
      "evaluations": 78
     },
     "policy": {
-     "right": 29,
+     "right": 28,
      "runs": 30,
-     "evaluations": 70
+     "evaluations": 66
     }
    },
    "8": {
@@ -120,7 +120,83 @@
     "policy": {
      "right": 30,
      "runs": 30,
+     "evaluations": 71
+    }
+   }
+  },
+  "pie_alex": {
+   "2": {
+    "priors": {
+     "right": 13,
+     "runs": 30,
+     "evaluations": 60
+    },
+    "policy": {
+     "right": 23,
+     "runs": 30,
+     "evaluations": 52
+    }
+   },
+   "4": {
+    "priors": {
+     "right": 22,
+     "runs": 30,
+     "evaluations": 81
+    },
+    "policy": {
+     "right": 28,
+     "runs": 30,
      "evaluations": 73
+    }
+   },
+   "8": {
+    "priors": {
+     "right": 23,
+     "runs": 30,
+     "evaluations": 95
+    },
+    "policy": {
+     "right": 29,
+     "runs": 30,
+     "evaluations": 97
+    }
+   }
+  },
+  "smfret_mfd": {
+   "2": {
+    "priors": {
+     "right": 16,
+     "runs": 30,
+     "evaluations": 60
+    },
+    "policy": {
+     "right": 25,
+     "runs": 30,
+     "evaluations": 50
+    }
+   },
+   "4": {
+    "priors": {
+     "right": 28,
+     "runs": 30,
+     "evaluations": 84
+    },
+    "policy": {
+     "right": 28,
+     "runs": 30,
+     "evaluations": 69
+    }
+   },
+   "8": {
+    "priors": {
+     "right": 29,
+     "runs": 30,
+     "evaluations": 96
+    },
+    "policy": {
+     "right": 29,
+     "runs": 30,
+     "evaluations": 88
     }
    }
   },
@@ -129,31 +205,31 @@
     "priors": {
      "right": 30,
      "runs": 30,
-     "evaluations": 79
+     "evaluations": 73
     },
     "policy": {
      "right": 30,
      "runs": 30,
-     "evaluations": 54
+     "evaluations": 61
     }
    },
    "4": {
     "priors": {
      "right": 30,
      "runs": 30,
-     "evaluations": 101
+     "evaluations": 108
     },
     "policy": {
      "right": 30,
      "runs": 30,
-     "evaluations": 87
+     "evaluations": 84
     }
    },
    "8": {
     "priors": {
      "right": 30,
      "runs": 30,
-     "evaluations": 126
+     "evaluations": 145
     },
     "policy": {
      "right": 30,
@@ -165,26 +241,26 @@
   "tcspc_fret_discrete": {
    "2": {
     "priors": {
-     "right": 29,
+     "right": 27,
      "runs": 30,
      "evaluations": 60
     },
     "policy": {
-     "right": 29,
+     "right": 27,
      "runs": 30,
-     "evaluations": 41
+     "evaluations": 45
     }
    },
    "4": {
     "priors": {
-     "right": 30,
+     "right": 28,
      "runs": 30,
-     "evaluations": 68
+     "evaluations": 67
     },
     "policy": {
-     "right": 30,
+     "right": 29,
      "runs": 30,
-     "evaluations": 62
+     "evaluations": 60
     }
    },
    "8": {
@@ -196,33 +272,33 @@
     "policy": {
      "right": 30,
      "runs": 30,
-     "evaluations": 62
+     "evaluations": 65
     }
    }
   },
   "tcspc_fret_gaussian": {
    "2": {
     "priors": {
-     "right": 29,
+     "right": 30,
      "runs": 30,
      "evaluations": 60
     },
     "policy": {
-     "right": 29,
+     "right": 30,
      "runs": 30,
-     "evaluations": 44
+     "evaluations": 39
     }
    },
    "4": {
     "priors": {
-     "right": 29,
+     "right": 30,
      "runs": 30,
-     "evaluations": 65
+     "evaluations": 64
     },
     "policy": {
-     "right": 29,
+     "right": 30,
      "runs": 30,
-     "evaluations": 60
+     "evaluations": 53
     }
    },
    "8": {
@@ -234,7 +310,7 @@
     "policy": {
      "right": 30,
      "runs": 30,
-     "evaluations": 62
+     "evaluations": 60
     }
    }
   },
@@ -255,12 +331,12 @@
     "priors": {
      "right": 30,
      "runs": 30,
-     "evaluations": 76
+     "evaluations": 74
     },
     "policy": {
      "right": 30,
      "runs": 30,
-     "evaluations": 60
+     "evaluations": 54
     }
    },
    "8": {
@@ -286,31 +362,31 @@
     "policy": {
      "right": 30,
      "runs": 30,
-     "evaluations": 47
+     "evaluations": 48
     }
    },
    "4": {
     "priors": {
      "right": 30,
      "runs": 30,
-     "evaluations": 65
+     "evaluations": 71
     },
     "policy": {
      "right": 30,
      "runs": 30,
-     "evaluations": 60
+     "evaluations": 56
     }
    },
    "8": {
     "priors": {
      "right": 30,
      "runs": 30,
-     "evaluations": 90
+     "evaluations": 89
     },
     "policy": {
      "right": 30,
      "runs": 30,
-     "evaluations": 60
+     "evaluations": 61
     }
    }
   },
@@ -319,31 +395,31 @@
     "priors": {
      "right": 30,
      "runs": 30,
-     "evaluations": 75
+     "evaluations": 76
     },
     "policy": {
      "right": 30,
      "runs": 30,
-     "evaluations": 52
+     "evaluations": 58
     }
    },
    "4": {
     "priors": {
      "right": 30,
      "runs": 30,
-     "evaluations": 106
+     "evaluations": 105
     },
     "policy": {
      "right": 30,
      "runs": 30,
-     "evaluations": 85
+     "evaluations": 77
     }
    },
    "8": {
     "priors": {
      "right": 30,
      "runs": 30,
-     "evaluations": 136
+     "evaluations": 135
     },
     "policy": {
      "right": 30,
@@ -356,38 +432,38 @@
  "overall": {
   "2": {
    "priors": {
-    "right": 249,
-    "runs": 270,
-    "evaluations": 602
+    "right": 277,
+    "runs": 330,
+    "evaluations": 717
    },
    "policy": {
-    "right": 249,
-    "runs": 270,
-    "evaluations": 462
+    "right": 296,
+    "runs": 330,
+    "evaluations": 566
    }
   },
   "4": {
    "priors": {
-    "right": 253,
-    "runs": 270,
-    "evaluations": 739
+    "right": 302,
+    "runs": 330,
+    "evaluations": 912
    },
    "policy": {
-    "right": 255,
-    "runs": 270,
-    "evaluations": 656
+    "right": 315,
+    "runs": 330,
+    "evaluations": 754
    }
   },
   "8": {
    "priors": {
-    "right": 267,
-    "runs": 270,
-    "evaluations": 956
+    "right": 319,
+    "runs": 330,
+    "evaluations": 1164
    },
    "policy": {
-    "right": 267,
-    "runs": 270,
-    "evaluations": 735
+    "right": 324,
+    "runs": 330,
+    "evaluations": 913
    }
   }
  },
