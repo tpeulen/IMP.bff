@@ -215,10 +215,14 @@ IMP_SWIG_VALUE_VECTOR_TYPEMAPS(Namespace, Name, IMP::Vector<Namespace::Name >)
 %typemap(out) Namespace::Name const& {
     $result = SWIG_NewPointerObj(new Namespace::Name(*$1), $descriptor(Namespace::Name*), SWIG_POINTER_OWN);
 }
+/* Bound to a reference first, as for IMP::Vector above: SWIG may hand a
+   by-value return through SwigValueWrapper (it does for a std::vector it has
+   no %template for), which converts to the vector but has no operator[]. */
 %typemap(out) std::vector<Namespace::Name> {
-    $result = PyList_New($1.size());
-    for (size_t i = 0; i < $1.size(); ++i) {
-        PyList_SET_ITEM($result, i, SWIG_NewPointerObj(new Namespace::Name($1[i]), $descriptor(Namespace::Name*), SWIG_POINTER_OWN));
+    const std::vector<Namespace::Name>& imp_bff_out = $1;
+    $result = PyList_New(imp_bff_out.size());
+    for (size_t i = 0; i < imp_bff_out.size(); ++i) {
+        PyList_SET_ITEM($result, i, SWIG_NewPointerObj(new Namespace::Name(imp_bff_out[i]), $descriptor(Namespace::Name*), SWIG_POINTER_OWN));
     }
 }
 %typemap(out) const std::vector<Namespace::Name>& {
