@@ -20,7 +20,7 @@ IMPBFF_BEGIN_NAMESPACE
 const char* const MFDB_PROFILE = "PTO.MFDB";
 const char* const MFDB_PROFILE_VERSION = "1.1";
 const char* const MFDB_PROFILE_READ_VERSION = "1";
-const char* const MFDB_DICTIONARY_VERSION = "1.8";
+const char* const MFDB_DICTIONARY_VERSION = "1.10";
 
 namespace {
 
@@ -34,7 +34,7 @@ std::vector<std::string> pp_list(const char* const* v, std::size_t n) {
 // The controlled vocabularies
 // ---------------------------------------------------------------------------
 //
-// Transcribed from `../mmfdb/src/mmfdb/data/mmfdb_flr_ext.dic`, version 1.8.
+// Transcribed from `../mmfdb/src/mmfdb/data/mmfdb_flr_ext.dic`, version 1.10.
 // Only the values this package can legitimately write are listed: the
 // dictionary's `artifact_kind` carries seventy terms for photon streams,
 // imaging and project archives that nothing here produces, and listing them
