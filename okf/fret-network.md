@@ -50,8 +50,9 @@ All C++ (`include/FRETNetwork.h`, `include/FRETNetworkSimulation.h`,
    - per-microstate distances per pair from the frames' label distances.
 
    Against a force field 4× too slow, the photons recover the relaxation
-   (0.084 ± 0.035 ms, exact 0.075). The prior keeps the populations and the
-   transition-region distances, which a weak prior lets wander.
+   (0.084 ± 0.021 ms, exact 0.075). The prior keeps the populations and the
+   transition-region distances, which a weak prior lets wander, and narrows
+   the relaxation 3.5× (weak prior ± 0.074 ms).
    *Trap:* build the MSM at a lag where its implied timescales have converged.
    At a short lag a coarse MSM underestimates the relaxation (0.042 at 0.05 ms,
    exact 0.075). Since 2026-10-10 the C++ takes it:
