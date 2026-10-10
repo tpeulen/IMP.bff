@@ -254,7 +254,7 @@ def test_no_convolution_anywhere_in_the_observables_package():
     assert "%pythoncode" not in swig, "observables.i must stay python-free"
 
     # The C++ side: comments stripped, then whole identifiers.
-    for name in ("include/PhotophysicsLifetimeSpectrum.h", "src/PhotophysicsLifetimeSpectrum.cpp"):
+    for name in ("include/PhotophysicsLifetimeSpectrum.h", "src/spectroscopy/PhotophysicsLifetimeSpectrum.cpp"):
         path = root / name
         assert path.exists(), path
         code = re.sub(r"//[^\n]*|/\*.*?\*/", " ", path.read_text(), flags=re.S).lower()

@@ -5,7 +5,7 @@
 #include <limits>
 #include <IMP/bff/internal/NodeConfig.h>
 #include <IMP/bff/FRETOrientationFactor.h>
-#include "internal/SpectrumNodeHelpers.h"
+#include "../internal/SpectrumNodeHelpers.h"
 #include <IMP/bff/PhotophysicsLifetimeSpectrum.h>
 #include <algorithm>
 #include <cctype>

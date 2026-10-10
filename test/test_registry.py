@@ -146,7 +146,7 @@ def test_default_warmup_reproduces_chisurfs_hard_coded_values():
 
 
 def test_mcmcsampler_dispatches_by_registry_not_by_name():
-    with open(os.path.join(ROOT, "src", "MCMCSampler.cpp")) as fh:
+    with open(os.path.join(ROOT, "src", "bayesian", "MCMCSampler.cpp")) as fh:
         text = fh.read()
     for name in ("stretch", "slice", "de", "metropolis", "nuts", "ensemble", "blocked"):
         assert f'algorithm_ == "{name}"' not in text and f'algorithm_ != "{name}"' not in text, name

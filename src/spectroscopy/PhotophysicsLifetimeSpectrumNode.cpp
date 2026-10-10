@@ -3,7 +3,7 @@
  */
 #include <IMP/bff/PhotophysicsLifetimeSpectrumNode.h>
 #include <IMP/bff/internal/NodeConfig.h>
-#include "internal/SpectrumNodeHelpers.h"
+#include "../internal/SpectrumNodeHelpers.h"
 #include <algorithm>
 #include <cctype>
 #include <cmath>

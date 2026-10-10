@@ -196,10 +196,13 @@ foreach(h ${_internal_headers})
 endforeach()
 
 # ---- the sources: the core, and the layer when IMP is there
-file(GLOB _core_sources "${IMPBFF_ROOT}/src/*.cpp" "${IMPBFF_ROOT}/src/internal/*.cpp")
-# ImpLayer.cpp exists only for IMP's own unity build, which compiles no
+# Sources sit in src/<theme>/ (one level, the depth IMP's own globs reach);
+# src/imp/ and src/standalone/ are the layer and this build's own, listed below.
+file(GLOB _core_sources "${IMPBFF_ROOT}/src/*.cpp" "${IMPBFF_ROOT}/src/*/*.cpp")
+list(FILTER _core_sources EXCLUDE REGEX "/src/(imp|standalone)/")
+# ThemeSources.cpp and ImpLayer.cpp exist only for IMP's own unity build, which compiles no
 # subdirectory; here the layer's sources are named directly.
-list(FILTER _core_sources EXCLUDE REGEX "/ImpLayer\\.cpp$")
+list(FILTER _core_sources EXCLUDE REGEX "/(ImpLayer|ThemeSources)\\.cpp$")
 file(GLOB _standalone_sources "${IMPBFF_ROOT}/src/standalone/*.cpp")
 if(IMPBFF_WITH_IMP)
   file(GLOB _layer_sources "${IMPBFF_ROOT}/src/imp/*.cpp")
@@ -218,7 +221,20 @@ endif()
 if(IMPBFF_UNITY)
   set(_unity "${CMAKE_BINARY_DIR}/bff_core_all.cpp")
   set(_content "// generated: the core as one translation unit\n")
-  list(SORT _core_sources)
+  # In file-name order, the order the flat src/ directory had: the unity
+  # translation unit shares anonymous namespaces, so the order decides which
+  # helper an unqualified name resolves to.
+  set(_keyed "")
+  foreach(s ${_core_sources})
+    get_filename_component(_n "${s}" NAME)
+    list(APPEND _keyed "${_n}|${s}")
+  endforeach()
+  list(SORT _keyed)
+  set(_core_sources "")
+  foreach(k ${_keyed})
+    string(REGEX REPLACE "^[^|]*\\|" "" _p "${k}")
+    list(APPEND _core_sources "${_p}")
+  endforeach()
   foreach(s ${_core_sources} ${_standalone_sources})
     string(APPEND _content "#include <${s}>\n")
   endforeach()

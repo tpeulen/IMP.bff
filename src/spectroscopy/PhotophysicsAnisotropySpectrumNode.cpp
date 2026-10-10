@@ -3,7 +3,7 @@
  */
 #include <IMP/bff/PhotophysicsAnisotropySpectrumNode.h>
 #include <IMP/bff/internal/NodeConfig.h>
-#include "internal/SpectrumNodeHelpers.h"
+#include "../internal/SpectrumNodeHelpers.h"
 #include <IMP/bff/PhotophysicsLifetimeSpectrum.h>
 #include <algorithm>
 #include <cctype>

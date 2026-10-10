@@ -55,8 +55,10 @@ class TestStandaloneCoreCompiles(unittest.TestCase):
             tu = os.path.join(tmp, "core.cpp")
             with open(tu, "w") as fh:
                 for src in sorted(glob.glob(os.path.join(_ROOT, "src", "*.cpp")) +
+                                  [p for p in glob.glob(os.path.join(_ROOT, "src", "*", "*.cpp"))
+                                   if os.path.basename(os.path.dirname(p)) not in ("imp", "internal", "standalone")] +
                                   glob.glob(os.path.join(_ROOT, "src", "standalone", "*.cpp"))):
-                    if os.path.basename(src) == "ImpLayer.cpp":
+                    if os.path.basename(src) in ("ImpLayer.cpp", "ThemeSources.cpp"):
                         continue
                     fh.write("#include <%s>\n" % src)
             cmd = [cxx, "-std=c++17", "-fsyntax-only", "-DIMPBFF_STANDALONE", "-DIMPBFF_COMPILATION",

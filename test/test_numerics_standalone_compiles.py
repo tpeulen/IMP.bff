@@ -12,14 +12,14 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 
 
-@pytest.mark.parametrize("source", ["Minimize.cpp", "Odeint.cpp", "SparseLinearAlgebra.cpp"])
+@pytest.mark.parametrize("source", ["fit/Minimize.cpp", "util/Odeint.cpp", "util/SparseLinearAlgebra.cpp"])
 def test_numerical_driver_compiles_without_imp(source, tmp_path):
     """Compile the real driver with standalone shims and no full IMP headers."""
     compiler = shutil.which("c++") or shutil.which("clang++") or shutil.which("g++")
     if compiler is None:
         pytest.skip("no C++ compiler")
     eigen = Path(sys.prefix) / "include" / "eigen3"
-    if source == "SparseLinearAlgebra.cpp" and not (eigen / "Eigen" / "SparseLU").is_file():
+    if source == "util/SparseLinearAlgebra.cpp" and not (eigen / "Eigen" / "SparseLU").is_file():
         pytest.skip("Eigen headers are not installed")
     includes = tmp_path / "include" / "IMP"
     includes.mkdir(parents=True)
@@ -29,7 +29,7 @@ def test_numerical_driver_compiles_without_imp(source, tmp_path):
         "-DIMPBFF_COMPILATION", "-I", str(ROOT / "standalone" / "include"),
         "-I", str(tmp_path / "include"),
     ]
-    if source == "SparseLinearAlgebra.cpp":
+    if source == "util/SparseLinearAlgebra.cpp":
         command += ["-isystem", str(eigen)]
     command += [str(ROOT / "src" / source)]
     # A user's injected include path must not accidentally supply IMP and hide

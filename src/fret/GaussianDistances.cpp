@@ -5,7 +5,7 @@
 #include <IMP/bff/internal/DistanceAxis.h>
 #include <IMP/bff/internal/DistanceKernels.h>
 #include <IMP/bff/internal/NodeConfig.h>
-#include "internal/SpectrumNodeHelpers.h"
+#include "../internal/SpectrumNodeHelpers.h"
 #include <IMP/bff/Distributions.h>
 #include <algorithm>
 #include <cctype>
