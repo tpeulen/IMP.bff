@@ -82,7 +82,7 @@ Collaboration diagram for ModelSearchState:</div>
 <div class="dyncontent">
 <div class="center"><img src="class_model_search_state__coll__graph.png" border="0" usemap="#a_model_search_state_coll__map" alt="Collaboration graph"/></div>
 <map name="a_model_search_state_coll__map" id="a_model_search_state_coll__map">
-<area shape="rect" title=" " alt="" coords="5,5,199,211"/>
+<area shape="rect" title=" " alt="" coords="5,5,199,271"/>
 </map>
 </div>
 <table class="memberdecls">
@@ -94,11 +94,18 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ada7d07aaebc95f574dac149720efae12"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a04c1d92fd0d46d275ec2f5b5f397c423" id="r_a04c1d92fd0d46d275ec2f5b5f397c423"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_state.html#a04c1d92fd0d46d275ec2f5b5f397c423">ModelSearchState</a> (const std::string &amp;key, const std::string &amp;structure_key, double reward, bool acceptable=false)</td></tr>
 <tr class="separator:a04c1d92fd0d46d275ec2f5b5f397c423"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeacf00661cd35c434a9e63d77ead1c06" id="r_aeacf00661cd35c434a9e63d77ead1c06"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_state.html#aeacf00661cd35c434a9e63d77ead1c06">ModelSearchState</a> (const std::string &amp;key, const std::string &amp;structure_key, const std::string &amp;fit_settings_key, double reward, bool acceptable=false)</td></tr>
+<tr class="memdesc:aeacf00661cd35c434a9e63d77ead1c06"><td class="mdescLeft">&#160;</td><td class="mdescRight">A state of a search over structures <em>and</em> fit settings.  <br /></td></tr>
+<tr class="separator:aeacf00661cd35c434a9e63d77ead1c06"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab61fa697fe62312b4d991ec4f3fa512c" id="r_ab61fa697fe62312b4d991ec4f3fa512c"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_state.html#ab61fa697fe62312b4d991ec4f3fa512c">get_key</a> () const</td></tr>
 <tr class="separator:ab61fa697fe62312b4d991ec4f3fa512c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af069a306cbdb29f5f11cc3e341feae6b" id="r_af069a306cbdb29f5f11cc3e341feae6b"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_state.html#af069a306cbdb29f5f11cc3e341feae6b">get_structure_key</a> () const</td></tr>
 <tr class="memdesc:af069a306cbdb29f5f11cc3e341feae6b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Canonical structural identity; several fitted snapshots may share it.  <br /></td></tr>
 <tr class="separator:af069a306cbdb29f5f11cc3e341feae6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9dfbcbcb2aa28e9d786471da056c2bd4" id="r_a9dfbcbcb2aa28e9d786471da056c2bd4"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_state.html#a9dfbcbcb2aa28e9d786471da056c2bd4">get_fit_settings_key</a> () const</td></tr>
+<tr class="separator:a9dfbcbcb2aa28e9d786471da056c2bd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a930f15a087f907b6815f2720d28e3990" id="r_a930f15a087f907b6815f2720d28e3990"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_state.html#a930f15a087f907b6815f2720d28e3990">get_search_key</a> () const</td></tr>
+<tr class="separator:a930f15a087f907b6815f2720d28e3990"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5ed26a3c71fc06eb395dd8ffbac1cdb2" id="r_a5ed26a3c71fc06eb395dd8ffbac1cdb2"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_state.html#a5ed26a3c71fc06eb395dd8ffbac1cdb2">get_reward</a> () const</td></tr>
 <tr class="separator:a5ed26a3c71fc06eb395dd8ffbac1cdb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6f45da0b646c907e702cd10211c6ca2e" id="r_a6f45da0b646c907e702cd10211c6ca2e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_state.html#a6f45da0b646c907e702cd10211c6ca2e">get_acceptable</a> () const</td></tr>
@@ -108,7 +115,7 @@ Public Member Functions</h2></td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a81c57e46555f1dc52b79ebdeff66fd0f" name="a81c57e46555f1dc52b79ebdeff66fd0f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a81c57e46555f1dc52b79ebdeff66fd0f">&#9670;&#160;</a></span>ModelSearchState() <span class="overload">[1/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a81c57e46555f1dc52b79ebdeff66fd0f">&#9670;&#160;</a></span>ModelSearchState() <span class="overload">[1/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -125,7 +132,7 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a id="ada7d07aaebc95f574dac149720efae12" name="ada7d07aaebc95f574dac149720efae12"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ada7d07aaebc95f574dac149720efae12">&#9670;&#160;</a></span>ModelSearchState() <span class="overload">[2/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ada7d07aaebc95f574dac149720efae12">&#9670;&#160;</a></span>ModelSearchState() <span class="overload">[2/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -159,7 +166,7 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a id="a04c1d92fd0d46d275ec2f5b5f397c423" name="a04c1d92fd0d46d275ec2f5b5f397c423"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a04c1d92fd0d46d275ec2f5b5f397c423">&#9670;&#160;</a></span>ModelSearchState() <span class="overload">[3/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a04c1d92fd0d46d275ec2f5b5f397c423">&#9670;&#160;</a></span>ModelSearchState() <span class="overload">[3/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -198,6 +205,54 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="aeacf00661cd35c434a9e63d77ead1c06" name="aeacf00661cd35c434a9e63d77ead1c06"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeacf00661cd35c434a9e63d77ead1c06">&#9670;&#160;</a></span>ModelSearchState() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ModelSearchState::ModelSearchState </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>fit_settings_key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>reward</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>acceptable</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A state of a search over structures <em>and</em> fit settings. </p>
+
+</div>
+</div>
 <h2 class="groupheader">Member Function Documentation</h2>
 <a id="a6f45da0b646c907e702cd10211c6ca2e" name="a6f45da0b646c907e702cd10211c6ca2e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6f45da0b646c907e702cd10211c6ca2e">&#9670;&#160;</a></span>get_acceptable()</h2>
@@ -213,6 +268,24 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9dfbcbcb2aa28e9d786471da056c2bd4" name="a9dfbcbcb2aa28e9d786471da056c2bd4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9dfbcbcb2aa28e9d786471da056c2bd4">&#9670;&#160;</a></span>get_fit_settings_key()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::string &amp; ModelSearchState::get_fit_settings_key </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The fit settings the state was fitted with; empty outside a fit-settings search (see <a class="el" href="class_fitting_model_search_problem.html#aa11b97ad8ca9c9efb928c34288043cf6" title="Search structures only (the default) or structures and fit settings.">FittingModelSearchProblem::set_action_space</a>). </p>
 
 </div>
 </div>
@@ -247,6 +320,24 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a930f15a087f907b6815f2720d28e3990" name="a930f15a087f907b6815f2720d28e3990"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a930f15a087f907b6815f2720d28e3990">&#9670;&#160;</a></span>get_search_key()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string ModelSearchState::get_search_key </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>What the tree tells states apart by: the structure, and the fit settings when there are any (<code>"&lt;structure&gt;|&lt;settings&gt;"</code>). </p>
 
 </div>
 </div>
@@ -303,7 +394,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Oct 10 2026 01:29:15 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Oct 10 2026 11:36:40 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

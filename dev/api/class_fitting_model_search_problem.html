@@ -85,9 +85,9 @@ Inheritance diagram for FittingModelSearchProblem:</div>
 <div class="dyncontent">
 <div class="center"><img src="class_fitting_model_search_problem__inherit__graph.png" border="0" usemap="#a_fitting_model_search_problem_inherit__map" alt="Inheritance graph"/></div>
 <map name="a_fitting_model_search_problem_inherit__map" id="a_fitting_model_search_problem_inherit__map">
-<area shape="rect" title="A callback&#45;free fitting search whose structures have different graphs." alt="" coords="5,239,235,504"/>
-<area shape="rect" href="class_model_search_problem.html" title="Model&#45;specific topology and evaluation, implemented entirely in C++." alt="" coords="26,5,214,191"/>
-<area shape="poly" title=" " alt="" coords="123,204,123,239,117,239,117,204"/>
+<area shape="rect" title="A callback&#45;free fitting search whose structures have different graphs." alt="" coords="5,259,235,524"/>
+<area shape="rect" href="class_model_search_problem.html" title="Model&#45;specific topology and evaluation, implemented entirely in C++." alt="" coords="18,5,222,211"/>
+<area shape="poly" title=" " alt="" coords="123,225,123,258,117,258,117,225"/>
 </map>
 </div>
 <div class="dynheader">
@@ -95,9 +95,9 @@ Collaboration diagram for FittingModelSearchProblem:</div>
 <div class="dyncontent">
 <div class="center"><img src="class_fitting_model_search_problem__coll__graph.png" border="0" usemap="#a_fitting_model_search_problem_coll__map" alt="Collaboration graph"/></div>
 <map name="a_fitting_model_search_problem_coll__map" id="a_fitting_model_search_problem_coll__map">
-<area shape="rect" title="A callback&#45;free fitting search whose structures have different graphs." alt="" coords="5,239,235,504"/>
-<area shape="rect" href="class_model_search_problem.html" title="Model&#45;specific topology and evaluation, implemented entirely in C++." alt="" coords="26,5,214,191"/>
-<area shape="poly" title=" " alt="" coords="123,204,123,239,117,239,117,204"/>
+<area shape="rect" title="A callback&#45;free fitting search whose structures have different graphs." alt="" coords="5,259,235,524"/>
+<area shape="rect" href="class_model_search_problem.html" title="Model&#45;specific topology and evaluation, implemented entirely in C++." alt="" coords="18,5,222,211"/>
+<area shape="poly" title=" " alt="" coords="123,225,123,258,117,258,117,225"/>
 </map>
 </div>
 <table class="memberdecls">
@@ -131,6 +131,37 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a12abf5e4e00df2774bb87e0c67e09be9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a622d5437f93cc90f717cf5b5475e1c7b" id="r_a622d5437f93cc90f717cf5b5475e1c7b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a622d5437f93cc90f717cf5b5475e1c7b">add_action</a> (const std::string &amp;parent_structure, const std::string &amp;action_key, const std::string &amp;result_structure, double prior=1.0, bool terminal=false)</td></tr>
 <tr class="separator:a622d5437f93cc90f717cf5b5475e1c7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a006c49985f0143ac293fd2088ba4de32" id="r_a006c49985f0143ac293fd2088ba4de32"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a006c49985f0143ac293fd2088ba4de32">add_withheld_action</a> (const std::string &amp;parent_structure, const std::string &amp;action_key, const std::string &amp;result_structure, const std::vector&lt; std::string &gt; &amp;missing)</td></tr>
+<tr class="memdesc:a006c49985f0143ac293fd2088ba4de32"><td class="mdescLeft">&#160;</td><td class="mdescRight">Record a move the family declares but the bound data cannot support.  <br /></td></tr>
+<tr class="separator:a006c49985f0143ac293fd2088ba4de32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6b6b0fd02fd4287174a114d70b351893" id="r_a6b6b0fd02fd4287174a114d70b351893"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a6b6b0fd02fd4287174a114d70b351893">get_withheld_actions</a> (const std::string &amp;structure_key) const</td></tr>
+<tr class="memdesc:a6b6b0fd02fd4287174a114d70b351893"><td class="mdescLeft">&#160;</td><td class="mdescRight">The withheld moves out of a structure, as their action keys.  <br /></td></tr>
+<tr class="separator:a6b6b0fd02fd4287174a114d70b351893"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad0d547f3654a5043d2850cf7a1999615" id="r_ad0d547f3654a5043d2850cf7a1999615"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#ad0d547f3654a5043d2850cf7a1999615">get_missing_observables</a> (const <a class="el" href="class_model_search_state.html">ModelSearchState</a> &amp;state) override</td></tr>
+<tr class="memdesc:ad0d547f3654a5043d2850cf7a1999615"><td class="mdescLeft">&#160;</td><td class="mdescRight">Measurements a move out of this state needed and nothing supplied.  <br /></td></tr>
+<tr class="separator:ad0d547f3654a5043d2850cf7a1999615"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b1054b26fb1682aa79a7345159b58f4" id="r_a5b1054b26fb1682aa79a7345159b58f4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a5b1054b26fb1682aa79a7345159b58f4">set_structure_block_kinds</a> (const std::string &amp;structure_key, const std::vector&lt; int &gt; &amp;kinds)</td></tr>
+<tr class="memdesc:a5b1054b26fb1682aa79a7345159b58f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The kind of each residual block of a structure, in block order.  <br /></td></tr>
+<tr class="separator:a5b1054b26fb1682aa79a7345159b58f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af493e941f448a78831e10e04235fc842" id="r_af493e941f448a78831e10e04235fc842"><td class="memItemLeft" align="right" valign="top">std::vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#af493e941f448a78831e10e04235fc842">get_structure_block_kinds</a> (const std::string &amp;structure_key) const</td></tr>
+<tr class="separator:af493e941f448a78831e10e04235fc842"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa11b97ad8ca9c9efb928c34288043cf6" id="r_aa11b97ad8ca9c9efb928c34288043cf6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#aa11b97ad8ca9c9efb928c34288043cf6">set_action_space</a> (int space)</td></tr>
+<tr class="memdesc:aa11b97ad8ca9c9efb928c34288043cf6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Search structures only (the default) or structures and fit settings.  <br /></td></tr>
+<tr class="separator:aa11b97ad8ca9c9efb928c34288043cf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac1ae15f3206c60fe87a189da5bf7416b" id="r_ac1ae15f3206c60fe87a189da5bf7416b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#ac1ae15f3206c60fe87a189da5bf7416b">get_action_space</a> () const</td></tr>
+<tr class="separator:ac1ae15f3206c60fe87a189da5bf7416b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5df43a1e6d795dfec5ce7aa65ee872f3" id="r_a5df43a1e6d795dfec5ce7aa65ee872f3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a5df43a1e6d795dfec5ce7aa65ee872f3">add_fit_settings_candidate</a> (const <a class="el" href="class_model_search_fit_settings.html">ModelSearchFitSettings</a> &amp;settings)</td></tr>
+<tr class="separator:a5df43a1e6d795dfec5ce7aa65ee872f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0e1fc51e8f8d404bea4c62ff2166455" id="r_ae0e1fc51e8f8d404bea4c62ff2166455"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#ae0e1fc51e8f8d404bea4c62ff2166455">add_default_fit_settings_candidates</a> ()</td></tr>
+<tr class="separator:ae0e1fc51e8f8d404bea4c62ff2166455"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a19b14b392484effbe8bd1244ff0185d2" id="r_a19b14b392484effbe8bd1244ff0185d2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a19b14b392484effbe8bd1244ff0185d2">clear_fit_settings_candidates</a> ()</td></tr>
+<tr class="separator:a19b14b392484effbe8bd1244ff0185d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a171744201755fd74f23f971bd9c0863f" id="r_a171744201755fd74f23f971bd9c0863f"><td class="memItemLeft" align="right" valign="top">ModelSearchFitSettingsList&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a171744201755fd74f23f971bd9c0863f">get_fit_settings_candidates</a> () const</td></tr>
+<tr class="separator:a171744201755fd74f23f971bd9c0863f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3ca5622d2bf6483cbf777fa01354f7dd" id="r_a3ca5622d2bf6483cbf777fa01354f7dd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a3ca5622d2bf6483cbf777fa01354f7dd">set_fit_settings_prior</a> (double share)</td></tr>
+<tr class="separator:a3ca5622d2bf6483cbf777fa01354f7dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a74828997d46ede612e2a0ee83cd158a5" id="r_a74828997d46ede612e2a0ee83cd158a5"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a74828997d46ede612e2a0ee83cd158a5">get_fit_settings_prior</a> () const</td></tr>
+<tr class="separator:a74828997d46ede612e2a0ee83cd158a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a985ac5b8a105a96822cae7bc858d40be" id="r_a985ac5b8a105a96822cae7bc858d40be"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_fitting_model_search_problem.html#a985ac5b8a105a96822cae7bc858d40be">set_action_policy</a> (const <a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp;network, double temperature=0.0)</td></tr>
 <tr class="memdesc:a985ac5b8a105a96822cae7bc858d40be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Weight the declared move priors by a family-agnostic network.  <br /></td></tr>
 <tr class="separator:a985ac5b8a105a96822cae7bc858d40be"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -415,6 +446,48 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="ae0e1fc51e8f8d404bea4c62ff2166455" name="ae0e1fc51e8f8d404bea4c62ff2166455"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae0e1fc51e8f8d404bea4c62ff2166455">&#9670;&#160;</a></span>add_default_fit_settings_candidates()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::add_default_fit_settings_candidates </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The default candidates: the declared way first, then looser and tighter tolerances, the primary start only, the parent's values as the start, and a small initial step. Bounds stay on in all of them. </p>
+
+</div>
+</div>
+<a id="a5df43a1e6d795dfec5ce7aa65ee872f3" name="a5df43a1e6d795dfec5ce7aa65ee872f3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5df43a1e6d795dfec5ce7aa65ee872f3">&#9670;&#160;</a></span>add_fit_settings_candidate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::add_fit_settings_candidate </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_model_search_fit_settings.html">ModelSearchFitSettings</a> &amp;&#160;</td>
+          <td class="paramname"><em>settings</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Declare one way of fitting a candidate. </p><dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="class_model_search_configuration_error.html">ModelSearchConfigurationError</a></td><td>for a duplicate or malformed key, an algorithm <a class="el" href="class_fit_minimizer.html">FitMinimizer</a> does not know, or an unknown start strategy. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="a8c1f124f65d2d5a44ed470ef0dd16cef" name="a8c1f124f65d2d5a44ed470ef0dd16cef"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8c1f124f65d2d5a44ed470ef0dd16cef">&#9670;&#160;</a></span>add_parameter()</h2>
 
@@ -570,6 +643,49 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a006c49985f0143ac293fd2088ba4de32" name="a006c49985f0143ac293fd2088ba4de32"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a006c49985f0143ac293fd2088ba4de32">&#9670;&#160;</a></span>add_withheld_action()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::add_withheld_action </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>parent_structure</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>action_key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>result_structure</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&#160;</td>
+          <td class="paramname"><em>missing</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Record a move the family declares but the bound data cannot support. </p>
+<p>The move is not offered; <code>missing</code> names the measurements it needed. A search that ends on <code>parent_structure</code> without an acceptable fit reports <code>request_information</code> with them (<a class="el" href="class_model_search_result.html#a824c09479e878e717b70d89fb423d1ae">ModelSearchResult::get_outcome</a>). </p>
+
+</div>
+</div>
 <a id="ac2fef570455ae73d5309be25edb9987a" name="ac2fef570455ae73d5309be25edb9987a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac2fef570455ae73d5309be25edb9987a">&#9670;&#160;</a></span>adopt_output_ports()</h2>
 
@@ -632,6 +748,23 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Reimplemented from <a class="el" href="class_model_search_problem.html#a05ce56128fa979ab6d2a5ec576160657">ModelSearchProblem</a>.</p>
+
+</div>
+</div>
+<a id="a19b14b392484effbe8bd1244ff0185d2" name="a19b14b392484effbe8bd1244ff0185d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a19b14b392484effbe8bd1244ff0185d2">&#9670;&#160;</a></span>clear_fit_settings_candidates()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::clear_fit_settings_candidates </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -744,6 +877,23 @@ Public Member Functions</h2></td></tr>
 
 <p>Fit the current topology from the values the registry holds. </p>
 <p>The ordinary fit, on the same graph the search uses: the parameters the active topology frees and no lock holds are refined in place. Scores the result when the topology declares a selection criterion, so <a class="el" href="class_fitting_model_search_problem.html#ac185059c51d5683e5820b5c5586a19a2" title="Reduced chi-square of the last evaluation: chi2 / (n - k - 1).">get_last_reduced_chi2</a> and <a class="el" href="class_fitting_model_search_problem.html#a2ff7f67b2061c38d8ffd11914d78b683" title="Goodness of fit of the last evaluation: P(chi2 &gt;= observed).">get_last_chi2_p_value</a> describe it. </p><dl class="section return"><dt>Returns</dt><dd>the minimiser's status (1-4 converged). </dd></dl>
+
+</div>
+</div>
+<a id="ac1ae15f3206c60fe87a189da5bf7416b" name="ac1ae15f3206c60fe87a189da5bf7416b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac1ae15f3206c60fe87a189da5bf7416b">&#9670;&#160;</a></span>get_action_space()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int FittingModelSearchProblem::get_action_space </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -910,6 +1060,40 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a171744201755fd74f23f971bd9c0863f" name="a171744201755fd74f23f971bd9c0863f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a171744201755fd74f23f971bd9c0863f">&#9670;&#160;</a></span>get_fit_settings_candidates()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ModelSearchFitSettingsList FittingModelSearchProblem::get_fit_settings_candidates </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a74828997d46ede612e2a0ee83cd158a5" name="a74828997d46ede612e2a0ee83cd158a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a74828997d46ede612e2a0ee83cd158a5">&#9670;&#160;</a></span>get_fit_settings_prior()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double FittingModelSearchProblem::get_fit_settings_prior </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a86f8d09fae53ff143977f9ea1378e633" name="a86f8d09fae53ff143977f9ea1378e633"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a86f8d09fae53ff143977f9ea1378e633">&#9670;&#160;</a></span>get_has_action_policy()</h2>
 
@@ -1061,6 +1245,37 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad0d547f3654a5043d2850cf7a1999615" name="ad0d547f3654a5043d2850cf7a1999615"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad0d547f3654a5043d2850cf7a1999615">&#9670;&#160;</a></span>get_missing_observables()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::string &gt; FittingModelSearchProblem::get_missing_observables </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_model_search_state.html">ModelSearchState</a> &amp;&#160;</td>
+          <td class="paramname"><em>state</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Measurements a move out of this state needed and nothing supplied. </p>
+<p>Non-empty when the problem withheld a corrective move for lack of an observable (an acceptor-excitation correction without AA photons). The search reports <code>request_information</code> instead of pretending the best of what remained is the answer. Empty by default. </p>
+
+<p>Reimplemented from <a class="el" href="class_model_search_problem.html#a633815c34c92cb599397ab2e49f33db4">ModelSearchProblem</a>.</p>
 
 </div>
 </div>
@@ -1269,6 +1484,24 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="af493e941f448a78831e10e04235fc842" name="af493e941f448a78831e10e04235fc842"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af493e941f448a78831e10e04235fc842">&#9670;&#160;</a></span>get_structure_block_kinds()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; int &gt; FittingModelSearchProblem::get_structure_block_kinds </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a043d1feb9680a4c1b2d9ddf8ba17a651" name="a043d1feb9680a4c1b2d9ddf8ba17a651"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a043d1feb9680a4c1b2d9ddf8ba17a651">&#9670;&#160;</a></span>get_structure_curve_datasets()</h2>
 
@@ -1472,6 +1705,26 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a6b6b0fd02fd4287174a114d70b351893" name="a6b6b0fd02fd4287174a114d70b351893"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6b6b0fd02fd4287174a114d70b351893">&#9670;&#160;</a></span>get_withheld_actions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::string &gt; FittingModelSearchProblem::get_withheld_actions </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The withheld moves out of a structure, as their action keys. </p>
+
+</div>
+</div>
 <a id="a2760cf9b3589ae6921945f14517ba98d" name="a2760cf9b3589ae6921945f14517ba98d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2760cf9b3589ae6921945f14517ba98d">&#9670;&#160;</a></span>has_cached_state()</h2>
 
@@ -1623,6 +1876,51 @@ Public Member Functions</h2></td></tr>
 
 <p>Weight the declared move priors by a family-agnostic network. </p>
 <p>The network scores one row per available move &ndash; the state features of the structure being expanded, from the residual recorded when it was scored, followed by that move's action features &ndash; with one output. A move's prior becomes its declared prior times <code>exp(score)</code>, normalised over the available moves, so a declared zero stays zero. Expansion never refits or re-evaluates the graph, and a state scored without a residual keeps its declared priors. The policy is a PUCT hint; it never changes a score. <code>network</code> is a <code>bff.neural_net</code> msgpack document (bytes in Python, as get_shipped_action_policy and <a class="el" href="class_model_search_policy_training.html#a6215c66398b79671c11c21ccb0a8082a">ModelSearchPolicyTraining::get_network</a> return it); empty bytes remove the policy. <code>temperature</code> divides the scores: above 1 the policy leans on the declared priors more and leaves PUCT more to explore. Zero, the default, takes the document's own <code>"temperature"</code> (1 when it has none): a shipped policy passed its gate at that temperature. </p>
+
+</div>
+</div>
+<a id="aa11b97ad8ca9c9efb928c34288043cf6" name="aa11b97ad8ca9c9efb928c34288043cf6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa11b97ad8ca9c9efb928c34288043cf6">&#9670;&#160;</a></span>set_action_space()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::set_action_space </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>space</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Search structures only (the default) or structures and fit settings. </p>
+<p>In <a class="el" href="_model_search_8h.html#a81e2def9229848d8f58631bc6a4c3ac2a4e318c26153554a67dc7d9e96e80e016" title="Moves between structures and between the settings each is fitted with.">ACTION_SPACE_FIT_SETTINGS</a> every state is a structure fitted with one of the declared candidates (<a class="el" href="class_fitting_model_search_problem.html#a5df43a1e6d795dfec5ce7aa65ee872f3">add_fit_settings_candidate</a>): moves between structures keep the settings, and from every state a move to each other candidate refits the same structure with it. The first candidate is the root's. A state's structure key stays the structure; <a class="el" href="class_model_search_state.html#a9dfbcbcb2aa28e9d786471da056c2bd4">ModelSearchState::get_fit_settings_key</a> says how it was fitted. Changing the space discards cached search states. </p><dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="class_model_search_configuration_error.html">ModelSearchConfigurationError</a></td><td>for an unknown space, or the fit settings space without candidates. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a3ca5622d2bf6483cbf777fa01354f7dd" name="a3ca5622d2bf6483cbf777fa01354f7dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3ca5622d2bf6483cbf777fa01354f7dd">&#9670;&#160;</a></span>set_fit_settings_prior()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::set_fit_settings_prior </td>
+          <td>(</td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>share</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The declared prior shared by the settings moves out of a state, relative to the structural moves' total (default 0.25). </p>
 
 </div>
 </div>
@@ -1784,6 +2082,37 @@ Public Member Functions</h2></td></tr>
 
 <p>Refuse a structure whose chi-square test falls below this probability. </p>
 <p>Acceptability then means "describes the data", which is separate from winning the comparison. </p>
+
+</div>
+</div>
+<a id="a5b1054b26fb1682aa79a7345159b58f4" name="a5b1054b26fb1682aa79a7345159b58f4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b1054b26fb1682aa79a7345159b58f4">&#9670;&#160;</a></span>set_structure_block_kinds()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void FittingModelSearchProblem::set_structure_block_kinds </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>structure_key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; int &gt; &amp;&#160;</td>
+          <td class="paramname"><em>kinds</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The kind of each residual block of a structure, in block order. </p>
+<p>One entry per member of a joint objective (one for a single one); see <a class="el" href="_model_search_8h.html#aac9df449f112e144d4ac588239028395" title="Which kind of measurement one block of a (joint) residual is.">ModelSearchBlockKind</a>. Undeclared reads as one generic block. </p>
 
 </div>
 </div>
@@ -1969,7 +2298,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Oct 10 2026 01:29:15 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Oct 10 2026 11:36:40 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

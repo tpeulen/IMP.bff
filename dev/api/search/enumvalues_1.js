@@ -8,5 +8,12 @@ var searchData=
   ['bayesian_5ftransform_5flog_5',['BAYESIAN_TRANSFORM_LOG',['../_bayesian_transformed_gaussian_prior_8h.html#ab3f813d0d51fad374d672d5d7271b86badd4e3a2c4670c12163011dd15d7bf3a5',1,'BayesianTransformedGaussianPrior.h']]],
   ['bayesian_5ftransform_5flogit_6',['BAYESIAN_TRANSFORM_LOGIT',['../_bayesian_transformed_gaussian_prior_8h.html#ab3f813d0d51fad374d672d5d7271b86babdfc96e83f23a1662f49ce9d70eef032',1,'BayesianTransformedGaussianPrior.h']]],
   ['bayesian_5ftransform_5fother_7',['BAYESIAN_TRANSFORM_OTHER',['../_bayesian_transformed_gaussian_prior_8h.html#ab3f813d0d51fad374d672d5d7271b86babcf850f25f242ad07b05b4902240fe06',1,'BayesianTransformedGaussianPrior.h']]],
-  ['bff_5fsplit_5fnormal_8',['BFF_SPLIT_NORMAL',['../_docking_8h.html#aa3106f5419fd2bd63c2a262667880bd7a0b24424d91faebe34791399a4331eb77',1,'Docking.h']]]
+  ['bff_5fsplit_5fnormal_8',['BFF_SPLIT_NORMAL',['../_docking_8h.html#aa3106f5419fd2bd63c2a262667880bd7a0b24424d91faebe34791399a4331eb77',1,'Docking.h']]],
+  ['block_5fburst_5fmfd_9',['BLOCK_BURST_MFD',['../_model_search_8h.html#aac9df449f112e144d4ac588239028395af2e6dacd234b3ffb0367f7b17e70ea13',1,'ModelSearch.h']]],
+  ['block_5ffcs_10',['BLOCK_FCS',['../_model_search_8h.html#aac9df449f112e144d4ac588239028395a1ab9d5266b58b9d045de794d8768176c',1,'ModelSearch.h']]],
+  ['block_5fgeneric_11',['BLOCK_GENERIC',['../_model_search_8h.html#aac9df449f112e144d4ac588239028395a3545fdacdb5ae2da76be4e7beaca6bb0',1,'ModelSearch.h']]],
+  ['block_5fkind_5fcount_12',['BLOCK_KIND_COUNT',['../_model_search_8h.html#aac9df449f112e144d4ac588239028395ae661da261715fe0948564c641f65776c',1,'ModelSearch.h']]],
+  ['block_5fpie_5falex_13',['BLOCK_PIE_ALEX',['../_model_search_8h.html#aac9df449f112e144d4ac588239028395a2fee823e39d145fdd6976a3521a321f3',1,'ModelSearch.h']]],
+  ['block_5fpolarized_14',['BLOCK_POLARIZED',['../_model_search_8h.html#aac9df449f112e144d4ac588239028395a45e36e0b61644e6106ea3399bfe0a68a',1,'ModelSearch.h']]],
+  ['block_5ftcspc_15',['BLOCK_TCSPC',['../_model_search_8h.html#aac9df449f112e144d4ac588239028395aa6810d91f082ec0e92da811a0b511d1c',1,'ModelSearch.h']]]
 ];

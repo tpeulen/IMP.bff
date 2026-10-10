@@ -127,6 +127,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_problem.html">ModelSearchProblem</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Model-specific topology and evaluation, implemented entirely in C++.  <a href="class_model_search_problem.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_model_search_fit_settings.html">ModelSearchFitSettings</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">How one candidate is fitted: optimiser, tolerances, starts and bounds.  <a href="class_model_search_fit_settings.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_tabular_model_search_problem.html">TabularModelSearchProblem</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A callback-free finite problem, useful for persisted/pre-scored graphs.  <a href="class_tabular_model_search_problem.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -149,6 +152,24 @@ Enumerations</h2></td></tr>
 , <a class="el" href="_model_search_8h.html#a2fbe6b8d40befc558afebf9ac767c47fa44511c39ebebbe05c60d794adce7e897">MODEL_SELECTION_AIC</a> = 1
  }</td></tr>
 <tr class="separator:a2fbe6b8d40befc558afebf9ac767c47f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac9df449f112e144d4ac588239028395" id="r_aac9df449f112e144d4ac588239028395"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#aac9df449f112e144d4ac588239028395">ModelSearchBlockKind</a> { <br />
+&#160;&#160;<a class="el" href="_model_search_8h.html#aac9df449f112e144d4ac588239028395a3545fdacdb5ae2da76be4e7beaca6bb0">BLOCK_GENERIC</a> = 0
+, <a class="el" href="_model_search_8h.html#aac9df449f112e144d4ac588239028395aa6810d91f082ec0e92da811a0b511d1c">BLOCK_TCSPC</a> = 1
+, <a class="el" href="_model_search_8h.html#aac9df449f112e144d4ac588239028395a45e36e0b61644e6106ea3399bfe0a68a">BLOCK_POLARIZED</a> = 2
+, <a class="el" href="_model_search_8h.html#aac9df449f112e144d4ac588239028395a1ab9d5266b58b9d045de794d8768176c">BLOCK_FCS</a> = 3
+, <br />
+&#160;&#160;<a class="el" href="_model_search_8h.html#aac9df449f112e144d4ac588239028395af2e6dacd234b3ffb0367f7b17e70ea13">BLOCK_BURST_MFD</a> = 4
+, <a class="el" href="_model_search_8h.html#aac9df449f112e144d4ac588239028395a2fee823e39d145fdd6976a3521a321f3">BLOCK_PIE_ALEX</a> = 5
+, <a class="el" href="_model_search_8h.html#aac9df449f112e144d4ac588239028395ae661da261715fe0948564c641f65776c">BLOCK_KIND_COUNT</a> = 6
+<br />
+ }</td></tr>
+<tr class="memdesc:aac9df449f112e144d4ac588239028395"><td class="mdescLeft">&#160;</td><td class="mdescRight">Which kind of measurement one block of a (joint) residual is.  <a href="_model_search_8h.html#aac9df449f112e144d4ac588239028395">More...</a><br /></td></tr>
+<tr class="separator:aac9df449f112e144d4ac588239028395"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a81e2def9229848d8f58631bc6a4c3ac2" id="r_a81e2def9229848d8f58631bc6a4c3ac2"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#a81e2def9229848d8f58631bc6a4c3ac2">ModelSearchActionSpace</a> { <a class="el" href="_model_search_8h.html#a81e2def9229848d8f58631bc6a4c3ac2a58a3607b97428c3a0b166b151ffeaa61">ACTION_SPACE_STRUCTURE</a> = 0
+, <a class="el" href="_model_search_8h.html#a81e2def9229848d8f58631bc6a4c3ac2a4e318c26153554a67dc7d9e96e80e016">ACTION_SPACE_FIT_SETTINGS</a> = 1
+ }</td></tr>
+<tr class="memdesc:a81e2def9229848d8f58631bc6a4c3ac2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Which moves a fitting search makes. See <a class="el" href="class_fitting_model_search_problem.html#aa11b97ad8ca9c9efb928c34288043cf6" title="Search structures only (the default) or structures and fit settings.">FittingModelSearchProblem::set_action_space</a>.  <a href="_model_search_8h.html#a81e2def9229848d8f58631bc6a4c3ac2">More...</a><br /></td></tr>
+<tr class="separator:a81e2def9229848d8f58631bc6a4c3ac2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -159,24 +180,80 @@ Functions</h2></td></tr>
 <tr class="memitem:ab486cf33b4b0c5d8b94310165f3bdfee" id="r_ab486cf33b4b0c5d8b94310165f3bdfee"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#ab486cf33b4b0c5d8b94310165f3bdfee">get_residual_profile</a> (const std::vector&lt; double &gt; &amp;residual, int width)</td></tr>
 <tr class="memdesc:ab486cf33b4b0c5d8b94310165f3bdfee"><td class="mdescLeft">&#160;</td><td class="mdescRight">A weighted-residual trace as <code>width</code> bucket z-scores, <code>asinh</code>-compressed.  <br /></td></tr>
 <tr class="separator:ab486cf33b4b0c5d8b94310165f3bdfee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7dfb44620991d861a4acd860254ba601" id="r_a7dfb44620991d861a4acd860254ba601"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#a7dfb44620991d861a4acd860254ba601">get_block_kind</a> (const std::string &amp;name)</td></tr>
+<tr class="memdesc:a7dfb44620991d861a4acd860254ba601"><td class="mdescLeft">&#160;</td><td class="mdescRight">A block kind from its name in a description (<code>"tcspc"</code>, <code>"pie_alex"</code>, ...).  <br /></td></tr>
+<tr class="separator:a7dfb44620991d861a4acd860254ba601"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab3c509ad713b63132e50be4e43c33931" id="r_ab3c509ad713b63132e50be4e43c33931"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#ab3c509ad713b63132e50be4e43c33931">get_block_kind_name</a> (int kind)</td></tr>
+<tr class="memdesc:ab3c509ad713b63132e50be4e43c33931"><td class="mdescLeft">&#160;</td><td class="mdescRight">The name a description uses for a block kind.  <br /></td></tr>
+<tr class="separator:ab3c509ad713b63132e50be4e43c33931"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a07984f9319a5ba1cbba1bac736fde3c8" id="r_a07984f9319a5ba1cbba1bac736fde3c8"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#a07984f9319a5ba1cbba1bac736fde3c8">get_policy_state_width</a> ()</td></tr>
 <tr class="memdesc:a07984f9319a5ba1cbba1bac736fde3c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">How many features describe a fitted state to an action policy.  <br /></td></tr>
 <tr class="separator:a07984f9319a5ba1cbba1bac736fde3c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acfc957f99ce86356cadb660cac69b7a1" id="r_acfc957f99ce86356cadb660cac69b7a1"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#acfc957f99ce86356cadb660cac69b7a1">get_policy_action_width</a> ()</td></tr>
 <tr class="memdesc:acfc957f99ce86356cadb660cac69b7a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">How many features describe a candidate move to an action policy.  <br /></td></tr>
 <tr class="separator:acfc957f99ce86356cadb660cac69b7a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a29b4f974965478a913505e4439fb43b9" id="r_a29b4f974965478a913505e4439fb43b9"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#a29b4f974965478a913505e4439fb43b9">get_policy_state_features</a> (const std::vector&lt; double &gt; &amp;residual, int n_free, const std::vector&lt; int &gt; &amp;block_sizes=std::vector&lt; int &gt;())</td></tr>
-<tr class="memdesc:a29b4f974965478a913505e4439fb43b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">A fitted state as an action policy sees it, whatever the family.  <br /></td></tr>
-<tr class="separator:a29b4f974965478a913505e4439fb43b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e8d87dcc3f8007d943332cad1a96257" id="r_a9e8d87dcc3f8007d943332cad1a96257"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#a9e8d87dcc3f8007d943332cad1a96257">get_policy_state_features</a> (const std::vector&lt; double &gt; &amp;residual, int n_free, const std::vector&lt; int &gt; &amp;block_sizes=std::vector&lt; int &gt;(), const std::vector&lt; int &gt; &amp;block_kinds=std::vector&lt; int &gt;())</td></tr>
+<tr class="memdesc:a9e8d87dcc3f8007d943332cad1a96257"><td class="mdescLeft">&#160;</td><td class="mdescRight">A fitted state as an action policy sees it, whatever the family.  <br /></td></tr>
+<tr class="separator:a9e8d87dcc3f8007d943332cad1a96257"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7f4da091462a8756d160c3474fd2b2cc" id="r_a7f4da091462a8756d160c3474fd2b2cc"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#a7f4da091462a8756d160c3474fd2b2cc">get_policy_action_features</a> (int source_free, int target_free, bool terminal, bool self_loop, double prior_share)</td></tr>
 <tr class="memdesc:a7f4da091462a8756d160c3474fd2b2cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">A candidate move as an action policy sees it, whatever the family.  <br /></td></tr>
 <tr class="separator:a7f4da091462a8756d160c3474fd2b2cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a212b40e6e6ed6dccec9195cef362f742" id="r_a212b40e6e6ed6dccec9195cef362f742"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#a212b40e6e6ed6dccec9195cef362f742">IMP_VALUES</a> (<a class="el" href="class_model_search_fit_settings.html">ModelSearchFitSettings</a>, ModelSearchFitSettingsList)</td></tr>
+<tr class="separator:a212b40e6e6ed6dccec9195cef362f742"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acfc20df61d5f8c824a72b7bd0d770521" id="r_acfc20df61d5f8c824a72b7bd0d770521"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#acfc20df61d5f8c824a72b7bd0d770521">IMP_VALUES</a> (<a class="el" href="class_model_search_config.html">ModelSearchConfig</a>, ModelSearchConfigs)</td></tr>
 <tr class="separator:acfc20df61d5f8c824a72b7bd0d770521"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac1c39d126b7113998e8dd53d79a04a19" id="r_ac1c39d126b7113998e8dd53d79a04a19"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_model_search_8h.html#ac1c39d126b7113998e8dd53d79a04a19">IMP_VALUES</a> (<a class="el" href="class_model_search_result.html">ModelSearchResult</a>, ModelSearchResults)</td></tr>
 <tr class="separator:ac1c39d126b7113998e8dd53d79a04a19"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
+<a id="a81e2def9229848d8f58631bc6a4c3ac2" name="a81e2def9229848d8f58631bc6a4c3ac2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a81e2def9229848d8f58631bc6a4c3ac2">&#9670;&#160;</a></span>ModelSearchActionSpace</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="_model_search_8h.html#a81e2def9229848d8f58631bc6a4c3ac2">ModelSearchActionSpace</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Which moves a fitting search makes. See <a class="el" href="class_fitting_model_search_problem.html#aa11b97ad8ca9c9efb928c34288043cf6" title="Search structures only (the default) or structures and fit settings.">FittingModelSearchProblem::set_action_space</a>. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a81e2def9229848d8f58631bc6a4c3ac2a58a3607b97428c3a0b166b151ffeaa61" name="a81e2def9229848d8f58631bc6a4c3ac2a58a3607b97428c3a0b166b151ffeaa61"></a>ACTION_SPACE_STRUCTURE&#160;</td><td class="fielddoc"><p>Moves between structures; every candidate is fitted the declared way. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a81e2def9229848d8f58631bc6a4c3ac2a4e318c26153554a67dc7d9e96e80e016" name="a81e2def9229848d8f58631bc6a4c3ac2a4e318c26153554a67dc7d9e96e80e016"></a>ACTION_SPACE_FIT_SETTINGS&#160;</td><td class="fielddoc"><p>Moves between structures and between the settings each is fitted with. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a id="aac9df449f112e144d4ac588239028395" name="aac9df449f112e144d4ac588239028395"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aac9df449f112e144d4ac588239028395">&#9670;&#160;</a></span>ModelSearchBlockKind</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="_model_search_8h.html#aac9df449f112e144d4ac588239028395">ModelSearchBlockKind</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Which kind of measurement one block of a (joint) residual is. </p>
+<p>The modality token of a policy's state: the same residual shape means something different in a decay, a correlation curve and the acceptor channel of a PIE experiment, and a family-agnostic network can only tell them apart if the state says which it is looking at. A description declares it per dataset (<code>"dataset_kinds"</code>); undeclared is generic. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aac9df449f112e144d4ac588239028395a3545fdacdb5ae2da76be4e7beaca6bb0" name="aac9df449f112e144d4ac588239028395a3545fdacdb5ae2da76be4e7beaca6bb0"></a>BLOCK_GENERIC&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="aac9df449f112e144d4ac588239028395aa6810d91f082ec0e92da811a0b511d1c" name="aac9df449f112e144d4ac588239028395aa6810d91f082ec0e92da811a0b511d1c"></a>BLOCK_TCSPC&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="aac9df449f112e144d4ac588239028395a45e36e0b61644e6106ea3399bfe0a68a" name="aac9df449f112e144d4ac588239028395a45e36e0b61644e6106ea3399bfe0a68a"></a>BLOCK_POLARIZED&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="aac9df449f112e144d4ac588239028395a1ab9d5266b58b9d045de794d8768176c" name="aac9df449f112e144d4ac588239028395a1ab9d5266b58b9d045de794d8768176c"></a>BLOCK_FCS&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="aac9df449f112e144d4ac588239028395af2e6dacd234b3ffb0367f7b17e70ea13" name="aac9df449f112e144d4ac588239028395af2e6dacd234b3ffb0367f7b17e70ea13"></a>BLOCK_BURST_MFD&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="aac9df449f112e144d4ac588239028395a2fee823e39d145fdd6976a3521a321f3" name="aac9df449f112e144d4ac588239028395a2fee823e39d145fdd6976a3521a321f3"></a>BLOCK_PIE_ALEX&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="aac9df449f112e144d4ac588239028395ae661da261715fe0948564c641f65776c" name="aac9df449f112e144d4ac588239028395ae661da261715fe0948564c641f65776c"></a>BLOCK_KIND_COUNT&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+</div>
+</div>
 <a id="a2fbe6b8d40befc558afebf9ac767c47f" name="a2fbe6b8d40befc558afebf9ac767c47f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2fbe6b8d40befc558afebf9ac767c47f">&#9670;&#160;</a></span>ModelSelectionCriterion</h2>
 
@@ -201,6 +278,47 @@ Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a7dfb44620991d861a4acd860254ba601" name="a7dfb44620991d861a4acd860254ba601"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7dfb44620991d861a4acd860254ba601">&#9670;&#160;</a></span>get_block_kind()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">IMPBFFEXPORT int get_block_kind </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A block kind from its name in a description (<code>"tcspc"</code>, <code>"pie_alex"</code>, ...). </p>
+<p>hrows <a class="el" href="class_model_search_configuration_error.html">ModelSearchConfigurationError</a> naming the kinds there are. </p>
+
+</div>
+</div>
+<a id="ab3c509ad713b63132e50be4e43c33931" name="ab3c509ad713b63132e50be4e43c33931"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab3c509ad713b63132e50be4e43c33931">&#9670;&#160;</a></span>get_block_kind_name()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">IMPBFFEXPORT std::string get_block_kind_name </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>kind</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The name a description uses for a block kind. </p>
+
+</div>
+</div>
 <a id="a7f4da091462a8756d160c3474fd2b2cc" name="a7f4da091462a8756d160c3474fd2b2cc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7f4da091462a8756d160c3474fd2b2cc">&#9670;&#160;</a></span>get_policy_action_features()</h2>
 
@@ -269,8 +387,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a29b4f974965478a913505e4439fb43b9" name="a29b4f974965478a913505e4439fb43b9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a29b4f974965478a913505e4439fb43b9">&#9670;&#160;</a></span>get_policy_state_features()</h2>
+<a id="a9e8d87dcc3f8007d943332cad1a96257" name="a9e8d87dcc3f8007d943332cad1a96257"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9e8d87dcc3f8007d943332cad1a96257">&#9670;&#160;</a></span>get_policy_state_features()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -291,7 +409,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const std::vector&lt; int &gt; &amp;&#160;</td>
-          <td class="paramname"><em>block_sizes</em> = <code>std::vector&lt;&#160;int&#160;&gt;()</code>&#160;</td>
+          <td class="paramname"><em>block_sizes</em> = <code>std::vector&lt;&#160;int&#160;&gt;()</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; int &gt; &amp;&#160;</td>
+          <td class="paramname"><em>block_kinds</em> = <code>std::vector&lt;&#160;int&#160;&gt;()</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -302,7 +426,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>A fitted state as an action policy sees it, whatever the family. </p>
-<p>The residual profile, then the profile of the worst-fitting member block (<code>block_sizes</code> split a joint residual; empty is one block), then log10 of the reduced chi-square, the lag-1 autocorrelation, the compressed Wald-Wolfowitz runs z-score, the share of positive residuals, log(1 + free parameters), log10 of the worst block's mean squared residual and log of the number of blocks. Nothing names a dataset, a node or a parameter, which is what lets one network serve every model family and every kind of measurement. </p>
+<p>The residual profile, then the profile of the worst-fitting member block (<code>block_sizes</code> split a joint residual; empty is one block), then log10 of the reduced chi-square, the lag-1 autocorrelation, the compressed Wald-Wolfowitz runs z-score, the share of positive residuals, log(1 + free parameters), log10 of the worst block's mean squared residual and log of the number of blocks; then the modality token &ndash; a one-hot of the worst block's <a class="el" href="_model_search_8h.html#aac9df449f112e144d4ac588239028395" title="Which kind of measurement one block of a (joint) residual is.">ModelSearchBlockKind</a> (<code>block_kinds</code>, one per block; empty is generic) &ndash; and log of the number of distinct kinds in the residual. Nothing names a dataset, a node or a parameter, which is what lets one network serve every model family and every kind of measurement. </p>
 
 </div>
 </div>
@@ -357,7 +481,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="af65b4201b341f4f297d18725231e6ea3" name="af65b4201b341f4f297d18725231e6ea3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af65b4201b341f4f297d18725231e6ea3">&#9670;&#160;</a></span>IMP_VALUES() <span class="overload">[1/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#af65b4201b341f4f297d18725231e6ea3">&#9670;&#160;</a></span>IMP_VALUES() <span class="overload">[1/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -385,7 +509,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="acfc20df61d5f8c824a72b7bd0d770521" name="acfc20df61d5f8c824a72b7bd0d770521"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acfc20df61d5f8c824a72b7bd0d770521">&#9670;&#160;</a></span>IMP_VALUES() <span class="overload">[2/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#acfc20df61d5f8c824a72b7bd0d770521">&#9670;&#160;</a></span>IMP_VALUES() <span class="overload">[2/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -412,8 +536,36 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a212b40e6e6ed6dccec9195cef362f742" name="a212b40e6e6ed6dccec9195cef362f742"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a212b40e6e6ed6dccec9195cef362f742">&#9670;&#160;</a></span>IMP_VALUES() <span class="overload">[3/5]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">IMP_VALUES </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_model_search_fit_settings.html">ModelSearchFitSettings</a>&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ModelSearchFitSettingsList&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ac1c39d126b7113998e8dd53d79a04a19" name="ac1c39d126b7113998e8dd53d79a04a19"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac1c39d126b7113998e8dd53d79a04a19">&#9670;&#160;</a></span>IMP_VALUES() <span class="overload">[3/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ac1c39d126b7113998e8dd53d79a04a19">&#9670;&#160;</a></span>IMP_VALUES() <span class="overload">[4/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -441,7 +593,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="aa0f95650b6244733911ffd532c827907" name="aa0f95650b6244733911ffd532c827907"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa0f95650b6244733911ffd532c827907">&#9670;&#160;</a></span>IMP_VALUES() <span class="overload">[4/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aa0f95650b6244733911ffd532c827907">&#9670;&#160;</a></span>IMP_VALUES() <span class="overload">[5/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -471,7 +623,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Oct 10 2026 01:29:14 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sat Oct 10 2026 11:36:40 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

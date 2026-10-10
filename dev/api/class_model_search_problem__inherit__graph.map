@@ -1,7 +1,7 @@
 <map id="ModelSearchProblem" name="ModelSearchProblem">
-<area shape="rect" id="Node000001" title="Model&#45;specific topology and evaluation, implemented entirely in C++." alt="" coords="153,5,341,191"/>
-<area shape="rect" id="Node000002" href="$class_fitting_model_search_problem.html" title="A callback&#45;free fitting search whose structures have different graphs." alt="" coords="5,239,235,504"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,204,184,240,179,237,196,202"/>
-<area shape="rect" id="Node000003" href="$class_tabular_model_search_problem.html" title="A callback&#45;free finite problem, useful for persisted/pre&#45;scored graphs." alt="" coords="259,259,491,484"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="298,202,324,257,319,259,293,204"/>
+<area shape="rect" id="Node000001" title="Model&#45;specific topology and evaluation, implemented entirely in C++." alt="" coords="145,5,349,211"/>
+<area shape="rect" id="Node000002" href="$class_fitting_model_search_problem.html" title="A callback&#45;free fitting search whose structures have different graphs." alt="" coords="5,259,235,524"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,225,182,259,177,257,193,222"/>
+<area shape="rect" id="Node000003" href="$class_tabular_model_search_problem.html" title="A callback&#45;free finite problem, useful for persisted/pre&#45;scored graphs." alt="" coords="259,279,491,504"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="301,222,326,278,321,280,296,225"/>
 </map>
