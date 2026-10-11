@@ -165,6 +165,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:afc5aef9de104f8992cacb984451ef962" id="r_afc5aef9de104f8992cacb984451ef962"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_decorator.html#afc5aef9de104f8992cacb984451ef962">get_effective_allowed_sphere_radius</a> () const</td></tr>
 <tr class="memdesc:afc5aef9de104f8992cacb984451ef962"><td class="mdescLeft">&#160;</td><td class="mdescRight">The source clearance the search actually uses.  <br /></td></tr>
 <tr class="separator:afc5aef9de104f8992cacb984451ef962"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeac61857811c1785fa72ea49ddc8780a" id="r_aeac61857811c1785fa72ea49ddc8780a"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_decorator.html#aeac61857811c1785fa72ea49ddc8780a">get_effective_source_hop_radius</a> () const</td></tr>
+<tr class="memdesc:aeac61857811c1785fa72ea49ddc8780a"><td class="mdescLeft">&#160;</td><td class="mdescRight">How far the linker's first step reaches from its anchor (<a class="el" href="class_path_map.html#a21b4a8bf086d1472b6af50578027f698" title="How far (Angstrom) the linker&#39;s first step may reach from its anchor.">PathMap::set_source_hop_radius</a>).  <br /></td></tr>
+<tr class="separator:aeac61857811c1785fa72ea49ddc8780a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaf457582c0e45c80acc41620f34b7813" id="r_aaf457582c0e45c80acc41620f34b7813"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_decorator.html#aaf457582c0e45c80acc41620f34b7813">get_compensate_stencil</a> () const</td></tr>
 <tr class="separator:aaf457582c0e45c80acc41620f34b7813"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeef4dec2976fd1d74ae4213aac662ba9" id="r_aeef4dec2976fd1d74ae4213aac662ba9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_decorator.html#aeef4dec2976fd1d74ae4213aac662ba9">set_compensate_stencil</a> (bool tf)</td></tr>
@@ -713,7 +716,36 @@ If the index is out of range, an error message will be generated. </dd></dl>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Linker length the search actually uses: nominal, times the stencil compensation. Equal to get_linker_length() for the default stencil. </p>
+<p>Linker length the search actually uses: nominal, times the stencil compensation. Equal to get_linker_length() for the default stencil.</p>
+<p>The compensation scales the part of the path the stencil walks. The linker's first step out of the anchor (get_effective_source_hop_radius) is a straight segment, exact on any stencil, so it is not scaled. </p>
+
+</div>
+</div>
+<a id="aeac61857811c1785fa72ea49ddc8780a" name="aeac61857811c1785fa72ea49ddc8780a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeac61857811c1785fa72ea49ddc8780a">&#9670;&#160;</a></span>get_effective_source_hop_radius()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">double ProbeAccessibleVolumeDecorator::get_effective_source_hop_radius </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>How far the linker's first step reaches from its anchor (<a class="el" href="class_path_map.html#a21b4a8bf086d1472b6af50578027f698" title="How far (Angstrom) the linker&#39;s first step may reach from its anchor.">PathMap::set_source_hop_radius</a>). </p>
+<p>One linker width plus one grid step, the reach FRETraj's search gives the source (<code>maxR_source = linker_width + grid_spacing</code>). FPS reaches about as far by hopping three of its own voxels from a seed of half the width. Without it the search steps out of the anchor one stencil step at a time, and a site among bonded neighbours (a CA) is walled in at a fine grid and found at a coarse one &ndash; T4L N132 CA at width 4.5 was empty at 0.5 A and 5400 A^3 at 0.7 A. </p>
 
 </div>
 </div>
@@ -2529,7 +2561,7 @@ If the index is out of range, an error message will be generated. </dd></dl>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 11 2026 11:48:58 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Oct 11 2026 13:02:11 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

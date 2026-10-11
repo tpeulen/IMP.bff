@@ -194,6 +194,11 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:acd62eb39d46742a375f42a7c127a4400"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a146858e5048c47c960ced150fb49d066" id="r_a146858e5048c47c960ced150fb49d066"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_path_map.html#a146858e5048c47c960ced150fb49d066">get_euclidean_search</a> () const</td></tr>
 <tr class="separator:a146858e5048c47c960ced150fb49d066"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21b4a8bf086d1472b6af50578027f698" id="r_a21b4a8bf086d1472b6af50578027f698"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_path_map.html#a21b4a8bf086d1472b6af50578027f698">set_source_hop_radius</a> (double r)</td></tr>
+<tr class="memdesc:a21b4a8bf086d1472b6af50578027f698"><td class="mdescLeft">&#160;</td><td class="mdescRight">How far (Angstrom) the linker's first step may reach from its anchor.  <br /></td></tr>
+<tr class="separator:a21b4a8bf086d1472b6af50578027f698"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3631125e122e790e9ec486fd3450256f" id="r_a3631125e122e790e9ec486fd3450256f"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_path_map.html#a3631125e122e790e9ec486fd3450256f">get_source_hop_radius</a> () const</td></tr>
+<tr class="separator:a3631125e122e790e9ec486fd3450256f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acc9ef3f15193222a2c86bd07f712eeec" id="r_acc9ef3f15193222a2c86bd07f712eeec"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_path_map.html#acc9ef3f15193222a2c86bd07f712eeec">search_lattice</a> (long source_idx, float max_cost)</td></tr>
 <tr class="memdesc:acc9ef3f15193222a2c86bd07f712eeec"><td class="mdescLeft">&#160;</td><td class="mdescRight">The lattice evaluation of one AV in compact arrays.  <br /></td></tr>
 <tr class="separator:acc9ef3f15193222a2c86bd07f712eeec"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1022,6 +1027,31 @@ Related Symbols</h2></td></tr>
 
 </div>
 </div>
+<a id="a3631125e122e790e9ec486fd3450256f" name="a3631125e122e790e9ec486fd3450256f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3631125e122e790e9ec486fd3450256f">&#9670;&#160;</a></span>get_source_hop_radius()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">double PathMap::get_source_hop_radius </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="aceadb7e8bc0c7268597666852ea3a731" name="aceadb7e8bc0c7268597666852ea3a731"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aceadb7e8bc0c7268597666852ea3a731">&#9670;&#160;</a></span>get_symmetric_stencil()</h2>
 
@@ -1681,6 +1711,35 @@ The obstacle_penalty is used to assign penalty values to obstacle cells in the p
 
 </div>
 </div>
+<a id="a21b4a8bf086d1472b6af50578027f698" name="a21b4a8bf086d1472b6af50578027f698"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a21b4a8bf086d1472b6af50578027f698">&#9670;&#160;</a></span>set_source_hop_radius()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PathMap::set_source_hop_radius </td>
+          <td>(</td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>r</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>How far (Angstrom) the linker's first step may reach from its anchor. </p>
+<p>The path search moves one stencil step at a time, so a linker anchored among bonded neighbours &ndash; a CA site, whose own backbone and the neighbouring residues' atoms sit 1.5-4 A away, each inflated by half the linker width &ndash; is walled in at a fine grid, and the volume comes back empty at 0.5 A where it exists at 0.7 A. The reference implementations do not step out of the anchor: FPS hops <code>linknodes = 3</code> voxels (<code>av_routines.cpp</code>), and the LabelLib-derived search in FRETraj connects the source directly to every free voxel within <code>linker width + grid</code> (<code>grid.py</code>, <code>maxR_source</code>). With a positive radius the source is joined to every <em>free</em> tile within it, at its Euclidean distance; blocked tiles stay blocked. 0 (the default) is the stencil alone. The Euclidean (visibility) search ignores it. </p>
+
+</div>
+</div>
 <a id="ab25ff6e102027e4261dc0c01c2e81310" name="ab25ff6e102027e4261dc0c01c2e81310"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab25ff6e102027e4261dc0c01c2e81310">&#9670;&#160;</a></span>set_sphere_source()</h2>
 
@@ -1958,7 +2017,7 @@ The obstacle_penalty is used to assign penalty values to obstacle cells in the p
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 11 2026 11:48:58 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Oct 11 2026 13:02:11 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
