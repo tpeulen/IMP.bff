@@ -83,8 +83,14 @@ ACV::ACV(const std::vector<double>& points, const std::vector<double>& density,
           trapped_fraction_(trapped_fraction) {
     // A single `slow_radius` is broadcast over every centre: a caller that has
     // one sticky-sphere radius for every residue should not have to repeat it.
+    //
+    // The radius is copied out first: `assign(n, v[0])` passes a reference
+    // into the vector it is about to overwrite, which is undefined, and under
+    // libc++ it broadcast 0 -- a scalar radius over two centres came back
+    // [0, 0] and the contact split was computed with no contact volume.
     if (slow_radius_.size() == 1 && !slow_centers_.empty()) {
-        slow_radius_.assign(slow_centers_.size() / 3, slow_radius_[0]);
+        const double r = slow_radius_[0];
+        slow_radius_.assign(slow_centers_.size() / 3, r);
     }
     if (!density_.empty() && !slow_centers_.empty()) {
         update_contact_density();
@@ -122,7 +128,10 @@ void ACV::update_contact_density() {
     const std::size_t n_centre = slow_centers_.size() / 3;
     std::vector<double> radius = slow_radius_;
     if (radius.empty()) radius.assign(n_centre, 10.0);
-    if (radius.size() != n_centre) radius.assign(n_centre, radius[0]);
+    if (radius.size() != n_centre) {
+        const double r = radius[0];   // not a reference into `radius` (see ctor)
+        radius.assign(n_centre, r);
+    }
 
     int* label = nullptr; int n_label = 0, d2 = 0, d3 = 0;
     split_contact_volume(density_, ng_, grid_step_, radius, slow_centers_,

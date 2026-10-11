@@ -1,7 +1,7 @@
 """Tests for ``IMP.bff``'s accessible volume infrastructure.
 
-All tests in this file run in **standalone mode** (no IMP
-required) and use the Numba kernels directly.
+All tests in this file exercise the C++ accessible-volume surface
+(``IMP.bff.get_av``, ``ProbeAccessibleVolume``, ``ACV``) through its Python binding.
 """
 
 from __future__ import annotations
@@ -95,10 +95,12 @@ class TestAccessibleVolumeCloud:
         ], dtype=np.float64)
         av1 = ProbeAccessibleVolume(points=pts)
         av2 = ProbeAccessibleVolume(points=pts)
-        y, x = av1.pRDA(av2, n_samples=10000)
+        # The axis is the caller's now (the bin edges) and only p comes back:
+        # the C++ ``States.pRDA`` takes it explicitly rather than inventing one.
+        axis = np.linspace(0.0, 20.0, 41)
+        y = np.asarray(av1.pRDA(av2, axis, 10000))
         assert y.ndim == 1
-        assert x.ndim == 1
-        assert len(y) == len(x)
+        assert len(y) == len(axis) - 1
         assert abs(y.sum() - 1.0) < 0.01
 
 
@@ -108,13 +110,14 @@ class TestKernels:
     def test_random_distances_shape(self):
         p1 = np.array([[0.0, 0.0, 0.0, 1.0]], dtype=np.float64)
         p2 = np.array([[1.0, 0.0, 0.0, 1.0]], dtype=np.float64)
-        d = random_distances(p1, p2, n_samples=100)
+        # The seed is a required argument of the C++ kernel: same seed, same draw.
+        d = random_distances(p1, p2, 100, 0)
         assert d.shape == (100, 2)
 
     def test_random_distances_known(self):
         p1 = np.array([[0.0, 0.0, 0.0, 1.0]], dtype=np.float64)
         p2 = np.array([[3.0, 4.0, 0.0, 1.0]], dtype=np.float64)
-        d = random_distances(p1, p2, n_samples=1)
+        d = random_distances(p1, p2, 1, 0)
         np.testing.assert_allclose(d[0, 0], 5.0, atol=1e-10)
 
     def test_weighted_mean(self):
@@ -163,10 +166,15 @@ class TestAccessibleVolumeStates:
         assert av.n_points == 1
 
     def test_the_grid_shape_is_derived_from_the_density(self):
-        """It was a constructor argument that had to agree with the array."""
+        """It was a constructor argument that had to agree with the array.
+
+        The grid is cubic (a non-cubic one is refused, below), so the C++ volume
+        publishes one edge, ``ng``, where the Python class had a ``grid_shape``
+        triple.
+        """
         av = ProbeAccessibleVolume(density=np.zeros((3, 3, 3)), grid_origin=np.zeros(3))
-        assert av.grid_shape == (3, 3, 3)
-        assert ProbeAccessibleVolume().grid_shape == (0, 0, 0)
+        assert av.ng == 3
+        assert ProbeAccessibleVolume().ng == 0
 
     def test_a_non_cubic_grid_is_refused(self):
         with pytest.raises(ValueError):
@@ -212,7 +220,10 @@ class TestACV:
             grid_step=1.0,
         )
         slow = np.array([[0.0, 0.0, 0.0]], dtype=np.float64)
-        acv = ACV.from_accessible_volume(av, slow_centers=slow, trapped_fraction=0.5)
+        # ``slow_radius`` has no default in C++: a contact volume's radius is a
+        # choice, so the caller states it.
+        acv = ACV.from_accessible_volume(
+            av, slow_centers=slow, slow_radius=10.0, trapped_fraction=0.5)
         assert isinstance(acv, ACV)
         assert acv.trapped_fraction == 0.5
 
@@ -226,9 +237,22 @@ class TestACV:
         )
         slow = np.array([[0.0, 0.0, 0.0], [4.0, 4.0, 4.0]], dtype=np.float64)
         acv = ACV.from_accessible_volume(av, slow_centers=slow, slow_radius=10.0)
-        # scalar is stored as (1,) array; broadcasting happens in kernel
-        assert acv.slow_radius[0] == 10.0
+        # A scalar is broadcast over the centres in the constructor. It used to
+        # come back [0, 0]: the broadcast assigned from a reference into the
+        # vector being overwritten (undefined; libc++ wrote zeros).
+        np.testing.assert_array_equal(acv.get_slow_radius(), [10.0, 10.0])
 
+
+
+def _xyzr(atoms_xyz, atoms_vdw):
+    """The one ``(N, 4)`` x, y, z, radius array ``get_av`` takes.
+
+    The Python builder took coordinates and radii separately and the dye radii
+    as a ``dye_radii`` triple; the C++ door takes one array and ``r1``/``r2``/
+    ``r3`` (the same as LabelLib's ``dyeDensityAV3``).
+    """
+    return np.ascontiguousarray(
+        np.column_stack([atoms_xyz, atoms_vdw]), dtype=np.float64)
 
 
 class TestComputeAvBackends:
@@ -277,8 +301,8 @@ class TestComputeAvBackends:
             pytest.skip("this build does not expose IMP.bff's AV decorator")
         atoms_xyz, atoms_vdw, source_xyz = self._system()
         av = get_av(
-            atoms_xyz, atoms_vdw, source_xyz,
-            linker_length=12.0, linker_width=1.0, dye_radii=(2.0, 0.0, 0.0),
+            _xyzr(atoms_xyz, atoms_vdw), source_xyz,
+            linker_length=12.0, linker_width=1.0, r1=2.0, r2=0.0, r3=0.0,
             grid_resolution=0.5,
         )
         assert av.has_volume, "the AV backend returned an empty accessible volume"
@@ -295,8 +319,8 @@ class TestComputeAvBackends:
             pytest.skip("this build does not expose IMP.bff's AV decorator")
         atoms_xyz, atoms_vdw, source_xyz = self._system()
         av = get_av(
-            atoms_xyz, atoms_vdw, source_xyz,
-            linker_length=12.0, linker_width=1.0, dye_radii=(2.0, 0.0, 0.0),
+            _xyzr(atoms_xyz, atoms_vdw), source_xyz,
+            linker_length=12.0, linker_width=1.0, r1=2.0, r2=0.0, r3=0.0,
             grid_resolution=0.5,
         )
         offset = np.linalg.norm(av.points[:, :3].mean(axis=0) - source_xyz)
@@ -317,16 +341,18 @@ class TestComputeAvBackends:
             pytest.skip("this build does not expose IMP.bff's AV decorator")
         atoms_xyz, atoms_vdw, source_xyz = self._system()
         av = get_av(
-            atoms_xyz, atoms_vdw, source_xyz,
-            linker_length=12.0, linker_width=1.0, dye_radii=(2.0, 0.0, 0.0),
+            _xyzr(atoms_xyz, atoms_vdw), source_xyz,
+            linker_length=12.0, linker_width=1.0, r1=2.0, r2=0.0, r3=0.0,
             grid_resolution=0.5,
         )
-        nx, ny, nz = av.grid_shape
-        ix, iy, iz = np.nonzero(av.density)
+        ng = av.ng
+        density = np.asarray(av.get_density()).reshape(ng, ng, ng)
+        origin = np.asarray(av.get_grid_origin())
+        ix, iy, iz = np.nonzero(density)
         from_density = np.stack(
-            [av.grid_origin[0] + ix * av.grid_step,
-             av.grid_origin[1] + iy * av.grid_step,
-             av.grid_origin[2] + iz * av.grid_step],
+            [origin[0] + ix * av.grid_step,
+             origin[1] + iy * av.grid_step,
+             origin[2] + iz * av.grid_step],
             axis=1,
         )
         a = set(map(tuple, np.round(from_density, 4)))
@@ -382,9 +408,9 @@ class TestComputeAvIsThreadSafe:
 
         def build(_):
             return get_av(
-                atoms_xyz, atoms_vdw, source_xyz,
+                _xyzr(atoms_xyz, atoms_vdw), source_xyz,
                 linker_length=12.0, linker_width=1.0,
-                dye_radii=(2.0, 0.0, 0.0), grid_resolution=1.0,
+                r1=2.0, r2=0.0, r3=0.0, grid_resolution=1.0,
             )
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.WORKERS) as pool:
@@ -396,8 +422,8 @@ class TestComputeAvIsThreadSafe:
             # Same input, same answer: a race that did not raise would still
             # show up as two threads disagreeing about the volume.
             assert other.n_points == first.n_points
-            assert other.grid_shape == first.grid_shape
-            np.testing.assert_allclose(other.grid_origin, first.grid_origin)
+            assert other.ng == first.ng
+            np.testing.assert_allclose(other.get_grid_origin(), first.get_grid_origin())
 
 
 # IMP runs every .py under test/ as a standalone script; a file of bare pytest
