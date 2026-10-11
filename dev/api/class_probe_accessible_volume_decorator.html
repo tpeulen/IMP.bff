@@ -165,9 +165,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:afc5aef9de104f8992cacb984451ef962" id="r_afc5aef9de104f8992cacb984451ef962"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_decorator.html#afc5aef9de104f8992cacb984451ef962">get_effective_allowed_sphere_radius</a> () const</td></tr>
 <tr class="memdesc:afc5aef9de104f8992cacb984451ef962"><td class="mdescLeft">&#160;</td><td class="mdescRight">The source clearance the search actually uses.  <br /></td></tr>
 <tr class="separator:afc5aef9de104f8992cacb984451ef962"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeac61857811c1785fa72ea49ddc8780a" id="r_aeac61857811c1785fa72ea49ddc8780a"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_decorator.html#aeac61857811c1785fa72ea49ddc8780a">get_effective_source_hop_radius</a> () const</td></tr>
-<tr class="memdesc:aeac61857811c1785fa72ea49ddc8780a"><td class="mdescLeft">&#160;</td><td class="mdescRight">How far the linker's first step reaches from its anchor (<a class="el" href="class_path_map.html#a21b4a8bf086d1472b6af50578027f698" title="How far (Angstrom) the linker&#39;s first step may reach from its anchor.">PathMap::set_source_hop_radius</a>).  <br /></td></tr>
-<tr class="separator:aeac61857811c1785fa72ea49ddc8780a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a402615de80f738fed21bb35d20bb5f34" id="r_a402615de80f738fed21bb35d20bb5f34"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_decorator.html#a402615de80f738fed21bb35d20bb5f34">get_effective_first_step_reach</a> () const</td></tr>
+<tr class="memdesc:a402615de80f738fed21bb35d20bb5f34"><td class="mdescLeft">&#160;</td><td class="mdescRight">How far, along an axis, the linker's first step reaches (<a class="el" href="class_path_map.html#a5a9c116a7852eff2ac7e256f0b83353f" title="The linker&#39;s first step out of its anchor, as FPS takes it.">PathMap::set_source_first_step</a>).  <br /></td></tr>
+<tr class="separator:a402615de80f738fed21bb35d20bb5f34"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaf457582c0e45c80acc41620f34b7813" id="r_aaf457582c0e45c80acc41620f34b7813"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_decorator.html#aaf457582c0e45c80acc41620f34b7813">get_compensate_stencil</a> () const</td></tr>
 <tr class="separator:aaf457582c0e45c80acc41620f34b7813"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeef4dec2976fd1d74ae4213aac662ba9" id="r_aeef4dec2976fd1d74ae4213aac662ba9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_decorator.html#aeef4dec2976fd1d74ae4213aac662ba9">set_compensate_stencil</a> (bool tf)</td></tr>
@@ -289,9 +289,9 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a9dca479f3922c57074209a2f902fae5e" id="r_a9dca479f3922c57074209a2f902fae5e"><td class="memItemLeft" align="right" valign="top">static FloatKey&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_decorator.html#a9dca479f3922c57074209a2f902fae5e">get_av_key</a> (unsigned int i)</td></tr>
 <tr class="memdesc:a9dca479f3922c57074209a2f902fae5e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the FloatKey object for a specific AV feature.  <br /></td></tr>
 <tr class="separator:a9dca479f3922c57074209a2f902fae5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4fd010eb50aee2b9200f5dfbc871af52" id="r_a4fd010eb50aee2b9200f5dfbc871af52"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_decorator.html#a4fd010eb50aee2b9200f5dfbc871af52">do_setup_particle</a> (Model *m, ParticleIndex pi, ParticleIndex pi_source, double linker_length=20.0, const algebra::Vector3D radii=algebra::Vector3D(3.5, 0, 0), double linker_width=0.5, double allowed_sphere_radius=-1.0, double contact_volume_thickness=0.0, double contact_volume_trapped_fraction=-1, double simulation_grid_resolution=1.5)</td></tr>
-<tr class="memdesc:a4fd010eb50aee2b9200f5dfbc871af52"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets up the attributes for a particle in a model for AV (Anisotropic Volume) calculations.  <br /></td></tr>
-<tr class="separator:a4fd010eb50aee2b9200f5dfbc871af52"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab23e2255e1f03af5375c7ce116d05f67" id="r_ab23e2255e1f03af5375c7ce116d05f67"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_decorator.html#ab23e2255e1f03af5375c7ce116d05f67">do_setup_particle</a> (Model *m, ParticleIndex pi, ParticleIndex pi_source, double linker_length=IMP::bff::AV_DEFAULT_LINKER_LENGTH, const algebra::Vector3D radii=algebra::Vector3D(IMP::bff::AV_DEFAULT_RADIUS1, 0, 0), double linker_width=IMP::bff::AV_DEFAULT_LINKER_WIDTH, double allowed_sphere_radius=-1.0, double contact_volume_thickness=0.0, double contact_volume_trapped_fraction=-1, double simulation_grid_resolution=IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION)</td></tr>
+<tr class="memdesc:ab23e2255e1f03af5375c7ce116d05f67"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets up the attributes for a particle in a model for AV (Anisotropic Volume) calculations.  <br /></td></tr>
+<tr class="separator:ab23e2255e1f03af5375c7ce116d05f67"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afb7424660ea7bb1635d149e8c30f362d" id="r_afb7424660ea7bb1635d149e8c30f362d"><td class="memItemLeft" align="right" valign="top">static ParticleIndexKey&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_decorator.html#afb7424660ea7bb1635d149e8c30f362d">get_particle_key</a> (unsigned int i)</td></tr>
 <tr class="memdesc:afb7424660ea7bb1635d149e8c30f362d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the particle key for the specified index.  <br /></td></tr>
 <tr class="separator:afb7424660ea7bb1635d149e8c30f362d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -346,8 +346,8 @@ Protected Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a4fd010eb50aee2b9200f5dfbc871af52" name="a4fd010eb50aee2b9200f5dfbc871af52"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4fd010eb50aee2b9200f5dfbc871af52">&#9670;&#160;</a></span>do_setup_particle()</h2>
+<a id="ab23e2255e1f03af5375c7ce116d05f67" name="ab23e2255e1f03af5375c7ce116d05f67"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab23e2255e1f03af5375c7ce116d05f67">&#9670;&#160;</a></span>do_setup_particle()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -377,19 +377,19 @@ Protected Member Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>linker_length</em> = <code>20.0</code>, </td>
+          <td class="paramname"><em>linker_length</em> = <code>IMP::bff::AV_DEFAULT_LINKER_LENGTH</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const algebra::Vector3D&#160;</td>
-          <td class="paramname"><em>radii</em> = <code>algebra::Vector3D(3.5,&#160;0,&#160;0)</code>, </td>
+          <td class="paramname"><em>radii</em> = <code>algebra::Vector3D(IMP::bff::AV_DEFAULT_RADIUS1,&#160;0,&#160;0)</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>linker_width</em> = <code>0.5</code>, </td>
+          <td class="paramname"><em>linker_width</em> = <code>IMP::bff::AV_DEFAULT_LINKER_WIDTH</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -413,7 +413,7 @@ Protected Member Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>simulation_grid_resolution</em> = <code>1.5</code>&#160;</td>
+          <td class="paramname"><em>simulation_grid_resolution</em> = <code>IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -689,8 +689,37 @@ If the index is out of range, an error message will be generated. </dd></dl>
 
 <p>The source clearance the search actually uses. </p>
 <p>A <b>negative</b> stored <code>allowed_sphere_radius</code> means <em>derive it</em>, and deriving is the default because the value that works depends on two other parameters. The path search inflates every obstacle by half the linker width, so the free sphere around the attachment atom has to clear that inflation plus a grid step of slack, or the source voxel is walled in and the volume comes back <b>empty</b>.</p>
-<p>This lived in <code><a class="el" href="_probe_accessible_volume_decorator_8h.html#a2afcfdef02a38f93f50aff72a0cb794c" title="An accessible volume from a structure and an fps position definition.">get_av_from_structure()</a></code> only, so the two doors onto the same volume disagreed: the fps.json door derived, the decorator door (and <code>imp_bff av-export</code> behind it) took a flat 1.5 and returned nothing at FPS's standard linker width of 4.5 Å. One place now.</p>
-<p>The FPS mapping, for the record: FPS seeds its search from a sphere of <code>LinkerInitialSphere * W</code> with <code>LinkerInitialSphere = 0.5</code> (<code>av_routines.cpp:136</code>), i.e. exactly <code>W/2</code> — the same half-width, with no grid slack because FPS's seed is unconditional rather than carved out of an inflated obstacle map. </p>
+<p>This lived in <code><a class="el" href="_probe_accessible_volume_decorator_8h.html#aef32fe83204e694bbfc2720900515686" title="An accessible volume from a structure and an fps position definition.">get_av_from_structure()</a></code> only, so the two doors onto the same volume disagreed: the fps.json door derived, the decorator door (and <code>imp_bff av-export</code> behind it) took a flat 1.5 and returned nothing at FPS's standard linker width of 4.5 Å. One place now.</p>
+<p>The derived value is FPS's seed (#IMP::bff::av_derived_allowed_sphere_radius): a sphere of <code>LinkerInitialSphere * W</code> with <code>LinkerInitialSphere = 0.5</code> (<code>av_routines.cpp:136</code>), i.e. exactly <code>W/2</code>, open whatever the obstacle map says. It used to be <code>max(1.5, W/2 + grid/2)</code> &ndash; a grid step of slack so the source voxel was not walled in &ndash; until the linker's first step (get_effective_first_step_reach) made the slack unnecessary and the owner asked for FPS's own value (2026-10-11). The legacy <code>space_fixed=False</code> path keeps the old rule, for its historical numbers. </p>
+
+</div>
+</div>
+<a id="a402615de80f738fed21bb35d20bb5f34" name="a402615de80f738fed21bb35d20bb5f34"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a402615de80f738fed21bb35d20bb5f34">&#9670;&#160;</a></span>get_effective_first_step_reach()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">double ProbeAccessibleVolumeDecorator::get_effective_first_step_reach </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>How far, along an axis, the linker's first step reaches (<a class="el" href="class_path_map.html#a5a9c116a7852eff2ac7e256f0b83353f" title="The linker&#39;s first step out of its anchor, as FPS takes it.">PathMap::set_source_first_step</a>). </p>
+<p>FPS's first step: every voxel of the seed sphere &ndash; the clearance, <a class="el" href="class_probe_accessible_volume_decorator.html#afc5aef9de104f8992cacb984451ef962" title="The source clearance the search actually uses.">get_effective_allowed_sphere_radius()</a>, FPS's <code>LinkerInitialSphere * W</code> by default &ndash; is a starting point, and the linker hops up to <code>LinkSearchNodes = 3</code> voxels from each (#IMP::bff::av_first_step_reach, <code>seed + 3 dg</code> along an axis). Without a first step the search leaves the anchor one stencil step at a time, and a site among bonded neighbours (a CA) is walled in at a fine grid and found at a coarse one &ndash; T4L N132 CA at width 4.5 was empty at 0.5 A and 5400 A^3 at 0.7 A.</p>
+<p>From f2c272dc7 until the owner settled the defaults on FPS's (both 2026-10-11), the first step was FRETraj's <code>maxR_source</code>, a ball of <code>W + dg</code>; FPS's seed-and-cube reaches further along the diagonals and less far along the axes. </p>
 
 </div>
 </div>
@@ -717,35 +746,7 @@ If the index is out of range, an error message will be generated. </dd></dl>
 </table>
 </div><div class="memdoc">
 <p>Linker length the search actually uses: nominal, times the stencil compensation. Equal to get_linker_length() for the default stencil.</p>
-<p>The compensation scales the part of the path the stencil walks. The linker's first step out of the anchor (get_effective_source_hop_radius) is a straight segment, exact on any stencil, so it is not scaled. </p>
-
-</div>
-</div>
-<a id="aeac61857811c1785fa72ea49ddc8780a" name="aeac61857811c1785fa72ea49ddc8780a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeac61857811c1785fa72ea49ddc8780a">&#9670;&#160;</a></span>get_effective_source_hop_radius()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">double ProbeAccessibleVolumeDecorator::get_effective_source_hop_radius </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>How far the linker's first step reaches from its anchor (<a class="el" href="class_path_map.html#a21b4a8bf086d1472b6af50578027f698" title="How far (Angstrom) the linker&#39;s first step may reach from its anchor.">PathMap::set_source_hop_radius</a>). </p>
-<p>One linker width plus one grid step, the reach FRETraj's search gives the source (<code>maxR_source = linker_width + grid_spacing</code>). FPS reaches about as far by hopping three of its own voxels from a seed of half the width. Without it the search steps out of the anchor one stencil step at a time, and a site among bonded neighbours (a CA) is walled in at a fine grid and found at a coarse one &ndash; T4L N132 CA at width 4.5 was empty at 0.5 A and 5400 A^3 at 0.7 A. </p>
+<p>The compensation scales the part of the path the stencil walks. The linker's first step out of the anchor (get_effective_first_step_reach) is a straight segment, exact on any stencil, so it is not scaled. </p>
 
 </div>
 </div>
@@ -2561,7 +2562,7 @@ If the index is out of range, an error message will be generated. </dd></dl>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 11 2026 13:02:11 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Oct 11 2026 20:30:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

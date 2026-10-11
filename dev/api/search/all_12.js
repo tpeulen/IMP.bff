@@ -399,7 +399,7 @@ var searchData=
   ['set_5fslice_5fmu_396',['set_slice_mu',['../class_m_c_m_c_sampler.html#ab16f8e09acdc755a59af879a2031ce32',1,'MCMCSampler']]],
   ['set_5fslow_5ffactor_5fmap_397',['set_slow_factor_map',['../class_quenched_donor_decay.html#a3c31def60f5342b1f8d9157d11831414',1,'QuenchedDonorDecay']]],
   ['set_5fsnooker_398',['set_snooker',['../class_m_c_m_c_sampler.html#aec272da7c38200a6903c54d56c540148',1,'MCMCSampler']]],
-  ['set_5fsource_5fhop_5fradius_399',['set_source_hop_radius',['../class_path_map.html#a21b4a8bf086d1472b6af50578027f698',1,'PathMap']]],
+  ['set_5fsource_5ffirst_5fstep_399',['set_source_first_step',['../class_path_map.html#a5a9c116a7852eff2ac7e256f0b83353f',1,'PathMap']]],
   ['set_5fspace_5ffixed_400',['set_space_fixed',['../class_probe_accessible_volume_decorator.html#acee9729dedf760d3f0d8140bce1618bc',1,'ProbeAccessibleVolumeDecorator']]],
   ['set_5fspacing_401',['set_spacing',['../class_grid_header.html#a320bf1e55f6133e29329dcde9c7302bf',1,'GridHeader']]],
   ['set_5fspectrum_5ffrom_5fport_402',['set_spectrum_from_port',['../class_t_c_s_p_c_decay.html#a7a5f7409c9c9813ca81c167d7eb6d451',1,'TCSPCDecay']]],

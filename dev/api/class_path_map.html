@@ -194,11 +194,13 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:acd62eb39d46742a375f42a7c127a4400"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a146858e5048c47c960ced150fb49d066" id="r_a146858e5048c47c960ced150fb49d066"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_path_map.html#a146858e5048c47c960ced150fb49d066">get_euclidean_search</a> () const</td></tr>
 <tr class="separator:a146858e5048c47c960ced150fb49d066"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a21b4a8bf086d1472b6af50578027f698" id="r_a21b4a8bf086d1472b6af50578027f698"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_path_map.html#a21b4a8bf086d1472b6af50578027f698">set_source_hop_radius</a> (double r)</td></tr>
-<tr class="memdesc:a21b4a8bf086d1472b6af50578027f698"><td class="mdescLeft">&#160;</td><td class="mdescRight">How far (Angstrom) the linker's first step may reach from its anchor.  <br /></td></tr>
-<tr class="separator:a21b4a8bf086d1472b6af50578027f698"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3631125e122e790e9ec486fd3450256f" id="r_a3631125e122e790e9ec486fd3450256f"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_path_map.html#a3631125e122e790e9ec486fd3450256f">get_source_hop_radius</a> () const</td></tr>
-<tr class="separator:a3631125e122e790e9ec486fd3450256f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5a9c116a7852eff2ac7e256f0b83353f" id="r_a5a9c116a7852eff2ac7e256f0b83353f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_path_map.html#a5a9c116a7852eff2ac7e256f0b83353f">set_source_first_step</a> (double seed_radius, int hop_nodes)</td></tr>
+<tr class="memdesc:a5a9c116a7852eff2ac7e256f0b83353f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The linker's first step out of its anchor, as FPS takes it.  <br /></td></tr>
+<tr class="separator:a5a9c116a7852eff2ac7e256f0b83353f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeff0515501adc27a1424cb555b53d7e9" id="r_aeff0515501adc27a1424cb555b53d7e9"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_path_map.html#aeff0515501adc27a1424cb555b53d7e9">get_source_seed_radius</a> () const</td></tr>
+<tr class="separator:aeff0515501adc27a1424cb555b53d7e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c2fcd794aea3f479309bd1c20a28e4a" id="r_a2c2fcd794aea3f479309bd1c20a28e4a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_path_map.html#a2c2fcd794aea3f479309bd1c20a28e4a">get_source_hop_nodes</a> () const</td></tr>
+<tr class="separator:a2c2fcd794aea3f479309bd1c20a28e4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acc9ef3f15193222a2c86bd07f712eeec" id="r_acc9ef3f15193222a2c86bd07f712eeec"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_path_map.html#acc9ef3f15193222a2c86bd07f712eeec">search_lattice</a> (long source_idx, float max_cost)</td></tr>
 <tr class="memdesc:acc9ef3f15193222a2c86bd07f712eeec"><td class="mdescLeft">&#160;</td><td class="mdescRight">The lattice evaluation of one AV in compact arrays.  <br /></td></tr>
 <tr class="separator:acc9ef3f15193222a2c86bd07f712eeec"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1027,8 +1029,8 @@ Related Symbols</h2></td></tr>
 
 </div>
 </div>
-<a id="a3631125e122e790e9ec486fd3450256f" name="a3631125e122e790e9ec486fd3450256f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3631125e122e790e9ec486fd3450256f">&#9670;&#160;</a></span>get_source_hop_radius()</h2>
+<a id="a2c2fcd794aea3f479309bd1c20a28e4a" name="a2c2fcd794aea3f479309bd1c20a28e4a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2c2fcd794aea3f479309bd1c20a28e4a">&#9670;&#160;</a></span>get_source_hop_nodes()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1037,7 +1039,32 @@ Related Symbols</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">double PathMap::get_source_hop_radius </td>
+          <td class="memname">int PathMap::get_source_hop_nodes </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aeff0515501adc27a1424cb555b53d7e9" name="aeff0515501adc27a1424cb555b53d7e9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeff0515501adc27a1424cb555b53d7e9">&#9670;&#160;</a></span>get_source_seed_radius()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">double PathMap::get_source_seed_radius </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -1711,8 +1738,8 @@ The obstacle_penalty is used to assign penalty values to obstacle cells in the p
 
 </div>
 </div>
-<a id="a21b4a8bf086d1472b6af50578027f698" name="a21b4a8bf086d1472b6af50578027f698"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a21b4a8bf086d1472b6af50578027f698">&#9670;&#160;</a></span>set_source_hop_radius()</h2>
+<a id="a5a9c116a7852eff2ac7e256f0b83353f" name="a5a9c116a7852eff2ac7e256f0b83353f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5a9c116a7852eff2ac7e256f0b83353f">&#9670;&#160;</a></span>set_source_first_step()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1721,11 +1748,21 @@ The obstacle_penalty is used to assign penalty values to obstacle cells in the p
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void PathMap::set_source_hop_radius </td>
+          <td class="memname">void PathMap::set_source_first_step </td>
           <td>(</td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>r</em></td><td>)</td>
+          <td class="paramname"><em>seed_radius</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>hop_nodes</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -1735,8 +1772,8 @@ The obstacle_penalty is used to assign penalty values to obstacle cells in the p
 </table>
 </div><div class="memdoc">
 
-<p>How far (Angstrom) the linker's first step may reach from its anchor. </p>
-<p>The path search moves one stencil step at a time, so a linker anchored among bonded neighbours &ndash; a CA site, whose own backbone and the neighbouring residues' atoms sit 1.5-4 A away, each inflated by half the linker width &ndash; is walled in at a fine grid, and the volume comes back empty at 0.5 A where it exists at 0.7 A. The reference implementations do not step out of the anchor: FPS hops <code>linknodes = 3</code> voxels (<code>av_routines.cpp</code>), and the LabelLib-derived search in FRETraj connects the source directly to every free voxel within <code>linker width + grid</code> (<code>grid.py</code>, <code>maxR_source</code>). With a positive radius the source is joined to every <em>free</em> tile within it, at its Euclidean distance; blocked tiles stay blocked. 0 (the default) is the stencil alone. The Euclidean (visibility) search ignores it. </p>
+<p>The linker's first step out of its anchor, as FPS takes it. </p>
+<p>The path search moves one stencil step at a time, so a linker anchored among bonded neighbours &ndash; a CA site, whose own backbone and the neighbouring residues' atoms sit 1.5-4 A away, each inflated by half the linker width &ndash; is walled in at a fine grid, and the volume comes back empty at 0.5 A where it exists at 0.7 A. FPS does not step out of the anchor (<code>av_routines.cpp:135-209</code>): every voxel within a seed sphere of <code>LinkerInitialSphere * W</code> is a starting point whatever the obstacles say, at its straight-line distance, and from each of them the linker hops up to <code>LinkSearchNodes</code> voxels along every axis at once &ndash; the 7x7x7 cube for 3 &ndash; landing on any free voxel, across whatever lies between. This is that first step: the source is joined to every <em>free</em> tile in the union of those cubes, at FPS's path length (seed distance plus hop distance, the shorter over seeds); blocked tiles stay blocked. After it the stencil walks as before. <code>seed_radius</code> is in Angstrom; 0 nodes and a 0 radius (the default) is the stencil alone. The Euclidean (visibility) search ignores it. </p>
 
 </div>
 </div>
@@ -2017,7 +2054,7 @@ The obstacle_penalty is used to assign penalty values to obstacle cells in the p
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 11 2026 13:02:11 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Oct 11 2026 20:30:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

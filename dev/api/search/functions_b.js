@@ -1,7 +1,7 @@
 var searchData=
 [
   ['labeldistribution_0',['LabelDistribution',['../class_label_distribution.html#ae1af910cd1b61714e1ac2ef6ee0660bd',1,'LabelDistribution']]],
-  ['labeldistributionav_1',['LabelDistributionAV',['../class_label_distribution_a_v.html#a44fbacc5ba04f7f9cd761cad0b00d06d',1,'LabelDistributionAV']]],
+  ['labeldistributionav_1',['LabelDistributionAV',['../class_label_distribution_a_v.html#a009e6961a13cae88d2fb5337206dd1de',1,'LabelDistributionAV']]],
   ['labelizer_5falpha_5fcone_5fmean_5fposition_2',['labelizer_alpha_cone_mean_position',['../_labelizer_f_r_e_t_8h.html#a4a0827e6c858044f4d69a972ca8c9297',1,'LabelizerFRET.h']]],
   ['labelizer_5favailable_5ftables_3',['labelizer_available_tables',['../_labelizer_score_8h.html#ab4e49aa2101ce0602c05af8974de5705',1,'LabelizerScore.h']]],
   ['labelizer_5fcbeta_5fdepth_4',['labelizer_cbeta_depth',['../_labelizer_features_8h.html#a9f63fc6279b8c463693b762d42491ff7',1,'LabelizerFeatures.h']]],
