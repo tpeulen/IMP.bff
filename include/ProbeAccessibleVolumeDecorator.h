@@ -434,8 +434,17 @@ public:
 
     //! Linker length the search actually uses: nominal, times the stencil
     //! compensation. Equal to get_linker_length() for the default stencil.
+    /*!
+        The compensation scales the part of the path the stencil walks. The
+        linker's first step out of the anchor (get_effective_source_hop_radius)
+        is a straight segment, exact on any stencil, so it is not scaled.
+     */
     double get_effective_linker_length() const {
-        return get_linker_length() * get_stencil_length_compensation();
+        const double length = get_linker_length();
+        const double scale = get_stencil_length_compensation();
+        if(scale == 1.0) return length;
+        const double hop = std::min(length, get_effective_source_hop_radius());
+        return hop + (length - hop) * scale;
     }
 
     //! The source clearance the search actually uses.
@@ -463,6 +472,20 @@ public:
         if(r >= 0.0) return r;
         return std::max(1.5, 0.5 * get_linker_width()
                                      + 0.5 * get_simulation_grid_resolution());
+    }
+
+    //! How far the linker's first step reaches from its anchor (PathMap::set_source_hop_radius).
+    /*!
+        One linker width plus one grid step, the reach FRETraj's search gives
+        the source (`maxR_source = linker_width + grid_spacing`). FPS reaches
+        about as far by hopping three of its own voxels from a seed of half
+        the width. Without it the search steps out of the anchor one stencil
+        step at a time, and a site among bonded neighbours (a CA) is walled in
+        at a fine grid and found at a coarse one -- T4L N132 CA at width 4.5
+        was empty at 0.5 A and 5400 A^3 at 0.7 A.
+     */
+    double get_effective_source_hop_radius() const {
+        return get_linker_width() + get_simulation_grid_resolution();
     }
 
     //! Whether to correct a coarse stencil's volume bias. **Default false**:

@@ -1,7 +1,7 @@
 ---
 okf_version: "0.2"
 title: "IMP.bff against FPS's published screening numbers (T4L, 3GUN)"
-description: "End-to-end A/B of the screening path against the real FPS, and the accessible-contact volume that explained the +2 A offset against the published table. Under the default (IMP/CHARMM) radii: 24 of 33 pairs at +0.22 A bias, 0.91 A rmsd, r = 0.9960. Olga's radii, selectable, reach all 33 at -0.02 A / 0.71 A."
+description: "End-to-end A/B of the screening path against the real FPS, and the accessible-contact volume that explained the +2 A offset against the published table. Since 2026-10-11 (the linker's first step reaches one width plus one grid step) all 33 pairs resolve under the default radii: vs FPS +0.08 A / 0.87 A over the former 24; ACV on vs the published table +0.58 A / 0.94 A over 33; Olga's radii +0.15 A / 0.90 A."
 tags: [validation, fps, screening, av, acv, radii, prd-121]
 ---
 
@@ -12,6 +12,37 @@ tags: [validation, fps, screening, av, acv, radii, prd-121]
 [`test/representation/test_av_contact_volume.py`](../../test/representation/test_av_contact_volume.py),
 [`test/representation/test_olga_vdw_radii.py`](../../test/representation/test_olga_vdw_radii.py)
 · **PRD:** [121](../prds/prd-121.md)
+
+## Since 2026-10-11: the linker's first step reaches out of the anchor
+
+The search used to leave the attachment atom one stencil step at a time. A site
+among bonded neighbours was then walled in at a fine grid and found at a coarse
+one (T4L N132 CA at width 4.5: empty at 0.5 A, 5 400 A^3 at 0.7 A), and site 132
+of this file had no volume under the default radii. FPS hops `linknodes = 3`
+voxels from a seed of half the width; FRETraj joins the source to every free
+voxel within `width + grid` (`maxR_source`). The search now does the latter
+(`PathMap::set_source_hop_radius`, derived as
+`ProbeAccessibleVolumeDecorator::get_effective_source_hop_radius`), on the
+lattice doors only; `space_fixed=False` keeps the historical numbers. Measured
+on this file, ACV off unless stated:
+
+| comparison | radii | pairs | bias | rmsd | r |
+|---|---|---|---|---|---|
+| vs FPS's own routine | IMP (default) | 33 | +0.70 A | 1.70 A | 0.9801 |
+| *...the 24 that resolved before* | IMP (default) | 24 | **+0.08 A** | **0.87 A** | **0.9955** (was -0.31 / 1.20 / 0.9926) |
+| *...the 9 with site 132* | IMP (default) | 9 | +2.37 A | 2.92 A | 0.9667 |
+| vs FPS's own routine, the same 24 | Olga | 24 | -0.29 A | 1.03 A | 0.9928 (was -0.62 / 1.13 / 0.9940) |
+| ACV on, vs the published table | IMP (default) | 33 | +0.58 A | 0.94 A | 0.9954 (was 24 pairs, +0.22 / 0.91) |
+| ACV on, vs the published table | Olga | 33 | +0.15 A | 0.90 A | 0.9923 (was -0.02 / 0.71 / 0.9954) |
+
+It moved this module **towards FPS** -- on the pairs both resolved, and in
+coverage (all 33 now; `test_fps_av_parity.py` p66 with explicit hydrogens went
+from *empty* to 0.987 of FPS's volume, mean 0.49 A off) -- and **away from the
+published table under Olga's radii** (0.71 -> 0.90 A rmsd). The authored
+`allowed_sphere_radius: 2` no longer buries the structure under either radii set
+(33 of 33 both ways). The tables below are the 2026-09-01 state and are kept as
+the record of it. Setting the hop radius to 0 on the map restores the old search;
+it is a physics default, so reverting it is a decision, not a fix.
 
 ## What is being compared
 

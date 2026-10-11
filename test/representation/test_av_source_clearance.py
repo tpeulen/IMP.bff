@@ -83,27 +83,23 @@ class Tests(IMP.test.TestCase):
         av.resample()
         self.assertGreater(_n_points(av), 0)
 
-    def test_fine_grid_at_the_fps_width_is_still_empty(self):
-        """Not a passing grade -- a pin on a **known** remaining gap.
+    def test_fine_grid_at_the_fps_width_is_not_empty(self):
+        """T4L 132 CB at FPS's width and a fine grid: closed by the linker's first step.
 
-        The derivation clears the *inflation* (half the linker width) but not
-        the source atom's **own** radius, and `IMP.bff` keeps the attachment
-        atom in the obstacle set where FPS drops it
-        (`av_routines.cpp:50`). At a fine grid the derived clearance therefore
-        still leaves the source walled in by its own atom: measured on T4L
-        chain A, four of the five sites 132/55/19/86 and 99 come back empty at
-        `linker_width=4.5, grid=0.5`, and all four are non-empty under
-        `r_source + width/2 + grid/2` (PRD-121, open item).
-
-        Adding `r_source` would also grow volumes that already compute -- T4L
-        132 at width 0.5 goes 66 805 -> 85 456 points -- so it is a change to a
-        physics default, not a bug fix, and it is the owner's call. This test
-        records today's answer so that changing it is deliberate.
+        This was pinned *empty* as a known gap: the search left the anchor one
+        stencil step at a time, so at 0.5 A the site was walled in by its
+        bonded neighbours and found at a coarser grid -- the answer depended on
+        the resolution. FPS hops `linknodes = 3` voxels and FRETraj joins the
+        source to every free voxel within `width + grid`; the search now takes
+        the second rule (PathMap::set_source_hop_radius) and the site has a
+        volume at every grid.
         """
         av = _av(self.mdl, self.hier, linker_length=20.0, radii=(3.5, 0.0, 0.0),
                  linker_width=FPS_WIDTH, simulation_grid_resolution=0.5)
+        self.assertAlmostEqual(av.get_effective_source_hop_radius(),
+                               FPS_WIDTH + 0.5, places=6)
         av.resample()
-        self.assertEqual(_n_points(av), 0)
+        self.assertGreater(_n_points(av), 0)
 
     def test_both_doors_agree(self):
         """The decorator door and the fps.json door build the same volume.
@@ -138,9 +134,10 @@ class Tests(IMP.test.TestCase):
         `sum` started at 1.0 while the source contributed 1.0 more, so the
         numerator held the source once and the denominator counted it twice.
         """
-        av = _av(self.mdl, self.hier, linker_length=20.0, radii=(3.5, 0.0, 0.0),
-                 linker_width=FPS_WIDTH, allowed_sphere_radius=1.0,
-                 simulation_grid_resolution=0.5)
+        # L99 sits in the T4L core: no linker reaches out of it at FPS's width.
+        av = _av(self.mdl, self.hier, residue_index=99, linker_length=20.0,
+                 radii=(3.5, 0.0, 0.0), linker_width=FPS_WIDTH,
+                 allowed_sphere_radius=1.0, simulation_grid_resolution=0.5)
         av.resample()
         self.assertEqual(_n_points(av), 0)
         np.testing.assert_allclose(av.get_mean_position(),

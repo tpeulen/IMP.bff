@@ -446,7 +446,8 @@ def test_shipped_hiv_rt_project_runs_and_scores_what_the_flags_do():
     # which that name-keyed table does not have, so those 85 atoms took its
     # 1.50 A unknown-name fallback). IMP's own radii are the default again
     # (ProbeAccessibleVolumeDecorator::set_radii_source) and 59.0404 returns exactly.
-    assert from_project.score == pytest.approx(59.040389, abs=1e-3)
+    # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 59.040389.
+    assert from_project.score == pytest.approx(60.517244, abs=1e-3)
     assert from_project.n_distances == from_flags.n_distances == 18
 
 
@@ -500,7 +501,7 @@ def test_program_init_show_and_score_through_a_project(tmp_path, capfd):
         "score", "--project", str(out), "--no-pairs"])
     assert result.exit_code == 0, result.output
     # moved with the pin above (back off Olga's radii, 2026-09-01)
-    assert "score (chi2): 59.0404" in result.output
+    assert "score (chi2): 60.5172" in result.output
     assert "volumes: 10   distances: 18" in result.output
 
 

@@ -256,7 +256,8 @@ def test_fps_score_through_the_program_gives_the_pinned_score(exe):
     out = run(exe, "fps", "score", "-p", hiv / "protein_1R0A.pdb", "-p", hiv / "dna.pdb",
               "-j", hiv / "hiv_rt.fps.json", "-c", "resolved", "--no-pairs")
     assert out.returncode == 0, out.stderr
-    assert "score (chi2): 59.0404" in out.stdout
+    # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 59.0404.
+    assert "score (chi2): 60.5172" in out.stdout
 
 
 @pytest.mark.skipif(not HAS_IMP_LAYER, reason="fps-av is in the IMP connection layer")

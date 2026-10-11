@@ -339,6 +339,9 @@ IMP::Pointer<PathMap> run_lattice_search(
     const float llf = static_cast<float>(map->get_path_map_header().get_max_path_length());
     float bound = llf / hf;
     while (bound * hf < llf) bound = std::nextafter(bound, std::numeric_limits<float>::infinity());
+    // the linker's first step reaches one width plus one grid step, as
+    // ProbeAccessibleVolumeDecorator::get_effective_source_hop_radius derives it
+    map->set_source_hop_radius(linker_width + h);
     map->search_lattice(source_idx, bound, source, ll, allowed, counts.data());
 
     // 7. remove tiles closer to obstacles than the dye radius

@@ -884,7 +884,8 @@ class TestAVHandle(unittest.TestCase):
         # Olga's radii were the default for part of 2026-09-01 and gave
         # 11.010342418210929; IMP's own are the default again
         # (ProbeAccessibleVolumeDecorator::set_radii_source), so the pre-Olga 10.9834 returns exactly.
-        self.assertAlmostEqual(r30.unprotected_evaluate(None), 10.983394087144049, places=6)
+        # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 10.983394087144049.
+        self.assertAlmostEqual(r30.unprotected_evaluate(None), 10.81840491201247, places=6)
         r26 = IMP.bff.ProbeNetworkRestraint(self.hier, FPS_JSON, score_set="chi2_C2_33p",
                                          quad_k=100)
         self.assertEqual(r26.get_search_stencil(), 26)
@@ -893,7 +894,8 @@ class TestAVHandle(unittest.TestCase):
         # Olga's radii gave 11.062890324406322 for the hours they were the
         # default (2026-09-01); IMP's own are the default again, so 11.3959
         # returns exactly.
-        self.assertAlmostEqual(r26.unprotected_evaluate(None), 11.395949223491733, places=6)
+        # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 11.395949223491733.
+        self.assertAlmostEqual(r26.unprotected_evaluate(None), 11.251908143953834, places=6)
         # the 30-stencil AVs leak through one-voxel walls: slightly larger
         n30 = sum(len(r30.get_used_av(n).get_map().get_xyz_density()) for n in av_names(r30))
         n26 = sum(len(r26.get_used_av(n).get_map().get_xyz_density()) for n in av_names(r26))

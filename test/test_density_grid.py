@@ -55,17 +55,21 @@ _SITES = [
 ]
 
 # Recorded 2026-09-07 from the IMP.em-backed build, before PathMap moved onto
-# DensityGrid. key -> (n_density, density_sha, n_points, points_sha, ng).
+# DensityGrid; re-recorded 2026-10-11 when the linker's first step began to
+# reach one width plus one grid step out of the anchor
+# (PathMap::set_source_hop_radius): T4L-150@1.5 did not move, the others grew,
+# T4L-132@0.5 by a third (331 156 -> 439 804 point values).
+# key -> (n_density, density_sha, n_points, points_sha, ng).
 _GOLDEN = {
-    "T4L-132@1.5": (29791, "39742a2572f3a12b", 14356, "269334fbb8e053f2", 31),
-    "T4L-132@1.0": (91125, "2536d73005254013", 53120, "90063dc25c2c4327", 45),
-    "T4L-132@0.5": (704969, "dd4b08907ac0f84b", 331156, "a3304f75b05374f6", 89),
+    "T4L-132@1.5": (29791, "f9873c5f86d8e311", 14464, "4c0b2f956753ce5a", 31),
+    "T4L-132@1.0": (91125, "8ae9d0a9b1a3ab07", 54264, "a35f8f1aa069743f", 45),
+    "T4L-132@0.5": (704969, "0f6d572f6a5c43bc", 439804, "90a84950c14f22c1", 89),
     "T4L-150@1.5": (29791, "368f4274767d1eca", 10060, "818e27628107e959", 31),
-    "T4L-150@1.0": (91125, "f357118e3ab9fb87", 30676, "8b2c027f91058e72", 45),
-    "T4L-150@0.5": (704969, "8e539b6d042fc7d4", 248400, "5525fe5619ebf10a", 89),
-    "GBP-400@1.5": (29791, "07a95aeb323c606d", 13916, "4a0b177fab0c45ea", 31),
-    "GBP-400@1.0": (91125, "071cbd6b2870ed1a", 52448, "74138fbfdd50abb5", 45),
-    "GBP-400@0.5": (704969, "268ae0b87ec6b037", 371144, "bb3a458acc320dea", 89),
+    "T4L-150@1.0": (91125, "8737fa2a6aeba1a1", 31280, "151d26541b281f51", 45),
+    "T4L-150@0.5": (704969, "e15ebd4209131d4b", 259756, "0aabf579826ddb22", 89),
+    "GBP-400@1.5": (29791, "aaff4d31075bcb43", 14288, "e8b8519db7d13342", 31),
+    "GBP-400@1.0": (91125, "f3ca2b8443f8de63", 54056, "0365f4dde90b0579", 45),
+    "GBP-400@0.5": (704969, "120393ecef855f8e", 402960, "7e0190524e335293", 89),
 }
 
 

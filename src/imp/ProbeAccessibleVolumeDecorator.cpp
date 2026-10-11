@@ -649,6 +649,9 @@ void ProbeAccessibleVolumeDecorator::resample_legacy(bool shift_xyz){
     // 4. Find a path from source to other tiles
     map->update_tiles(); // Update tiles to assure that the nodes are updated
     long source_idx = map->get_voxel_by_location(source);
+    // This path reproduces the historical numbers, so the linker steps out
+    // of its anchor one stencil step at a time, as it always did here.
+    map->set_source_hop_radius(0.0);
     map->find_path_dijkstra(source_idx, -1);
 
     // 5. Remove tiles closer to obstacles than dye radius
@@ -925,6 +928,7 @@ void ProbeAccessibleVolumeDecorator::resample_lattice_prepare(bool shift_xyz, bo
     st.pending_shift_xyz = shift_xyz;
     st.pending_ll = ll;
     st.pending_allowed = get_effective_allowed_sphere_radius();
+    st.pending_hop = get_effective_source_hop_radius();
     /* Unconditional, shared raster or private: the same subtraction on both,
        so the two cannot compute different volumes for the same position.
        It must be the radius the *raster* used for this atom, not the one the
@@ -998,6 +1002,7 @@ void ProbeAccessibleVolumeDecorator::resample_lattice_compute(bool split_stages)
     // smallest float c with c * h >= ll (the density test is c * h < ll)
     float bound = ll / h;
     while(bound * h < ll) bound = std::nextafter(bound, std::numeric_limits<float>::infinity());
+    map->set_source_hop_radius(st.pending_hop);
     if(st.pending_factor <= 1){
         map->search_lattice(source_idx, bound, source, st.pending_ll, st.pending_allowed, counts);
     } else {
@@ -1018,6 +1023,7 @@ void ProbeAccessibleVolumeDecorator::resample_lattice_compute(bool split_stages)
         cm->fill_sphere(source, st.pending_allowed, 0, false);
         long csrc = cm->get_voxel_by_location(source);
         cdata[csrc] = 0.0;   // the source's coarse tile is always open
+        cm->set_source_hop_radius(st.pending_hop);
         cm->search_lattice(csrc, bound / f);
         cm->cost[csrc] = 0.0f;   // its own cost is real here (extension below)
         // extend to the fine grid

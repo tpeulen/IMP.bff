@@ -146,14 +146,8 @@ class Tests(IMP.test.TestCase):
         self.assertLess(offset, 0.30)
 
     def test_p66_matches_fps_on_heavy_atoms(self):
-        """The protein site -- and the one place the two still part.
-
-        With explicit hydrogens this volume comes back **empty**: the free
-        channels out of a buried CB are narrower than a voxel, and FPS gets
-        out because its link search hops `linknodes = 3` voxels and tunnels
-        through them, which is exactly the leak PRD-105 closed deliberately.
-        On heavy atoms -- this module's own convention, and what
-        `create_docking_assembly` reads -- the two agree to a few percent.
+        """The protein site on heavy atoms -- this module's own convention, and
+        what `create_docking_assembly` reads: the two agree to a few percent.
         """
         pin = self.pins["p66"]
         model, serials = _structure(hydrogens=False)
@@ -165,17 +159,27 @@ class Tests(IMP.test.TestCase):
                                 - np.asarray(pin["weighted_mean"]))
         self.assertLess(offset, 1.5)
 
-    def test_p66_with_hydrogens_is_empty_and_says_so(self):
-        """The parting recorded, so that closing it is deliberate."""
+    def test_p66_with_hydrogens_matches_fps(self):
+        """The parting that was recorded here is closed, and where it was.
+
+        With explicit hydrogens this volume came back **empty**: the channels
+        out of the buried CB are narrower than a voxel, and FPS got out by
+        hopping `linknodes = 3` voxels. The hop that matters is the first one,
+        out of the anchor: with the linker's first step reaching one width plus
+        one grid step (PathMap::set_source_hop_radius, FRETraj's
+        `maxR_source`), and the stencil unchanged everywhere else, the volume
+        is FPS's to 1.3 % and its mean within half an Angstrom (measured
+        54 820 against 55 514 voxels, 0.49 A).
+        """
         pin = self.pins["p66"]
         model, serials = _structure(hydrogens=True)
         av, points = _volume(model, serials, pin)
-        self.assertEqual(len(points), 0)
-        # an empty volume reports its anchor, and nothing to average is NaN
-        np.testing.assert_allclose(av.get_mean_position(),
-                                   av.get_source_coordinates(), atol=1e-6)
-        self.assertTrue(np.all(np.isnan(
-            np.asarray(av.get_mean_position(False)))))
+        ratio = len(points) / pin["unique_voxels"]
+        self.assertGreater(ratio, 0.93, "volume lost against FPS")
+        self.assertLess(ratio, 1.07, "volume gained against FPS")
+        offset = np.linalg.norm(np.asarray(av.get_mean_position(False))
+                                - np.asarray(pin["weighted_mean"]))
+        self.assertLess(offset, 1.0)
 
     def test_the_two_lattices_are_offset_not_different(self):
         """Every voxel this module finds is within one voxel of an FPS voxel.

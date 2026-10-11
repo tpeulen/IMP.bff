@@ -17,10 +17,12 @@ There are **two** references here and they are not the same yardstick.
 
 *Against FPS itself* -- its own routine run on the same structure with the same
 file (`prototypes/fps_oracle/`, pinned in
-`references/fps_screening_oracle_pins.json`) -- the two agree to **-0.31 A,
-rmsd 1.20 A, r = 0.9926** over the 24 pairs that resolve under the default
-radii, and that comparison must be made with the contact volume **off**,
-because FPS has none.
+`references/fps_screening_oracle_pins.json`) -- the two agree to **+0.08 A,
+rmsd 0.87 A, r = 0.9955** over the 24 pairs without site 132 and to +0.70 A /
+1.70 A / 0.980 over all 33, and that comparison must be made with the contact
+volume **off**, because FPS has none. (Until 2026-10-11 site 132 had no volume
+at all and the 24 agreed to -0.31 A / 1.20 A / 0.9926; giving the linker's first
+step FPS's reach out of the anchor resolved it and tightened the rest.)
 
 Every number here depends on which van der Waals radii the volumes inflate
 their obstacles by, so every one of them is labelled with a radii source. The
@@ -31,9 +33,12 @@ here rather than argued about.
 
 *Against the published table*, neither reproduced it while the contact volume
 the file asks for was inert: this module by +2.05 A, FPS's own routine by
-+2.37 A. Honouring it (2026-09-01, PRD-121 G9) closes that: **+0.22 A bias,
-0.91 A rmsd, r = 0.9960** over the 24 pairs, and **-0.02 A / 0.71 A / 0.9954
-over all 33** if Olga's radii are selected too. The table was not produced by
++2.37 A. Honouring it (2026-09-01, PRD-121 G9) closes that: **+0.58 A bias,
+0.94 A rmsd, r = 0.9954** over all 33 pairs, and **+0.15 A / 0.90 A / 0.9923**
+if Olga's radii are selected too (before the linker's first step reached out of
+the anchor, 2026-10-11: +0.22 A / 0.91 A over the 24 that resolved, and
+-0.02 A / 0.71 A / 0.9954 over 33 with Olga's radii -- the one comparison the
+change made worse). The table was not produced by
 FPS, which has no contact volume, but by an ACV-capable program reading this
 file -- so the file *is* the parameter set it was computed with, which is the
 opposite of what this test recorded on the first pass.
@@ -149,69 +154,52 @@ ORACLE_PINS = os.path.join(HERE, "..", "references",
 def test_rda_agrees_with_fps_itself():
     """The real A/B: this module against FPS's own routine, pair by pair.
 
-    Under the **default radii** -- IMP's, the ones on the particles -- 24 of
-    the 33 pairs resolve and they agree to bias **-0.31 A**, rmsd **1.20 A**,
-    r = **0.9926**. The residual is the two search conventions, not a
-    modelling difference. Nine pairs have no model value: they are the pairs
-    with site 132, which united-atom radii wall in.
+    Under the **default radii** -- IMP's, the ones on the particles -- all 33
+    pairs resolve. Over the 24 without site 132 they agree to bias **+0.08 A**,
+    rmsd **0.87 A**, r = **0.9955**; the nine with site 132 are the hard ones
+    (+2.37 A / 2.92 A), and over all 33 it is +0.70 A / 1.70 A / 0.980.
 
-    Under **Olga's** radii, which have to be asked for, two things change and
-    they have to be read together:
+    Until 2026-10-11 those nine had no model value: site 132's linker was
+    walled in by united-atom radii, because the search left the anchor one
+    stencil step at a time where FPS hops three voxels. With the first step
+    reaching one linker width plus one grid step (FRETraj's rule,
+    PathMap::set_source_hop_radius) the site resolves, and the 24 that already
+    did moved *towards* FPS: -0.31 A / 1.20 A / 0.9926 before.
 
-    * **all 33 pairs resolve**. Olga's heavy atoms are smaller, so no site of
-      this file comes back empty.
-    * over that larger set the agreement is **+0.02 A bias, 1.62 A rmsd,
-      r = 0.9777** -- a *smaller* bias and a *worse* rmsd and correlation than
-      the 24-pair figure, because the nine pairs it adds are the hard ones.
-    * over the *same* 24 it is strictly better: **-0.62 A / 1.13 A /
-      r = 0.9940** against -0.31 / 1.20 / 0.9926.
-
-    So the default is **not** the more accurate radii set, and that is
-    asserted here rather than left implicit: it is the set the clash term of a
-    docking score reads (`ProbeAccessibleVolumeDecorator::set_radii_source`), and internal consistency was
-    judged worth more than the fit. Both halves are pinned so neither can be
-    quoted without the other.
+    **Olga's** radii, which have to be asked for, also resolve all 33, and
+    over the same 24 they now agree with FPS *less* well than the default
+    (-0.29 A / 1.03 A / 0.9928). Before the change the order was the other way
+    round. Both halves are pinned so neither can be quoted without the other.
     """
     with open(ORACLE_PINS) as fh:
         oracle = json.load(fh)["rda_mean"]
 
+    def against_fps(result):
+        names = [p.name for p in result.pairs
+                 if p.name in oracle and math.isfinite(p.distance_model)]
+        mine = np.array([p.distance_model for p in result.pairs if p.name in names])
+        theirs = np.array([oracle[n] for n in names])
+        easy = np.array(["132" not in n for n in names])
+        return mine, theirs, easy
+
     # --- the default: IMP's radii ------------------------------------------
-    result = _scored(derive_clearance=True)
-    mine, theirs = [], []
-    for pair in result.pairs:
-        if pair.name in oracle and math.isfinite(pair.distance_model):
-            mine.append(pair.distance_model)
-            theirs.append(oracle[pair.name])
-    mine, theirs = np.array(mine), np.array(theirs)
+    mine, theirs, easy = against_fps(_scored(derive_clearance=True))
+    assert len(mine) == 33, "the set of resolvable pairs moved"
+    assert easy.sum() == 24
+    assert abs((mine - theirs).mean()) < 1.0
+    assert np.sqrt(((mine - theirs) ** 2).mean()) < 2.0
+    assert np.corrcoef(theirs, mine)[0, 1] > 0.975
+    d = mine[easy] - theirs[easy]
+    assert abs(d.mean()) < 0.3
+    assert np.sqrt((d ** 2).mean()) < 1.0
+    assert np.corrcoef(theirs[easy], mine[easy])[0, 1] > 0.995
 
-    assert len(mine) == 24, "the set of resolvable pairs moved"
-    assert abs((mine - theirs).mean()) < 0.5
-    assert np.sqrt(((mine - theirs) ** 2).mean()) < 1.5
-    assert np.corrcoef(theirs, mine)[0, 1] > 0.99
-
-    # --- and Olga's, which resolves all 33 and fits the shared 24 better ----
-    with_olga = _scored(derive_clearance=True, radii_source="olga")
-    olga = {p.name: p.distance_model for p in with_olga.pairs
-            if math.isfinite(p.distance_model)}
+    # --- and Olga's: all 33 as well, and further from FPS on the shared 24 --
+    olga, olga_theirs, olga_easy = against_fps(
+        _scored(derive_clearance=True, radii_source="olga"))
     assert len(olga) == 33, "Olga's radii no longer open every site"
-
-    shared = [p.name for p in result.pairs
-              if p.name in olga and math.isfinite(p.distance_model)]
-    a = np.array([olga[n] for n in shared])
-    b = np.array([m for p, m in
-                  ((p, p.distance_model) for p in result.pairs)
-                  if p.name in shared])
-    ref = np.array([oracle[n] for n in shared])
-    assert len(shared) == 24
-    assert np.sqrt(((a - ref) ** 2).mean()) < np.sqrt(((b - ref) ** 2).mean())
-    assert np.corrcoef(ref, a)[0, 1] > np.corrcoef(ref, b)[0, 1]
-
-    # ...and over its own 33 the rmsd is worse than the 24-pair figure, which
-    # is the "larger, harder set" half of the finding.
-    all_a = np.array([olga[n] for n in olga])
-    all_ref = np.array([oracle[n] for n in olga])
-    assert abs((all_a - all_ref).mean()) < 0.3          # bias shrinks
-    assert np.sqrt(((all_a - all_ref) ** 2).mean()) > 1.5   # rmsd grows
+    d_olga = olga[olga_easy] - olga_theirs[olga_easy]
+    assert np.sqrt((d ** 2).mean()) < np.sqrt((d_olga ** 2).mean())
 
 
 def test_the_published_table_is_not_reproduced_by_fps_either():
@@ -254,50 +242,30 @@ def test_the_published_table_is_not_reproduced_by_fps_either():
         "the file may finally match and this test should be rewritten")
 
 
-def test_the_authored_clearance_buries_the_structure_and_it_is_the_radii():
-    """Two findings, each asserted against the radii source it belongs to.
+def test_the_authored_clearance_no_longer_buries_the_structure():
+    """The authored clearance, the derived one, either radii set: all 33 resolve.
 
-    **1. Under the default radii the authored clearance buries the structure.**
-    With the file's ``allowed_sphere_radius: 2``, eight of its seventeen sites
-    come back empty and only **nine** of 33 pairs have a model value, where
-    deriving the clearance leaves one empty and gives **24**. The two
-    clearances are not the same quantity: FPS seeds from
-    ``LinkerInitialSphere * linker_width`` unconditionally, this module carves
-    a sphere out of an obstacle map already inflated by half the linker width.
-    Any fps.json carrying a small explicit clearance is asking for something
-    other than it appears to.
+    Until 2026-10-11 this file pinned two findings. Under the default radii the
+    file's ``allowed_sphere_radius: 2`` emptied eight of its seventeen sites
+    (**nine** of 33 pairs resolved, **24** with the clearance derived), and
+    Olga's smaller radii resolved all 33 either way -- so the radii, not the
+    clearance convention, walled the sources in.
 
-    **2. What actually buries it is the radii, not the clearance.** Ask for
-    Olga's table and the *same* authored clearance resolves **all 33** pairs,
-    the same as deriving it. A carbon of 2.275 A walls a source in where one
-    of 1.70 A does not.
-
-    Those two are only compatible if the clearance convention is a real
-    difference that is nonetheless *not* what empties the volumes, and that
-    attribution is the point of this test. It is asserted both ways round --
-    each behaviour against its own radii source -- because either one alone
-    reads as the whole story and is not. The finding survived the default
-    flipping to Olga's radii on 2026-09-01 and flipping back the same day; it
-    is a statement about the two radii sets, not about which is default.
+    Both were statements about the linker's first step. The clearance is a
+    sphere carved out of an obstacle map already inflated by half the linker
+    width; FPS instead seeds from ``LinkerInitialSphere * linker_width`` and
+    hops three voxels from there. With the first step reaching one width plus
+    one grid step (PathMap::set_source_hop_radius) the linker gets out of the
+    anchor the way FPS's does, the clearance stops deciding whether a volume
+    exists, and every combination resolves every pair.
     """
     header, reference = _reference_row("3GUN")
-
-    # 1. the default, IMP's radii: authored buries, derived does not
-    _, as_authored, _, _ = _paired(
-        _scored(derive_clearance=False), reference, header)
-    _, derived, _, _ = _paired(
-        _scored(derive_clearance=True), reference, header)
-    assert len(as_authored) == 9
-    assert len(derived) == 24
-
-    # 2. ...and it was the radii: Olga's table resolves all 33 either way
-    _, olga_authored, _, _ = _paired(
-        _scored(derive_clearance=False, radii_source="olga"),
-        reference, header)
-    _, olga_derived, _, _ = _paired(
-        _scored(derive_clearance=True, radii_source="olga"),
-        reference, header)
-    assert len(olga_authored) == len(olga_derived) == 33
+    counts = [
+        len(_paired(_scored(derive_clearance=derive, radii_source=radii),
+                    reference, header)[1])
+        for derive in (False, True) for radii in (None, "olga")
+    ]
+    assert counts == [33, 33, 33, 33]
 
 
 def test_the_contact_volume_moves_the_cloud():
@@ -377,18 +345,20 @@ def test_the_contact_volume_is_not_part_of_the_fps_comparison():
     wired up (PRD-121 G9), which is why :func:`_scored` drops them. Pinned so
     the A/B cannot quietly become a comparison of two different models.
 
-    Measured 2026-09-01 over the same 24 pairs, under the default (IMP) radii:
-    **-0.31 A** against FPS with the ACV off, **-2.15 A** with it on, every one
-    of the 24 <R_DA> shorter, by 1.83 A on average.
+    Measured 2026-10-11 over all 33 pairs, under the default (IMP) radii:
+    **+0.70 A** against FPS with the ACV off, **-1.45 A** with it on, every one
+    of the 33 <R_DA> shorter, by 2.15 A on average (2026-09-01, over the 24
+    that then resolved: -0.31 A and -2.15 A).
     """
     with open(ORACLE_PINS) as fh:
         oracle = json.load(fh)["rda_mean"]
     by_name = lambda pair: pair.name
     off, fps = _against(oracle, False, by_name)
     on, _ = _against(oracle, True, by_name)
-    assert len(off) == len(on) == len(fps) >= 24
+    assert len(off) == len(on) == len(fps) == 33
     assert abs((off - fps).mean()) < 1.0            # the A/B, as pinned above
-    assert (on - fps).mean() < -1.5                 # the ACV, on top of it
+    assert (on - fps).mean() < -1.0                 # the ACV, on top of it
+    assert (on - off).mean() < -1.5
     assert (on < off).all()
 
 
@@ -402,16 +372,19 @@ def test_the_contact_volume_explains_the_offset_against_the_published_table():
     not the parameter set the table was computed with.
 
     Wiring up the contact volume that file asks for at every site closes it:
-    bias **+2.06 -> +0.22 A**, rmsd **2.54 -> 0.91 A**, r 0.9901 -> 0.9960 over
-    the 24 pairs that then resolved. The file *is* the parameter set; what was
+    bias **+2.73 -> +0.58 A**, rmsd **3.03 -> 0.94 A**, r 0.9888 -> 0.9954 over
+    all 33 pairs (2026-09-01, over the 24 that then resolved: +2.06 -> +0.22 A,
+    2.54 -> 0.91 A). The file *is* the parameter set; what was
     missing was the feature it names. The table was therefore not produced by
     FPS, which has no contact volume, but by an ACV-capable program reading
     this file.
 
     That program was Olga, and asking for Olga's radii (`ProbeAccessibleVolumeDecorator::set_radii_source`)
-    improves it again and widens it: **-0.02 A bias, 0.71 A rmsd, r = 0.9954
-    over all 33 published pairs**, where under the default nine of them have no
-    model value at all. Over the same 24 it is -0.23 A / 0.72 A / 0.9966.
+    improves it again: **+0.15 A bias, 0.90 A rmsd, r = 0.9923 over all 33
+    published pairs**. Before the linker's first step reached out of the anchor
+    (2026-10-11) this was -0.02 A / 0.71 A / 0.9954 -- the published table, which
+    Olga computed, is the one reference that change moved this module away
+    from, while it moved it towards FPS's own routine.
 
     That is *not* the default, and the reason is in `ProbeAccessibleVolumeDecorator::set_radii_source`:
     the clash term of a docking score reads the particles' radii, so the volume
@@ -422,13 +395,13 @@ def test_the_contact_volume_explains_the_offset_against_the_published_table():
 
     Kept as a test rather than a note because it is the strongest external
     check the module has: 33 published numbers, reproduced to within 0.72 A
-    rmsd by a path with no fitted parameter in it.
+    rmsd by a path with no fitted parameter in it (0.90 A since 2026-10-11).
     """
     header, reference = _reference_row("3GUN")
     by_name = lambda pair: pair.name.replace("_C1", "").replace("-", "_")
     off, published = _against(reference, False, by_name)
     on, _ = _against(reference, True, by_name)
-    assert len(on) >= 24
+    assert len(on) == 33
 
     assert (off - published).mean() > 1.5           # the offset, as recorded
     assert abs((on - published).mean()) < 0.75      # and what closes it
@@ -438,8 +411,7 @@ def test_the_contact_volume_explains_the_offset_against_the_published_table():
     assert np.corrcoef(published, on)[0, 1] > 0.995
 
     # ...and what the default costs against this reference, measured. Olga's
-    # radii cover all 33 published pairs and fit them better; the default
-    # covers 24 and fits them worse. Asserted so the price cannot drift out of
+    # radii fit the 33 published pairs better than the default does. Asserted so the price cannot drift out of
     # the page that quotes it.
     olga_result = _scored(derive_clearance=True, contact_volume=True,
                           radii_source="olga")
@@ -453,7 +425,7 @@ def test_the_contact_volume_explains_the_offset_against_the_published_table():
             olga_theirs.append(float(reference[key]))
     olga_mine = np.array(olga_mine)
     olga_theirs = np.array(olga_theirs)
-    assert len(olga_mine) == 33 and len(on) == 24
+    assert len(olga_mine) == 33 and len(on) == 33
     assert abs((olga_mine - olga_theirs).mean()) < abs((on - published).mean())
     assert (np.sqrt(((olga_mine - olga_theirs) ** 2).mean())
             < np.sqrt(((on - published) ** 2).mean()))

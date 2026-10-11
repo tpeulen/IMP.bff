@@ -99,7 +99,8 @@ class Tests(unittest.TestCase):
         # experimental distances). IMP's own radii are the default again
         # (ProbeAccessibleVolumeDecorator::set_radii_source) and this returns exactly to what it was
         # before that day -- the flip moved no other input.
-        self.assertAlmostEqual(11.326777201821047, v, places=6)
+        # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 11.326777201821047.
+        self.assertAlmostEqual(11.281702323593919, v, places=6)
         self.assertEqual(v, fret_restraint.unprotected_evaluate(None))
 
         # Re-measured 2026-09-01, when the accessible contact volume this file

@@ -391,6 +391,35 @@ void PathMap::find_path_dijkstra(
     }
 }
 
+std::vector<std::pair<long, float> > PathMap::source_hop_targets(long source_idx) const {
+    std::vector<std::pair<long, float> > out;
+    if(!(source_hop_radius_ > 0.0)) return out;
+    const double rv = source_hop_radius_ / header_.get_spacing();
+    const int m = (int) std::floor(rv);
+    const double rv2 = rv * rv;
+    const int nx = header_.get_nx(), ny = header_.get_ny(), nz = header_.get_nz();
+    const long nxy = (long) nx * ny;
+    const int sx = (int) (source_idx % nx), sy = (int) ((source_idx / nx) % ny),
+              sz = (int) (source_idx / nxy);
+    for(int dz = -m; dz <= m; dz++){
+        const int iz = sz + dz;
+        if(iz < 0 || iz >= nz) continue;
+        for(int dy = -m; dy <= m; dy++){
+            const int iy = sy + dy;
+            if(iy < 0 || iy >= ny) continue;
+            for(int dx = -m; dx <= m; dx++){
+                const int ix = sx + dx;
+                if(ix < 0 || ix >= nx) continue;
+                const int d2 = dx*dx + dy*dy + dz*dz;
+                if(d2 == 0 || d2 > rv2) continue;
+                out.emplace_back((long) iz * nxy + (long) iy * nx + ix,
+                                 std::sqrt((float) d2));
+            }
+        }
+    }
+    return out;
+}
+
 std::vector<int> PathMap::dijkstra_bounded_core(
         const long path_begin_idx,
         const long path_end_idx,
@@ -456,6 +485,23 @@ std::vector<int> PathMap::dijkstra_bounded_core(
     if(record_previous) tiles[path_begin_idx].previous = nullptr;
     reached.push_back((int) path_begin_idx);
     push(0.0f, path_begin_idx);
+    // The linker's first step (set_source_hop_radius): every free tile within
+    // reach of the anchor, at its distance. Pushed before any bucket drains,
+    // so the monotone queue still holds.
+    for(const std::pair<long, float> &hop : source_hop_targets(path_begin_idx)){
+        const long nidx = hop.first;
+        if(!(penalty[nidx] < penalty_threshold)) continue;
+        const float new_cost = hop.second + penalty[nidx];
+        if(new_cost < cost[nidx]){
+            cost[nidx] = new_cost;
+            if(record_previous) tiles[nidx].previous = &tiles[path_begin_idx];
+            if(!visited[nidx]){
+                visited[nidx] = true;
+                reached.push_back((int) nidx);
+            }
+            push(new_cost, nidx);
+        }
+    }
 
     bool done = false;
     for(size_t b = 0; b < buckets.size() && !done; b++){
@@ -578,6 +624,16 @@ void PathMap::dijkstra_lattice(long source_idx, float max_cost){
     float *cost_ptr = cost.data();
     cost_ptr[source_idx] = 0.0f;
     push(0.0f, source_idx);
+    // The linker's first step, as in dijkstra_bounded_core; blocked tiles
+    // carry a negative cost and are never improved.
+    for(const std::pair<long, float> &hop : source_hop_targets(source_idx)){
+        const long nidx = hop.first;
+        const float new_cost = hop.second;
+        if(new_cost < cost_ptr[nidx] && new_cost < max_cost){
+            cost_ptr[nidx] = new_cost;
+            push(new_cost, nidx);
+        }
+    }
 
     bool done = false;
     for(size_t b = 0; b < buckets.size() && !done; b++){

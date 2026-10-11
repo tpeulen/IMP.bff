@@ -668,6 +668,10 @@ private:
     const std::vector<int> &get_ball_order(long source_idx, double radius);
     std::vector<char> visible_;
     bool euclidean_search_ = false;
+    double source_hop_radius_ = 0.0;
+    //! The in-window tiles within source_hop_radius_ of the source tile, with
+    //! their distance in voxel units (the source itself excluded).
+    std::vector<std::pair<long, float> > source_hop_targets(long source_idx) const;
 
     // Compact per-tile arrays (structure-of-arrays) the lattice path works
     // on: PathMapTile is ~100 bytes and streaming 12k of them per AV per
@@ -1024,6 +1028,25 @@ public:
      */
     void set_euclidean_search(bool tf) { euclidean_search_ = tf; }
     bool get_euclidean_search() const { return euclidean_search_; }
+
+    /**
+     * @brief How far (Angstrom) the linker's first step may reach from its anchor.
+     *
+     * The path search moves one stencil step at a time, so a linker anchored
+     * among bonded neighbours -- a CA site, whose own backbone and the
+     * neighbouring residues' atoms sit 1.5-4 A away, each inflated by half the
+     * linker width -- is walled in at a fine grid, and the volume comes back
+     * empty at 0.5 A where it exists at 0.7 A. The reference implementations
+     * do not step out of the anchor: FPS hops `linknodes = 3` voxels
+     * (`av_routines.cpp`), and the LabelLib-derived search in FRETraj connects
+     * the source directly to every free voxel within `linker width + grid`
+     * (`grid.py`, `maxR_source`). With a positive radius the source is joined
+     * to every *free* tile within it, at its Euclidean distance; blocked tiles
+     * stay blocked. 0 (the default) is the stencil alone. The Euclidean
+     * (visibility) search ignores it.
+     */
+    void set_source_hop_radius(double r) { source_hop_radius_ = r > 0.0 ? r : 0.0; }
+    double get_source_hop_radius() const { return source_hop_radius_; }
 
     /**
      * @brief The lattice evaluation of one AV in compact arrays.

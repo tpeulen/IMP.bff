@@ -173,7 +173,8 @@ def test_a_distance_touching_a_fixed_position_enters_chi2(tmp_path, structure):
     # Olga's radii were the default for part of that day and gave 13.2917;
     # IMP's own are the default again (ProbeAccessibleVolumeDecorator::set_radii_source) and 12.8620
     # returns exactly.
-    assert pair.chi2 == pytest.approx(12.861951, abs=1e-3)
+    # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 12.861951.
+    assert pair.chi2 == pytest.approx(12.897472, abs=1e-3)
     # the score is half a chi-square per distance plus a clash term, and one
     # rigid body has no clashes
     assert result.score == pytest.approx(0.5 * expected_chi2, rel=1e-6)

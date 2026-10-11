@@ -92,6 +92,8 @@ struct AVLatticeState {
     std::chrono::steady_clock::time_point compute_t0;
     bool pending_shift_xyz = true;
     double pending_ll = 0, pending_allowed = 0;
+    //! The linker's first-step reach (get_effective_source_hop_radius).
+    double pending_hop = 0;
     //! The attachment atom's own radius, read in prepare().
     /*! The compute phase must not touch the Model, and dropping the
         attachment atom from the obstacle set needs its radius. */
