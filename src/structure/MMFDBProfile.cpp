@@ -20,7 +20,10 @@ IMPBFF_BEGIN_NAMESPACE
 const char* const MFDB_PROFILE = "PTO.MFDB";
 const char* const MFDB_PROFILE_VERSION = "1.1";
 const char* const MFDB_PROFILE_READ_VERSION = "1";
-const char* const MFDB_DICTIONARY_VERSION = "1.10";
+// 1.11 (mmfdb 806d19a) only declares nine export-only `details`/`sample_id`/
+// `method` items; no enumeration this file compiles changed, which the
+// vocabulary containment tests in test/label/test_pto_profile.py re-check.
+const char* const MFDB_DICTIONARY_VERSION = "1.11";
 
 namespace {
 
