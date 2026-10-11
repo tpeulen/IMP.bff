@@ -138,8 +138,13 @@ struct IMPBFFEXPORT LabelizerFRETOptions {
         : probe_model(PROBE_MODEL_ALPHA_CONE),
           refine_probe_model(PROBE_MODEL_ACCESSIBLE_VOLUME), n_refine(300),
           forster_radius(52.0), label_score_threshold(0.5),
-          linker_length(20.0), linker_width(4.5), r1(9.0), r2(4.5), r3(1.5),
-          grid_resolution(1.5), distance_type("RDAMeanE"),
+          // The AV defaults every door shares (ProbeAccessibleVolumeDefaults.h):
+          // the refinement is a three-radius AV, so it takes FPS's AV3 radii.
+          // Owner, 2026-10-11: "all use same defaults". The reference's own dye
+          // (`config.py`, radii 9/4.5/1.5 on a 1.5 A grid) is what these were.
+          linker_length(AV_DEFAULT_LINKER_LENGTH), linker_width(AV_DEFAULT_LINKER_WIDTH),
+          r1(AV_DEFAULT_AV3_RADIUS1), r2(AV_DEFAULT_AV3_RADIUS2), r3(AV_DEFAULT_AV3_RADIUS3),
+          grid_resolution(AV_DEFAULT_SIMULATION_GRID_RESOLUTION), distance_type("RDAMeanE"),
           alpha_cone_radius(20.0), alpha_cone_offset(-1.0),
           model(LABELIZER_MODEL_PUBLISHED) {}
 };

@@ -22,6 +22,7 @@
 
 #include <IMP/bff/internal/json.h>
 #include <IMP/bff/States.h>  // chi2_score
+#include <IMP/bff/ProbeAccessibleVolumeDefaults.h>
 #include <cmath>
 #include <limits>
 
@@ -297,13 +298,14 @@ std::vector<FPSField> fps_position_fields() {
                       "Atom name the dye linker attaches to (e.g. CA, CB).",
                       NETWORK_FLAT));
     // --- AV geometry (flrCIF FPS AV parameters) ---------------------------
-    f.push_back(field("linker_length", FPS_NUMBER, "20.0",
-                      "_flr_FPS_AV_parameter.linker_length", "", NETWORK_FLAT));
     // The defaults are ProbeAccessibleVolumeDefaults.h's (FPS's first dye
-    // preset and grid); test_av_defaults.py holds the two together.
-    f.push_back(field("linker_width", FPS_NUMBER, "4.5",
+    // preset and grid), written from the constants so the schema cannot drift.
+    const auto literal = [](double v) { return nlohmann::json(v).dump(); };
+    f.push_back(field("linker_length", FPS_NUMBER, literal(AV_DEFAULT_LINKER_LENGTH),
+                      "_flr_FPS_AV_parameter.linker_length", "", NETWORK_FLAT));
+    f.push_back(field("linker_width", FPS_NUMBER, literal(AV_DEFAULT_LINKER_WIDTH),
                       "_flr_FPS_AV_parameter.linker_width", "", NETWORK_FLAT));
-    f.push_back(field("radius1", FPS_NUMBER, "3.5",
+    f.push_back(field("radius1", FPS_NUMBER, literal(AV_DEFAULT_RADIUS1),
                       "_flr_FPS_AV_parameter.probe_radius_1", "", NETWORK_FLAT));
     f.push_back(field("radius2", FPS_NUMBER, "0.0",
                       "_flr_FPS_AV_parameter.probe_radius_2", "", NETWORK_FLAT));
@@ -337,7 +339,8 @@ std::vector<FPSField> fps_position_fields() {
     f.push_back(field("potential", FPS_STRING, "\"lj\"", "",
                       "Screening potential of an R1 ensemble: 'lj' or 'gauss'.",
                       FLAT, {"lj", "gauss"}));
-    f.push_back(field("simulation_grid_resolution", FPS_NUMBER, "0.9", "",
+    f.push_back(field("simulation_grid_resolution", FPS_NUMBER,
+                      literal(AV_DEFAULT_SIMULATION_GRID_RESOLUTION), "",
                       "AV grid spacing in Angstrom. Related to (but not the same "
                       "item as) _flr_FPS_global_parameter.AV_min_grid_A, which is "
                       "the *minimum* grid constant of FPS's relative-grid scheme.",

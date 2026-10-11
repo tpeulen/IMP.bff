@@ -81,7 +81,7 @@ public:
             const std::vector<double>& points = std::vector<double>(),
             const std::vector<double>& density = std::vector<double>(),
             const std::vector<double>& grid_origin = std::vector<double>(),
-            double grid_step = 1.5,
+            double grid_step = IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION,
             const std::string& position_name = "",
             const std::vector<double>& attachment_point = std::vector<double>(),
             const std::vector<double>& orientations = std::vector<double>(),
@@ -157,7 +157,7 @@ public:
     ACV(const std::vector<double>& points = std::vector<double>(),
         const std::vector<double>& density = std::vector<double>(),
         const std::vector<double>& grid_origin = std::vector<double>(),
-        double grid_step = 1.5,
+        double grid_step = IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION,
         const std::vector<double>& slow_centers = std::vector<double>(),
         const std::vector<double>& slow_radius = std::vector<double>(),
         double trapped_fraction = 0.8,
@@ -208,7 +208,8 @@ protected:
 public:
     LabelDistribution(const std::string& simulation_type = "AV1",
                       const std::vector<double>& origin = std::vector<double>(),
-                      double simulation_grid_resolution = 0.5,
+                      double simulation_grid_resolution =
+                              IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION,
                       const std::string& position_name = "");
     virtual ~LabelDistribution() {}
 

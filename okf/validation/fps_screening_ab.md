@@ -24,14 +24,30 @@ tags: [validation, fps, screening, av, acv, radii, prd-121]
    it here either), and p66 with explicit hydrogens is 0.928 of FPS's volume
    (0.987 under FRETraj's larger first step). At FPS's and Olga's 0.9 A
    default the site resolves (6 899 voxels, ~5 030 A^3; FPS 9 237 with Bondi
-   radii). Taking the cube everywhere is ~4.6x the neighbours of 74 -- a speed
-   and physics decision for the owner, not taken here. Pinned as a known gap in
-   `test_av_source_clearance.py::test_fine_grid_at_the_fps_width_under_fps_first_step`.
+   radii). Taking the cube everywhere is ~4.6x the neighbours of 74 (342
+   against 74 per node). **Decided 2026-10-11 (owner: "av go fast by
+   default"): the seed-only hop stays the default; no exact-FPS mode is built
+   (none existed).** The accepted consequence is the walled-in fine-grid site
+   above (T4L-132 CB empty at 0.5 A, 6 899 voxels at the 0.9 A default) and
+   p66+H at 0.928 of FPS's volume. Pinned in
+   `test_av_source_clearance.py::test_fine_grid_at_the_fps_width_under_fps_first_step`;
+   reopen only with a caller that needs FPS's volume at a sub-0.9 A grid, and
+   then as a non-default option.
 2. **AV3 grid.** FPS's relative rule gives 0.6 A for an AV3 with its 1.5 A
    radius (Olga: 0.9 for both); the default is 0.9 for both
    (`fps_default_grid` is there for a caller who wants FPS's rule). The legacy
    C# `.txt` reader now writes FPS's rule per position.
-3. **Radii.** FPS's Bondi (element) and Olga's (name-keyed) radii disagree, and
+3. **One set of defaults (owner, 2026-10-11: "all use same defaults").** The
+   labelizer's refinement (`LabelizerFRETOptions`: was the reference's dye,
+   radii 9/4.5/1.5 on a 1.5 A grid, now FPS's AV3 radii 5/4.5/1.5 on 0.9),
+   the position template `data/template_av_position.fps.json` (was W 0.5,
+   grid 1.5, clearance 1.5), the volume containers' grid step (1.5) and
+   `LabelDistribution`'s grid (0.5) now read the header; the schema's defaults
+   are written from the constants. Left on purpose: `resample_legacy`
+   (`space_fixed=False`, frozen byte-for-byte with its own
+   `max(1.5, W/2 + dg/2)` clearance) and the FPS dye presets
+   (`fps_linker_presets`, per-dye values, not defaults).
+4. **Radii.** FPS's Bondi (element) and Olga's (name-keyed) radii disagree, and
    the default stays IMP's (owner, 2026-09-01: docking consistency); Bondi is
    not a selectable `radii_source`.
 

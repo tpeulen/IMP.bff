@@ -35,6 +35,7 @@
 #define IMPBFF_PHOTOPHYSICSINTERACTIONTERMS_H
 
 #include <IMP/bff/bff_config.h>
+#include <IMP/bff/ProbeAccessibleVolumeDefaults.h>
 #include <IMP/bff/States.h>
 #include <IMP/bff/ProbeLibrary.h>
 #include <IMP/bff/PhotophysicsQuenching.h>
@@ -123,7 +124,7 @@ public:
             const std::vector<std::string>& res_names,
             const std::vector<std::string>& atom_names,
             double* coords, int n_atoms, int n_dim,
-            double probe_radius = 3.5);
+            double probe_radius = IMP::bff::AV_DEFAULT_RADIUS1);
 
     double get_probe_radius() const { return probe_radius_; }
     //! How many atoms carry a non-zero rate.

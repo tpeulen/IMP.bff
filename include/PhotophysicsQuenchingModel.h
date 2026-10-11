@@ -107,7 +107,8 @@ public:
         \throw ValueException for any other \p flux_form */
     DynamicAccessibleVolume(const ProbeAccessibleVolume& av = ProbeAccessibleVolume(),
                             const ObstacleAtoms& atoms = ObstacleAtoms(),
-                            double tau0 = 4.0, double probe_radius = 3.5,
+                            double tau0 = 4.0,
+                            double probe_radius = IMP::bff::AV_DEFAULT_RADIUS1,
                             double free_diffusion = 8.0,
                             double contact_distance = 6.5,
                             double slow_factor = 0.985,

@@ -26,7 +26,14 @@
  * | min. sphere volume fraction | none | 0 | 0 |
  *
  * Where the two disagree the search follows FPS: the seed sphere and the
- * first step. The grid is the one value both give for an AV1 (0.9); FPS's
+ * first step. FPS hops `LinkSearchNodes` voxels from *every* node of the
+ * search; here that hop is taken out of the seed only and the rest of the
+ * search walks the 74-neighbour stencil. Owner, 2026-10-11: "av go fast by
+ * default" -- the hop everywhere is ~4.6x the neighbours (342 against 74),
+ * and the price of the fast default is a site walled in at a fine grid
+ * (T4L-132 CB at W 4.5 is empty at 0.5 A, resolves at the 0.9 A default;
+ * `okf/validation/fps_screening_ab.md`). Every consumer, the labelizer's
+ * refinement included, takes these values ("all use same defaults"). The grid is the one value both give for an AV1 (0.9); FPS's
  * relative rule would take an AV3 with a 1.5 A radius to 0.6, and that rule
  * is #IMP::bff::fps_default_grid for a caller who wants it.
  *

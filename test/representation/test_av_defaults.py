@@ -111,6 +111,31 @@ class Tests(IMP.test.TestCase):
                          IMP.bff.AV_DEFAULT_SIMULATION_GRID_RESOLUTION)
         self.assertEqual(default_of("allowed_sphere_radius"), -1.0)
 
+    def test_the_position_template_states_the_defaults(self):
+        """`data/template_av_position.fps.json` is data and cannot read the header.
+
+        It carried a 0.5 linker width, a 1.5 grid and a 1.5 clearance until
+        2026-10-11 (owner: "all use same defaults")."""
+        path = IMP.bff.get_data_path("template_av_position.fps.json")
+        with open(path) as fh:
+            pos = json.load(fh)
+        self.assertEqual(pos["linker_length"], IMP.bff.AV_DEFAULT_LINKER_LENGTH)
+        self.assertEqual(pos["linker_width"], IMP.bff.AV_DEFAULT_LINKER_WIDTH)
+        self.assertEqual(pos["radius1"], IMP.bff.AV_DEFAULT_RADIUS1)
+        self.assertEqual(pos["simulation_grid_resolution"],
+                         IMP.bff.AV_DEFAULT_SIMULATION_GRID_RESOLUTION)
+        self.assertLess(pos["allowed_sphere_radius"], 0)  # derive FPS's seed
+
+    def test_the_labelizer_refines_with_the_av3_defaults(self):
+        """`LabelizerFRETOptions` carried the reference's dye (9/4.5/1.5, 1.5 A grid)."""
+        o = IMP.bff.LabelizerFRETOptions()
+        self.assertEqual(o.linker_length, IMP.bff.AV_DEFAULT_LINKER_LENGTH)
+        self.assertEqual(o.linker_width, IMP.bff.AV_DEFAULT_LINKER_WIDTH)
+        self.assertEqual((o.r1, o.r2, o.r3),
+                         (IMP.bff.AV_DEFAULT_AV3_RADIUS1, IMP.bff.AV_DEFAULT_AV3_RADIUS2,
+                          IMP.bff.AV_DEFAULT_AV3_RADIUS3))
+        self.assertEqual(o.grid_resolution, IMP.bff.AV_DEFAULT_SIMULATION_GRID_RESOLUTION)
+
 
 if __name__ == "__main__":
     IMP.test.main()

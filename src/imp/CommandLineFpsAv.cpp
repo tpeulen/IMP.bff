@@ -54,9 +54,9 @@ std::vector<std::string> preset_names() {
 void run(const Args& a) {
   IMP::set_log_level(IMP::SILENT);
 
-  double length = 20.0, width = 4.5;
+  double length = AV_DEFAULT_LINKER_LENGTH, width = AV_DEFAULT_LINKER_WIDTH;
   std::vector<double> r(3, 0.0);
-  r[0] = 3.5;
+  r[0] = AV_DEFAULT_RADIUS1;
   if (!a.dye.empty()) {
     const std::vector<FPSLinkerPreset> presets = fps_linker_presets();
     for (std::size_t i = 0; i < presets.size(); ++i) {
