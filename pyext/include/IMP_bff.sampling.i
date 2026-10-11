@@ -36,6 +36,21 @@ IMP_SWIG_OBJECT(IMP::bff, RRTCollision, RRTCollisions);
 
 %feature("director") IMP::bff::RRTCollision;
 
+// A collision test answers with whatever truth value it computes, and the
+// natural one is numpy's: `configuration` arrives as an ndarray, so
+// `configuration[0] > limit` is a `numpy.bool_`, which SWIG's stock `bool`
+// directorout refuses ("SWIG director type mismatch in output value of type
+// 'bool'") -- every Python RRTCollision written the obvious way raised.
+// Python's own truth test is the contract.
+%typemap(directorout) bool is_collision {
+  int truth = PyObject_IsTrue($input);
+  if (truth < 0) {
+    Swig::DirectorMethodException::raise(
+        "RRTCollision.is_collision must return a truth value");
+  }
+  $result = truth != 0;
+}
+
 /* Linker.h needs ProbeRotamerLibrary (wrapped above, in core.i): the sampler
    returns one. Its geometry half used to be wrapped earlier, on its own. */
 %include "IMP/bff/Linker.h"
