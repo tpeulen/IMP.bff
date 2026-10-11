@@ -53,6 +53,25 @@ IMP_SWIG_VALUE(IMP::bff, ResidueSites, ResidueSitesList);
 // A build helper over raw pointers; nothing Python-side appends to a result.
 %ignore IMP::bff::ResidueSites::add;
 
+// `center_grid_indices` fills four `std::vector<int>&` outputs. Without these
+// typemaps SWIG exposed them as inputs, so the function took nine arguments and
+// rejected any Python list for the sixth -- uncallable from Python. They are
+// returned instead, as a tuple of four int32 arrays `(ix0, iy0, iz0, radius_idx)`.
+%typemap(in, numinputs=0) std::vector<int>& CENTER_GRID_OUT (std::vector<int> temp) {
+  $1 = &temp;
+}
+%typemap(argout) std::vector<int>& CENTER_GRID_OUT {
+  npy_intp n = static_cast<npy_intp>($1->size());
+  PyObject* arr = PyArray_SimpleNew(1, &n, NPY_INT32);
+  if (!arr) SWIG_fail;
+  if (n) std::memcpy(PyArray_DATA((PyArrayObject*)arr), $1->data(), n * sizeof(int));
+  $result = SWIG_AppendOutput($result, arr);
+}
+%apply std::vector<int>& CENTER_GRID_OUT {
+  std::vector<int>& ix0, std::vector<int>& iy0, std::vector<int>& iz0,
+  std::vector<int>& radius_idx
+};
+
 %include "IMP/bff/SolventAccessibleSurface.h"
 %include "IMP/bff/PhotophysicsQuenching.h"
 
