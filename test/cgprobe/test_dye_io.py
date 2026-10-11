@@ -21,7 +21,7 @@ class TestDyePdbConversion:
         # The rotamer library moved into imp.bff as module data when cgprobe
         # did; reaching it by walking up from this file stopped working.
         import IMP.bff
-        input_pdb = str(Path(IMP.bff.get_data_path("rotamer_library")) / "A48_C1R.pdb")
+        input_pdb = IMP.bff.get_data_path("rotamer_library/A48_C1R.pdb")  # fetched from data/registry.json on first use
 
         with tempfile.TemporaryDirectory() as tmpdir:
             output_cif = os.path.join(tmpdir, "A48_C1R_test.cif")

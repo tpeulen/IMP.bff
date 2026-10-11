@@ -97,7 +97,10 @@ def test_bond_angle_deg():
 
 def _dye_template():
     """The shipped Alexa488 C1R template: names, elements, coordinates."""
-    path = Path(IMP.bff.get_data_path("rotamer_library")) / "A48_C1R.pdb"
+    # Asked for by its registry name, not built from the directory: the large
+    # data left git (data/registry.json), and get_data_path fetches a
+    # registry file on first use only when it is asked for *that file*.
+    path = Path(IMP.bff.get_data_path("rotamer_library/A48_C1R.pdb"))
     atoms = [l for l in path.read_text().splitlines() if l.startswith("ATOM")]
     elems = [l[76:78].strip() or "C" for l in atoms]
     xyz = [_V([float(l[30:38]), float(l[38:46]), float(l[46:54])])
