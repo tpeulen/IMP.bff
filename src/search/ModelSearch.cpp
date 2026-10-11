@@ -2085,6 +2085,29 @@ void FittingModelSearchProblem::publish_output(
     throw ModelSearchConfigurationError(
         "a published output needs a name, a node and a port");
   }
+  // A topology whose node exists but writes no such port would leave the
+  // relay unlinked, and a follower would read the relay's placeholder `[0.]`
+  // as the model's output. Refuse it here, naming the port, rather than let
+  // the follower fail later on a value it cannot interpret.
+  for (std::map<std::string, StructureRecord>::const_iterator sit =
+           impl_->structures.begin();
+       sit != impl_->structures.end(); ++sit) {
+    const std::string wanted = sit->first + "." + node_name;
+    std::vector<std::shared_ptr<GraphNode> > candidates = sit->second.graph_nodes;
+    candidates.push_back(sit->second.objective);
+    for (std::size_t i = 0; i < candidates.size(); ++i) {
+      const std::shared_ptr<GraphNode>& node = candidates[i];
+      if (!node || (node->get_name() != wanted && node->get_name() != node_name)) continue;
+      const std::string key = port_name == "@name" ? node->get_name() : port_name;
+      if (!node->get_output_port(key)) {
+        throw ModelSearchConfigurationError(
+            "published output '" + name + "' reads port '" + port_name +
+            "' of node '" + node_name + "', which structure '" + sit->first +
+            "' does not write; declare it among the node's outputs");
+      }
+      break;
+    }
+  }
   PublishedOutput& published = impl_->outputs[name];
   published.node = node_name;
   published.port = port_name;

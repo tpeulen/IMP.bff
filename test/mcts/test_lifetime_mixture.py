@@ -156,3 +156,56 @@ def test_a_model_cannot_mix_itself():
     with pytest.raises(Exception):
         spec.set_port("lifetime_spectrum.0", mixture.get_output_port("lifetime_spectrum"))
         spec.get_model()
+
+
+def _polarized_model(taus, amplitudes):
+    data, response, dt, period = _response()
+    spec = bff.ModelSearchSpec.from_name("tcspc_polarized")
+    spec.set_dataset("decay", data)
+    spec.set_dataset("response", response)
+    spec.set_scalar("dt", dt)
+    spec.set_scalar("period", period)
+    model = spec.get_model()
+    model.select_structure(
+        next(k for k in model.get_structure_keys() if k.startswith(f"lifetime.components.{len(taus)}."))
+    )
+    for i, (a, t) in enumerate(zip(amplitudes, taus)):
+        _set(model, f"lifetime.amplitude.{i}", a)
+        _set(model, f"lifetime.tau.{i}", t)
+    return spec, model
+
+
+def test_a_polarized_lifetime_model_publishes_its_lifetimes():
+    """ChiSurf's *Lifetime* fit is tcspc_polarized; its published spectrum was never written.
+
+    The output named the decay's ``spectrum`` port, which the polarised decay (reading its
+    spectrum from the anisotropy node) does not write, so a mixture read the relay's
+    placeholder ``[0.]`` and refused it as not being (amplitude, lifetime) pairs.
+    """
+    _, source = _polarized_model([0.5, 3.0], [0.25, 0.75])
+    spectrum = np.asarray(source.get_output("lifetime_spectrum"))
+    np.testing.assert_allclose(spectrum[1::2], [0.5, 3.0])
+    np.testing.assert_allclose(spectrum[0::2] / spectrum[0::2].sum(), [0.25, 0.75])
+    _, mixture = _mixture([source], [1.0])
+    _, reference = _lifetime_model([0.5, 3.0], [0.25, 0.75])
+    for model in (mixture, reference):
+        _set(model, "instrument.n0", 5000.0)
+        _set(model, "instrument.background", 1.0)
+    np.testing.assert_allclose(_curve(mixture), _curve(reference), rtol=1e-9, atol=1e-9)
+
+
+def test_an_output_naming_a_port_its_node_does_not_write_is_refused():
+    import json
+
+    source = pathlib.Path(__file__).resolve().parents[2] / "data" / "model_search" / "tcspc_lifetime.json"
+    document = json.loads(source.read_text())
+    document["outputs"]["lifetime_spectrum"] = {"node": "decay", "port": "no_such_port"}
+    data, response, dt, period = _response()
+    spec = bff.ModelSearchSpec.from_json(json.dumps(document))
+    spec.set_dataset("decay", data)
+    spec.set_dataset("response", response)
+    spec.set_scalar("dt", dt)
+    spec.set_scalar("period", period)
+    with pytest.raises(Exception) as caught:
+        spec.get_model()
+    assert "no_such_port" in str(caught.value)

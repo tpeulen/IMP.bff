@@ -633,8 +633,8 @@
  ],
  "outputs": {
   "lifetime_spectrum": {
-   "node": "decay",
-   "port": "spectrum"
+   "node": "spectrum",
+   "port": "@name"
   },
   "fluorescence_total": {
    "node": "decay",
