@@ -31,6 +31,7 @@
 
 #include <IMP/bff/bff_config.h>
 #include <IMP/bff/ProbeAccessibleVolume.h>
+#include <IMP/bff/ProbeAccessibleVolumeDefaults.h>
 #include <IMP/bff/DensityGrid.h>
 #include <IMP/algebra/Vector3D.h>
 #include <IMP/algebra/VectorD.h>
@@ -44,16 +45,6 @@
 #include <vector>
 
 IMPBFF_BEGIN_NAMESPACE
-
-//! Radius around the attachment atom inside which obstacles are ignored.
-/*!
-    So the linker can leave the atom it is tied to. Below roughly 2 A the
-    attachment atom's own neighbours block every starting voxel and the path
-    search returns an **empty volume without raising**. 2.1 A is carbon's CHARMM
-    radius, so it sits just clear of that cliff and matches the atom a linker is
-    normally tied to.
-*/
-IMPBFFEXPORT extern const double DEFAULT_ALLOWED_SPHERE_RADIUS;
 
 //! Van der Waals radius per atomic number, Angstrom; 1.70 for anything else.
 IMPBFFEXPORT std::map<int, double> vdw_radii();
@@ -168,15 +159,18 @@ IMPBFFEXPORT ProbeAccessibleVolume get_av_lattice(
     \param[in] linker_length,linker_width the linker
     \param[in] r1,r2,r3 dye radii; `(3.5, 0, 0)` is the AV1 single-sphere model
     \param[in] grid_resolution voxel spacing, A
-    \param[in] allowed_sphere_radius see #DEFAULT_ALLOWED_SPHERE_RADIUS
+    \param[in] allowed_sphere_radius < 0 derives the clearance from the linker width
+               (#IMP::bff::av_derived_allowed_sphere_radius)
     \param[in] search_stencil see #IMP::bff::resample_av
 */
 IMPBFFEXPORT ProbeAccessibleVolume get_av(
         double* atoms_xyzr, int n_atoms, int n_cols,
-        const std::vector<double>& source_xyz, double linker_length = 20.0,
-        double linker_width = 0.5, double r1 = 3.5, double r2 = 0.0,
-        double r3 = 0.0, double grid_resolution = 1.5,
-        double allowed_sphere_radius = 2.1, int search_stencil = 0);
+        const std::vector<double>& source_xyz,
+        double linker_length = IMP::bff::AV_DEFAULT_LINKER_LENGTH,
+        double linker_width = IMP::bff::AV_DEFAULT_LINKER_WIDTH,
+        double r1 = IMP::bff::AV_DEFAULT_RADIUS1, double r2 = 0.0, double r3 = 0.0,
+        double grid_resolution = IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION,
+        double allowed_sphere_radius = -1.0, int search_stencil = 0);
 
 
 
@@ -205,9 +199,11 @@ IMPBFFEXPORT ProbeAccessibleVolume get_av(
 */
 IMPBFFEXPORT ProbeAccessibleVolume get_av_from_pdb(
         const std::string& pdb_path, const std::string& chain, int resseq,
-        const std::string& atom_name, double linker_length = 20.0,
-        double linker_width = 0.5, double r1 = 3.5, double r2 = 0.0,
-        double r3 = 0.0, double grid_resolution = 1.5,
+        const std::string& atom_name,
+        double linker_length = IMP::bff::AV_DEFAULT_LINKER_LENGTH,
+        double linker_width = IMP::bff::AV_DEFAULT_LINKER_WIDTH,
+        double r1 = IMP::bff::AV_DEFAULT_RADIUS1, double r2 = 0.0, double r3 = 0.0,
+        double grid_resolution = IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION,
         double allowed_sphere_radius = -1.0, int search_stencil = 0);
 
 //! The shortest linker path to every voxel, LabelLib's `minLinkerLength`.
@@ -238,10 +234,12 @@ IMPBFFEXPORT DensityGrid* get_linker_path_lengths(
     the path lengths and the volume are the same search read out twice. */
 IMPBFFEXPORT DensityGrid* get_linker_path_lengths(
         double* atoms_xyzr, int n_atoms, int n_cols,
-        const std::vector<double>& source_xyz, double linker_length = 20.0,
-        double linker_width = 0.5, double dye_radius = 3.5,
-        double grid_resolution = 1.5, double allowed_sphere_radius = 2.1,
-        int search_stencil = 0);
+        const std::vector<double>& source_xyz,
+        double linker_length = IMP::bff::AV_DEFAULT_LINKER_LENGTH,
+        double linker_width = IMP::bff::AV_DEFAULT_LINKER_WIDTH,
+        double dye_radius = IMP::bff::AV_DEFAULT_RADIUS1,
+        double grid_resolution = IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION,
+        double allowed_sphere_radius = -1.0, int search_stencil = 0);
 
 IMPBFF_END_NAMESPACE
 

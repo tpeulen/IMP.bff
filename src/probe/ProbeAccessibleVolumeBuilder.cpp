@@ -35,8 +35,6 @@
 IMPBFF_BEGIN_NAMESPACE
 
 
-const double DEFAULT_ALLOWED_SPHERE_RADIUS = 2.1;
-
 namespace avb {
 
 using internal::upper;
@@ -286,7 +284,7 @@ IMP::Pointer<PathMap> run_lattice_search(
     const double ll = linker_length;   // stencil compensation is opt-in and off
     const double allowed = allowed_sphere_radius >= 0.0
             ? allowed_sphere_radius
-            : std::max(1.5, 0.5 * linker_width + 0.5 * h);
+            : av_derived_allowed_sphere_radius(linker_width);
     std::vector<double> dye_radii;
     dye_radii.push_back(r1);
     if (r2 > 0.0) dye_radii.push_back(r2);
@@ -339,9 +337,9 @@ IMP::Pointer<PathMap> run_lattice_search(
     const float llf = static_cast<float>(map->get_path_map_header().get_max_path_length());
     float bound = llf / hf;
     while (bound * hf < llf) bound = std::nextafter(bound, std::numeric_limits<float>::infinity());
-    // the linker's first step reaches one width plus one grid step, as
-    // ProbeAccessibleVolumeDecorator::get_effective_source_hop_radius derives it
-    map->set_source_hop_radius(linker_width + h);
+    // the linker's first step, FPS's seed sphere (the clearance) and one hop
+    // of LinkSearchNodes voxels from each seed, as the decorator takes it
+    map->set_source_first_step(allowed, AV_DEFAULT_LINK_SEARCH_NODES);
     map->search_lattice(source_idx, bound, source, ll, allowed, counts.data());
 
     // 7. remove tiles closer to obstacles than the dye radius

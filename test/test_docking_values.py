@@ -182,7 +182,8 @@ def test_scoring_an_assembly_agrees_with_the_restraint_it_is_built_on(tmp_path):
                                       output_csv=str(out))
 
     # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 11.326777201821047.
-    assert result.score == pytest.approx(11.281702323593919, abs=1e-9)
+    # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 11.281702323593919.
+    assert result.score == pytest.approx(11.147646616082596, abs=1e-9)
     assert result.n_avs == 17
     assert result.n_distances == 33
     assert result.score_csv == str(out)
@@ -263,7 +264,8 @@ def test_screening_ranks_a_library_and_never_reports_a_silent_nan(tmp_path):
 
     assert len(ranked) == 2
     assert all(math.isfinite(entry.score) for entry in ranked)
-    assert ranked[0].score == pytest.approx(11.281702323593919, abs=1e-9)
+    # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 11.281702323593919.
+    assert ranked[0].score == pytest.approx(11.147646616082596, abs=1e-9)
     rows = list(csv.reader(out.open()))
     # The score is followed by FPS's screening diagnostics (PRD-121 G3);
     # test/representation/test_screening_diagnostics.py checks what they say.
@@ -320,7 +322,8 @@ def test_the_two_bodies_together_do_carry_every_site():
     # unknown-name fallback. IMP's own radii are the default again
     # (ProbeAccessibleVolumeDecorator::set_radii_source) and 59.0404 returns exactly.
     # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 59.040389.
-    assert result.score == pytest.approx(60.517244, abs=1e-3)
+    # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 60.517244.
+    assert result.score == pytest.approx(67.315335, abs=1e-3)
 
 
 def test_pairs_survive_a_temporary_result():

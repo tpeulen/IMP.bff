@@ -292,8 +292,7 @@ void LabelDistributionAV::do_compute() const {
     av_ = get_av(const_cast<double*>(atoms_xyzr_.data()),
                      static_cast<int>(atoms_xyzr_.size() / 4), 4, source_xyz_,
                      linker_length_, linker_width_, r1_, r2_, r3_,
-                     simulation_grid_resolution_, DEFAULT_ALLOWED_SPHERE_RADIUS,
-                     0);
+                     simulation_grid_resolution_, -1.0, 0);
     av_.set_position_name(position_name_);
 }
 

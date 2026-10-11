@@ -668,9 +668,10 @@ private:
     const std::vector<int> &get_ball_order(long source_idx, double radius);
     std::vector<char> visible_;
     bool euclidean_search_ = false;
-    double source_hop_radius_ = 0.0;
-    //! The in-window tiles within source_hop_radius_ of the source tile, with
-    //! their distance in voxel units (the source itself excluded).
+    double source_seed_radius_ = 0.0;
+    int source_hop_nodes_ = 0;
+    //! The in-window tiles the linker's first step reaches (set_source_first_step),
+    //! with their path length in voxel units (the source itself excluded).
     std::vector<std::pair<long, float> > source_hop_targets(long source_idx) const;
 
     // Compact per-tile arrays (structure-of-arrays) the lattice path works
@@ -1030,23 +1031,31 @@ public:
     bool get_euclidean_search() const { return euclidean_search_; }
 
     /**
-     * @brief How far (Angstrom) the linker's first step may reach from its anchor.
+     * @brief The linker's first step out of its anchor, as FPS takes it.
      *
      * The path search moves one stencil step at a time, so a linker anchored
      * among bonded neighbours -- a CA site, whose own backbone and the
      * neighbouring residues' atoms sit 1.5-4 A away, each inflated by half the
      * linker width -- is walled in at a fine grid, and the volume comes back
-     * empty at 0.5 A where it exists at 0.7 A. The reference implementations
-     * do not step out of the anchor: FPS hops `linknodes = 3` voxels
-     * (`av_routines.cpp`), and the LabelLib-derived search in FRETraj connects
-     * the source directly to every free voxel within `linker width + grid`
-     * (`grid.py`, `maxR_source`). With a positive radius the source is joined
-     * to every *free* tile within it, at its Euclidean distance; blocked tiles
-     * stay blocked. 0 (the default) is the stencil alone. The Euclidean
-     * (visibility) search ignores it.
+     * empty at 0.5 A where it exists at 0.7 A. FPS does not step out of the
+     * anchor (`av_routines.cpp:135-209`): every voxel within a seed sphere of
+     * `LinkerInitialSphere * W` is a starting point whatever the obstacles
+     * say, at its straight-line distance, and from each of them the linker
+     * hops up to `LinkSearchNodes` voxels along every axis at once -- the
+     * 7x7x7 cube for 3 -- landing on any free voxel, across whatever lies
+     * between. This is that first step: the source is joined to every *free*
+     * tile in the union of those cubes, at FPS's path length (seed distance
+     * plus hop distance, the shorter over seeds); blocked tiles stay blocked.
+     * After it the stencil walks as before. `seed_radius` is in Angstrom;
+     * 0 nodes and a 0 radius (the default) is the stencil alone. The
+     * Euclidean (visibility) search ignores it.
      */
-    void set_source_hop_radius(double r) { source_hop_radius_ = r > 0.0 ? r : 0.0; }
-    double get_source_hop_radius() const { return source_hop_radius_; }
+    void set_source_first_step(double seed_radius, int hop_nodes) {
+        source_seed_radius_ = seed_radius > 0.0 ? seed_radius : 0.0;
+        source_hop_nodes_ = hop_nodes > 0 ? hop_nodes : 0;
+    }
+    double get_source_seed_radius() const { return source_seed_radius_; }
+    int get_source_hop_nodes() const { return source_hop_nodes_; }
 
     /**
      * @brief The lattice evaluation of one AV in compact arrays.

@@ -69,8 +69,8 @@ def test_a_disagreeing_declaration_raises(pdb_path):
 
 
 def test_the_default_is_not_silently_imposed_on_a_declared_resolution(pdb_path):
-    """The exact shape of the bug: declare 2.5, pass no disc_step, get 1.5."""
-    with pytest.raises(ValueError, match="disc_step=1.5"):
+    """The exact shape of the bug: declare 2.5, pass no disc_step, get the default."""
+    with pytest.raises(ValueError, match="default disc_step"):
         IMP.bff.get_av_from_structure(
             pdb_path, json.dumps(dict(_SOURCE, simulation_grid_resolution=2.5)))
 

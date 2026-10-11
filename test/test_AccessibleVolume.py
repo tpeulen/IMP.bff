@@ -86,7 +86,8 @@ class Tests(unittest.TestCase):
         # (-14.682480, 19.565946, 20.214719); the default is IMP's own again
         # (ProbeAccessibleVolumeDecorator::set_radii_source), so this is the pre-Olga number -- to 0.002 A,
         # the rest being the 2026-08-31 move above, which is not reverted.
-        np.testing.assert_almost_equal(av.get_mean_position(), (-15.048157, 19.668150, 20.226974), decimal=3)
+        # 2026-10-11: FPS's AV defaults -- the linker's first step is FPS's, three-voxel hops from every voxel of the seed (here the explicit 2.0 A clearance; PathMap::set_source_first_step), which reaches 3.5 A where the stencil alone reached 2.0; was (-15.048157, 19.668150, 20.226974).
+        np.testing.assert_almost_equal(av.get_mean_position(), (-14.853740, 19.747667, 20.401957), decimal=3)
         np.testing.assert_almost_equal(av.get_radii(), (3.5, 0, 0), decimal=3)
         self.assertEqual(av.get_parameters_are_optimized(), False)
         self.assertEqual(str(av.get_source()), '"Atom CB of residue 55"')
@@ -317,7 +318,8 @@ class Tests(unittest.TestCase):
         # Olga's radii were the default for part of 2026-09-01 and this read
         # (-0.333604, -24.499506, -4.603655); IMP's own are the default again
         # (ProbeAccessibleVolumeDecorator::set_radii_source), so this is the pre-Olga number, to 0.002 A.
-        ref = (-0.322252, -25.204348, -3.821867)
+        # 2026-10-11: FPS's AV defaults -- the linker's first step is FPS's, three-voxel hops from every voxel of the seed (here the explicit 2.0 A clearance; PathMap::set_source_first_step), which reaches 3.5 A where the stencil alone reached 2.0; was (-0.322252, -25.204348, -3.821867).
+        ref = (-0.125887, -25.307448, -4.261595)
         np.testing.assert_allclose(av_mp.get_coordinates(), ref, atol=1e-3)
 
     def test_access_av_feature(self):
@@ -424,7 +426,8 @@ class Tests(unittest.TestCase):
         distances = IMP.bff.av_random_distances(av1, av2, 500000)
         # Olga's radii shorten this to 55.6252; the default is IMP's own again
         # (ProbeAccessibleVolumeDecorator::set_radii_source), so the pre-Olga 55.8469 is restored.
-        self.assertAlmostEqual(np.mean(distances), 55.8469, delta=0.15)
+        # 2026-10-11: FPS's AV defaults -- the linker's first step is FPS's, three-voxel hops from every voxel of the seed (here the explicit 2.0 A clearance; PathMap::set_source_first_step), which reaches 3.5 A where the stencil alone reached 2.0; was 55.8469.
+        self.assertAlmostEqual(np.mean(distances), 56.3428, delta=0.15)
 
     def test_av_av_distance(self):
         av1 = get_av(hier)
@@ -444,7 +447,8 @@ class Tests(unittest.TestCase):
         # IMP's own are the default again (ProbeAccessibleVolumeDecorator::set_radii_source), so the
         # pre-Olga four are restored -- measured back to within 0.03 A, well
         # inside the MC delta below.
-        refs_distances = [54.8151, 55.8598, 52.9990, 0.4211]
+        # 2026-10-11: FPS's AV defaults -- the linker's first step is FPS's, three-voxel hops from every voxel of the seed (here the explicit 2.0 A clearance; PathMap::set_source_first_step), which reaches 3.5 A where the stencil alone reached 2.0; was [54.8151, 55.8598, 52.9990, 0.4211].
+        refs_distances = [55.2012, 56.3500, 53.4337, 0.4114]
         for t, ref in zip(distance_types, refs_distances):
             v = IMP.bff.av_distance(
                 av1, av2,

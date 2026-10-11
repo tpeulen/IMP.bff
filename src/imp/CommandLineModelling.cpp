@@ -85,7 +85,8 @@ IMP::atom::Hierarchy read_structure(const std::string& path, IMP::Model* model) 
 struct AvExportArgs {
   std::string pdb, chain, atom = "CB", output;
   int residue = 0;
-  double linker_length = 20.5, linker_width = 1.5, radius1 = 3.5, grid = 1.5;
+  double linker_length = AV_DEFAULT_LINKER_LENGTH, linker_width = AV_DEFAULT_LINKER_WIDTH,
+         radius1 = AV_DEFAULT_RADIUS1, grid = AV_DEFAULT_SIMULATION_GRID_RESOLUTION;
   bool chain_weighting = false;
 };
 

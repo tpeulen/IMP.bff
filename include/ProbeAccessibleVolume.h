@@ -40,6 +40,7 @@
  */
 
 #include <IMP/bff/States.h>
+#include <IMP/bff/ProbeAccessibleVolumeDefaults.h>
 #include <IMP/bff/IMPCompatibility.h>
 
 #include <string>
@@ -255,9 +256,12 @@ public:
                         const std::vector<double>& atoms_vdw,
                         const std::vector<double>& source_xyz =
                                 std::vector<double>(),
-                        double linker_length = 20.0, double linker_width = 0.5,
-                        double r1 = 3.5, double r2 = 0.0, double r3 = 0.0,
-                        double simulation_grid_resolution = 1.5,
+                        double linker_length = IMP::bff::AV_DEFAULT_LINKER_LENGTH,
+                        double linker_width = IMP::bff::AV_DEFAULT_LINKER_WIDTH,
+                        double r1 = IMP::bff::AV_DEFAULT_RADIUS1, double r2 = 0.0,
+                        double r3 = 0.0,
+                        double simulation_grid_resolution =
+                                IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION,
                         const std::string& position_name = "");
 };
 

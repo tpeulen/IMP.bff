@@ -164,18 +164,21 @@ class Tests(IMP.test.TestCase):
 
         With explicit hydrogens this volume came back **empty**: the channels
         out of the buried CB are narrower than a voxel, and FPS got out by
-        hopping `linknodes = 3` voxels. The hop that matters is the first one,
-        out of the anchor: with the linker's first step reaching one width plus
-        one grid step (PathMap::set_source_hop_radius, FRETraj's
-        `maxR_source`), and the stencil unchanged everywhere else, the volume
-        is FPS's to 1.3 % and its mean within half an Angstrom (measured
-        54 820 against 55 514 voxels, 0.49 A).
+        hopping `linknodes = 3` voxels. The hop that matters most is the first
+        one, out of the anchor. Under FRETraj's first step (a ball of
+        `W + dg`) the volume was FPS's to 1.3 %; under FPS's own -- three-voxel
+        hops from every voxel of the `W/2` seed (PathMap::set_source_first_step),
+        the default since the owner settled the AV defaults on FPS's
+        (2026-10-11) -- it is 0.928 of FPS's. The rest is FPS hopping three
+        voxels from *every* node, not only out of the seed, which squeezes
+        through channels the 74 stencil walks around; that difference is open
+        and recorded in `okf/validation/fps_screening_ab.md`.
         """
         pin = self.pins["p66"]
         model, serials = _structure(hydrogens=True)
         av, points = _volume(model, serials, pin)
         ratio = len(points) / pin["unique_voxels"]
-        self.assertGreater(ratio, 0.93, "volume lost against FPS")
+        self.assertGreater(ratio, 0.92, "volume lost against FPS")
         self.assertLess(ratio, 1.07, "volume gained against FPS")
         offset = np.linalg.norm(np.asarray(av.get_mean_position(False))
                                 - np.asarray(pin["weighted_mean"]))

@@ -247,13 +247,16 @@ def test_olgas_radii_open_the_volume_up():
         counts[source] = len(av.get_map().get_xyz_density())
         means[source] = np.array(av.get_mean_position())
     assert counts["olga"] > counts["imp"]
-    assert counts["olga"] / counts["imp"] == pytest.approx(1.163, abs=0.02)
+    # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 1.163.
+    assert counts["olga"] / counts["imp"] == pytest.approx(1.138, abs=0.02)
     assert np.linalg.norm(means["olga"] - means["imp"]) > 0.5
 
     buried = {s: len(_av(model, hierarchy, 99, "CB", s)
                      .get_map().get_xyz_density())
               for s in ("imp", "olga")}
-    assert buried["imp"] < 1000
+    # 2026-10-11: 1 014 under FPS's first step (710 before) -- still a sliver,
+    # not a volume
+    assert buried["imp"] < 2000
     assert buried["olga"] > 20000
 
 
@@ -366,5 +369,6 @@ def test_a_shared_raster_refuses_two_radii_sets():
     third.set_occupancy_registry(registry)
     third.resample()
     private = _av(model, hierarchy, 55, "CB", "olga")
+    # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 144032.
     assert (len(third.get_map().get_xyz_density())
-            == len(private.get_map().get_xyz_density()) == 144032)
+            == len(private.get_map().get_xyz_density()) == 148667)

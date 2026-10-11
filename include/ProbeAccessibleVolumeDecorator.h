@@ -173,15 +173,15 @@ public:
      */
     static void do_setup_particle(Model *m, ParticleIndex pi,
                                 ParticleIndex pi_source,
-                                double linker_length = 20.0,
-                                const algebra::Vector3D radii = algebra::Vector3D(3.5, 0, 0),
-                                double linker_width = 0.5,
+                                double linker_length = IMP::bff::AV_DEFAULT_LINKER_LENGTH,
+                                const algebra::Vector3D radii = algebra::Vector3D(IMP::bff::AV_DEFAULT_RADIUS1, 0, 0),
+                                double linker_width = IMP::bff::AV_DEFAULT_LINKER_WIDTH,
                                 //! Negative derives it; see
                                 //! get_effective_allowed_sphere_radius().
                                 double allowed_sphere_radius = -1.0,
                                 double contact_volume_thickness = 0.0,
                                 double contact_volume_trapped_fraction = -1,
-                                double simulation_grid_resolution = 1.5) {
+                                double simulation_grid_resolution = IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION) {
         if (!IMP::core::Gaussian::get_is_setup(m, pi)) {
             IMP::core::Gaussian::setup_particle(m, pi);
         }
@@ -436,14 +436,14 @@ public:
     //! compensation. Equal to get_linker_length() for the default stencil.
     /*!
         The compensation scales the part of the path the stencil walks. The
-        linker's first step out of the anchor (get_effective_source_hop_radius)
+        linker's first step out of the anchor (get_effective_first_step_reach)
         is a straight segment, exact on any stencil, so it is not scaled.
      */
     double get_effective_linker_length() const {
         const double length = get_linker_length();
         const double scale = get_stencil_length_compensation();
         if(scale == 1.0) return length;
-        const double hop = std::min(length, get_effective_source_hop_radius());
+        const double hop = std::min(length, get_effective_first_step_reach());
         return hop + (length - hop) * scale;
     }
 
@@ -461,31 +461,40 @@ public:
         door (and `imp_bff av-export` behind it) took a flat 1.5 and returned
         nothing at FPS's standard linker width of 4.5 Å. One place now.
 
-        The FPS mapping, for the record: FPS seeds its search from a sphere of
-        `LinkerInitialSphere * W` with `LinkerInitialSphere = 0.5`
-        (`av_routines.cpp:136`), i.e. exactly `W/2` — the same half-width, with
-        no grid slack because FPS's seed is unconditional rather than carved
-        out of an inflated obstacle map.
+        The derived value is FPS's seed (#IMP::bff::av_derived_allowed_sphere_radius):
+        a sphere of `LinkerInitialSphere * W` with `LinkerInitialSphere = 0.5`
+        (`av_routines.cpp:136`), i.e. exactly `W/2`, open whatever the obstacle
+        map says. It used to be `max(1.5, W/2 + grid/2)` -- a grid step of
+        slack so the source voxel was not walled in -- until the linker's first
+        step (get_effective_first_step_reach) made the slack unnecessary and
+        the owner asked for FPS's own value (2026-10-11). The legacy
+        `space_fixed=False` path keeps the old rule, for its historical numbers.
      */
     double get_effective_allowed_sphere_radius() const {
         double r = get_allowed_sphere_radius();
         if(r >= 0.0) return r;
-        return std::max(1.5, 0.5 * get_linker_width()
-                                     + 0.5 * get_simulation_grid_resolution());
+        return av_derived_allowed_sphere_radius(get_linker_width());
     }
 
-    //! How far the linker's first step reaches from its anchor (PathMap::set_source_hop_radius).
+    //! How far, along an axis, the linker's first step reaches (PathMap::set_source_first_step).
     /*!
-        One linker width plus one grid step, the reach FRETraj's search gives
-        the source (`maxR_source = linker_width + grid_spacing`). FPS reaches
-        about as far by hopping three of its own voxels from a seed of half
-        the width. Without it the search steps out of the anchor one stencil
-        step at a time, and a site among bonded neighbours (a CA) is walled in
-        at a fine grid and found at a coarse one -- T4L N132 CA at width 4.5
-        was empty at 0.5 A and 5400 A^3 at 0.7 A.
+        FPS's first step: every voxel of the seed sphere -- the clearance,
+        get_effective_allowed_sphere_radius(), FPS's `LinkerInitialSphere * W`
+        by default -- is a starting point, and the linker hops up to
+        `LinkSearchNodes = 3` voxels from each (#IMP::bff::av_first_step_reach,
+        `seed + 3 dg` along an axis). Without a first step the search leaves the
+        anchor one stencil step at a time, and a site among bonded neighbours (a
+        CA) is walled in at a fine grid and found at a coarse one -- T4L N132 CA
+        at width 4.5 was empty at 0.5 A and 5400 A^3 at 0.7 A.
+
+        From f2c272dc7 until the owner settled the defaults on FPS's (both
+        2026-10-11), the first step was FRETraj's `maxR_source`, a ball of
+        `W + dg`; FPS's seed-and-cube reaches further along the diagonals and
+        less far along the axes.
      */
-    double get_effective_source_hop_radius() const {
-        return get_linker_width() + get_simulation_grid_resolution();
+    double get_effective_first_step_reach() const {
+        return av_first_step_reach(get_effective_allowed_sphere_radius(),
+                                   get_simulation_grid_resolution());
     }
 
     //! Whether to correct a coarse stencil's volume bias. **Default false**:
@@ -1047,7 +1056,8 @@ IMPBFFEXPORT ProbeAccessibleVolume resample_av(
 IMPBFFEXPORT ProbeAccessibleVolume get_av_from_structure(
         const std::string& pdb_path, const std::string& chain, int resseq,
         const std::string& atom_name, double linker_length, double linker_width,
-        double r1, double r2, double r3, double disc_step = 1.5,
+        double r1, double r2, double r3,
+        double disc_step = IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION,
         const std::string& strip_mask = "",
         double allowed_sphere_radius = -1.0,
         double contact_volume_thickness = 0.0,
@@ -1063,7 +1073,7 @@ IMPBFFEXPORT ProbeAccessibleVolume get_av_from_structure(
     them, and a declared `simulation_grid_resolution` that disagrees with
     \p disc_step raises: that field is *written into* the particle from
     \p disc_step, so a caller who declares it and omits the step would silently
-    build at 1.5 A.
+    build at the default grid (#IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION).
 
     \param[in] position_json one entry of an fps.json `Positions` section,
                serialised as JSON text

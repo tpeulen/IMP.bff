@@ -279,7 +279,7 @@
           "x-flrcif-item": "_flr_FPS_AV_parameter.linker_length"
         },
         "linker_width": {
-          "default": 0.5,
+          "default": 4.5,
           "type": "number",
           "x-dialects": [
             "network",
@@ -381,7 +381,7 @@
           ]
         },
         "simulation_grid_resolution": {
-          "default": 1.5,
+          "default": 0.9,
           "description": "AV grid spacing in Angstrom. Related to (but not the same item as) _flr_FPS_global_parameter.AV_min_grid_A, which is the *minimum* grid constant of FPS's relative-grid scheme.",
           "type": "number",
           "x-dialects": [
@@ -1007,7 +1007,7 @@
             "x-flrcif-item": "_flr_FPS_AV_parameter.linker_length"
           },
           "linker_width": {
-            "default": 0.5,
+            "default": 4.5,
             "type": "number",
             "x-dialects": [
               "network",
@@ -1109,7 +1109,7 @@
             ]
           },
           "simulation_grid_resolution": {
-            "default": 1.5,
+            "default": 0.9,
             "description": "AV grid spacing in Angstrom. Related to (but not the same item as) _flr_FPS_global_parameter.AV_min_grid_A, which is the *minimum* grid constant of FPS's relative-grid scheme.",
             "type": "number",
             "x-dialects": [

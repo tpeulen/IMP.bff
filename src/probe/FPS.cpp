@@ -299,7 +299,9 @@ std::vector<FPSField> fps_position_fields() {
     // --- AV geometry (flrCIF FPS AV parameters) ---------------------------
     f.push_back(field("linker_length", FPS_NUMBER, "20.0",
                       "_flr_FPS_AV_parameter.linker_length", "", NETWORK_FLAT));
-    f.push_back(field("linker_width", FPS_NUMBER, "0.5",
+    // The defaults are ProbeAccessibleVolumeDefaults.h's (FPS's first dye
+    // preset and grid); test_av_defaults.py holds the two together.
+    f.push_back(field("linker_width", FPS_NUMBER, "4.5",
                       "_flr_FPS_AV_parameter.linker_width", "", NETWORK_FLAT));
     f.push_back(field("radius1", FPS_NUMBER, "3.5",
                       "_flr_FPS_AV_parameter.probe_radius_1", "", NETWORK_FLAT));
@@ -335,7 +337,7 @@ std::vector<FPSField> fps_position_fields() {
     f.push_back(field("potential", FPS_STRING, "\"lj\"", "",
                       "Screening potential of an R1 ensemble: 'lj' or 'gauss'.",
                       FLAT, {"lj", "gauss"}));
-    f.push_back(field("simulation_grid_resolution", FPS_NUMBER, "1.5", "",
+    f.push_back(field("simulation_grid_resolution", FPS_NUMBER, "0.9", "",
                       "AV grid spacing in Angstrom. Related to (but not the same "
                       "item as) _flr_FPS_global_parameter.AV_min_grid_A, which is "
                       "the *minimum* grid constant of FPS's relative-grid scheme.",
@@ -1328,7 +1330,12 @@ FPSDocument read_old_lps_txt(const std::string& path,
         position["radius1"] = r1;
         position["radius2"] = r2;
         position["radius3"] = r3;
-        position["simulation_grid_resolution"] = 1.5;
+        // FPS's own grid for the position (AVEngine.cs:568): a legacy file
+        // is FPS's, and FPS never wrote the grid down because it derived it.
+        std::vector<double> radii(1, r1);
+        if (av_type == "AV3") { radii.push_back(r2); radii.push_back(r3); }
+        position["simulation_grid_resolution"] =
+                fps_default_grid(linker_length, linker_width, radii);
         positions[name] = position;
     }
     out.positions = positions.dump();

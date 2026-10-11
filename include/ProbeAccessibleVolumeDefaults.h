@@ -1,0 +1,76 @@
+#ifndef IMPBFF_PROBE_ACCESSIBLE_VOLUME_DEFAULTS_H
+#define IMPBFF_PROBE_ACCESSIBLE_VOLUME_DEFAULTS_H
+
+/**
+ *  \file IMP/bff/ProbeAccessibleVolumeDefaults.h
+ *  \brief The accessible-volume defaults, read from FPS and Olga.
+ *
+ * Every door onto an accessible volume -- the decorator, the array builder,
+ * the fps.json readers, the schema, the command line -- takes its defaults
+ * from here, so an omitted parameter means the same thing whichever door it
+ * was omitted at. They are the reference programs' own values (owner,
+ * 2026-10-11: "av defaults should be fps/olga defaults, take from there"),
+ * read from their source, not inferred:
+ *
+ * | parameter | FPS | Olga | here |
+ * |---|---|---|---|
+ * | linker length | 20 (`Fps/data/linker.txt` row 1, "Alexa488 L linker", the dye `AVinterface.cs:74` selects first) | none (0, must be set) | 20 |
+ * | linker width | 4.5 (same row) | none (0) | 4.5 |
+ * | AV1 dye radius | 3.5 (same row) | none (0) | 3.5 |
+ * | AV3 dye radii | 5, 4.5, 1.5 (same row) | none (0, 0, 0) | 5, 4.5, 1.5 |
+ * | grid | `max(0.2 min(L, W, 2R_i), 0.4)` (`AVEngine.cs:568`): 0.9 for every AV1 preset, 0.6 for AV3 | 0.9 (`PositionSimulation.h`, AV1 and AV3) | 0.9 |
+ * | simulation type | "Simple AV" (`simcombobox` index 0) | AV1 (`Position.h`) | AV1 |
+ * | seed sphere | `LinkerInitialSphere = 0.5` x W, unconditional (`ProjectData.cs`, `av_routines.cpp:136`) | obstacles cleared within `(lround(W/2/dg) + 1) dg` (`fretAV.cpp`, `ignoreSphere`) | 0.5 W (FPS) |
+ * | linker's first step | `LinkSearchNodes = 3` voxels (a 7x7x7 cube) from every seed | the stencil alone | FPS's (PathMap::set_source_first_step) |
+ * | contact volume | none | thickness 0, trapped fraction -1 (off) | off |
+ * | min. sphere volume fraction | none | 0 | 0 |
+ *
+ * Where the two disagree the search follows FPS: the seed sphere and the
+ * first step. The grid is the one value both give for an AV1 (0.9); FPS's
+ * relative rule would take an AV3 with a 1.5 A radius to 0.6, and that rule
+ * is #IMP::bff::fps_default_grid for a caller who wants it.
+ *
+ *  Copyright 2007-2026 IMP Inventors. All rights reserved.
+ */
+
+#include <IMP/bff/bff_config.h>
+
+IMPBFF_BEGIN_NAMESPACE
+
+//! Linker length, A (FPS's first preset).
+constexpr double AV_DEFAULT_LINKER_LENGTH = 20.0;
+//! Linker width (diameter), A (FPS's first preset).
+constexpr double AV_DEFAULT_LINKER_WIDTH = 4.5;
+//! AV1 dye radius, A (FPS's first preset).
+constexpr double AV_DEFAULT_RADIUS1 = 3.5;
+//! AV3 dye radii, A (FPS's first preset).
+constexpr double AV_DEFAULT_AV3_RADIUS1 = 5.0;
+constexpr double AV_DEFAULT_AV3_RADIUS2 = 4.5;
+constexpr double AV_DEFAULT_AV3_RADIUS3 = 1.5;
+//! Grid spacing, A: Olga's fixed default, and FPS's rule for every AV1 preset.
+constexpr double AV_DEFAULT_SIMULATION_GRID_RESOLUTION = 0.9;
+//! FPS `LinkerInitialSphere`: the seed sphere around the anchor, in linker widths.
+constexpr double AV_DEFAULT_LINKER_INITIAL_SPHERE = 0.5;
+//! FPS `LinkSearchNodes`: how many voxels the linker's first step hops.
+constexpr int AV_DEFAULT_LINK_SEARCH_NODES = 3;
+
+//! The source clearance an unset (negative) `allowed_sphere_radius` derives.
+/*! FPS's seed: every voxel within `LinkerInitialSphere * W` of the anchor is
+    open to the linker whatever the obstacles say (`av_routines.cpp:136`). */
+inline double av_derived_allowed_sphere_radius(double linker_width) {
+    return AV_DEFAULT_LINKER_INITIAL_SPHERE * linker_width;
+}
+
+//! How far, along an axis, the linker's first step reaches from its anchor, A.
+/*! FPS seeds a sphere (`seed_radius`, `LinkerInitialSphere * W` by default)
+    and hops `LinkSearchNodes` voxels from every seed
+    (`av_routines.cpp:156-209`): `seed + 3 dg` along an axis, further along a
+    cube diagonal. PathMap::set_source_first_step takes the step itself; this
+    is its straight-line extent, which a stencil does not walk. */
+inline double av_first_step_reach(double seed_radius, double grid) {
+    return seed_radius + AV_DEFAULT_LINK_SEARCH_NODES * grid;
+}
+
+IMPBFF_END_NAMESPACE
+
+#endif  // IMPBFF_PROBE_ACCESSIBLE_VOLUME_DEFAULTS_H

@@ -393,10 +393,30 @@ void PathMap::find_path_dijkstra(
 
 std::vector<std::pair<long, float> > PathMap::source_hop_targets(long source_idx) const {
     std::vector<std::pair<long, float> > out;
-    if(!(source_hop_radius_ > 0.0)) return out;
-    const double rv = source_hop_radius_ / header_.get_spacing();
-    const int m = (int) std::floor(rv);
-    const double rv2 = rv * rv;
+    const int n = source_hop_nodes_;
+    if(n <= 0 && !(source_seed_radius_ > 0.0)) return out;
+    // FPS's seeds: integer offsets with |s|^2 <= (r/h)^2 (av_routines.cpp:136-153)
+    const double rs = source_seed_radius_ / header_.get_spacing();
+    const int ms = (int) std::floor(rs);
+    const double rs2 = rs * rs;
+    // the union of the hop cubes around them, path length = min(|s| + |t - s|)
+    const int m = ms + n;
+    const int w = 2 * m + 1;
+    std::vector<float> best((size_t) w * w * w, std::numeric_limits<float>::infinity());
+    for(int sz = -ms; sz <= ms; sz++)
+    for(int sy = -ms; sy <= ms; sy++)
+    for(int sx = -ms; sx <= ms; sx++){
+        const int s2 = sx*sx + sy*sy + sz*sz;
+        if(s2 > rs2) continue;
+        const float cs = std::sqrt((float) s2);
+        for(int oz = -n; oz <= n; oz++)
+        for(int oy = -n; oy <= n; oy++)
+        for(int ox = -n; ox <= n; ox++){
+            const float c = cs + std::sqrt((float) (ox*ox + oy*oy + oz*oz));
+            const size_t k = ((size_t) (sz + oz + m) * w + (sy + oy + m)) * w + (sx + ox + m);
+            if(c < best[k]) best[k] = c;
+        }
+    }
     const int nx = header_.get_nx(), ny = header_.get_ny(), nz = header_.get_nz();
     const long nxy = (long) nx * ny;
     const int sx = (int) (source_idx % nx), sy = (int) ((source_idx / nx) % ny),
@@ -410,10 +430,10 @@ std::vector<std::pair<long, float> > PathMap::source_hop_targets(long source_idx
             for(int dx = -m; dx <= m; dx++){
                 const int ix = sx + dx;
                 if(ix < 0 || ix >= nx) continue;
-                const int d2 = dx*dx + dy*dy + dz*dz;
-                if(d2 == 0 || d2 > rv2) continue;
-                out.emplace_back((long) iz * nxy + (long) iy * nx + ix,
-                                 std::sqrt((float) d2));
+                if(dx == 0 && dy == 0 && dz == 0) continue;
+                const float c = best[((size_t) (dz + m) * w + (dy + m)) * w + (dx + m)];
+                if(!(c < std::numeric_limits<float>::infinity())) continue;
+                out.emplace_back((long) iz * nxy + (long) iy * nx + ix, c);
             }
         }
     }
@@ -485,8 +505,8 @@ std::vector<int> PathMap::dijkstra_bounded_core(
     if(record_previous) tiles[path_begin_idx].previous = nullptr;
     reached.push_back((int) path_begin_idx);
     push(0.0f, path_begin_idx);
-    // The linker's first step (set_source_hop_radius): every free tile within
-    // reach of the anchor, at its distance. Pushed before any bucket drains,
+    // The linker's first step (set_source_first_step): every free tile FPS's
+    // seed-and-hop reaches from the anchor, at FPS's path length. Pushed before any bucket drains,
     // so the monotone queue still holds.
     for(const std::pair<long, float> &hop : source_hop_targets(path_begin_idx)){
         const long nidx = hop.first;

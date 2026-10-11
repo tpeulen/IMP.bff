@@ -53,20 +53,31 @@ class Tests(IMP.test.TestCase):
         self.hier = IMP.atom.read_pdb(PDB, self.mdl)
 
     def test_clearance_is_derived_when_not_given(self):
-        """A negative (or absent) clearance derives from width and grid."""
+        """A negative (or absent) clearance derives FPS's seed sphere.
+
+        `LinkerInitialSphere * W` with FPS's 0.5 -- half the linker width, what
+        the search inflates obstacles by. Until 2026-10-11 it carried half a
+        grid step of slack and a 1.5 A floor; the linker's first step
+        (PathMap::set_source_first_step) made the slack unnecessary and the
+        owner settled the defaults on FPS's.
+        """
         av = _av(self.mdl, self.hier, linker_length=20.0, radii=(3.5, 0.0, 0.0),
                  linker_width=FPS_WIDTH, simulation_grid_resolution=0.5)
-        # half the linker width (what the search inflates obstacles by) plus
-        # half a grid step of slack
         self.assertAlmostEqual(av.get_effective_allowed_sphere_radius(),
-                               0.5 * FPS_WIDTH + 0.5 * 0.5, places=6)
+                               0.5 * FPS_WIDTH, places=6)
 
-    def test_derived_clearance_floor(self):
-        """A narrow linker keeps the historical 1.5 A floor."""
+    def test_derived_clearance_has_no_floor(self):
+        """A narrow linker gets FPS's half width; the old 1.5 A floor is gone.
+
+        FPS has no floor: its seed is `0.5 W` whatever W is. A narrow linker
+        still leaves its anchor, through the first step's three-voxel hops.
+        """
         av = _av(self.mdl, self.hier, linker_length=20.0, radii=(3.5, 0.0, 0.0),
                  linker_width=0.5, simulation_grid_resolution=0.5)
-        self.assertAlmostEqual(av.get_effective_allowed_sphere_radius(), 1.5,
+        self.assertAlmostEqual(av.get_effective_allowed_sphere_radius(), 0.25,
                                places=6)
+        av.resample()
+        self.assertGreater(_n_points(av), 0)
 
     def test_explicit_clearance_is_obeyed(self):
         """An explicit value is never overridden -- including a small one."""
@@ -83,23 +94,34 @@ class Tests(IMP.test.TestCase):
         av.resample()
         self.assertGreater(_n_points(av), 0)
 
-    def test_fine_grid_at_the_fps_width_is_not_empty(self):
-        """T4L 132 CB at FPS's width and a fine grid: closed by the linker's first step.
+    def test_fine_grid_at_the_fps_width_under_fps_first_step(self):
+        """Not a passing grade -- a pin on a **known** gap, reopened 2026-10-11.
 
-        This was pinned *empty* as a known gap: the search left the anchor one
-        stencil step at a time, so at 0.5 A the site was walled in by its
-        bonded neighbours and found at a coarser grid -- the answer depended on
-        the resolution. FPS hops `linknodes = 3` voxels and FRETraj joins the
-        source to every free voxel within `width + grid`; the search now takes
-        the second rule (PathMap::set_source_hop_radius) and the site has a
-        volume at every grid.
+        T4L 132 CB at FPS's width: found at FPS's and Olga's 0.9 A grid and at
+        0.7 A, **empty at 0.5 A**. It was empty there under the stencil-only
+        search, found under FRETraj's first step (a ball of `W + dg`, 5.0 A
+        here), and is empty again under FPS's (three-voxel hops from every
+        voxel of the `W/2` seed, PathMap::set_source_first_step: 3.75 A along
+        an axis), the default since the owner settled the AV defaults on
+        FPS's. **FPS itself is not empty here**: its own routine
+        (`prototypes/fps_oracle`, FPS's Bondi radii) gives 42 151 voxels,
+        ~5 270 A^3, at 0.5 A -- because FPS hops three voxels from *every*
+        node, not only out of the seed, and so squeezes through channels the
+        74 stencil walks around. Olga's radii do not open it either. Closing
+        it means taking FPS's whole stencil (the 7x7x7 cube), an open decision
+        recorded in `okf/validation/fps_screening_ab.md`; when that lands this
+        pin flips.
         """
-        av = _av(self.mdl, self.hier, linker_length=20.0, radii=(3.5, 0.0, 0.0),
-                 linker_width=FPS_WIDTH, simulation_grid_resolution=0.5)
-        self.assertAlmostEqual(av.get_effective_source_hop_radius(),
-                               FPS_WIDTH + 0.5, places=6)
-        av.resample()
-        self.assertGreater(_n_points(av), 0)
+        for grid, empty in ((0.9, False), (0.7, False), (0.5, True)):
+            av = _av(self.mdl, self.hier, linker_length=20.0, radii=(3.5, 0.0, 0.0),
+                     linker_width=FPS_WIDTH, simulation_grid_resolution=grid)
+            self.assertAlmostEqual(av.get_effective_first_step_reach(),
+                                   0.5 * FPS_WIDTH + 3 * grid, places=6)
+            av.resample()
+            if empty:
+                self.assertEqual(_n_points(av), 0, "the gap closed: flip this pin")
+            else:
+                self.assertGreater(_n_points(av), 0)
 
     def test_both_doors_agree(self):
         """The decorator door and the fps.json door build the same volume.
@@ -125,7 +147,7 @@ class Tests(IMP.test.TestCase):
         # the attachment residue's side chain, so the volumes are not identical
         # and only the parameter is compared.
         self.assertAlmostEqual(av.get_effective_allowed_sphere_radius(),
-                               0.5 * FPS_WIDTH + 0.5 * 1.5, places=6)
+                               0.5 * FPS_WIDTH, places=6)
         self.assertGreater(len(through_json.get_points()), 0)
 
     def test_empty_volume_reports_its_anchor_not_half_of_it(self):

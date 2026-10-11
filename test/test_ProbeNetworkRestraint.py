@@ -100,7 +100,8 @@ class Tests(unittest.TestCase):
         # (ProbeAccessibleVolumeDecorator::set_radii_source) and this returns exactly to what it was
         # before that day -- the flip moved no other input.
         # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 11.326777201821047.
-        self.assertAlmostEqual(11.281702323593919, v, places=6)
+        # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 11.281702323593919.
+        self.assertAlmostEqual(11.147646616082596, v, places=6)
         self.assertEqual(v, fret_restraint.unprotected_evaluate(None))
 
         # Re-measured 2026-09-01, when the accessible contact volume this file
@@ -113,11 +114,14 @@ class Tests(unittest.TestCase):
         # Re-measured again 2026-09-01 with Olga's radii (see the score
         # above): every one of the 33 shortens once more, by 0.40 A on
         # average, and the bias against `experiment_ref` falls to +0.44 A.
+        # 2026-10-11, FPS's AV defaults (seed W/2, FPS's first step): three
+        # pairs moved by more than half an Angstrom -- 50.7 -> 48.0, 27.2 ->
+        # 28.7 and 39.3 -> 40.8; the other thirty within it.
         model_ref = np.array(
             [
-                45.9, 36.7, 38.2, 48.7, 36.6, 38.7, 42.9, 50.5, 55.4, 48.3, 50.7,
-                27.2, 47.5, 41.5, 42.2, 58.1, 53.3, 50.2, 33.5, 51.9, 48.8, 40.4,
-                47.9, 40.6, 43.4, 44.7, 33.7, 37.2, 39.3, 45.5, 42.3, 30.5, 42.5
+                45.9, 36.7, 38.2, 48.7, 36.6, 38.7, 42.9, 50.5, 55.4, 48.3, 48.0,
+                28.7, 47.5, 41.5, 42.2, 58.1, 53.3, 50.2, 33.5, 51.9, 48.8, 40.4,
+                47.9, 40.6, 43.4, 44.7, 33.7, 37.2, 40.8, 45.5, 42.3, 30.5, 42.5
             ]
         )
         experiment_ref = np.array(

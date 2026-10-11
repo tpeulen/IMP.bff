@@ -257,10 +257,9 @@ void build(const AVRotamerCase& c, double temperature, std::vector<AVRotamerPosi
     const std::string& name = c.names[k];
     nlohmann::json pos = nlohmann::json::parse(c.positions_json[k]);
     pos.erase("strip_mask");
-    // `float(disc_step or p.get("simulation_grid_resolution", 1.5))`
     const double ds = pos.contains("simulation_grid_resolution")
                               ? pos["simulation_grid_resolution"].get<double>()
-                              : 1.5;
+                              : AV_DEFAULT_SIMULATION_GRID_RESOLUTION;
     ProbeAccessibleVolume av = get_av_from_structure(c.pdb, pos.dump(), ds);
     std::string chain;
     if (pos.contains("chain_identifier") && pos["chain_identifier"].is_string()) {

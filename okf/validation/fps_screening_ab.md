@@ -1,7 +1,7 @@
 ---
 okf_version: "0.2"
 title: "IMP.bff against FPS's published screening numbers (T4L, 3GUN)"
-description: "End-to-end A/B of the screening path against the real FPS, and the accessible-contact volume that explained the +2 A offset against the published table. Since 2026-10-11 (the linker's first step reaches one width plus one grid step) all 33 pairs resolve under the default radii: vs FPS +0.08 A / 0.87 A over the former 24; ACV on vs the published table +0.58 A / 0.94 A over 33; Olga's radii +0.15 A / 0.90 A."
+description: "End-to-end A/B of the screening path against the real FPS, and the accessible-contact volume that explained the +2 A offset against the published table. Since 2026-10-11 the AV defaults are FPS's (seed W/2, FPS's three-voxel first step, L 20 / W 4.5 / R 3.5 / grid 0.9): all 33 pairs resolve under the default radii, vs FPS +0.00 A / 0.84 A over the former 24; ACV on vs the published table +0.55 A / 0.93 A over 33; Olga's radii +0.15 A / 0.94 A."
 tags: [validation, fps, screening, av, acv, radii, prd-121]
 ---
 
@@ -12,6 +12,73 @@ tags: [validation, fps, screening, av, acv, radii, prd-121]
 [`test/representation/test_av_contact_volume.py`](../../test/representation/test_av_contact_volume.py),
 [`test/representation/test_olga_vdw_radii.py`](../../test/representation/test_olga_vdw_radii.py)
 · **PRD:** [121](../prds/prd-121.md)
+
+## Where to pick this up
+
+1. **FPS's stencil, not only FPS's first step.** FPS hops `LinkSearchNodes = 3`
+   voxels (the 7x7x7 cube, target-only check) from *every* node; this module
+   takes that hop out of the seed only and then walks the 74 stencil
+   (max sqrt(6) voxels). Measured cost: T4L-132 CB at W 4.5 is **empty at a
+   0.5 A grid** (FPS's own routine, `prototypes/fps_oracle` with a grid
+   override, gives 42 151 voxels / ~5 270 A^3 there; Olga's radii do not open
+   it here either), and p66 with explicit hydrogens is 0.928 of FPS's volume
+   (0.987 under FRETraj's larger first step). At FPS's and Olga's 0.9 A
+   default the site resolves (6 899 voxels, ~5 030 A^3; FPS 9 237 with Bondi
+   radii). Taking the cube everywhere is ~4.6x the neighbours of 74 -- a speed
+   and physics decision for the owner, not taken here. Pinned as a known gap in
+   `test_av_source_clearance.py::test_fine_grid_at_the_fps_width_under_fps_first_step`.
+2. **AV3 grid.** FPS's relative rule gives 0.6 A for an AV3 with its 1.5 A
+   radius (Olga: 0.9 for both); the default is 0.9 for both
+   (`fps_default_grid` is there for a caller who wants FPS's rule). The legacy
+   C# `.txt` reader now writes FPS's rule per position.
+3. **Radii.** FPS's Bondi (element) and Olga's (name-keyed) radii disagree, and
+   the default stays IMP's (owner, 2026-09-01: docking consistency); Bondi is
+   not a selectable `radii_source`.
+
+## Since 2026-10-11 (later): the AV defaults are FPS's and Olga's
+
+Owner, 2026-10-11: *"av defaults should be fps/olga defaults, take from
+there."* Read from FPS's and Olga's source (headers in `chisurf/junk/fps`,
+`chisurf/junk/olga`) and declared once in
+[`include/ProbeAccessibleVolumeDefaults.h`](../../include/ProbeAccessibleVolumeDefaults.h),
+which every door reads (decorator, array/PDB builders, both fps.json readers,
+schema, `av-export`, model comparison):
+
+| parameter | old | FPS | Olga | new |
+|---|---|---|---|---|
+| linker length | 20 (CLI 20.5) | 20 (`linker.txt` row 1) | none (0) | 20 |
+| linker width | 0.5 decorator / 1.0 position reader / 1.5 CLI | 4.5 | none (0) | 4.5 |
+| AV1 radius | 3.5 (3.0 at one json reader) | 3.5 | none (0) | 3.5 |
+| AV3 radii | (AV1 default, 0, 0) | 5, 4.5, 1.5 | none | 5, 4.5, 1.5 for an AV3 that omits them |
+| grid | 1.5 | 0.2 min(L, W, 2R), >= 0.4: 0.9 (AV1), 0.6 (AV3) | 0.9 | 0.9 |
+| clearance (derived) | max(1.5, W/2 + grid/2); array door flat 2.1 | seed `0.5 W` | `ignoreSphere` (lround(W/2dg)+1) dg | 0.5 W |
+| first step | ball of W + dg (FRETraj) | 3-voxel cube hop from every seed voxel | none | FPS's (`PathMap::set_source_first_step`) |
+| simulation type | AV1 | AV1 | AV1 | AV1 |
+| contact volume | off | none | off (0, -1) | off |
+| min. sphere fraction | 0 | none | 0 | 0 |
+
+Where they disagree the search follows FPS. The legacy `space_fixed=False`
+path keeps its frozen derivation and no first step. Measured on this file,
+ACV off unless stated (FRETraj-first-step values in parentheses):
+
+| comparison | radii | pairs | bias | rmsd | r |
+|---|---|---|---|---|---|
+| vs FPS's own routine | IMP (default) | 33 | +0.63 A (+0.70) | 1.65 A (1.70) | 0.9808 (0.9801) |
+| *...the 24 without site 132* | IMP (default) | 24 | **+0.00 A** (+0.08) | **0.84 A** (0.87) | **0.9959** (0.9955) |
+| *...the 9 with site 132* | IMP (default) | 9 | +2.30 A (+2.37) | 2.83 A (2.92) | 0.9689 (0.9667) |
+| vs FPS's own routine, the same 24 | Olga | 24 | -0.33 A (-0.29) | 1.05 A (1.03) | 0.9926 (0.9928) |
+| no ACV, vs the published table | IMP (default) | 33 | +2.66 A | 2.97 A | 0.9885 |
+| no ACV, vs the published table | Olga | 33 | +2.38 A | 2.72 A | 0.9857 |
+| ACV on, vs the published table | IMP (default) | 33 | +0.55 A (+0.58) | 0.93 A (0.94) | 0.9953 (0.9954) |
+| ACV on, vs the published table | Olga | 33 | +0.15 A (+0.15) | 0.94 A (0.90) | 0.9915 (0.9923) |
+
+FPS's defaults are the closest this module has come to FPS's own routine on
+the 24 shared pairs, and the published table with Olga's radii does not
+recover its stencil-only 0.71 A (0.94 A now); with the default radii the
+ACV comparison is as before. Golden volumes (`test/test_density_grid.py`, explicit
+parameters): T4L-132 CB at 0.5 A is 371 548 point values (331 156 stencil
+only, 439 804 FRETraj). HIV-RT `resolved` score 67.3153 (59.0404 stencil only,
+60.5172 FRETraj); T4L restraint `chi2_C2_33p` 11.1476 (11.3268, 11.2817).
 
 ## Since 2026-10-11: the linker's first step reaches out of the anchor
 

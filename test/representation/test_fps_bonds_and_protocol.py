@@ -389,7 +389,7 @@ def test_the_default_scoring_door_keeps_imps_own_constant():
     """The default is deliberately *not* FPS's, and this pins that.
 
     `create_docking_assembly` is the scoring door and its numbers are pinned
-    elsewhere (HIV-RT `resolved` at 60.5172 since 2026-10-11, 59.0404 before; of which 24.8 is the clash term).
+    elsewhere (HIV-RT `resolved` at 67.3153 under FPS's AV defaults since 2026-10-11, 60.5172 under FRETraj's first step earlier that day, 59.0404 before; of which 24.8 is the clash term).
     FPS's docking constant is opted into through `DockingParameters`, which is
     where the docking protocol lives.
     """
@@ -404,7 +404,8 @@ def test_the_default_scoring_door_keeps_imps_own_constant():
     # 1.50 A unknown-name fallback). IMP's own radii are the default again
     # (ProbeAccessibleVolumeDecorator::set_radii_source) and 59.0404 returns exactly.
     # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 59.040389.
-    assert result.score == pytest.approx(60.517244, abs=1e-3)
+    # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 60.517244.
+    assert result.score == pytest.approx(67.315335, abs=1e-3)
 
 
 # --------------------------------------------------------------------------

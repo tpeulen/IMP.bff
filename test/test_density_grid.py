@@ -55,21 +55,26 @@ _SITES = [
 ]
 
 # Recorded 2026-09-07 from the IMP.em-backed build, before PathMap moved onto
-# DensityGrid; re-recorded 2026-10-11 when the linker's first step began to
-# reach one width plus one grid step out of the anchor
-# (PathMap::set_source_hop_radius): T4L-150@1.5 did not move, the others grew,
-# T4L-132@0.5 by a third (331 156 -> 439 804 point values).
+# DensityGrid; re-recorded 2026-10-11 twice: when the linker's first step began
+# to reach one width plus one grid step out of the anchor (FRETraj's rule,
+# T4L-132@0.5 331 156 -> 439 804 point values), and the same day when the
+# owner settled the AV defaults on FPS's ("av defaults should be fps/olga
+# defaults"): the derived clearance is FPS's seed, half the linker width (was
+# max(1.5, W/2 + grid/2)), and the first step is FPS's -- a hop of
+# LinkSearchNodes = 3 voxels (a 7x7x7 cube) from every voxel of that seed
+# (PathMap::set_source_first_step). T4L-132@0.5 is now 371 548, +12 % over the
+# stencil alone rather than +33 %; the explicit parameters here did not change.
 # key -> (n_density, density_sha, n_points, points_sha, ng).
 _GOLDEN = {
-    "T4L-132@1.5": (29791, "f9873c5f86d8e311", 14464, "4c0b2f956753ce5a", 31),
-    "T4L-132@1.0": (91125, "8ae9d0a9b1a3ab07", 54264, "a35f8f1aa069743f", 45),
-    "T4L-132@0.5": (704969, "0f6d572f6a5c43bc", 439804, "90a84950c14f22c1", 89),
-    "T4L-150@1.5": (29791, "368f4274767d1eca", 10060, "818e27628107e959", 31),
-    "T4L-150@1.0": (91125, "8737fa2a6aeba1a1", 31280, "151d26541b281f51", 45),
-    "T4L-150@0.5": (704969, "e15ebd4209131d4b", 259756, "0aabf579826ddb22", 89),
-    "GBP-400@1.5": (29791, "aaff4d31075bcb43", 14288, "e8b8519db7d13342", 31),
-    "GBP-400@1.0": (91125, "f3ca2b8443f8de63", 54056, "0365f4dde90b0579", 45),
-    "GBP-400@0.5": (704969, "120393ecef855f8e", 402960, "7e0190524e335293", 89),
+    "T4L-132@1.5": (29791, "37364ccd7f6dc91a", 15432, "af94c6ef17bd5374", 31),
+    "T4L-132@1.0": (91125, "a9363ac57700ef0d", 55332, "5aee0d3d99199897", 45),
+    "T4L-132@0.5": (704969, "66b5d1f6044217fe", 371548, "b04c129e437c3b86", 89),
+    "T4L-150@1.5": (29791, "d772577956b42772", 10772, "6446b0d427beded8", 31),
+    "T4L-150@1.0": (91125, "f465036cf24d5a1c", 31652, "324411a52b4ba2e5", 45),
+    "T4L-150@0.5": (704969, "14fdaa1992ea4605", 260244, "2c6a18daeb677f81", 89),
+    "GBP-400@1.5": (29791, "175f63dc9c965819", 14376, "45e8bc0c8b4c94a6", 31),
+    "GBP-400@1.0": (91125, "6025d1f861ebc1e8", 53624, "016cc568fa8cddcb", 45),
+    "GBP-400@0.5": (704969, "a8c9e5e677eb6400", 388276, "ac6a4dc685382727", 89),
 }
 
 

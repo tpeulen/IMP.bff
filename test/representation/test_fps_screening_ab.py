@@ -17,12 +17,13 @@ There are **two** references here and they are not the same yardstick.
 
 *Against FPS itself* -- its own routine run on the same structure with the same
 file (`prototypes/fps_oracle/`, pinned in
-`references/fps_screening_oracle_pins.json`) -- the two agree to **+0.08 A,
-rmsd 0.87 A, r = 0.9955** over the 24 pairs without site 132 and to +0.70 A /
-1.70 A / 0.980 over all 33, and that comparison must be made with the contact
+`references/fps_screening_oracle_pins.json`) -- the two agree to **+0.00 A,
+rmsd 0.84 A, r = 0.9959** over the 24 pairs without site 132 and to +0.63 A /
+1.65 A / 0.981 over all 33, and that comparison must be made with the contact
 volume **off**, because FPS has none. (Until 2026-10-11 site 132 had no volume
-at all and the 24 agreed to -0.31 A / 1.20 A / 0.9926; giving the linker's first
-step FPS's reach out of the anchor resolved it and tightened the rest.)
+at all and the 24 agreed to -0.31 A / 1.20 A / 0.9926; a first step out of the
+anchor resolved it -- FRETraj's ball of `W + dg` first, +0.08 / 0.87 A, then,
+the same day, FPS's own seed-and-hop with FPS's defaults.)
 
 Every number here depends on which van der Waals radii the volumes inflate
 their obstacles by, so every one of them is labelled with a radii source. The
@@ -33,8 +34,8 @@ here rather than argued about.
 
 *Against the published table*, neither reproduced it while the contact volume
 the file asks for was inert: this module by +2.05 A, FPS's own routine by
-+2.37 A. Honouring it (2026-09-01, PRD-121 G9) closes that: **+0.58 A bias,
-0.94 A rmsd, r = 0.9954** over all 33 pairs, and **+0.15 A / 0.90 A / 0.9923**
++2.37 A. Honouring it (2026-09-01, PRD-121 G9) closes that: **+0.55 A bias,
+0.93 A rmsd, r = 0.9953** over all 33 pairs, and **+0.15 A / 0.94 A / 0.9915**
 if Olga's radii are selected too (before the linker's first step reached out of
 the anchor, 2026-10-11: +0.22 A / 0.91 A over the 24 that resolved, and
 -0.02 A / 0.71 A / 0.9954 over 33 with Olga's radii -- the one comparison the
@@ -155,9 +156,11 @@ def test_rda_agrees_with_fps_itself():
     """The real A/B: this module against FPS's own routine, pair by pair.
 
     Under the **default radii** -- IMP's, the ones on the particles -- all 33
-    pairs resolve. Over the 24 without site 132 they agree to bias **+0.08 A**,
-    rmsd **0.87 A**, r = **0.9955**; the nine with site 132 are the hard ones
-    (+2.37 A / 2.92 A), and over all 33 it is +0.70 A / 1.70 A / 0.980.
+    pairs resolve. Over the 24 without site 132 they agree to bias **+0.00 A**,
+    rmsd **0.84 A**, r = **0.9959**; the nine with site 132 are the hard ones
+    (+2.30 A / 2.83 A), and over all 33 it is +0.63 A / 1.65 A / 0.981
+    (FPS's defaults, 2026-10-11; under FRETraj's first step earlier that day
+    +0.08 / 0.87 / 0.9955 over the 24).
 
     Until 2026-10-11 those nine had no model value: site 132's linker was
     walled in by united-atom radii, because the search left the anchor one
@@ -168,7 +171,7 @@ def test_rda_agrees_with_fps_itself():
 
     **Olga's** radii, which have to be asked for, also resolve all 33, and
     over the same 24 they now agree with FPS *less* well than the default
-    (-0.29 A / 1.03 A / 0.9928). Before the change the order was the other way
+    (-0.33 A / 1.05 A / 0.9926). Before the change the order was the other way
     round. Both halves are pinned so neither can be quoted without the other.
     """
     with open(ORACLE_PINS) as fh:
@@ -380,8 +383,9 @@ def test_the_contact_volume_explains_the_offset_against_the_published_table():
     this file.
 
     That program was Olga, and asking for Olga's radii (`ProbeAccessibleVolumeDecorator::set_radii_source`)
-    improves it again: **+0.15 A bias, 0.90 A rmsd, r = 0.9923 over all 33
-    published pairs**. Before the linker's first step reached out of the anchor
+    improves the bias again: **+0.15 A bias, 0.94 A rmsd, r = 0.9915 over all
+    33 published pairs** (0.90 A rmsd under FRETraj's first step earlier on
+    2026-10-11). Before the linker's first step reached out of the anchor
     (2026-10-11) this was -0.02 A / 0.71 A / 0.9954 -- the published table, which
     Olga computed, is the one reference that change moved this module away
     from, while it moved it towards FPS's own routine.
@@ -395,7 +399,8 @@ def test_the_contact_volume_explains_the_offset_against_the_published_table():
 
     Kept as a test rather than a note because it is the strongest external
     check the module has: 33 published numbers, reproduced to within 0.72 A
-    rmsd by a path with no fitted parameter in it (0.90 A since 2026-10-11).
+    rmsd by a path with no fitted parameter in it (0.93 A with the default
+    radii under FPS's defaults since 2026-10-11).
     """
     header, reference = _reference_row("3GUN")
     by_name = lambda pair: pair.name.replace("_C1", "").replace("-", "_")
@@ -411,8 +416,11 @@ def test_the_contact_volume_explains_the_offset_against_the_published_table():
     assert np.corrcoef(published, on)[0, 1] > 0.995
 
     # ...and what the default costs against this reference, measured. Olga's
-    # radii fit the 33 published pairs better than the default does. Asserted so the price cannot drift out of
-    # the page that quotes it.
+    # radii fit the 33 published pairs with a smaller bias than the default
+    # (+0.15 A against +0.55 A). The rmsd ordering turned with FPS's defaults
+    # (2026-10-11): 0.94 A with Olga's radii against 0.93 A with IMP's, where it
+    # was 0.71 against 0.91 under the stencil-only search. Asserted so neither
+    # can drift out of the page that quotes it.
     olga_result = _scored(derive_clearance=True, contact_volume=True,
                           radii_source="olga")
     olga_mine, olga_theirs = [], []
@@ -428,4 +436,4 @@ def test_the_contact_volume_explains_the_offset_against_the_published_table():
     assert len(olga_mine) == 33 and len(on) == 33
     assert abs((olga_mine - olga_theirs).mean()) < abs((on - published).mean())
     assert (np.sqrt(((olga_mine - olga_theirs) ** 2).mean())
-            < np.sqrt(((on - published) ** 2).mean()))
+            == pytest.approx(np.sqrt(((on - published) ** 2).mean()), abs=0.05))

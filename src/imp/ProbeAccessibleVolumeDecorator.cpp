@@ -642,8 +642,14 @@ void ProbeAccessibleVolumeDecorator::resample_legacy(bool shift_xyz){
     critical_radius = get_effective_linker_length();
     map->fill_sphere(source, critical_radius, TILE_PENALTY_THRESHOLD, true);
 
-    // 3.1 Unblock voxels in initial sphere
-    critical_radius = get_effective_allowed_sphere_radius();
+    // 3.1 Unblock voxels in initial sphere. An unset clearance derives the
+    // rule this path was frozen with, max(1.5, W/2 + grid/2), not FPS's W/2
+    // the lattice path now uses: there is no first step here to make up for
+    // the grid step of slack, and these are the historical numbers.
+    critical_radius = get_allowed_sphere_radius() >= 0.0
+            ? get_allowed_sphere_radius()
+            : std::max(1.5, 0.5 * get_linker_width()
+                                    + 0.5 * get_simulation_grid_resolution());
     map->fill_sphere(source, critical_radius, 0, false);
 
     // 4. Find a path from source to other tiles
@@ -651,7 +657,7 @@ void ProbeAccessibleVolumeDecorator::resample_legacy(bool shift_xyz){
     long source_idx = map->get_voxel_by_location(source);
     // This path reproduces the historical numbers, so the linker steps out
     // of its anchor one stencil step at a time, as it always did here.
-    map->set_source_hop_radius(0.0);
+    map->set_source_first_step(0.0, 0);
     map->find_path_dijkstra(source_idx, -1);
 
     // 5. Remove tiles closer to obstacles than dye radius
@@ -928,7 +934,7 @@ void ProbeAccessibleVolumeDecorator::resample_lattice_prepare(bool shift_xyz, bo
     st.pending_shift_xyz = shift_xyz;
     st.pending_ll = ll;
     st.pending_allowed = get_effective_allowed_sphere_radius();
-    st.pending_hop = get_effective_source_hop_radius();
+    st.pending_seed = get_effective_allowed_sphere_radius();
     /* Unconditional, shared raster or private: the same subtraction on both,
        so the two cannot compute different volumes for the same position.
        It must be the radius the *raster* used for this atom, not the one the
@@ -1002,7 +1008,7 @@ void ProbeAccessibleVolumeDecorator::resample_lattice_compute(bool split_stages)
     // smallest float c with c * h >= ll (the density test is c * h < ll)
     float bound = ll / h;
     while(bound * h < ll) bound = std::nextafter(bound, std::numeric_limits<float>::infinity());
-    map->set_source_hop_radius(st.pending_hop);
+    map->set_source_first_step(st.pending_seed, AV_DEFAULT_LINK_SEARCH_NODES);
     if(st.pending_factor <= 1){
         map->search_lattice(source_idx, bound, source, st.pending_ll, st.pending_allowed, counts);
     } else {
@@ -1023,7 +1029,7 @@ void ProbeAccessibleVolumeDecorator::resample_lattice_compute(bool split_stages)
         cm->fill_sphere(source, st.pending_allowed, 0, false);
         long csrc = cm->get_voxel_by_location(source);
         cdata[csrc] = 0.0;   // the source's coarse tile is always open
-        cm->set_source_hop_radius(st.pending_hop);
+        cm->set_source_first_step(st.pending_seed, AV_DEFAULT_LINK_SEARCH_NODES);
         cm->search_lattice(csrc, bound / f);
         cm->cost[csrc] = 0.0f;   // its own cost is real here (extension below)
         // extend to the fine grid
@@ -1181,6 +1187,20 @@ void ProbeAccessibleVolumeDecorator::resample_lattice_finish(){
     }
 }
 
+namespace {
+//! A position's dye radii, the absent ones from its model's defaults.
+/*! An AV3 position that leaves its radii out gets FPS's three (5, 4.5, 1.5),
+    not the AV1 radius and two zeros: zero is this library's "unused" sentinel,
+    so an AV3 read with AV1 defaults would silently become an AV1. */
+algebra::Vector3D position_radii(const nlohmann::json& j) {
+    const bool av3 = j.value("simulation_type", std::string("AV1")) == "AV3";
+    return algebra::Vector3D(
+            j.value("radius1", av3 ? AV_DEFAULT_AV3_RADIUS1 : AV_DEFAULT_RADIUS1),
+            j.value("radius2", av3 ? AV_DEFAULT_AV3_RADIUS2 : 0.0),
+            j.value("radius3", av3 ? AV_DEFAULT_AV3_RADIUS3 : 0.0));
+}
+}  // namespace
+
 void ProbeAccessibleVolumeDecorator::set_av_parameter(const std::string &json_text){
     const nlohmann::json j = nlohmann::json::parse(json_text);
     // Only AV1/AV3 (and XYZ, which the reader turns into a fixed point) are
@@ -1196,14 +1216,15 @@ void ProbeAccessibleVolumeDecorator::set_av_parameter(const std::string &json_te
                  << "(R1) are Python-only: filter them with "
                  << "IMP.bff.fps_positions_for_docking() before docking.\n");
     }
-    set_linker_length(j.value("linker_length", 20.0));
-    algebra::Vector3D r = {j.value("radius1", 3.0),
-                           j.value("radius2", 0.0),
-                           j.value("radius3", 0.0)};
+    // Absent parameters take the module's defaults
+    // (ProbeAccessibleVolumeDefaults.h), the same at every door; this one
+    // used to read radius1 3.0 where the others read 3.5.
+    set_linker_length(j.value("linker_length", AV_DEFAULT_LINKER_LENGTH));
+    const algebra::Vector3D r = position_radii(j);
     set_radius1(r[0]);
     set_radius2(r[1]);
     set_radius3(r[2]);
-    set_linker_width(j.value("linker_width", 0.5));
+    set_linker_width(j.value("linker_width", AV_DEFAULT_LINKER_WIDTH));
     // Absent means *derive* (see get_effective_allowed_sphere_radius); a
     // flat 1.5 here is what made this door return empty volumes at FPS's
     // standard linker width of 4.5 A.
@@ -1215,7 +1236,8 @@ void ProbeAccessibleVolumeDecorator::set_av_parameter(const std::string &json_te
        while the ACV was inert (PRD-121 G9); the first thing the wiring found. */
     set_contact_volume_trapped_fraction(
             j.value("contact_volume_trapped_fraction", -1.0));
-    set_simulation_grid_resolution(j.value("simulation_grid_resolution", 1.5));
+    set_simulation_grid_resolution(j.value("simulation_grid_resolution",
+                                           AV_DEFAULT_SIMULATION_GRID_RESOLUTION));
     // The position's parameters are calibrated against a structure whose
     // labelling site has been stripped, so the mask is part of the position,
     // not a convenience of whoever wrote the file.
@@ -1929,23 +1951,25 @@ namespace {
 /*! Reads the fields the fps dictionary states for a position. A declared
     `simulation_grid_resolution` that disagrees with `disc_step` raises: that
     field is *written into* the particle from `disc_step`, so a caller who
-    declares it and omits the step would silently build at the 1.5 A default. */
+    declares it and omits the step would silently build at the default grid. */
 ProbeAccessibleVolume av_from_position(const std::string& pdb_path,
                                   const nlohmann::json& position,
                                   double disc_step) {
     const std::string chain = position.value("chain_identifier", "");
     const int resseq = position.value("residue_seq_number", 0);
     const std::string atom = position.value("atom_name", "CA");
-    const double linker_length = position.value("linker_length", 20.0);
-    const double linker_width = position.value("linker_width", 1.0);
-    const double r1 = position.value("radius1", 3.5);
-    const double r2 = position.value("radius2", 0.0);
-    const double r3 = position.value("radius3", 0.0);
+    const double linker_length =
+            position.value("linker_length", AV_DEFAULT_LINKER_LENGTH);
+    // was 1.0 here, 0.5 at the decorator door: one default now
+    const double linker_width =
+            position.value("linker_width", AV_DEFAULT_LINKER_WIDTH);
+    const algebra::Vector3D radii = position_radii(position);
+    const double r1 = radii[0], r2 = radii[1], r3 = radii[2];
     const double declared =
             position.contains("simulation_grid_resolution")
                     ? position.at("simulation_grid_resolution").get<double>()
                     : 0.0;
-    double step = 1.5;
+    double step = AV_DEFAULT_SIMULATION_GRID_RESOLUTION;
     if (disc_step > 0.0) {
         step = disc_step;
         if (position.contains("simulation_grid_resolution") &&
@@ -1959,7 +1983,7 @@ ProbeAccessibleVolume av_from_position(const std::string& pdb_path,
         IMP_THROW("the position declares simulation_grid_resolution="
                           << declared
                           << " but no disc_step was given, so the AV would be "
-                             "built at disc_step=1.5",
+                             "built at the default disc_step",
                   ValueException);
     }
     return get_av_from_structure(
@@ -2020,7 +2044,7 @@ std::map<std::string, ProbeAccessibleVolume> get_avs_for_structure(
                 ? disc_step
                 : p.contains("simulation_grid_resolution")
                           ? p.at("simulation_grid_resolution").get<double>()
-                          : 1.5;
+                          : AV_DEFAULT_SIMULATION_GRID_RESOLUTION;
         double* found = NULL;
         int n_found = 0;
         get_attachment_point(path, p.value("chain_identifier", ""),

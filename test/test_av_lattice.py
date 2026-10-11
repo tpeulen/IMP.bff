@@ -855,6 +855,10 @@ class TestAVHandle(unittest.TestCase):
         mp = av.get_map()
         src = mp.get_voxel_by_location(av.get_source_coordinates())
         self.assertFalse(mp.get_exact_search())
+        # The two Dijkstra variants are compared on the stencil alone: the
+        # linker's first step (FPS's seed-and-hop, set by resample()) is an
+        # extra set of source edges that only the bounded core takes.
+        mp.set_source_first_step(0.0, 0)
         mp.find_path_dijkstra(src, -1)
         c0 = np.array(mp.get_tile_values(IMP.bff.PM_TILE_COST, (0.0, 1e9), "")).ravel()
         mp.set_exact_search(True)
@@ -885,7 +889,8 @@ class TestAVHandle(unittest.TestCase):
         # 11.010342418210929; IMP's own are the default again
         # (ProbeAccessibleVolumeDecorator::set_radii_source), so the pre-Olga 10.9834 returns exactly.
         # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 10.983394087144049.
-        self.assertAlmostEqual(r30.unprotected_evaluate(None), 10.81840491201247, places=6)
+        # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 10.81840491201247.
+        self.assertAlmostEqual(r30.unprotected_evaluate(None), 11.19673921226955, places=6)
         r26 = IMP.bff.ProbeNetworkRestraint(self.hier, FPS_JSON, score_set="chi2_C2_33p",
                                          quad_k=100)
         self.assertEqual(r26.get_search_stencil(), 26)
@@ -895,7 +900,8 @@ class TestAVHandle(unittest.TestCase):
         # default (2026-09-01); IMP's own are the default again, so 11.3959
         # returns exactly.
         # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 11.395949223491733.
-        self.assertAlmostEqual(r26.unprotected_evaluate(None), 11.251908143953834, places=6)
+        # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 11.251908143953834.
+        self.assertAlmostEqual(r26.unprotected_evaluate(None), 11.195269099108469, places=6)
         # the 30-stencil AVs leak through one-voxel walls: slightly larger
         n30 = sum(len(r30.get_used_av(n).get_map().get_xyz_density()) for n in av_names(r30))
         n26 = sum(len(r26.get_used_av(n).get_map().get_xyz_density()) for n in av_names(r26))
