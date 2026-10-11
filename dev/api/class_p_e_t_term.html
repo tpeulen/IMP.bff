@@ -107,8 +107,8 @@ Collaboration diagram for PETTerm:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a60adae3b32a58b6ad62be104a23232dc" id="r_a60adae3b32a58b6ad62be104a23232dc"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_p_e_t_term.html#a60adae3b32a58b6ad62be104a23232dc">PETTerm</a> (const std::map&lt; std::string, <a class="el" href="struct_p_e_t_parameters.html">PETParameters</a> &gt; &amp;parameters, const std::vector&lt; std::string &gt; &amp;res_names, const std::vector&lt; std::string &gt; &amp;atom_names, double *coords, int n_atoms, int n_dim, double probe_radius=3.5)</td></tr>
-<tr class="separator:a60adae3b32a58b6ad62be104a23232dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab5825063f31393c902b99835c86567c9" id="r_ab5825063f31393c902b99835c86567c9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_p_e_t_term.html#ab5825063f31393c902b99835c86567c9">PETTerm</a> (const std::map&lt; std::string, <a class="el" href="struct_p_e_t_parameters.html">PETParameters</a> &gt; &amp;parameters, const std::vector&lt; std::string &gt; &amp;res_names, const std::vector&lt; std::string &gt; &amp;atom_names, double *coords, int n_atoms, int n_dim, double probe_radius=IMP::bff::AV_DEFAULT_RADIUS1)</td></tr>
+<tr class="separator:ab5825063f31393c902b99835c86567c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6a4e22e7af53c9d4cfe9bd453c4fadba" id="r_a6a4e22e7af53c9d4cfe9bd453c4fadba"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_p_e_t_term.html#a6a4e22e7af53c9d4cfe9bd453c4fadba">get_probe_radius</a> () const</td></tr>
 <tr class="separator:a6a4e22e7af53c9d4cfe9bd453c4fadba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae3469ee039be6ee4ca00c6c73414f3c5" id="r_ae3469ee039be6ee4ca00c6c73414f3c5"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_p_e_t_term.html#ae3469ee039be6ee4ca00c6c73414f3c5">get_n_active</a> () const</td></tr>
@@ -140,8 +140,8 @@ Public Member Functions</h2></td></tr>
 <p><picture><source srcset="form_255_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k(r) = \sum_a k_{Q,a} \exp(-(|r - r_a| - r_{dye}) / r_{C,a})$" src="form_255.png"/></picture></p>
 <p>The quenching atoms are part of the term, not a per-call argument: resolving which of a structure's atoms quench, and how hard, is a function of the residue and atom names and the dye's #IMP::bff::PETParameters, and it does not change from one set of dye states to the next. Doing it once at construction is also what lets the rate be a plain loop. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a60adae3b32a58b6ad62be104a23232dc" name="a60adae3b32a58b6ad62be104a23232dc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a60adae3b32a58b6ad62be104a23232dc">&#9670;&#160;</a></span>PETTerm()</h2>
+<a id="ab5825063f31393c902b99835c86567c9" name="ab5825063f31393c902b99835c86567c9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab5825063f31393c902b99835c86567c9">&#9670;&#160;</a></span>PETTerm()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -186,7 +186,7 @@ Public Member Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>probe_radius</em> = <code>3.5</code>&#160;</td>
+          <td class="paramname"><em>probe_radius</em> = <code>IMP::bff::AV_DEFAULT_RADIUS1</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -395,7 +395,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 11 2026 20:30:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Oct 11 2026 22:12:58 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

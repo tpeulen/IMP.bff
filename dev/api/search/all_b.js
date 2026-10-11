@@ -4,7 +4,7 @@ var searchData=
   ['l2_1',['l2',['../structinternal_1_1_transfer_pair.html#a346dfc130fab02fab14aa7ebbcb023a5',1,'internal::TransferPair']]],
   ['label_20distance_20score_20usage_3a_2',['Inter-label distance score usage:',['../index.html#autotoc_md5',1,'']]],
   ['label_5fscore_5fthreshold_3',['label_score_threshold',['../struct_labelizer_f_r_e_t_options.html#abfe6ca4e7883f3d0b1a9cc8a724b6d1a',1,'LabelizerFRETOptions']]],
-  ['labeldistribution_4',['labeldistribution',['../class_label_distribution.html#ae1af910cd1b61714e1ac2ef6ee0660bd',1,'LabelDistribution::LabelDistribution()'],['../class_label_distribution.html',1,'LabelDistribution']]],
+  ['labeldistribution_4',['labeldistribution',['../class_label_distribution.html#a0fa624a106d77efcd9cc621a1adb6bdf',1,'LabelDistribution::LabelDistribution()'],['../class_label_distribution.html',1,'LabelDistribution']]],
   ['labeldistributionav_5',['labeldistributionav',['../class_label_distribution_a_v.html',1,'LabelDistributionAV'],['../class_label_distribution_a_v.html#a009e6961a13cae88d2fb5337206dd1de',1,'LabelDistributionAV::LabelDistributionAV()']]],
   ['labelizer_20ndash_20score_20the_20labelling_20sites_20of_20a_20structure_6',['imp_bff labelizer &amp;ndash; score the labelling sites of a structure',['../index.html#imp_bff_labelizer',1,'']]],
   ['labelizer_5falpha_5fcone_5fmean_5fposition_7',['labelizer_alpha_cone_mean_position',['../_labelizer_f_r_e_t_8h.html#a4a0827e6c858044f4d69a972ca8c9297',1,'LabelizerFRET.h']]],

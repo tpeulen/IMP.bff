@@ -121,8 +121,8 @@ Collaboration diagram for LabelDistribution:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ae1af910cd1b61714e1ac2ef6ee0660bd" id="r_ae1af910cd1b61714e1ac2ef6ee0660bd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_label_distribution.html#ae1af910cd1b61714e1ac2ef6ee0660bd">LabelDistribution</a> (const std::string &amp;simulation_type=&quot;AV1&quot;, const std::vector&lt; double &gt; &amp;origin=std::vector&lt; double &gt;(), double simulation_grid_resolution=0.5, const std::string &amp;position_name=&quot;&quot;)</td></tr>
-<tr class="separator:ae1af910cd1b61714e1ac2ef6ee0660bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0fa624a106d77efcd9cc621a1adb6bdf" id="r_a0fa624a106d77efcd9cc621a1adb6bdf"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_label_distribution.html#a0fa624a106d77efcd9cc621a1adb6bdf">LabelDistribution</a> (const std::string &amp;simulation_type=&quot;AV1&quot;, const std::vector&lt; double &gt; &amp;origin=std::vector&lt; double &gt;(), double simulation_grid_resolution=IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION, const std::string &amp;position_name=&quot;&quot;)</td></tr>
+<tr class="separator:a0fa624a106d77efcd9cc621a1adb6bdf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad07a70f9bf98595577b3307d1c1d4989" id="r_ad07a70f9bf98595577b3307d1c1d4989"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_label_distribution.html#ad07a70f9bf98595577b3307d1c1d4989">~LabelDistribution</a> ()</td></tr>
 <tr class="separator:ad07a70f9bf98595577b3307d1c1d4989"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a32f19d6f7fa7e66a91472aa26063a8b4" id="r_a32f19d6f7fa7e66a91472aa26063a8b4"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="class_probe_accessible_volume.html">ProbeAccessibleVolume</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_label_distribution.html#a32f19d6f7fa7e66a91472aa26063a8b4">get_accessible_volume</a> () const</td></tr>
@@ -178,8 +178,8 @@ Protected Attributes</h2></td></tr>
 <p>Two of them: an accessible volume computed from a structure's obstacles, and an isotropic Gaussian that needs no structure at all. They exist so a caller can hold <em>a label</em> and ask it for states, without deciding which model produced them.</p>
 <p>The volume is computed <b>lazily</b>, on the first call to #IMP::bff::LabelDistribution::get_accessible_volume, because building one is the expensive thing a label does and a caller often holds several before asking any of them anything. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="ae1af910cd1b61714e1ac2ef6ee0660bd" name="ae1af910cd1b61714e1ac2ef6ee0660bd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae1af910cd1b61714e1ac2ef6ee0660bd">&#9670;&#160;</a></span>LabelDistribution()</h2>
+<a id="a0fa624a106d77efcd9cc621a1adb6bdf" name="a0fa624a106d77efcd9cc621a1adb6bdf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0fa624a106d77efcd9cc621a1adb6bdf">&#9670;&#160;</a></span>LabelDistribution()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -200,7 +200,7 @@ Protected Attributes</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>simulation_grid_resolution</em> = <code>0.5</code>, </td>
+          <td class="paramname"><em>simulation_grid_resolution</em> = <code>IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -700,7 +700,7 @@ Protected Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 11 2026 20:30:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Oct 11 2026 22:12:58 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

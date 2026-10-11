@@ -116,8 +116,8 @@ Collaboration diagram for ProbeAccessibleVolume:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a65921729ca6a2303f9cfbd8dfd6b2487" id="r_a65921729ca6a2303f9cfbd8dfd6b2487"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume.html#a65921729ca6a2303f9cfbd8dfd6b2487">ProbeAccessibleVolume</a> (const std::vector&lt; double &gt; &amp;points=std::vector&lt; double &gt;(), const std::vector&lt; double &gt; &amp;density=std::vector&lt; double &gt;(), const std::vector&lt; double &gt; &amp;grid_origin=std::vector&lt; double &gt;(), double grid_step=1.5, const std::string &amp;position_name=&quot;&quot;, const std::vector&lt; double &gt; &amp;attachment_point=std::vector&lt; double &gt;(), const std::vector&lt; double &gt; &amp;orientations=std::vector&lt; double &gt;(), const std::map&lt; std::string, std::string &gt; &amp;params=std::map&lt; std::string, std::string &gt;())</td></tr>
-<tr class="separator:a65921729ca6a2303f9cfbd8dfd6b2487"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc1adf17c2983741aed59bd0ce6437cd" id="r_abc1adf17c2983741aed59bd0ce6437cd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume.html#abc1adf17c2983741aed59bd0ce6437cd">ProbeAccessibleVolume</a> (const std::vector&lt; double &gt; &amp;points=std::vector&lt; double &gt;(), const std::vector&lt; double &gt; &amp;density=std::vector&lt; double &gt;(), const std::vector&lt; double &gt; &amp;grid_origin=std::vector&lt; double &gt;(), double grid_step=IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION, const std::string &amp;position_name=&quot;&quot;, const std::vector&lt; double &gt; &amp;attachment_point=std::vector&lt; double &gt;(), const std::vector&lt; double &gt; &amp;orientations=std::vector&lt; double &gt;(), const std::map&lt; std::string, std::string &gt; &amp;params=std::map&lt; std::string, std::string &gt;())</td></tr>
+<tr class="separator:abc1adf17c2983741aed59bd0ce6437cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a63642569bf54d0214fcc7d36b1b241ef" id="r_a63642569bf54d0214fcc7d36b1b241ef"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume.html#a63642569bf54d0214fcc7d36b1b241ef">get_density</a> (double **out_view, int *n_out_view) const</td></tr>
 <tr class="memdesc:a63642569bf54d0214fcc7d36b1b241ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">The density grid; a zero-length view when none is carried.  <br /></td></tr>
 <tr class="separator:a63642569bf54d0214fcc7d36b1b241ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -224,8 +224,8 @@ Protected Attributes</h2></td></tr>
 <p>The grid is cubic: #IMP::bff::PathMapHeader sizes it from the linker length in all three axes, so <code>ng</code> is one number rather than three.</p>
 <p>There is no padding: the kernel returns exactly the points it found, so the count is the cloud's length and a separate <code>n_points</code> cannot disagree with it. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a65921729ca6a2303f9cfbd8dfd6b2487" name="a65921729ca6a2303f9cfbd8dfd6b2487"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a65921729ca6a2303f9cfbd8dfd6b2487">&#9670;&#160;</a></span>ProbeAccessibleVolume()</h2>
+<a id="abc1adf17c2983741aed59bd0ce6437cd" name="abc1adf17c2983741aed59bd0ce6437cd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abc1adf17c2983741aed59bd0ce6437cd">&#9670;&#160;</a></span>ProbeAccessibleVolume()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -252,7 +252,7 @@ Protected Attributes</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>grid_step</em> = <code>1.5</code>, </td>
+          <td class="paramname"><em>grid_step</em> = <code>IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -614,7 +614,7 @@ Protected Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 11 2026 20:30:27 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Oct 11 2026 22:12:58 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

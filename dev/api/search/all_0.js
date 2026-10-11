@@ -32,7 +32,7 @@ var searchData=
   ['activate_5fstructure_29',['activate_structure',['../class_fitting_model_search_problem.html#a336c673c70eec4f1c0a1e6959073df83',1,'FittingModelSearchProblem']]],
   ['activation_30',['activation',['../class_neural_net_train_options.html#a23b7c419dd216fe2b3e7c940798708fe',1,'NeuralNetTrainOptions']]],
   ['active_5fmask_31',['active_mask',['../struct_linear_least_squares_result.html#a52fea01b3544d99df4252e43c3377969',1,'LinearLeastSquaresResult']]],
-  ['acv_32',['acv',['../class_a_c_v.html',1,'ACV'],['../class_a_c_v.html#a0e5a8032d87d727d20bb95d20c526546',1,'ACV::ACV()']]],
+  ['acv_32',['acv',['../class_a_c_v.html',1,'ACV'],['../class_a_c_v.html#a2d60873abd0b1d41266d13c210cf46a1',1,'ACV::ACV()']]],
   ['adapt_5fmetric_33',['adapt_metric',['../struct_nuts_options.html#a975abc3ca2492889fe0b9d912c75ade7',1,'NutsOptions']]],
   ['adapt_5fstep_5fsize_34',['adapt_step_size',['../struct_nuts_options.html#afbab002ec871a7a0720f23fa96efc10b',1,'NutsOptions']]],
   ['add_35',['add',['../class_covariance_estimator.html#a213e6d74036e482948b6a4fe1f80db30',1,'CovarianceEstimator::add()'],['../class_bayesian_evidence_mixture.html#a611ae01ac06626458389f46a6114b815',1,'BayesianEvidenceMixture::add()'],['../class_bayesian_transformed_gaussian_prior.html#a62c465e0c23f756e8004759fc27bc006',1,'BayesianTransformedGaussianPrior::add()'],['../class_fit_dataset.html#aba412e153d017abfd15f947ebfc6295b',1,'FitDataset::add()'],['../class_residue_sites.html#a9aa861647121d7cf5e353e8ab665c9d3',1,'ResidueSites::add()']]],
