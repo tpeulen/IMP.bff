@@ -51,11 +51,12 @@ var searchData=
   ['av_5fdefault_5flinker_5flength_48',['AV_DEFAULT_LINKER_LENGTH',['../_probe_accessible_volume_defaults_8h.html#abe628c824d5dab09823c0a23cd03ac17',1,'ProbeAccessibleVolumeDefaults.h']]],
   ['av_5fdefault_5flinker_5fwidth_49',['AV_DEFAULT_LINKER_WIDTH',['../_probe_accessible_volume_defaults_8h.html#adc3fbeea39a87d62be6a4a92947464e9',1,'ProbeAccessibleVolumeDefaults.h']]],
   ['av_5fdefault_5fradius1_50',['AV_DEFAULT_RADIUS1',['../_probe_accessible_volume_defaults_8h.html#a6251807bb95b133c9bbcaf0c64f9ae70',1,'ProbeAccessibleVolumeDefaults.h']]],
-  ['av_5fdefault_5fsearch_5fstencil_51',['AV_DEFAULT_SEARCH_STENCIL',['../_probe_accessible_volume_defaults_8h.html#a31dbff4b17817ebc15a0b0f9e0d50cff',1,'ProbeAccessibleVolumeDefaults.h']]],
-  ['av_5fdefault_5fsimulation_5fgrid_5fresolution_52',['AV_DEFAULT_SIMULATION_GRID_RESOLUTION',['../_probe_accessible_volume_defaults_8h.html#a1ad1e30da300bcc2b034c4ef3d3998ce',1,'ProbeAccessibleVolumeDefaults.h']]],
-  ['av_5fextent_53',['av_extent',['../struct_a_v_rotamer_position.html#a7e1e45a62c1d63bf39b61f23a8645117',1,'AVRotamerPosition']]],
-  ['av_5fn_5fpoints_54',['av_n_points',['../struct_a_v_rotamer_position.html#a4129093ccc56338b9c451ece51489c82',1,'AVRotamerPosition']]],
-  ['av_5fsearch_5fstencil_5ffast_55',['AV_SEARCH_STENCIL_FAST',['../_probe_accessible_volume_defaults_8h.html#a44b9d35ca8a01d8dd59eddd35a70ab3b',1,'ProbeAccessibleVolumeDefaults.h']]],
-  ['av_5fsearch_5fstencil_5ffps_56',['AV_SEARCH_STENCIL_FPS',['../_probe_accessible_volume_defaults_8h.html#a629edd0bedaa03283330aeeb073da039',1,'ProbeAccessibleVolumeDefaults.h']]],
-  ['axis_5felement_57',['axis_element',['../struct_probe_trajectory_density_options.html#a01a13908521774cefa2ae9addc176765',1,'ProbeTrajectoryDensityOptions']]]
+  ['av_5fdefault_5fradius_5fscale_51',['AV_DEFAULT_RADIUS_SCALE',['../_probe_accessible_volume_defaults_8h.html#ab4957a6cc32e3a2c9bcd3033b60d0d35',1,'ProbeAccessibleVolumeDefaults.h']]],
+  ['av_5fdefault_5fsearch_5fstencil_52',['AV_DEFAULT_SEARCH_STENCIL',['../_probe_accessible_volume_defaults_8h.html#a31dbff4b17817ebc15a0b0f9e0d50cff',1,'ProbeAccessibleVolumeDefaults.h']]],
+  ['av_5fdefault_5fsimulation_5fgrid_5fresolution_53',['AV_DEFAULT_SIMULATION_GRID_RESOLUTION',['../_probe_accessible_volume_defaults_8h.html#a1ad1e30da300bcc2b034c4ef3d3998ce',1,'ProbeAccessibleVolumeDefaults.h']]],
+  ['av_5fextent_54',['av_extent',['../struct_a_v_rotamer_position.html#a7e1e45a62c1d63bf39b61f23a8645117',1,'AVRotamerPosition']]],
+  ['av_5fn_5fpoints_55',['av_n_points',['../struct_a_v_rotamer_position.html#a4129093ccc56338b9c451ece51489c82',1,'AVRotamerPosition']]],
+  ['av_5fsearch_5fstencil_5ffast_56',['AV_SEARCH_STENCIL_FAST',['../_probe_accessible_volume_defaults_8h.html#a44b9d35ca8a01d8dd59eddd35a70ab3b',1,'ProbeAccessibleVolumeDefaults.h']]],
+  ['av_5fsearch_5fstencil_5ffps_57',['AV_SEARCH_STENCIL_FPS',['../_probe_accessible_volume_defaults_8h.html#a629edd0bedaa03283330aeeb073da039',1,'ProbeAccessibleVolumeDefaults.h']]],
+  ['axis_5felement_58',['axis_element',['../struct_probe_trajectory_density_options.html#a01a13908521774cefa2ae9addc176765',1,'ProbeTrajectoryDensityOptions']]]
 ];

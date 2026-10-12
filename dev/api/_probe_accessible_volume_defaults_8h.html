@@ -136,6 +136,9 @@ Variables</h2></td></tr>
 <tr class="separator:a6ea5f4f527e7d4f6711b123797672a0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d3a8366a6b819e3ee1aaf6378935cd2" id="r_a4d3a8366a6b819e3ee1aaf6378935cd2"><td class="memItemLeft" align="right" valign="top">constexpr double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_probe_accessible_volume_defaults_8h.html#a4d3a8366a6b819e3ee1aaf6378935cd2">AV_DEFAULT_ALLOWED_SPHERE</a></td></tr>
 <tr class="separator:a4d3a8366a6b819e3ee1aaf6378935cd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab4957a6cc32e3a2c9bcd3033b60d0d35" id="r_ab4957a6cc32e3a2c9bcd3033b60d0d35"><td class="memItemLeft" align="right" valign="top">constexpr double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_probe_accessible_volume_defaults_8h.html#ab4957a6cc32e3a2c9bcd3033b60d0d35">AV_DEFAULT_RADIUS_SCALE</a> = 0.84</td></tr>
+<tr class="memdesc:ab4957a6cc32e3a2c9bcd3033b60d0d35"><td class="mdescLeft">&#160;</td><td class="mdescRight">The one factor <a class="el" href="namespace_i_m_p.html">IMP</a>'s radii are scaled by as an AV's obstacle set.  <br /></td></tr>
+<tr class="separator:ab4957a6cc32e3a2c9bcd3033b60d0d35"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6bb28373788fa0a995e7423e28715a46" id="r_a6bb28373788fa0a995e7423e28715a46"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_probe_accessible_volume_defaults_8h.html#a6bb28373788fa0a995e7423e28715a46">AV_DEFAULT_LINK_SEARCH_NODES</a> = 3</td></tr>
 <tr class="memdesc:a6bb28373788fa0a995e7423e28715a46"><td class="mdescLeft">&#160;</td><td class="mdescRight">FPS <code>LinkSearchNodes</code>: how many voxels the linker hops at a time.  <br /></td></tr>
 <tr class="separator:a6bb28373788fa0a995e7423e28715a46"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -279,8 +282,8 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line">=</div>
 <div class="line">        <a class="code hl_variable" href="_probe_accessible_volume_defaults_8h.html#a6ea5f4f527e7d4f6711b123797672a0e">AV_DEFAULT_LINKER_INITIAL_SPHERE</a> * <a class="code hl_variable" href="_probe_accessible_volume_defaults_8h.html#adc3fbeea39a87d62be6a4a92947464e9">AV_DEFAULT_LINKER_WIDTH</a></div>
-<div class="ttc" id="a_probe_accessible_volume_defaults_8h_html_a6ea5f4f527e7d4f6711b123797672a0e"><div class="ttname"><a href="_probe_accessible_volume_defaults_8h.html#a6ea5f4f527e7d4f6711b123797672a0e">AV_DEFAULT_LINKER_INITIAL_SPHERE</a></div><div class="ttdeci">constexpr double AV_DEFAULT_LINKER_INITIAL_SPHERE</div><div class="ttdoc">FPS LinkerInitialSphere: the seed sphere around the anchor, in linker widths.</div><div class="ttdef"><b>Definition</b> ProbeAccessibleVolumeDefaults.h:69</div></div>
-<div class="ttc" id="a_probe_accessible_volume_defaults_8h_html_adc3fbeea39a87d62be6a4a92947464e9"><div class="ttname"><a href="_probe_accessible_volume_defaults_8h.html#adc3fbeea39a87d62be6a4a92947464e9">AV_DEFAULT_LINKER_WIDTH</a></div><div class="ttdeci">constexpr double AV_DEFAULT_LINKER_WIDTH</div><div class="ttdoc">Linker width (diameter), A (FPS's first preset).</div><div class="ttdef"><b>Definition</b> ProbeAccessibleVolumeDefaults.h:59</div></div>
+<div class="ttc" id="a_probe_accessible_volume_defaults_8h_html_a6ea5f4f527e7d4f6711b123797672a0e"><div class="ttname"><a href="_probe_accessible_volume_defaults_8h.html#a6ea5f4f527e7d4f6711b123797672a0e">AV_DEFAULT_LINKER_INITIAL_SPHERE</a></div><div class="ttdeci">constexpr double AV_DEFAULT_LINKER_INITIAL_SPHERE</div><div class="ttdoc">FPS LinkerInitialSphere: the seed sphere around the anchor, in linker widths.</div><div class="ttdef"><b>Definition</b> ProbeAccessibleVolumeDefaults.h:70</div></div>
+<div class="ttc" id="a_probe_accessible_volume_defaults_8h_html_adc3fbeea39a87d62be6a4a92947464e9"><div class="ttname"><a href="_probe_accessible_volume_defaults_8h.html#adc3fbeea39a87d62be6a4a92947464e9">AV_DEFAULT_LINKER_WIDTH</a></div><div class="ttdeci">constexpr double AV_DEFAULT_LINKER_WIDTH</div><div class="ttdoc">Linker width (diameter), A (FPS's first preset).</div><div class="ttdef"><b>Definition</b> ProbeAccessibleVolumeDefaults.h:60</div></div>
 </div><!-- fragment --><p>The allowed sphere, A: the clearance around the attachment atom inside which the linker ignores obstacles. <b>On by default</b> (owner, 2026-10-12: "allowed sphere radius must be enabled by default"), at FPS's value: <code>LinkerInitialSphere</code> (0.5, <code>ProjectData.cs:169</code>) times FPS's first-preset linker width (4.5, <code>Fps/data/linker.txt</code> row 1; every FPS preset has it), i.e. 2.25 A. It is the default of every typed door's <code>allowed_sphere_radius</code>. A door that reads a <em>position</em> &ndash; the fps.json readers, the command line &ndash; takes FPS's rule for that position's own width instead, <code>LinkerInitialSphere * W</code> (<a class="el" href="_probe_accessible_volume_defaults_8h.html#add827f16e7fc2e28a3e823edc4968706" title="The source clearance a negative allowed_sphere_radius derives.">av_derived_allowed_sphere_radius</a>), which is this value at the default width: FPS's screening document has widths of 2.5, 3.5 and 4.5 A, and a flat 2.25 for all of them moved 3GUN away from FPS. A <em>negative</em> value means that rule at any door. </p>
 
 </div>
@@ -496,6 +499,33 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="ab4957a6cc32e3a2c9bcd3033b60d0d35" name="ab4957a6cc32e3a2c9bcd3033b60d0d35"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab4957a6cc32e3a2c9bcd3033b60d0d35">&#9670;&#160;</a></span>AV_DEFAULT_RADIUS_SCALE</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr double AV_DEFAULT_RADIUS_SCALE = 0.84</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The one factor <a class="el" href="namespace_i_m_p.html">IMP</a>'s radii are scaled by as an AV's obstacle set. </p>
+<p>FPS inflates its obstacles by element-keyed Bondi radii (<code>vdW.txt</code>); <a class="el" href="namespace_i_m_p.html">IMP</a>'s particles carry CHARMM united-atom radii with implicit hydrogens, ~17 % larger (carbon 1.85-2.275 A against 1.70). Owner, 2026-10-12: "i do not
+want a separate set of atom radii, if fps is slightly smaller, use a
+single scale factor to match fps radii". So the AV keeps <a class="el" href="namespace_i_m_p.html">IMP</a>'s radii &ndash; the ones on the particles &ndash; and multiplies them by this one number; there is no second radii table. Fitted to FPS, not inferred (<code>okf/validation/fps_screening_ab.md</code>, "AV obstacle-radius scale"): over the 20 434 heavy atoms of 148L, 3GUN and 1RTD the FPS/IMP radius ratio is 0.838 (median; least squares 0.821), and on T4L 148L's CB sites the volume against FPS's own routine is 1.00 at this value (0.91 at 1.0). Applies to <code>radii_source = "imp"</code> only: Olga's table is used as published. Every door that reads <a class="el" href="namespace_i_m_p.html">IMP</a>'s radii for an AV takes it (decorator, fps.json position field <code>radius_scale</code>, the docking restraint); the array doors take the caller's radii as given. The docking clash term is separate (<code><a class="el" href="struct_docking_parameters.html#af8d6f11e034ed0e65eaff166026a37a4" title="Multiplies whatever radius clash_radii_source gives. Default 1.0.">DockingParameters::clash_radii_scale</a></code>, 1.0). </p>
+
+</div>
+</div>
 <a id="a31dbff4b17817ebc15a0b0f9e0d50cff" name="a31dbff4b17817ebc15a0b0f9e0d50cff"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a31dbff4b17817ebc15a0b0f9e0d50cff">&#9670;&#160;</a></span>AV_DEFAULT_SEARCH_STENCIL</h2>
 
@@ -589,7 +619,7 @@ Variables</h2></td></tr>
 <b>Initial value:</b><div class="fragment"><div class="line">=</div>
 <div class="line">        (2 * <a class="code hl_variable" href="_probe_accessible_volume_defaults_8h.html#a6bb28373788fa0a995e7423e28715a46">AV_DEFAULT_LINK_SEARCH_NODES</a> + 1) * (2 * <a class="code hl_variable" href="_probe_accessible_volume_defaults_8h.html#a6bb28373788fa0a995e7423e28715a46">AV_DEFAULT_LINK_SEARCH_NODES</a> + 1)</div>
 <div class="line">        * (2 * <a class="code hl_variable" href="_probe_accessible_volume_defaults_8h.html#a6bb28373788fa0a995e7423e28715a46">AV_DEFAULT_LINK_SEARCH_NODES</a> + 1) - 1</div>
-<div class="ttc" id="a_probe_accessible_volume_defaults_8h_html_a6bb28373788fa0a995e7423e28715a46"><div class="ttname"><a href="_probe_accessible_volume_defaults_8h.html#a6bb28373788fa0a995e7423e28715a46">AV_DEFAULT_LINK_SEARCH_NODES</a></div><div class="ttdeci">constexpr int AV_DEFAULT_LINK_SEARCH_NODES</div><div class="ttdoc">FPS LinkSearchNodes: how many voxels the linker hops at a time.</div><div class="ttdef"><b>Definition</b> ProbeAccessibleVolumeDefaults.h:85</div></div>
+<div class="ttc" id="a_probe_accessible_volume_defaults_8h_html_a6bb28373788fa0a995e7423e28715a46"><div class="ttname"><a href="_probe_accessible_volume_defaults_8h.html#a6bb28373788fa0a995e7423e28715a46">AV_DEFAULT_LINK_SEARCH_NODES</a></div><div class="ttdeci">constexpr int AV_DEFAULT_LINK_SEARCH_NODES</div><div class="ttdoc">FPS LinkSearchNodes: how many voxels the linker hops at a time.</div><div class="ttdef"><b>Definition</b> ProbeAccessibleVolumeDefaults.h:104</div></div>
 </div><!-- fragment --><p>The search stencil of FPS's link search: the (2n+1)^3 cube of <code>LinkSearchNodes</code> hops but the node itself, 342 neighbours for n = 3. </p>
 
 </div>
@@ -597,7 +627,7 @@ Variables</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Oct 12 2026 09:00:33 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 12 2026 10:40:31 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

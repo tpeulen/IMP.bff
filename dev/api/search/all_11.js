@@ -125,7 +125,7 @@ var searchData=
   ['res_5fname_122',['res_name',['../struct_p_d_b_atom_record.html#a7a3dbc0b17ed15f11430c515b35a3b44',1,'PDBAtomRecord::res_name'],['../struct_structure_table.html#aae1df1c15acb0a9cbc04a426cb50c514',1,'StructureTable::res_name']]],
   ['res_5fnames_123',['res_names',['../struct_obstacle_atoms.html#ad90b9c4fbc8c5751b184c832d632ad0b',1,'ObstacleAtoms']]],
   ['resample_124',['resample',['../class_density_grid.html#a487c179ae6fb0d2c505610c159ce30ab',1,'DensityGrid::resample()'],['../class_probe_accessible_volume_decorator.html#aec75b1fe91330ae9e2bfcfc2c058f06e',1,'ProbeAccessibleVolumeDecorator::resample()']]],
-  ['resample_5fav_125',['resample_av',['../_probe_accessible_volume_decorator_8h.html#ab7afdcd994705cb1b909de900be488e0',1,'ProbeAccessibleVolumeDecorator.h']]],
+  ['resample_5fav_125',['resample_av',['../_probe_accessible_volume_decorator_8h.html#abe8a298266982fa7b9a5b8e67e66708f',1,'ProbeAccessibleVolumeDecorator.h']]],
   ['resample_5fcompute_126',['resample_compute',['../class_probe_accessible_volume_decorator.html#abfb33812949fa07689cc7e5ab2c561e1',1,'ProbeAccessibleVolumeDecorator']]],
   ['resample_5fcompute_5fcarve_127',['resample_compute_carve',['../class_probe_accessible_volume_decorator.html#ad71ad5b41beef60aefc382149bcffc26',1,'ProbeAccessibleVolumeDecorator']]],
   ['resample_5fcompute_5fsearch_128',['resample_compute_search',['../class_probe_accessible_volume_decorator.html#a952676c1978cfaea38221ce82bcbf778',1,'ProbeAccessibleVolumeDecorator']]],

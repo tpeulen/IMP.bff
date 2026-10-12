@@ -51,7 +51,7 @@ var searchData=
   ['add_5fvariable_48',['add_variable',['../class_inference_factor_graph.html#a2f493ace5abf1d1eaed85711ffcf3b32',1,'InferenceFactorGraph::add_variable()'],['../class_kinetic_network.html#a6090ec2d136a6508e805354cdb3f1fcc',1,'KineticNetwork::add_variable()'],['../class_causal_linear_gaussian.html#a66ea43966e39f4693ef571264f734c1e',1,'CausalLinearGaussian::add_variable()']]],
   ['add_5fvector_49',['add_vector',['../class_bayesian_evidence_mixture.html#acbc78cbca3b49370f97a26f886d49f39',1,'BayesianEvidenceMixture::add_vector()'],['../class_bayesian_transformed_gaussian_prior.html#a4fdcc055aafbe243e4ed6d027c894c62',1,'BayesianTransformedGaussianPrior::add_vector()']]],
   ['add_5fwithheld_5faction_50',['add_withheld_action',['../class_fitting_model_search_problem.html#a006c49985f0143ac293fd2088ba4de32',1,'FittingModelSearchProblem']]],
-  ['adopt_5fobstacle_5fradii_51',['adopt_obstacle_radii',['../class_probe_accessible_volume_occupancy_registry.html#aa7cfe15c40c0364ddfd4fb4af6e53026',1,'ProbeAccessibleVolumeOccupancyRegistry']]],
+  ['adopt_5fobstacle_5fradii_51',['adopt_obstacle_radii',['../class_probe_accessible_volume_occupancy_registry.html#ab6c695e6f0b8a82e445e4a1f5627d096',1,'ProbeAccessibleVolumeOccupancyRegistry']]],
   ['adopt_5foutput_5fports_52',['adopt_output_ports',['../class_fitting_model_search_problem.html#ac2fef570455ae73d5309be25edb9987a',1,'FittingModelSearchProblem']]],
   ['advise_5fsequential_53',['advise_sequential',['../class_sequence_database.html#a172e6c39e168ae8c0261d9c2cd891224',1,'SequenceDatabase']]],
   ['affected_5ffactors_54',['affected_factors',['../class_inference_factor_graph.html#a6beafd144e14d98d91cc46cdf135f8fa',1,'InferenceFactorGraph']]],

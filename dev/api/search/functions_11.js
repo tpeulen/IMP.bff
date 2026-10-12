@@ -80,7 +80,7 @@ var searchData=
   ['request_5fcancel_77',['request_cancel',['../class_model_search_problem.html#a0b182f06f1cc317bf06cc71dd380a13e',1,'ModelSearchProblem::request_cancel()'],['../class_fitting_model_search_problem.html#aecf5c482445ee66082e09c8d34e9f789',1,'FittingModelSearchProblem::request_cancel()'],['../class_model_search.html#ad40215c7b41d3245b2a13d50916a5d7d',1,'ModelSearch::request_cancel()']]],
   ['request_5fwindow_78',['request_window',['../class_occupancy_grid.html#a8e5aaac99e0be8ff8ee3b94df2ba65ad',1,'OccupancyGrid']]],
   ['resample_79',['resample',['../class_probe_accessible_volume_decorator.html#aec75b1fe91330ae9e2bfcfc2c058f06e',1,'ProbeAccessibleVolumeDecorator::resample()'],['../class_density_grid.html#a487c179ae6fb0d2c505610c159ce30ab',1,'DensityGrid::resample()']]],
-  ['resample_5fav_80',['resample_av',['../_probe_accessible_volume_decorator_8h.html#ab7afdcd994705cb1b909de900be488e0',1,'ProbeAccessibleVolumeDecorator.h']]],
+  ['resample_5fav_80',['resample_av',['../_probe_accessible_volume_decorator_8h.html#abe8a298266982fa7b9a5b8e67e66708f',1,'ProbeAccessibleVolumeDecorator.h']]],
   ['resample_5fcompute_81',['resample_compute',['../class_probe_accessible_volume_decorator.html#abfb33812949fa07689cc7e5ab2c561e1',1,'ProbeAccessibleVolumeDecorator']]],
   ['resample_5fcompute_5fcarve_82',['resample_compute_carve',['../class_probe_accessible_volume_decorator.html#ad71ad5b41beef60aefc382149bcffc26',1,'ProbeAccessibleVolumeDecorator']]],
   ['resample_5fcompute_5fsearch_83',['resample_compute_search',['../class_probe_accessible_volume_decorator.html#a952676c1978cfaea38221ce82bcbf778',1,'ProbeAccessibleVolumeDecorator']]],

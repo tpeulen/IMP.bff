@@ -85,9 +85,9 @@ Inheritance diagram for ProbeAccessibleVolumeOccupancyRegistry:</div>
 <div class="dyncontent">
 <div class="center"><img src="class_probe_accessible_volume_occupancy_registry__inherit__graph.png" border="0" usemap="#a_probe_accessible_volume_occupancy_registry_inherit__map" alt="Inheritance graph"/></div>
 <map name="a_probe_accessible_volume_occupancy_registry_inherit__map" id="a_probe_accessible_volume_occupancy_registry_inherit__map">
-<area shape="rect" title="One AVOccupancyMap per (spacing, extra&#45;radius) class, created on demand." alt="" coords="5,119,260,373"/>
+<area shape="rect" title="One AVOccupancyMap per (spacing, extra&#45;radius) class, created on demand." alt="" coords="5,119,260,393"/>
 <area shape="rect" title=" " alt="" coords="89,5,177,71"/>
-<area shape="poly" title=" " alt="" coords="135,84,135,118,130,118,130,84"/>
+<area shape="poly" title=" " alt="" coords="135,84,135,119,130,119,130,84"/>
 </map>
 </div>
 <div class="dynheader">
@@ -95,9 +95,9 @@ Collaboration diagram for ProbeAccessibleVolumeOccupancyRegistry:</div>
 <div class="dyncontent">
 <div class="center"><img src="class_probe_accessible_volume_occupancy_registry__coll__graph.png" border="0" usemap="#a_probe_accessible_volume_occupancy_registry_coll__map" alt="Collaboration graph"/></div>
 <map name="a_probe_accessible_volume_occupancy_registry_coll__map" id="a_probe_accessible_volume_occupancy_registry_coll__map">
-<area shape="rect" title="One AVOccupancyMap per (spacing, extra&#45;radius) class, created on demand." alt="" coords="5,119,260,373"/>
+<area shape="rect" title="One AVOccupancyMap per (spacing, extra&#45;radius) class, created on demand." alt="" coords="5,119,260,393"/>
 <area shape="rect" title=" " alt="" coords="89,5,177,71"/>
-<area shape="poly" title=" " alt="" coords="135,84,135,118,130,118,130,84"/>
+<area shape="poly" title=" " alt="" coords="135,84,135,119,130,119,130,84"/>
 </map>
 </div>
 <table class="memberdecls">
@@ -108,15 +108,18 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae1102d5e76cc4e813aa7495858bdeb00" id="r_ae1102d5e76cc4e813aa7495858bdeb00"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_probe_accessible_volume_occupancy_map.html">ProbeAccessibleVolumeOccupancyMap</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_occupancy_registry.html#ae1102d5e76cc4e813aa7495858bdeb00">get_map</a> (double spacing, double extra_radius)</td></tr>
 <tr class="memdesc:ae1102d5e76cc4e813aa7495858bdeb00"><td class="mdescLeft">&#160;</td><td class="mdescRight">The map of the (spacing, extra_radius) class, created on first use.  <br /></td></tr>
 <tr class="separator:ae1102d5e76cc4e813aa7495858bdeb00"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa7cfe15c40c0364ddfd4fb4af6e53026" id="r_aa7cfe15c40c0364ddfd4fb4af6e53026"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_occupancy_registry.html#aa7cfe15c40c0364ddfd4fb4af6e53026">adopt_obstacle_radii</a> (<a class="el" href="_vdw_radii_8h.html#adf90286dfcbbe3190819d10e7ca81fc3">AVRadiiSource</a> source, const std::vector&lt; double &gt; &amp;radii)</td></tr>
-<tr class="memdesc:aa7cfe15c40c0364ddfd4fb4af6e53026"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adopt one per-particle obstacle-radii vector for every map here.  <br /></td></tr>
-<tr class="separator:aa7cfe15c40c0364ddfd4fb4af6e53026"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab6c695e6f0b8a82e445e4a1f5627d096" id="r_ab6c695e6f0b8a82e445e4a1f5627d096"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_occupancy_registry.html#ab6c695e6f0b8a82e445e4a1f5627d096">adopt_obstacle_radii</a> (<a class="el" href="_vdw_radii_8h.html#adf90286dfcbbe3190819d10e7ca81fc3">AVRadiiSource</a> source, double radius_scale, const std::vector&lt; double &gt; &amp;radii)</td></tr>
+<tr class="memdesc:ab6c695e6f0b8a82e445e4a1f5627d096"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adopt one per-particle obstacle-radii vector for every map here.  <br /></td></tr>
+<tr class="separator:ab6c695e6f0b8a82e445e4a1f5627d096"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a168173a9c32b2f9f525fb854d8c68c26" id="r_a168173a9c32b2f9f525fb854d8c68c26"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; double &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_occupancy_registry.html#a168173a9c32b2f9f525fb854d8c68c26">get_obstacle_radii</a> () const</td></tr>
-<tr class="memdesc:a168173a9c32b2f9f525fb854d8c68c26"><td class="mdescLeft">&#160;</td><td class="mdescRight">The radii adopted by <a class="el" href="class_probe_accessible_volume_occupancy_registry.html#aa7cfe15c40c0364ddfd4fb4af6e53026" title="Adopt one per-particle obstacle-radii vector for every map here.">adopt_obstacle_radii()</a>; empty = the model's own.  <br /></td></tr>
+<tr class="memdesc:a168173a9c32b2f9f525fb854d8c68c26"><td class="mdescLeft">&#160;</td><td class="mdescRight">The radii adopted by <a class="el" href="class_probe_accessible_volume_occupancy_registry.html#ab6c695e6f0b8a82e445e4a1f5627d096" title="Adopt one per-particle obstacle-radii vector for every map here.">adopt_obstacle_radii()</a>; empty = the model's own.  <br /></td></tr>
 <tr class="separator:a168173a9c32b2f9f525fb854d8c68c26"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a51da9e76d9df0c586349eda223395c33" id="r_a51da9e76d9df0c586349eda223395c33"><td class="memItemLeft" align="right" valign="top"><a class="el" href="_vdw_radii_8h.html#adf90286dfcbbe3190819d10e7ca81fc3">AVRadiiSource</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_occupancy_registry.html#a51da9e76d9df0c586349eda223395c33">get_radii_source</a> () const</td></tr>
 <tr class="memdesc:a51da9e76d9df0c586349eda223395c33"><td class="mdescLeft">&#160;</td><td class="mdescRight">The radii set this registry was built with; <code>imp</code> until one is adopted.  <br /></td></tr>
 <tr class="separator:a51da9e76d9df0c586349eda223395c33"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0861d91ea441376d8e9e801184b3abdf" id="r_a0861d91ea441376d8e9e801184b3abdf"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_occupancy_registry.html#a0861d91ea441376d8e9e801184b3abdf">get_radius_scale</a> () const</td></tr>
+<tr class="memdesc:a0861d91ea441376d8e9e801184b3abdf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The radius scale this registry was built with; 1 until one is adopted.  <br /></td></tr>
+<tr class="separator:a0861d91ea441376d8e9e801184b3abdf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac78e1b421b52a8a5f7cd4edc260256cb" id="r_ac78e1b421b52a8a5f7cd4edc260256cb"><td class="memItemLeft" align="right" valign="top">ProbeAccessibleVolumeOccupancyMaps&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_occupancy_registry.html#ac78e1b421b52a8a5f7cd4edc260256cb">get_maps</a> () const</td></tr>
 <tr class="memdesc:ac78e1b421b52a8a5f7cd4edc260256cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">All maps created so far.  <br /></td></tr>
 <tr class="separator:ac78e1b421b52a8a5f7cd4edc260256cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -169,8 +172,8 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="aa7cfe15c40c0364ddfd4fb4af6e53026" name="aa7cfe15c40c0364ddfd4fb4af6e53026"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa7cfe15c40c0364ddfd4fb4af6e53026">&#9670;&#160;</a></span>adopt_obstacle_radii()</h2>
+<a id="ab6c695e6f0b8a82e445e4a1f5627d096" name="ab6c695e6f0b8a82e445e4a1f5627d096"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6c695e6f0b8a82e445e4a1f5627d096">&#9670;&#160;</a></span>adopt_obstacle_radii()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -180,6 +183,12 @@ Public Member Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype"><a class="el" href="_vdw_radii_8h.html#adf90286dfcbbe3190819d10e7ca81fc3">AVRadiiSource</a>&#160;</td>
           <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>radius_scale</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -198,7 +207,7 @@ Public Member Functions</h2></td></tr>
 <p>Adopt one per-particle obstacle-radii vector for every map here. </p>
 <p>A shared raster <b>is</b> one obstacle set, so the radii set is a property of the registry, not of the volume reading it. The first volume to ask fixes it; a second volume asking for a different #IMP::bff::AVRadiiSource is a modelling error, not a preference, and throws rather than silently getting the first one's answer. (A strip mask already takes its volume out of the registry entirely, for the same reason.) The source is carried beside the vector so the check on the hot path is one integer comparison rather than a walk of every atom.</p>
 <p>Applying it to maps that already exist is safe: <code><a class="el" href="class_probe_accessible_volume_occupancy_map.html" title="The occupancy raster over IMP particles.">ProbeAccessibleVolumeOccupancyMap</a></code> remembers the radius it last rasterised each atom with, so a changed radius is picked up as an ordinary subtract-old / add-new delta.</p>
-<p>An empty vector means "the particles' own radii", which is what <code>AV_RADII_IMP</code> &ndash; the default &ndash; with no mask hands over. </p>
+<p>An empty vector means "the particles' own radii", which is what <code>AV_RADII_IMP</code> at a radius scale of 1 with no mask hands over. The radius scale (#IMP::bff::AV_DEFAULT_RADIUS_SCALE) is part of the obstacle set exactly as the source is, so it is compared the same way. </p>
 
 </div>
 </div>
@@ -274,7 +283,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>The radii adopted by <a class="el" href="class_probe_accessible_volume_occupancy_registry.html#aa7cfe15c40c0364ddfd4fb4af6e53026" title="Adopt one per-particle obstacle-radii vector for every map here.">adopt_obstacle_radii()</a>; empty = the model's own. </p>
+<p>The radii adopted by <a class="el" href="class_probe_accessible_volume_occupancy_registry.html#ab6c695e6f0b8a82e445e4a1f5627d096" title="Adopt one per-particle obstacle-radii vector for every map here.">adopt_obstacle_radii()</a>; empty = the model's own. </p>
 
 </div>
 </div>
@@ -302,6 +311,33 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The radii set this registry was built with; <code>imp</code> until one is adopted. </p>
+
+</div>
+</div>
+<a id="a0861d91ea441376d8e9e801184b3abdf" name="a0861d91ea441376d8e9e801184b3abdf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0861d91ea441376d8e9e801184b3abdf">&#9670;&#160;</a></span>get_radius_scale()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">double ProbeAccessibleVolumeOccupancyRegistry::get_radius_scale </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The radius scale this registry was built with; 1 until one is adopted. </p>
 
 </div>
 </div>
@@ -367,7 +403,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Oct 12 2026 09:00:34 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 12 2026 10:40:31 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
