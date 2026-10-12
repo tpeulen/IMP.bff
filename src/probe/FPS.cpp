@@ -351,14 +351,23 @@ std::vector<FPSField> fps_position_fields() {
                       "the *minimum* grid constant of FPS's relative-grid scheme.",
                       NETWORK_FLAT));
     // --- accessible-contact-volume extensions (imp.bff dialect) -----------
-    // Negative means *derive it* from linker_width and the grid (see
-    // IMP::bff::ProbeAccessibleVolumeDecorator::get_effective_allowed_sphere_radius), and that is what an
-    // absent key has always done. The "1.5" declared here before was never the
-    // value an omitted key took, so the schema described a behaviour nothing
-    // had. It cannot be spelled as "no default" -- that makes the key
-    // *required* in this table -- so the sentinel is the default.
-    f.push_back(field("allowed_sphere_radius", FPS_NUMBER, "-1.0",
-                      "_flr_FPS_global_parameter.AV_allowed_sphere", "", FLAT));
+    // On by default (owner 2026-10-12: "allowed sphere radius must be enabled
+    // by default"): an absent key is FPS's allowed sphere for the position's
+    // own width, LinkerInitialSphere 0.5 x linker_width, which is
+    // AV_DEFAULT_ALLOWED_SPHERE (2.25 A) at the default width -- the number
+    // stated here. Negative still means *derive it* (IMP::bff::
+    // ProbeAccessibleVolumeDecorator::get_effective_allowed_sphere_radius).
+    // Until 2026-10-12 the -1 sentinel was the stated default: the same
+    // volume, but it read as "off" everywhere it was shown.
+    f.push_back(field("allowed_sphere_radius", FPS_NUMBER,
+                      literal(AV_DEFAULT_ALLOWED_SPHERE),
+                      "_flr_FPS_global_parameter.AV_allowed_sphere",
+                      "Allowed sphere, A: around the attachment atom the linker "
+                      "ignores obstacles. On by default: absent, it is FPS's "
+                      "LinkerInitialSphere 0.5 x this position's linker_width "
+                      "(2.25 A at the default 4.5 A); negative derives the same. "
+                      "The attachment atom itself is never an obstacle.",
+                      FLAT));
     f.push_back(field("contact_volume_thickness", FPS_NUMBER, "0.0", "",
                       "Depth of the contact layer above the dye-excluded surface, "
                       "A: a cloud voxel is in contact when excluded volume lies "
@@ -623,11 +632,12 @@ std::vector<FPSField> fps_av_global_fields() {
     f.push_back(field("min_grid_size", FPS_NUMBER, "0.4", "",
                       "Floor of the derived grid spacing, A.", PROJECT));
     f.push_back(field("linker_initial_sphere", FPS_NUMBER, "0.5", "",
-                      "FPS's LinkerInitialSphere. NOT this module's derived "
-                      "clearance -- the two are different quantities, which is "
-                      "the trap that made a 4.5 A linker width return a "
-                      "silently empty volume (PRD-121 G8). Stored for "
-                      "provenance.",
+                      "FPS's LinkerInitialSphere, in linker widths: the "
+                      "allowed sphere is 0.5 x W, 2.25 A at W 4.5 (a "
+                      "position's allowed_sphere_radius, in A). Copying the "
+                      "0.5 across as A is the trap that made a 4.5 A linker "
+                      "width return a silently empty volume (PRD-121 G8). "
+                      "Stored for provenance.",
                       PROJECT));
     f.push_back(field("link_search_nodes", FPS_INTEGER, "3", "",
                       "How many voxels FPS's link search hops at a time.",

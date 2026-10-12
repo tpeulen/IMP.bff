@@ -62,9 +62,16 @@ class Tests(IMP.test.TestCase):
         owner settled the defaults on FPS's.
         """
         av = _av(self.mdl, self.hier, linker_length=20.0, radii=(3.5, 0.0, 0.0),
-                 linker_width=FPS_WIDTH, simulation_grid_resolution=0.5)
+                 linker_width=FPS_WIDTH, allowed_sphere_radius=-1.0,
+                 simulation_grid_resolution=0.5)
         self.assertAlmostEqual(av.get_effective_allowed_sphere_radius(),
                                0.5 * FPS_WIDTH, places=6)
+        # not given at all: the declared default, FPS's 2.25 A -- the same
+        # number at FPS's width (2026-10-12: on by default, not a -1)
+        av = _av(self.mdl, self.hier, linker_length=20.0, radii=(3.5, 0.0, 0.0),
+                 linker_width=FPS_WIDTH, simulation_grid_resolution=0.5)
+        self.assertAlmostEqual(av.get_effective_allowed_sphere_radius(),
+                               IMP.bff.AV_DEFAULT_ALLOWED_SPHERE, places=6)
 
     def test_derived_clearance_has_no_floor(self):
         """A narrow linker gets FPS's half width; the old 1.5 A floor is gone.
@@ -73,7 +80,8 @@ class Tests(IMP.test.TestCase):
         still leaves its anchor, through the first step's three-voxel hops.
         """
         av = _av(self.mdl, self.hier, linker_length=20.0, radii=(3.5, 0.0, 0.0),
-                 linker_width=0.5, simulation_grid_resolution=0.5)
+                 linker_width=0.5, allowed_sphere_radius=-1.0,
+                 simulation_grid_resolution=0.5)
         self.assertAlmostEqual(av.get_effective_allowed_sphere_radius(), 0.25,
                                places=6)
         av.resample()

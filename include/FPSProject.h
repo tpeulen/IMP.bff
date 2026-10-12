@@ -132,11 +132,11 @@ IMP_VALUES(FPSConversionParameters, FPSConversionParametersList);
     #min_grid_size. Both shipped reference clouds come out at dg = 0.6 Å and
     this module builds the same grid (PRD-121, phase 0).
 
-    #linker_initial_sphere is **not** this module's clearance and must not be
-    copied into one: FPS's 0.5 and `IMP.bff`'s derived
-    `allowed_sphere_radius` are different quantities, which is the trap that
-    made a linker width of 4.5 Å return a silently empty volume. It is stored
-    for provenance.
+    #linker_initial_sphere is in **linker widths**, `allowed_sphere_radius` in
+    Å: FPS's 0.5 is the allowed sphere `0.5 W`, 2.25 Å at its W 4.5
+    (#IMP::bff::AV_DEFAULT_ALLOWED_SPHERE). Copying the 0.5 across as Å is the
+    trap that made a linker width of 4.5 Å return a silently empty volume. It
+    is stored for provenance.
 */
 struct IMPBFFEXPORT FPSAVGlobalParameters {
     double grid_size, min_grid_size, linker_initial_sphere;

@@ -139,14 +139,14 @@ IMPBFFEXPORT void get_attachment_point(const std::string& pdb_path,
     one the raster subtracts around the source so the linker is not blocked
     by the atom it is tied to. `search_stencil` is 342 (the default, FPS's
     link search: the 3-voxel cube hop from every node), 74 (the seed-only
-    "fast" search, the reference metric) or 26; `allowed_sphere_radius` < 0 derives the clearance as the decorator
-    does. get_av() is this over a caller's `(N, 4)` array. */
+    "fast" search, the reference metric) or 26; `allowed_sphere_radius` defaults to #IMP::bff::AV_DEFAULT_ALLOWED_SPHERE
+    and < 0 derives the clearance as the decorator does. get_av() is this over a caller's `(N, 4)` array. */
 IMPBFFEXPORT ProbeAccessibleVolume get_av_lattice(
         const std::vector<IMP::algebra::Vector4D>& spheres,
         const IMP::algebra::Vector3D& source, double source_radius,
         double linker_length, double linker_width,
         double r1, double r2, double r3, double grid_resolution,
-        double allowed_sphere_radius = -1.0, int search_stencil = IMP::bff::AV_DEFAULT_SEARCH_STENCIL,
+        double allowed_sphere_radius = IMP::bff::AV_DEFAULT_ALLOWED_SPHERE, int search_stencil = IMP::bff::AV_DEFAULT_SEARCH_STENCIL,
         double contact_volume_thickness = 0.0,
         double contact_volume_trapped_fraction = -1.0);
 
@@ -160,7 +160,8 @@ IMPBFFEXPORT ProbeAccessibleVolume get_av_lattice(
     \param[in] linker_length,linker_width the linker
     \param[in] r1,r2,r3 dye radii; `(3.5, 0, 0)` is the AV1 single-sphere model
     \param[in] grid_resolution voxel spacing, A
-    \param[in] allowed_sphere_radius < 0 derives the clearance from the linker width
+    \param[in] allowed_sphere_radius the allowed sphere, A, on by default
+               (#IMP::bff::AV_DEFAULT_ALLOWED_SPHERE); < 0 derives it from the linker width
                (#IMP::bff::av_derived_allowed_sphere_radius)
     \param[in] search_stencil see #IMP::bff::resample_av
 */
@@ -171,7 +172,7 @@ IMPBFFEXPORT ProbeAccessibleVolume get_av(
         double linker_width = IMP::bff::AV_DEFAULT_LINKER_WIDTH,
         double r1 = IMP::bff::AV_DEFAULT_RADIUS1, double r2 = 0.0, double r3 = 0.0,
         double grid_resolution = IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION,
-        double allowed_sphere_radius = -1.0, int search_stencil = 0);
+        double allowed_sphere_radius = IMP::bff::AV_DEFAULT_ALLOWED_SPHERE, int search_stencil = 0);
 
 
 
@@ -194,7 +195,8 @@ IMPBFFEXPORT ProbeAccessibleVolume get_av(
     \param[in] linker_length,linker_width the linker
     \param[in] r1,r2,r3 dye radii; `(3.5, 0, 0)` is the AV1 single-sphere model
     \param[in] grid_resolution voxel spacing, A
-    \param[in] allowed_sphere_radius < 0 derives the clearance from the linker width
+    \param[in] allowed_sphere_radius the allowed sphere, A, on by default
+               (#IMP::bff::AV_DEFAULT_ALLOWED_SPHERE); < 0 derives it from the linker width
     \param[in] search_stencil see #IMP::bff::resample_av
     \throw ValueException when the attachment atom is not in the structure
 */
@@ -205,7 +207,7 @@ IMPBFFEXPORT ProbeAccessibleVolume get_av_from_pdb(
         double linker_width = IMP::bff::AV_DEFAULT_LINKER_WIDTH,
         double r1 = IMP::bff::AV_DEFAULT_RADIUS1, double r2 = 0.0, double r3 = 0.0,
         double grid_resolution = IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION,
-        double allowed_sphere_radius = -1.0, int search_stencil = 0);
+        double allowed_sphere_radius = IMP::bff::AV_DEFAULT_ALLOWED_SPHERE, int search_stencil = 0);
 
 //! The shortest linker path to every voxel, LabelLib's `minLinkerLength`.
 /*!
@@ -220,7 +222,8 @@ IMPBFFEXPORT ProbeAccessibleVolume get_av_from_pdb(
     \param[in] linker_length,linker_width the linker
     \param[in] dye_radius the probe radius the path must clear
     \param[in] h voxel spacing, A
-    \param[in] allowed_sphere_radius < 0 derives the clearance from the linker width
+    \param[in] allowed_sphere_radius the allowed sphere, A, on by default
+               (#IMP::bff::AV_DEFAULT_ALLOWED_SPHERE); < 0 derives it from the linker width
     \param[in] search_stencil see #IMP::bff::resample_av
     \return a new #DensityGrid the caller owns
 */
@@ -228,7 +231,7 @@ IMPBFFEXPORT DensityGrid* get_linker_path_lengths(
         const std::vector<IMP::algebra::Vector4D>& spheres,
         const IMP::algebra::Vector3D& source, double source_radius,
         double linker_length, double linker_width, double dye_radius, double h,
-        double allowed_sphere_radius = -1.0, int search_stencil = IMP::bff::AV_DEFAULT_SEARCH_STENCIL);
+        double allowed_sphere_radius = IMP::bff::AV_DEFAULT_ALLOWED_SPHERE, int search_stencil = IMP::bff::AV_DEFAULT_SEARCH_STENCIL);
 
 //! The same, over a caller's `(N, 4)` array -- the twin of #get_av.
 /*! Reads the obstacles and the attachment site exactly as #get_av does, so
@@ -240,7 +243,7 @@ IMPBFFEXPORT DensityGrid* get_linker_path_lengths(
         double linker_width = IMP::bff::AV_DEFAULT_LINKER_WIDTH,
         double dye_radius = IMP::bff::AV_DEFAULT_RADIUS1,
         double grid_resolution = IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION,
-        double allowed_sphere_radius = -1.0, int search_stencil = 0);
+        double allowed_sphere_radius = IMP::bff::AV_DEFAULT_ALLOWED_SPHERE, int search_stencil = 0);
 
 IMPBFF_END_NAMESPACE
 

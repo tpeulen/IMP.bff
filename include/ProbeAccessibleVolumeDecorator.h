@@ -176,9 +176,10 @@ public:
                                 double linker_length = IMP::bff::AV_DEFAULT_LINKER_LENGTH,
                                 const algebra::Vector3D radii = algebra::Vector3D(IMP::bff::AV_DEFAULT_RADIUS1, 0, 0),
                                 double linker_width = IMP::bff::AV_DEFAULT_LINKER_WIDTH,
-                                //! Negative derives it; see
+                                //! On by default (#IMP::bff::AV_DEFAULT_ALLOWED_SPHERE);
+                                //! negative derives it from the width, see
                                 //! get_effective_allowed_sphere_radius().
-                                double allowed_sphere_radius = -1.0,
+                                double allowed_sphere_radius = IMP::bff::AV_DEFAULT_ALLOWED_SPHERE,
                                 double contact_volume_thickness = 0.0,
                                 double contact_volume_trapped_fraction = -1,
                                 double simulation_grid_resolution = IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION) {
@@ -449,9 +450,14 @@ public:
 
     //! The source clearance the search actually uses.
     /*!
-        A **negative** stored `allowed_sphere_radius` means *derive it*, and
-        deriving is the default because the value that works depends on two
-        other parameters. The path search inflates every obstacle by half the
+        The allowed sphere is **on by default** at FPS's 2.25 A
+        (#IMP::bff::AV_DEFAULT_ALLOWED_SPHERE, owner 2026-10-12: "allowed
+        sphere radius must be enabled by default"). It had been on before as
+        well -- a stored -1 derived `0.5 W`, which is 2.25 A at the default
+        width -- but a -1 in every editor read as "off". A **negative** stored
+        `allowed_sphere_radius` still means *derive it from this volume's
+        width*, FPS's rule at any width, because the value that works depends
+        on two other parameters. The path search inflates every obstacle by half the
         linker width, so the free sphere around the attachment atom has to
         clear that inflation plus a grid step of slack, or the source voxel is
         walled in and the volume comes back **empty**.
@@ -1061,7 +1067,9 @@ IMPBFFEXPORT ProbeAccessibleVolume resample_av(
     \param[in] chain,resseq,atom_name the attachment site
     \param[in] linker_length,linker_width,r1,r2,r3,disc_step the AV parameters
     \param[in] strip_mask an fps `strip_mask`; empty means the default strip
-    \param[in] allowed_sphere_radius negative derives it from the linker width
+    \param[in] allowed_sphere_radius the allowed sphere, A, on by default
+               (#IMP::bff::AV_DEFAULT_ALLOWED_SPHERE); negative derives it from
+               the linker width
     \param[in] contact_volume_thickness,contact_volume_trapped_fraction the ACV
                split, when one is wanted; see
                #IMP::bff::PathMap::apply_contact_weighting for the rule. **This
@@ -1077,7 +1085,7 @@ IMPBFFEXPORT ProbeAccessibleVolume get_av_from_structure(
         double r1, double r2, double r3,
         double disc_step = IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION,
         const std::string& strip_mask = "",
-        double allowed_sphere_radius = -1.0,
+        double allowed_sphere_radius = IMP::bff::AV_DEFAULT_ALLOWED_SPHERE,
         double contact_volume_thickness = 0.0,
         double contact_volume_trapped_fraction = -1.0);
 

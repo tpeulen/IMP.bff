@@ -68,6 +68,11 @@ _SITES = [
 # the 3-voxel cube hop from every node, not only out of the seed; stencil 342,
 # PathMap::set_cube_stencil): every volume grows, T4L-132@0.5 371 548 ->
 # 405 428 point values (+9 %); the previous records are kept beside each key.
+# 2026-10-12 (later): the typed doors' allowed sphere is on by default at FPS's
+# 2.25 A (AV_DEFAULT_ALLOWED_SPHERE) rather than derived from the width; these
+# records were taken at FPS's per-width rule, 0.5 x W (1.75 A at W 3.5, 1.25 A
+# at W 2.5), and are kept by asking for that rule explicitly (-1) -- they pin
+# the search, not the default.
 # key -> (n_density, density_sha, n_points, points_sha, ng).
 _GOLDEN = {
     "T4L-132@1.5": (29791, "b594474e1c126107", 17036, "a215ca2ae133f180", 31),  # was (29791, "37364ccd7f6dc91a", 15432, "af94c6ef17bd5374", 31)
@@ -94,7 +99,8 @@ class TestGoldenAV(unittest.TestCase):
                 key = "%s@%.1f" % (label, step)
                 with self.subTest(key=key):
                     av = bff.get_av_from_structure(
-                        pdb, chain, resseq, atom, ll, lw, r1, 0.0, 0.0, step)
+                        pdb, chain, resseq, atom, ll, lw, r1, 0.0, 0.0, step,
+                        "", -1.0)
                     d = np.asarray(av.get_density())
                     p = np.asarray(av.get_points())
                     n_d, sha_d, n_p, sha_p, ng = _GOLDEN[key]

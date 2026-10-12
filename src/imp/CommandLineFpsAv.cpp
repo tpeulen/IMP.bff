@@ -114,7 +114,7 @@ void run(const Args& a) {
   IMP::Particle* particle = new IMP::Particle(model);
   ProbeAccessibleVolumeDecorator::do_setup_particle(
       model, particle->get_index(), chosen[0]->get_index(), length,
-      IMP::algebra::Vector3D(r[0], r[1], r[2]), width, a.have_clearance ? a.clearance : -1.0,
+      IMP::algebra::Vector3D(r[0], r[1], r[2]), width, a.have_clearance ? a.clearance : av_derived_allowed_sphere_radius(width),
       0.0, -1, grid);
   ProbeAccessibleVolumeDecorator av(model, particle->get_index());
   av.resample();
@@ -175,8 +175,9 @@ void add_fps_av_subs(CLI::App& app) {
       "On the clearance: the path search inflates every obstacle by half the linker width,\n"
       "so the free sphere around the attachment atom has to clear that inflation or the\n"
       "source is walled in and the volume comes back empty. Leaving --clearance unset\n"
-      "derives a value that does. FPS's own LinkerInitialSphere x width is a different\n"
-      "quantity, so an FPS number does not transfer here. An empty volume is a legitimate\n"
+      "takes FPS's allowed sphere, LinkerInitialSphere 0.5 x the linker width (2.25 A at\n"
+      "W 4.5, which every FPS linker preset has). The attachment atom itself is never an\n"
+      "obstacle. An empty volume is a legitimate\n"
       "answer -- a buried site has no room for a dye -- and nothing is written for it.");
   sub->add_option("-p,--pdb", a->pdb, "The structure the dye is attached to.")
       ->required()
@@ -196,7 +197,7 @@ void add_fps_av_subs(CLI::App& app) {
                   "Grid spacing, A. Default follows FPS: max(min(0.2L, 0.2W, 0.4R_i), 0.4).")
       ->each([a](const std::string&) { a->have_grid = true; });
   sub->add_option("--clearance", a->clearance,
-                  "Source clearance, A. Derived when not given, which is almost always right.")
+                  "Allowed sphere around the attachment, A (default FPS's 0.5 x width: 2.25 at W 4.5).")
       ->each([a](const std::string&) { a->have_clearance = true; });
   sub->add_option("-o,--output", a->output, "Where to write it: .xyz, .pqr, .dx or .mrc.")
       ->required();

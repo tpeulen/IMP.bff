@@ -1,7 +1,7 @@
 ---
 okf_version: "0.2"
 title: "IMP.bff against FPS's published screening numbers (T4L, 3GUN)"
-description: "End-to-end A/B of the screening path against the real FPS, and the accessible-contact volume that explained the +2 A offset against the published table. Since 2026-10-12 the link search is FPS's (the 3-voxel cube hop from every node, stencil 342) and docking scores it: same reached set as FPS's propagation, 0.99 of FPS's volume on T4L 148L (0.93 seed-only), ~1.1x the seed-only search's cost after exact shortcuts. vs FPS's routine on 3GUN +1.22 A / 1.99 A over 33 (+0.57 / 1.01 over 24); the empty sites at W 4.5 are the radii set's, not the search's."
+description: "The attachment atom is excluded and the allowed sphere on by default (2.25 A; 0.5 W per position), which moved no number: the empties are the radii and the off-node seed. End-to-end A/B of the screening path against the real FPS, and the accessible-contact volume that explained the +2 A offset against the published table. Since 2026-10-12 the link search is FPS's (the 3-voxel cube hop from every node, stencil 342) and docking scores it: same reached set as FPS's propagation, 0.99 of FPS's volume on T4L 148L (0.93 seed-only), ~1.1x the seed-only search's cost after exact shortcuts. vs FPS's routine on 3GUN +1.22 A / 1.99 A over 33 (+0.57 / 1.01 over 24); the empty sites at W 4.5 are the radii set's, not the search's."
 tags: [validation, fps, screening, av, acv, radii, prd-121]
 ---
 
@@ -15,6 +15,26 @@ tags: [validation, fps, screening, av, acv, radii, prd-121]
 
 ## Where to pick this up
 
+0. **The attachment atom and the allowed sphere were never what emptied the
+   sites (2026-10-12, owner: "the attachment site must be excluded, also
+   allowed sphere radius must be enabled by default").** Both were already in
+   force on every lattice door and are now declared and shown: the atom alone
+   is dropped (FPS's rule), the allowed sphere is on (`AV_DEFAULT_ALLOWED_SPHERE`
+   2.25 A; a position without one takes FPS's `0.5 W` for its own width). The
+   148L / T4L-132 / 3GUN numbers did not move (section "Since 2026-10-12
+   (later)"). With the fixed lattice kept (owner) and the radii unchanged, the
+   open front is still items 1-2: the off-node seed centre (candidate fix
+   below keeps the lattice -- seeds = lattice nodes within `0.5 W` of the
+   *anchor*, not of the source voxel) and the radii set. **Tried and reverted:**
+   a flat 2.25 A for every position regardless of its width moved 3GUN away
+   from FPS (its screening file has W 2.5, 3.5 and 4.5): +1.34 / 2.18 / 0.9747
+   over 33, +0.67 / 1.18 / 0.9930 over 24 (IMP radii), against +1.22 / 1.99 /
+   0.9792 and +0.57 / 1.01 / 0.9954 at FPS's per-width rule. Also measured and
+   *not* a lever: removing every atom within 2.25 A of the anchor (Olga's
+   `allowed_sphere_radius` semantics, `Position.cpp` `stripExpression`) leaves
+   148L's empty count exactly where it is (48 IMP, 34 Bondi); stripping the
+   site's side chain beyond CB (Olga's batch template) opens some (41 IMP, 28
+   Bondi) but is not FPS's rule.
 1. **The anchor is off-node; FPS centres its grid on it.** T4L-132 CB at W 4.5
    is still **empty at a 0.5 A grid** under FPS's link search, so the
    every-node hop was *not* what walled it in. Measured on the array door with
@@ -55,6 +75,56 @@ tags: [validation, fps, screening, av, acv, radii, prd-121]
 4. **AV3 grid / radii** -- as before: FPS's relative rule gives 0.6 A for an
    AV3 with its 1.5 A radius (`fps_default_grid`); FPS's Bondi radii are not a
    selectable `radii_source` (owner, 2026-09-01: docking consistency).
+
+## Since 2026-10-12 (later): the attachment atom excluded, the allowed sphere on
+
+Owner, 2026-10-12: *"the attachment site must be excluded, also allowed sphere
+radius must be enabled by default"*; the fixed lattice stays, the radii stay.
+Read from FPS (`av_routines.cpp:60-68`, `AVEngine.cs:112-121`): FPS drops the
+**attachment atom alone** (`if (i == atom_i) continue;`) from both the linker
+and the dye clash maps -- not its residue's side chain. Its allowed sphere is
+the seed, `LinkerInitialSphere = 0.5` (`AVGlobalParameters`,
+`ProjectData.cs:169`, `AVEngine.cs:78`) times the linker width: 2.25 A for every
+FPS linker preset (`Fps/data/linker.txt`, all W 4.5).
+
+What the code did before: every lattice door already subtracted the
+attachment atom's own sphere from both occupancy rasters
+(`drop_source_obstruction`; the array door when the source coincides with a
+row) and already opened `0.5 W` around the anchor -- a stored -1 *derived* it,
+which read as "off" in every editor. Now:
+
+* `AV_DEFAULT_ALLOWED_SPHERE = 2.25` (`ProbeAccessibleVolumeDefaults.h`,
+  `IMP.bff.AV_DEFAULT_ALLOWED_SPHERE`) is the default of every typed door
+  (decorator setup, `get_av`, `get_av_lattice`, `get_av_from_pdb`,
+  `get_linker_path_lengths`, `get_av_from_structure`), the schema default, and
+  the template's value;
+* a **position** without the key (decorator `set_av_parameter`, the fps.json
+  structure door, `ProbeNetworkRestraint`, `imp_bff fps-av` without
+  `--clearance`) takes FPS's rule for its own width, `0.5 W`, stored as that
+  number; negative still means "derive";
+* `test/representation/test_av_attachment_exclusion.py` holds the exclusion
+  exact: the attachment row in the array == the row removed (density and path
+  lengths, T4L 132/44/69), and the decorator volume == the same with the atom's
+  radius 0. The legacy `space_fixed=False` anchoring keeps the atom (frozen).
+
+Re-measured (no search code changed, so the volumes are the e4a3e2b9d ones):
+
+| measurement | result |
+|---|---|
+| 148L chain E CB, IMP radii (QuEst's door, all atoms incl. HETATM, 151 sites), grid 0.9 | **48 empty** at 2.25 A (49 at QuEst's former 2.1 A: 161 opens) |
+| same, FPS's Bondi radii over ATOM records (153 CB records incl. altlocs) | **34 empty** (FPS's own routine on the same 153: **33**; here-only 66, 105; FPS-only 139) |
+| attachment row in the array vs removed | identical volume at every site, both radii sets |
+| T4L-132 CB (3GUN), grid 0.9: decorator IMP / Olga / array Bondi / FPS | 7 475 / 8 960 / 9 261 / 9 237 |
+| T4L-132 CB, grid 0.5, fixed lattice | **0** at every door and radii set (FPS 42 151): the off-node seed centre, item 1 |
+| 3GUN vs FPS's routine, IMP radii, 33 / 24 pairs | +1.22 / 1.99 / 0.9792 and +0.57 / 1.01 / 0.9954 (unchanged) |
+| same, Olga radii | +0.88 / 2.02 / 0.9712 and +0.17 / 1.03 / 0.9920 (unchanged) |
+| search time (median of 9, decorator, IMP radii) | T4L-132@0.9 1.05 ms, T4L-44@0.9 2.87 ms, T4L-44@0.5 18.10 ms (unchanged) |
+
+Re-derive: `IMP.bff.get_av(xyzr, cb, 20, 4.5, 3.5, 0, 0, 0.9)` over every
+chain-E CB of `chisurf/plugins/quenching_estimator/test/148l.pdb` (xyzr from
+QuEst's reader, or from FPS's `vdW.txt` ladder over ATOM lines); FPS via
+`prototypes/fps_oracle` (`FPS_DG=0.9`, one call per CB serial). Trap: 148L has
+altloc CB records, so "151" and "153" sites are both right for their reader.
 
 ## Since 2026-10-12: FPS's link search is the default
 

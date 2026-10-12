@@ -1250,10 +1250,17 @@ void ProbeAccessibleVolumeDecorator::set_av_parameter(const std::string &json_te
     set_radius2(r[1]);
     set_radius3(r[2]);
     set_linker_width(j.value("linker_width", AV_DEFAULT_LINKER_WIDTH));
-    // Absent means *derive* (see get_effective_allowed_sphere_radius); a
-    // flat 1.5 here is what made this door return empty volumes at FPS's
-    // standard linker width of 4.5 A.
-    set_allowed_sphere_radius(j.value("allowed_sphere_radius", -1.0));
+    // Absent means FPS's allowed sphere for *this* position's width, on:
+    // `LinkerInitialSphere * W` (av_derived_allowed_sphere_radius), stored as
+    // the number it is -- 2.25 A at the default width, AV_DEFAULT_ALLOWED_SPHERE.
+    // FPS takes it per position from that position's own width, and the
+    // screening document has widths of 2.5, 3.5 and 4.5 A; a flat 2.25 for
+    // all of them moved 3GUN away from FPS (fps_screening_ab.md, 2026-10-12).
+    // A flat 1.5 here is what once made this door return empty volumes at
+    // FPS's standard width of 4.5 A. Negative still means "derive".
+    set_allowed_sphere_radius(j.value(
+            "allowed_sphere_radius",
+            av_derived_allowed_sphere_radius(get_linker_width())));
     set_contact_volume_thickness(j.value("contact_volume_thickness", 0.0));
     /* `-1.0`, not `-1`. nlohmann deduces the value type from the default, so
        an `int` default read `"contact_volume_trapped_fraction": 0.328` back as
@@ -1955,8 +1962,8 @@ ProbeAccessibleVolume get_av_from_structure(
     // the volume comes back empty. The strip above already removes the
     // attachment residue's side chain, which is what lets FPS-calibrated small
     // clearances (`allowed_sphere_radius: 1`) compute a real cloud.
-    // Negative is passed straight through: AV derives it, and the rule lives
-    // there alone now. It used to be duplicated here, which is how the two
+    // Passed straight through, the declared default and a negative "derive"
+    // alike: AV resolves it, and the rule lives there alone now. It used to be duplicated here, which is how the two
     // doors onto one volume came to disagree.
     const double clearance = allowed_sphere_radius;
 
@@ -2032,9 +2039,10 @@ ProbeAccessibleVolume av_from_position(const std::string& pdb_path,
     return get_av_from_structure(
             pdb_path, chain, resseq, atom, linker_length, linker_width, r1, r2,
             r3, step, position.value("strip_mask", ""),
+            // absent: FPS's allowed sphere for this position's own width
             position.contains("allowed_sphere_radius")
                     ? position.at("allowed_sphere_radius").get<double>()
-                    : -1.0,
+                    : av_derived_allowed_sphere_radius(linker_width),
             position.value("contact_volume_thickness", 0.0),
             position.value("contact_volume_trapped_fraction", -1.0));
 }

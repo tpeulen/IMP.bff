@@ -90,8 +90,10 @@ def _scored(derive_clearance, contact_volume=False, radii_source=None):
     ``allowed_sphere_radius: 2`` in that file is an ``IMP.bff`` field somebody
     chose, not an FPS parameter -- FPS seeds its search from
     ``LinkerInitialSphere * linker_width`` and has no such key. Dropping it
-    lets the clearance derive, which is what the file would mean if it had
-    never carried the field.
+    gives the declared allowed sphere, FPS's own 2.25 A at this file's 4.5 A
+    width (``AV_DEFAULT_ALLOWED_SPHERE``; the width-derived value it took until
+    2026-10-12 is the same number), which is what the file would mean if it
+    had never carried the field.
 
     ``contact_volume_thickness``/``_trapped_fraction`` are the same kind of
     key, and are dropped for the same reason: **FPS has no accessible-contact

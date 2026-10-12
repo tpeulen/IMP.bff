@@ -62,8 +62,39 @@ class Tests(IMP.test.TestCase):
         self.assertAlmostEqual(av.get_effective_first_step_reach(), 2.25 + 3 * 0.9)
         av.set_linker_width(3.0)
         av.set_simulation_grid_resolution(0.5)
+        # the declared allowed sphere is a radius, not a share of the width
+        self.assertAlmostEqual(av.get_effective_allowed_sphere_radius(), 2.25)
+        # a negative one derives FPS's `0.5 W` for this width
+        av.set_allowed_sphere_radius(-1.0)
         self.assertAlmostEqual(av.get_effective_allowed_sphere_radius(), 1.5)
         self.assertAlmostEqual(av.get_effective_first_step_reach(), 1.5 + 1.5)
+
+    def test_the_allowed_sphere_is_on_by_default(self):
+        """Owner, 2026-10-12: "allowed sphere radius must be enabled by default".
+
+        FPS's allowed sphere is `LinkerInitialSphere` (0.5, `ProjectData.cs`)
+        times the linker width; every FPS linker preset has W 4.5, so 2.25 A.
+        It was on before as well (a stored -1 derived the same 2.25 A at the
+        default width), but the -1 read as "off" wherever it was shown."""
+        self.assertEqual(IMP.bff.AV_DEFAULT_ALLOWED_SPHERE, 2.25)
+        self.assertEqual(IMP.bff.AV_DEFAULT_ALLOWED_SPHERE,
+                         IMP.bff.AV_DEFAULT_LINKER_INITIAL_SPHERE
+                         * IMP.bff.AV_DEFAULT_LINKER_WIDTH)
+        av = _particle_av(self.mdl, self.hier)
+        self.assertEqual(av.get_allowed_sphere_radius(), 2.25)
+        av.set_av_parameter(json.dumps({"simulation_type": "AV1"}))
+        self.assertEqual(av.get_allowed_sphere_radius(), 2.25)
+
+    def test_a_position_without_one_takes_fpss_rule_for_its_width(self):
+        """FPS's allowed sphere is `0.5 W` per position. Its screening document
+        has widths 2.5, 3.5 and 4.5 A; a flat 2.25 for all of them moved 3GUN
+        away from FPS's own routine (fps_screening_ab.md, 2026-10-12)."""
+        av = _particle_av(self.mdl, self.hier)
+        av.set_av_parameter(json.dumps({"linker_width": 2.5}))
+        self.assertEqual(av.get_allowed_sphere_radius(), 1.25)
+        av.set_av_parameter(json.dumps({"linker_width": 2.5,
+                                        "allowed_sphere_radius": 3.0}))
+        self.assertEqual(av.get_allowed_sphere_radius(), 3.0)
 
     def test_an_absent_json_field_means_the_same_at_every_door(self):
         """The fps.json reader of the decorator and of the position door agree."""
@@ -109,7 +140,8 @@ class Tests(IMP.test.TestCase):
         self.assertEqual(default_of("radius1"), IMP.bff.AV_DEFAULT_RADIUS1)
         self.assertEqual(default_of("simulation_grid_resolution"),
                          IMP.bff.AV_DEFAULT_SIMULATION_GRID_RESOLUTION)
-        self.assertEqual(default_of("allowed_sphere_radius"), -1.0)
+        self.assertEqual(default_of("allowed_sphere_radius"),
+                         IMP.bff.AV_DEFAULT_ALLOWED_SPHERE)
 
     def test_the_position_template_states_the_defaults(self):
         """`data/template_av_position.fps.json` is data and cannot read the header.
@@ -124,7 +156,8 @@ class Tests(IMP.test.TestCase):
         self.assertEqual(pos["radius1"], IMP.bff.AV_DEFAULT_RADIUS1)
         self.assertEqual(pos["simulation_grid_resolution"],
                          IMP.bff.AV_DEFAULT_SIMULATION_GRID_RESOLUTION)
-        self.assertLess(pos["allowed_sphere_radius"], 0)  # derive FPS's seed
+        self.assertEqual(pos["allowed_sphere_radius"],
+                         IMP.bff.AV_DEFAULT_ALLOWED_SPHERE)  # FPS's, on
 
     def test_the_labelizer_refines_with_the_av3_defaults(self):
         """`LabelizerFRETOptions` carried the reference's dye (9/4.5/1.5, 1.5 A grid)."""

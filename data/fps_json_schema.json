@@ -187,7 +187,8 @@
       "additionalProperties": true,
       "properties": {
         "allowed_sphere_radius": {
-          "default": -1.0,
+          "default": 2.25,
+          "description": "Allowed sphere, A: around the attachment atom the linker ignores obstacles. On by default: absent, it is FPS's LinkerInitialSphere 0.5 x this position's linker_width (2.25 A at the default 4.5 A); negative derives the same. The attachment atom itself is never an obstacle.",
           "type": "number",
           "x-dialects": [
             "flat"
@@ -490,7 +491,7 @@
             },
             "linker_initial_sphere": {
               "default": 0.5,
-              "description": "FPS's LinkerInitialSphere. NOT this module's derived clearance -- the two are different quantities, which is the trap that made a 4.5 A linker width return a silently empty volume (PRD-121 G8). Stored for provenance.",
+              "description": "FPS's LinkerInitialSphere, in linker widths: the allowed sphere is 0.5 x W, 2.25 A at W 4.5 (a position's allowed_sphere_radius, in A). Copying the 0.5 across as A is the trap that made a 4.5 A linker width return a silently empty volume (PRD-121 G8). Stored for provenance.",
               "type": "number",
               "x-dialects": [
                 "project"
@@ -927,7 +928,8 @@
         "additionalProperties": true,
         "properties": {
           "allowed_sphere_radius": {
-            "default": -1.0,
+            "default": 2.25,
+            "description": "Allowed sphere, A: around the attachment atom the linker ignores obstacles. On by default: absent, it is FPS's LinkerInitialSphere 0.5 x this position's linker_width (2.25 A at the default 4.5 A); negative derives the same. The attachment atom itself is never an obstacle.",
             "type": "number",
             "x-dialects": [
               "flat"
@@ -1232,7 +1234,7 @@
             },
             "linker_initial_sphere": {
               "default": 0.5,
-              "description": "FPS's LinkerInitialSphere. NOT this module's derived clearance -- the two are different quantities, which is the trap that made a 4.5 A linker width return a silently empty volume (PRD-121 G8). Stored for provenance.",
+              "description": "FPS's LinkerInitialSphere, in linker widths: the allowed sphere is 0.5 x W, 2.25 A at W 4.5 (a position's allowed_sphere_radius, in A). Copying the 0.5 across as A is the trap that made a 4.5 A linker width return a silently empty volume (PRD-121 G8). Stored for provenance.",
               "type": "number",
               "x-dialects": [
                 "project"

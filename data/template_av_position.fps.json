@@ -1,5 +1,5 @@
 {
-  "allowed_sphere_radius": -1.0,
+  "allowed_sphere_radius": 2.25,
   "anchor_atoms": "",
   "atom_name": "CA",
   "chain_identifier": "",

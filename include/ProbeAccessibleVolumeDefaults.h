@@ -21,6 +21,8 @@
  * | grid | `max(0.2 min(L, W, 2R_i), 0.4)` (`AVEngine.cs:568`): 0.9 for every AV1 preset, 0.6 for AV3 | 0.9 (`PositionSimulation.h`, AV1 and AV3) | 0.9 |
  * | simulation type | "Simple AV" (`simcombobox` index 0) | AV1 (`Position.h`) | AV1 |
  * | seed sphere | `LinkerInitialSphere = 0.5` x W, unconditional (`ProjectData.cs`, `av_routines.cpp:136`) | obstacles cleared within `(lround(W/2/dg) + 1) dg` (`fretAV.cpp`, `ignoreSphere`) | 0.5 W (FPS) |
+ * | allowed sphere (`allowed_sphere_radius`) | the seed sphere above: `LinkerInitialSphere` 0.5 (`AVGlobalParameters`, `ProjectData.cs:169`, `AVEngine.cs:78`) x W 4.5 = **2.25 A** for its first preset | `_allowedSphereRadius = 0.0` (`Position.h`), off; when set, strips the atoms within it (`Position.cpp`, `stripExpression`) | 2.25 A, on (#AV_DEFAULT_ALLOWED_SPHERE) |
+ * | attachment atom | dropped from the obstacles, the atom alone (`av_routines.cpp:67`, `if (i == atom_i) continue;`) | kept (`noself`), cleared by `ignoreSphere` | dropped, the atom alone (FPS) |
  * | linker's first step | `LinkSearchNodes = 3` voxels (a 7x7x7 cube) from every seed | the stencil alone | FPS's (PathMap::set_source_first_step) |
  * | link search | the same 3-voxel cube hop from *every* reached node (`av_routines.cpp:156-209`) | the 74 stencil | FPS's: `link_search = "fps"`, stencil 342 (PathMap::set_cube_stencil) |
  * | contact volume | none | thickness 0, trapped fraction -1 (off) | off |
@@ -65,6 +67,20 @@ constexpr double AV_DEFAULT_AV3_RADIUS3 = 1.5;
 constexpr double AV_DEFAULT_SIMULATION_GRID_RESOLUTION = 0.9;
 //! FPS `LinkerInitialSphere`: the seed sphere around the anchor, in linker widths.
 constexpr double AV_DEFAULT_LINKER_INITIAL_SPHERE = 0.5;
+//! The allowed sphere, A: the clearance around the attachment atom inside
+//! which the linker ignores obstacles. **On by default** (owner, 2026-10-12:
+//! "allowed sphere radius must be enabled by default"), at FPS's value:
+//! `LinkerInitialSphere` (0.5, `ProjectData.cs:169`) times FPS's first-preset
+//! linker width (4.5, `Fps/data/linker.txt` row 1; every FPS preset has it),
+//! i.e. 2.25 A. It is the default of every typed door's
+//! `allowed_sphere_radius`. A door that reads a *position* -- the fps.json
+//! readers, the command line -- takes FPS's rule for that position's own
+//! width instead, `LinkerInitialSphere * W` (#av_derived_allowed_sphere_radius),
+//! which is this value at the default width: FPS's screening document has
+//! widths of 2.5, 3.5 and 4.5 A, and a flat 2.25 for all of them moved 3GUN
+//! away from FPS. A *negative* value means that rule at any door.
+constexpr double AV_DEFAULT_ALLOWED_SPHERE =
+        AV_DEFAULT_LINKER_INITIAL_SPHERE * AV_DEFAULT_LINKER_WIDTH;
 //! FPS `LinkSearchNodes`: how many voxels the linker hops at a time.
 constexpr int AV_DEFAULT_LINK_SEARCH_NODES = 3;
 //! The search stencil of FPS's link search: the (2n+1)^3 cube of
@@ -88,7 +104,7 @@ IMPBFFEXPORT int av_link_search_stencil(const std::string &link_search);
 //! "fast" for every radius stencil (they all hop out of the seed only).
 IMPBFFEXPORT std::string av_link_search_name(int search_stencil);
 
-//! The source clearance an unset (negative) `allowed_sphere_radius` derives.
+//! The source clearance a negative `allowed_sphere_radius` derives.
 /*! FPS's seed: every voxel within `LinkerInitialSphere * W` of the anchor is
     open to the linker whatever the obstacles say (`av_routines.cpp:136`). */
 inline double av_derived_allowed_sphere_radius(double linker_width) {
