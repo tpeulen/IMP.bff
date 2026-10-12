@@ -106,9 +106,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:abbd0d472cc122436025d70d07817d15b" id="r_abbd0d472cc122436025d70d07817d15b"><td class="memItemLeft" align="right" valign="top">IMP::bff::ProbeAccessibleVolumeDecorator&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_network_restraint.html#abbd0d472cc122436025d70d07817d15b">get_used_av</a> (std::string name) const</td></tr>
 <tr class="memdesc:abbd0d472cc122436025d70d07817d15b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The AV handle of a labeled position, sharing this restraint's path map and lattice state (a copy of the handle, not a fresh one).  <br /></td></tr>
 <tr class="separator:abbd0d472cc122436025d70d07817d15b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2f705f754b1e03320689fb97967dda9d" id="r_a2f705f754b1e03320689fb97967dda9d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_network_restraint.html#a2f705f754b1e03320689fb97967dda9d">ProbeNetworkRestraint</a> (const IMP::core::Hierarchy &amp;hier, std::string fps_json_fn, std::string name=&quot;ProbeNetworkRestraint%1%&quot;, std::string score_set=&quot;&quot;, int n_samples=50000, bool space_fixed=true, bool shared_map=true, std::string distance=&quot;quad&quot;, int quad_k=50, int search_grid_factor=1, int search_stencil=26, std::string search_mode=&quot;dijkstra&quot;)</td></tr>
-<tr class="memdesc:a2f705f754b1e03320689fb97967dda9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs an <a class="el" href="class_probe_network_restraint.html" title="A restraint that uses an annotated volumetric network to score particle distances.">ProbeNetworkRestraint</a> object.  <br /></td></tr>
-<tr class="separator:a2f705f754b1e03320689fb97967dda9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae995baeb094d582576fca6576dbed680" id="r_ae995baeb094d582576fca6576dbed680"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_network_restraint.html#ae995baeb094d582576fca6576dbed680">ProbeNetworkRestraint</a> (const IMP::core::Hierarchy &amp;hier, std::string fps_json_fn, std::string name=&quot;ProbeNetworkRestraint%1%&quot;, std::string score_set=&quot;&quot;, int n_samples=50000, bool space_fixed=true, bool shared_map=true, std::string distance=&quot;quad&quot;, int quad_k=50, int search_grid_factor=1, int search_stencil=0, std::string search_mode=&quot;dijkstra&quot;)</td></tr>
+<tr class="memdesc:ae995baeb094d582576fca6576dbed680"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs an <a class="el" href="class_probe_network_restraint.html" title="A restraint that uses an annotated volumetric network to score particle distances.">ProbeNetworkRestraint</a> object.  <br /></td></tr>
+<tr class="separator:ae995baeb094d582576fca6576dbed680"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a03e8ee07313c5d514c7b35412e8624a8" id="r_a03e8ee07313c5d514c7b35412e8624a8"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_network_restraint.html#a03e8ee07313c5d514c7b35412e8624a8">get_space_fixed</a> () const</td></tr>
 <tr class="separator:a03e8ee07313c5d514c7b35412e8624a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afc45a01bfa9268841c958d283400f48f" id="r_afc45a01bfa9268841c958d283400f48f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_network_restraint.html#afc45a01bfa9268841c958d283400f48f">get_shared_map</a> () const</td></tr>
@@ -208,8 +208,8 @@ Public Member Functions</h2></td></tr>
 <p>The <a class="el" href="class_probe_network_restraint.html" title="A restraint that uses an annotated volumetric network to score particle distances.">ProbeNetworkRestraint</a> class represents a restraint that utilizes an annotated volumetric network to score distances between particles. It is designed to be used with the <a class="el" href="namespace_i_m_p.html">IMP</a> library.</p>
 <p>The restraint is initialized with a hierarchy, a filename of a fps.json file, a name, and an optional score set. The hierarchy is used to obtain the particles involved in the restraint. The fps.json file contains the annotated volumetric network data. The name parameter is used to assign a name to the restraint. The score set parameter specifies the name of the score in the fps.json file to be used for scoring. If no score set is provided, all distances are used for scoring. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a2f705f754b1e03320689fb97967dda9d" name="a2f705f754b1e03320689fb97967dda9d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2f705f754b1e03320689fb97967dda9d">&#9670;&#160;</a></span>ProbeNetworkRestraint() <span class="overload">[1/2]</span></h2>
+<a id="ae995baeb094d582576fca6576dbed680" name="ae995baeb094d582576fca6576dbed680"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae995baeb094d582576fca6576dbed680">&#9670;&#160;</a></span>ProbeNetworkRestraint() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -278,7 +278,7 @@ Public Member Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>search_stencil</em> = <code>26</code>, </td>
+          <td class="paramname"><em>search_stencil</em> = <code>0</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -307,7 +307,7 @@ Public Member Functions</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">distance</td><td><code>"quad"</code> (deterministic lattice quadrature, default) or <code>"mc"</code> (random sampling, order-dependent). </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">quad_k</td><td>Representative points per cloud for <code>"quad"</code>. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">search_grid_factor</td><td>Coarsening of the path search (<a class="el" href="class_probe_accessible_volume_decorator.html#a301c56314e8d29e3a23ab4c7d0cb5800">ProbeAccessibleVolumeDecorator::set_search_grid_factor</a>); 1 = exact on the AV grid. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">search_stencil</td><td>26 (symmetric, default) or 30 (historical, asymmetric); see <a class="el" href="class_probe_accessible_volume_decorator.html#a110b91aac2bdf6cb66eb49558716076a">ProbeAccessibleVolumeDecorator::set_search_stencil</a>. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">search_stencil</td><td>0 (default): every AV keeps its position's own link search &ndash; fps.json <code>link_search</code>, FPS's cube hop from every node unless the position says "fast" &ndash; so docking scores the volume every other door computes. 342, 74, 26 or 30 force that stencil on every AV (26 was the default until 2026-10-12, a speed choice that left the restraint on a different AV than the defaults); see <a class="el" href="class_probe_accessible_volume_decorator.html#a110b91aac2bdf6cb66eb49558716076a">ProbeAccessibleVolumeDecorator::set_search_stencil</a>. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">search_mode</td><td>"dijkstra" (default, path search) or "euclidean" (straight linker, visibility only); see <a class="el" href="class_probe_accessible_volume_decorator.html#a01d71654f5e753759c6347dd4a805b9e">ProbeAccessibleVolumeDecorator::set_search_mode</a>. </td></tr>
   </table>
   </dd>
@@ -1228,7 +1228,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 11 2026 23:54:09 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 12 2026 06:26:10 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

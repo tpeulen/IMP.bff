@@ -186,6 +186,18 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a269dfb92100dc50ad387f46d0681e42b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aceadb7e8bc0c7268597666852ea3a731" id="r_aceadb7e8bc0c7268597666852ea3a731"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_path_map.html#aceadb7e8bc0c7268597666852ea3a731">get_symmetric_stencil</a> () const</td></tr>
 <tr class="separator:aceadb7e8bc0c7268597666852ea3a731"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3766d50ee4629fb54e2e6ea2e62f5110" id="r_a3766d50ee4629fb54e2e6ea2e62f5110"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_path_map.html#a3766d50ee4629fb54e2e6ea2e62f5110">set_cube_stencil</a> (int n)</td></tr>
+<tr class="memdesc:a3766d50ee4629fb54e2e6ea2e62f5110"><td class="mdescLeft">&#160;</td><td class="mdescRight">FPS's link search: hop up to <code>n</code> voxels along every axis at once.  <br /></td></tr>
+<tr class="separator:a3766d50ee4629fb54e2e6ea2e62f5110"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abcb9a9709d465952d2172d43d43ff517" id="r_abcb9a9709d465952d2172d43d43ff517"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_path_map.html#abcb9a9709d465952d2172d43d43ff517">get_cube_stencil</a> () const</td></tr>
+<tr class="separator:abcb9a9709d465952d2172d43d43ff517"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab299f90df9add04c8af141f1fd48a77e" id="r_ab299f90df9add04c8af141f1fd48a77e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_path_map.html#ab299f90df9add04c8af141f1fd48a77e">set_plain_relaxation</a> (bool tf)</td></tr>
+<tr class="memdesc:ab299f90df9add04c8af141f1fd48a77e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Turn the lattice search's exact shortcuts off (for tests).  <br /></td></tr>
+<tr class="separator:ab299f90df9add04c8af141f1fd48a77e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af2e9348614ba073c6539a932dc8e59e4" id="r_af2e9348614ba073c6539a932dc8e59e4"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_path_map.html#af2e9348614ba073c6539a932dc8e59e4">get_plain_relaxation</a> () const</td></tr>
+<tr class="separator:af2e9348614ba073c6539a932dc8e59e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a3220324b44a549a9021871d237edae" id="r_a8a3220324b44a549a9021871d237edae"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_path_map.html#a8a3220324b44a549a9021871d237edae">get_last_search_seconds</a> () const</td></tr>
+<tr class="separator:a8a3220324b44a549a9021871d237edae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a04774e954cd4df446c838027dc4278a8" id="r_a04774e954cd4df446c838027dc4278a8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_path_map.html#a04774e954cd4df446c838027dc4278a8">find_path_dijkstra_bounded</a> (long path_begin_idx, float max_cost, bool keep_source_cost_default=false)</td></tr>
 <tr class="memdesc:a04774e954cd4df446c838027dc4278a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Exact Dijkstra from <code>path_begin_idx</code>, bounded.  <br /></td></tr>
 <tr class="separator:a04774e954cd4df446c838027dc4278a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -749,6 +761,31 @@ Related Symbols</h2></td></tr>
 
 </div>
 </div>
+<a id="abcb9a9709d465952d2172d43d43ff517" name="abcb9a9709d465952d2172d43d43ff517"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abcb9a9709d465952d2172d43d43ff517">&#9670;&#160;</a></span>get_cube_stencil()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int PathMap::get_cube_stencil </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a552c368655c6ddf927ab489de02eb124" name="a552c368655c6ddf927ab489de02eb124"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a552c368655c6ddf927ab489de02eb124">&#9670;&#160;</a></span>get_dim_index_by_voxel()</h2>
 
@@ -885,6 +922,32 @@ Related Symbols</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8a3220324b44a549a9021871d237edae" name="a8a3220324b44a549a9021871d237edae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a3220324b44a549a9021871d237edae">&#9670;&#160;</a></span>get_last_search_seconds()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">double PathMap::get_last_search_seconds </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Wall-clock seconds of the last lattice search proper (the relaxation, not the obstacle rasters around it). </p>
 
 </div>
 </div>
@@ -1026,6 +1089,31 @@ Related Symbols</h2></td></tr>
 
 <p>Returns a writable reference to the header of the map. </p>
 <dl class="section return"><dt>Returns</dt><dd>A writable reference to the header of the map. </dd></dl>
+
+</div>
+</div>
+<a id="af2e9348614ba073c6539a932dc8e59e4" name="af2e9348614ba073c6539a932dc8e59e4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af2e9348614ba073c6539a932dc8e59e4">&#9670;&#160;</a></span>get_plain_relaxation()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool PathMap::get_plain_relaxation </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -1523,6 +1611,35 @@ true); fill_sphere(r0, open_radius, 0, false); search_lattice(...), but the pena
 
 </div>
 </div>
+<a id="a3766d50ee4629fb54e2e6ea2e62f5110" name="a3766d50ee4629fb54e2e6ea2e62f5110"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3766d50ee4629fb54e2e6ea2e62f5110">&#9670;&#160;</a></span>set_cube_stencil()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PathMap::set_cube_stencil </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>FPS's link search: hop up to <code>n</code> voxels along every axis at once. </p>
+<p>FPS routes the linker by hopping <code>LinkSearchNodes</code> voxels from <em>every</em> node it reaches (<code>av_routines.cpp:156-209</code>): each tile of the (2n+1)^3 cube around a node &ndash; 342 neighbours for FPS's n = 3 &ndash; is a neighbour at its Euclidean length, and only the landing tile is tested, so a hop crosses whatever lies between. With <code>n &gt; 0</code> that cube is the stencil and the neighbour radius and set_symmetric_stencil play no part; 0 (the default) restores the radius stencil. Together with set_source_first_step (FPS's seed sphere) this is FPS's search. </p>
+
+</div>
+</div>
 <a id="a58a0dc628ff02a82c5e5e99ae0ade0c4" name="a58a0dc628ff02a82c5e5e99ae0ade0c4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a58a0dc628ff02a82c5e5e99ae0ade0c4">&#9670;&#160;</a></span>set_data()</h2>
 
@@ -1735,6 +1852,35 @@ The obstacle_penalty is used to assign penalty values to obstacle cells in the p
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="ab299f90df9add04c8af141f1fd48a77e" name="ab299f90df9add04c8af141f1fd48a77e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab299f90df9add04c8af141f1fd48a77e">&#9670;&#160;</a></span>set_plain_relaxation()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PathMap::set_plain_relaxation </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>tf</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Turn the lattice search's exact shortcuts off (for tests). </p>
+<p>The lattice search (search_lattice with obstacles) skips the stencil rings that cannot land below the path bound and, for FPS's cube, relaxes whole rows with SIMD. Neither changes a bit of the costs; with <code>true</code> every offset of every tile is relaxed one at a time, so a test can compare the two. Off by default. </p>
 
 </div>
 </div>
@@ -2054,7 +2200,7 @@ The obstacle_penalty is used to assign penalty values to obstacle cells in the p
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Oct 11 2026 23:54:09 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 12 2026 06:26:10 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
