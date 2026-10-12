@@ -135,6 +135,36 @@ IMPBFFEXPORT std::string olga_vdw_radii_csv();
     of 9023, and all but the thymine methyl within 0.01 A of the radius the
     table would have given them. */
 
+//! IMP's radius for an atom, by residue and PDB atom name, in **Angstrom**.
+/*! The radius `IMP::atom::read_pdb` gives the atom: the all-atom CHARMM
+    type its residue topology assigns (default patches applied), and that
+    type's radius from the CHARMM parameters -- carbon 1.85-2.275 A, oxygen
+    1.70-1.77, nitrogen 1.85. Read **without linking IMP**: the table is
+    IMP's own mapping, regenerated from IMP by
+    `prototypes/imp_atom_radii/generate.py`, so the IMP-free core and the
+    IMP-linked doors inflate an accessible volume's obstacles by the same
+    numbers (owner, 2026-10-12: one atom-radius set for accessible volumes
+    everywhere, IMP's radii times #IMP::bff::AV_DEFAULT_RADIUS_SCALE). A key
+    the table does not carry takes IMP's own default for an untyped atom,
+    #IMP::bff::get_imp_atom_default_radius() (1.7 A) -- ligands, waters and
+    unusual residues, exactly as `read_pdb` treats them.
+    `test/representation/test_imp_atom_radii.py` holds every atom of the
+    shipped fixtures equal to `read_pdb`'s radius.
+
+    This is the **unscaled** radius; the obstacle doors multiply it by the
+    scale (#IMP::bff::load_structure_with_vdw).
+ */
+IMPBFFEXPORT double imp_atom_radius(const std::string &res_name,
+                                    const std::string &atom_name);
+
+//! IMP's radius for an atom whose CHARMM type is unknown: **1.7 A**.
+/*! `ForceFieldParameters::get_radius`'s own fallback; a property of IMP's
+    code, so a constant here rather than a row of the table. */
+IMPBFFEXPORT double get_imp_atom_default_radius();
+
+//! Number of (residue, atom name) rows in IMP's radius table.
+IMPBFFEXPORT unsigned int get_number_of_imp_atom_radii();
+
 #ifndef SWIG
 //! The whole table, atom name -> radius in Angstrom.
 IMPBFFEXPORT const std::map<std::string, double> &get_olga_vdw_radii();

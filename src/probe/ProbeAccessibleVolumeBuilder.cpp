@@ -13,6 +13,7 @@
 #include <IMP/bff/PathMap.h>
 #include <IMP/bff/OccupancyGrid.h>
 #include <IMP/bff/StripMask.h>
+#include <IMP/bff/VdwRadii.h>
 #include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/internal/json.h>
 
@@ -237,7 +238,11 @@ std::vector<PDBAtomRecord> read_pdb_records(const std::string& pdb_path) {
 }
 
 void load_structure_with_vdw(const std::string& pdb_path, double** out_view,
-                             int* n_out_view) {
+                             int* n_out_view, double radius_scale) {
+    if (!(radius_scale > 0.0)) {
+        IMP_THROW("load_structure_with_vdw: radius_scale must be positive, got "
+                  << radius_scale, IMP::ValueException);
+    }
     const std::vector<PDBAtomRecord> rows = read_pdb_records(pdb_path);
     double* out = internal::new_double_view(rows.size() * 4, out_view, n_out_view);
     if (out == NULL) return;
@@ -245,7 +250,10 @@ void load_structure_with_vdw(const std::string& pdb_path, double** out_view,
         out[i * 4 + 0] = rows[i].x;
         out[i * 4 + 1] = rows[i].y;
         out[i * 4 + 2] = rows[i].z;
-        out[i * 4 + 3] = rows[i].vdw_radius;
+        // IMP's radius for this residue and atom name, times the one scale:
+        // the AV's obstacle set, the same at every door.
+        out[i * 4 + 3] =
+                imp_atom_radius(rows[i].res_name, rows[i].atom_name) * radius_scale;
     }
 }
 
@@ -577,10 +585,10 @@ ProbeAccessibleVolume get_av_from_pdb(
         const std::string& pdb_path, const std::string& chain, int resseq,
         const std::string& atom_name, double linker_length, double linker_width,
         double r1, double r2, double r3, double grid_resolution,
-        double allowed_sphere_radius, int search_stencil) {
+        double allowed_sphere_radius, int search_stencil, double radius_scale) {
     double* atoms = 0;
     int n_atoms = 0;
-    load_structure_with_vdw(pdb_path, &atoms, &n_atoms);
+    load_structure_with_vdw(pdb_path, &atoms, &n_atoms, radius_scale);
     double* src = 0;
     int n_src = 0;
     get_attachment_point(pdb_path, chain, resseq, atom_name, &src, &n_src);

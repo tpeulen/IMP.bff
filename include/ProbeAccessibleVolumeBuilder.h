@@ -47,6 +47,11 @@
 IMPBFF_BEGIN_NAMESPACE
 
 //! Van der Waals radius per atomic number, Angstrom; 1.70 for anything else.
+/*! Bondi's element radii, for the readers that want an element's size
+    (#PDBAtomRecord::vdw_radius, the Labelizer's surface areas). **Not** an
+    accessible volume's obstacle set: that is IMP's radii times
+    #IMP::bff::AV_DEFAULT_RADIUS_SCALE at every door
+    (#IMP::bff::imp_atom_radius, #load_structure_with_vdw). */
 IMPBFFEXPORT std::map<int, double> vdw_radii();
 
 //! The van der Waals radius of an element symbol, A.
@@ -109,9 +114,22 @@ IMP_VALUES(PDBAtomRecord, PDBAtomRecords);
 IMPBFFEXPORT std::vector<PDBAtomRecord> read_pdb_records(
         const std::string& pdb_path);
 
-//! `(N, 4)` of x, y, z, vdW radius — the obstacle array the solver takes.
+//! `(N, 4)` of x, y, z, radius — the obstacle array the solver takes.
+/*! Every ATOM/HETATM record (#read_pdb_records), its radius **IMP's**
+    (#IMP::bff::imp_atom_radius, by residue and atom name) times
+    \p radius_scale -- the one atom-radius set an accessible volume uses at
+    every door (owner, 2026-10-12), so this file door and the structure door
+    (#get_av_from_structure) inflate the same atoms by the same numbers. It
+    used to be Bondi's element table (#vdw_radii), FPS's set, a second radii
+    set the scale was fitted to replace.
+
+    \param[in] radius_scale the factor on IMP's radii,
+               #IMP::bff::AV_DEFAULT_RADIUS_SCALE (fitted to FPS); 1.0 gives
+               IMP's radii as they are */
 IMPBFFEXPORT void load_structure_with_vdw(const std::string& pdb_path,
-                                          double** out_view, int* n_out_view);
+                                          double** out_view, int* n_out_view,
+                                          double radius_scale =
+                                                  IMP::bff::AV_DEFAULT_RADIUS_SCALE);
 
 //! The coordinates of an attachment atom, resolved by identity.
 /*!
@@ -180,15 +198,16 @@ IMPBFFEXPORT ProbeAccessibleVolume get_av(
 //! An accessible volume from a PDB file and an attachment atom, with no IMP.
 /*!
     The **file** front door of the core, one call the way labellib's
-    `dyeDensityAV3` is one call: the structure's atoms with bff's van der
-    Waals radii (#load_structure_with_vdw), the attachment atom's position
+    `dyeDensityAV3` is one call: the structure's atoms with IMP's radii times
+    \p radius_scale (#load_structure_with_vdw), the attachment atom's position
     (#get_attachment_point), then #get_av. This is the road the Labelizer's
     AV-mode sites take under the standalone build.
 
     The IMP module build also has #get_av_from_structure (ProbeAccessibleVolumeDecorator.h), which reads
-    the structure through IMP::atom and takes IMP's radii; the two roads can
-    differ in the radii they assign (a choice still open, see PRD-137), so
-    they carry different names rather than one name meaning two things.
+    the structure through IMP::atom. Both roads take IMP's radii times the
+    same scale (owner, 2026-10-12: one atom-radius set); they still differ in
+    which atoms they read -- this door reads every record, waters and all,
+    while the structure door drops waters and strips the attachment residue.
 
     \param[in] pdb_path the structure
     \param[in] chain,resseq,atom_name the attachment atom
@@ -198,6 +217,8 @@ IMPBFFEXPORT ProbeAccessibleVolume get_av(
     \param[in] allowed_sphere_radius the allowed sphere, A, on by default
                (#IMP::bff::AV_DEFAULT_ALLOWED_SPHERE); < 0 derives it from the linker width
     \param[in] search_stencil see #IMP::bff::resample_av
+    \param[in] radius_scale the factor on IMP's radii as the obstacle set
+               (#IMP::bff::AV_DEFAULT_RADIUS_SCALE)
     \throw ValueException when the attachment atom is not in the structure
 */
 IMPBFFEXPORT ProbeAccessibleVolume get_av_from_pdb(
@@ -207,7 +228,8 @@ IMPBFFEXPORT ProbeAccessibleVolume get_av_from_pdb(
         double linker_width = IMP::bff::AV_DEFAULT_LINKER_WIDTH,
         double r1 = IMP::bff::AV_DEFAULT_RADIUS1, double r2 = 0.0, double r3 = 0.0,
         double grid_resolution = IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION,
-        double allowed_sphere_radius = IMP::bff::AV_DEFAULT_ALLOWED_SPHERE, int search_stencil = 0);
+        double allowed_sphere_radius = IMP::bff::AV_DEFAULT_ALLOWED_SPHERE, int search_stencil = 0,
+        double radius_scale = IMP::bff::AV_DEFAULT_RADIUS_SCALE);
 
 //! The shortest linker path to every voxel, LabelLib's `minLinkerLength`.
 /*!
