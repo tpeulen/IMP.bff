@@ -142,9 +142,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ab06aa386821d917bdecc43c408f4782c" id="r_ab06aa386821d917bdecc43c408f4782c"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT std::vector&lt; <a class="el" href="struct_p_d_b_atom_record.html">PDBAtomRecord</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_probe_accessible_volume_builder_8h.html#ab06aa386821d917bdecc43c408f4782c">read_pdb_records</a> (const std::string &amp;pdb_path)</td></tr>
 <tr class="memdesc:ab06aa386821d917bdecc43c408f4782c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Every ATOM/HETATM record of a PDB, with a van der Waals radius each.  <br /></td></tr>
 <tr class="separator:ab06aa386821d917bdecc43c408f4782c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4b82c6b929db20a96deac11ae3b3ccc9" id="r_a4b82c6b929db20a96deac11ae3b3ccc9"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_probe_accessible_volume_builder_8h.html#a4b82c6b929db20a96deac11ae3b3ccc9">load_structure_with_vdw</a> (const std::string &amp;pdb_path, double **out_view, int *n_out_view)</td></tr>
-<tr class="memdesc:a4b82c6b929db20a96deac11ae3b3ccc9"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>(N, 4)</code> of x, y, z, vdW radius — the obstacle array the solver takes.  <br /></td></tr>
-<tr class="separator:a4b82c6b929db20a96deac11ae3b3ccc9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a71056a850cfac00306a7d9878c2e66" id="r_a1a71056a850cfac00306a7d9878c2e66"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_probe_accessible_volume_builder_8h.html#a1a71056a850cfac00306a7d9878c2e66">load_structure_with_vdw</a> (const std::string &amp;pdb_path, double **out_view, int *n_out_view, double radius_scale=<a class="el" href="_probe_accessible_volume_defaults_8h.html#ab4957a6cc32e3a2c9bcd3033b60d0d35">IMP::bff::AV_DEFAULT_RADIUS_SCALE</a>)</td></tr>
+<tr class="memdesc:a1a71056a850cfac00306a7d9878c2e66"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>(N, 4)</code> of x, y, z, radius — the obstacle array the solver takes.  <br /></td></tr>
+<tr class="separator:a1a71056a850cfac00306a7d9878c2e66"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aef494df3eeb1eea22dda0045842243db" id="r_aef494df3eeb1eea22dda0045842243db"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_probe_accessible_volume_builder_8h.html#aef494df3eeb1eea22dda0045842243db">get_attachment_point</a> (const std::string &amp;pdb_path, const std::string &amp;chain, int resseq, const std::string &amp;<a class="el" href="_i_m_p_hierarchy_bridge_8h.html#a2c086ac1301a4c9e11b4409278a1e3e5">atom_name</a>, double **out_view, int *n_out_view)</td></tr>
 <tr class="memdesc:aef494df3eeb1eea22dda0045842243db"><td class="mdescLeft">&#160;</td><td class="mdescRight">The coordinates of an attachment atom, resolved by identity.  <br /></td></tr>
 <tr class="separator:aef494df3eeb1eea22dda0045842243db"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -154,9 +154,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a26f0bb23a98713c45ae7bf96899e8a0c" id="r_a26f0bb23a98713c45ae7bf96899e8a0c"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT <a class="el" href="class_probe_accessible_volume.html">ProbeAccessibleVolume</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_probe_accessible_volume_builder_8h.html#a26f0bb23a98713c45ae7bf96899e8a0c">get_av</a> (double *atoms_xyzr, int n_atoms, int n_cols, const std::vector&lt; double &gt; &amp;source_xyz, double linker_length=<a class="el" href="_probe_accessible_volume_defaults_8h.html#abe628c824d5dab09823c0a23cd03ac17">IMP::bff::AV_DEFAULT_LINKER_LENGTH</a>, double linker_width=<a class="el" href="_probe_accessible_volume_defaults_8h.html#adc3fbeea39a87d62be6a4a92947464e9">IMP::bff::AV_DEFAULT_LINKER_WIDTH</a>, double r1=<a class="el" href="_probe_accessible_volume_defaults_8h.html#a6251807bb95b133c9bbcaf0c64f9ae70">IMP::bff::AV_DEFAULT_RADIUS1</a>, double r2=0.0, double r3=0.0, double grid_resolution=<a class="el" href="_probe_accessible_volume_defaults_8h.html#a1ad1e30da300bcc2b034c4ef3d3998ce">IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION</a>, double allowed_sphere_radius=<a class="el" href="_probe_accessible_volume_defaults_8h.html#a4d3a8366a6b819e3ee1aaf6378935cd2">IMP::bff::AV_DEFAULT_ALLOWED_SPHERE</a>, int search_stencil=0)</td></tr>
 <tr class="memdesc:a26f0bb23a98713c45ae7bf96899e8a0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">An accessible volume from raw atomic coordinates.  <br /></td></tr>
 <tr class="separator:a26f0bb23a98713c45ae7bf96899e8a0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af7d09e950c01d94cc15c53ad907a9602" id="r_af7d09e950c01d94cc15c53ad907a9602"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT <a class="el" href="class_probe_accessible_volume.html">ProbeAccessibleVolume</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_probe_accessible_volume_builder_8h.html#af7d09e950c01d94cc15c53ad907a9602">get_av_from_pdb</a> (const std::string &amp;pdb_path, const std::string &amp;chain, int resseq, const std::string &amp;<a class="el" href="_i_m_p_hierarchy_bridge_8h.html#a2c086ac1301a4c9e11b4409278a1e3e5">atom_name</a>, double linker_length=<a class="el" href="_probe_accessible_volume_defaults_8h.html#abe628c824d5dab09823c0a23cd03ac17">IMP::bff::AV_DEFAULT_LINKER_LENGTH</a>, double linker_width=<a class="el" href="_probe_accessible_volume_defaults_8h.html#adc3fbeea39a87d62be6a4a92947464e9">IMP::bff::AV_DEFAULT_LINKER_WIDTH</a>, double r1=<a class="el" href="_probe_accessible_volume_defaults_8h.html#a6251807bb95b133c9bbcaf0c64f9ae70">IMP::bff::AV_DEFAULT_RADIUS1</a>, double r2=0.0, double r3=0.0, double grid_resolution=<a class="el" href="_probe_accessible_volume_defaults_8h.html#a1ad1e30da300bcc2b034c4ef3d3998ce">IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION</a>, double allowed_sphere_radius=<a class="el" href="_probe_accessible_volume_defaults_8h.html#a4d3a8366a6b819e3ee1aaf6378935cd2">IMP::bff::AV_DEFAULT_ALLOWED_SPHERE</a>, int search_stencil=0)</td></tr>
-<tr class="memdesc:af7d09e950c01d94cc15c53ad907a9602"><td class="mdescLeft">&#160;</td><td class="mdescRight">An accessible volume from a PDB file and an attachment atom, with no <a class="el" href="namespace_i_m_p.html">IMP</a>.  <br /></td></tr>
-<tr class="separator:af7d09e950c01d94cc15c53ad907a9602"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99b0b00c3b1fdfaa239861163a006caf" id="r_a99b0b00c3b1fdfaa239861163a006caf"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT <a class="el" href="class_probe_accessible_volume.html">ProbeAccessibleVolume</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_probe_accessible_volume_builder_8h.html#a99b0b00c3b1fdfaa239861163a006caf">get_av_from_pdb</a> (const std::string &amp;pdb_path, const std::string &amp;chain, int resseq, const std::string &amp;<a class="el" href="_i_m_p_hierarchy_bridge_8h.html#a2c086ac1301a4c9e11b4409278a1e3e5">atom_name</a>, double linker_length=<a class="el" href="_probe_accessible_volume_defaults_8h.html#abe628c824d5dab09823c0a23cd03ac17">IMP::bff::AV_DEFAULT_LINKER_LENGTH</a>, double linker_width=<a class="el" href="_probe_accessible_volume_defaults_8h.html#adc3fbeea39a87d62be6a4a92947464e9">IMP::bff::AV_DEFAULT_LINKER_WIDTH</a>, double r1=<a class="el" href="_probe_accessible_volume_defaults_8h.html#a6251807bb95b133c9bbcaf0c64f9ae70">IMP::bff::AV_DEFAULT_RADIUS1</a>, double r2=0.0, double r3=0.0, double grid_resolution=<a class="el" href="_probe_accessible_volume_defaults_8h.html#a1ad1e30da300bcc2b034c4ef3d3998ce">IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION</a>, double allowed_sphere_radius=<a class="el" href="_probe_accessible_volume_defaults_8h.html#a4d3a8366a6b819e3ee1aaf6378935cd2">IMP::bff::AV_DEFAULT_ALLOWED_SPHERE</a>, int search_stencil=0, double radius_scale=<a class="el" href="_probe_accessible_volume_defaults_8h.html#ab4957a6cc32e3a2c9bcd3033b60d0d35">IMP::bff::AV_DEFAULT_RADIUS_SCALE</a>)</td></tr>
+<tr class="memdesc:a99b0b00c3b1fdfaa239861163a006caf"><td class="mdescLeft">&#160;</td><td class="mdescRight">An accessible volume from a PDB file and an attachment atom, with no <a class="el" href="namespace_i_m_p.html">IMP</a>.  <br /></td></tr>
+<tr class="separator:a99b0b00c3b1fdfaa239861163a006caf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae82bb416295cdfb255a4a448dc2712b1" id="r_ae82bb416295cdfb255a4a448dc2712b1"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT <a class="el" href="class_density_grid.html">DensityGrid</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_probe_accessible_volume_builder_8h.html#ae82bb416295cdfb255a4a448dc2712b1">get_linker_path_lengths</a> (const std::vector&lt; IMP::algebra::Vector4D &gt; &amp;spheres, const IMP::algebra::Vector3D &amp;source, double source_radius, double linker_length, double linker_width, double dye_radius, double h, double allowed_sphere_radius=<a class="el" href="_probe_accessible_volume_defaults_8h.html#a4d3a8366a6b819e3ee1aaf6378935cd2">IMP::bff::AV_DEFAULT_ALLOWED_SPHERE</a>, int search_stencil=<a class="el" href="_probe_accessible_volume_defaults_8h.html#a31dbff4b17817ebc15a0b0f9e0d50cff">IMP::bff::AV_DEFAULT_SEARCH_STENCIL</a>)</td></tr>
 <tr class="memdesc:ae82bb416295cdfb255a4a448dc2712b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The shortest linker path to every voxel, LabelLib's <code>minLinkerLength</code>.  <br /></td></tr>
 <tr class="separator:ae82bb416295cdfb255a4a448dc2712b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -353,8 +353,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="af7d09e950c01d94cc15c53ad907a9602" name="af7d09e950c01d94cc15c53ad907a9602"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af7d09e950c01d94cc15c53ad907a9602">&#9670;&#160;</a></span>get_av_from_pdb()</h2>
+<a id="a99b0b00c3b1fdfaa239861163a006caf" name="a99b0b00c3b1fdfaa239861163a006caf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99b0b00c3b1fdfaa239861163a006caf">&#9670;&#160;</a></span>get_av_from_pdb()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -429,7 +429,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>search_stencil</em> = <code>0</code>&#160;</td>
+          <td class="paramname"><em>search_stencil</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>radius_scale</em> = <code><a class="el" href="_probe_accessible_volume_defaults_8h.html#ab4957a6cc32e3a2c9bcd3033b60d0d35">IMP::bff::AV_DEFAULT_RADIUS_SCALE</a></code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -440,8 +446,8 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>An accessible volume from a PDB file and an attachment atom, with no <a class="el" href="namespace_i_m_p.html">IMP</a>. </p>
-<p>The <b>file</b> front door of the core, one call the way labellib's <code>dyeDensityAV3</code> is one call: the structure's atoms with bff's van der Waals radii (<a class="el" href="_probe_accessible_volume_builder_8h.html#a4b82c6b929db20a96deac11ae3b3ccc9" title="(N, 4) of x, y, z, vdW radius — the obstacle array the solver takes.">load_structure_with_vdw</a>), the attachment atom's position (<a class="el" href="_probe_accessible_volume_builder_8h.html#aef494df3eeb1eea22dda0045842243db" title="The coordinates of an attachment atom, resolved by identity.">get_attachment_point</a>), then <a class="el" href="_probe_accessible_volume_builder_8h.html#a26f0bb23a98713c45ae7bf96899e8a0c" title="An accessible volume from raw atomic coordinates.">get_av</a>. This is the road the Labelizer's AV-mode sites take under the standalone build.</p>
-<p>The <a class="el" href="namespace_i_m_p.html">IMP</a> module build also has <a class="el" href="_probe_accessible_volume_decorator_8h.html#a6e6badcc4518a0cc88e3459d4277a2d8" title="An accessible volume from a structure and an fps position definition.">get_av_from_structure</a> (<a class="el" href="_probe_accessible_volume_decorator_8h.html">ProbeAccessibleVolumeDecorator.h</a>), which reads the structure through IMP::atom and takes <a class="el" href="namespace_i_m_p.html">IMP</a>'s radii; the two roads can differ in the radii they assign (a choice still open, see PRD-137), so they carry different names rather than one name meaning two things.</p>
+<p>The <b>file</b> front door of the core, one call the way labellib's <code>dyeDensityAV3</code> is one call: the structure's atoms with <a class="el" href="namespace_i_m_p.html">IMP</a>'s radii times <code>radius_scale</code> (<a class="el" href="_probe_accessible_volume_builder_8h.html#a1a71056a850cfac00306a7d9878c2e66" title="(N, 4) of x, y, z, radius — the obstacle array the solver takes.">load_structure_with_vdw</a>), the attachment atom's position (<a class="el" href="_probe_accessible_volume_builder_8h.html#aef494df3eeb1eea22dda0045842243db" title="The coordinates of an attachment atom, resolved by identity.">get_attachment_point</a>), then <a class="el" href="_probe_accessible_volume_builder_8h.html#a26f0bb23a98713c45ae7bf96899e8a0c" title="An accessible volume from raw atomic coordinates.">get_av</a>. This is the road the Labelizer's AV-mode sites take under the standalone build.</p>
+<p>The <a class="el" href="namespace_i_m_p.html">IMP</a> module build also has <a class="el" href="_probe_accessible_volume_decorator_8h.html#a6e6badcc4518a0cc88e3459d4277a2d8" title="An accessible volume from a structure and an fps position definition.">get_av_from_structure</a> (<a class="el" href="_probe_accessible_volume_decorator_8h.html">ProbeAccessibleVolumeDecorator.h</a>), which reads the structure through IMP::atom. Both roads take <a class="el" href="namespace_i_m_p.html">IMP</a>'s radii times the same scale (owner, 2026-10-12: one atom-radius set); they still differ in which atoms they read &ndash; this door reads every record, waters and all, while the structure door drops waters and strips the attachment residue.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">pdb_path</td><td>the structure </td></tr>
@@ -451,6 +457,7 @@ Functions</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">grid_resolution</td><td>voxel spacing, A </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">allowed_sphere_radius</td><td>the allowed sphere, A, on by default (#IMP::bff::AV_DEFAULT_ALLOWED_SPHERE); &lt; 0 derives it from the linker width </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">search_stencil</td><td>see #IMP::bff::resample_av </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">radius_scale</td><td>the factor on <a class="el" href="namespace_i_m_p.html">IMP</a>'s radii as the obstacle set (#IMP::bff::AV_DEFAULT_RADIUS_SCALE) </td></tr>
   </table>
   </dd>
 </dl>
@@ -753,8 +760,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a4b82c6b929db20a96deac11ae3b3ccc9" name="a4b82c6b929db20a96deac11ae3b3ccc9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4b82c6b929db20a96deac11ae3b3ccc9">&#9670;&#160;</a></span>load_structure_with_vdw()</h2>
+<a id="a1a71056a850cfac00306a7d9878c2e66" name="a1a71056a850cfac00306a7d9878c2e66"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1a71056a850cfac00306a7d9878c2e66">&#9670;&#160;</a></span>load_structure_with_vdw()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -775,7 +782,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int *&#160;</td>
-          <td class="paramname"><em>n_out_view</em>&#160;</td>
+          <td class="paramname"><em>n_out_view</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>radius_scale</em> = <code><a class="el" href="_probe_accessible_volume_defaults_8h.html#ab4957a6cc32e3a2c9bcd3033b60d0d35">IMP::bff::AV_DEFAULT_RADIUS_SCALE</a></code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -785,7 +798,14 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p><code>(N, 4)</code> of x, y, z, vdW radius — the obstacle array the solver takes. </p>
+<p><code>(N, 4)</code> of x, y, z, radius — the obstacle array the solver takes. </p>
+<p>Every ATOM/HETATM record (<a class="el" href="_probe_accessible_volume_builder_8h.html#ab06aa386821d917bdecc43c408f4782c" title="Every ATOM/HETATM record of a PDB, with a van der Waals radius each.">read_pdb_records</a>), its radius <b><a class="el" href="namespace_i_m_p.html">IMP</a>'s</b> (#IMP::bff::imp_atom_radius, by residue and atom name) times <code>radius_scale</code> &ndash; the one atom-radius set an accessible volume uses at every door (owner, 2026-10-12), so this file door and the structure door (<a class="el" href="_probe_accessible_volume_decorator_8h.html#a6e6badcc4518a0cc88e3459d4277a2d8" title="An accessible volume from a structure and an fps position definition.">get_av_from_structure</a>) inflate the same atoms by the same numbers. It used to be Bondi's element table (<a class="el" href="_probe_accessible_volume_builder_8h.html#ae9acba89feaf143d0dafc29a3d96bee4" title="Van der Waals radius per atomic number, Angstrom; 1.70 for anything else.">vdw_radii</a>), FPS's set, a second radii set the scale was fitted to replace.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">radius_scale</td><td>the factor on <a class="el" href="namespace_i_m_p.html">IMP</a>'s radii, #IMP::bff::AV_DEFAULT_RADIUS_SCALE (fitted to FPS); 1.0 gives <a class="el" href="namespace_i_m_p.html">IMP</a>'s radii as they are </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -833,6 +853,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Van der Waals radius per atomic number, Angstrom; 1.70 for anything else. </p>
+<p>Bondi's element radii, for the readers that want an element's size (<a class="el" href="struct_p_d_b_atom_record.html#a80a00d8925e3dba5f9612b56dcd3a4d3">PDBAtomRecord::vdw_radius</a>, the Labelizer's surface areas). <b>Not</b> an accessible volume's obstacle set: that is <a class="el" href="namespace_i_m_p.html">IMP</a>'s radii times #IMP::bff::AV_DEFAULT_RADIUS_SCALE at every door (#IMP::bff::imp_atom_radius, <a class="el" href="_probe_accessible_volume_builder_8h.html#a1a71056a850cfac00306a7d9878c2e66" title="(N, 4) of x, y, z, radius — the obstacle array the solver takes.">load_structure_with_vdw</a>). </p>
 
 </div>
 </div>
@@ -861,7 +882,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Oct 12 2026 10:40:31 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 12 2026 14:13:14 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
