@@ -34,6 +34,10 @@
 
 IMPBFF_BEGIN_NAMESPACE
 
+//! 1.9 (2026-10-12) added `radius_scale` on a position: the one factor IMP's
+//! radii are scaled by as the volume's obstacles, AV_DEFAULT_RADIUS_SCALE
+//! (fitted to FPS's Bondi radii). A file without it gets the default; a file
+//! that wants IMP's radii as they are says 1.0.
 //! 1.8 (2026-10-12) added `link_search` on a position: "fps" (the default,
 //! FPS's own search -- the linker hops `LinkSearchNodes = 3` voxels from every
 //! node it reaches) or "fast" (the hop out of the seed only, then the 74
@@ -73,10 +77,10 @@ IMPBFF_BEGIN_NAMESPACE
 //! (`XYZ`) coordinate was measured in, which screening fits onto each library
 //! structure (PRD-121 G3). 1.1 (2026-08-27) added the document-level
 //! `strip_mask` and `schema_version` fields. Every step is additive: every
-//! 1.0 file is a valid 1.8 file -- except for a 1.5 file that spells this
+//! 1.0 file is a valid 1.9 file -- except for a 1.5 file that spells this
 //! field `"model"`, which is refused rather than reinterpreted (that spelling
 //! existed for one day and no file outside this repository carries it).
-std::string fps_schema_version() { return "1.8"; }
+std::string fps_schema_version() { return "1.9"; }
 
 // Named, not anonymous: IMP compiles this module as one translation unit.
 namespace fps_schema {
@@ -422,6 +426,16 @@ std::vector<FPSField> fps_position_fields() {
                       "H 1.00 A, and 1.50 A for an atom name it does not carry "
                       "-- and is what reproduces Olga-era numbers.",
                       FLAT, {"imp", "olga"}));
+    // 1.9: the scale on IMP's radii, on the position like the radii source.
+    f.push_back(field("radius_scale", FPS_NUMBER,
+                      literal(AV_DEFAULT_RADIUS_SCALE), "",
+                      "Factor the 'imp' radii are multiplied by as this "
+                      "volume's obstacles (Olga's table is not scaled). The "
+                      "default is fitted to FPS's Bondi radii: IMP's "
+                      "united-atom radii are ~17 % larger, and at this factor "
+                      "the T4L CB-site volumes match FPS's own routine "
+                      "(median 1.00). 1.0 uses IMP's radii as they are.",
+                      FLAT));
     // 1.8: the link search, on the position like the radii it searches past.
     f.push_back(field("link_search", FPS_STRING,
                       "\"" + std::string(AV_DEFAULT_LINK_SEARCH) + "\"", "",

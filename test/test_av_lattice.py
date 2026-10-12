@@ -911,7 +911,8 @@ class TestAVHandle(unittest.TestCase):
         # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 10.983394087144049.
         # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 10.81840491201247.
         # 2026-10-12: the quadrature no longer diverges for near-coincident blocks of overlapping clouds (av_distance_quadrature); was 11.19673921226955.
-        self.assertAlmostEqual(r30.unprotected_evaluate(None), 11.197039320948742, places=6)
+        # 2026-10-12: the AV obstacles are IMP's radii x AV_DEFAULT_RADIUS_SCALE (0.84, fitted to FPS's Bondi radii; okf/validation/fps_screening_ab.md); was 11.197039320948742 at x1.0.
+        self.assertAlmostEqual(r30.unprotected_evaluate(None), 10.913433620392276, places=6)
         # 2026-10-12: the restraint's default is 0 -- every AV keeps its
         # position's own link search, FPS's cube (342) unless the position
         # says "fast" -- so the 26 stencil is asked for by name here.
@@ -930,7 +931,8 @@ class TestAVHandle(unittest.TestCase):
         # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 11.395949223491733.
         # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 11.251908143953834.
         # 2026-10-12: the quadrature no longer diverges for near-coincident blocks of overlapping clouds (av_distance_quadrature); was 11.195269099108469.
-        self.assertAlmostEqual(r26.unprotected_evaluate(None), 11.195574516511469, places=6)
+        # 2026-10-12: the AV obstacles are IMP's radii x AV_DEFAULT_RADIUS_SCALE (0.84, fitted to FPS's Bondi radii; okf/validation/fps_screening_ab.md); was 11.195574516511469 at x1.0.
+        self.assertAlmostEqual(r26.unprotected_evaluate(None), 10.918428615981233, places=6)
         # the 30-stencil AVs leak through one-voxel walls: slightly larger
         n30 = sum(len(r30.get_used_av(n).get_map().get_xyz_density()) for n in av_names(r30))
         n26 = sum(len(r26.get_used_av(n).get_map().get_xyz_density()) for n in av_names(r26))

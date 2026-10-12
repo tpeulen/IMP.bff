@@ -181,10 +181,21 @@ def t4l_matrices():
     # to be free of near-ties: under the default since then (FPS's link
     # search, stencil 342) the third step is a near-tie -- pair 29 against 32,
     # 2.3735 A against 2.3882 A, inside the ~1e-2 A of Olga's ndof spline --
-    # and the two selectors legitimately part there.
+    # and the two selectors legitimately part there. For the same reason the
+    # obstacles are IMP's radii as they are (radius_scale 1.0): at the default
+    # AV_DEFAULT_RADIUS_SCALE (0.84, 2026-10-12) step three is a near-tie
+    # again (pair 8-119 against 8-86).
+    import json
+    import tempfile
+    document = json.load(open(
+        IMP.bff.get_example_path("structure/T4L/fret.fps.json")))
+    for position in document["Positions"].values():
+        position["radius_scale"] = 1.0
+    fps_json = os.path.join(tempfile.mkdtemp(), "fret.fps.json")
+    with open(fps_json, "w") as fh:
+        json.dump(document, fh)
     restraint = IMP.bff.ProbeNetworkRestraint(
-        hier, IMP.bff.get_example_path("structure/T4L/fret.fps.json"),
-        score_set="chi2_C1_33p", search_stencil=26)
+        hier, fps_json, score_set="chi2_C1_33p", search_stencil=26)
     names = list(restraint.get_pair_names())
     frames = list(handle.get_root_frames())[::2]
     effs = np.empty((len(frames), len(names)))

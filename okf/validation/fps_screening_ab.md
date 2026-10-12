@@ -1,8 +1,8 @@
 ---
 okf_version: "0.2"
 title: "IMP.bff against FPS's published screening numbers (T4L, 3GUN)"
-description: "The attachment atom is excluded and the allowed sphere on by default (2.25 A; 0.5 W per position), which moved no number: the empties are the radii and the off-node seed. End-to-end A/B of the screening path against the real FPS, and the accessible-contact volume that explained the +2 A offset against the published table. Since 2026-10-12 the link search is FPS's (the 3-voxel cube hop from every node, stencil 342) and docking scores it: same reached set as FPS's propagation, 0.99 of FPS's volume on T4L 148L (0.93 seed-only), ~1.1x the seed-only search's cost after exact shortcuts. vs FPS's routine on 3GUN +1.22 A / 1.99 A over 33 (+0.57 / 1.01 over 24); the empty sites at W 4.5 are the radii set's, not the search's."
-tags: [validation, fps, screening, av, acv, radii, prd-121]
+description: "One obstacle-radius scale on IMP's radii, AV_DEFAULT_RADIUS_SCALE = 0.84 (2026-10-12, owner: no second radii table), fitted to FPS: FPS/IMP radius ratio 0.838 (median over 20 434 atoms of 148L/3GUN/1RTD), 148L CB volume vs FPS 0.91 -> 0.99, empties 48 -> 40 (FPS 33; the 8 extra are HETATM/off-node, not radii), 3GUN vs FPS +1.22 -> +0.90 A at equal rmsd, now equal to Olga's radii. The search keeps starting from the nearest grid point (owner, decided). Earlier: FPS's link search is the default, the attachment atom is excluded and the allowed sphere on."
+tags: [validation, fps, screening, av, acv, radii, radius-scale, prd-121]
 ---
 
 # IMP.bff against FPS's published screening numbers
@@ -15,6 +15,23 @@ tags: [validation, fps, screening, av, acv, radii, prd-121]
 
 ## Where to pick this up
 
+00. **Radii: one scale factor on IMP's, 0.84 (2026-10-12, owner: "i do not
+   want a separate set of atom radii, if fps is slightly smaller, use a single
+   scale factor to match fps radii").** `AV_DEFAULT_RADIUS_SCALE`
+   (`ProbeAccessibleVolumeDefaults.h`, position field `radius_scale`, schema
+   1.9) multiplies the radius each particle carries as the AV's obstacles;
+   Olga's table is not scaled; the docking clash term keeps its own
+   `clash_radii_scale` (1.0). Fitted and chosen in the section "AV
+   obstacle-radius scale" below. What is left of item 2 after it: 148L has 40
+   empty CB sites against FPS's 33 (36 over ATOM records only); the 8 extra
+   (3, 97, 104, 105, 106, 114, 117, 138) stay empty down to x0.78, so they are
+   not the radii -- 3/97/104/106 open when HETATM and waters are dropped, which
+   is what FPS reads; 105/114/117/138 are the off-node seed (item 1, decided).
+   Open, not done: the **file door** (`get_av_from_pdb`, the standalone
+   builder, and chimol's default AV path) still reads its own element-keyed
+   Bondi table (`vdw_radii()` in `ProbeAccessibleVolumeBuilder.cpp`) -- a second
+   radii set the owner does not want; it cannot read IMP's radii without IMP,
+   so retiring it is a design decision (PRD-137), not a patch.
 0. **The attachment atom and the allowed sphere were never what emptied the
    sites (2026-10-12, owner: "the attachment site must be excluded, also
    allowed sphere radius must be enabled by default").** Both were already in
@@ -35,7 +52,12 @@ tags: [validation, fps, screening, av, acv, radii, prd-121]
    148L's empty count exactly where it is (48 IMP, 34 Bondi); stripping the
    site's side chain beyond CB (Olga's batch template) opens some (41 IMP, 28
    Bondi) but is not FPS's rule.
-1. **The anchor is off-node; FPS centres its grid on it.** T4L-132 CB at W 4.5
+1. **Decided (owner, 2026-10-12): the search starts from the nearest grid
+   point** ("of course the nearest grid point"); no anchor/seed change. T4L-132
+   CB at a 0.5 A grid staying empty is a documented consequence, not an open
+   item -- and the radius scale does not open it (0 voxels at x0.84 as at
+   x1.0; 9 142 at 0.9 A, FPS 9 237). The record below stays as the reason.
+   **The anchor is off-node; FPS centres its grid on it.** T4L-132 CB at W 4.5
    is still **empty at a 0.5 A grid** under FPS's link search, so the
    every-node hop was *not* what walled it in. Measured on the array door with
    FPS's radii (scratch scripts re-derive it: `IMP.bff.get_av(xyzr, src, 20,
@@ -75,6 +97,96 @@ tags: [validation, fps, screening, av, acv, radii, prd-121]
 4. **AV3 grid / radii** -- as before: FPS's relative rule gives 0.6 A for an
    AV3 with its 1.5 A radius (`fps_default_grid`); FPS's Bondi radii are not a
    selectable `radii_source` (owner, 2026-09-01: docking consistency).
+
+## Since 2026-10-12 (latest): AV obstacle-radius scale
+
+Owner, 2026-10-12: *"i do not want a separate set of atom radii, if fps is
+slightly smaller, use a single scale factor to match fps radii."* FPS inflates
+its obstacles by element-keyed Bondi radii (`Fps/data/vdW.txt`, read with FPS's
+own name ladder, `StaticData.cs`); IMP's particles carry CHARMM united-atom
+radii with implicit hydrogens. One declared factor,
+`AV_DEFAULT_RADIUS_SCALE`, now multiplies IMP's radii wherever an AV reads
+them: the decorator (`set_radius_scale`, legacy `space_fixed=False` frozen at
+1.0), the fps.json position field `radius_scale` (schema 1.9), the structure
+door (`get_av_from_structure`, `resample_av`), the docking restraint through
+its positions. A shared occupancy raster adopts the scale beside the radii
+source and refuses a second one. The array doors take the caller's radii as
+given (QuEst scales its IMP radii itself). Search code unchanged, so timing is
+unchanged (T4L-132 CB @0.9 1.19 ms at either scale, decorator door).
+Test: `test/representation/test_av_radius_scale.py`.
+
+**Per-atom ratio FPS/IMP** over the heavy atoms of 148L, 3GUN and 1RTD
+(20 434 atoms, `NonWaterNonHydrogenPDBSelector`; FPS's radius from its ladder
+on the atom name):
+
+| element | n | median | IQR |
+|---|---|---|---|
+| C | 12 849 | 0.782 | 0.782-0.850 |
+| O | 3 974 | 0.894 | 0.894-0.894 |
+| N | 3 472 | 0.838 | 0.838-0.838 |
+| P | 94 | 0.837 | -- |
+| S | 45 | 0.900 | -- |
+| **all** | 20 434 | **0.838** (mean 0.831) | least squares 0.821, ratio of sums 0.826, (r + W/2)^3-volume match 0.823 |
+
+Per structure the median is 0.838 in each of 148L, 3GUN and 1RTD.
+
+**Effect of the factor** (grid 0.9, L 20 / W 4.5 / R 3.5, FPS's link search,
+allowed sphere 2.25 A; 148L chain E, 151 CB sites, QuEst's reader incl.
+HETATM/waters -- FPS's own routine via `prototypes/fps_oracle` `FPS_DG=0.9`
+over the 153 CB records, 33 empty; 3GUN against
+`fps_screening_oracle_pins.json`, ACV off, bias / rmsd / r; docking scores
+`chi2_C2_33p` T4L and HIV-RT `resolved`):
+
+| scale | 148L empty (shared / here-only / FPS-only) | 148L ATOM only | vol / FPS median (IQR) | 3GUN 33 pairs | 3GUN 24 (no 132) | T4L dock | HIV-RT |
+|---|---|---|---|---|---|---|---|
+| 1.00 | 48 (33 / 15 / 0) | 42 | 0.906 (0.852-0.942) | +1.22 / 1.99 / 0.9792 | +0.57 / 1.01 / 0.9954 | 10.866 | 70.642 |
+| 0.92 | -- | 39 | 0.953 (ATOM) | +1.11 / 2.06 / 0.9740 | +0.41 / 1.06 / 0.9929 | 10.696 | 70.202 |
+| 0.90 | 41 (33 / 8 / 0) | 37 | 0.960 (0.916-0.992) | +1.05 / 2.03 / 0.9740 | +0.36 / 1.05 / 0.9928 | 10.562 | 69.612 |
+| 0.88 | 41 (33 / 8 / 0) | 37 | 0.969 (0.930-1.004) | +0.98 / 2.01 / 0.9735 | +0.29 / 1.02 / 0.9927 | 10.436 | 69.448 |
+| 0.86 | 41 (33 / 8 / 0) | 37 | 0.982 (0.941-1.016) | +0.93 / 2.00 / 0.9731 | +0.23 / 1.01 / 0.9926 | 10.456 | 69.119 |
+| **0.84** | **40 (32 / 8 / 1)** | **36** | **0.990 (0.950-1.028)** | **+0.90 / 2.01 / 0.9719** | **+0.19 / 1.03 / 0.9921** | **10.504** | **68.546** |
+| 0.82 | 40 (32 / 8 / 1) | 36 | 0.999 (0.963-1.041) | +0.86 / 2.01 / 0.9712 | +0.15 / 1.03 / 0.9919 | 10.364 | 68.037 |
+| 0.80 | 39 (31 / 8 / 2) | 35 | 1.008 (0.971-1.052) | +0.81 / 2.01 / 0.9709 | +0.10 / 1.04 / 0.9917 | 10.353 | 68.609 |
+| Olga (ref.) | -- | -- | -- | +0.88 / 2.02 / 0.9712 | +0.17 / 1.03 / 0.9920 | -- | -- |
+| FPS Bondi, array door (ref.) | 34 (ATOM) | -- | 0.990 | -- | -- | -- | -- |
+
+Here-only at every scale <= 0.90: 3, 97, 104, 105, 106, 114, 117, 138 (ATOM
+only: 105, 114, 117, 138); FPS-only from 0.84: 139 (also FPS-only under FPS's
+own Bondi radii -- the lattice, not the radii), 31 from 0.80. Classic sites:
+99 and 129 stay empty (as in FPS), 96 and 132 open from 0.90, 117 stays empty.
+T4L-132 CB (3GUN, decorator) at 0.9 A: 7 475 -> **9 142** voxels (FPS 9 237,
+0.990 -- the same as FPS's Bondi radii on the array door, 9 143); at 0.5 A
+still 0 (item 1). 3GUN against the published table with the ACV on:
++0.23 / 0.98 / 0.9912 (was +0.70 / 0.98 / 0.9954); Olga +0.23 / 1.01 / 0.9906.
+
+**Chosen: 0.84.** It is the median per-atom FPS/IMP ratio (0.838, the same in
+all three structures, and N's exact ratio); at it the median CB volume matches
+FPS's own routine (0.99, the value FPS's Bondi radii themselves give through
+this search), where the 3GUN rmsd is flat across the whole range (1.99-2.06)
+and so cannot pick a value; 0.82 (least squares) overshoots the volume
+(> 1.0) and starts losing FPS's empty sites (31). The 3GUN bias against FPS
+falls from +1.22 to +0.90 A (+0.57 to +0.19 over the 24) at unchanged rmsd; r
+drops 0.979 -> 0.972, all of it in the nine site-132 pairs (decided off-node
+anchor). With the factor, IMP's radii and Olga's table give the same 3GUN
+numbers to 0.02 A. Docking scores move little (T4L 10.87 -> 10.50, HIV-RT
+70.64 -> 68.55), all 33 / 18 pairs finite.
+
+Goldens re-pinned with the x1.0 values beside them: `test_density_grid.py`
+(T4L-132@0.5 405 428 -> 512 452), T4L docking 10.8658 -> 10.5040 (restraint,
+`score_structures`, screening), HIV-RT 70.6416 -> 68.5459, fixed-position chi2
+13.7619 -> 14.1532, stencil-30 11.1970 -> 10.9134, stencil-26 11.1956 ->
+10.9184, the restraint's 33 model distances (bias against the file's
+experimental distances +0.45 -> +0.03 A), T4L-44 CB 21 739 -> 23 078 (fast
+20 572 -> 21 882), the av_overlap edge 5.20 -> 4.93 A. Tests that put FPS's
+Bondi radii on the particles (`test_fps_av_parity.py`), compare the radii
+*sets* (`test_olga_vdw_radii.py`) or need a tie-free matrix
+(`test_greedy_olga_ab.py`) ask for `radius_scale` 1.0 by name.
+
+Re-derive: `IMP.bff.get_av(xyzr * [1, 1, 1, s], cb, 20, 4.5, 3.5, 0, 0, 0.9)`
+over every chain-E CB of `chisurf/plugins/quenching_estimator/test/148l.pdb`
+(xyzr from QuEst's reader); 3GUN through `score_structures` with
+`"radius_scale": s` in every position of the screening file. Trap: 148L has
+altloc CB records -- take a residue as open if any of its CB records is.
 
 ## Since 2026-10-12 (later): the attachment atom excluded, the allowed sphere on
 

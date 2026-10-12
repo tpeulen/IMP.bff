@@ -184,7 +184,8 @@ def test_scoring_an_assembly_agrees_with_the_restraint_it_is_built_on(tmp_path):
     # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 11.326777201821047.
     # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 11.281702323593919.
     # 2026-10-12: FPS's link search is the default (the 3-voxel cube hop from every node, stencil 342; PathMap::set_cube_stencil) and the docking restraint scores each position's own link search instead of forcing stencil 26, and the quadrature no longer diverges for near-coincident blocks of overlapping clouds; was 11.147646616082596.
-    assert result.score == pytest.approx(10.865793933871187, abs=1e-9)
+    # 2026-10-12: the AV obstacles are IMP's radii x AV_DEFAULT_RADIUS_SCALE (0.84, fitted to FPS's Bondi radii; okf/validation/fps_screening_ab.md); was 10.865793933871187 at x1.0.
+    assert result.score == pytest.approx(10.503978842178894, abs=1e-9)
     assert result.n_avs == 17
     assert result.n_distances == 33
     assert result.score_csv == str(out)
@@ -267,7 +268,8 @@ def test_screening_ranks_a_library_and_never_reports_a_silent_nan(tmp_path):
     assert all(math.isfinite(entry.score) for entry in ranked)
     # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 11.281702323593919.
     # 2026-10-12: FPS's link search is the default (the 3-voxel cube hop from every node, stencil 342; PathMap::set_cube_stencil) and the docking restraint scores each position's own link search instead of forcing stencil 26, and the quadrature no longer diverges for near-coincident blocks of overlapping clouds; was 11.147646616082596.
-    assert ranked[0].score == pytest.approx(10.865793933871187, abs=1e-9)
+    # 2026-10-12: the AV obstacles are IMP's radii x AV_DEFAULT_RADIUS_SCALE (0.84, fitted to FPS's Bondi radii; okf/validation/fps_screening_ab.md); was 10.865793933871187 at x1.0.
+    assert ranked[0].score == pytest.approx(10.503978842178894, abs=1e-9)
     rows = list(csv.reader(out.open()))
     # The score is followed by FPS's screening diagnostics (PRD-121 G3);
     # test/representation/test_screening_diagnostics.py checks what they say.
@@ -326,7 +328,8 @@ def test_the_two_bodies_together_do_carry_every_site():
     # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 59.040389.
     # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 60.517244.
     # 2026-10-12: FPS's link search is the default (the 3-voxel cube hop from every node, stencil 342; PathMap::set_cube_stencil) and the docking restraint scores each position's own link search instead of forcing stencil 26; was 67.315335.
-    assert result.score == pytest.approx(70.641552, abs=1e-3)
+    # 2026-10-12: the AV obstacles are IMP's radii x AV_DEFAULT_RADIUS_SCALE (0.84, fitted to FPS's Bondi radii; okf/validation/fps_screening_ab.md); was 70.641552 at x1.0.
+    assert result.score == pytest.approx(68.545929, abs=1e-3)
 
 
 def test_pairs_survive_a_temporary_result():

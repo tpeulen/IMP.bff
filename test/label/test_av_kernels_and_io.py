@@ -224,8 +224,11 @@ def test_a_volume_overlaps_its_own_site_and_not_the_far_side(tmp_path):
     # default for part of 2026-09-01, it is 1.49 + 3.5 = 4.99. Pinned from
     # both sides so a change of radii set shows up here as a moved edge
     # rather than as an assertion that still passes for the wrong reason.
-    assert IMP.bff.av_overlap(av, h, "", 5.20) == 0.0
-    assert IMP.bff.av_overlap(av, h, "", 5.21) > 0.0
+    # 2026-10-12: the obstacles are IMP's radii x AV_DEFAULT_RADIUS_SCALE
+    # (0.84, fitted to FPS's Bondi radii), so the edge is 1.70 x 0.84 + 3.5 =
+    # **4.928 A**: measured 0.0 at 4.93 and 0.000271 at 4.94 (5.20 / 5.21 at x1.0).
+    assert IMP.bff.av_overlap(av, h, "", 4.93) == 0.0
+    assert IMP.bff.av_overlap(av, h, "", 4.94) > 0.0
 
 
 # ---------------------------------------------------------------------------

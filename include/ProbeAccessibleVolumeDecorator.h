@@ -711,6 +711,22 @@ public:
     static IntKey get_radii_source_key();
 
     /**
+     * @brief The factor IMP's radii are scaled by as this volume's obstacles.
+     *
+     * #IMP::bff::AV_DEFAULT_RADIUS_SCALE unless set (owner, 2026-10-12: one
+     * scale factor on IMP's radii to match FPS's, no second radii table). It
+     * multiplies the radius each particle carries when `radii_source` is
+     * `"imp"`; Olga's table is used as published. Like the radii source it is
+     * part of the obstacle set, so it invalidates the map, and every volume in
+     * one shared occupancy raster must agree on it. Ignored (1.0) under the
+     * legacy `space_fixed=False` anchoring, which is frozen on its pins.
+     * Must be positive.
+     */
+    double get_radius_scale() const;
+    void set_radius_scale(double scale);
+    static FloatKey get_radius_scale_key();
+
+    /**
      * @brief Read occupancy from a shared per-class raster registry.
      *
      * Requires `space_fixed`. Pass nullptr to return to a private raster.
@@ -1038,6 +1054,8 @@ IMPBFFEXPORT IMP::ParticleIndex search_labeling_site(
                still: ~1.9x over 74 for ~20 % less volume, because a {1,2,3}
                stencil's isopath surface is cubic rather than spherical. `30`
                is the historical variant.
+    \param[in] radius_scale the factor on IMP's radii as the obstacle set
+               (#IMP::bff::AV_DEFAULT_RADIUS_SCALE, fitted to FPS)
     \return the volume, carrying its cloud, its grid and the source coordinate
 */
 IMPBFFEXPORT ProbeAccessibleVolume resample_av(
@@ -1046,7 +1064,8 @@ IMPBFFEXPORT ProbeAccessibleVolume resample_av(
         double r3, double disc_step, double allowed_sphere_radius,
         double contact_volume_thickness = 0.0,
         double contact_volume_trapped_fraction = -1.0,
-        int search_stencil = 0);
+        int search_stencil = 0,
+        double radius_scale = IMP::bff::AV_DEFAULT_RADIUS_SCALE);
 
 //! An accessible volume from a structure and an fps position definition.
 /*!
@@ -1077,6 +1096,9 @@ IMPBFFEXPORT ProbeAccessibleVolume resample_av(
                asked for** -- an accessible contact volume *is* the weighting,
                and flattening it would return a volume that ignored the
                request.
+    \param[in] radius_scale the factor on IMP's radii as the obstacle set
+               (#IMP::bff::AV_DEFAULT_RADIUS_SCALE, fitted to FPS); the
+               position field `radius_scale` at the fps.json door
     \throw ValueException when the attachment site is not in the structure
 */
 IMPBFFEXPORT ProbeAccessibleVolume get_av_from_structure(
@@ -1087,7 +1109,8 @@ IMPBFFEXPORT ProbeAccessibleVolume get_av_from_structure(
         const std::string& strip_mask = "",
         double allowed_sphere_radius = IMP::bff::AV_DEFAULT_ALLOWED_SPHERE,
         double contact_volume_thickness = 0.0,
-        double contact_volume_trapped_fraction = -1.0);
+        double contact_volume_trapped_fraction = -1.0,
+        double radius_scale = IMP::bff::AV_DEFAULT_RADIUS_SCALE);
 
 //! The same front door, from an fps.json `Positions` entry.
 /*!

@@ -52,9 +52,20 @@ ProbeAccessibleVolumeOccupancyMap *ProbeAccessibleVolumeOccupancyRegistry::get_m
 }
 
 void ProbeAccessibleVolumeOccupancyRegistry::adopt_obstacle_radii(
-        AVRadiiSource source, const std::vector<double> &radii) {
+        AVRadiiSource source, double radius_scale,
+        const std::vector<double> &radii) {
     if (adopted_) {
-        if (source == adopted_source_) return;  // O(1): the hot path
+        if (source == adopted_source_ && radius_scale == adopted_scale_) {
+            return;  // O(1): the hot path
+        }
+        if (source == adopted_source_) {
+            IMP_THROW("AVOccupancyRegistry: the shared occupancy raster was "
+                      "built with IMP's radii x " << adopted_scale_
+                      << "; a volume sharing it cannot ask for x "
+                      << radius_scale
+                      << " (see ProbeAccessibleVolumeDecorator::set_radius_scale)",
+                      IMP::ValueException);
+        }
         /* Two volumes of one shared raster disagreeing about how big the
            atoms are. Whichever answer were kept, one of them would be scored
            against a raster it did not ask for -- and silently, because the
@@ -72,6 +83,7 @@ void ProbeAccessibleVolumeOccupancyRegistry::adopt_obstacle_radii(
     }
     adopted_ = true;
     adopted_source_ = source;
+    adopted_scale_ = radius_scale;
     obstacle_radii_ = radii;
     for (auto &kv : maps_) kv.second->set_obstacle_radii(radii);
 }

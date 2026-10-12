@@ -73,17 +73,21 @@ _SITES = [
 # records were taken at FPS's per-width rule, 0.5 x W (1.75 A at W 3.5, 1.25 A
 # at W 2.5), and are kept by asking for that rule explicitly (-1) -- they pin
 # the search, not the default.
+# Re-recorded 2026-10-12 (latest) when the obstacles became IMP's radii x
+# AV_DEFAULT_RADIUS_SCALE (0.84, fitted to FPS's Bondi radii; owner: one scale
+# factor, no second radii table): every volume grows, T4L-132@0.5 405 428 ->
+# 512 452 point values; the records at x1.0 are kept beside each key.
 # key -> (n_density, density_sha, n_points, points_sha, ng).
 _GOLDEN = {
-    "T4L-132@1.5": (29791, "b594474e1c126107", 17036, "a215ca2ae133f180", 31),  # was (29791, "37364ccd7f6dc91a", 15432, "af94c6ef17bd5374", 31)
-    "T4L-132@1.0": (91125, "25828bcfe0b7d459", 59964, "31a421e56725b5a9", 45),  # was (91125, "a9363ac57700ef0d", 55332, "5aee0d3d99199897", 45)
-    "T4L-132@0.5": (704969, "3f75e9edc8902dbf", 405428, "c07178c539a120c5", 89),  # was (704969, "66b5d1f6044217fe", 371548, "b04c129e437c3b86", 89)
-    "T4L-150@1.5": (29791, "9e7ab65c7325ca4c", 12032, "74c757b187848c71", 31),  # was (29791, "d772577956b42772", 10772, "6446b0d427beded8", 31)
-    "T4L-150@1.0": (91125, "445b17d061eca9f7", 35312, "c99c0a69b09a4bb3", 45),  # was (91125, "f465036cf24d5a1c", 31652, "324411a52b4ba2e5", 45)
-    "T4L-150@0.5": (704969, "cc322b898084d64b", 287192, "c84c2e076df61389", 89),  # was (704969, "14fdaa1992ea4605", 260244, "2c6a18daeb677f81", 89)
-    "GBP-400@1.5": (29791, "16b9146e2563e289", 15120, "313b59f9f243e3e7", 31),  # was (29791, "175f63dc9c965819", 14376, "45e8bc0c8b4c94a6", 31)
-    "GBP-400@1.0": (91125, "8f966b3cbef8147d", 55764, "377a2a1629c76d89", 45),  # was (91125, "6025d1f861ebc1e8", 53624, "016cc568fa8cddcb", 45)
-    "GBP-400@0.5": (704969, "a288b7d6daf21645", 412620, "660c86f2aeb1d74c", 89),  # was (704969, "a8c9e5e677eb6400", 388276, "ac6a4dc685382727", 89)
+    "T4L-132@1.5": (29791, "35a2cc2149b76698", 19116, "cb31488db69d1667", 31),  # was (29791, "b594474e1c126107", 17036, "a215ca2ae133f180", 31)
+    "T4L-132@1.0": (91125, "1bee1e4f90461716", 65096, "b9aaed4cd37e8a96", 45),  # was (91125, "25828bcfe0b7d459", 59964, "31a421e56725b5a9", 45)
+    "T4L-132@0.5": (704969, "f4fec462452cd816", 512452, "650eae68bc47e774", 89),  # was (704969, "3f75e9edc8902dbf", 405428, "c07178c539a120c5", 89)
+    "T4L-150@1.5": (29791, "2b3e1afac66841f1", 13912, "1633795d02ced41a", 31),  # was (29791, "9e7ab65c7325ca4c", 12032, "74c757b187848c71", 31)
+    "T4L-150@1.0": (91125, "298e75fd8521b465", 40736, "d62af8b98d0af0fb", 45),  # was (91125, "445b17d061eca9f7", 35312, "c99c0a69b09a4bb3", 45)
+    "T4L-150@0.5": (704969, "1dcb04f084be7870", 321884, "ed1a7eb0cb1c52bc", 89),  # was (704969, "cc322b898084d64b", 287192, "c84c2e076df61389", 89)
+    "GBP-400@1.5": (29791, "ebce6e18fee14141", 15892, "aee4d65e7333cfc7", 31),  # was (29791, "16b9146e2563e289", 15120, "313b59f9f243e3e7", 31)
+    "GBP-400@1.0": (91125, "eab727f55cefd444", 58620, "69f669abb265f469", 45),  # was (91125, "8f966b3cbef8147d", 55764, "377a2a1629c76d89", 45)
+    "GBP-400@0.5": (704969, "827f2450557fe843", 442592, "61e86f13985258b4", 89),  # was (704969, "a288b7d6daf21645", 412620, "660c86f2aeb1d74c", 89)
 }
 
 

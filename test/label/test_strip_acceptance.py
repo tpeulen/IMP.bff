@@ -443,6 +443,9 @@ def test_an_unmasked_volume_carries_no_override():
     av = IMP.bff.ProbeAccessibleVolumeDecorator.setup_particle(IMP.Particle(m), site.get_index())
     av.set_av_parameter(parameter)
     av.set_radii_source("imp")
+    # 2026-10-12: the default scale on IMP's radii (AV_DEFAULT_RADIUS_SCALE,
+    # 0.84) is itself an override, so the empty state is also scale 1.0.
+    av.set_radius_scale(1.0)
     av.resample()
     assert len(list(av.get_map().get_obstacle_radii())) == 0
 

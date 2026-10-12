@@ -389,7 +389,7 @@ def test_the_default_scoring_door_keeps_imps_own_constant():
     """The default is deliberately *not* FPS's, and this pins that.
 
     `create_docking_assembly` is the scoring door and its numbers are pinned
-    elsewhere (HIV-RT `resolved` at 70.6416 under FPS's link search since 2026-10-12, 67.3153 under FPS's AV defaults with the seed-only search on 2026-10-11, 60.5172 under FRETraj's first step earlier that day, 59.0404 before; of which 24.8 is the clash term).
+    elsewhere (HIV-RT `resolved` at 68.5459 with the AV obstacles at IMP's radii x 0.84 since 2026-10-12, 70.6416 at x1.0 under FPS's link search the same day, 67.3153 under FPS's AV defaults with the seed-only search on 2026-10-11, 60.5172 under FRETraj's first step earlier that day, 59.0404 before; of which 24.8 is the clash term).
     FPS's docking constant is opted into through `DockingParameters`, which is
     where the docking protocol lives.
     """
@@ -406,7 +406,8 @@ def test_the_default_scoring_door_keeps_imps_own_constant():
     # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 59.040389.
     # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 60.517244.
     # 2026-10-12: FPS's link search is the default (the 3-voxel cube hop from every node, stencil 342; PathMap::set_cube_stencil) and the docking restraint scores each position's own link search instead of forcing stencil 26; was 67.315335.
-    assert result.score == pytest.approx(70.641552, abs=1e-3)
+    # 2026-10-12: the AV obstacles are IMP's radii x AV_DEFAULT_RADIUS_SCALE (0.84, fitted to FPS's Bondi radii; okf/validation/fps_screening_ab.md); was 70.641552 at x1.0.
+    assert result.score == pytest.approx(68.545929, abs=1e-3)
 
 
 # --------------------------------------------------------------------------

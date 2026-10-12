@@ -208,18 +208,29 @@ def test_rda_agrees_with_fps_itself():
     # 0.84 / 0.9959, bounds 0.3 / 1.0 / 0.995).
     assert abs((mine - theirs).mean()) < 1.5
     assert np.sqrt(((mine - theirs) ** 2).mean()) < 2.2
-    assert np.corrcoef(theirs, mine)[0, 1] > 0.975
+    # 2026-10-12 (later): the obstacles are IMP's radii x AV_DEFAULT_RADIUS_SCALE
+    # (0.84, fitted to FPS's Bondi radii): all 33 +0.90 / 2.01 / 0.9719, the
+    # 24 +0.19 / 1.03 / 0.9921 -- the bias shrinks, the rmsd holds, r drops
+    # (the nine pairs with site 132, whose anchor is off-node, go 0.9669 ->
+    # 0.9532). Bounds were r > 0.975 and, over the 24, |bias| < 0.8 and r > 0.995.
+    assert np.corrcoef(theirs, mine)[0, 1] > 0.970
     d = mine[easy] - theirs[easy]
-    assert abs(d.mean()) < 0.8
+    assert abs(d.mean()) < 0.4
     assert np.sqrt((d ** 2).mean()) < 1.2
-    assert np.corrcoef(theirs[easy], mine[easy])[0, 1] > 0.995
+    assert np.corrcoef(theirs[easy], mine[easy])[0, 1] > 0.990
 
     # --- and Olga's: all 33 as well, and further from FPS on the shared 24 --
     olga, olga_theirs, olga_easy = against_fps(
         _scored(derive_clearance=True, radii_source="olga"))
     assert len(olga) == 33, "Olga's radii no longer open every site"
     d_olga = olga[olga_easy] - olga_theirs[olga_easy]
-    assert np.sqrt((d ** 2).mean()) < np.sqrt((d_olga ** 2).mean())
+    # Since the scale factor (2026-10-12) IMP's scaled radii and Olga's
+    # Bondi-like table agree with FPS equally well (+0.19 / 1.03 against
+    # +0.17 / 1.03 over the 24); IMP's at x1.0 were the closer (1.01 against
+    # 1.03), which is what this asserted before.
+    assert np.sqrt((d ** 2).mean()) == pytest.approx(
+        np.sqrt((d_olga ** 2).mean()), abs=0.05)
+    assert d.mean() == pytest.approx(d_olga.mean(), abs=0.1)
 
 
 def test_the_published_table_is_not_reproduced_by_fps_either():
@@ -433,7 +444,9 @@ def test_the_contact_volume_explains_the_offset_against_the_published_table():
     assert np.sqrt(((on - published) ** 2).mean()) < 1.5
     assert (np.sqrt(((on - published) ** 2).mean())
             < 0.5 * np.sqrt(((off - published) ** 2).mean()))
-    assert np.corrcoef(published, on)[0, 1] > 0.995
+    # 2026-10-12 (later), IMP's radii x 0.84: +0.23 / 0.98 / 0.9912 (was
+    # +0.70 / 0.98 / 0.9954 at x1.0; the bound was 0.995).
+    assert np.corrcoef(published, on)[0, 1] > 0.990
 
     # ...and what the default costs against this reference, measured. Olga's
     # radii fit the 33 published pairs with a smaller bias than the default
@@ -454,6 +467,10 @@ def test_the_contact_volume_explains_the_offset_against_the_published_table():
     olga_mine = np.array(olga_mine)
     olga_theirs = np.array(olga_theirs)
     assert len(olga_mine) == 33 and len(on) == 33
-    assert abs((olga_mine - olga_theirs).mean()) < abs((on - published).mean())
+    # Since the scale factor (2026-10-12) the two radii sets meet: +0.23 A
+    # bias either way (Olga 1.01 A rmsd, IMP x 0.84 0.98 A); at x1.0 Olga's
+    # bias was the smaller, which this asserted.
+    assert (olga_mine - olga_theirs).mean() == pytest.approx(
+        (on - published).mean(), abs=0.1)
     assert (np.sqrt(((olga_mine - olga_theirs) ** 2).mean())
             == pytest.approx(np.sqrt(((on - published) ** 2).mean()), abs=0.05))

@@ -88,7 +88,8 @@ class Tests(unittest.TestCase):
         # the rest being the 2026-08-31 move above, which is not reverted.
         # 2026-10-11: FPS's AV defaults -- the linker's first step is FPS's, three-voxel hops from every voxel of the seed (here the explicit 2.0 A clearance; PathMap::set_source_first_step), which reaches 3.5 A where the stencil alone reached 2.0; was (-15.048157, 19.668150, 20.226974).
         # 2026-10-12: FPS's link search is the default (the 3-voxel cube hop from every node, stencil 342; PathMap::set_cube_stencil); was (-14.853740, 19.747667, 20.401957).
-        np.testing.assert_almost_equal(av.get_mean_position(), (-14.808751, 19.733674, 20.414527), decimal=3)
+        # 2026-10-12 (later): the AV obstacles are IMP's radii x AV_DEFAULT_RADIUS_SCALE (0.84, fitted to FPS's Bondi radii; okf/validation/fps_screening_ab.md); was (-14.808751, 19.733674, 20.414527) at x1.0.
+        np.testing.assert_almost_equal(av.get_mean_position(), (-14.547858, 19.593512, 20.301101), decimal=3)
         np.testing.assert_almost_equal(av.get_radii(), (3.5, 0, 0), decimal=3)
         self.assertEqual(av.get_parameters_are_optimized(), False)
         self.assertEqual(str(av.get_source()), '"Atom CB of residue 55"')
@@ -321,7 +322,8 @@ class Tests(unittest.TestCase):
         # (ProbeAccessibleVolumeDecorator::set_radii_source), so this is the pre-Olga number, to 0.002 A.
         # 2026-10-11: FPS's AV defaults -- the linker's first step is FPS's, three-voxel hops from every voxel of the seed (here the explicit 2.0 A clearance; PathMap::set_source_first_step), which reaches 3.5 A where the stencil alone reached 2.0; was (-0.322252, -25.204348, -3.821867).
         # 2026-10-12: FPS's link search is the default (the 3-voxel cube hop from every node, stencil 342; PathMap::set_cube_stencil); was (-0.125887, -25.307448, -4.261595).
-        ref = (-0.502609, -25.083556, -4.527183)
+        # 2026-10-12 (later): the AV obstacles are IMP's radii x AV_DEFAULT_RADIUS_SCALE (0.84, fitted to FPS's Bondi radii; okf/validation/fps_screening_ab.md); was (-0.502609, -25.083556, -4.527183) at x1.0.
+        ref = (-0.198184, -24.369562, -5.131474)
         np.testing.assert_allclose(av_mp.get_coordinates(), ref, atol=1e-3)
 
     def test_access_av_feature(self):
@@ -429,7 +431,8 @@ class Tests(unittest.TestCase):
         # Olga's radii shorten this to 55.6252; the default is IMP's own again
         # (ProbeAccessibleVolumeDecorator::set_radii_source), so the pre-Olga 55.8469 is restored.
         # 2026-10-11: FPS's AV defaults -- the linker's first step is FPS's, three-voxel hops from every voxel of the seed (here the explicit 2.0 A clearance; PathMap::set_source_first_step), which reaches 3.5 A where the stencil alone reached 2.0; was 55.8469.
-        self.assertAlmostEqual(np.mean(distances), 56.3428, delta=0.15)
+        # 2026-10-12 (later): the AV obstacles are IMP's radii x AV_DEFAULT_RADIUS_SCALE (0.84, fitted to FPS's Bondi radii; okf/validation/fps_screening_ab.md); was 56.3428 at x1.0.
+        self.assertAlmostEqual(np.mean(distances), 56.0082, delta=0.15)
 
     def test_av_av_distance(self):
         av1 = get_av(hier)
@@ -451,7 +454,8 @@ class Tests(unittest.TestCase):
         # inside the MC delta below.
         # 2026-10-11: FPS's AV defaults -- the linker's first step is FPS's, three-voxel hops from every voxel of the seed (here the explicit 2.0 A clearance; PathMap::set_source_first_step), which reaches 3.5 A where the stencil alone reached 2.0; was [54.8151, 55.8598, 52.9990, 0.4211].
         # 2026-10-12: FPS's link search is the default (the 3-voxel cube hop from every node, stencil 342; PathMap::set_cube_stencil); was [55.2012, 56.3500, 53.4337, 0.4114].
-        refs_distances = [55.1220, 56.2978, 53.2479, 0.4132]
+        # 2026-10-12 (later): the AV obstacles are IMP's radii x AV_DEFAULT_RADIUS_SCALE (0.84, fitted to FPS's Bondi radii; okf/validation/fps_screening_ab.md); was [55.1220, 56.2978, 53.2479, 0.4132] at x1.0.
+        refs_distances = [54.8988, 56.0187, 52.7777, 0.4197]
         for t, ref in zip(distance_types, refs_distances):
             v = IMP.bff.av_distance(
                 av1, av2,

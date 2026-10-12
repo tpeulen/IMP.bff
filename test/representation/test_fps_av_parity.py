@@ -94,6 +94,10 @@ def _volume(model, serials, pin):
     # carbon 1.70 in each), it kept passing while it did so. A default this
     # test follows silently is a default this test cannot detect.
     av.set_radii_source("imp")
+    # ...and as they are: the particles carry FPS's Bondi radii here, so the
+    # factor that brings IMP's united-atom radii to FPS's
+    # (AV_DEFAULT_RADIUS_SCALE, 2026-10-12) must not shrink them a second time.
+    av.set_radius_scale(1.0)
     av.resample()
     points = np.asarray(av.get_map().get_xyz_density(), dtype=float)
     return av, points

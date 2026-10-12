@@ -27,6 +27,7 @@
  * | link search | the same 3-voxel cube hop from *every* reached node (`av_routines.cpp:156-209`) | the 74 stencil | FPS's: `link_search = "fps"`, stencil 342 (PathMap::set_cube_stencil) |
  * | contact volume | none | thickness 0, trapped fraction -1 (off) | off |
  * | min. sphere volume fraction | none | 0 | 0 |
+ * | obstacle radii | element-keyed Bondi (`Fps/data/vdW.txt`: C 1.70, N 1.55, O 1.52) | name-keyed (`vdWRadii.json`) | IMP's united-atom radii x #AV_DEFAULT_RADIUS_SCALE |
  *
  * Where the two disagree the search follows FPS: the seed sphere, the first
  * step and the link search. FPS hops `LinkSearchNodes` voxels from *every*
@@ -81,6 +82,24 @@ constexpr double AV_DEFAULT_LINKER_INITIAL_SPHERE = 0.5;
 //! away from FPS. A *negative* value means that rule at any door.
 constexpr double AV_DEFAULT_ALLOWED_SPHERE =
         AV_DEFAULT_LINKER_INITIAL_SPHERE * AV_DEFAULT_LINKER_WIDTH;
+//! The one factor IMP's radii are scaled by as an AV's obstacle set.
+/*! FPS inflates its obstacles by element-keyed Bondi radii (`vdW.txt`); IMP's
+    particles carry CHARMM united-atom radii with implicit hydrogens, ~17 %
+    larger (carbon 1.85-2.275 A against 1.70). Owner, 2026-10-12: "i do not
+    want a separate set of atom radii, if fps is slightly smaller, use a
+    single scale factor to match fps radii". So the AV keeps IMP's radii --
+    the ones on the particles -- and multiplies them by this one number; there
+    is no second radii table. Fitted to FPS, not inferred
+    (`okf/validation/fps_screening_ab.md`, "AV obstacle-radius scale"):
+    over the 20 434 heavy atoms of 148L, 3GUN and 1RTD the FPS/IMP radius
+    ratio is 0.838 (median; least squares 0.821), and on T4L 148L's CB sites
+    the volume against FPS's own routine is 1.00 at this value (0.91 at 1.0).
+    Applies to `radii_source = "imp"` only: Olga's table is used as published.
+    Every door that reads IMP's radii for an AV takes it (decorator, fps.json
+    position field `radius_scale`, the docking restraint); the array doors
+    take the caller's radii as given. The docking clash term is separate
+    (`DockingParameters::clash_radii_scale`, 1.0). */
+constexpr double AV_DEFAULT_RADIUS_SCALE = 0.84;
 //! FPS `LinkSearchNodes`: how many voxels the linker hops at a time.
 constexpr int AV_DEFAULT_LINK_SEARCH_NODES = 3;
 //! The search stencil of FPS's link search: the (2n+1)^3 cube of

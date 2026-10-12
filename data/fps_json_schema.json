@@ -359,6 +359,14 @@
           ],
           "x-flrcif-item": "_flr_FPS_AV_parameter.probe_radius_3"
         },
+        "radius_scale": {
+          "default": 0.84,
+          "description": "Factor the 'imp' radii are multiplied by as this volume's obstacles (Olga's table is not scaled). The default is fitted to FPS's Bondi radii: IMP's united-atom radii are ~17 % larger, and at this factor the T4L CB-site volumes match FPS's own routine (median 1.00). 1.0 uses IMP's radii as they are.",
+          "type": "number",
+          "x-dialects": [
+            "flat"
+          ]
+        },
         "reference_atoms": {
           "default": [],
           "description": "Atoms defining the frame the fixed (XYZ) coordinate was measured in, as objects: {chain_identifier, residue_seq_number, atom_name, x, y, z} and optionally atom_serial, where x/y/z are the atom's coordinates in that frame. Screening Kabsch-fits them onto each structure, transports x/y/z of the position through the fit and reports the fit RMSD (FPS: RefRMSD). Three atoms are the minimum that fixes a rotation.",
@@ -1100,6 +1108,14 @@
             ],
             "x-flrcif-item": "_flr_FPS_AV_parameter.probe_radius_3"
           },
+          "radius_scale": {
+            "default": 0.84,
+            "description": "Factor the 'imp' radii are multiplied by as this volume's obstacles (Olga's table is not scaled). The default is fitted to FPS's Bondi radii: IMP's united-atom radii are ~17 % larger, and at this factor the T4L CB-site volumes match FPS's own routine (median 1.00). 1.0 uses IMP's radii as they are.",
+            "type": "number",
+            "x-dialects": [
+              "flat"
+            ]
+          },
           "reference_atoms": {
             "default": [],
             "description": "Atoms defining the frame the fixed (XYZ) coordinate was measured in, as objects: {chain_identifier, residue_seq_number, atom_name, x, y, z} and optionally atom_serial, where x/y/z are the atom's coordinates in that frame. Screening Kabsch-fits them onto each structure, transports x/y/z of the position through the fit and reports the fit RMSD (FPS: RefRMSD). Three atoms are the minimum that fixes a rotation.",
@@ -1598,5 +1614,5 @@
   },
   "title": "fps.json — FRET labelling positions and distances",
   "type": "object",
-  "x-schema-version": "1.8"
+  "x-schema-version": "1.9"
 }

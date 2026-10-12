@@ -16,6 +16,7 @@
 #include <IMP/atom/pdb.h>
 #include <IMP/bff/internal/json.h>
 #include <IMP/bff/SelectionExpression.h>
+#include <cmath>
 #include <IMP/bff/ProbeAccessibleVolume.h>
 #include <IMP/bff/StructureIO.h>
 #include <IMP/bff/internal/OutputView.h>
@@ -377,6 +378,34 @@ void ProbeAccessibleVolumeDecorator::set_radii_source(std::string source){
     av_map_ = nullptr;
 }
 
+FloatKey ProbeAccessibleVolumeDecorator::get_radius_scale_key(){
+    static const FloatKey k("av_radius_scale");
+    return k;
+}
+
+double ProbeAccessibleVolumeDecorator::get_radius_scale() const{
+    // Absent attribute = the declared default (ProbeAccessibleVolumeDefaults.h).
+    if(get_model()->get_has_attribute(get_radius_scale_key(), get_particle_index())){
+        return get_model()->get_attribute(get_radius_scale_key(), get_particle_index());
+    }
+    return AV_DEFAULT_RADIUS_SCALE;
+}
+
+void ProbeAccessibleVolumeDecorator::set_radius_scale(double scale){
+    if(!(scale > 0.0) || !std::isfinite(scale)){
+        IMP_THROW("AV: radius_scale must be a positive number, got " << scale,
+                  IMP::ValueException);
+    }
+    if(get_radius_scale() == scale) return;
+    if(get_model()->get_has_attribute(get_radius_scale_key(), get_particle_index())){
+        get_model()->set_attribute(get_radius_scale_key(), get_particle_index(), scale);
+    } else {
+        get_model()->add_attribute(get_radius_scale_key(), get_particle_index(), scale);
+    }
+    // Part of the obstacle set, like the radii source: rebuild the map.
+    av_map_ = nullptr;
+}
+
 IntKey ProbeAccessibleVolumeDecorator::get_search_mode_key(){
     static const IntKey k("av_search_mode");
     return k;
@@ -490,8 +519,12 @@ std::vector<double> obstacle_radii(IMP::atom::Hierarchy root,
                                    IMP::Particle* source,
                                    const IMP::ParticlesTemp& all,
                                    const std::string& mask,
-                                   AVRadiiSource radii_source) {
-    if (mask.empty() && radii_source == AV_RADII_IMP) {
+                                   AVRadiiSource radii_source,
+                                   double radius_scale) {
+    /* `radius_scale` multiplies IMP's radii (AV_DEFAULT_RADIUS_SCALE, fitted
+       to FPS's Bondi set) and only IMP's: Olga's table is used as published.
+       A scale of exactly 1 with no mask is still "no override". */
+    if (mask.empty() && radii_source == AV_RADII_IMP && radius_scale == 1.0) {
         return std::vector<double>();
     }
 
@@ -521,7 +554,7 @@ std::vector<double> obstacle_radii(IMP::atom::Hierarchy root,
             radii[i] = olga_vdw_particle_radius(all[i]);
         } else {
             radii[i] = IMP::core::XYZR::get_is_setup(all[i])
-                               ? IMP::core::XYZR(all[i]).get_radius()
+                               ? IMP::core::XYZR(all[i]).get_radius() * radius_scale
                                : 0.0;
         }
     }
@@ -577,9 +610,11 @@ void ProbeAccessibleVolumeDecorator::init_path_map(){
         }
         radii_source = AV_RADII_IMP;
     }
+    // The legacy anchoring keeps the unscaled radii for the same reason.
+    const double radius_scale = get_space_fixed() ? get_radius_scale() : 1.0;
     const std::vector<double> orad =
             obstacle_radii(root, parent, leaves, get_strip_mask(),
-                           radii_source);
+                           radii_source, radius_scale);
     av_map_->set_obstacle_radii(orad);
     if(get_chain_weighting()){
         av_map_->set_linker_weighting(linker_weighting(get_linker_length()));
@@ -830,9 +865,14 @@ void ProbeAccessibleVolumeDecorator::resample_lattice_prepare(bool shift_xyz, bo
            A strip mask never reaches here (set_occupancy_registry drops a
            masked volume to a private raster), so this vector is the pure
            radii-set answer. */
-        st.registry->adopt_obstacle_radii(
-                av_radii_source_from_string(get_radii_source()),
-                map->get_obstacle_radii());
+        {
+            const AVRadiiSource src =
+                    av_radii_source_from_string(get_radii_source());
+            // the scale is IMP's radii's alone: Olga's table is not scaled
+            st.registry->adopt_obstacle_radii(
+                    src, src == AV_RADII_IMP ? get_radius_scale() : 1.0,
+                    map->get_obstacle_radii());
+        }
         // (a registry requires space_fixed, so no legacy override here)
         occ1 = st.registry->get_map(h, extra1);
         occ2 = st.registry->get_map(h, extra2);
@@ -1291,6 +1331,9 @@ void ProbeAccessibleVolumeDecorator::set_av_parameter(const std::string &json_te
                              av_radii_source_to_string(AV_RADII_IMP)));
     // FPS's link search unless the position asks for the seed-only one.
     set_link_search(j.value("link_search", std::string(AV_DEFAULT_LINK_SEARCH)));
+    // The one factor on IMP's radii that matches FPS's (schema 1.9); absent
+    // is the declared default, the same at every door.
+    set_radius_scale(j.value("radius_scale", AV_DEFAULT_RADIUS_SCALE));
 }
 
 IMP::bff::PathMapHeader ProbeAccessibleVolumeDecorator::create_path_map_header(){
@@ -1864,7 +1907,7 @@ ProbeAccessibleVolume resample_av(IMP::Model* model, IMP::Particle* source_parti
                              double allowed_sphere_radius,
                              double contact_volume_thickness,
                              double contact_volume_trapped_fraction,
-                             int search_stencil) {
+                             int search_stencil, double radius_scale) {
     IMP::Particle* av_particle = new IMP::Particle(model);
     ProbeAccessibleVolumeDecorator::do_setup_particle(model, av_particle->get_index(),
                           source_particle->get_index(), linker_length,
@@ -1873,6 +1916,7 @@ ProbeAccessibleVolume resample_av(IMP::Model* model, IMP::Particle* source_parti
                           contact_volume_trapped_fraction, disc_step);
     ProbeAccessibleVolumeDecorator av(model, av_particle->get_index());
     if (search_stencil) av.set_search_stencil(search_stencil);
+    av.set_radius_scale(radius_scale);
     av.resample();
 
     PathMap* path_map = av.get_map();
@@ -1937,7 +1981,7 @@ ProbeAccessibleVolume get_av_from_structure(
         double r1, double r2, double r3, double disc_step,
         const std::string& strip_mask, double allowed_sphere_radius,
         double contact_volume_thickness,
-        double contact_volume_trapped_fraction) {
+        double contact_volume_trapped_fraction, double radius_scale) {
     const std::string stripped =
             stripped_pdb_for(pdb_path, chain, resseq, atom_name, strip_mask);
 
@@ -1970,7 +2014,7 @@ ProbeAccessibleVolume get_av_from_structure(
     ProbeAccessibleVolume av = resample_av(
             model, particles[0], linker_length, linker_width, r1, r2, r3,
             disc_step, clearance, contact_volume_thickness,
-            contact_volume_trapped_fraction, 0);
+            contact_volume_trapped_fraction, 0, radius_scale);
 
     // This door's convention: the point weights are forced to one. The array
     // door keeps whatever IMP reported.
@@ -2044,7 +2088,8 @@ ProbeAccessibleVolume av_from_position(const std::string& pdb_path,
                     ? position.at("allowed_sphere_radius").get<double>()
                     : av_derived_allowed_sphere_radius(linker_width),
             position.value("contact_volume_thickness", 0.0),
-            position.value("contact_volume_trapped_fraction", -1.0));
+            position.value("contact_volume_trapped_fraction", -1.0),
+            position.value("radius_scale", AV_DEFAULT_RADIUS_SCALE));
 }
 }
 

@@ -66,6 +66,7 @@ class IMPBFFEXPORT ProbeAccessibleVolumeOccupancyRegistry : public IMP::Object {
     std::vector<double> obstacle_radii_;
     bool adopted_ = false;
     AVRadiiSource adopted_source_ = AV_RADII_IMP;
+    double adopted_scale_ = 1.0;
     std::map<std::pair<double, double>, IMP::Pointer<ProbeAccessibleVolumeOccupancyMap> > maps_;
     std::shared_ptr<std::vector<IMP::algebra::Vector4D> > snapshot_ =
         std::make_shared<std::vector<IMP::algebra::Vector4D> >();
@@ -92,8 +93,10 @@ public:
         radius is picked up as an ordinary subtract-old / add-new delta.
 
         An empty vector means "the particles' own radii", which is what
-        `AV_RADII_IMP` -- the default -- with no mask hands over. */
-    void adopt_obstacle_radii(AVRadiiSource source,
+        `AV_RADII_IMP` at a radius scale of 1 with no mask hands over. The
+        radius scale (#IMP::bff::AV_DEFAULT_RADIUS_SCALE) is part of the
+        obstacle set exactly as the source is, so it is compared the same way. */
+    void adopt_obstacle_radii(AVRadiiSource source, double radius_scale,
                               const std::vector<double> &radii);
 
     //! The radii adopted by adopt_obstacle_radii(); empty = the model's own.
@@ -103,6 +106,9 @@ public:
 
     //! The radii set this registry was built with; `imp` until one is adopted.
     AVRadiiSource get_radii_source() const { return adopted_source_; }
+
+    //! The radius scale this registry was built with; 1 until one is adopted.
+    double get_radius_scale() const { return adopted_scale_; }
 
     //! All maps created so far
     ProbeAccessibleVolumeOccupancyMaps get_maps() const;

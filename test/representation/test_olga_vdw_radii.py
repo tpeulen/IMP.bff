@@ -167,7 +167,14 @@ def _t4l():
     return model, hierarchy
 
 
-def _av(model, hierarchy, residue, atom, radii_source):
+def _av(model, hierarchy, residue, atom, radii_source, radius_scale=1.0):
+    """An AV at one radii set; IMP's united-atom radii *as they are* by default.
+
+    The comparisons in this file are between the two radii *sets*, so IMP's is
+    taken unscaled; the default AV_DEFAULT_RADIUS_SCALE (2026-10-12, fitted to
+    FPS's Bondi radii) is a factor on top of it and is measured in
+    `okf/validation/fps_screening_ab.md`.
+    """
     particle = IMP.Particle(model)
     selection = IMP.atom.Selection(hierarchy)
     selection.set_atom_type(IMP.atom.AtomType(atom))
@@ -176,6 +183,7 @@ def _av(model, hierarchy, residue, atom, radii_source):
     IMP.bff.ProbeAccessibleVolumeDecorator.do_setup_particle(model, particle, source, **AV_PARAMETER)
     av = IMP.bff.ProbeAccessibleVolumeDecorator(model, particle)
     av.set_radii_source(radii_source)
+    av.set_radius_scale(radius_scale)
     av.resample()
     return av
 

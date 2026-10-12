@@ -99,8 +99,11 @@ def test_fps_finds_more_volume_than_the_seed_only_search():
     """T4L 44 CB at FPS's width: the cube reaches what the 74 stencil walks around."""
     fps = len(_Site(44, 0.9).points(False))
     fast = len(_Site(44, 0.9, "fast").points(False))
-    assert fps == 21739
-    assert fast == 20572
+    # 2026-10-12: IMP's radii x AV_DEFAULT_RADIUS_SCALE (0.84, fitted to FPS's
+    # Bondi radii) are the obstacles; at IMP's radii as they are (x1.0) these
+    # were 21739 and 20572.
+    assert fps == 23078
+    assert fast == 21882
 
 
 @pytest.mark.parametrize("residue,grid", [(44, 0.9), (132, 0.9), (44, 0.5)])

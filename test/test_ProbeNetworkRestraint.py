@@ -102,7 +102,8 @@ class Tests(unittest.TestCase):
         # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 11.326777201821047.
         # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 11.281702323593919.
         # 2026-10-12: FPS's link search is the default (the 3-voxel cube hop from every node, stencil 342; PathMap::set_cube_stencil) and the docking restraint scores each position's own link search instead of forcing stencil 26, and the quadrature no longer diverges for near-coincident blocks of overlapping clouds; was 11.147646616082596.
-        self.assertAlmostEqual(10.865793933871187, v, places=6)
+        # 2026-10-12: the AV obstacles are IMP's radii x AV_DEFAULT_RADIUS_SCALE (0.84, fitted to FPS's Bondi radii; okf/validation/fps_screening_ab.md); was 10.865793933871187 at x1.0.
+        self.assertAlmostEqual(10.503978842178894, v, places=6)
         self.assertEqual(v, fret_restraint.unprotected_evaluate(None))
 
         # Re-measured 2026-09-01, when the accessible contact volume this file
@@ -118,11 +119,19 @@ class Tests(unittest.TestCase):
         # 2026-10-11, FPS's AV defaults (seed W/2, FPS's first step): three
         # pairs moved by more than half an Angstrom -- 50.7 -> 48.0, 27.2 ->
         # 28.7 and 39.3 -> 40.8; the other thirty within it.
+        # 2026-10-12: the AV obstacles are IMP's radii x AV_DEFAULT_RADIUS_SCALE
+        # (0.84, fitted to FPS's Bondi radii): the volumes grow and twenty of
+        # the 33 move by more than half an Angstrom (41.5 -> 39.4, 55.4 -> 53.6,
+        # 44.7 -> 43.1, 42.3 -> 40.7 the largest); mean shift -0.43 A, against
+        # `experiment_ref` bias +0.45 -> +0.03 A, rmsd 3.96 -> 3.78. At x1.0:
+        # [45.9, 36.7, 38.2, 48.7, 36.6, 38.7, 42.9, 50.5, 55.4, 48.3, 48.0,
+        #  28.7, 47.5, 41.5, 42.2, 58.1, 53.3, 50.2, 33.5, 51.9, 48.8, 40.4,
+        #  47.9, 40.6, 43.4, 44.7, 33.7, 37.2, 40.8, 45.5, 42.3, 30.5, 42.5]
         model_ref = np.array(
             [
-                45.9, 36.7, 38.2, 48.7, 36.6, 38.7, 42.9, 50.5, 55.4, 48.3, 48.0,
-                28.7, 47.5, 41.5, 42.2, 58.1, 53.3, 50.2, 33.5, 51.9, 48.8, 40.4,
-                47.9, 40.6, 43.4, 44.7, 33.7, 37.2, 40.8, 45.5, 42.3, 30.5, 42.5
+                45.1, 37.5, 38.6, 48.1, 36.3, 39.7, 42.9, 49.5, 53.6, 47.9, 47.5,
+                28.9, 46.6, 39.4, 42.3, 57.2, 53.2, 48.8, 34.0, 50.9, 48.0, 41.1,
+                47.2, 40.8, 43.4, 43.1, 33.9, 38.3, 40.3, 44.2, 40.7, 30.1, 41.9
             ]
         )
         experiment_ref = np.array(

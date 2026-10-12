@@ -259,7 +259,8 @@ def test_fps_score_through_the_program_gives_the_pinned_score(exe):
     # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 59.0404.
     # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 60.5172.
     # 2026-10-12: FPS's link search is the default (the 3-voxel cube hop from every node, stencil 342; PathMap::set_cube_stencil) and the docking restraint scores each position's own link search instead of forcing stencil 26; was 67.3153.
-    assert "score (chi2): 70.6416" in out.stdout
+    # 2026-10-12: the AV obstacles are IMP's radii x AV_DEFAULT_RADIUS_SCALE (0.84, fitted to FPS's Bondi radii; okf/validation/fps_screening_ab.md); was 70.6416 at x1.0.
+    assert "score (chi2): 68.5459" in out.stdout
 
 
 @pytest.mark.skipif(not HAS_IMP_LAYER, reason="fps-av is in the IMP connection layer")
