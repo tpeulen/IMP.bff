@@ -294,9 +294,9 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a9dca479f3922c57074209a2f902fae5e" id="r_a9dca479f3922c57074209a2f902fae5e"><td class="memItemLeft" align="right" valign="top">static FloatKey&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_decorator.html#a9dca479f3922c57074209a2f902fae5e">get_av_key</a> (unsigned int i)</td></tr>
 <tr class="memdesc:a9dca479f3922c57074209a2f902fae5e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the FloatKey object for a specific AV feature.  <br /></td></tr>
 <tr class="separator:a9dca479f3922c57074209a2f902fae5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab23e2255e1f03af5375c7ce116d05f67" id="r_ab23e2255e1f03af5375c7ce116d05f67"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_decorator.html#ab23e2255e1f03af5375c7ce116d05f67">do_setup_particle</a> (Model *m, ParticleIndex pi, ParticleIndex pi_source, double linker_length=IMP::bff::AV_DEFAULT_LINKER_LENGTH, const algebra::Vector3D radii=algebra::Vector3D(IMP::bff::AV_DEFAULT_RADIUS1, 0, 0), double linker_width=IMP::bff::AV_DEFAULT_LINKER_WIDTH, double allowed_sphere_radius=-1.0, double contact_volume_thickness=0.0, double contact_volume_trapped_fraction=-1, double simulation_grid_resolution=IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION)</td></tr>
-<tr class="memdesc:ab23e2255e1f03af5375c7ce116d05f67"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets up the attributes for a particle in a model for AV (Anisotropic Volume) calculations.  <br /></td></tr>
-<tr class="separator:ab23e2255e1f03af5375c7ce116d05f67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2e89905bd77242029d1254edefdeb0c" id="r_ab2e89905bd77242029d1254edefdeb0c"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_decorator.html#ab2e89905bd77242029d1254edefdeb0c">do_setup_particle</a> (Model *m, ParticleIndex pi, ParticleIndex pi_source, double linker_length=IMP::bff::AV_DEFAULT_LINKER_LENGTH, const algebra::Vector3D radii=algebra::Vector3D(IMP::bff::AV_DEFAULT_RADIUS1, 0, 0), double linker_width=IMP::bff::AV_DEFAULT_LINKER_WIDTH, double allowed_sphere_radius=IMP::bff::AV_DEFAULT_ALLOWED_SPHERE, double contact_volume_thickness=0.0, double contact_volume_trapped_fraction=-1, double simulation_grid_resolution=IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION)</td></tr>
+<tr class="memdesc:ab2e89905bd77242029d1254edefdeb0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets up the attributes for a particle in a model for AV (Anisotropic Volume) calculations.  <br /></td></tr>
+<tr class="separator:ab2e89905bd77242029d1254edefdeb0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afb7424660ea7bb1635d149e8c30f362d" id="r_afb7424660ea7bb1635d149e8c30f362d"><td class="memItemLeft" align="right" valign="top">static ParticleIndexKey&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_probe_accessible_volume_decorator.html#afb7424660ea7bb1635d149e8c30f362d">get_particle_key</a> (unsigned int i)</td></tr>
 <tr class="memdesc:afb7424660ea7bb1635d149e8c30f362d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the particle key for the specified index.  <br /></td></tr>
 <tr class="separator:afb7424660ea7bb1635d149e8c30f362d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -351,8 +351,8 @@ Protected Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ab23e2255e1f03af5375c7ce116d05f67" name="ab23e2255e1f03af5375c7ce116d05f67"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab23e2255e1f03af5375c7ce116d05f67">&#9670;&#160;</a></span>do_setup_particle()</h2>
+<a id="ab2e89905bd77242029d1254edefdeb0c" name="ab2e89905bd77242029d1254edefdeb0c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab2e89905bd77242029d1254edefdeb0c">&#9670;&#160;</a></span>do_setup_particle()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -400,7 +400,7 @@ Protected Member Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>allowed_sphere_radius</em> = <code>-1.0</code>, </td>
+          <td class="paramname"><em>allowed_sphere_radius</em> = <code>IMP::bff::AV_DEFAULT_ALLOWED_SPHERE</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -452,7 +452,7 @@ Protected Member Functions</h2></td></tr>
 </dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">allowed_sphere_radius</td><td>Negative derives it; see <a class="el" href="class_probe_accessible_volume_decorator.html#afc5aef9de104f8992cacb984451ef962" title="The source clearance the search actually uses.">get_effective_allowed_sphere_radius()</a>. </td></tr>
+    <tr><td class="paramname">allowed_sphere_radius</td><td>On by default (#IMP::bff::AV_DEFAULT_ALLOWED_SPHERE); negative derives it from the width, see <a class="el" href="class_probe_accessible_volume_decorator.html#afc5aef9de104f8992cacb984451ef962" title="The source clearance the search actually uses.">get_effective_allowed_sphere_radius()</a>. </td></tr>
   </table>
   </dd>
 </dl>
@@ -693,8 +693,9 @@ If the index is out of range, an error message will be generated. </dd></dl>
 </div><div class="memdoc">
 
 <p>The source clearance the search actually uses. </p>
-<p>A <b>negative</b> stored <code>allowed_sphere_radius</code> means <em>derive it</em>, and deriving is the default because the value that works depends on two other parameters. The path search inflates every obstacle by half the linker width, so the free sphere around the attachment atom has to clear that inflation plus a grid step of slack, or the source voxel is walled in and the volume comes back <b>empty</b>.</p>
-<p>This lived in <code><a class="el" href="_probe_accessible_volume_decorator_8h.html#aef32fe83204e694bbfc2720900515686" title="An accessible volume from a structure and an fps position definition.">get_av_from_structure()</a></code> only, so the two doors onto the same volume disagreed: the fps.json door derived, the decorator door (and <code>imp_bff av-export</code> behind it) took a flat 1.5 and returned nothing at FPS's standard linker width of 4.5 Å. One place now.</p>
+<p>The allowed sphere is <b>on by default</b> at FPS's 2.25 A (#IMP::bff::AV_DEFAULT_ALLOWED_SPHERE, owner 2026-10-12: "allowed
+sphere radius must be enabled by default"). It had been on before as well &ndash; a stored -1 derived <code>0.5 W</code>, which is 2.25 A at the default width &ndash; but a -1 in every editor read as "off". A <b>negative</b> stored <code>allowed_sphere_radius</code> still means <em>derive it from this volume's width</em>, FPS's rule at any width, because the value that works depends on two other parameters. The path search inflates every obstacle by half the linker width, so the free sphere around the attachment atom has to clear that inflation plus a grid step of slack, or the source voxel is walled in and the volume comes back <b>empty</b>.</p>
+<p>This lived in <code><a class="el" href="_probe_accessible_volume_decorator_8h.html#aa08478fb703443cd632e5f2dfc1d6077" title="An accessible volume from a structure and an fps position definition.">get_av_from_structure()</a></code> only, so the two doors onto the same volume disagreed: the fps.json door derived, the decorator door (and <code>imp_bff av-export</code> behind it) took a flat 1.5 and returned nothing at FPS's standard linker width of 4.5 Å. One place now.</p>
 <p>The derived value is FPS's seed (#IMP::bff::av_derived_allowed_sphere_radius): a sphere of <code>LinkerInitialSphere * W</code> with <code>LinkerInitialSphere = 0.5</code> (<code>av_routines.cpp:136</code>), i.e. exactly <code>W/2</code>, open whatever the obstacle map says. It used to be <code>max(1.5, W/2 + grid/2)</code> &ndash; a grid step of slack so the source voxel was not walled in &ndash; until the linker's first step (get_effective_first_step_reach) made the slack unnecessary and the owner asked for FPS's own value (2026-10-11). The legacy <code>space_fixed=False</code> path keeps the old rule, for its historical numbers. </p>
 
 </div>
@@ -2605,7 +2606,7 @@ If the index is out of range, an error message will be generated. </dd></dl>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Oct 12 2026 06:26:10 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 12 2026 09:00:34 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
