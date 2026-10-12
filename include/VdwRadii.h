@@ -141,7 +141,7 @@ IMPBFFEXPORT std::string olga_vdw_radii_csv();
     type's radius from the CHARMM parameters -- carbon 1.85-2.275 A, oxygen
     1.70-1.77, nitrogen 1.85. Read **without linking IMP**: the table is
     IMP's own mapping, regenerated from IMP by
-    `prototypes/imp_atom_radii/generate.py`, so the IMP-free core and the
+    `utility/imp_atom_radii.py`, so the IMP-free core and the
     IMP-linked doors inflate an accessible volume's obstacles by the same
     numbers (owner, 2026-10-12: one atom-radius set for accessible volumes
     everywhere, IMP's radii times #IMP::bff::AV_DEFAULT_RADIUS_SCALE). A key

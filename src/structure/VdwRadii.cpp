@@ -85,7 +85,7 @@ static const std::map<std::string, double> &vdwradii_olga_table() {
 
 /* IMP's radii, keyed by (residue, PDB atom name): the mapping
    `IMP::atom::read_pdb` applies through the all-atom CHARMM parameters,
-   regenerated from IMP by prototypes/imp_atom_radii/generate.py (do not edit
+   regenerated from IMP by utility/imp_atom_radii.py (do not edit
    rows by hand). Rows equal to IMP's 1.7 A default are left out -- the lookup
    returns the default for a missing key, as IMP does for an untyped atom. */
 static const std::map<std::pair<std::string, std::string>, double> &

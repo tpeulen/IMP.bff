@@ -5,7 +5,7 @@ IMP's radii times ``AV_DEFAULT_RADIUS_SCALE``. The structure door reads them
 off the particles ``IMP::atom::read_pdb`` builds; the file door
 (``load_structure_with_vdw``, ``get_av_from_pdb``) cannot link IMP, so it reads
 the same mapping from ``imp_atom_radius`` -- a table regenerated from IMP by
-``prototypes/imp_atom_radii/generate.py``. These tests hold the two equal on
+``utility/imp_atom_radii.py``. These tests hold the two equal on
 every atom of the shipped structures, and hold the file door to the table.
 """
 import numpy as np
