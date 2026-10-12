@@ -226,7 +226,8 @@ def test_the_scoring_door_is_unmoved_by_the_defaults():
     assert a.score == pytest.approx(b.score, abs=1e-9)
     # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 59.0404.
     # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 60.5172.
-    assert a.score == pytest.approx(67.3153, abs=5e-3)
+    # 2026-10-12: FPS's link search is the default (the 3-voxel cube hop from every node, stencil 342; PathMap::set_cube_stencil) and the docking restraint scores each position's own link search instead of forcing stencil 26; was 67.3153.
+    assert a.score == pytest.approx(70.6416, abs=5e-3)
 
 
 def test_olga_radii_take_the_clash_out_of_the_score():

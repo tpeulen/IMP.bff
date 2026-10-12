@@ -98,19 +98,18 @@ class Tests(IMP.test.TestCase):
         """Not a passing grade -- a pin on a **known** gap, reopened 2026-10-11.
 
         T4L 132 CB at FPS's width: found at FPS's and Olga's 0.9 A grid and at
-        0.7 A, **empty at 0.5 A**. It was empty there under the stencil-only
-        search, found under FRETraj's first step (a ball of `W + dg`, 5.0 A
-        here), and is empty again under FPS's (three-voxel hops from every
-        voxel of the `W/2` seed, PathMap::set_source_first_step: 3.75 A along
-        an axis), the default since the owner settled the AV defaults on
-        FPS's. **FPS itself is not empty here**: its own routine
-        (`prototypes/fps_oracle`, FPS's Bondi radii) gives 42 151 voxels,
-        ~5 270 A^3, at 0.5 A -- because FPS hops three voxels from *every*
-        node, not only out of the seed, and so squeezes through channels the
-        74 stencil walks around. Olga's radii do not open it either. Closing
-        it means taking FPS's whole stencil (the 7x7x7 cube), an open decision
-        recorded in `okf/validation/fps_screening_ab.md`; when that lands this
-        pin flips.
+        0.7 A, **empty at 0.5 A**. FPS's own routine (`prototypes/fps_oracle`,
+        FPS's Bondi radii) gives 42 151 voxels there. It was believed to be
+        FPS's hop from *every* node; that search is the default since
+        2026-10-12 (stencil 342) and the site **stays empty** -- the gap is
+        not the link search. It is the lattice: FPS centres its grid on the
+        attachment atom, this module anchors it on the absolute lattice, so the
+        anchor sits off-node and the seed sphere and the hop cubes land on
+        different voxels. Measured with FPS's radii on the array door: with the
+        anchor moved onto a lattice node the site opens under either search
+        (41 646 voxels with FPS's search, 38 085 seed-only; FPS 42 151); off-node
+        both are empty. Recorded in `okf/validation/fps_screening_ab.md`; when
+        the anchoring changes this pin flips.
         """
         for grid, empty in ((0.9, False), (0.7, False), (0.5, True)):
             av = _av(self.mdl, self.hier, linker_length=20.0, radii=(3.5, 0.0, 0.0),

@@ -176,9 +176,15 @@ def t4l_matrices():
     hier = IMP.rmf.create_hierarchies(handle, m)[0]
     IMP.rmf.load_frame(handle, RMF.FrameID(0))
     beads = [IMP.core.XYZ(p) for p in IMP.atom.get_leaves(hier)]
+    # The volumes are asked for with the 26 stencil the restraint forced until
+    # 2026-10-12. This test is about the selector, and the matrices only have
+    # to be free of near-ties: under the default since then (FPS's link
+    # search, stencil 342) the third step is a near-tie -- pair 29 against 32,
+    # 2.3735 A against 2.3882 A, inside the ~1e-2 A of Olga's ndof spline --
+    # and the two selectors legitimately part there.
     restraint = IMP.bff.ProbeNetworkRestraint(
         hier, IMP.bff.get_example_path("structure/T4L/fret.fps.json"),
-        score_set="chi2_C1_33p")
+        score_set="chi2_C1_33p", search_stencil=26)
     names = list(restraint.get_pair_names())
     frames = list(handle.get_root_frames())[::2]
     effs = np.empty((len(frames), len(names)))

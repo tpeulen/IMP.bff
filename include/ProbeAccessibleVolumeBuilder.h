@@ -137,15 +137,16 @@ IMPBFFEXPORT void get_attachment_point(const std::string& pdb_path,
     and the contact weighting, then the read-out. `source_radius` is the
     radius of the sphere at the attachment site (0 when none is there), the
     one the raster subtracts around the source so the linker is not blocked
-    by the atom it is tied to. `search_stencil` is 74 (the reference metric)
-    or 26; `allowed_sphere_radius` < 0 derives the clearance as the decorator
+    by the atom it is tied to. `search_stencil` is 342 (the default, FPS's
+    link search: the 3-voxel cube hop from every node), 74 (the seed-only
+    "fast" search, the reference metric) or 26; `allowed_sphere_radius` < 0 derives the clearance as the decorator
     does. get_av() is this over a caller's `(N, 4)` array. */
 IMPBFFEXPORT ProbeAccessibleVolume get_av_lattice(
         const std::vector<IMP::algebra::Vector4D>& spheres,
         const IMP::algebra::Vector3D& source, double source_radius,
         double linker_length, double linker_width,
         double r1, double r2, double r3, double grid_resolution,
-        double allowed_sphere_radius = -1.0, int search_stencil = 74,
+        double allowed_sphere_radius = -1.0, int search_stencil = IMP::bff::AV_DEFAULT_SEARCH_STENCIL,
         double contact_volume_thickness = 0.0,
         double contact_volume_trapped_fraction = -1.0);
 
@@ -227,7 +228,7 @@ IMPBFFEXPORT DensityGrid* get_linker_path_lengths(
         const std::vector<IMP::algebra::Vector4D>& spheres,
         const IMP::algebra::Vector3D& source, double source_radius,
         double linker_length, double linker_width, double dye_radius, double h,
-        double allowed_sphere_radius = -1.0, int search_stencil = 74);
+        double allowed_sphere_radius = -1.0, int search_stencil = IMP::bff::AV_DEFAULT_SEARCH_STENCIL);
 
 //! The same, over a caller's `(N, 4)` array -- the twin of #get_av.
 /*! Reads the obstacles and the attachment site exactly as #get_av does, so

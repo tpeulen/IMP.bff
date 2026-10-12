@@ -269,6 +269,18 @@
             "flat"
           ]
         },
+        "link_search": {
+          "default": "fps",
+          "description": "How the linker is routed. 'fps' (the default) is FPS's own search: the linker hops up to LinkSearchNodes = 3 voxels along every axis at once from every voxel it reaches, landing on any free voxel of the 7x7x7 cube. 'fast' takes that hop out of the seed sphere only and walks the 74-neighbour stencil after it: ~10 % cheaper, and ~7 % less volume than FPS's own routine (T4L 148L CB sites, FPS's radii).",
+          "enum": [
+            "fps",
+            "fast"
+          ],
+          "type": "string",
+          "x-dialects": [
+            "flat"
+          ]
+        },
         "linker_length": {
           "default": 20.0,
           "type": "number",
@@ -997,6 +1009,18 @@
               "flat"
             ]
           },
+          "link_search": {
+            "default": "fps",
+            "description": "How the linker is routed. 'fps' (the default) is FPS's own search: the linker hops up to LinkSearchNodes = 3 voxels along every axis at once from every voxel it reaches, landing on any free voxel of the 7x7x7 cube. 'fast' takes that hop out of the seed sphere only and walks the 74-neighbour stencil after it: ~10 % cheaper, and ~7 % less volume than FPS's own routine (T4L 148L CB sites, FPS's radii).",
+            "enum": [
+              "fps",
+              "fast"
+            ],
+            "type": "string",
+            "x-dialects": [
+              "flat"
+            ]
+          },
           "linker_length": {
             "default": 20.0,
             "type": "number",
@@ -1572,5 +1596,5 @@
   },
   "title": "fps.json — FRET labelling positions and distances",
   "type": "object",
-  "x-schema-version": "1.7"
+  "x-schema-version": "1.8"
 }

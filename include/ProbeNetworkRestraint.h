@@ -106,7 +106,7 @@ private:
     std::string distance_ = "quad";//!< "quad" (lattice quadrature) or "mc"
     int quad_k_ = 50;              //!< representative points per cloud
     int search_grid_factor_ = 1;   //!< ProbeAccessibleVolumeDecorator::set_search_grid_factor for every AV
-    int search_stencil_ = 26;      //!< ProbeAccessibleVolumeDecorator::set_search_stencil for every AV
+    int search_stencil_ = 0;       //!< ProbeAccessibleVolumeDecorator::set_search_stencil for every AV; 0 = the position's own
     std::string search_mode_ = "dijkstra";  //!< ProbeAccessibleVolumeDecorator::set_search_mode for every AV
 
     //! Shared occupancy rasters (only under space_fixed && shared_map)
@@ -250,8 +250,13 @@ public:
      * @param[in] quad_k Representative points per cloud for `"quad"`.
      * @param[in] search_grid_factor Coarsening of the path search
      *   (ProbeAccessibleVolumeDecorator::set_search_grid_factor); 1 = exact on the AV grid.
-     * @param[in] search_stencil 26 (symmetric, default) or 30 (historical,
-     *   asymmetric); see ProbeAccessibleVolumeDecorator::set_search_stencil.
+     * @param[in] search_stencil 0 (default): every AV keeps its position's
+     *   own link search -- fps.json `link_search`, FPS's cube hop from every
+     *   node unless the position says "fast" -- so docking scores the volume
+     *   every other door computes. 342, 74, 26 or 30 force that stencil on
+     *   every AV (26 was the default until 2026-10-12, a speed choice that
+     *   left the restraint on a different AV than the defaults); see
+     *   ProbeAccessibleVolumeDecorator::set_search_stencil.
      * @param[in] search_mode "dijkstra" (default, path search) or
      *   "euclidean" (straight linker, visibility only); see ProbeAccessibleVolumeDecorator::set_search_mode.
      */
@@ -266,7 +271,7 @@ public:
         std::string distance = "quad",
         int quad_k = 50,
         int search_grid_factor = 1,
-        int search_stencil = 26,
+        int search_stencil = 0,
         std::string search_mode = "dijkstra"
     );
 

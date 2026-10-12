@@ -257,7 +257,15 @@ int ProbeAccessibleVolumeDecorator::get_search_stencil() const{
     if(get_model()->get_has_attribute(get_search_stencil_key(), get_particle_index())){
         return get_model()->get_attribute(get_search_stencil_key(), get_particle_index());
     }
-    // **74 by default: the reference metric.** LabelLib's `essentialNeighbours()`
+    // **342 by default: FPS's link search** (owner, 2026-10-12). The linker
+    // hops up to `LinkSearchNodes = 3` voxels from every node it reaches --
+    // the 7x7x7 cube, landing on any free voxel across whatever lies between
+    // (`av_routines.cpp:156-209`; PathMap::set_cube_stencil). The seed-only
+    // search below (the 74 stencil after the first step) returns ~0.93 of
+    // FPS's volume (T4L 148L CB sites, FPS's radii) for ~10 % less search
+    // time; it stays selectable as set_link_search("fast").
+    //
+    // **74, the "fast" search: the reference metric.** LabelLib's `essentialNeighbours()`
     // (`FlexLabel/src/FlexLabel.cxx:149`) keeps the shells with squared offset
     // length {1,2,3,5,6}; bff reaches the same path lengths with a sqrt(6)
     // neighbour radius. Measured with no obstacles at all, where the accessible
@@ -276,14 +284,18 @@ int ProbeAccessibleVolumeDecorator::get_search_stencil() const{
     // metric is -- and it is why a grid coarse enough to make an obstacle layer
     // thinner than ~2.5 voxels is not safe with either. `test_empty_av_gives_nan`
     // records a concrete instance at 1.5 A spacing with `linker_width` 0.5.
-    return 74;
+    // FPS's cube tunnels further still (3 voxels along an axis), by design.
+    return AV_DEFAULT_SEARCH_STENCIL;
 }
 
 void ProbeAccessibleVolumeDecorator::set_search_stencil(int stencil){
-    IMP_USAGE_CHECK(stencil == 26 || stencil == 30 || stencil == 74,
-                    "AV: search stencil must be 74 (default, the LabelLib "
-                    "reference metric), 26 (the speed option, ~1.9x faster for "
-                    "~20 % less volume) or 30 (historical)");
+    IMP_USAGE_CHECK(stencil == AV_SEARCH_STENCIL_FPS || stencil == 26
+                    || stencil == 30 || stencil == 74,
+                    "AV: search stencil must be 342 (default, FPS's link "
+                    "search: the 3-voxel cube hop from every node), 74 (the "
+                    "seed-only \"fast\" search, the LabelLib reference metric), "
+                    "26 (~1.9x faster than 74 for ~20 % less volume) or 30 "
+                    "(historical)");
     if(get_model()->get_has_attribute(get_search_stencil_key(), get_particle_index())){
         get_model()->set_attribute(get_search_stencil_key(), get_particle_index(), stencil);
     } else {
@@ -293,6 +305,14 @@ void ProbeAccessibleVolumeDecorator::set_search_stencil(int stencil){
         av_map_ = nullptr;      // header radius and offsets change: rebuild
         if(state_){ state_->have_result = false; state_->coarse_map = nullptr; }
     }
+}
+
+std::string ProbeAccessibleVolumeDecorator::get_link_search() const{
+    return av_link_search_name(get_search_stencil());
+}
+
+void ProbeAccessibleVolumeDecorator::set_link_search(std::string link_search){
+    set_search_stencil(av_link_search_stencil(link_search));
 }
 
 IntKey ProbeAccessibleVolumeDecorator::get_compensate_stencil_key(){
@@ -521,6 +541,9 @@ void ProbeAccessibleVolumeDecorator::init_path_map(){
     if(get_space_fixed() && (get_search_stencil() == 26
                             || get_search_stencil() == 74)){
         av_map_->set_symmetric_stencil(true);
+    }
+    if(get_space_fixed() && get_search_stencil() == AV_SEARCH_STENCIL_FPS){
+        av_map_->set_cube_stencil(AV_DEFAULT_LINK_SEARCH_NODES);
     }
     if(get_space_fixed()) av_map_->set_euclidean_search(get_search_mode() == "euclidean");
     IMP::Particle* parent = get_model()->get_particle(get_particle_index(0));
@@ -916,6 +939,8 @@ void ProbeAccessibleVolumeDecorator::resample_lattice_prepare(bool shift_xyz, bo
                 st.coarse_map = new IMP::bff::PathMap(ch, "AVCoarsePathMap%1%");
                 st.coarse_map->set_was_used(true);
                 if(get_search_stencil() == 26) st.coarse_map->set_symmetric_stencil(true);
+                if(get_search_stencil() == AV_SEARCH_STENCIL_FPS)
+                    st.coarse_map->set_cube_stencil(AV_DEFAULT_LINK_SEARCH_NODES);
             } else {
                 st.coarse_map->set_path_map_header(ch);
             }
@@ -1257,6 +1282,8 @@ void ProbeAccessibleVolumeDecorator::set_av_parameter(const std::string &json_te
        set, and a file that names it says which. */
     set_radii_source(j.value("radii_source",
                              av_radii_source_to_string(AV_RADII_IMP)));
+    // FPS's link search unless the position asks for the seed-only one.
+    set_link_search(j.value("link_search", std::string(AV_DEFAULT_LINK_SEARCH)));
 }
 
 IMP::bff::PathMapHeader ProbeAccessibleVolumeDecorator::create_path_map_header(){
@@ -1493,9 +1520,25 @@ double av_distance_quadrature(
                     f += 0.5 * (f2 * q + f1 * (tr - q) / d);
                 }
             } else {
-                f = d;
-                if(d > 0){
-                    f += (tr - q) / (2.0 * d);
+                // The expansion's correction grows as 1/d, so it diverges for
+                // two blocks whose centroids nearly coincide -- which happens
+                // whenever two clouds overlap. Measured: T4L 44D-69A at
+                // K = 100, 36.93 A against an exact 28.82 A (K = 1000: 29.44),
+                // the quadrature error estimate 7.5 A. Within three spreads
+                // the blocks are taken as one isotropic Gaussian of variance
+                // tr C / 3 instead, whose mean |r| is exact and finite at
+                // d = 0 (the noncentral chi mean, 3 dof); beyond, the two
+                // agree to < 0.01 spread.
+                const double s2 = tr / 3.0;
+                if(d2 > 9.0 * s2){
+                    f = d + (tr - q) / (2.0 * d);
+                } else if(s2 > 0.0){
+                    const double s = std::sqrt(s2);
+                    const double g = s * std::sqrt(2.0 / M_PI) * std::exp(-0.5 * d2 / s2);
+                    f = (d > 0.0) ? g + (d + s2 / d) * std::erf(d / (s * std::sqrt(2.0)))
+                                  : 2.0 * g;
+                } else {
+                    f = d;
                 }
             }
             acc += b[3] * f;

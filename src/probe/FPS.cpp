@@ -34,6 +34,11 @@
 
 IMPBFF_BEGIN_NAMESPACE
 
+//! 1.8 (2026-10-12) added `link_search` on a position: "fps" (the default,
+//! FPS's own search -- the linker hops `LinkSearchNodes = 3` voxels from every
+//! node it reaches) or "fast" (the hop out of the seed only, then the 74
+//! stencil). A file without it gets FPS's search; a 1.7 file that relied on
+//! the seed-only default of 2026-10-11 says "fast".
 //! 1.7 (2026-09-01) added `coarse_clash`, `clash_radii_source` and
 //! `clash_radii_scale` to the `Project` section: which van der Waals radii the
 //! **excluded-volume** term measures overlap by, and by what factor. 1.6 gave
@@ -68,10 +73,10 @@ IMPBFF_BEGIN_NAMESPACE
 //! (`XYZ`) coordinate was measured in, which screening fits onto each library
 //! structure (PRD-121 G3). 1.1 (2026-08-27) added the document-level
 //! `strip_mask` and `schema_version` fields. Every step is additive: every
-//! 1.0 file is a valid 1.7 file -- except for a 1.5 file that spells this
+//! 1.0 file is a valid 1.8 file -- except for a 1.5 file that spells this
 //! field `"model"`, which is refused rather than reinterpreted (that spelling
 //! existed for one day and no file outside this repository carries it).
-std::string fps_schema_version() { return "1.7"; }
+std::string fps_schema_version() { return "1.8"; }
 
 // Named, not anonymous: IMP compiles this module as one translation unit.
 namespace fps_schema {
@@ -408,6 +413,18 @@ std::vector<FPSField> fps_position_fields() {
                       "H 1.00 A, and 1.50 A for an atom name it does not carry "
                       "-- and is what reproduces Olga-era numbers.",
                       FLAT, {"imp", "olga"}));
+    // 1.8: the link search, on the position like the radii it searches past.
+    f.push_back(field("link_search", FPS_STRING,
+                      "\"" + std::string(AV_DEFAULT_LINK_SEARCH) + "\"", "",
+                      "How the linker is routed. 'fps' (the default) is FPS's "
+                      "own search: the linker hops up to LinkSearchNodes = 3 "
+                      "voxels along every axis at once from every voxel it "
+                      "reaches, landing on any free voxel of the 7x7x7 cube. "
+                      "'fast' takes that hop out of the seed sphere only and "
+                      "walks the 74-neighbour stencil after it: ~10 % "
+                      "cheaper, and ~7 % less volume than FPS's own routine "
+                      "(T4L 148L CB sites, FPS's radii).",
+                      FLAT, {"fps", "fast"}));
     // --- rigid-body / multi-body assignment (ChiSurf dialect) -------------
     f.push_back(field("body_id", FPS_INTEGER, "0", "",
                       "Index of the rigid body (input PDB) this position labels; "

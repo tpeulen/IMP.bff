@@ -1,7 +1,7 @@
 ---
 okf_version: "0.2"
 title: "IMP.bff against FPS's published screening numbers (T4L, 3GUN)"
-description: "End-to-end A/B of the screening path against the real FPS, and the accessible-contact volume that explained the +2 A offset against the published table. Since 2026-10-11 the AV defaults are FPS's (seed W/2, FPS's three-voxel first step, L 20 / W 4.5 / R 3.5 / grid 0.9): all 33 pairs resolve under the default radii, vs FPS +0.00 A / 0.84 A over the former 24; ACV on vs the published table +0.55 A / 0.93 A over 33; Olga's radii +0.15 A / 0.94 A."
+description: "End-to-end A/B of the screening path against the real FPS, and the accessible-contact volume that explained the +2 A offset against the published table. Since 2026-10-12 the link search is FPS's (the 3-voxel cube hop from every node, stencil 342) and docking scores it: same reached set as FPS's propagation, 0.99 of FPS's volume on T4L 148L (0.93 seed-only), ~1.1x the seed-only search's cost after exact shortcuts. vs FPS's routine on 3GUN +1.22 A / 1.99 A over 33 (+0.57 / 1.01 over 24); the empty sites at W 4.5 are the radii set's, not the search's."
 tags: [validation, fps, screening, av, acv, radii, prd-121]
 ---
 
@@ -15,41 +15,131 @@ tags: [validation, fps, screening, av, acv, radii, prd-121]
 
 ## Where to pick this up
 
-1. **FPS's stencil, not only FPS's first step.** FPS hops `LinkSearchNodes = 3`
-   voxels (the 7x7x7 cube, target-only check) from *every* node; this module
-   takes that hop out of the seed only and then walks the 74 stencil
-   (max sqrt(6) voxels). Measured cost: T4L-132 CB at W 4.5 is **empty at a
-   0.5 A grid** (FPS's own routine, `prototypes/fps_oracle` with a grid
-   override, gives 42 151 voxels / ~5 270 A^3 there; Olga's radii do not open
-   it here either), and p66 with explicit hydrogens is 0.928 of FPS's volume
-   (0.987 under FRETraj's larger first step). At FPS's and Olga's 0.9 A
-   default the site resolves (6 899 voxels, ~5 030 A^3; FPS 9 237 with Bondi
-   radii). Taking the cube everywhere is ~4.6x the neighbours of 74 (342
-   against 74 per node). **Decided 2026-10-11 (owner: "av go fast by
-   default"): the seed-only hop stays the default; no exact-FPS mode is built
-   (none existed).** The accepted consequence is the walled-in fine-grid site
-   above (T4L-132 CB empty at 0.5 A, 6 899 voxels at the 0.9 A default) and
-   p66+H at 0.928 of FPS's volume. Pinned in
-   `test_av_source_clearance.py::test_fine_grid_at_the_fps_width_under_fps_first_step`;
-   reopen only with a caller that needs FPS's volume at a sub-0.9 A grid, and
-   then as a non-default option.
-2. **AV3 grid.** FPS's relative rule gives 0.6 A for an AV3 with its 1.5 A
-   radius (Olga: 0.9 for both); the default is 0.9 for both
-   (`fps_default_grid` is there for a caller who wants FPS's rule). The legacy
-   C# `.txt` reader now writes FPS's rule per position.
-3. **One set of defaults (owner, 2026-10-11: "all use same defaults").** The
-   labelizer's refinement (`LabelizerFRETOptions`: was the reference's dye,
-   radii 9/4.5/1.5 on a 1.5 A grid, now FPS's AV3 radii 5/4.5/1.5 on 0.9),
-   the position template `data/template_av_position.fps.json` (was W 0.5,
-   grid 1.5, clearance 1.5), the volume containers' grid step (1.5) and
-   `LabelDistribution`'s grid (0.5) now read the header; the schema's defaults
-   are written from the constants. Left on purpose: `resample_legacy`
-   (`space_fixed=False`, frozen byte-for-byte with its own
-   `max(1.5, W/2 + dg/2)` clearance) and the FPS dye presets
-   (`fps_linker_presets`, per-dye values, not defaults).
-4. **Radii.** FPS's Bondi (element) and Olga's (name-keyed) radii disagree, and
-   the default stays IMP's (owner, 2026-09-01: docking consistency); Bondi is
-   not a selectable `radii_source`.
+1. **The anchor is off-node; FPS centres its grid on it.** T4L-132 CB at W 4.5
+   is still **empty at a 0.5 A grid** under FPS's link search, so the
+   every-node hop was *not* what walled it in. Measured on the array door with
+   FPS's radii (scratch scripts re-derive it: `IMP.bff.get_av(xyzr, src, 20,
+   4.5, 3.5, 0, 0, 0.5, -1, stencil)`, xyzr from FPS's `vdW.txt` ladder over
+   ATOM records): with the coordinates shifted so the CB sits on a lattice node
+   the site opens under *either* search (41 646 voxels with stencil 342,
+   38 085 with 74; FPS 42 151); off-node both are empty. The seed sphere and the
+   hop cubes are taken from the *source voxel* (`PathMap::source_hop_targets`)
+   while the open sphere is centred on the true anchor -- FPS has one centre
+   for both. Candidate fix: seeds = lattice nodes within `0.5 W` of the anchor
+   at their distance *from the anchor*. It changes every volume (the window is
+   absolute so shared rasters can roll), so it is a decision, not a patch.
+   Pinned in `test_av_source_clearance.py::test_fine_grid_at_the_fps_width_under_fps_first_step`.
+2. **Empty sites at W 4.5 are the radii, not the search.** T4L 148L chain E,
+   151 CB sites, grid 0.9, clearance derived (`chisurf/plugins/quenching_estimator/test/148l.pdb`):
+
+   | obstacles | seed-only (74) | FPS search (342) | FPS's own routine |
+   |---|---|---|---|
+   | QuEst's radii (IMP united-atom, C up to 2.275 A), all atoms incl. HETATM | 50 empty | 48 empty | -- |
+   | QuEst's radii, ATOM records only | 44 | 41 | -- |
+   | FPS's Bondi radii (`vdW.txt`), ATOM only, as FPS reads | 33 | 33 | **33** |
+
+   With FPS's radii both searches leave exactly FPS's count empty (31 shared;
+   here-only 66, 105; FPS-only 24, 139). Of the classic sites, 99 and 129 are
+   empty in FPS too; 96, 117, 132 open with FPS's radii and stay empty with
+   IMP's. Volume against FPS where both are non-empty (median): 0.934 seed-only,
+   **0.990** FPS search. Re-derive with the oracle (`prototypes/fps_oracle`,
+   `FPS_DG=0.9`) over every chain-E CB serial.
+3. **3GUN against FPS's own routine moved away under the true default.** The
+   docking restraint forced stencil 26 on every AV until 2026-10-12, so the
+   "+0.00 A / 0.84 A" below was the 26 stencil's, not the defaults'. Now every
+   position's own link search is scored (table in the 2026-10-12 section);
+   larger volumes sit *further* from FPS's <R_DA> under IMP's united-atom radii.
+   Under Olga's (Bondi-like) radii the 24 pairs are +0.17 A / 1.03 A. Open:
+   whether the residual is the radii, the anchoring of item 1, or FPS's
+   exclusion of clashing seed voxels from the cloud (this module opens them).
+4. **AV3 grid / radii** -- as before: FPS's relative rule gives 0.6 A for an
+   AV3 with its 1.5 A radius (`fps_default_grid`); FPS's Bondi radii are not a
+   selectable `radii_source` (owner, 2026-09-01: docking consistency).
+
+## Since 2026-10-12: FPS's link search is the default
+
+Owner, 2026-10-12, reversing 2026-10-11's "av go fast by default": the AV search
+default is FPS's -- the linker hops `LinkSearchNodes = 3` voxels along every
+axis at once from **every** node it reaches (`av_routines.cpp:156-209`, the
+7x7x7 cube, landing on any free voxel across whatever lies between), not only
+out of the seed sphere. Declared once (`AV_DEFAULT_LINK_SEARCH = "fps"`,
+`AV_DEFAULT_SEARCH_STENCIL = AV_SEARCH_STENCIL_FPS = 342`,
+`include/ProbeAccessibleVolumeDefaults.h`); the seed-only search stays
+selectable as `link_search = "fast"` (stencil 74): decorator
+`set_link_search`, fps.json position field `link_search` (schema 1.8), array
+doors `search_stencil`. `ProbeNetworkRestraint`'s `search_stencil` default is
+now 0 = each position's own (it forced 26). Implementation:
+`PathMap::set_cube_stencil(3)` -- the cube as the stencil, Euclidean edge
+lengths, target-only test -- after the unchanged seed-and-hop first step.
+
+**It is FPS's search.** `test/representation/test_av_link_search.py` re-implements
+`calculate1R`'s routing in numpy (clash map, seed sphere, wavefront of cube
+hops until nothing moves) and compares on random obstacle sets: identical
+reached set, path lengths to < 1e-5 voxel.
+
+**Cost.** Search-only time (`PathMap::get_last_search_seconds`, median of 9 real
+resamples, decorator door, IMP radii, L 20 / W 4.5 / R 3.5; load average 6.6-7.4
+on 8 cores -- not a quiet machine):
+
+| site | grid | seed-only (74) | FPS, plain loop | FPS, optimised | FPS opt / seed-only opt (search, whole resample) |
+|---|---|---|---|---|---|
+| T4L-132 CB | 0.9 | 0.96 ms | 4.05 ms | 1.03 ms | 1.07, 1.05 |
+| T4L-44 CB | 0.9 | 2.69 ms | 11.68 ms | 2.88 ms | 1.07, 1.08 |
+| T4L-44 CB | 0.5 | 16.25 ms | 64.09 ms | 18.22 ms | 1.12, 1.11 |
+| HIV-RT A6 CB | 0.9 | 2.05 ms | 8.28 ms | 2.23 ms | 1.09, 1.06 |
+| HIV-RT B287 CB | 0.9 | 1.17 ms | 4.69 ms | 1.23 ms | 1.05, 1.04 |
+
+The naive cube is 3.5-4x the seed-only search; two exact shortcuts in
+`PathMap::dijkstra_lattice` bring it to **1.05-1.12x**: (a) the stencil is
+ordered by Chebyshev ring and a tile `c` short of the bound relaxes only the
+rings `k` with `fl(c + k) < bound` (an offset k voxels out is at least k long,
+so the rest fail the bound anyway); (b) interior tiles relax FPS's cube a
+(dz, dy) row at a time with two NEON loads. Neither changes a bit:
+`PathMap::set_plain_relaxation(True)` turns both off and the tests compare
+(`test_the_shortcuts_change_no_bit`, both searches, three site/grid cases).
+The docking restraint evaluation (T4L, 17 AVs, rigid shift each frame) is
+15.2 ms at stencil 26, 16.3 ms at 74, 16.0 ms at 342. Array door end to end on
+the same sites before the shortcuts: 1.04-1.60x.
+
+**3GUN vs FPS's own routine** (`fps_screening_oracle_pins.json`, ACV off;
+bias / rmsd / r):
+
+| search | radii | all 33 | 24 without 132 | 9 with 132 |
+|---|---|---|---|---|
+| FPS (default) | IMP | +1.22 / 1.99 / 0.9792 | +0.57 / 1.01 / 0.9954 | +2.96 / 3.43 / 0.9669 |
+| seed-only | IMP | +1.06 / 1.88 / 0.9798 | +0.42 / 0.93 / 0.9957 | +2.78 / 3.26 / 0.9676 |
+| FPS (default) | Olga | +0.88 / 2.02 / 0.9712 | +0.17 / 1.03 / 0.9920 | +2.78 / 3.49 / 0.9518 |
+| seed-only | Olga | +0.74 / 1.94 / 0.9721 | +0.04 / 1.01 / 0.9922 | +2.61 / 3.33 / 0.9539 |
+| *stencil 26 (the restraint's former forced value)* | IMP | +0.63 / 1.65 / 0.9808 | +0.00 / 0.84 / 0.9959 | +2.30 / 2.83 / 0.9689 |
+
+ACV on vs the published table: FPS search +0.70 / 0.98 / 0.9954 (IMP), +0.23 /
+1.01 / 0.9906 (Olga); seed-only +0.66 / 0.97 and +0.22 / 0.99; stencil 26 +0.55 /
+0.93 and +0.15 / 0.94. All 33 pairs resolve in every row.
+
+**T4L-132 CB vs FPS** (W 4.5, R 3.5, L 20; voxels):
+
+| door, radii | grid | seed-only | FPS search | FPS's routine (Bondi) |
+|---|---|---|---|---|
+| decorator, IMP | 0.9 | 6 899 | 7 475 | 9 237 |
+| decorator, Olga | 0.9 | 8 312 | 8 960 | 9 237 |
+| array, FPS's Bondi | 0.9 | 8 478 | **9 143** (0.990) | 9 237 |
+| any, off-node anchor | 0.5 | 0 | 0 | 42 151 |
+| array, Bondi, anchor on a node | 0.5 | 38 085 | **41 646** (0.988) | 42 151 |
+
+**Found on the way: the quadrature diverged for overlapping clouds.**
+`av_distance_quadrature`'s second-order correction grows as 1/d between block
+centroids; T4L 44D-69A gave 36.93 A at K = 100 against an exact 28.82 A, and
+the restraint's `get_quad_error_estimate` read 7.5 A under stencil 74 (0.01 A
+under the forced 26, which is why it was never seen). Blocks within three
+spreads are now one isotropic Gaussian (exact noncentral-chi mean): 28.823 A at
+K = 100, estimate 0.0016 A (`test_av_lattice.py::TestQuadratureAccuracy::test_quadrature_of_overlapping_clouds`).
+
+Goldens re-pinned with the previous values beside them: `test_density_grid.py`
+(T4L-132@0.5 371 548 -> 405 428 points), HIV-RT `resolved` 67.3153 -> 70.6416,
+T4L docking 11.1476 -> 10.8658, fixed-position chi2 13.2426 -> 13.7619, the
+`test_AccessibleVolume.py` means and distances; T4L site 99 CB opens under IMP's
+radii (1 014 -> 15 605 voxels). The greedy-selector parity test asks for the
+26 stencil by name (its matrices have a near-tie under 342).
 
 ## Since 2026-10-11 (later): the AV defaults are FPS's and Olga's
 

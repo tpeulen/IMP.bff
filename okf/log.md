@@ -1,5 +1,9 @@
 # Update Log
 
+## 2026-10-12
+
+- **FPS's link search is the AV default** ([validation](validation/fps_screening_ab.md)). Owner, reversing 2026-10-11's "av go fast by default": the linker hops `LinkSearchNodes = 3` voxels from *every* node (the 7x7x7 cube, `PathMap::set_cube_stencil`, stencil 342), `link_search = "fps"`; the seed-only search stays as `"fast"` (stencil 74) on the decorator, fps.json (schema 1.8), the array doors and `ProbeNetworkRestraint` (default now 0 = each position's own; it forced 26). Same reached set as FPS's own routing (numpy re-implementation, `test_av_link_search.py`). Naive cube 3.5-4x the seed-only search; two exact shortcuts (Chebyshev-ring bound pruning, NEON cube rows; `set_plain_relaxation` proves bit identity) bring it to 1.05-1.12x. Volume vs FPS on 148L 0.93 -> 0.99. Not what the empty sites were: with FPS's radii both searches leave FPS's 33 of 151 148L CB sites empty; QuEst's 50 empties are IMP's radii (48 under FPS's search); T4L-132 @0.5 stays empty -- an off-node anchor (aligned: 41 646 vs FPS 42 151). Also fixed: `av_distance_quadrature` diverged for overlapping clouds (44D-69A 36.93 vs exact 28.82 A at K=100). Goldens re-pinned with old values.
+
 ## 2026-10-10
 
 - **Model search: modality token, request_information, MFD/PIE games, fit-settings action space** ([search](themes/search.md)). The policy state carries the worst block's measurement kind (width 71 -> 78); a move may require a dataset and is withheld without it, and a search whose best fit is not acceptable then ends `request_information`; `when_bound` stages keep topologies comparable; `smfret_mfd` and `pie_alex` self-play games; `ACTION_SPACE_FIT_SETTINGS` searches how each structure is fitted. Retrained policy (hidden 32, 23,624 episodes over 11 games, held-out 0.816 vs priors 0.230) passes the gate at seed 91000: 296/315/324 of 330 right at budgets 2/4/8 against the priors' 277/302/319, with 566/754/913 evaluations against 717/912/1164.

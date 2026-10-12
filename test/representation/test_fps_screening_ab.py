@@ -155,6 +155,16 @@ ORACLE_PINS = os.path.join(HERE, "..", "references",
 def test_rda_agrees_with_fps_itself():
     """The real A/B: this module against FPS's own routine, pair by pair.
 
+    **2026-10-12.** The restraint behind this path forced the 26 stencil on
+    every AV until today; it now scores each position's own link search, FPS's
+    cube hop from every node by default, so the volumes below are the ones
+    every other door computes. Against FPS's own routine that is +1.22 A /
+    1.99 A / 0.9792 over all 33 and +0.57 A / 1.01 A / 0.9954 over the 24;
+    the seed-only "fast" search gives +1.06 / 1.88 / 0.9798 and +0.42 / 0.93 /
+    0.9957. The larger volumes sit *further* from FPS's <R_DA> under IMP's
+    united-atom radii (FPS's Bondi radii are smaller); with Olga's radii the
+    24 are +0.17 A / 1.03 A. The numbers below are the 26-stencil record.
+
     Under the **default radii** -- IMP's, the ones on the particles -- all 33
     pairs resolve. Over the 24 without site 132 they agree to bias **+0.00 A**,
     rmsd **0.84 A**, r = **0.9959**; the nine with site 132 are the hard ones
@@ -189,12 +199,17 @@ def test_rda_agrees_with_fps_itself():
     mine, theirs, easy = against_fps(_scored(derive_clearance=True))
     assert len(mine) == 33, "the set of resolvable pairs moved"
     assert easy.sum() == 24
-    assert abs((mine - theirs).mean()) < 1.0
-    assert np.sqrt(((mine - theirs) ** 2).mean()) < 2.0
+    # 2026-10-12: FPS's link search is the default and the docking restraint
+    # scores it (it forced stencil 26 before, which is what the old bounds
+    # measured): all 33 +1.22 / 1.99 / 0.9792 (was +0.63 / 1.65 / 0.9808,
+    # bounds 1.0 / 2.0 / 0.975); the 24 +0.57 / 1.01 / 0.9954 (was +0.00 /
+    # 0.84 / 0.9959, bounds 0.3 / 1.0 / 0.995).
+    assert abs((mine - theirs).mean()) < 1.5
+    assert np.sqrt(((mine - theirs) ** 2).mean()) < 2.2
     assert np.corrcoef(theirs, mine)[0, 1] > 0.975
     d = mine[easy] - theirs[easy]
-    assert abs(d.mean()) < 0.3
-    assert np.sqrt((d ** 2).mean()) < 1.0
+    assert abs(d.mean()) < 0.8
+    assert np.sqrt((d ** 2).mean()) < 1.2
     assert np.corrcoef(theirs[easy], mine[easy])[0, 1] > 0.995
 
     # --- and Olga's: all 33 as well, and further from FPS on the shared 24 --
@@ -228,7 +243,9 @@ def test_the_published_table_is_not_reproduced_by_fps_either():
         _scored(derive_clearance=True), reference, header)
     with open(ORACLE_PINS) as fh:
         oracle = json.load(fh)["rda_mean"]
-    assert 1.0 < (ours - theirs).mean() < 3.0        # this module
+    # 2026-10-12: +3.26 A under FPS's link search (+2.66 under the restraint's
+    # former stencil 26); the upper bound was 3.0.
+    assert 1.0 < (ours - theirs).mean() < 3.5        # this module
     # and FPS's own, over the same pairs
     result = _scored(derive_clearance=True)
     fps_bias = []
@@ -359,7 +376,8 @@ def test_the_contact_volume_is_not_part_of_the_fps_comparison():
     off, fps = _against(oracle, False, by_name)
     on, _ = _against(oracle, True, by_name)
     assert len(off) == len(on) == len(fps) == 33
-    assert abs((off - fps).mean()) < 1.0            # the A/B, as pinned above
+    # 2026-10-12: +1.22 A under FPS's link search (was +0.70); bound was 1.0.
+    assert abs((off - fps).mean()) < 1.5            # the A/B, as pinned above
     assert (on - fps).mean() < -1.0                 # the ACV, on top of it
     assert (on - off).mean() < -1.5
     assert (on < off).all()

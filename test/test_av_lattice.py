@@ -599,6 +599,26 @@ class TestQuadratureAccuracy(unittest.TestCase):
                                            IMP.bff.PROBE_PAIR_DISTANCE_MEAN, 100)
         self.assertTrue(np.isnan(v))
 
+    def test_quadrature_of_overlapping_clouds(self):
+        """Two overlapping clouds: block centroids nearly coincide.
+
+        The second-order correction of the quadrature grows as 1/d between
+        block centroids and diverged there: T4L 44D-69A (the restraint's own
+        AVs, FPS's link search) gave 36.93 A at K = 100 against an exact
+        weighted mean of 28.82 A, and the restraint's error estimate read
+        7.5 A under the 74 stencil. Fixed 2026-10-12 (near-coincident blocks
+        are one isotropic Gaussian, whose mean |r| is exact and finite).
+        """
+        r = make_restraint("default", self.hier, score_set="chi2_C2_33p")
+        r.unprotected_evaluate(None)
+        a, b = r.get_used_av("44D"), r.get_used_av("69A")
+        pa = np.array(a.get_map().get_xyz_density())
+        pb = np.array(b.get_map().get_xyz_density())
+        exact = exact_mean_distance(pa, pb)
+        for k in (25, 50, 100, 200, 1000):
+            v = IMP.bff.av_distance_quadrature(a, b, 52.0, IMP.bff.PROBE_PAIR_DISTANCE_MEAN, k)
+            self.assertAlmostEqual(v, exact, delta=0.05, msg="K=%d" % k)
+
     def test_quad_error_estimate(self):
         r = make_restraint("default", self.hier, score_set="chi2_C2_33p")
         r.unprotected_evaluate(None)
@@ -890,9 +910,17 @@ class TestAVHandle(unittest.TestCase):
         # (ProbeAccessibleVolumeDecorator::set_radii_source), so the pre-Olga 10.9834 returns exactly.
         # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 10.983394087144049.
         # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 10.81840491201247.
-        self.assertAlmostEqual(r30.unprotected_evaluate(None), 11.19673921226955, places=6)
+        # 2026-10-12: the quadrature no longer diverges for near-coincident blocks of overlapping clouds (av_distance_quadrature); was 11.19673921226955.
+        self.assertAlmostEqual(r30.unprotected_evaluate(None), 11.197039320948742, places=6)
+        # 2026-10-12: the restraint's default is 0 -- every AV keeps its
+        # position's own link search, FPS's cube (342) unless the position
+        # says "fast" -- so the 26 stencil is asked for by name here.
+        r0 = IMP.bff.ProbeNetworkRestraint(self.hier, FPS_JSON, score_set="chi2_C2_33p",
+                                        quad_k=100)
+        self.assertEqual(r0.get_search_stencil(), 0)
+        self.assertEqual({r0.get_used_av(n).get_search_stencil() for n in av_names(r0)}, {342})
         r26 = IMP.bff.ProbeNetworkRestraint(self.hier, FPS_JSON, score_set="chi2_C2_33p",
-                                         quad_k=100)
+                                         quad_k=100, search_stencil=26)
         self.assertEqual(r26.get_search_stencil(), 26)
         # 13.5082 before the chi2 error bars were unswapped (2026-08-24).
         # 22.6933 before the contact volume was honoured (2026-09-01, above).
@@ -901,7 +929,8 @@ class TestAVHandle(unittest.TestCase):
         # returns exactly.
         # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 11.395949223491733.
         # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 11.251908143953834.
-        self.assertAlmostEqual(r26.unprotected_evaluate(None), 11.195269099108469, places=6)
+        # 2026-10-12: the quadrature no longer diverges for near-coincident blocks of overlapping clouds (av_distance_quadrature); was 11.195269099108469.
+        self.assertAlmostEqual(r26.unprotected_evaluate(None), 11.195574516511469, places=6)
         # the 30-stencil AVs leak through one-voxel walls: slightly larger
         n30 = sum(len(r30.get_used_av(n).get_map().get_xyz_density()) for n in av_names(r30))
         n26 = sum(len(r26.get_used_av(n).get_map().get_xyz_density()) for n in av_names(r26))

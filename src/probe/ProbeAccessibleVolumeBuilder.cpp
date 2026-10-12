@@ -35,6 +35,18 @@
 IMPBFF_BEGIN_NAMESPACE
 
 
+int av_link_search_stencil(const std::string &link_search) {
+    if (link_search == "fps") return AV_SEARCH_STENCIL_FPS;
+    if (link_search == "fast") return AV_SEARCH_STENCIL_FAST;
+    IMP_THROW("AV: link_search must be \"fps\" (FPS's cube hop from every "
+              "node, the default) or \"fast\" (the hop out of the seed only), "
+              "not \"" << link_search << "\"", IMP::ValueException);
+}
+
+std::string av_link_search_name(int search_stencil) {
+    return search_stencil == AV_SEARCH_STENCIL_FPS ? "fps" : "fast";
+}
+
 namespace avb {
 
 using internal::upper;
@@ -304,6 +316,7 @@ IMP::Pointer<PathMap> run_lattice_search(
     header.set_path_origin(source, grid_origin);
     IMP_NEW(PathMap, map, (header, "PathMap%1%"));
     if (search_stencil == 26 || search_stencil == 74) map->set_symmetric_stencil(true);
+    if (search_stencil == AV_SEARCH_STENCIL_FPS) map->set_cube_stencil(AV_DEFAULT_LINK_SEARCH_NODES);
     map->set_euclidean_search(false);
     map->set_origin_fast(grid_origin);
 
@@ -465,7 +478,7 @@ DensityGrid* get_linker_path_lengths(
     return get_linker_path_lengths(spheres, source, source_radius, linker_length,
                                    linker_width, dye_radius, grid_resolution,
                                    allowed_sphere_radius,
-                                   search_stencil ? search_stencil : 74);
+                                   search_stencil ? search_stencil : AV_DEFAULT_SEARCH_STENCIL);
 }
 
 DensityGrid* get_linker_path_lengths(
@@ -538,7 +551,7 @@ ProbeAccessibleVolume get_av(double* atoms_xyzr, int n_atoms, int n_cols,
     ProbeAccessibleVolume av = get_av_lattice(
             spheres, source, source_radius, linker_length, linker_width,
             r1, r2, r3, grid_resolution, allowed_sphere_radius,
-            search_stencil ? search_stencil : 74, 0.0, -1.0);
+            search_stencil ? search_stencil : AV_DEFAULT_SEARCH_STENCIL, 0.0, -1.0);
     // This door's convention: the attachment coordinate is the one the caller
     // handed in, not the one the solver snapped to a lattice.
     av.set_attachment_point(source_xyz);
@@ -553,7 +566,7 @@ ProbeAccessibleVolume get_av(double* atoms_xyzr, int n_atoms, int n_cols,
     s.str(""); s << grid_resolution;  params["grid_resolution"] = s.str();
     s.str(""); s << allowed_sphere_radius;
     params["allowed_sphere_radius"] = s.str();
-    s.str(""); s << (search_stencil ? search_stencil : 74);
+    s.str(""); s << (search_stencil ? search_stencil : AV_DEFAULT_SEARCH_STENCIL);
     params["search_stencil"] = s.str();
     av.set_params(params);
     return av;

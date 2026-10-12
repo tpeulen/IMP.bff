@@ -15,6 +15,8 @@
 // Only `write_map_feature` needs these, and only until it moves to the
 // connection layer; `PathMap` itself no longer knows what an EM map is.
 #include <algorithm>
+#include <chrono>
+#include <cstdlib>
 #include <sstream>
 #include <fstream>
 #include <IMP/bff/ProbeDataPaths.h>
@@ -217,7 +219,7 @@ void PathMap::find_path_impl(
     const int nxy = nx * ny;
     // Cheap interior test: a tile whose position is at least the neighbour
     // box away from every face needs no bounds check.
-    const int box = pathMapHeader_.get_neighbor_box_size();
+    const int box = get_stencil_box();
 
     // perform the search
     cost[path_begin_idx] = 0.0;
@@ -578,25 +580,54 @@ std::vector<int> PathMap::dijkstra_bounded_core(
 
 void PathMap::dijkstra_lattice(long source_idx, float max_cost){
     // `cost` holds BLOCKED_COST for blocked tiles and TILE_COST_DEFAULT for
-    // open ones; the source is open. Same relaxation order and arithmetic as
-    // dijkstra_bounded_core with binary penalties (open = 0), so costs are
-    // identical; blocked tiles are skipped by the cost comparison itself
-    // (new_cost >= 0 > BLOCKED_COST).
+    // open ones; the source is open. Same arithmetic as dijkstra_bounded_core
+    // with binary penalties (open = 0), so costs are identical; blocked tiles
+    // are skipped by the cost comparison itself (new_cost >= 0 > BLOCKED_COST).
+    //
+    // A tile's final cost is the minimum, over the tiles relaxed into it, of
+    // the float sum `cost(u) + len(u -> t)`, and every tile is relaxed exactly
+    // once, at its final cost (see the bucket queue below). The order in which
+    // offsets and tiles are visited therefore does not change a single bit of
+    // the result, and neither does skipping a relaxation that provably cannot
+    // pass the `< max_cost` test. The two shortcuts below rest on that, and
+    // set_plain_relaxation(true) turns both off so tests can prove it.
+    const auto t_start = std::chrono::steady_clock::now();
     long n_voxel = get_number_of_voxels();
     if(offsets_.empty() || nb_delta_.size() != offsets_.size() / 5){
         if(offsets_.empty()) offsets_ = get_neighbor_idx_offsets();
         const size_t n = offsets_.size() / 5;
-        nb_delta_.resize(n); nb_len_.resize(n); nb_dz_.resize(n); nb_dy_.resize(n); nb_dx_.resize(n);
+        // The compact stencil, ordered by Chebyshev ring (|dz|, |dy|, |dx|
+        // max), stable within a ring: the first nb_ring_end_[k] offsets are
+        // exactly those that move at most k voxels along every axis.
+        std::vector<size_t> order(n);
+        std::vector<int> ring(n);
+        int max_ring = 0;
         for(size_t j = 0; j < n; j++){
-            nb_dz_[j] = offsets_[5*j + 0]; nb_dy_[j] = offsets_[5*j + 1]; nb_dx_[j] = offsets_[5*j + 2];
-            nb_delta_[j] = offsets_[5*j + 3];
-            std::memcpy(&nb_len_[j], &offsets_[5*j + 4], sizeof(float));
+            order[j] = j;
+            const int az = std::abs(offsets_[5*j + 0]), ay = std::abs(offsets_[5*j + 1]),
+                      ax = std::abs(offsets_[5*j + 2]);
+            ring[j] = std::max(az, std::max(ay, ax));
+            max_ring = std::max(max_ring, ring[j]);
+        }
+        std::stable_sort(order.begin(), order.end(),
+                         [&](size_t l, size_t r){ return ring[l] < ring[r]; });
+        nb_delta_.resize(n); nb_len_.resize(n); nb_dz_.resize(n); nb_dy_.resize(n); nb_dx_.resize(n);
+        nb_ring_end_.assign(max_ring + 1, 0);
+        for(size_t q = 0; q < n; q++){
+            const size_t j = order[q];
+            nb_dz_[q] = offsets_[5*j + 0]; nb_dy_[q] = offsets_[5*j + 1]; nb_dx_[q] = offsets_[5*j + 2];
+            nb_delta_[q] = offsets_[5*j + 3];
+            std::memcpy(&nb_len_[q], &offsets_[5*j + 4], sizeof(float));
+            for(int k = ring[j]; k <= max_ring; k++) nb_ring_end_[k] = (int) (q + 1);
         }
     }
     const size_t nnb = nb_delta_.size();
     const std::vector<long> &nb_delta = nb_delta_;
     const std::vector<float> &nb_len = nb_len_;
     const std::vector<int> &nb_dz = nb_dz_, &nb_dy = nb_dy_, &nb_dx = nb_dx_;
+    const int max_ring = (int) nb_ring_end_.size() - 1;
+    const int *ring_end = nb_ring_end_.data();
+    const bool plain = plain_relaxation_;
     const int nx = header_.get_nx();
     const int ny = header_.get_ny();
     const int nz = header_.get_nz();
@@ -609,7 +640,7 @@ void PathMap::dijkstra_lattice(long source_idx, float max_cost){
     // infinite edge length; the tile itself in the centre row has length 0
     // and never improves on itself). Same edge lengths and float arithmetic
     // as the offset table; relaxation order does not change costs.
-    const bool rows26 = symmetric_stencil_ && nnb == 26;
+    const bool rows26 = symmetric_stencil_ && nnb == 26 && cube_stencil_ == 0;
     long row_base[9];
     float32x4_t row_len[9];
     if(rows26){
@@ -625,6 +656,40 @@ void PathMap::dijkstra_lattice(long source_idx, float max_cost){
                 l[3] = std::numeric_limits<float>::infinity();
                 row_len[r] = vld1q_f32(l);
             }
+        }
+    }
+    // Row form of FPS's cube (set_cube_stencil, n <= 3) for interior tiles:
+    // the 2n+1 neighbours of a (dz, dy) row are consecutive, two 4-lane loads
+    // cover them -- `lo` the lanes dx = -3..0 (from the row start), `hi` the
+    // lanes dx = 0..3 with dx = 0 masked, loaded from the centre so the last
+    // tile of the window is never overrun. Lanes outside the cube carry an
+    // infinite length. Rows are taken ring by ring, so a tile k voxels short
+    // of the bound visits only the (2k+1)^2 rows that can still pass it.
+    const int cn = cube_stencil_;
+    const bool rows_cube = !plain && cn >= 1 && cn <= 3 && (long) nnb ==
+            (long) (2*cn + 1) * (2*cn + 1) * (2*cn + 1) - 1;
+    std::vector<long> crow_base;      // (dz, dy) rows, ring by ring
+    std::vector<float32x4_t> crow_lo, crow_hi;
+    int crow_ring_end[4] = {0, 0, 0, 0};
+    if(rows_cube){
+        const float inf = std::numeric_limits<float>::infinity();
+        for(int k = 0; k <= cn; k++){
+            for(int dz = -k; dz <= k; dz++){
+                for(int dy = -k; dy <= k; dy++){
+                    if(std::max(std::abs(dz), std::abs(dy)) != k) continue;
+                    crow_base.push_back((long) dz * nxy + (long) dy * nx);
+                    float lo[4], hi[4];
+                    for(int lane = 0; lane < 4; lane++){
+                        const int dxl = lane - 3, dxh = lane;
+                        const int d2l = dxl*dxl + dy*dy + dz*dz, d2h = dxh*dxh + dy*dy + dz*dz;
+                        lo[lane] = (std::abs(dxl) <= cn) ? std::sqrt((float) d2l) : inf;
+                        hi[lane] = (dxh >= 1 && dxh <= cn) ? std::sqrt((float) d2h) : inf;
+                    }
+                    crow_lo.push_back(vld1q_f32(lo));
+                    crow_hi.push_back(vld1q_f32(hi));
+                }
+            }
+            crow_ring_end[k] = (int) crow_base.size();
         }
     }
     const float32x4_t vmax = vdupq_n_f32(max_cost);
@@ -663,8 +728,50 @@ void PathMap::dijkstra_lattice(long source_idx, float max_cost){
             const float ccost = cost_ptr[cidx];
             if((size_t) ccost != b) continue;   // stale: moved to a lower bucket
             if(ccost >= max_cost){ done = true; break; }
+            // The outermost ring that can still land below the bound: an
+            // offset k voxels out along some axis is at least k long (the
+            // float sqrt of an integer >= k^2 is >= k), so `ccost + len` is
+            // at least `ccost + k` in float and fails `< max_cost` whenever
+            // `ccost + k` does. Exact, not a heuristic.
+            int ring = max_ring;
+            if(!plain){
+                while(ring > 0 && !(ccost + (float) ring < max_cost)) ring--;
+                if(ring == 0) continue;
+            }
             const bool interior = interior_flags[cidx] != 0;
 #ifdef __ARM_NEON
+            if(interior && rows_cube){
+                const float32x4_t vc = vdupq_n_f32(ccost);
+                const int nrows = crow_ring_end[ring < cn ? ring : cn];
+                for(int r = 0; r < nrows; r++){
+                    const long mid = cidx + crow_base[r];
+                    const float32x4_t lo_cur = vld1q_f32(cost_ptr + mid - 3);
+                    const float32x4_t hi_cur = vld1q_f32(cost_ptr + mid);
+                    const float32x4_t lo_nw = vaddq_f32(vc, crow_lo[r]);
+                    const float32x4_t hi_nw = vaddq_f32(vc, crow_hi[r]);
+                    const uint32x4_t lo_b = vandq_u32(vcltq_f32(lo_nw, lo_cur), vcltq_f32(lo_nw, vmax));
+                    const uint32x4_t hi_b = vandq_u32(vcltq_f32(hi_nw, hi_cur), vcltq_f32(hi_nw, vmax));
+                    if(__builtin_expect(vmaxvq_u32(vorrq_u32(lo_b, hi_b)) == 0, 1)) continue;
+                    float lv[4], hv[4]; uint32_t lb[4], hb[4];
+                    vst1q_f32(lv, lo_nw); vst1q_f32(hv, hi_nw);
+                    vst1q_u32(lb, lo_b); vst1q_u32(hb, hi_b);
+                    for(int k = 0; k < 4; k++){
+                        if(lb[k]){
+                            const long nidx = mid - 3 + k;
+                            cost_ptr[nidx] = lv[k];
+                            push(lv[k], nidx);
+                        }
+                    }
+                    for(int k = 1; k < 4; k++){
+                        if(hb[k]){
+                            const long nidx = mid + k;
+                            cost_ptr[nidx] = hv[k];
+                            push(hv[k], nidx);
+                        }
+                    }
+                }
+                continue;
+            }
             if(interior && rows26){
                 const float32x4_t vc = vdupq_n_f32(ccost);
                 for(int r = 0; r < 9; r++){
@@ -692,7 +799,8 @@ void PathMap::dijkstra_lattice(long source_idx, float max_cost){
                 y0 = (int) ((cidx / nx) % ny);
                 z0 = (int) (cidx / nxy);
             }
-            for(size_t j = 0; j < nnb; j++){
+            const size_t jend = (size_t) ring_end[ring];
+            for(size_t j = 0; j < jend; j++){
                 if(!interior){
                     int iz = z0 + nb_dz[j];
                     int iy = y0 + nb_dy[j];
@@ -713,7 +821,10 @@ void PathMap::dijkstra_lattice(long source_idx, float max_cost){
             }
         }
     }
+    (void) nnb;
     reached_valid_ = true;
+    last_search_seconds_ = std::chrono::duration<double>(
+            std::chrono::steady_clock::now() - t_start).count();
 }
 
 void PathMap::find_path_dijkstra_exact(
@@ -1168,7 +1279,7 @@ const char *PathMap::get_interior_flags(){
     const int nx = header_.get_nx();
     const int ny = header_.get_ny();
     const int nz = header_.get_nz();
-    const int box = pathMapHeader_.get_neighbor_box_size();
+    const int box = get_stencil_box();
     if(nx != interior_nx_ || ny != interior_ny_ || nz != interior_nz_ || box != interior_box_){
         interior_.assign((size_t) nx * ny * nz, 0);
         for(int z = box; z < nz - box; z++)

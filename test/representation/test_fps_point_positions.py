@@ -175,7 +175,8 @@ def test_a_distance_touching_a_fixed_position_enters_chi2(tmp_path, structure):
     # returns exactly.
     # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 12.861951.
     # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 12.897472.
-    assert pair.chi2 == pytest.approx(13.242583, abs=1e-3)
+    # 2026-10-12: FPS's link search is the default (the 3-voxel cube hop from every node, stencil 342; PathMap::set_cube_stencil) and the docking restraint scores each position's own link search instead of forcing stencil 26; was 13.242583.
+    assert pair.chi2 == pytest.approx(13.761908, abs=1e-3)
     # the score is half a chi-square per distance plus a clash term, and one
     # rigid body has no clashes
     assert result.score == pytest.approx(0.5 * expected_chi2, rel=1e-6)

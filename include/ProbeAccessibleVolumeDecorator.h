@@ -618,7 +618,10 @@ public:
     /**
      * @brief Neighbour stencil of the path search (lattice path only).
      *
-     * 26 (default): face, edge and corner neighbours (radius sqrt 3), no
+     * 342 (default): FPS's link search, the 7x7x7 cube of three-voxel hops
+     * from every node (set_link_search("fps")).
+     * 74: the seed-only "fast" search's stencil, LabelLib's reference metric.
+     * 26: face, edge and corner neighbours (radius sqrt 3), no
      * length-2 jumps, so a path cannot tunnel through a one-voxel wall.
      * 30: the historical stencil -- radius 2 built by loops running
      * -2 <= d < 2, i.e. the +2 axis face missing and the tile itself
@@ -630,6 +633,19 @@ public:
     int get_search_stencil() const;
     void set_search_stencil(int stencil);
     static IntKey get_search_stencil_key();
+
+    /**
+     * @brief The link search by name: "fps" (default) or "fast".
+     *
+     * "fps": FPS's own search -- the linker hops up to `LinkSearchNodes = 3`
+     * voxels from *every* node it reaches (the 7x7x7 cube, stencil 342,
+     * `av_routines.cpp:156-209`). "fast": the hop is taken out of the seed
+     * only and the 74 stencil walks the rest -- ~10 % cheaper and ~7 % less
+     * volume than FPS (T4L 148L CB sites, FPS's radii). The same storage as get_search_stencil:
+     * "fast" reads back for every radius stencil (26, 30, 74).
+     */
+    std::string get_link_search() const;
+    void set_link_search(std::string link_search);
 
     /**
      * @brief Search algorithm of the lattice path.
@@ -1010,10 +1026,12 @@ IMPBFFEXPORT IMP::ParticleIndex search_labeling_site(
                split, when one is wanted; see
                #IMP::bff::PathMap::apply_contact_weighting for the rule
     \param[in] search_stencil Dijkstra neighbour stencil. `0` leaves the
-               decorator's own default, which is **74** — the LabelLib reference
-               metric. `26` is the speed option: ~1.9x faster for ~20 % less
-               volume, because a {1,2,3} stencil's isopath surface is cubic
-               rather than spherical. `30` is the historical variant.
+               decorator's own default, which is **342** — FPS's link search,
+               the 3-voxel cube hop from every node. `74` is the seed-only
+               "fast" search (the LabelLib reference metric); `26` is faster
+               still: ~1.9x over 74 for ~20 % less volume, because a {1,2,3}
+               stencil's isopath surface is cubic rather than spherical. `30`
+               is the historical variant.
     \return the volume, carrying its cloud, its grid and the source coordinate
 */
 IMPBFFEXPORT ProbeAccessibleVolume resample_av(

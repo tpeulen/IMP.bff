@@ -24,6 +24,7 @@
 #include <IMP/bff/IMPCompatibility.h>
 
 #include <cmath> /* ceil */
+#include <cstring> /* memcpy */
 
 #include <IMP/algebra/Vector3D.h>
 #include <functional>
@@ -638,6 +639,10 @@ private:
     std::vector<long> nb_delta_;
     std::vector<float> nb_len_;
     std::vector<int> nb_dz_, nb_dy_, nb_dx_;
+    //! nb_ring_end_[k]: how many leading compact offsets move <= k voxels per axis
+    std::vector<int> nb_ring_end_;
+    bool plain_relaxation_ = false;
+    double last_search_seconds_ = 0.0;
     void dijkstra_lattice(long source_idx, float max_cost);
 
     // Candidate tiles of the lattice search: those that can lie inside the
@@ -702,6 +707,13 @@ private:
                                   bool keep_source_cost_default = false);
     bool exact_search_ = false;
     bool symmetric_stencil_ = false;
+    int cube_stencil_ = 0;
+    //! How far the stencil reaches along an axis: a tile at least this far
+    //! from every face needs no bounds check.
+    int get_stencil_box() const {
+        const int box = pathMapHeader_.get_neighbor_box_size();
+        return cube_stencil_ > box ? cube_stencil_ : box;
+    }
 
 protected:
 
@@ -780,6 +792,30 @@ public:
         int nx = header->get_nx();
         int ny = header->get_ny();
         int nx_ny = nx * ny;
+
+        // FPS's link search (set_cube_stencil): every offset of the
+        // (2n+1)^3 cube but the tile itself, at its Euclidean length --
+        // `av_routines.cpp:168-205`, `sqrts_dg`. The radius plays no part.
+        if(cube_stencil_ > 0){
+            const int n = cube_stencil_;
+            std::vector<int> offsets;
+            offsets.reserve((size_t) 5 * ((2*n + 1) * (2*n + 1) * (2*n + 1) - 1));
+            for(int z = -n; z <= n; z++)
+            for(int y = -n; y <= n; y++)
+            for(int x = -n; x <= n; x++){
+                const int d2 = z*z + y*y + x*x;
+                if(d2 == 0) continue;
+                int d;
+                const float len = std::sqrt((float) d2);
+                std::memcpy(&d, &len, sizeof(float));
+                offsets.emplace_back(z);
+                offsets.emplace_back(y);
+                offsets.emplace_back(x);
+                offsets.emplace_back(z * nx_ny + y * nx + x);
+                offsets.emplace_back(d);
+            }
+            return offsets;
+        }
 
         // Historical stencil: the loops run -nn <= z < nn, so the +nn face is
         // missing (a length-2 jump exists towards -x/-y/-z only) and the
@@ -998,6 +1034,41 @@ public:
         symmetric_stencil_ = tf;
     }
     bool get_symmetric_stencil() const { return symmetric_stencil_; }
+
+    /**
+     * @brief FPS's link search: hop up to `n` voxels along every axis at once.
+     *
+     * FPS routes the linker by hopping `LinkSearchNodes` voxels from *every*
+     * node it reaches (`av_routines.cpp:156-209`): each tile of the
+     * (2n+1)^3 cube around a node -- 342 neighbours for FPS's n = 3 -- is a
+     * neighbour at its Euclidean length, and only the landing tile is
+     * tested, so a hop crosses whatever lies between. With `n > 0` that cube
+     * is the stencil and the neighbour radius and set_symmetric_stencil play
+     * no part; 0 (the default) restores the radius stencil. Together with
+     * set_source_first_step (FPS's seed sphere) this is FPS's search.
+     */
+    void set_cube_stencil(int n) {
+        n = n > 0 ? n : 0;
+        if(n != cube_stencil_){ offsets_.clear(); nb_delta_.clear(); }
+        cube_stencil_ = n;
+    }
+    int get_cube_stencil() const { return cube_stencil_; }
+
+    /**
+     * @brief Turn the lattice search's exact shortcuts off (for tests).
+     *
+     * The lattice search (search_lattice with obstacles) skips the stencil
+     * rings that cannot land below the path bound and, for FPS's cube, relaxes
+     * whole rows with SIMD. Neither changes a bit of the costs; with `true`
+     * every offset of every tile is relaxed one at a time, so a test can
+     * compare the two. Off by default.
+     */
+    void set_plain_relaxation(bool tf) { plain_relaxation_ = tf; }
+    bool get_plain_relaxation() const { return plain_relaxation_; }
+
+    //! Wall-clock seconds of the last lattice search proper (the relaxation,
+    //! not the obstacle rasters around it).
+    double get_last_search_seconds() const { return last_search_seconds_; }
 
     /**
      * @brief Exact Dijkstra from `path_begin_idx`, bounded.

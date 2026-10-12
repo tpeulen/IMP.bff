@@ -101,7 +101,8 @@ class Tests(unittest.TestCase):
         # before that day -- the flip moved no other input.
         # 2026-10-11: the linker's first step reaches one width plus one grid step out of the anchor (PathMap::set_source_hop_radius); was 11.326777201821047.
         # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 11.281702323593919.
-        self.assertAlmostEqual(11.147646616082596, v, places=6)
+        # 2026-10-12: FPS's link search is the default (the 3-voxel cube hop from every node, stencil 342; PathMap::set_cube_stencil) and the docking restraint scores each position's own link search instead of forcing stencil 26, and the quadrature no longer diverges for near-coincident blocks of overlapping clouds; was 11.147646616082596.
+        self.assertAlmostEqual(10.865793933871187, v, places=6)
         self.assertEqual(v, fret_restraint.unprotected_evaluate(None))
 
         # Re-measured 2026-09-01, when the accessible contact volume this file

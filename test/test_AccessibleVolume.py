@@ -87,7 +87,8 @@ class Tests(unittest.TestCase):
         # (ProbeAccessibleVolumeDecorator::set_radii_source), so this is the pre-Olga number -- to 0.002 A,
         # the rest being the 2026-08-31 move above, which is not reverted.
         # 2026-10-11: FPS's AV defaults -- the linker's first step is FPS's, three-voxel hops from every voxel of the seed (here the explicit 2.0 A clearance; PathMap::set_source_first_step), which reaches 3.5 A where the stencil alone reached 2.0; was (-15.048157, 19.668150, 20.226974).
-        np.testing.assert_almost_equal(av.get_mean_position(), (-14.853740, 19.747667, 20.401957), decimal=3)
+        # 2026-10-12: FPS's link search is the default (the 3-voxel cube hop from every node, stencil 342; PathMap::set_cube_stencil); was (-14.853740, 19.747667, 20.401957).
+        np.testing.assert_almost_equal(av.get_mean_position(), (-14.808751, 19.733674, 20.414527), decimal=3)
         np.testing.assert_almost_equal(av.get_radii(), (3.5, 0, 0), decimal=3)
         self.assertEqual(av.get_parameters_are_optimized(), False)
         self.assertEqual(str(av.get_source()), '"Atom CB of residue 55"')
@@ -319,7 +320,8 @@ class Tests(unittest.TestCase):
         # (-0.333604, -24.499506, -4.603655); IMP's own are the default again
         # (ProbeAccessibleVolumeDecorator::set_radii_source), so this is the pre-Olga number, to 0.002 A.
         # 2026-10-11: FPS's AV defaults -- the linker's first step is FPS's, three-voxel hops from every voxel of the seed (here the explicit 2.0 A clearance; PathMap::set_source_first_step), which reaches 3.5 A where the stencil alone reached 2.0; was (-0.322252, -25.204348, -3.821867).
-        ref = (-0.125887, -25.307448, -4.261595)
+        # 2026-10-12: FPS's link search is the default (the 3-voxel cube hop from every node, stencil 342; PathMap::set_cube_stencil); was (-0.125887, -25.307448, -4.261595).
+        ref = (-0.502609, -25.083556, -4.527183)
         np.testing.assert_allclose(av_mp.get_coordinates(), ref, atol=1e-3)
 
     def test_access_av_feature(self):
@@ -448,7 +450,8 @@ class Tests(unittest.TestCase):
         # pre-Olga four are restored -- measured back to within 0.03 A, well
         # inside the MC delta below.
         # 2026-10-11: FPS's AV defaults -- the linker's first step is FPS's, three-voxel hops from every voxel of the seed (here the explicit 2.0 A clearance; PathMap::set_source_first_step), which reaches 3.5 A where the stencil alone reached 2.0; was [54.8151, 55.8598, 52.9990, 0.4211].
-        refs_distances = [55.2012, 56.3500, 53.4337, 0.4114]
+        # 2026-10-12: FPS's link search is the default (the 3-voxel cube hop from every node, stencil 342; PathMap::set_cube_stencil); was [55.2012, 56.3500, 53.4337, 0.4114].
+        refs_distances = [55.1220, 56.2978, 53.2479, 0.4132]
         for t, ref in zip(distance_types, refs_distances):
             v = IMP.bff.av_distance(
                 av1, av2,

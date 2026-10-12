@@ -22,18 +22,24 @@
  * | simulation type | "Simple AV" (`simcombobox` index 0) | AV1 (`Position.h`) | AV1 |
  * | seed sphere | `LinkerInitialSphere = 0.5` x W, unconditional (`ProjectData.cs`, `av_routines.cpp:136`) | obstacles cleared within `(lround(W/2/dg) + 1) dg` (`fretAV.cpp`, `ignoreSphere`) | 0.5 W (FPS) |
  * | linker's first step | `LinkSearchNodes = 3` voxels (a 7x7x7 cube) from every seed | the stencil alone | FPS's (PathMap::set_source_first_step) |
+ * | link search | the same 3-voxel cube hop from *every* reached node (`av_routines.cpp:156-209`) | the 74 stencil | FPS's: `link_search = "fps"`, stencil 342 (PathMap::set_cube_stencil) |
  * | contact volume | none | thickness 0, trapped fraction -1 (off) | off |
  * | min. sphere volume fraction | none | 0 | 0 |
  *
- * Where the two disagree the search follows FPS: the seed sphere and the
- * first step. FPS hops `LinkSearchNodes` voxels from *every* node of the
- * search; here that hop is taken out of the seed only and the rest of the
- * search walks the 74-neighbour stencil. Owner, 2026-10-11: "av go fast by
- * default" -- the hop everywhere is ~4.6x the neighbours (342 against 74),
- * and the price of the fast default is a site walled in at a fine grid
- * (T4L-132 CB at W 4.5 is empty at 0.5 A, resolves at the 0.9 A default;
- * `okf/validation/fps_screening_ab.md`). Every consumer, the labelizer's
- * refinement included, takes these values ("all use same defaults"). The grid is the one value both give for an AV1 (0.9); FPS's
+ * Where the two disagree the search follows FPS: the seed sphere, the first
+ * step and the link search. FPS hops `LinkSearchNodes` voxels from *every*
+ * node of the search, landing on any free voxel of the 7x7x7 cube across
+ * whatever lies between, and that is the default here too (owner,
+ * 2026-10-12, reversing 2026-10-11's "av go fast by default"). It is FPS's
+ * search to the voxel (same reached set as FPS's propagation, path lengths to
+ * float precision) and, with the exact shortcuts of PathMap's lattice search,
+ * ~1.1x the seed-only search's cost. On T4L 148L's CB sites under FPS's radii
+ * it brings the volume from 0.93 to 0.99 of FPS's own routine. The seed-only
+ * search stays selectable as `link_search = "fast"` (stencil 74);
+ * `okf/validation/fps_screening_ab.md` measures both -- including that the
+ * empty sites at W 4.5 are the radii set's, not the search's.
+ * Every consumer, the labelizer's refinement included, takes these values
+ * ("all use same defaults"). The grid is the one value both give for an AV1 (0.9); FPS's
  * relative rule would take an AV3 with a 1.5 A radius to 0.6, and that rule
  * is #IMP::bff::fps_default_grid for a caller who wants it.
  *
@@ -41,6 +47,7 @@
  */
 
 #include <IMP/bff/bff_config.h>
+#include <string>
 
 IMPBFF_BEGIN_NAMESPACE
 
@@ -58,8 +65,28 @@ constexpr double AV_DEFAULT_AV3_RADIUS3 = 1.5;
 constexpr double AV_DEFAULT_SIMULATION_GRID_RESOLUTION = 0.9;
 //! FPS `LinkerInitialSphere`: the seed sphere around the anchor, in linker widths.
 constexpr double AV_DEFAULT_LINKER_INITIAL_SPHERE = 0.5;
-//! FPS `LinkSearchNodes`: how many voxels the linker's first step hops.
+//! FPS `LinkSearchNodes`: how many voxels the linker hops at a time.
 constexpr int AV_DEFAULT_LINK_SEARCH_NODES = 3;
+//! The search stencil of FPS's link search: the (2n+1)^3 cube of
+//! `LinkSearchNodes` hops but the node itself, 342 neighbours for n = 3.
+constexpr int AV_SEARCH_STENCIL_FPS =
+        (2 * AV_DEFAULT_LINK_SEARCH_NODES + 1) * (2 * AV_DEFAULT_LINK_SEARCH_NODES + 1)
+        * (2 * AV_DEFAULT_LINK_SEARCH_NODES + 1) - 1;
+//! The stencil the seed-only ("fast") search walks after its first step:
+//! LabelLib's 74 reference metric.
+constexpr int AV_SEARCH_STENCIL_FAST = 74;
+//! The default search stencil: FPS's link search.
+constexpr int AV_DEFAULT_SEARCH_STENCIL = AV_SEARCH_STENCIL_FPS;
+//! The default link search, by name: "fps" (the cube hop from every node,
+//! #AV_SEARCH_STENCIL_FPS) or "fast" (the hop out of the seed only, then the
+//! #AV_SEARCH_STENCIL_FAST stencil).
+constexpr const char *AV_DEFAULT_LINK_SEARCH = "fps";
+
+//! The stencil a link-search name selects ("fps" or "fast"); throws otherwise.
+IMPBFFEXPORT int av_link_search_stencil(const std::string &link_search);
+//! The link-search name of a stencil: "fps" for #AV_SEARCH_STENCIL_FPS,
+//! "fast" for every radius stencil (they all hop out of the seed only).
+IMPBFFEXPORT std::string av_link_search_name(int search_stencil);
 
 //! The source clearance an unset (negative) `allowed_sphere_radius` derives.
 /*! FPS's seed: every voxel within `LinkerInitialSphere * W` of the anchor is

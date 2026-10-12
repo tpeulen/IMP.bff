@@ -64,17 +64,21 @@ _SITES = [
 # LinkSearchNodes = 3 voxels (a 7x7x7 cube) from every voxel of that seed
 # (PathMap::set_source_first_step). T4L-132@0.5 is now 371 548, +12 % over the
 # stencil alone rather than +33 %; the explicit parameters here did not change.
+# Re-recorded 2026-10-12 when FPS's link search became the default (owner:
+# the 3-voxel cube hop from every node, not only out of the seed; stencil 342,
+# PathMap::set_cube_stencil): every volume grows, T4L-132@0.5 371 548 ->
+# 405 428 point values (+9 %); the previous records are kept beside each key.
 # key -> (n_density, density_sha, n_points, points_sha, ng).
 _GOLDEN = {
-    "T4L-132@1.5": (29791, "37364ccd7f6dc91a", 15432, "af94c6ef17bd5374", 31),
-    "T4L-132@1.0": (91125, "a9363ac57700ef0d", 55332, "5aee0d3d99199897", 45),
-    "T4L-132@0.5": (704969, "66b5d1f6044217fe", 371548, "b04c129e437c3b86", 89),
-    "T4L-150@1.5": (29791, "d772577956b42772", 10772, "6446b0d427beded8", 31),
-    "T4L-150@1.0": (91125, "f465036cf24d5a1c", 31652, "324411a52b4ba2e5", 45),
-    "T4L-150@0.5": (704969, "14fdaa1992ea4605", 260244, "2c6a18daeb677f81", 89),
-    "GBP-400@1.5": (29791, "175f63dc9c965819", 14376, "45e8bc0c8b4c94a6", 31),
-    "GBP-400@1.0": (91125, "6025d1f861ebc1e8", 53624, "016cc568fa8cddcb", 45),
-    "GBP-400@0.5": (704969, "a8c9e5e677eb6400", 388276, "ac6a4dc685382727", 89),
+    "T4L-132@1.5": (29791, "b594474e1c126107", 17036, "a215ca2ae133f180", 31),  # was (29791, "37364ccd7f6dc91a", 15432, "af94c6ef17bd5374", 31)
+    "T4L-132@1.0": (91125, "25828bcfe0b7d459", 59964, "31a421e56725b5a9", 45),  # was (91125, "a9363ac57700ef0d", 55332, "5aee0d3d99199897", 45)
+    "T4L-132@0.5": (704969, "3f75e9edc8902dbf", 405428, "c07178c539a120c5", 89),  # was (704969, "66b5d1f6044217fe", 371548, "b04c129e437c3b86", 89)
+    "T4L-150@1.5": (29791, "9e7ab65c7325ca4c", 12032, "74c757b187848c71", 31),  # was (29791, "d772577956b42772", 10772, "6446b0d427beded8", 31)
+    "T4L-150@1.0": (91125, "445b17d061eca9f7", 35312, "c99c0a69b09a4bb3", 45),  # was (91125, "f465036cf24d5a1c", 31652, "324411a52b4ba2e5", 45)
+    "T4L-150@0.5": (704969, "cc322b898084d64b", 287192, "c84c2e076df61389", 89),  # was (704969, "14fdaa1992ea4605", 260244, "2c6a18daeb677f81", 89)
+    "GBP-400@1.5": (29791, "16b9146e2563e289", 15120, "313b59f9f243e3e7", 31),  # was (29791, "175f63dc9c965819", 14376, "45e8bc0c8b4c94a6", 31)
+    "GBP-400@1.0": (91125, "8f966b3cbef8147d", 55764, "377a2a1629c76d89", 45),  # was (91125, "6025d1f861ebc1e8", 53624, "016cc568fa8cddcb", 45)
+    "GBP-400@0.5": (704969, "a288b7d6daf21645", 412620, "660c86f2aeb1d74c", 89),  # was (704969, "a8c9e5e677eb6400", 388276, "ac6a4dc685382727", 89)
 }
 
 

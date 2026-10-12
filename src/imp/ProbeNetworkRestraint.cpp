@@ -48,8 +48,11 @@ ProbeNetworkRestraint::ProbeNetworkRestraint(
         IMP_THROW("ProbeNetworkRestraint: search_mode=\"euclidean\" requires space_fixed=True",
                   IMP::ValueException);
     }
-    if(search_stencil != 26 && search_stencil != 30){
-        IMP_THROW("ProbeNetworkRestraint: search_stencil must be 26 or 30", IMP::ValueException);
+    if(search_stencil != 0 && search_stencil != 26 && search_stencil != 30
+       && search_stencil != 74 && search_stencil != AV_SEARCH_STENCIL_FPS){
+        IMP_THROW("ProbeNetworkRestraint: search_stencil must be 0 (each "
+                  "position's own link search, FPS's by default), 342, 74, 26 "
+                  "or 30", IMP::ValueException);
     }
     if(search_grid_factor < 1){
         IMP_THROW("ProbeNetworkRestraint: search_grid_factor must be >= 1", IMP::ValueException);
@@ -114,7 +117,9 @@ void ProbeNetworkRestraint::configure_avs(){
     for(auto &av: avs_){
         av.second->set_space_fixed(space_fixed_);
         av.second->set_search_grid_factor(search_grid_factor_);
-        av.second->set_search_stencil(search_stencil_);
+        // 0: the position's own link search (fps.json `link_search`, FPS's
+        // by default) -- the same AV every other door computes.
+        if(search_stencil_ != 0) av.second->set_search_stencil(search_stencil_);
         av.second->set_search_mode(search_mode_);
         av.second->set_occupancy_registry(
             (space_fixed_ && shared_map_) ? registry_.get() : nullptr);

@@ -238,6 +238,10 @@ def test_olgas_radii_open_the_volume_up():
     is what the default costs, and it is a measurement, not a regression --
     the default is IMP's because the clash term of a docking score reads IMP's
     radii, and `okf/validation/fps_screening_ab.md` prices that choice.
+
+    Since 2026-10-12 FPS's link search (the cube hop from every node) opens
+    site 99 under IMP's radii as well: 15 605 voxels, where the seed-only
+    search left a sliver of ~1 000.
     """
     model, hierarchy = _t4l()
     counts = {}
@@ -248,15 +252,19 @@ def test_olgas_radii_open_the_volume_up():
         means[source] = np.array(av.get_mean_position())
     assert counts["olga"] > counts["imp"]
     # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 1.163.
-    assert counts["olga"] / counts["imp"] == pytest.approx(1.138, abs=0.02)
+    # 2026-10-12: FPS's link search is the default (the 3-voxel cube hop from every node, stencil 342; PathMap::set_cube_stencil); was 1.138.
+    assert counts["olga"] / counts["imp"] == pytest.approx(1.118, abs=0.02)
     assert np.linalg.norm(means["olga"] - means["imp"]) > 0.5
 
     buried = {s: len(_av(model, hierarchy, 99, "CB", s)
                      .get_map().get_xyz_density())
               for s in ("imp", "olga")}
     # 2026-10-11: 1 014 under FPS's first step (710 before) -- still a sliver,
-    # not a volume
-    assert buried["imp"] < 2000
+    # not a volume. 2026-10-12: 15 605 under FPS's link search (the 3-voxel
+    # cube hop from every node, stencil 342) -- the site opens under IMP's
+    # radii too; was `< 2000`. Olga's radii still give more.
+    assert buried["imp"] > 10000
+    assert buried["olga"] > buried["imp"]
     assert buried["olga"] > 20000
 
 
@@ -371,4 +379,5 @@ def test_a_shared_raster_refuses_two_radii_sets():
     private = _av(model, hierarchy, 55, "CB", "olga")
     # 2026-10-11, later: FPS's AV defaults -- clearance = FPS's seed W/2, first step = FPS's 3-voxel hops from every seed voxel (PathMap::set_source_first_step); was 144032.
     assert (len(third.get_map().get_xyz_density())
-            == len(private.get_map().get_xyz_density()) == 148667)
+    # 2026-10-12: FPS's link search is the default (the 3-voxel cube hop from every node, stencil 342; PathMap::set_cube_stencil); was 148667.
+            == len(private.get_map().get_xyz_density()) == 157461)
