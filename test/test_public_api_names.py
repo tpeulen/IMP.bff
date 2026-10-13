@@ -4,6 +4,10 @@ Every public name is an attribute of ``IMP.bff`` itself, wrapped from a C++
 declaration, so what there is to check is structural:
 
 * every public name resolves, carries a docstring, and is in ``dir()``;
+* the surface is the one the build kind declares (``IMP.bff.get_build()``):
+  the IMP module build has the connection layer, ``core+imp`` only the
+  layer's array doors, ``core`` neither -- present where declared, absent
+  where not;
 * nothing is built lazily -- a missing attribute is a missing attribute;
 * the retired names stay retired;
 * ``import IMP.bff`` stays click-free and pulls no optional dependency;
@@ -19,9 +23,16 @@ import pytest
 
 import IMP.bff
 
+#: What this module says it is: "imp" (the IMP module build), "core" (the
+#: package `imp-bff`, no IMP at all) or "core+imp" (`imp-bff` built against a
+#: private IMP, which wraps the layer's array doors and nothing else of it).
+BUILD = IMP.bff.get_build()
+
 #: The RMF readers and writers. `rmf` is one of this module's modules
-#: (`dependencies.py`), so these are ordinary C++ attributes -- nothing here
-#: is built on first use, and this list checks exactly that.
+#: (`dependencies.py`), so in the IMP build these are ordinary C++ attributes
+#: -- nothing here is built on first use, and this list checks exactly that.
+#: The core builds take RMF as an option (the wheel goes without, PRD-139):
+#: there the group is all or nothing, never part of it.
 RMF_NAMES = [
     "write_rmf",
     "write_rotamer_library_rmf",
@@ -97,8 +108,6 @@ FLAT_NAMES = [
     "probe_pair_contacts",         # ESM-2 contacts as a pair cost (alternative to DCA)
     "ElasticNetworkModes",         # ANM normal modes of a structure
     "get_site_contact_energy",     # contact terms on arrays (ContactPotentials.h)
-    "SoftSphereOverlapPairScore",  # the same clash term as an IMP PairScore
-    "SiteAccessibleAreaRestraint",  # gated residue area as an IMP Restraint
     "get_pair_distance_fluctuations",
     "get_pair_change_probabilities",  # calibrated: P(distance changes > 5 A)
     "ProbePairBenefitTerm",        # dynamics reward in the network selection
@@ -113,10 +122,6 @@ FLAT_NAMES = [
     "labelizer_score_structure",   # Labelizer entry point
     "labelizer_fret_pair_scores",  # FRET pair-score entry point
     "get_probe_data_dir",           # shipped probe data
-    "MolecularProbeSimulation",     # molecular implementation (IMP)
-    "ProbeAccessibleVolumeDecorator",  # IMP particle representation
-    "ProbeAccessibleVolumeOccupancyMap",  # IMP occupancy view
-    "ProbeAccessibleVolumeMeanDistanceRestraint",
     "ProbeSimulation",              # common simulation interface
     "ProbeSimulationTrajectory",    # shared trajectory value
     "ProbeDiffusionSimulation",     # grid diffusion object
@@ -126,10 +131,8 @@ FLAT_NAMES = [
     "read_component_template_cif",   # cif
     "forcefield_system_from_json",   # forcefield / ProbeForceField
     "get_rotamer_score",         # scoring (pythoncode, flat)
-    "attach_probes",                   # label (pythoncode, flat)
     "create_probe_protein_system",      # topology (C++, ProbeTopology.h)
     "probe_forcefield_system",         # topology (C++, ProbeTopology.h)
-    "AttachedProbeDynamics",            # sampling (pythoncode, flat)
     "ProbeRotamerEnsemble",               # rotamer_ensemble (C++, Rotamer.h)
     "FRETRotamer",                   # rotamer_ensemble (C++, Rotamer.h)
     "load_probe_rotamer_library",          # rotamer (C++, RotamerSite.h)
@@ -152,6 +155,32 @@ FLAT_NAMES = [
     "nps_orientation_row_index",       # NPS 625-row orientation grid
     "nps_single_orientation_row_index",  # NPS 25-row orientation grid
 ]
+
+#: The connection layer to IMP (include/imp/, pyext/include/IMP_bff.layer.i):
+#: IMP concepts, in the IMP module build only.
+LAYER_NAMES = [
+    "SoftSphereOverlapPairScore",  # the clash term of get_site_contact_energy as an IMP PairScore
+    "SiteAccessibleAreaRestraint",  # gated residue area as an IMP Restraint
+    "ProbeAccessibleVolumeDecorator",  # IMP particle representation
+    "ProbeAccessibleVolumeOccupancyMap",  # IMP occupancy view
+    "ProbeAccessibleVolumeMeanDistanceRestraint",
+    "attach_probes",                   # label (pythoncode, flat)
+    "AttachedProbeDynamics",            # sampling (pythoncode, flat)
+    "strip_hierarchy",                  # the strip mask on a hierarchy
+]
+
+#: Layer headers that name no IMP type (standalone/CMakeLists.txt,
+#: `_layer_array_doors`): wrapped wherever IMP is linked, Python-side IMP or not.
+LAYER_DOOR_NAMES = [
+    "MolecularProbeSimulation",     # molecular implementation (IMP), array-shaped
+]
+
+#: Which groups each build kind declares.
+DECLARED = {
+    "imp": {"layer": True, "doors": True, "rmf": True},
+    "core+imp": {"layer": False, "doors": True, "rmf": None},
+    "core": {"layer": False, "doors": False, "rmf": None},
+}
 
 #: Submodule paths that must not exist: the namespace is flat.
 RETIRED_SUBMODULES = [
@@ -179,12 +208,57 @@ def test_flat_name_resolves_and_is_documented(name):
     assert name in dir(IMP.bff)
 
 
+def test_the_build_kind_is_declared():
+    assert BUILD in DECLARED, BUILD
+
+
+def _assert_present(name):
+    value = getattr(IMP.bff, name)
+    assert value is not None
+    if not isinstance(value, (dict, tuple, list)):
+        assert getattr(value, "__doc__", None), f"{name} has no docstring"
+    assert name in dir(IMP.bff)
+
+
+def _assert_absent(name):
+    assert not hasattr(IMP.bff, name), f"{name} exists in the {BUILD!r} build"
+    assert name not in dir(IMP.bff)
+
+
+@pytest.mark.parametrize("name", LAYER_NAMES)
+def test_the_layer_exists_exactly_in_the_imp_build(name):
+    if DECLARED[BUILD]["layer"]:
+        _assert_present(name)
+    else:
+        _assert_absent(name)
+
+
+@pytest.mark.parametrize("name", LAYER_DOOR_NAMES)
+def test_the_layer_doors_exist_wherever_imp_is_linked(name):
+    if DECLARED[BUILD]["doors"]:
+        _assert_present(name)
+    else:
+        _assert_absent(name)
+
+
 @pytest.mark.parametrize("name", RMF_NAMES)
 def test_the_rmf_names_are_ordinary_attributes(name):
+    if not hasattr(IMP.bff, name):
+        # a core build without RMF: allowed, and the whole group must be
+        # absent (test_the_rmf_group_is_all_or_nothing)
+        assert DECLARED[BUILD]["rmf"] is not True, f"{name} missing from the {BUILD!r} build"
+        return
     value = getattr(IMP.bff, name)
     assert value is not None
     assert getattr(IMP.bff, name) is value
     assert name in dir(IMP.bff)
+
+
+def test_the_rmf_group_is_all_or_nothing():
+    present = [n for n in RMF_NAMES if hasattr(IMP.bff, n)]
+    assert present in ([], RMF_NAMES), present
+    if DECLARED[BUILD]["rmf"]:
+        assert present == RMF_NAMES
 
 
 def test_there_is_no_lazy_machinery():
@@ -238,12 +312,14 @@ def test_labelizer_has_no_historical_abbreviations():
 
 
 def test_import_is_lazy_and_click_free():
+    names = ["FRETRotamer", "forster_radius_from_spectra"]
+    if DECLARED[BUILD]["layer"]:
+        names += ["strip_hierarchy", "attach_probes"]
     code = (
         "import sys; sys.modules['click'] = None\n"
         "import IMP.bff\n"
-        "IMP.bff.FRETRotamer; IMP.bff.forster_radius_from_spectra; IMP.bff.strip_hierarchy\n"
-        "IMP.bff.attach_probes\n"
-        "print('ok')\n"
+        + "".join(f"IMP.bff.{n}\n" for n in names)
+        + "print('ok')\n"
     )
     result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=180)
     assert result.returncode == 0, result.stderr
