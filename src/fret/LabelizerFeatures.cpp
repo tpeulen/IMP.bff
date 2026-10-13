@@ -7,13 +7,13 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/LabelizerFeatures.h>
-#include <IMP/bff/ProbeAccessibleVolumeBuilder.h>
-#include <IMP/bff/SolventAccessibleSurface.h>
+#include <IMP/bff/fret/LabelizerFeatures.h>
+#include <IMP/bff/probe/ProbeAccessibleVolumeBuilder.h>
+#include <IMP/bff/structure/SolventAccessibleSurface.h>
 #include <IMP/bff/bff_config.h>
 #include <IMP/bff/internal/OutputView.h>
 
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <algorithm>
 #include <cmath>

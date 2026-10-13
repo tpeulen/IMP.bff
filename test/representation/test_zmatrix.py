@@ -1,6 +1,6 @@
 """ZMatrix: the general internal-coordinate kernel behind PRD-118.
 
-``IMP.bff.ZMatrix`` (``include/ZMatrix.h``) is the IMP-native kernel the
+``IMP.bff.ZMatrix`` (``include/structure/ZMatrix.h``) is the IMP-native kernel the
 FASPR port and the ``.drot`` dye-rotamer store share: the standard (IUPAC)
 dihedral, FASPR's ``Internal2Cartesian`` placement in double precision, bond
 perception, and a molecule's spanning-tree Z-matrix with exact encode/decode.

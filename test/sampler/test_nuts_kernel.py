@@ -32,8 +32,8 @@ sys.path.insert(0, os.path.join(ROOT, "test", "decay"))
 from bayesian_cxx import run_driver  # noqa: E402
 
 COMMON = r"""
-#include <IMP/bff/NutsKernel.h>
-#include <IMP/bff/SamplerDiagnostics.h>
+#include <IMP/bff/bayesian/NutsKernel.h>
+#include <IMP/bff/bayesian/SamplerDiagnostics.h>
 #include <cmath>
 #include <cstdio>
 #include <random>
@@ -185,7 +185,7 @@ def test_evaluations_are_counted(result):
 
 
 LINKED = COMMON + r"""
-#include <IMP/bff/Registry.h>
+#include <IMP/bff/util/Registry.h>
 #include <string>
 int main() {
   auto k = create_sampler_kernel("nuts", "{\"max_depth\": 7, \"target_accept\": 0.9}");

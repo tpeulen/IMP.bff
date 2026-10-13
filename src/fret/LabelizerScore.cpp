@@ -6,17 +6,17 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/LabelizerScore.h>
-#include <IMP/bff/Consurf.h>
+#include <IMP/bff/fret/LabelizerScore.h>
+#include <IMP/bff/structure/Consurf.h>
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
 #include <utility>
-#include <IMP/bff/ProbeDataPaths.h>
-#include <IMP/bff/SequenceAlignment.h>
-#include <IMP/bff/SequenceConservation.h>
-#include <IMP/bff/SequenceMSA.h>
+#include <IMP/bff/probe/ProbeDataPaths.h>
+#include <IMP/bff/sequence/SequenceAlignment.h>
+#include <IMP/bff/sequence/SequenceConservation.h>
+#include <IMP/bff/sequence/SequenceMSA.h>
 #include <limits>
 #include <regex>
 #include <sstream>

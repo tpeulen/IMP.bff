@@ -14,7 +14,7 @@
  */
 
 #include <IMP/bff/bff_config.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <cstdlib>
 #include <fstream>

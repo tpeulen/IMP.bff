@@ -20,8 +20,8 @@
 
 #include <IMP/log.h>
 
-#include <IMP/bff/Docking.h>
-#include <IMP/bff/FPSExport.h>
+#include <IMP/bff/imp/Docking.h>
+#include <IMP/bff/imp/FPSExport.h>
 #include <IMP/bff/internal/Text.h>
 #include <IMP/bff/internal/json.h>
 

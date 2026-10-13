@@ -20,5 +20,5 @@
 %apply(double* IN_ARRAY1, int DIM1) {(double* in_axis, int n_axis)};
 %shared_ptr(IMP::bff::FCSMdfCurve);
 %shared_ptr(IMP::bff::FCSSaturationCurve);
-%include "IMP/bff/FCS.h"
+%include "IMP/bff/spectroscopy/FCS.h"
 

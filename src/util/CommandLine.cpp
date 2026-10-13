@@ -14,7 +14,7 @@
  *  Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/CommandLine.h>
+#include <IMP/bff/util/CommandLine.h>
 #include <IMP/bff/internal/CommandLineSubs.h>
 
 #include <algorithm>

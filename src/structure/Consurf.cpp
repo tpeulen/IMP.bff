@@ -4,11 +4,11 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/Consurf.h>
-#include <IMP/bff/BffSettings.h>
-#include <IMP/bff/SequenceClusters.h>
-#include <IMP/bff/SequenceDatabase.h>
-#include <IMP/bff/SequenceServer.h>
+#include <IMP/bff/structure/Consurf.h>
+#include <IMP/bff/util/BffSettings.h>
+#include <IMP/bff/sequence/SequenceClusters.h>
+#include <IMP/bff/sequence/SequenceDatabase.h>
+#include <IMP/bff/sequence/SequenceServer.h>
 
 #include <cstdio>
 #include <fstream>

@@ -2,16 +2,16 @@
  * \file IMPHierarchyBridge.cpp
  * \brief The Hierarchy and Particle overloads of the core's functions.
  *
- * Sections in the order of IMP/bff/IMPHierarchyBridge.h; each is marked with
+ * Sections in the order of IMP/bff/imp/IMPHierarchyBridge.h; each is marked with
  * the file it came from.
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/IMPHierarchyBridge.h>
+#include <IMP/bff/imp/IMPHierarchyBridge.h>
 #include <utility>
 #include <IMP/atom/element.h>
-#include <IMP/bff/ProbeAccessibleVolumeBuilder.h>
+#include <IMP/bff/probe/ProbeAccessibleVolumeBuilder.h>
 #include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/internal/Text.h>
 #include <IMP/bff/internal/json.h>

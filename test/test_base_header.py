@@ -1,7 +1,7 @@
 """`IMPCompatibility.h`: the module's vocabulary compiles with no IMP on the include path.
 
 Nearly every header here says `IMP_THROW`, `IMP_SHOWABLE_INLINE` or
-`IMP_VALUES`. `include/IMPCompatibility.h` is the one door those come through: with IMP
+`IMP_VALUES`. `include/util/IMPCompatibility.h` is the one door those come through: with IMP
 present it forwards to IMP's definitions, and with `IMPBFF_STANDALONE`
 defined it supplies equivalents of its own. That second branch is the whole
 basis of the independent core, and nothing in the ordinary build ever
@@ -31,7 +31,7 @@ import tempfile
 import unittest
 
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_BASE_H = os.path.join(_ROOT, "include", "IMPCompatibility.h")
+_BASE_H = os.path.join(_ROOT, "include", "util", "IMPCompatibility.h")
 _SHIMS = os.path.join(_ROOT, "standalone", "include")  # the standalone build's IMP/ tree
 
 _CONFIG_STUB = """\
@@ -44,7 +44,7 @@ _CONFIG_STUB = """\
 """
 
 _TU = r"""
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 #include <iostream>
 #include <vector>
 
@@ -161,8 +161,8 @@ class TestBaseHeaderStandalone(unittest.TestCase):
         self.cxx, self.cxx_flags, self.no_cxx_because = _compiler()
         self.tmp = tempfile.mkdtemp()
         inc = os.path.join(self.tmp, "IMP", "bff")
-        os.makedirs(inc)
-        shutil.copy(_BASE_H, os.path.join(inc, "IMPCompatibility.h"))
+        os.makedirs(os.path.join(inc, "util"))
+        shutil.copy(_BASE_H, os.path.join(inc, "util", "IMPCompatibility.h"))
         # the shim tree the standalone build puts on the path: IMP/Object.h,
         # IMP/Pointer.h, IMP/constants.h, IMP/algebra/ -- and nothing of IMP's
         for name in os.listdir(os.path.join(_SHIMS, "IMP")):

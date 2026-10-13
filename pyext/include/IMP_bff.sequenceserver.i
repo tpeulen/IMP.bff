@@ -6,4 +6,4 @@
 %feature("compactdefaultargs") IMP::bff::fetch_server_msa;
 %feature("compactdefaultargs") IMP::bff::get_a3m_hits;
 
-%include "IMP/bff/SequenceServer.h"
+%include "IMP/bff/sequence/SequenceServer.h"

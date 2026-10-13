@@ -14,4 +14,4 @@ IMP_SWIG_VALUE(IMP::bff, SequenceCoevolution, SequenceCoevolutions);
     (double** out_matrix, int* n_out_rows, int* n_out_cols)
 };
 
-%include "IMP/bff/SequenceCoevolution.h"
+%include "IMP/bff/sequence/SequenceCoevolution.h"

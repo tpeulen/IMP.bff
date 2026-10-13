@@ -2,7 +2,7 @@
  * \file PhotophysicsQuenching.cpp
  * \brief Collisional quenching: the PET tables, sphere stamping, the fields, the race.
  *
- * Sections in the order of IMP/bff/PhotophysicsQuenching.h; each is marked with the
+ * Sections in the order of IMP/bff/spectroscopy/PhotophysicsQuenching.h; each is marked with the
  * file it came from.
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
@@ -16,11 +16,11 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/PhotophysicsQuenching.h>
+#include <IMP/bff/spectroscopy/PhotophysicsQuenching.h>
 
 #include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/internal/Text.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <algorithm>
 #include <cctype>
@@ -488,7 +488,7 @@ IMPBFF_END_NAMESPACE
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/States.h>
+#include <IMP/bff/spectroscopy/States.h>
 
 #include <cstdlib>
 

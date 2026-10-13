@@ -24,10 +24,10 @@ IMP_SWIG_VALUE(IMP::bff, LabelizerConservation, LabelizerConservations);
 /* The three Mfdb* value types are declared in swig.i-in now, ahead of
    ProbeRotamerLibrary.h, which needs MfdbTags for `write_probe_rotamer_drot_with_provenance`. */
 
-%include "IMP/bff/LabelizerFeatures.h"
-%include "IMP/bff/LabelizerScore.h"
-%include "IMP/bff/LabelizerFRET.h"
-%include "IMP/bff/LabelizerIO.h"
+%include "IMP/bff/fret/LabelizerFeatures.h"
+%include "IMP/bff/fret/LabelizerScore.h"
+%include "IMP/bff/fret/LabelizerFRET.h"
+%include "IMP/bff/fret/LabelizerIO.h"
 
 /* The containers the free functions above take and return. Instantiated after
    the headers, on types SWIG has already seen. */

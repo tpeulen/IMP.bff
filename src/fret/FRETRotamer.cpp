@@ -1,7 +1,7 @@
-#include <IMP/bff/FRETRotamer.h>
+#include <IMP/bff/fret/FRETRotamer.h>
 #include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/internal/Text.h>
-#include <IMP/bff/ProbeLibrary.h>
+#include <IMP/bff/probe/ProbeLibrary.h>
 #include <algorithm>
 #include <cmath>
 #include <fstream>

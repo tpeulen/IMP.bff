@@ -4,7 +4,7 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/SequenceServer.h>
+#include <IMP/bff/sequence/SequenceServer.h>
 #include <IMP/bff/internal/json.h>
 
 #include <algorithm>

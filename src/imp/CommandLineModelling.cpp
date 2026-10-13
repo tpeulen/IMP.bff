@@ -33,15 +33,15 @@
 #include <IMP/core/XYZ.h>
 #include <IMP/log.h>
 
-#include <IMP/bff/Clustering.h>
-#include <IMP/bff/FRETRotamer.h>
-#include <IMP/bff/ProbeAccessibleVolumeDecorator.h>
-#include <IMP/bff/ProbeAccessibleVolumeMeanDistanceRestraint.h>
-#include <IMP/bff/ProbeForceFieldCIF.h>
-#include <IMP/bff/ProbeLibrary.h>
-#include <IMP/bff/ProbeNetworkRestraint.h>
-#include <IMP/bff/ProbePairSelection.h>
-#include <IMP/bff/ProbeTopology.h>
+#include <IMP/bff/structure/Clustering.h>
+#include <IMP/bff/fret/FRETRotamer.h>
+#include <IMP/bff/imp/ProbeAccessibleVolumeDecorator.h>
+#include <IMP/bff/imp/ProbeAccessibleVolumeMeanDistanceRestraint.h>
+#include <IMP/bff/probe/ProbeForceFieldCIF.h>
+#include <IMP/bff/probe/ProbeLibrary.h>
+#include <IMP/bff/imp/ProbeNetworkRestraint.h>
+#include <IMP/bff/probe/ProbePairSelection.h>
+#include <IMP/bff/probe/ProbeTopology.h>
 #include <IMP/bff/internal/Text.h>
 
 //! `select-pairs --rmf` reads the ensemble with IMP.rmf, as the Python did:

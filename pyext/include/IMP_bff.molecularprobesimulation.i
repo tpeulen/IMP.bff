@@ -16,7 +16,7 @@
 %feature("kwargs") IMP::bff::MolecularProbeSimulation::MolecularProbeSimulation;
 %feature("kwargs") IMP::bff::MolecularProbeSimulation::run;
 
-%include "IMP/bff/MolecularProbeSimulation.h"
+%include "IMP/bff/imp/MolecularProbeSimulation.h"
 
 %attribute_np2(IMP::bff::MolecularProbeSimulation, std::vector<double>, positions,
                get_positions, 3);

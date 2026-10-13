@@ -1,6 +1,6 @@
 """`imp_bff simulate`, run as the program runs, on a force-field system built here.
 
-The runner is C++ (`include/ProbeSystemSimulation.h`, the sub
+The runner is C++ (`include/imp/ProbeSystemSimulation.h`, the sub
 `src/imp/CommandLineSimulate.cpp`); it used to be the Python `simulate` of
 `bin/imp_bff`. Each mode runs in a subprocess, not through
 `IMP.bff.command_line_main` in this process: the program sets IMP's check

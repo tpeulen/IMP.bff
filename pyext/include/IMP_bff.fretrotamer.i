@@ -8,7 +8,7 @@ IMP_SWIG_VALUE(IMP::bff, FRETRotamerFrameResult, FRETRotamerFrameResults);
 
 
 
-%include "IMP/bff/FRETRotamer.h"
+%include "IMP/bff/fret/FRETRotamer.h"
 
 %attribute_np2(IMP::bff::FRETRotamer, std::vector<double>, z_values,
                get_z_values, 2);

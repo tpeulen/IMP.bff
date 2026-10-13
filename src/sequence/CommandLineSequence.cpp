@@ -18,13 +18,13 @@
 #include <string>
 #include <vector>
 
-#include <IMP/bff/BffSettings.h>
-#include <IMP/bff/Consurf.h>
-#include <IMP/bff/LabelizerFeatures.h>
-#include <IMP/bff/LabelizerScore.h>
-#include <IMP/bff/SequenceClusters.h>
-#include <IMP/bff/SequenceDatabase.h>
-#include <IMP/bff/SequenceSearch.h>
+#include <IMP/bff/util/BffSettings.h>
+#include <IMP/bff/structure/Consurf.h>
+#include <IMP/bff/fret/LabelizerFeatures.h>
+#include <IMP/bff/fret/LabelizerScore.h>
+#include <IMP/bff/sequence/SequenceClusters.h>
+#include <IMP/bff/sequence/SequenceDatabase.h>
+#include <IMP/bff/sequence/SequenceSearch.h>
 
 IMPBFF_BEGIN_INTERNAL_NAMESPACE
 namespace cli {

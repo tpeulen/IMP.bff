@@ -9,7 +9,7 @@
 
 IMP_SWIG_VALUE(IMP::bff, ProbeSimulationTrajectory, ProbeSimulationTrajectories);
 
-%include "IMP/bff/ProbeSimulation.h"
+%include "IMP/bff/probe/ProbeSimulation.h"
 
 // The trajectory's shapes: `(n_frames, n_atoms, 3)` for the coordinates and
 // one value per frame for the rest.

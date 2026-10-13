@@ -5,17 +5,17 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/PhotophysicsQuenchingModel.h>
+#include <IMP/bff/spectroscopy/PhotophysicsQuenchingModel.h>
 
-#include <IMP/bff/DiffusionSolver.h>
-#include <IMP/bff/ProbeSampling.h>
-#include <IMP/bff/GridDiffusionSolver.h>
-#include <IMP/bff/PhotophysicsPhotonSimulation.h>
-#include <IMP/bff/PhotophysicsQuenching.h>
-#include <IMP/bff/FRET.h>
+#include <IMP/bff/probe/DiffusionSolver.h>
+#include <IMP/bff/probe/ProbeSampling.h>
+#include <IMP/bff/probe/GridDiffusionSolver.h>
+#include <IMP/bff/spectroscopy/PhotophysicsPhotonSimulation.h>
+#include <IMP/bff/spectroscopy/PhotophysicsQuenching.h>
+#include <IMP/bff/fret/FRET.h>
 #include <IMP/bff/internal/OutputView.h>
 
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <algorithm>
 #include <cmath>

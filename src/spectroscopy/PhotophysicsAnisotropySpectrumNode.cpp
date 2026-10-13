@@ -1,10 +1,10 @@
 /**\file PhotophysicsAnisotropySpectrumNode.cpp
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/PhotophysicsAnisotropySpectrumNode.h>
+#include <IMP/bff/spectroscopy/PhotophysicsAnisotropySpectrumNode.h>
 #include <IMP/bff/internal/NodeConfig.h>
 #include "../internal/SpectrumNodeHelpers.h"
-#include <IMP/bff/PhotophysicsLifetimeSpectrum.h>
+#include <IMP/bff/spectroscopy/PhotophysicsLifetimeSpectrum.h>
 #include <algorithm>
 #include <cctype>
 #include <cmath>

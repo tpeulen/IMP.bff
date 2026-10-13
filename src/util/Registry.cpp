@@ -5,14 +5,14 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/Registry.h>
+#include <IMP/bff/util/Registry.h>
 
 #include <IMP/bff/internal/RegistryCore.h>
 #include <IMP/bff/internal/json.h>
 #include <IMP/bff/internal/ordered_map.h>
 
-#include <IMP/bff/ModelSearchSpec.h>
-#include <IMP/bff/ProbeDataPaths.h>
+#include <IMP/bff/search/ModelSearchSpec.h>
+#include <IMP/bff/probe/ProbeDataPaths.h>
 
 #include <algorithm>
 #include <fstream>

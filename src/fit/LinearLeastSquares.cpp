@@ -4,8 +4,8 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/LinearLeastSquares.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/fit/LinearLeastSquares.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <algorithm>
 #include <cmath>

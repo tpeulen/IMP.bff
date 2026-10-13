@@ -4,7 +4,7 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/OpenMP.h>
+#include <IMP/bff/util/OpenMP.h>
 
 #ifdef _OPENMP
 #include <omp.h>

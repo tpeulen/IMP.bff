@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Merge related headers or sources into one, flat, the same way every time.
+"""Merge related headers or sources into one, the same way every time.
 
-PRD-138: the layout stays flat (IMP's module tooling globs ``include/*.h`` and
-``src/*.cpp``), so consolidation means fewer files, not directories. Doing
+PRD-138: consolidation means fewer files within a theme directory
+(``include/<theme>/``, ``src/<theme>/``; see okf/themes/index.md). Doing
 that by hand a dozen times is a dozen chances to drop an include or leave a
 dangling ``%include``; this does it as one reviewable operation::
 
-    utility/merge_sources.py --into include/FCS.h \\
-        include/FcsMdf.h include/FcsSaturation.h include/FcsSaturationCurve.h
-    utility/merge_sources.py --into src/FCS.cpp \\
-        src/FcsMdf.cpp src/FcsSaturation.cpp src/FcsSaturationCurve.cpp
+    utility/merge_sources.py --into include/spectroscopy/FCS.h \\
+        include/spectroscopy/FcsMdf.h include/spectroscopy/FcsSaturation.h
+    utility/merge_sources.py --into src/spectroscopy/FCS.cpp \\
+        src/spectroscopy/FcsMdf.cpp src/spectroscopy/FcsSaturation.cpp
 
 What it does, in order:
 
@@ -69,7 +69,7 @@ def _write(p, s):
 
 
 def _module_name(path):
-    """`include/FcsMdf.h` -> `FcsMdf.h`; `include/internal/CifReader.h` -> `internal/CifReader.h`."""
+    """`include/spectroscopy/FcsMdf.h` -> `spectroscopy/FcsMdf.h`; `include/internal/CifReader.h` -> `internal/CifReader.h`."""
     rel = os.path.relpath(path, ROOT)
     for d in ("include", "src"):
         if rel.startswith(d + os.sep):

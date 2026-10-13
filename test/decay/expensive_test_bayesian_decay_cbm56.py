@@ -24,8 +24,8 @@ import pytest
 from bayesian_cxx import run_driver
 
 DRIVER = r"""
-#include <IMP/bff/BayesianDecayPosterior.h>
-#include <IMP/bff/FitStatistics.h>
+#include <IMP/bff/bayesian/BayesianDecayPosterior.h>
+#include <IMP/bff/fit/FitStatistics.h>
 #include <chrono>
 #include <cstdio>
 using namespace IMP::bff;

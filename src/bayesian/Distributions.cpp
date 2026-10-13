@@ -4,8 +4,8 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/Distributions.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/bayesian/Distributions.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 #include <IMP/bff/internal/Normalize.h>
 #include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/internal/DistanceKernels.h>

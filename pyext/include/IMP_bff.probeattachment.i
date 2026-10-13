@@ -27,7 +27,7 @@ IMP_SWIG_VALUE(IMP::bff, ProbeAttachment, ProbeAttachments);
 %feature("kwargs") IMP::bff::ProbePosition::ProbePosition;
 %feature("kwargs") IMP::bff::probe_position_from_source_info;
 
-%include "IMP/bff/ProbeAttachment.h"
+%include "IMP/bff/imp/ProbeAttachment.h"
 
 %template(ProbeAttachmentList) std::vector<IMP::bff::ProbeAttachment>;
 

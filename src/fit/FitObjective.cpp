@@ -5,7 +5,7 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/FitObjective.h>
+#include <IMP/bff/fit/FitObjective.h>
 
 #include <cmath>
 #include <limits>

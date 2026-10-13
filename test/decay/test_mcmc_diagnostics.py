@@ -22,7 +22,7 @@ arviz_stats = pytest.importorskip("arviz_stats")
 from arviz_stats.base import array_stats  # noqa: E402
 
 DRIVER = r"""
-#include <IMP/bff/SamplerDiagnostics.h>
+#include <IMP/bff/bayesian/SamplerDiagnostics.h>
 #include <cstdio>
 #include <iostream>
 #include <string>

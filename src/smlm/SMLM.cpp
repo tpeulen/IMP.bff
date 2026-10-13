@@ -1,7 +1,7 @@
 /** \file SMLM.cpp
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/SMLM.h>
+#include <IMP/bff/smlm/SMLM.h>
 
 #include <algorithm>
 #include <array>

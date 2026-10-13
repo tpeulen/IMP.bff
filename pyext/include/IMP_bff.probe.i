@@ -53,7 +53,7 @@ IMP_SWIG_VALUE(IMP::bff, ProbeForceFieldSystem, ProbeForceFieldSystems);
 // rename has to come before the header declares the method.
 %rename(exclusions) IMP::bff::ProbeForceFieldSystem::get_exclusions;
 
-%include "IMP/bff/ProbeLibrary.h"
+%include "IMP/bff/probe/ProbeLibrary.h"
 
 %template(ProbeMap) std::map<std::string, IMP::bff::Probe>;
 

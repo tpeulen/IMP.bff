@@ -8,7 +8,7 @@
 #ifndef IMPBFF_FFTLENGTH_H
 #define IMPBFF_FFTLENGTH_H
 
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 #include <cstddef>
 
 IMPBFF_BEGIN_NAMESPACE

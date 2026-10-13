@@ -5,7 +5,7 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/ZMatrix.h>
+#include <IMP/bff/structure/ZMatrix.h>
 
 #include <IMP/algebra/Vector3D.h>
 

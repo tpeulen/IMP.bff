@@ -5,7 +5,7 @@
  * \authors Thomas-Otavio Peulen
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/ProbeSimulation.h>
+#include <IMP/bff/probe/ProbeSimulation.h>
 #include <IMP/bff/internal/OutputView.h>
 
 IMPBFF_BEGIN_NAMESPACE

@@ -9,7 +9,7 @@ edges, and set_link refuses a cycle with Kahn's algorithm.
 
 These tests port the scenarios of chinet's test/test_port.py and
 test/test_node.py onto the bff C++ implementation. Differences from the
-chinet suite, all deliberate (see include/GraphPort.h):
+chinet suite, all deliberate (see include/graph/GraphPort.h):
 
 - chinet's GraphLinkCycleError subclasses ValueError; here it crosses the
   wrapper as IMP.ValueException, also a ValueError -- so the tests catch

@@ -11,13 +11,13 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/StructureTable.h>
+#include <IMP/bff/structure/StructureTable.h>
 
-#include <IMP/bff/VdwRadii.h>
+#include <IMP/bff/structure/VdwRadii.h>
 #include <IMP/bff/internal/Cif.h>
 #include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/internal/Text.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <algorithm>
 #include <cctype>

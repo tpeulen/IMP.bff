@@ -11,4 +11,4 @@ IMP_SWIG_VALUE(IMP::bff, ProbeDiffusionSimulation, ProbeDiffusionSimulations);
 %attribute(IMP::bff::ProbeDiffusionSimulation, double, t_step, get_t_step, set_t_step);
 %attribute(IMP::bff::ProbeDiffusionSimulation, double, collision_fraction, get_collision_fraction);
 
-%include "IMP/bff/ProbeDiffusionSimulation.h"
+%include "IMP/bff/probe/ProbeDiffusionSimulation.h"

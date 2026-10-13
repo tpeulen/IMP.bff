@@ -8,4 +8,4 @@
  * buffer. The generator comes back flat; `.reshape(n, n)` gives
  * `K[target, source]`.
  */
-%include "IMP/bff/KineticNetwork.h"
+%include "IMP/bff/spectroscopy/KineticNetwork.h"

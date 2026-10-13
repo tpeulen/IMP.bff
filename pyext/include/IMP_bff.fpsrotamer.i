@@ -10,6 +10,6 @@ IMP_SWIG_VALUE(IMP::bff, FPSRotamerSelection, FPSRotamerSelections);
 
 %feature("kwargs") IMP::bff::fps_rotamer_fret;
 
-%include "IMP/bff/FPSRotamer.h"
+%include "IMP/bff/probe/FPSRotamer.h"
 
 %template(VectorPairStringString) std::vector<std::pair<std::string, std::string> >;

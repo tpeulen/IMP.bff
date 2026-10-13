@@ -5,7 +5,7 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/IMPEMBridge.h>
+#include <IMP/bff/imp/IMPEMBridge.h>
 #include <IMP/em/DensityHeader.h>
 
 #include <algorithm>

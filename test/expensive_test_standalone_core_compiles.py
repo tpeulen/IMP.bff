@@ -54,15 +54,21 @@ class TestStandaloneCoreCompiles(unittest.TestCase):
             os.symlink(os.path.join(_ROOT, "include"), os.path.join(shim, "bff"))
             tu = os.path.join(tmp, "core.cpp")
             with open(tu, "w") as fh:
+                # by file name, as the standalone unity build orders them: the
+                # translation unit shares anonymous namespaces
                 for src in sorted(glob.glob(os.path.join(_ROOT, "src", "*.cpp")) +
                                   [p for p in glob.glob(os.path.join(_ROOT, "src", "*", "*.cpp"))
                                    if os.path.basename(os.path.dirname(p)) not in ("imp", "internal", "standalone")] +
-                                  glob.glob(os.path.join(_ROOT, "src", "standalone", "*.cpp"))):
+                                  glob.glob(os.path.join(_ROOT, "src", "standalone", "*.cpp")),
+                                  key=os.path.basename):
                     if os.path.basename(src) in ("ImpLayer.cpp", "ThemeSources.cpp"):
                         continue
                     fh.write("#include <%s>\n" % src)
             cmd = [cxx, "-std=c++17", "-fsyntax-only", "-DIMPBFF_STANDALONE", "-DIMPBFF_COMPILATION",
                    "-I", os.path.join(_ROOT, "standalone", "include"), "-I", os.path.join(tmp, "inc"),
+                   # the vendored ptolib, ahead of any older copy in the environment's include/
+                   "-I", os.path.join(_ROOT, "thirdparty", "ptolib", "include"),
+                   "-I", os.path.join(_ROOT, "thirdparty", "xsf", "include"),
                    "-isystem", inc, "-isystem", eigen, "-I", ihm, "-Xclang", "-fopenmp", tu]
             r = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             self.assertEqual(r.returncode, 0, "\n".join(l for l in r.stderr.splitlines() if "error" in l)[-4000:])

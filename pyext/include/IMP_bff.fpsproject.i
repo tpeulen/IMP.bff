@@ -31,7 +31,7 @@ IMP_SWIG_VALUE(IMP::bff, FPSProject, FPSProjects);
 %feature("kwargs") IMP::bff::write_fps_project;
 %feature("kwargs") IMP::bff::FPSProject::get_docking_parameters;
 
-%include "IMP/bff/FPSProject.h"
+%include "IMP/bff/imp/FPSProject.h"
 
 /* No `%template` for `std::vector<FPSModeParameters>`: nothing returns one.
    The five blocks are named members, and `get_parameters(mode)` returns one by

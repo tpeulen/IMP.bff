@@ -5,7 +5,7 @@
  * Copyright 2007-2022 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/Mol2IO.h>
+#include <IMP/bff/structure/Mol2IO.h>
 
 
 #include <algorithm>

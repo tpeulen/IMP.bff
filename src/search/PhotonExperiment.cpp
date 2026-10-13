@@ -4,7 +4,7 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/PhotonExperiment.h>
+#include <IMP/bff/search/PhotonExperiment.h>
 #include <IMP/bff/internal/json.h>
 
 #if IMP_BFF_HAS_TTTRLIB

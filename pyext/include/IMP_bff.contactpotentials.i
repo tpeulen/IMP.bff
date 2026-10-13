@@ -30,4 +30,4 @@
     (const int* in_o_atom, int n_o),
     (const int* in_h_atom, int n_h)
 };
-%include "IMP/bff/ContactPotentials.h"
+%include "IMP/bff/probe/ContactPotentials.h"

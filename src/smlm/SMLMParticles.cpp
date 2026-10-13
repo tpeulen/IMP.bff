@@ -1,8 +1,8 @@
 /** \file SMLMParticles.cpp
  *  \brief Particle frames and rigid KDE registration for SMLM.
  */
-#include <IMP/bff/SMLMParticles.h>
-#include <IMP/bff/StructureIO.h>
+#include <IMP/bff/smlm/SMLMParticles.h>
+#include <IMP/bff/structure/StructureIO.h>
 #include <Eigen/Eigenvalues>
 #include <Eigen/Geometry>
 #include <Eigen/SVD>

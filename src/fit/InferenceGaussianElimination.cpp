@@ -11,8 +11,8 @@
  *
  */
 
-#include <IMP/bff/InferenceGaussianElimination.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/fit/InferenceGaussianElimination.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <algorithm>
 #include <set>

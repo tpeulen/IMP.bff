@@ -4,11 +4,11 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/ProbeAttachment.h>
+#include <IMP/bff/imp/ProbeAttachment.h>
 // atom_name, selection_from_expression
-#include <IMP/bff/IMPHierarchyBridge.h>
+#include <IMP/bff/imp/IMPHierarchyBridge.h>
 
-#include <IMP/bff/HierarchyFrame.h>
+#include <IMP/bff/structure/HierarchyFrame.h>
 #include <IMP/bff/internal/Text.h>
 #include <IMP/bff/internal/json.h>
 #include <IMP/bff/internal/PythonRandom.h>
@@ -19,7 +19,7 @@
 #include <IMP/atom/Selection.h>
 #include <IMP/atom/hierarchy_tools.h>
 #include <IMP/core/XYZ.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 #include <IMP/rotamer/RotamerCalculator.h>
 #include <IMP/rotamer/RotamerLibrary.h>
 

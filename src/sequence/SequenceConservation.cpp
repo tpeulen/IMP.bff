@@ -8,7 +8,7 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/SequenceConservation.h>
+#include <IMP/bff/sequence/SequenceConservation.h>
 #include <IMP/bff/internal/ProbePairKernels.h>
 
 #include <Eigen/Dense>

@@ -19,4 +19,4 @@ IMP_SWIG_VALUE(IMP::bff, GridDiffusionGradient, GridDiffusionGradients);
     (double** out_view, int* n_out_view)
 };
 
-%include "IMP/bff/GridDiffusionSolver.h"
+%include "IMP/bff/probe/GridDiffusionSolver.h"

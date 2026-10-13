@@ -13,22 +13,22 @@
 %apply(double* IN_ARRAY1, int DIM1) {(double* in_table, int n_table)};
 %apply(double* IN_ARRAY1, int DIM1) {(double* in_pattern, int n_pattern)};
 %shared_ptr(IMP::bff::TCSPCDecay);
-%include "IMP/bff/TCSPCDecay.h"
+%include "IMP/bff/spectroscopy/TCSPCDecay.h"
 
 /* A sampled curve convolved with a measured response -- generic, and what
    feeds TCSPCDecay's instrument stage when the model is already a decay. */
 %shared_ptr(IMP::bff::Convolution);
-%include "IMP/bff/Convolution.h"
+%include "IMP/bff/fit/Convolution.h"
 
 /* A generalized-normal peak on an even axis: a response nobody measured. */
 %shared_ptr(IMP::bff::GeneralizedNormalCurve);
-%include "IMP/bff/GeneralizedNormalCurve.h"
+%include "IMP/bff/fit/GeneralizedNormalCurve.h"
 /* Lifetime spectra of several species weighted by fractions: a mixture of models. */
 %shared_ptr(IMP::bff::LifetimeSpectrumMixture);
-%include "IMP/bff/LifetimeSpectrumMixture.h"
+%include "IMP/bff/spectroscopy/LifetimeSpectrumMixture.h"
 %shared_ptr(IMP::bff::SpectrumGrid);
-%include "IMP/bff/SpectrumGrid.h"
+%include "IMP/bff/fit/SpectrumGrid.h"
 %shared_ptr(IMP::bff::MaxEntSpectrum);
-%include "IMP/bff/MaxEntSpectrum.h"
+%include "IMP/bff/fit/MaxEntSpectrum.h"
 /* Maximum entropy on a linear problem: the engine under MaxEntSpectrum, for any design. */
-%include "IMP/bff/MaxEnt.h"
+%include "IMP/bff/fit/MaxEnt.h"

@@ -4,9 +4,9 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/PolymerChain.h>
-#include <IMP/bff/SpecialFunctions.h>
-#include <IMP/bff/Distributions.h>
+#include <IMP/bff/fret/PolymerChain.h>
+#include <IMP/bff/util/SpecialFunctions.h>
+#include <IMP/bff/bayesian/Distributions.h>
 #include <IMP/bff/internal/Normalize.h>
 #include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/internal/DistanceKernels.h>

@@ -23,8 +23,8 @@
 #include <string>
 #include <vector>
 
-#include <IMP/bff/ProbeModelComparison.h>
-#include <IMP/bff/ProbeTrajectoryDensity.h>
+#include <IMP/bff/imp/ProbeModelComparison.h>
+#include <IMP/bff/imp/ProbeTrajectoryDensity.h>
 #include <IMP/bff/internal/NumpyCompat.h>
 #include <IMP/bff/internal/Text.h>
 

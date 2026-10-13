@@ -4,7 +4,7 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/RRT.h>
+#include <IMP/bff/probe/RRT.h>
 
 #include <IMP/bff/internal/OutputView.h>
 

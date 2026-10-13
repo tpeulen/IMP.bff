@@ -11,7 +11,7 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/TCSPCDecay.h>
+#include <IMP/bff/spectroscopy/TCSPCDecay.h>
 #include <IMP/bff/internal/TCSPCInstrument.h>
 #include <cstdlib>
 #include <IMP/bff/internal/NodeConfig.h>

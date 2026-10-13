@@ -6,7 +6,7 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/NeuralNetTraining.h>
+#include <IMP/bff/learn/NeuralNetTraining.h>
 
 #include <IMP/bff/internal/AdamUpdate.h>
 #include <IMP/bff/internal/MlpCore.h>

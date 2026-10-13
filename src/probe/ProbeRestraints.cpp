@@ -5,10 +5,10 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/ProbeRestraints.h>
+#include <IMP/bff/probe/ProbeRestraints.h>
 
-#include <IMP/bff/ProbeAccessibleVolume.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/probe/ProbeAccessibleVolume.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <cmath>
 

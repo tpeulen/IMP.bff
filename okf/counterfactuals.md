@@ -423,7 +423,7 @@ the factor graph is the object saved with data and handed to inference.
    site incidence (`pairs`, passed to `set_pair_sites`), `ensemble.rmsd`, and
    per-site keys. Hook points, in order of value:
    a. **`ProbeBiasRobustnessTerm`**, a new `ProbeNetworkTerm` in
-      `include/ProbeNetworkSelection.h`. It computes Olga's expected RMSD
+      `include/probe/ProbeNetworkSelection.h`. It computes Olga's expected RMSD
       under the marginal likelihood with covariance S = σ²I + τ_b² A Aᵀ:
       the site biases are integrated out, as in notebook 09. That needs a
       Mahalanobis χ² per pair of frames, not the per-pair kernels in

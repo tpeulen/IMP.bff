@@ -4,7 +4,7 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/SpecialFunctions.h>
+#include <IMP/bff/util/SpecialFunctions.h>
 
 #include <boost/math/special_functions/bessel.hpp>
 #include <boost/math/special_functions/gamma.hpp>

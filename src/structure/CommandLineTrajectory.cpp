@@ -26,10 +26,10 @@
 #include <sys/stat.h>
 #include <vector>
 
-#include <IMP/bff/Clustering.h>
-#include <IMP/bff/ProbeRotamerLibrary.h>
-#include <IMP/bff/StructureIO.h>
-#include <IMP/bff/TrajectoryIO.h>
+#include <IMP/bff/structure/Clustering.h>
+#include <IMP/bff/probe/ProbeRotamerLibrary.h>
+#include <IMP/bff/structure/StructureIO.h>
+#include <IMP/bff/structure/TrajectoryIO.h>
 #include <IMP/bff/internal/Text.h>
 
 IMPBFF_BEGIN_INTERNAL_NAMESPACE

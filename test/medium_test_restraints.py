@@ -1,7 +1,7 @@
 """Tests for ``IMP.bff``'s labelling restraints — AV network and direct.
 
 Both restraints, their measurements and their sites are C++ values
-(``include/IMP/bff/ProbeRestraints.h``); this exercises them from the
+(``include/IMP/bff/probe/ProbeRestraints.h``); this exercises them from the
 Python surface SWIG gives them.
 """
 

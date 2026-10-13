@@ -3,7 +3,7 @@
 `imp_bff probe-pdb2cif`, `imp_bff labelizer` and `imp_bff fps-distance` were
 the Python programs `bin/imp_bff_probe_pdb2cif`, `bin/imp_bff_labelizer` and
 `bin/imp_bff_fps_distance`; they are groups of the one C++ program now
-(`bin/imp_bff.cpp`, `include/CommandLine.h`). Two bugs these tests were written
+(`bin/imp_bff.cpp`, `include/util/CommandLine.h`). Two bugs these tests were written
 against stay pinned: `--probe-id`'s documented default path used to raise
 before it read anything, and `labelizer --show` used to hand a structure to a
 container reader, which complained about EBML headers.

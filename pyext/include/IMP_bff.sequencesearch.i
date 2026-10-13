@@ -10,7 +10,7 @@ IMP_SWIG_VALUE(IMP::bff, SequenceSearchHit, SequenceSearchHits);
 %feature("compactdefaultargs") IMP::bff::align_sequences;
 %feature("compactdefaultargs") IMP::bff::get_query_msa;
 
-%include "IMP/bff/SequenceSearch.h"
+%include "IMP/bff/sequence/SequenceSearch.h"
 
 /* The hit list the search returns and get_query_msa / select_sequence_homologs
    take, instantiated after the header as labelizer.i does; the standalone

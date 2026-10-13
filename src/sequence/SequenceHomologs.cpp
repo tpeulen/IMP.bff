@@ -4,7 +4,7 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/SequenceHomologs.h>
+#include <IMP/bff/sequence/SequenceHomologs.h>
 
 #include <algorithm>
 #include <cmath>

@@ -4,10 +4,10 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/AcceptorDensityDecay.h>
+#include <IMP/bff/spectroscopy/AcceptorDensityDecay.h>
 
-#include <IMP/bff/FRETAcceptorDensity.h>
-#include <IMP/bff/GraphPort.h>
+#include <IMP/bff/fret/FRETAcceptorDensity.h>
+#include <IMP/bff/graph/GraphPort.h>
 #include <IMP/bff/internal/NodeConfig.h>
 
 #include <cmath>

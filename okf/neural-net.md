@@ -24,8 +24,8 @@ ported in bff's terms.
 | FP4 training | `include/internal/MlpFp4Train.h` | NVIDIA's NVFP4 pretraining recipe (and MXFP4) on those kernels. |
 | Ternary | `include/internal/MlpTernary.h`, `MlpTernaryTrain.h` | BitNet b1.58 (W1.58A8): absmean ternary weights, int8 absmax activations, 2-bit (TQ2_0-style) and base-3 (TQ1_0-style) packings, ternary x int8 SIMD kernels on the FP4 kernels' variants, and BitNet's quantisation-aware training (below, "Ternary"). |
 | Documents | `include/internal/NetworkDocument.h` | The one msgpack encoder/decoder (`bff.quantized_neural_net` through its own small msgpack reader/writer, because the vendored nlohmann 3.6.1 has no `bin`). |
-| Face | `include/NeuralNet.h`, `src/NeuralNet.cpp` | `NeuralNet`, `QuantizedNeuralNet`; bindings in `pyext/include/IMP_bff.core.i`. |
-| Training | `include/NeuralNetTraining.h` | Adam + explicit backprop, sklearn's defaults. |
+| Face | `include/learn/NeuralNet.h`, `src/NeuralNet.cpp` | `NeuralNet`, `QuantizedNeuralNet`; bindings in `pyext/include/IMP_bff.core.i`. |
+| Training | `include/learn/NeuralNetTraining.h` | Adam + explicit backprop, sklearn's defaults. |
 
 ## The API (C++ / Python)
 

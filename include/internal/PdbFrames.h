@@ -26,7 +26,7 @@
 #define IMPBFF_INTERNAL_PDBFRAMES_H
 
 #include <IMP/bff/bff_config.h>
-#include <IMP/bff/HierarchyFrame.h>
+#include <IMP/bff/structure/HierarchyFrame.h>
 
 #include <string>
 #include <vector>

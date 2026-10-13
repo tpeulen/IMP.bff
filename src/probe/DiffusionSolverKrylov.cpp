@@ -45,10 +45,10 @@
  * Lie-splitting error of about 2e-6. This is the more accurate answer, and
  * therefore a different one.
  */
-#include <IMP/bff/DiffusionSolver.h>
+#include <IMP/bff/probe/DiffusionSolver.h>
 // IMP_THROW and IMP::ValueException: IMP's real ones in the module build,
 // the standalone definitions otherwise. Both live behind IMPCompatibility.h.
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 #include <IMP/bff/internal/TridiagonalEigen.h>
 
 

@@ -4,7 +4,7 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/FRETAcceptorDensity.h>
+#include <IMP/bff/fret/FRETAcceptorDensity.h>
 
 #include <algorithm>
 #include <cmath>

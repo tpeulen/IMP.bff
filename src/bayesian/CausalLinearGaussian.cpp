@@ -14,8 +14,8 @@
  *
  */
 
-#include <IMP/bff/CausalLinearGaussian.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/bayesian/CausalLinearGaussian.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <Eigen/Dense>
 

@@ -22,7 +22,7 @@
 #include <boost/range/distance.hpp>
 #endif
 #include <IMP/bff/bff_config.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 #include "bff_core_headers.h"
 %}
 
@@ -67,7 +67,7 @@
 %ignore IMP::Object::unref;
 %ignore IMP::Object::release_ref;
 %include <IMP/Object.h>
-%include <IMP/bff/IMPCompatibility.h>
+%include <IMP/bff/util/IMPCompatibility.h>
 #else
 /* Where IMP is linked, IMPCompatibility.h forwards to IMP's own headers, and those need
    IMP's SWIG interfaces to parse -- which is exactly what this module does

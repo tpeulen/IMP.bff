@@ -37,8 +37,8 @@
 #define IMPBFF_INTERNAL_NETWORK_DOCUMENT_H
 
 #include <IMP/bff/bff_config.h>
-#include <IMP/bff/IMPCompatibility.h>
-#include <IMP/bff/NeuralNet.h>
+#include <IMP/bff/util/IMPCompatibility.h>
+#include <IMP/bff/learn/NeuralNet.h>
 #include <IMP/bff/internal/json.h>
 #include <IMP/bff/internal/MlpCore.h>
 #include <IMP/bff/internal/MlpFp4.h>

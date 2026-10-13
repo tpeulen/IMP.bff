@@ -12,10 +12,9 @@ Sources live here and reach the IMP build through one flat file,
 and `src/internal/*.cpp` into the module and leaves other subdirectories
 alone (`src/standalone/` relies on that to stay *out* of the IMP build;
 this directory needs the opposite). `ImpLayer.cpp` is their only entry in
-`src/Files.cmake`. Their headers stay **flat** in `include/` -- IMP's
-tooling links only `include/*.h` and `include/internal/*.h` into the build
-tree, so a public subdirectory is not an option -- and are named in
-`Headers.cmake` here, the list the standalone build reads to leave them out.
+`src/Files.cmake`. Their headers are in `include/imp/`, reached as
+`<IMP/bff/imp/X.h>`; the standalone build leaves that directory out of what
+it wraps unless it is built against IMP.
 
 | header | source | is |
 |---|---|---|
@@ -40,7 +39,7 @@ stay in `pyext/` at the positions SWIG's ordering needs.
 
 No core *header* names an IMP particle, hierarchy or model any more, and no
 core file includes a layer header (PRD-137 step 5); a core file must not gain
-one. `include/PathMap.h` names the decorator as a friend by forward
+one. `include/probe/PathMap.h` names the decorator as a friend by forward
 declaration only.
 
 What is left (step 5c) is implementation, not interface: four core sources

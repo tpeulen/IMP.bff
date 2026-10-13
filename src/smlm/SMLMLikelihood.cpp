@@ -1,7 +1,7 @@
 /** \file SMLMLikelihood.cpp
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/SMLMLikelihood.h>
+#include <IMP/bff/smlm/SMLMLikelihood.h>
 #include <algorithm>
 #include <array>
 #include <cmath>

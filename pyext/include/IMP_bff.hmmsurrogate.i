@@ -16,7 +16,7 @@
 %include "IMP_bff.neuralnettraining.i"
 
 %{
-#include <IMP/bff/HMMSurrogate.h>
+#include <IMP/bff/learn/HMMSurrogate.h>
 %}
 
 %template(VectorVectorInt64) std::vector<std::vector<long long> >;
@@ -29,7 +29,7 @@ IMP_SWIG_VALUE(IMP::bff, HmmSurrogateEstimate, HmmSurrogateEstimates);
 %ignore IMP::bff::HmmSurrogate::decode;
 %ignore IMP::bff::HmmSurrogate::generate_training_set;
 
-%include "IMP/bff/HMMSurrogate.h"
+%include "IMP/bff/learn/HMMSurrogate.h"
 
 %extend IMP::bff::HmmSurrogate {
   /* X then Y, both row-major, in one vector; generate_training_set splits. */

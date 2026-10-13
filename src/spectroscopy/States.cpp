@@ -2,7 +2,7 @@
  * \file States.cpp
  * \brief A label's states: the kernels, the cloud, the distances between two.
  *
- * Sections in the order of IMP/bff/States.h; each is marked with the file it
+ * Sections in the order of IMP/bff/spectroscopy/States.h; each is marked with the file it
  * came from.
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
@@ -15,9 +15,9 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/States.h>
+#include <IMP/bff/spectroscopy/States.h>
 #include <IMP/bff/internal/OutputView.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <cmath>
 #include <limits>
@@ -600,7 +600,7 @@ double distance_from_fret_efficiency(double efficiency, double forster_radius) {
 IMPBFF_END_NAMESPACE
 
 // -------- from ProbeAccessibleVolume.cpp (the States base class) --------
-#include <IMP/bff/StructureIO.h>
+#include <IMP/bff/structure/StructureIO.h>
 #include <IMP/bff/internal/GridShape.h>
 
 #include <cstring>

@@ -8,4 +8,4 @@ IMP_SWIG_VALUE(IMP::bff, SequenceDatabase, SequenceDatabases);
 // Overloads turn keyword arguments off; the empty one is for containers only.
 %ignore IMP::bff::SequenceDatabase::SequenceDatabase();
 
-%include "IMP/bff/SequenceDatabase.h"
+%include "IMP/bff/sequence/SequenceDatabase.h"

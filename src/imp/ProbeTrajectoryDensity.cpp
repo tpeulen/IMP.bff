@@ -14,14 +14,14 @@
  *  Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/ProbeTrajectoryDensity.h>
+#include <IMP/bff/imp/ProbeTrajectoryDensity.h>
 
-#include <IMP/bff/IMPCompatibility.h>
-#include <IMP/bff/ProbeComponentTemplate.h>
-#include <IMP/bff/ProbeDataPaths.h>
-#include <IMP/bff/ProbeForceFieldCIF.h>
-#include <IMP/bff/ProbeLibrary.h>
-#include <IMP/bff/TrajectoryAnalysis.h>
+#include <IMP/bff/util/IMPCompatibility.h>
+#include <IMP/bff/probe/ProbeComponentTemplate.h>
+#include <IMP/bff/probe/ProbeDataPaths.h>
+#include <IMP/bff/probe/ProbeForceFieldCIF.h>
+#include <IMP/bff/probe/ProbeLibrary.h>
+#include <IMP/bff/structure/TrajectoryAnalysis.h>
 #include <IMP/bff/internal/NumpyCompat.h>
 #include <IMP/bff/internal/Text.h>
 

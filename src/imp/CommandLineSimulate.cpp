@@ -20,7 +20,7 @@
 #include <IMP/log.h>
 #include <IMP/random.h>
 
-#include <IMP/bff/ProbeSystemSimulation.h>
+#include <IMP/bff/imp/ProbeSystemSimulation.h>
 
 IMPBFF_BEGIN_INTERNAL_NAMESPACE
 namespace cli {

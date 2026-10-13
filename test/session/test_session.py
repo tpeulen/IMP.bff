@@ -7,7 +7,7 @@ exact on-disk format, so existing .csp projects load with no importer;
 loading resolves the cross-references (session.nodes, node.ports,
 port.link) by _id and rebuilds live objects.
 
-What is deliberately not here (see include/GraphSession.h):
+What is deliberately not here (see include/graph/GraphSession.h):
 
 - chinet's DB registry: a node or port reaches a file only through
   add_node()/add_port(), never by construction alone.

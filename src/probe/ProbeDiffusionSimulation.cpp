@@ -3,9 +3,9 @@
  * \brief Probe diffusion with state retained in the simulation object.
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/ProbeDiffusionSimulation.h>
-#include <IMP/bff/ProbeSampling.h>
-#include <IMP/bff/BrownianWalk.h>
+#include <IMP/bff/probe/ProbeDiffusionSimulation.h>
+#include <IMP/bff/probe/ProbeSampling.h>
+#include <IMP/bff/probe/BrownianWalk.h>
 #include <IMP/bff/internal/GridShape.h>
 #include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/internal/json.h>

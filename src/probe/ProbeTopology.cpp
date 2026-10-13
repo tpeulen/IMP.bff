@@ -5,15 +5,15 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/ProbeTopology.h>
+#include <IMP/bff/probe/ProbeTopology.h>
 
-#include <IMP/bff/ProbeComponentTemplate.h>
-#include <IMP/bff/Mol2IO.h>
-#include <IMP/bff/MolecularGraph.h>
-#include <IMP/bff/RotamerScoring.h>
+#include <IMP/bff/probe/ProbeComponentTemplate.h>
+#include <IMP/bff/structure/Mol2IO.h>
+#include <IMP/bff/structure/MolecularGraph.h>
+#include <IMP/bff/structure/RotamerScoring.h>
 #include <IMP/bff/internal/json.h>
 
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <algorithm>
 #include <cctype>

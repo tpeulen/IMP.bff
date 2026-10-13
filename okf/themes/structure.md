@@ -4,7 +4,7 @@ Structure, trajectory and hierarchy I/O (PDB, mmCIF, Mol2, RMF), selection expre
 
 - **Inputs:** coordinates, trajectories.
 - **Relations:** Also owns the command groups for RMSD, potentials and trajectories.
-- **Layout:** sources in `src/structure/`; the public headers stay flat in `include/` (IMP links only `include/*.h`) and are assigned to this theme in `src/structure/Headers.cmake`.
+- **Layout:** sources in `src/structure/`, public headers in `include/structure/` (reached as `<IMP/bff/structure/X.h>`; `<IMP/bff/structure.h>` includes them all). The directory is the assignment; `cmake/ThemeHeaders.cmake` links the headers into the build tree.
 
 Public headers: `Clustering.h`, `Consurf.h`, `DockingPrecision.h`, `HierarchyFrame.h`, `MMFDBProfile.h`, `Mol2IO.h`, `MolecularGraph.h`, `ProteinSidechainRotamerLibrary.h`, `RmfIO.h`, `RotamerScoring.h`, `SelectionExpression.h`, `SolventAccessibleSurface.h`, `StructureIO.h`, `StructureTable.h`, `TrajectoryAnalysis.h`, `TrajectoryIO.h`, `VdwRadii.h`, `ZMatrix.h`.
 

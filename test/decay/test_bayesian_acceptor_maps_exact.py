@@ -24,7 +24,7 @@ import pytest
 from bayesian_cxx import run_driver
 
 DRIVER = r"""
-#include <IMP/bff/BayesianTransferTensors.h>
+#include <IMP/bff/bayesian/BayesianTransferTensors.h>
 #include <cstdio>
 using namespace IMP::bff;
 

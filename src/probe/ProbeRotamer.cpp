@@ -1,10 +1,10 @@
-#include <IMP/bff/ProbeRotamer.h>
-#include <IMP/bff/ProbeDataPaths.h>
+#include <IMP/bff/probe/ProbeRotamer.h>
+#include <IMP/bff/probe/ProbeDataPaths.h>
 #include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/internal/Text.h>
 #include <IMP/bff/internal/json.h>
-#include <IMP/bff/RotamerScoring.h>
-#include <IMP/bff/ProbeSampling.h>
+#include <IMP/bff/structure/RotamerScoring.h>
+#include <IMP/bff/probe/ProbeSampling.h>
 #include <algorithm>
 #include <cmath>
 #include <cctype>

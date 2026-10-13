@@ -12,4 +12,4 @@ IMP_SWIG_VALUE(IMP::bff, ProbeTrajectoryDensityOptions, ProbeTrajectoryDensityOp
 %feature("kwargs") IMP::bff::probe_long_axis;
 %feature("kwargs") IMP::bff::write_probe_region_density;
 
-%include "IMP/bff/ProbeTrajectoryDensity.h"
+%include "IMP/bff/imp/ProbeTrajectoryDensity.h"

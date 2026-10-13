@@ -7,9 +7,9 @@
  *
  */
 
-#include <IMP/bff/GraphPort.h>
+#include <IMP/bff/graph/GraphPort.h>
 
-#include <IMP/bff/GraphNode.h>
+#include <IMP/bff/graph/GraphNode.h>
 
 #include <algorithm>
 #include <cmath>

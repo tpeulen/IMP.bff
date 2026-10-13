@@ -22,7 +22,7 @@ IMP_SWIG_VALUE(IMP::bff, DirectProbeRestraint, DirectProbeRestraints);
 %ignore IMP::bff::DirectProbeRestraint::DirectProbeRestraint(double* xyz, int n_atoms);
 %ignore IMP::bff::DirectProbeRestraint::DirectProbeRestraint(double* xyz);
 
-%include "IMP/bff/ProbeRestraints.h"
+%include "IMP/bff/probe/ProbeRestraints.h"
 
 %template(MapStringProbeAccessibleVolume) std::map<std::string, IMP::bff::ProbeAccessibleVolume>;
 %template(AVMeasurementVector) std::vector<IMP::bff::AVMeasurement>;

@@ -7,7 +7,7 @@
  */
 
 %{
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 #include <IMP/algebra/VectorD.h>
 #include <cereal/archives/binary.hpp>
 #include <sstream>

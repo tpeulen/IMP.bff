@@ -6,11 +6,11 @@
  *  Copyright 2007-2022 IMP Inventors. All rights reserved.
  *
  */
- #include <IMP/bff/ProbeNetworkRestraint.h>
+ #include <IMP/bff/imp/ProbeNetworkRestraint.h>
 // For the reference-frame fit an `XYZ` position is transported through. It
 // lives beside the screening diagnostics that first needed it; this is the
 // second caller, not a second copy.
-#include <IMP/bff/Docking.h>
+#include <IMP/bff/imp/Docking.h>
 #include <IMP/core/XYZ.h>
 
 #include <algorithm>

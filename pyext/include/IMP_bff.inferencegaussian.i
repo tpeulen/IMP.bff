@@ -10,8 +10,8 @@
  * the covariance, `.reshape(d, -1)` the null-space basis (one column per
  * unconstrained direction).
  */
-%include "IMP/bff/InferenceCanonicalForm.h"
-%include "IMP/bff/InferenceGaussianElimination.h"
+%include "IMP/bff/fit/InferenceCanonicalForm.h"
+%include "IMP/bff/fit/InferenceGaussianElimination.h"
 
 %extend IMP::bff::InferenceCanonicalForm {
   std::string __repr__() const { return self->get_description(); }

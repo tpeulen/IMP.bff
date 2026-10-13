@@ -10,4 +10,4 @@ IMP_SWIG_VALUE(IMP::bff, SequenceClusterSearchOptions, SequenceClusterSearchOpti
 %feature("compactdefaultargs") IMP::bff::search_clustered_sequence_database;
 %ignore IMP::bff::SequenceClusters::SequenceClusters();
 
-%include "IMP/bff/SequenceClusters.h"
+%include "IMP/bff/sequence/SequenceClusters.h"

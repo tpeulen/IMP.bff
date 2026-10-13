@@ -20,7 +20,7 @@ from bayesian_cxx import run_driver
 import bayesian_decay_synthetic as syn
 
 DRIVER = r"""
-#include <IMP/bff/BayesianDecayPosterior.h>
+#include <IMP/bff/bayesian/BayesianDecayPosterior.h>
 #include <cstdio>
 #include <random>
 using namespace IMP::bff;

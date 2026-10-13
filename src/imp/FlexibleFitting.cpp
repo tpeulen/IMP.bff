@@ -5,12 +5,12 @@
  *  The Python program built this from IMP.pmi's `System`, CHARMM, the
  *  kinematics module and two `IMP.OptimizerState` subclasses; everything it
  *  called is C++, so the whole of it is here, step for step. See
- *  include/FlexibleFitting.h.
+ *  include/imp/FlexibleFitting.h.
  *
  *  Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/FlexibleFitting.h>
+#include <IMP/bff/imp/FlexibleFitting.h>
 
 //! The module build needs `kinematics` among its required modules; a core+imp
 //! build that links IMP.kinematics and IMP.rmf says so with
@@ -23,7 +23,7 @@
 #endif
 
 #if !IMPBFF_FLEXFIT_AVAILABLE
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 IMPBFF_BEGIN_NAMESPACE
 std::string flexible_fitting(const std::string&, const std::string&,
                              const FlexibleFittingParameters&) {
@@ -34,8 +34,8 @@ std::string flexible_fitting(const std::string&, const std::string&,
 IMPBFF_END_NAMESPACE
 #else
 
-#include <IMP/bff/IMPHierarchyBridge.h>
-#include <IMP/bff/ProbeAccessibleVolumeMeanDistanceRestraint.h>
+#include <IMP/bff/imp/IMPHierarchyBridge.h>
+#include <IMP/bff/imp/ProbeAccessibleVolumeMeanDistanceRestraint.h>
 #include <IMP/bff/internal/CommandLineSubs.h>
 #include <IMP/bff/internal/Text.h>
 #include <IMP/bff/internal/json.h>

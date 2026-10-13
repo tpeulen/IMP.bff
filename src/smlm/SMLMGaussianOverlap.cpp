@@ -1,7 +1,7 @@
 /** \file SMLMGaussianOverlap.cpp
  *  Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/SMLMGaussianOverlap.h>
+#include <IMP/bff/smlm/SMLMGaussianOverlap.h>
 
 #include <Eigen/Cholesky>
 #include <Eigen/Core>

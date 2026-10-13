@@ -5,12 +5,12 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/NPS.h>
+#include <IMP/bff/probe/NPS.h>
 
-#include <IMP/bff/Distributions.h>
-#include <IMP/bff/FRETOrientationFactor.h>
-#include <IMP/bff/SamplerDiagnostics.h>
-#include <IMP/bff/States.h>
+#include <IMP/bff/bayesian/Distributions.h>
+#include <IMP/bff/fret/FRETOrientationFactor.h>
+#include <IMP/bff/bayesian/SamplerDiagnostics.h>
+#include <IMP/bff/spectroscopy/States.h>
 #include <IMP/algebra/Vector3D.h>
 
 #include <algorithm>

@@ -1,6 +1,6 @@
-#include <IMP/bff/FPSRotamer.h>
+#include <IMP/bff/probe/FPSRotamer.h>
 #include <IMP/bff/internal/json.h>
-#include <IMP/bff/FPS.h>
+#include <IMP/bff/probe/FPS.h>
 #include <cmath>
 #include <cstdlib>
 #include <limits>

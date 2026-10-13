@@ -7,11 +7,11 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/InferenceFactorGraphFromFit.h>
-#include <IMP/bff/FitJointChiSquared.h>
-#include <IMP/bff/FitObjective.h>
-#include <IMP/bff/GraphNode.h>
-#include <IMP/bff/GraphPort.h>
+#include <IMP/bff/fit/InferenceFactorGraphFromFit.h>
+#include <IMP/bff/fit/FitJointChiSquared.h>
+#include <IMP/bff/fit/FitObjective.h>
+#include <IMP/bff/graph/GraphNode.h>
+#include <IMP/bff/graph/GraphPort.h>
 
 #include <deque>
 #include <map>

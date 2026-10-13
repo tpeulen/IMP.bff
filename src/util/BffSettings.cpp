@@ -4,7 +4,7 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/BffSettings.h>
+#include <IMP/bff/util/BffSettings.h>
 #include <IMP/bff/internal/json.h>
 
 #include <cstdlib>

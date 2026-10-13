@@ -5,8 +5,8 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/ModelSearchPolicy.h>
-#include <IMP/bff/ModelSearch.h>
+#include <IMP/bff/search/ModelSearchPolicy.h>
+#include <IMP/bff/search/ModelSearch.h>
 #include <IMP/bff/bff_config.h>
 #include <IMP/bff/internal/AdamUpdate.h>
 

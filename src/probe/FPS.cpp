@@ -2,7 +2,7 @@
  * \file FPS.cpp
  * \brief fps.json: the schema and the doors.
  *
- * Sections in the order of IMP/bff/FPS.h; each is marked with the file it
+ * Sections in the order of IMP/bff/probe/FPS.h; each is marked with the file it
  * came from.
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
@@ -16,17 +16,17 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/FPS.h>
+#include <IMP/bff/probe/FPS.h>
 
 #include <IMP/bff/internal/Text.h>
 
 #include <IMP/bff/internal/json.h>
-#include <IMP/bff/States.h>  // chi2_score
-#include <IMP/bff/ProbeAccessibleVolumeDefaults.h>
+#include <IMP/bff/spectroscopy/States.h>  // chi2_score
+#include <IMP/bff/probe/ProbeAccessibleVolumeDefaults.h>
 #include <cmath>
 #include <limits>
 
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <algorithm>
 #include <set>

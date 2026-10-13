@@ -1,7 +1,7 @@
 """The 1:1 FASPR C++ port: backbone fidelity and parity with the reference.
 
 ``IMP.bff.pack_protein_sidechains`` (``src/Faspr*``, declared in
-``include/ProbeRotamerLibrary.h``) is a
+``include/probe/ProbeRotamerLibrary.h``) is a
 behaviour-identical vendoring of FASPR 20200309 wrapped in
 ``IMP::bff::faspr``: same energies, same DEE / tree-decomposition search,
 same tie-breaking, float math untouched. These tests pin that claim:

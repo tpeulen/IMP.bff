@@ -4,9 +4,9 @@
  *
  *  Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/SparseLinearAlgebra.h>
+#include <IMP/bff/util/SparseLinearAlgebra.h>
 #include <IMP/Pointer.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <Eigen/OrderingMethods>
 #include <Eigen/SparseCore>

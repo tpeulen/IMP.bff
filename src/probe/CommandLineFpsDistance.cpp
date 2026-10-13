@@ -28,8 +28,8 @@
 #include <string>
 #include <vector>
 
-#include <IMP/bff/FPS.h>
-#include <IMP/bff/States.h>
+#include <IMP/bff/probe/FPS.h>
+#include <IMP/bff/spectroscopy/States.h>
 
 IMPBFF_BEGIN_INTERNAL_NAMESPACE
 namespace cli {

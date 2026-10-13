@@ -4,7 +4,7 @@
  * one IMP.bff.NeuralNet evaluates (IMP_bff.core.i).
  */
 %{
-#include <IMP/bff/NeuralNetTraining.h>
+#include <IMP/bff/learn/NeuralNetTraining.h>
 %}
 
 IMP_SWIG_VALUE(IMP::bff, NeuralNetTrainOptions, NeuralNetTrainOptionsList);
@@ -14,7 +14,7 @@ IMP_SWIG_VALUE(IMP::bff, NeuralNetTraining, NeuralNetTrainings);
 %naturalvar IMP::bff::NeuralNetTrainOptions::hidden_layer_sizes;
 %naturalvar IMP::bff::NeuralNetTrainOptions::activation;
 
-%include "IMP/bff/NeuralNetTraining.h"
+%include "IMP/bff/learn/NeuralNetTraining.h"
 
 %pythoncode %{
 def train_neural_net_arrays(X, Y, options=None):

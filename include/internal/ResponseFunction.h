@@ -16,7 +16,7 @@
 
 #include <IMP/bff/bff_config.h>
 #include <IMP/bff/internal/DecayConvolution.h>
-#include <IMP/bff/BayesianFisherScoring.h>
+#include <IMP/bff/bayesian/BayesianFisherScoring.h>
 
 #include <algorithm>
 #include <vector>

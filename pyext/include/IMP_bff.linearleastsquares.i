@@ -12,4 +12,4 @@
     (const double* in_lower, int n_lower),
     (const double* in_upper, int n_upper)
 };
-%include "IMP/bff/LinearLeastSquares.h"
+%include "IMP/bff/fit/LinearLeastSquares.h"

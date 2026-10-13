@@ -14,7 +14,7 @@
       - replay: had the structure been f', would this data set have shown it?
 */
 
-#include <IMP/bff/CounterfactualDistanceNetwork.h>
+#include <IMP/bff/bayesian/CounterfactualDistanceNetwork.h>
 #include <IMP/flags.h>
 
 #include <cmath>

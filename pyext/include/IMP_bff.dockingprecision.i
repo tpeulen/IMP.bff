@@ -6,7 +6,7 @@
 
 IMP_SWIG_VALUE(IMP::bff, DockingPositionUncertainty, DockingPositionUncertainties);
 
-%include "IMP/bff/DockingPrecision.h"
+%include "IMP/bff/structure/DockingPrecision.h"
 
 // The scalar RMSF summaries as read-only attributes; the array fields stay
 // `get_rmsf()`/`get_mean_coords()` numpy views, reshaped by the caller.

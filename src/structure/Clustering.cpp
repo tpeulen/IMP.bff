@@ -5,12 +5,12 @@
  * Copyright 2007-2022 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/Clustering.h>
+#include <IMP/bff/structure/Clustering.h>
 
-#include <IMP/bff/StructureIO.h>
+#include <IMP/bff/structure/StructureIO.h>
 
 #include <IMP/bff/internal/OutputView.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_real.hpp>

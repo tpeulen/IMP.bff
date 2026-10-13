@@ -19,7 +19,7 @@
  * and the time integral of the posterior over a chunk is
  * `(1/q) sum_m Pois(m+1; q tau) sum_{j+k=m} u_j o (B^T)^k beta`.
  */
-#include <IMP/bff/FRETNetwork.h>
+#include <IMP/bff/fret/FRETNetwork.h>
 #include <IMP/bff/internal/FRETNetworkFilter.h>
 
 #include <Eigen/Dense>

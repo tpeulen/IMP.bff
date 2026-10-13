@@ -21,4 +21,4 @@ IMP_SWIG_VALUE(IMP::bff, ElasticNetworkModes, ElasticNetworkModesList);
     (double** out_matrix, int* n_out_rows, int* n_out_cols)
 };
 
-%include "IMP/bff/ElasticNetwork.h"
+%include "IMP/bff/probe/ElasticNetwork.h"

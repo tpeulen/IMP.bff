@@ -3,11 +3,11 @@
  *  \brief The selection language: tokenize, parse, evaluate, compile.
  */
 
-#include <IMP/bff/SelectionExpression.h>
+#include <IMP/bff/structure/SelectionExpression.h>
 
 #include <IMP/bff/internal/Text.h>
 
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <algorithm>
 #include <cctype>

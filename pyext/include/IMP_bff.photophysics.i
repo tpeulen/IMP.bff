@@ -15,7 +15,7 @@ IMP_SWIG_VALUE(IMP::bff, FRETRegimes, FRETRegimesList);
 // module's to give (see `IMP_bff.types.i`).
 IMP_SWIG_VALUE(IMP::bff, Kappa2Distribution, Kappa2Distributions);
 
-%include "IMP/bff/FRETOrientationFactor.h"
+%include "IMP/bff/fret/FRETOrientationFactor.h"
 
 %attribute_np(IMP::bff::Kappa2Distribution, std::vector<double>, values,
               get_values);
@@ -25,4 +25,4 @@ IMP_SWIG_VALUE(IMP::bff, Kappa2Distribution, Kappa2Distributions);
               get_hist);
 %attribute_np(IMP::bff::Kappa2Distribution, std::vector<double>, weights,
               get_weights);
-%include "IMP/bff/FRETExchange.h"
+%include "IMP/bff/fret/FRETExchange.h"

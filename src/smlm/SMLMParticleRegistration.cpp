@@ -1,7 +1,7 @@
 /** \file SMLMParticleRegistration.cpp
  *  \brief Coarse-to-fine native rigid SMLM particle fitting.
  */
-#include <IMP/bff/SMLMParticleRegistration.h>
+#include <IMP/bff/smlm/SMLMParticleRegistration.h>
 #include <Eigen/Geometry>
 #include <algorithm>
 #include <cmath>

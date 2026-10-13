@@ -17,10 +17,10 @@
  *  Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/FitMinimizer.h>
+#include <IMP/bff/fit/FitMinimizer.h>
 
-#include <IMP/bff/GraphNode.h>
-#include <IMP/bff/GraphPort.h>
+#include <IMP/bff/graph/GraphNode.h>
+#include <IMP/bff/graph/GraphPort.h>
 #include <IMP/bff/internal/OutputView.h>
 
 #include <algorithm>

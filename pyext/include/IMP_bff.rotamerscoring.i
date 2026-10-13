@@ -8,7 +8,7 @@
  * walkers -- is RotamerScoring.h. This file is the typemaps and the value types.
  */
 
-%include "IMP/bff/RotamerScoring.h"
+%include "IMP/bff/structure/RotamerScoring.h"
 
 // RotamerScoreResult is a value type with vector members.
 IMP_SWIG_VALUE(IMP::bff, RotamerScoreResult, RotamerScoreResults);

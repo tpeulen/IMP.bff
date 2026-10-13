@@ -4,8 +4,8 @@
  * values of a fit (Dingeldein & Covino, arXiv:2608.21061, Sec. III C and F).
  * See FRETLandscape.h.
  */
-#include <IMP/bff/FRETLandscape.h>
-#include <IMP/bff/States.h>
+#include <IMP/bff/fret/FRETLandscape.h>
+#include <IMP/bff/spectroscopy/States.h>
 #include <IMP/bff/internal/pcg_random.h>
 
 #include <Eigen/Dense>

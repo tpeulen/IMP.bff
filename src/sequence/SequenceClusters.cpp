@@ -4,9 +4,9 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/SequenceClusters.h>
-#include <IMP/bff/EmbeddingIndex.h>
-#include <IMP/bff/ProteinLanguageModel.h>
+#include <IMP/bff/sequence/SequenceClusters.h>
+#include <IMP/bff/learn/EmbeddingIndex.h>
+#include <IMP/bff/learn/ProteinLanguageModel.h>
 #include <IMP/bff/internal/json.h>
 #include <IMP/bff/internal/ptolib.h>
 

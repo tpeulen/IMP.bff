@@ -2,7 +2,7 @@
 
 Owner, 2026-10-11: "av defaults should be fps/olga defaults, take from there."
 The values are read from the two programs' source (the table is in
-`include/ProbeAccessibleVolumeDefaults.h`); this file holds the doors to them.
+`include/probe/ProbeAccessibleVolumeDefaults.h`); this file holds the doors to them.
 Before it, the same omitted parameter meant different things at different
 doors: a linker width of 0.5 at the decorator, 1.0 at the fps.json position
 reader, 1.5 on the command line; a dye radius of 3.0 at one json reader and 3.5

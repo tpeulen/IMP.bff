@@ -8,7 +8,7 @@
  *
  */
 
-#include <IMP/bff/GraphSession.h>
+#include <IMP/bff/graph/GraphSession.h>
 
 #include <IMP/bff/internal/json.h>
 #include <IMP/bff/internal/ordered_map.h>

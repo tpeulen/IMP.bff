@@ -4,8 +4,8 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/ContactPotentials.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/probe/ContactPotentials.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 #include <IMP/bff/internal/ContactKernels.h>
 
 #include <algorithm>

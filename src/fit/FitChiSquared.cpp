@@ -5,7 +5,7 @@
  * Copyright 2007-2023 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/FitChiSquared.h>
+#include <IMP/bff/fit/FitChiSquared.h>
 #include <IMP/bff/internal/NodeConfig.h>
 
 #include <algorithm>

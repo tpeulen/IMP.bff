@@ -66,7 +66,7 @@
 #ifndef IMPBFF_INTERNAL_NETWORK_GGUF_H
 #define IMPBFF_INTERNAL_NETWORK_GGUF_H
 
-#include <IMP/bff/NeuralNet.h>
+#include <IMP/bff/learn/NeuralNet.h>
 #include <IMP/bff/internal/GgufIo.h>
 #include <IMP/bff/internal/MlpCore.h>
 #include <IMP/bff/internal/MlpFp4.h>

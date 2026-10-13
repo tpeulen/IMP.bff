@@ -35,4 +35,4 @@ IMP_SWIG_OBJECT(IMP::bff, AVRebuildOptimizerState, AVRebuildOptimizerStates);
 // SWIG, so the shadow that did both by hand is gone.
 %feature("kwargs") IMP::bff::ProbeAccessibleVolumeMeanDistanceRestraint::ProbeAccessibleVolumeMeanDistanceRestraint;
 
-%include "IMP/bff/ProbeAccessibleVolumeMeanDistanceRestraint.h"
+%include "IMP/bff/imp/ProbeAccessibleVolumeMeanDistanceRestraint.h"

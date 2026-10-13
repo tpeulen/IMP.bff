@@ -2,7 +2,7 @@
  * \file Linker.cpp
  * \brief A dye's linker: the geometry and the Metropolis sampler.
  *
- * Sections in the order of IMP/bff/Linker.h; each is marked with the file it
+ * Sections in the order of IMP/bff/probe/Linker.h; each is marked with the file it
  * came from.
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
@@ -16,7 +16,7 @@
  * Copyright 2007-2022 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/Linker.h>
+#include <IMP/bff/probe/Linker.h>
 #include <IMP/algebra/Vector3D.h>
 
 #include <cmath>
@@ -119,13 +119,13 @@ IMPBFF_END_NAMESPACE
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/Clustering.h>
-#include <IMP/bff/MolecularGraph.h>
-#include <IMP/bff/RotamerScoring.h>
-#include <IMP/bff/ProbeTopology.h>
+#include <IMP/bff/structure/Clustering.h>
+#include <IMP/bff/structure/MolecularGraph.h>
+#include <IMP/bff/structure/RotamerScoring.h>
+#include <IMP/bff/probe/ProbeTopology.h>
 #include <IMP/bff/internal/OutputView.h>
 
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/normal_distribution.hpp>

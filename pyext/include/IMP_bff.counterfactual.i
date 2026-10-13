@@ -8,6 +8,6 @@
  *
  * Matrices cross as flat row-major tuples; `numpy.reshape` gives them shape.
  */
-%include "IMP/bff/CausalLinearGaussian.h"
-%include "IMP/bff/CounterfactualDistanceNetwork.h"
-%include "IMP/bff/CounterfactualMarkovChain.h"
+%include "IMP/bff/bayesian/CausalLinearGaussian.h"
+%include "IMP/bff/bayesian/CounterfactualDistanceNetwork.h"
+%include "IMP/bff/bayesian/CounterfactualMarkovChain.h"

@@ -9,4 +9,4 @@
  */
 IMP_SWIG_OBJECT(IMP::bff, OdeFunction, OdeFunctions);
 IMP_SWIG_DIRECTOR(IMP::bff, OdeFunction);
-%include "IMP/bff/Odeint.h"
+%include "IMP/bff/util/Odeint.h"

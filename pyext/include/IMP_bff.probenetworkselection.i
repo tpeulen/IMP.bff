@@ -55,4 +55,4 @@ IMP_SWIG_OBJECT(IMP::bff, ProbeNetworkSelection, ProbeNetworkSelections);
 %ignore IMP::bff::ProbeNetworkTerm::do_reset;
 %ignore IMP::bff::ProbeNetworkTerm::do_commit;
 
-%include "IMP/bff/ProbeNetworkSelection.h"
+%include "IMP/bff/probe/ProbeNetworkSelection.h"

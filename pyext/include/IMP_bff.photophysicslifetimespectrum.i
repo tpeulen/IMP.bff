@@ -35,7 +35,7 @@ IMP_SWIG_VALUE(IMP::bff, PhotophysicsLifetimeSpectrum, PhotophysicsLifetimeSpect
 %apply(double** ARGOUTVIEWM_ARRAY1, int* DIM1) {(double** out_centres, int* n_centres)};
 %apply(double** ARGOUTVIEWM_ARRAY1, int* DIM1) {(double** out_hist, int* n_hist)};
 
-%include "IMP/bff/PhotophysicsLifetimeSpectrum.h"
+%include "IMP/bff/spectroscopy/PhotophysicsLifetimeSpectrum.h"
 
 // `decay` publishes a flat managed view (ARGOUTVIEWM_ARRAY1) whose 1-D shape is
 // the kernel's own; the caller's time axis shape is not restated here.

@@ -19,7 +19,7 @@
 #define IMPBFF_INTERNAL_NODECONFIG_H
 
 #include <IMP/bff/bff_config.h>
-#include <IMP/bff/GraphNode.h>
+#include <IMP/bff/graph/GraphNode.h>
 #include <IMP/bff/internal/json.h>
 
 #include <set>

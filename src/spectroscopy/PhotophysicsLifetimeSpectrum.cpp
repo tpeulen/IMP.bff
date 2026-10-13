@@ -4,8 +4,8 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/PhotophysicsLifetimeSpectrum.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/spectroscopy/PhotophysicsLifetimeSpectrum.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 #include <cstdlib>
 #include <limits>
 #include <IMP/bff/internal/OutputView.h>

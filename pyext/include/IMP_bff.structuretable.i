@@ -22,7 +22,7 @@ IMP_SWIG_VALUE(IMP::bff, StructureTable, StructureTables);
 /* The core's own reader takes keyword arguments, as read_structure_table does. */
 %feature("kwargs") IMP::bff::parse_structure_table;
 
-%include "IMP/bff/StructureTable.h"
+%include "IMP/bff/structure/StructureTable.h"
 
 %attribute_np2(IMP::bff::StructureTable, std::vector<double>, xyz,
                get_xyz, 3, set_xyz);

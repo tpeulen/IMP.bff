@@ -12,4 +12,4 @@
 
 %feature("kwargs") IMP::bff::read_structure_table;
 
-%include "IMP/bff/StructureReader.h"
+%include "IMP/bff/imp/StructureReader.h"

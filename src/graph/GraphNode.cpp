@@ -7,7 +7,7 @@
  *
  */
 
-#include <IMP/bff/GraphNode.h>
+#include <IMP/bff/graph/GraphNode.h>
 
 #include <IMP/bff/internal/NodeConfig.h>
 

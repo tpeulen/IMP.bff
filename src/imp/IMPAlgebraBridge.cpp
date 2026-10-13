@@ -5,7 +5,7 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/IMPAlgebraBridge.h>
+#include <IMP/bff/imp/IMPAlgebraBridge.h>
 #include <IMP/algebra/Rotation3D.h>
 
 IMPBFF_BEGIN_NAMESPACE

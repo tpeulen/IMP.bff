@@ -6,7 +6,7 @@
  *  Copyright 2007-2023 IMP Inventors. All rights reserved.
  *
  */
-#include <IMP/bff/PathMap.h>
+#include <IMP/bff/probe/PathMap.h>
 #ifdef _WIN32
 // gcc/clang's branch hint; MSVC reads the expression and hopes.
 #define __builtin_expect(x, y) (x)
@@ -19,7 +19,7 @@
 #include <cstdlib>
 #include <sstream>
 #include <fstream>
-#include <IMP/bff/ProbeDataPaths.h>
+#include <IMP/bff/probe/ProbeDataPaths.h>
 
 #include <cstring>
 #ifdef __ARM_NEON

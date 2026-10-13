@@ -10,6 +10,6 @@
 IMP_SWIG_VALUE(IMP::bff, SelectionAtom, SelectionAtoms);
 IMP_SWIG_VALUE(IMP::bff, SelectionExpression, SelectionExpressions);
 
-%include "IMP/bff/SelectionExpression.h"
+%include "IMP/bff/structure/SelectionExpression.h"
 
 %template(SelectionAtomVector) std::vector<IMP::bff::SelectionAtom>;

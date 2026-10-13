@@ -18,7 +18,7 @@
  * Copyright 2007-2023 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/GraphExpression.h>
+#include <IMP/bff/graph/GraphExpression.h>
 #include <IMP/bff/internal/NodeConfig.h>
 
 // The engine is ptolib's (https://github.com/tpeulen/ptolib), carried here as

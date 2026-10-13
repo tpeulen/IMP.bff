@@ -7,18 +7,18 @@
  */
 
 #include <IMP/bff/internal/Text.h>
-#include <IMP/bff/ProbeAccessibleVolumeBuilder.h>
+#include <IMP/bff/probe/ProbeAccessibleVolumeBuilder.h>
 
-#include <IMP/bff/DensityGrid.h>
-#include <IMP/bff/PathMap.h>
-#include <IMP/bff/OccupancyGrid.h>
-#include <IMP/bff/StripMask.h>
-#include <IMP/bff/VdwRadii.h>
+#include <IMP/bff/probe/DensityGrid.h>
+#include <IMP/bff/probe/PathMap.h>
+#include <IMP/bff/probe/OccupancyGrid.h>
+#include <IMP/bff/fit/StripMask.h>
+#include <IMP/bff/structure/VdwRadii.h>
 #include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/internal/json.h>
 
 #include <IMP/algebra/Vector3D.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <algorithm>
 #include <cctype>

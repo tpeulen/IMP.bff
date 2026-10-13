@@ -175,24 +175,25 @@ if(IMPBFF_WITH_IMP)
 endif()
 
 # ---- the headers, laid out as IMP/bff/... like IMP's build tree
+# Public headers sit in include/<theme>/ (include/imp/ is the connection
+# layer), the umbrellas include/<theme>.h beside them, private helpers in
+# include/internal/: each lands at IMP/bff/<same relative path>.
 set(IMPBFF_GEN_INCLUDE "${CMAKE_BINARY_DIR}/include")
-file(GLOB _public_headers "${IMPBFF_ROOT}/include/*.h")
+file(GLOB _umbrella_headers "${IMPBFF_ROOT}/include/*.h")
+file(GLOB _public_headers "${IMPBFF_ROOT}/include/*/*.h")
+list(FILTER _public_headers EXCLUDE REGEX "/include/internal/")
 file(GLOB _internal_headers "${IMPBFF_ROOT}/include/internal/*.h")
-# Renamed headers must not survive in the generated include tree or its install.
-file(GLOB _generated_headers "${IMPBFF_GEN_INCLUDE}/IMP/bff/*.h")
-foreach(h ${_generated_headers})
-  get_filename_component(n "${h}" NAME)
+# Renamed or moved headers must not survive in the generated tree or its install.
+file(GLOB_RECURSE _generated_headers RELATIVE "${IMPBFF_GEN_INCLUDE}/IMP/bff"
+     "${IMPBFF_GEN_INCLUDE}/IMP/bff/*.h")
+foreach(n ${_generated_headers})
   if(NOT n STREQUAL "bff_config.h" AND NOT EXISTS "${IMPBFF_ROOT}/include/${n}")
-    file(REMOVE "${h}")
+    file(REMOVE "${IMPBFF_GEN_INCLUDE}/IMP/bff/${n}")
   endif()
 endforeach()
-foreach(h ${_public_headers})
-  get_filename_component(n "${h}" NAME)
+foreach(h ${_umbrella_headers} ${_public_headers} ${_internal_headers})
+  file(RELATIVE_PATH n "${IMPBFF_ROOT}/include" "${h}")
   configure_file("${h}" "${IMPBFF_GEN_INCLUDE}/IMP/bff/${n}" COPYONLY)
-endforeach()
-foreach(h ${_internal_headers})
-  get_filename_component(n "${h}" NAME)
-  configure_file("${h}" "${IMPBFF_GEN_INCLUDE}/IMP/bff/internal/${n}" COPYONLY)
 endforeach()
 
 # ---- the sources: the core, and the layer when IMP is there
@@ -459,10 +460,6 @@ if(IMPBFF_PYTHON)
   find_package(Python3 REQUIRED COMPONENTS Interpreter Development.Module NumPy)
   # every core header, for the wrapper's %{ %} block
   set(_agg "${CMAKE_BINARY_DIR}/bff_core_headers.h")
-  file(READ "${IMPBFF_ROOT}/src/imp/Headers.cmake" _hc)
-  string(REGEX MATCH "\"([^\"]*)\"" _m "${_hc}")
-  string(REPLACE ";" " " _layer_list "${CMAKE_MATCH_1}")
-  separate_arguments(_layer_list)
   # Layer headers whose declarations name no IMP type. Where the layer is
   # built they are wrapped like core headers -- that is the whole point of
   # them: a door shaped as arrays and file paths can be offered by a package
@@ -472,16 +469,18 @@ if(IMPBFF_PYTHON)
   set(_layer_array_doors "MolecularProbeSimulation.h" "StructureReader.h")
   set(_agg_content "// generated: every public core header\n")
   foreach(h ${_public_headers})
+    file(RELATIVE_PATH rel "${IMPBFF_ROOT}/include" "${h}")
     get_filename_component(n "${h}" NAME)
-    list(FIND _layer_list "${n}" _idx)
-    if(IMPBFF_WITH_IMP)
+    # include/imp/ is the connection layer: left out, but for its array doors
+    set(_wrap ON)
+    if(rel MATCHES "^imp/")
       list(FIND _layer_array_doors "${n}" _door_idx)
-      if(NOT _door_idx EQUAL -1)
-        set(_idx -1)
+      if(NOT IMPBFF_WITH_IMP OR _door_idx EQUAL -1)
+        set(_wrap OFF)
       endif()
     endif()
-    if(_idx EQUAL -1 AND NOT n STREQUAL "IMPCompatibility.h")
-      string(APPEND _agg_content "#include <IMP/bff/${n}>\n")
+    if(_wrap AND NOT n STREQUAL "IMPCompatibility.h")
+      string(APPEND _agg_content "#include <IMP/bff/${rel}>\n")
     endif()
   endforeach()
   file(WRITE "${_agg}" "${_agg_content}")

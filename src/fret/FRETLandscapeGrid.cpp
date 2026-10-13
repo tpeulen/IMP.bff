@@ -4,7 +4,7 @@
  * generator, its symmetrisation, the tridiagonal eigensolver and the natural
  * cubic spline. See FRETLandscapeGrid.h.
  */
-#include <IMP/bff/FRETLandscapeGrid.h>
+#include <IMP/bff/fret/FRETLandscapeGrid.h>
 #include <IMP/bff/internal/TridiagonalEigen.h>
 
 #include <algorithm>

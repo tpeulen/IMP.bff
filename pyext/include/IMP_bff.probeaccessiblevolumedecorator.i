@@ -21,6 +21,6 @@ IMP_SWIG_OBJECT_SERIALIZE(IMP::bff, ProbeNetworkRestraint, ProbeNetworkRestraint
 
 %attribute_py(IMP::bff::ProbeAccessibleVolumeDecorator, IMP::bff::PathMap, map, get_map);
 
-%include "IMP/bff/ProbeAccessibleVolumeOccupancyMap.h"
-%include "IMP/bff/ProbeAccessibleVolumeDecorator.h"
-%include "IMP/bff/ProbeNetworkRestraint.h"
+%include "IMP/bff/imp/ProbeAccessibleVolumeOccupancyMap.h"
+%include "IMP/bff/imp/ProbeAccessibleVolumeDecorator.h"
+%include "IMP/bff/imp/ProbeNetworkRestraint.h"

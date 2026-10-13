@@ -14,8 +14,8 @@
  *  Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/Docking.h>
-#include <IMP/bff/DockingPrecision.h>
+#include <IMP/bff/imp/Docking.h>
+#include <IMP/bff/structure/DockingPrecision.h>
 #include <IMP/bff/internal/CommandLineSubs.h>
 #include <IMP/bff/internal/Text.h>
 

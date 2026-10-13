@@ -53,8 +53,8 @@ IMP_SWIG_OBJECT(IMP::bff, RRTCollision, RRTCollisions);
 
 /* Linker.h needs ProbeRotamerLibrary (wrapped above, in core.i): the sampler
    returns one. Its geometry half used to be wrapped earlier, on its own. */
-%include "IMP/bff/Linker.h"
-%include "IMP/bff/RRT.h"
+%include "IMP/bff/probe/Linker.h"
+%include "IMP/bff/probe/RRT.h"
 
 %attribute_np3(IMP::bff::LinkerSamplingResult, std::vector<double>,
                coordinates, get_coordinates, n_frames, 3);

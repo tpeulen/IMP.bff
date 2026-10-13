@@ -16,7 +16,7 @@ IMP_SWIG_VALUE(IMP::bff, AVRotamerPair, AVRotamerPairs);
 %feature("kwargs") IMP::bff::av_rotamer_markdown_table;
 %feature("kwargs") IMP::bff::av_rotamer_summary_json;
 
-%include "IMP/bff/ProbeModelComparison.h"
+%include "IMP/bff/imp/ProbeModelComparison.h"
 
 %template(AVRotamerPositionList) std::vector<IMP::bff::AVRotamerPosition>;
 %template(AVRotamerPairList) std::vector<IMP::bff::AVRotamerPair>;

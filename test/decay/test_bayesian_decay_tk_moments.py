@@ -36,8 +36,8 @@ from bayesian_cxx import run_driver
 import bayesian_decay_synthetic as syn
 
 DRIVER = r"""
-#include <IMP/bff/BayesianDecaySampling.h>
-#include <IMP/bff/NutsKernel.h>
+#include <IMP/bff/bayesian/BayesianDecaySampling.h>
+#include <IMP/bff/bayesian/NutsKernel.h>
 #include <cstdio>
 #include <random>
 using namespace IMP::bff;
@@ -169,7 +169,7 @@ int main(int, char** argv) {
 """
 
 TK_COMBINE = r"""
-#include <IMP/bff/BayesianLaplace.h>
+#include <IMP/bff/bayesian/BayesianLaplace.h>
 #include <cstdio>
 #include <cstdlib>
 using namespace IMP::bff;

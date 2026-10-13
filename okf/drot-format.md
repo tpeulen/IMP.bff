@@ -18,7 +18,7 @@ brotli codec (`compress_bytes`/`decompress_bytes` under the name `"brotli"` —
 ptolib 0.4.0 embeds the codec in the vendored PTO core
 (`include/internal/ptolib.h`, a verbatim copy of
 [ptolib](https://github.com/tpeulen/ptolib), the header tttrlib carries too;
-`include/MMFDBProfile.h` is the thin `PtoWriter`/`PtoReader` face over it), so neither
+`include/structure/MMFDBProfile.h` is the thin `PtoWriter`/`PtoReader` face over it), so neither
 adds a dependency — the container is shared with tttrlib by one header and with
 chimol by specification, not by linkage
 ([the convergence record](../../chimol/okf/references/pto-chm-convergence.md)). The design ledger — what was measured and what was rejected — is
@@ -66,7 +66,7 @@ intact. See [`include/DunbrackLibrary.h`](../include/DunbrackLibrary.h).
 ## The container
 
 A **PTO** document — EBML (RFC 8794), `DocType "pto"` — written through
-[`include/MMFDBProfile.h`](../include/MMFDBProfile.h), the face over the vendored
+[`include/structure/MMFDBProfile.h`](../include/structure/MMFDBProfile.h), the face over the vendored
 [ptolib](https://github.com/tpeulen/ptolib) header (`include/internal/ptolib.h`).
 Libraries written before 2026-09-07 carry one SeekHead and every object in one
 `Attachments` element; ptolib reads those as it reads its own, read-only. One file per library, named

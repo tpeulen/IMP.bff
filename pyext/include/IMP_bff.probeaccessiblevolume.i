@@ -32,8 +32,8 @@ IMP_SWIG_VALUE(IMP::bff, ACV, ACVs);
 // The defaults every accessible-volume door shares (FPS's and Olga's), as
 // module constants -- IMP.bff.AV_DEFAULT_LINKER_WIDTH and so on -- so a
 // Python caller reads them rather than restating them.
-%include "IMP/bff/ProbeAccessibleVolumeDefaults.h"
-%include "IMP/bff/ProbeAccessibleVolume.h"
+%include "IMP/bff/probe/ProbeAccessibleVolumeDefaults.h"
+%include "IMP/bff/probe/ProbeAccessibleVolume.h"
 
 %attribute(IMP::bff::ProbeAccessibleVolume, int, ng, get_ng);
 %attribute(IMP::bff::ProbeAccessibleVolume, double, grid_step, get_grid_step);

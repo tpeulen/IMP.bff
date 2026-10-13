@@ -5,12 +5,12 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/LabelizerIO.h>
+#include <IMP/bff/fret/LabelizerIO.h>
 #include <fstream>
 #include <sstream>
 #include <limits>
 #include <IMP/bff/internal/json.h>
-#include <IMP/bff/MMFDBProfile.h>
+#include <IMP/bff/structure/MMFDBProfile.h>
 #include <IMP/bff/internal/ptolib.h>
 
 IMPBFF_BEGIN_NAMESPACE

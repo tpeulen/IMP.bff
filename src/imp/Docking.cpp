@@ -4,13 +4,13 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/Docking.h>
+#include <IMP/bff/imp/Docking.h>
 // olga_vdw_particle_radius
-#include <IMP/bff/IMPHierarchyBridge.h>
+#include <IMP/bff/imp/IMPHierarchyBridge.h>
 
-#include <IMP/bff/States.h>
-#include <IMP/bff/ProbeAccessibleVolumeMeanDistanceRestraint.h>
-#include <IMP/bff/FPS.h>
+#include <IMP/bff/spectroscopy/States.h>
+#include <IMP/bff/imp/ProbeAccessibleVolumeMeanDistanceRestraint.h>
+#include <IMP/bff/probe/FPS.h>
 #include <IMP/bff/internal/json.h>
 
 #include <IMP/algebra/geometric_alignment.h>
@@ -22,12 +22,12 @@
 #include <IMP/container/ListSingletonContainer.h>
 #include <IMP/algebra/vector_generators.h>
 #include <IMP/core/ConjugateGradients.h>
-#include <IMP/bff/MCMCSampler.h>
-#include <IMP/bff/RmfIO.h>
+#include <IMP/bff/bayesian/MCMCSampler.h>
+#include <IMP/bff/structure/RmfIO.h>
 #include <IMP/core/ExcludedVolumeRestraint.h>
 #include <IMP/core/XYZR.h>
 #include <IMP/core/rigid_bodies.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 #include <IMP/bff/internal/Text.h>
 
 #include <algorithm>

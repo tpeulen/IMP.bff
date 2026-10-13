@@ -28,9 +28,9 @@
 %ignore IMP::bff::worm_like_chain_linker(const std::vector<double>&, double, double, double, bool, double**);
 %ignore IMP::bff::ising_chain(const std::vector<double>&, int, double, double, double, double, int, double**);
 %ignore IMP::bff::saw_nu(const std::vector<double>&, double, double, double, double**);
-%include "IMP/bff/SpecialFunctions.h"
-%include "IMP/bff/Distributions.h"
-%include "IMP/bff/PolymerChain.h"
+%include "IMP/bff/util/SpecialFunctions.h"
+%include "IMP/bff/bayesian/Distributions.h"
+%include "IMP/bff/fret/PolymerChain.h"
 // The transfer-polynomial vector evaluator also publishes a 1-D view. It is
 // defined here, after the apply above. (This file was once included from
 // statesdistance.i; since PRD-138 the distances live in avmodel.i and this

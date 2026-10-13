@@ -4,7 +4,7 @@ The engine itself (`IMP.bff.dock`, `dock_minimize`, `screen`) has no test in
 this tree and did not have one when it was Python either -- it drives IMP.pmi
 over a whole assembly, and nothing here builds one. What *can* be pinned is
 what it is told and what it reports, which is what moved to C++
-(`include/IMP/bff/Docking.h`): the per-pair table, the derived numbers on it,
+(`include/IMP/bff/imp/Docking.h`): the per-pair table, the derived numbers on it,
 the fps.json distance vocabulary, and the CSV.
 
 The derived numbers matter more than they look. A residual is `model - data`

@@ -6,13 +6,13 @@
  */
 
 #include <fstream>
-#include <IMP/bff/ProbeForceFieldCIF.h>
+#include <IMP/bff/probe/ProbeForceFieldCIF.h>
 
 #include <IMP/bff/internal/Cif.h>
 
 #include <regex>
 
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 // Vendored with IMP and exported by libimp_atom; TrajectoryIO.cpp uses the
 // same reader in binary mode, this one in text mode.

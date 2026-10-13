@@ -9,7 +9,7 @@
 #ifndef IMPBFF_REBIN_H
 #define IMPBFF_REBIN_H
 
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 #include <cmath>
 #include <cstddef>
 #include <vector>

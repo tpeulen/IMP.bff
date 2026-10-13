@@ -13,8 +13,8 @@
 
 #include <IMP/bff/bff_config.h>
 
-#include <IMP/bff/FPS.h>
-#include <IMP/bff/States.h>
+#include <IMP/bff/probe/FPS.h>
+#include <IMP/bff/spectroscopy/States.h>
 #include <IMP/bff/internal/json.h>
 
 #include <map>

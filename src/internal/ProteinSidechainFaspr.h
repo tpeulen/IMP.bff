@@ -6,7 +6,7 @@
  * 20200309) into IMP.bff by tools/port_faspr.py -- behaviour-identical port
  * wrapped in namespace IMP::bff::faspr. Only mechanical changes: namespace,
  * include guards/prefixes, exit() -> throwing faspr_fail(), MSVC pragmas
- * dropped, sprintf -> snprintf. See IMP/bff/ProbeRotamerLibrary.h for the license
+ * dropped, sprintf -> snprintf. See IMP/bff/probe/ProbeRotamerLibrary.h for the license
  * preserved below and the citation. */
 /* FASPR original header follows verbatim. */
 /*******************************************************************************************************************************
@@ -48,7 +48,7 @@ void One2Three(char aa1, string &aa3);
  * 20200309) into IMP.bff by tools/port_faspr.py -- behaviour-identical port
  * wrapped in namespace IMP::bff::faspr. Only mechanical changes: namespace,
  * include guards/prefixes, exit() -> throwing faspr_fail(), MSVC pragmas
- * dropped, sprintf -> snprintf. See IMP/bff/ProbeRotamerLibrary.h for the license
+ * dropped, sprintf -> snprintf. See IMP/bff/probe/ProbeRotamerLibrary.h for the license
  * preserved below and the citation. */
 /* FASPR original header follows verbatim. */
 /*******************************************************************************************************************************
@@ -138,7 +138,7 @@ bool VectorL2Norm(FV1 &data);
  * 20200309) into IMP.bff by tools/port_faspr.py -- behaviour-identical port
  * wrapped in namespace IMP::bff::faspr. Only mechanical changes: namespace,
  * include guards/prefixes, exit() -> throwing faspr_fail(), MSVC pragmas
- * dropped, sprintf -> snprintf. See IMP/bff/ProbeRotamerLibrary.h for the license
+ * dropped, sprintf -> snprintf. See IMP/bff/probe/ProbeRotamerLibrary.h for the license
  * preserved below and the citation. */
 /* FASPR original header follows verbatim. */
 /*******************************************************************************************************************************
@@ -208,7 +208,7 @@ public:
  * 20200309) into IMP.bff by tools/port_faspr.py -- behaviour-identical port
  * wrapped in namespace IMP::bff::faspr. Only mechanical changes: namespace,
  * include guards/prefixes, exit() -> throwing faspr_fail(), MSVC pragmas
- * dropped, sprintf -> snprintf. See IMP/bff/ProbeRotamerLibrary.h for the license
+ * dropped, sprintf -> snprintf. See IMP/bff/probe/ProbeRotamerLibrary.h for the license
  * preserved below and the citation. */
 /* FASPR original header follows verbatim. */
 /*******************************************************************************************************************************
@@ -284,7 +284,7 @@ public:
  * 20200309) into IMP.bff by tools/port_faspr.py -- behaviour-identical port
  * wrapped in namespace IMP::bff::faspr. Only mechanical changes: namespace,
  * include guards/prefixes, exit() -> throwing faspr_fail(), MSVC pragmas
- * dropped, sprintf -> snprintf. See IMP/bff/ProbeRotamerLibrary.h for the license
+ * dropped, sprintf -> snprintf. See IMP/bff/probe/ProbeRotamerLibrary.h for the license
  * preserved below and the citation. */
 /* FASPR original header follows verbatim. */
 /*******************************************************************************************************************************
@@ -408,7 +408,7 @@ public:
  * 20200309) into IMP.bff by tools/port_faspr.py -- behaviour-identical port
  * wrapped in namespace IMP::bff::faspr. Only mechanical changes: namespace,
  * include guards/prefixes, exit() -> throwing faspr_fail(), MSVC pragmas
- * dropped, sprintf -> snprintf. See IMP/bff/ProbeRotamerLibrary.h for the license
+ * dropped, sprintf -> snprintf. See IMP/bff/probe/ProbeRotamerLibrary.h for the license
  * preserved below and the citation. */
 /* FASPR original header follows verbatim. */
 /*******************************************************************************************************************************
@@ -460,7 +460,7 @@ public:
  * 20200309) into IMP.bff by tools/port_faspr.py -- behaviour-identical port
  * wrapped in namespace IMP::bff::faspr. Only mechanical changes: namespace,
  * include guards/prefixes, exit() -> throwing faspr_fail(), MSVC pragmas
- * dropped, sprintf -> snprintf. See IMP/bff/ProbeRotamerLibrary.h for the license
+ * dropped, sprintf -> snprintf. See IMP/bff/probe/ProbeRotamerLibrary.h for the license
  * preserved below and the citation. */
 /* FASPR original header follows verbatim. */
 /*******************************************************************************************************************************

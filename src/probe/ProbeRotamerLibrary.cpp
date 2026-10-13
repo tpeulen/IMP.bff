@@ -5,12 +5,12 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/ProbeRotamerLibrary.h>
+#include <IMP/bff/probe/ProbeRotamerLibrary.h>
 #include <IMP/bff/internal/OutputView.h>
-#include <IMP/bff/MMFDBProfile.h>
+#include <IMP/bff/structure/MMFDBProfile.h>
 #include <IMP/bff/internal/ptolib.h>
-#include <IMP/bff/ZMatrix.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/structure/ZMatrix.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 #include <algorithm>
 #include <cctype>
 #include <cmath>

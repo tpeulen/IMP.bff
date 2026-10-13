@@ -11,15 +11,15 @@
  *  Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/ProbeModelComparison.h>
+#include <IMP/bff/imp/ProbeModelComparison.h>
 
-#include <IMP/bff/FRET.h>
-#include <IMP/bff/HierarchyFrame.h>
-#include <IMP/bff/ProbeAccessibleVolume.h>
-#include <IMP/bff/ProbeAccessibleVolumeDecorator.h>
-#include <IMP/bff/ProbeDataPaths.h>
-#include <IMP/bff/ProbeRotamer.h>
-#include <IMP/bff/States.h>
+#include <IMP/bff/fret/FRET.h>
+#include <IMP/bff/structure/HierarchyFrame.h>
+#include <IMP/bff/probe/ProbeAccessibleVolume.h>
+#include <IMP/bff/imp/ProbeAccessibleVolumeDecorator.h>
+#include <IMP/bff/probe/ProbeDataPaths.h>
+#include <IMP/bff/probe/ProbeRotamer.h>
+#include <IMP/bff/spectroscopy/States.h>
 #include <IMP/bff/internal/NumpyCompat.h>
 #include <IMP/bff/internal/json.h>
 

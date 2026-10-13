@@ -7,9 +7,9 @@
  *
  */
 
-#include <IMP/bff/VdwRadii.h>
+#include <IMP/bff/structure/VdwRadii.h>
 
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 #include <IMP/bff/internal/Text.h>
 
 #include <algorithm>

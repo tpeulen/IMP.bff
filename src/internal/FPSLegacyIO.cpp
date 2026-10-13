@@ -9,7 +9,7 @@
 #include <IMP/bff/internal/FPSLegacyIO.h>
 #include <fstream>
 #include <set>
-#include <IMP/bff/FPS.h>
+#include <IMP/bff/probe/FPS.h>
 
 IMPBFF_BEGIN_NAMESPACE
 

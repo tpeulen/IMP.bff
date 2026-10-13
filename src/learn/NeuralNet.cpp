@@ -9,9 +9,9 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/NeuralNet.h>
+#include <IMP/bff/learn/NeuralNet.h>
 
-#include <IMP/bff/ComputeBackend.h>
+#include <IMP/bff/util/ComputeBackend.h>
 #include <IMP/bff/internal/OutputView.h>
 
 #include <IMP/bff/internal/MlpCore.h>

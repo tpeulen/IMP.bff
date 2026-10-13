@@ -4,7 +4,7 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/OccupancyGrid.h>
+#include <IMP/bff/probe/OccupancyGrid.h>
 
 #include <algorithm>
 #include <cmath>

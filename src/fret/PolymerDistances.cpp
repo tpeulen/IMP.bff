@@ -1,12 +1,12 @@
 /**\file PolymerDistances.cpp
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/PolymerDistances.h>
+#include <IMP/bff/fret/PolymerDistances.h>
 #include <IMP/bff/internal/DistanceAxis.h>
 #include <IMP/bff/internal/NodeConfig.h>
 #include <IMP/bff/internal/DistanceKernels.h>
 #include "../internal/SpectrumNodeHelpers.h"
-#include <IMP/bff/PolymerChain.h>
+#include <IMP/bff/fret/PolymerChain.h>
 #include <algorithm>
 #include <cctype>
 #include <cmath>

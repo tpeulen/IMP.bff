@@ -28,4 +28,4 @@
     (double** out_decay, int* n_out_decay)
 };
 
-%include "IMP/bff/ProbePairSelection.h"
+%include "IMP/bff/probe/ProbePairSelection.h"

@@ -4,7 +4,7 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/PhotophysicsTransferKinetics.h>
+#include <IMP/bff/spectroscopy/PhotophysicsTransferKinetics.h>
 #include <IMP/bff/internal/GradVec.h>
 
 #include <algorithm>

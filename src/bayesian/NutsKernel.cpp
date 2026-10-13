@@ -5,7 +5,7 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/NutsKernel.h>
+#include <IMP/bff/bayesian/NutsKernel.h>
 
 #include <IMP/bff/internal/json.h>
 #include <IMP/bff/internal/ordered_map.h>

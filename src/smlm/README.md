@@ -4,6 +4,6 @@ Single-molecule localisation: particles, CSV I/O, Gaussian overlap, the LocMoFit
 
 - **Inputs:** localisations with per-axis precision.
 - **Relations:** See [okf/smlm.md](../../okf/smlm.md).
-- **Layout:** sources in `src/smlm/`; the public headers stay flat in `include/` (IMP links only `include/*.h`) and are assigned to this theme in `src/smlm/Headers.cmake`.
+- **Layout:** sources in `src/smlm/`, public headers in `include/smlm/` (reached as `<IMP/bff/smlm/X.h>`; `<IMP/bff/smlm.h>` includes them all). The directory is the assignment; `cmake/ThemeHeaders.cmake` links the headers into the build tree.
 
 Public headers: `SMLM.h`, `SMLMGaussianOverlap.h`, `SMLMIO.h`, `SMLMLikelihood.h`, `SMLMParticleRegistration.h`, `SMLMParticles.h`.

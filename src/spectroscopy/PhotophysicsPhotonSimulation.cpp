@@ -4,7 +4,7 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/PhotophysicsPhotonSimulation.h>
+#include <IMP/bff/spectroscopy/PhotophysicsPhotonSimulation.h>
 #include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/internal/PhotonRace.h>
 

@@ -14,17 +14,17 @@
  *  Copyright 2007-2026 IMP Inventors. All rights reserved.
  *
  */
-#include <IMP/bff/MCMCSampler.h>
+#include <IMP/bff/bayesian/MCMCSampler.h>
 
-#include <IMP/bff/InferenceFactorGraph.h>
-#include <IMP/bff/NutsKernel.h>
-#include <IMP/bff/Registry.h>
-#include <IMP/bff/SamplerKernels.h>
-#include <IMP/bff/Sampling.h>
+#include <IMP/bff/fit/InferenceFactorGraph.h>
+#include <IMP/bff/bayesian/NutsKernel.h>
+#include <IMP/bff/util/Registry.h>
+#include <IMP/bff/bayesian/SamplerKernels.h>
+#include <IMP/bff/bayesian/Sampling.h>
 #include <IMP/bff/internal/json.h>
 #include <IMP/bff/internal/ordered_map.h>
-#include <IMP/bff/GraphNode.h>
-#include <IMP/bff/GraphPort.h>
+#include <IMP/bff/graph/GraphNode.h>
+#include <IMP/bff/graph/GraphPort.h>
 
 #include <algorithm>
 #include <cmath>

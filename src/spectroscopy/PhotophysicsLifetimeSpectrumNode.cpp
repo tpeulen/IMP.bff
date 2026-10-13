@@ -1,7 +1,7 @@
 /**\file PhotophysicsLifetimeSpectrumNode.cpp
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/PhotophysicsLifetimeSpectrumNode.h>
+#include <IMP/bff/spectroscopy/PhotophysicsLifetimeSpectrumNode.h>
 #include <IMP/bff/internal/NodeConfig.h>
 #include "../internal/SpectrumNodeHelpers.h"
 #include <algorithm>

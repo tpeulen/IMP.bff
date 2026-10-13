@@ -1,67 +1,67 @@
 {
   "paths": {
     "include/Fcs.h": [
-      "include/FCS.h"
+      "include/spectroscopy/FCS.h"
     ],
     "src/Fcs.cpp": [
       "src/spectroscopy/FCS.cpp"
     ],
     "include/TcspcDecay.h": [
-      "include/TCSPCDecay.h"
+      "include/spectroscopy/TCSPCDecay.h"
     ],
     "src/TcspcDecay.cpp": [
       "src/spectroscopy/TCSPCDecay.cpp"
     ],
     "include/ExchangeFRET.h": [
-      "include/FRETExchange.h"
+      "include/fret/FRETExchange.h"
     ],
     "src/ExchangeFRET.cpp": [
       "src/fret/FRETExchange.cpp"
     ],
     "include/OrientationFactor.h": [
-      "include/FRETOrientationFactor.h"
+      "include/fret/FRETOrientationFactor.h"
     ],
     "src/OrientationFactor.cpp": [
       "src/fret/FRETOrientationFactor.cpp"
     ],
     "include/InteractionTerms.h": [
-      "include/PhotophysicsInteractionTerms.h"
+      "include/spectroscopy/PhotophysicsInteractionTerms.h"
     ],
     "src/InteractionTerms.cpp": [
       "src/spectroscopy/PhotophysicsInteractionTerms.cpp"
     ],
     "include/PhotonSimulation.h": [
-      "include/PhotophysicsPhotonSimulation.h"
+      "include/spectroscopy/PhotophysicsPhotonSimulation.h"
     ],
     "src/PhotonSimulation.cpp": [
       "src/spectroscopy/PhotophysicsPhotonSimulation.cpp"
     ],
     "include/CrosstalkMatrix.h": [
-      "include/PhotophysicsCrosstalkMatrix.h"
+      "include/spectroscopy/PhotophysicsCrosstalkMatrix.h"
     ],
     "src/CrosstalkMatrix.cpp": [
       "src/spectroscopy/PhotophysicsCrosstalkMatrix.cpp"
     ],
     "include/Quenching.h": [
-      "include/PhotophysicsQuenching.h"
+      "include/spectroscopy/PhotophysicsQuenching.h"
     ],
     "src/Quenching.cpp": [
       "src/spectroscopy/PhotophysicsQuenching.cpp"
     ],
     "include/QuenchingModel.h": [
-      "include/PhotophysicsQuenchingModel.h"
+      "include/spectroscopy/PhotophysicsQuenchingModel.h"
     ],
     "src/QuenchingModel.cpp": [
       "src/spectroscopy/PhotophysicsQuenchingModel.cpp"
     ],
     "include/LifetimeSpectrum.h": [
-      "include/PhotophysicsLifetimeSpectrum.h"
+      "include/spectroscopy/PhotophysicsLifetimeSpectrum.h"
     ],
     "src/LifetimeSpectrum.cpp": [
       "src/spectroscopy/PhotophysicsLifetimeSpectrum.cpp"
     ],
     "include/Polarisation.h": [
-      "include/PhotophysicsPolarisation.h"
+      "include/spectroscopy/PhotophysicsPolarisation.h"
     ],
     "pyext/include/IMP_bff.crosstalk.i": [
       "pyext/include/IMP_bff.photophysicscrosstalkmatrix.i"
@@ -79,49 +79,49 @@
       "pyext/include/IMP_bff.photophysicsquenchingmodel.i"
     ],
     "include/ModelPrecision.h": [
-      "include/DockingPrecision.h"
+      "include/structure/DockingPrecision.h"
     ],
     "src/ModelPrecision.cpp": [
       "src/structure/DockingPrecision.cpp"
     ],
     "include/AlgebraBridge.h": [
-      "include/IMPAlgebraBridge.h"
+      "include/imp/IMPAlgebraBridge.h"
     ],
     "src/imp/AlgebraBridge.cpp": [
       "src/imp/IMPAlgebraBridge.cpp"
     ],
     "include/EmBridge.h": [
-      "include/IMPEMBridge.h"
+      "include/imp/IMPEMBridge.h"
     ],
     "src/imp/EmBridge.cpp": [
       "src/imp/IMPEMBridge.cpp"
     ],
     "include/HierarchyBridge.h": [
-      "include/IMPHierarchyBridge.h"
+      "include/imp/IMPHierarchyBridge.h"
     ],
     "src/imp/HierarchyBridge.cpp": [
       "src/imp/IMPHierarchyBridge.cpp"
     ],
     "include/Bin.h": [
-      "include/CommandLine.h"
+      "include/util/CommandLine.h"
     ],
     "src/Bin.cpp": [
       "src/util/CommandLine.cpp"
     ],
     "include/Compute.h": [
-      "include/ComputeBackend.h"
+      "include/util/ComputeBackend.h"
     ],
     "src/Compute.cpp": [
       "src/util/ComputeBackend.cpp"
     ],
     "include/Parallel.h": [
-      "include/OpenMP.h"
+      "include/util/OpenMP.h"
     ],
     "src/Parallel.cpp": [
       "src/util/OpenMP.cpp"
     ],
     "include/Base.h": [
-      "include/IMPCompatibility.h"
+      "include/util/IMPCompatibility.h"
     ],
     "include/internal/FPSReaderWriter.h": [
       "include/internal/FPSLegacyIO.h"
@@ -154,23 +154,23 @@
       "src/internal/ProteinSidechainFaspr.h"
     ],
     "include/Pto.h": [
-      "include/MMFDBProfile.h"
+      "include/structure/MMFDBProfile.h"
     ],
     "src/Pto.cpp": [
       "src/structure/MMFDBProfile.cpp"
     ],
     "include/RotamerLibrary.h": [
-      "include/ProbeRotamerLibrary.h",
-      "include/ProteinSidechainRotamerLibrary.h"
+      "include/probe/ProbeRotamerLibrary.h",
+      "include/structure/ProteinSidechainRotamerLibrary.h"
     ],
     "src/RotamerLibrary.cpp": [
       "src/probe/ProbeRotamerLibrary.cpp",
       "src/structure/ProteinSidechainRotamerLibrary.cpp"
     ],
     "include/Rotamer.h": [
-      "include/ProbeRotamer.h",
-      "include/FRETRotamer.h",
-      "include/FPSRotamer.h"
+      "include/probe/ProbeRotamer.h",
+      "include/fret/FRETRotamer.h",
+      "include/probe/FPSRotamer.h"
     ],
     "src/Rotamer.cpp": [
       "src/probe/ProbeRotamer.cpp",
@@ -178,11 +178,11 @@
       "src/probe/FPSRotamer.cpp"
     ],
     "include/SpectrumNode.h": [
-      "include/PhotophysicsLifetimeSpectrumNode.h",
-      "include/PhotophysicsAnisotropySpectrumNode.h",
-      "include/FRETSpectrumNode.h",
-      "include/GaussianDistances.h",
-      "include/PolymerDistances.h"
+      "include/spectroscopy/PhotophysicsLifetimeSpectrumNode.h",
+      "include/spectroscopy/PhotophysicsAnisotropySpectrumNode.h",
+      "include/fret/FRETSpectrumNode.h",
+      "include/fret/GaussianDistances.h",
+      "include/fret/PolymerDistances.h"
     ],
     "src/SpectrumNode.cpp": [
       "src/spectroscopy/PhotophysicsLifetimeSpectrumNode.cpp",
@@ -197,187 +197,187 @@
       "pyext/include/IMP_bff.fpsrotamer.i"
     ],
     "include/Node.h": [
-      "include/GraphNode.h"
+      "include/graph/GraphNode.h"
     ],
     "src/Node.cpp": [
       "src/graph/GraphNode.cpp"
     ],
     "include/Port.h": [
-      "include/GraphPort.h"
+      "include/graph/GraphPort.h"
     ],
     "src/Port.cpp": [
       "src/graph/GraphPort.cpp"
     ],
     "include/Session.h": [
-      "include/GraphSession.h"
+      "include/graph/GraphSession.h"
     ],
     "src/Session.cpp": [
       "src/graph/GraphSession.cpp"
     ],
     "include/EvaluationGraph.h": [
-      "include/GraphEvaluation.h"
+      "include/graph/GraphEvaluation.h"
     ],
     "src/EvaluationGraph.cpp": [
       "src/graph/GraphEvaluation.cpp"
     ],
     "include/Expression.h": [
-      "include/GraphExpression.h"
+      "include/graph/GraphExpression.h"
     ],
     "src/Expression.cpp": [
       "src/graph/GraphExpression.cpp"
     ],
     "include/FactorGraph.h": [
-      "include/InferenceFactorGraph.h"
+      "include/fit/InferenceFactorGraph.h"
     ],
     "src/FactorGraph.cpp": [
       "src/fit/InferenceFactorGraph.cpp"
     ],
     "include/Sampler.h": [
-      "include/MCMCSampler.h"
+      "include/bayesian/MCMCSampler.h"
     ],
     "src/Sampler.cpp": [
       "src/bayesian/MCMCSampler.cpp"
     ],
     "include/PSpline.h": [
-      "include/BayesianPSpline.h"
+      "include/bayesian/BayesianPSpline.h"
     ],
     "include/TransformedGaussianPrior.h": [
-      "include/BayesianTransformedGaussianPrior.h"
+      "include/bayesian/BayesianTransformedGaussianPrior.h"
     ],
     "include/Transforms.h": [
-      "include/BayesianTransforms.h"
+      "include/bayesian/BayesianTransforms.h"
     ],
     "include/FisherScoring.h": [
-      "include/BayesianFisherScoring.h"
+      "include/bayesian/BayesianFisherScoring.h"
     ],
     "include/Laplace.h": [
-      "include/BayesianLaplace.h"
+      "include/bayesian/BayesianLaplace.h"
     ],
     "include/DeltaMethod.h": [
-      "include/BayesianDeltaMethod.h"
+      "include/bayesian/BayesianDeltaMethod.h"
     ],
     "include/LineSearch.h": [
-      "include/Optimization.h"
+      "include/fit/Optimization.h"
     ],
     "include/Dataset.h": [
-      "include/FitDataset.h"
+      "include/fit/FitDataset.h"
     ],
     "src/Dataset.cpp": [
       "src/fit/FitDataset.cpp"
     ],
     "include/ChiSquared.h": [
-      "include/FitChiSquared.h"
+      "include/fit/FitChiSquared.h"
     ],
     "src/ChiSquared.cpp": [
       "src/fit/FitChiSquared.cpp"
     ],
     "include/JointChiSquared.h": [
-      "include/FitJointChiSquared.h"
+      "include/fit/FitJointChiSquared.h"
     ],
     "src/JointChiSquared.cpp": [
       "src/fit/FitJointChiSquared.cpp"
     ],
     "include/Minimizer.h": [
-      "include/FitMinimizer.h"
+      "include/fit/FitMinimizer.h"
     ],
     "src/Minimizer.cpp": [
       "src/fit/FitMinimizer.cpp"
     ],
     "include/GreedyOlga.h": [
-      "include/ProbePairSelection.h"
+      "include/probe/ProbePairSelection.h"
     ],
     "src/GreedyOlga.cpp": [
       "src/probe/ProbePairSelection.cpp"
     ],
     "include/Simulation.h": [
-      "include/ProbeSimulation.h"
+      "include/probe/ProbeSimulation.h"
     ],
     "src/Simulation.cpp": [
       "src/probe/ProbeSimulation.cpp"
     ],
     "include/DyeDynamics.h": [
-      "include/MolecularProbeSimulation.h"
+      "include/imp/MolecularProbeSimulation.h"
     ],
     "src/imp/DyeDynamics.cpp": [
       "src/imp/MolecularProbeSimulation.cpp"
     ],
     "include/ComponentTemplate.h": [
-      "include/ProbeComponentTemplate.h"
+      "include/probe/ProbeComponentTemplate.h"
     ],
     "src/ComponentTemplate.cpp": [
       "src/probe/ProbeComponentTemplate.cpp"
     ],
     "include/ForceFieldCIF.h": [
-      "include/ProbeForceFieldCIF.h"
+      "include/probe/ProbeForceFieldCIF.h"
     ],
     "src/ForceFieldCIF.cpp": [
       "src/probe/ProbeForceFieldCIF.cpp"
     ],
     "include/TopologyBuild.h": [
-      "include/ProbeTopology.h"
+      "include/probe/ProbeTopology.h"
     ],
     "src/TopologyBuild.cpp": [
       "src/probe/ProbeTopology.cpp"
     ],
     "include/Scoring.h": [
-      "include/RotamerScoring.h"
+      "include/structure/RotamerScoring.h"
     ],
     "src/Scoring.cpp": [
       "src/structure/RotamerScoring.cpp"
     ],
     "include/Potentials.h": [
-      "include/ProbePotentialRestraints.h"
+      "include/imp/ProbePotentialRestraints.h"
     ],
     "src/imp/Potentials.cpp": [
       "src/imp/ProbePotentialRestraints.cpp"
     ],
     "include/PotentialTables.h": [
-      "include/ProbePotentialTables.h"
+      "include/probe/ProbePotentialTables.h"
     ],
     "src/PotentialTables.cpp": [
       "src/probe/ProbePotentialTables.cpp"
     ],
     "include/AV.h": [
-      "include/ProbeAccessibleVolumeDecorator.h"
+      "include/imp/ProbeAccessibleVolumeDecorator.h"
     ],
     "src/imp/AV.cpp": [
       "src/imp/ProbeAccessibleVolumeDecorator.cpp"
     ],
     "include/AVModel.h": [
-      "include/ProbeAccessibleVolume.h"
+      "include/probe/ProbeAccessibleVolume.h"
     ],
     "src/AVModel.cpp": [
       "src/probe/ProbeAccessibleVolume.cpp"
     ],
     "include/AVBuilder.h": [
-      "include/ProbeAccessibleVolumeBuilder.h"
+      "include/probe/ProbeAccessibleVolumeBuilder.h"
     ],
     "src/AVBuilder.cpp": [
       "src/probe/ProbeAccessibleVolumeBuilder.cpp"
     ],
     "include/AVMeanDistanceRestraint.h": [
-      "include/ProbeAccessibleVolumeMeanDistanceRestraint.h"
+      "include/imp/ProbeAccessibleVolumeMeanDistanceRestraint.h"
     ],
     "src/imp/AVMeanDistanceRestraint.cpp": [
       "src/imp/ProbeAccessibleVolumeMeanDistanceRestraint.cpp"
     ],
     "include/AVOccupancyMap.h": [
-      "include/ProbeAccessibleVolumeOccupancyMap.h"
+      "include/imp/ProbeAccessibleVolumeOccupancyMap.h"
     ],
     "src/imp/AVOccupancyMap.cpp": [
       "src/imp/ProbeAccessibleVolumeOccupancyMap.cpp"
     ],
     "include/DataPaths.h": [
-      "include/ProbeDataPaths.h"
+      "include/probe/ProbeDataPaths.h"
     ],
     "src/DataPaths.cpp": [
       "src/probe/ProbeDataPaths.cpp"
     ],
     "include/Labelizer.h": [
-      "include/LabelizerFeatures.h",
-      "include/LabelizerScore.h",
-      "include/LabelizerFRET.h",
-      "include/LabelizerIO.h"
+      "include/fret/LabelizerFeatures.h",
+      "include/fret/LabelizerScore.h",
+      "include/fret/LabelizerFRET.h",
+      "include/fret/LabelizerIO.h"
     ],
     "src/Labelizer.cpp": [
       "src/fret/LabelizerFeatures.cpp",

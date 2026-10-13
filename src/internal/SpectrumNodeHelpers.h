@@ -1,8 +1,8 @@
 #ifndef IMPBFF_INTERNAL_SPECTRUMNODEHELPERS_H
 #define IMPBFF_INTERNAL_SPECTRUMNODEHELPERS_H
 
-#include <IMP/bff/GraphNode.h>
-#include <IMP/bff/GraphPort.h>
+#include <IMP/bff/graph/GraphNode.h>
+#include <IMP/bff/graph/GraphPort.h>
 #include <sstream>
 #include <stdexcept>
 

@@ -2,7 +2,7 @@
  * \file FRET.cpp
  * \brief FRET between two labels: the pair values and the rate trace.
  *
- * Sections in the order of IMP/bff/FRET.h; each is marked with the file it
+ * Sections in the order of IMP/bff/fret/FRET.h; each is marked with the file it
  * came from.
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
@@ -15,7 +15,7 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/FRET.h>
+#include <IMP/bff/fret/FRET.h>
 #include <IMP/bff/internal/OutputView.h>
 
 #include <cmath>
@@ -288,9 +288,9 @@ IMPBFF_END_NAMESPACE
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/FRETOrientationFactor.h>
+#include <IMP/bff/fret/FRETOrientationFactor.h>
 
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 
 IMPBFF_BEGIN_NAMESPACE

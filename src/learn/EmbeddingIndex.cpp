@@ -5,7 +5,7 @@
  *
  *  Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/EmbeddingIndex.h>
+#include <IMP/bff/learn/EmbeddingIndex.h>
 
 #include <ptolib/ptolib.h>
 #include <IMP/bff/internal/json.h>

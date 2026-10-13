@@ -67,7 +67,7 @@ IMP_SWIG_OBJECT(IMP::bff, FRETTerm, FRETTerms);
 %feature("kwargs") IMP::bff::PETTerm::PETTerm;
 %feature("kwargs") IMP::bff::FRETTerm::FRETTerm;
 
-%include "IMP/bff/PhotophysicsInteractionTerms.h"
+%include "IMP/bff/spectroscopy/PhotophysicsInteractionTerms.h"
 
 // `get_kQ`/`get_rC` publish managed numpy views (ARGOUTVIEWM_ARRAY1); a
 // property over them hands the array straight back, no Python in between.

@@ -3,9 +3,9 @@
  * \brief Probe sampling kernels and reference-library helpers.
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/ProbeSampling.h>
-#include <IMP/bff/BrownianWalk.h>
-#include <IMP/bff/TrajectoryIO.h>
+#include <IMP/bff/probe/ProbeSampling.h>
+#include <IMP/bff/probe/BrownianWalk.h>
+#include <IMP/bff/structure/TrajectoryIO.h>
 #include <IMP/bff/internal/PdbFrames.h>
 #include <IMP/bff/internal/GridShape.h>
 #include <IMP/bff/internal/OutputView.h>

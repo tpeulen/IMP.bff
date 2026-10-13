@@ -5,7 +5,7 @@
  * \authors Thomas-Otavio Peulen
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/ComputeBackend.h>
+#include <IMP/bff/util/ComputeBackend.h>
 
 #include <sstream>
 

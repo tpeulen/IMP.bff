@@ -2,7 +2,7 @@
 IMP_SWIG_VALUE(IMP::bff, ProbeDiffusionTrajectory, ProbeDiffusionTrajectories);
 %apply(double** ARGOUTVIEWM_ARRAY1, int* DIM1) {(double** out_view, int* n_out_view)};
 
-%include "IMP/bff/ProbeSampling.h"
+%include "IMP/bff/probe/ProbeSampling.h"
 
 // The trajectory's scalar counters and ratio, as read-only attributes (the
 // %extend properties they replace are gone; the `get_*()` methods are owned by

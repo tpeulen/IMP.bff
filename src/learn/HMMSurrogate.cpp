@@ -18,7 +18,7 @@
 #include <IMP/bff/internal/json.h>
 #include <IMP/bff/internal/NetworkDocument.h>
 
-#include <IMP/bff/HMMSurrogate.h>
+#include <IMP/bff/learn/HMMSurrogate.h>
 
 #include <tttrlib/HMM.h>
 #include <tttrlib/Mat.h>

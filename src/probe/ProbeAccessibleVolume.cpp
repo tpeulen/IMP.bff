@@ -8,11 +8,11 @@
 
 #include <IMP/bff/internal/OutputView.h>
 #include <random>
-#include <IMP/bff/ProbeAccessibleVolume.h>
-#include <IMP/bff/ProbeAccessibleVolumeBuilder.h>
-#include <IMP/bff/StructureIO.h>
+#include <IMP/bff/probe/ProbeAccessibleVolume.h>
+#include <IMP/bff/probe/ProbeAccessibleVolumeBuilder.h>
+#include <IMP/bff/structure/StructureIO.h>
 #include <IMP/bff/internal/GridShape.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <cstdlib>
 #include <cstring>

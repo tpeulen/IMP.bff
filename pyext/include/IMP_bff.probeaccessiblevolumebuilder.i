@@ -18,5 +18,5 @@ IMP_SWIG_VALUE(IMP::bff, StripReport, StripReports);
 %template(PDBAtomRecordVector) std::vector<IMP::bff::PDBAtomRecord>;
 %template(MapIntDouble) std::map<int, double>;
 
-%include "IMP/bff/StripMask.h"
-%include "IMP/bff/ProbeAccessibleVolumeBuilder.h"
+%include "IMP/bff/fit/StripMask.h"
+%include "IMP/bff/probe/ProbeAccessibleVolumeBuilder.h"

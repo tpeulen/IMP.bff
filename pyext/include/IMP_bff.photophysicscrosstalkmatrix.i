@@ -12,4 +12,4 @@
  * managed ARGOUTVIEWM_ARRAY1 pair in types.i already claims: the caller gets
  * an ndarray that owns its buffer.
  */
-%include "IMP/bff/PhotophysicsCrosstalkMatrix.h"
+%include "IMP/bff/spectroscopy/PhotophysicsCrosstalkMatrix.h"

@@ -5,7 +5,7 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/StructureReader.h>
+#include <IMP/bff/imp/StructureReader.h>
 
 #include <IMP/Model.h>
 #include <IMP/atom/Atom.h>

@@ -5,13 +5,13 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/FPSProject.h>
+#include <IMP/bff/imp/FPSProject.h>
 
-#include <IMP/bff/FPS.h>
+#include <IMP/bff/probe/FPS.h>
 #include <IMP/bff/internal/Text.h>
 #include <IMP/bff/internal/json.h>
 
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <cstdlib>
 #include <fstream>

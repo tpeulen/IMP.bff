@@ -16,4 +16,4 @@
     (double** out_view, int* n_out_view)
 };
 IMP_SWIG_OBJECT(IMP::bff, SparseLU, SparseLUs);
-%include "IMP/bff/SparseLinearAlgebra.h"
+%include "IMP/bff/util/SparseLinearAlgebra.h"

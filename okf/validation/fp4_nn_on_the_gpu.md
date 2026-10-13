@@ -15,7 +15,7 @@ transposed and uploaded every weight on every call.
 
 ## What changed
 
-- **ABI 3** (`include/ComputeBackend.h`): `mlp_upload` / `mlp_run` /
+- **ABI 3** (`include/util/ComputeBackend.h`): `mlp_upload` / `mlp_run` /
   `mlp_release`, a network kept on the device. Per layer f32 (doubles in) or
   FP4: `Fp4Tensor`'s codes as they are, plus the decoded scale of every
   16-element sub-block as f32, so fp4's row scale, mxfp4's E8M0 and nvfp4's

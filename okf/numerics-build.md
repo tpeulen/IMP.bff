@@ -9,7 +9,7 @@ timestamp: '2026-10-06T00:00:00Z'
 
 # Where to pick this up
 
-The three numerical drivers now include `IMP/bff/IMPCompatibility.h`, the
+The three numerical drivers now include `IMP/bff/util/IMPCompatibility.h`, the
 existing owner of portable exception helpers. Direct `IMP/exception.h`
 includes had escaped the broader standalone test because its unrelated RMF
 headers were absent and caused a skip. The dedicated

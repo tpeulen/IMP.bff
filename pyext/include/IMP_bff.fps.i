@@ -26,7 +26,7 @@ IMP_SWIG_VALUE_SERIALIZE_IMPL(IMP::bff, AVPairDistanceMeasurement)
 
 %attribute(IMP::bff::FPSValidation, bool, is_valid, get_is_valid);
 
-%include "IMP/bff/FPS.h"
+%include "IMP/bff/probe/FPS.h"
 
 %template(FPSFieldList) std::vector<IMP::bff::FPSField>;
 %template(MapStringAVPairDistanceMeasurement) std::map<std::string, IMP::bff::AVPairDistanceMeasurement>;

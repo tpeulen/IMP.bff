@@ -14,7 +14,7 @@ IMP_SWIG_VALUE(IMP::bff, ComponentTemplate, ComponentTemplates);
 %feature("flatnested") IMP::bff::ComponentTemplate::Feature;
 %feature("flatnested") IMP::bff::ComponentTemplate::Improper;
 
-%include "IMP/bff/ProbeComponentTemplate.h"
+%include "IMP/bff/probe/ProbeComponentTemplate.h"
 
 %template(FeatureAtomList) std::vector<IMP::bff::ComponentTemplate::FeatureAtom>;
 %template(ImproperList) std::vector<IMP::bff::ComponentTemplate::Improper>;

@@ -10,8 +10,8 @@
  *
  */
 
-#include <IMP/bff/InferenceCanonicalForm.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/fit/InferenceCanonicalForm.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <Eigen/Dense>
 

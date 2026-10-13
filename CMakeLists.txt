@@ -1,5 +1,6 @@
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/SwigThreads.cmake")
 imp_bff_register_swig_threads()
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ThemeHeaders.cmake")
 
 # Are we running cmake from this directory (out of tree build) ?
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
@@ -90,9 +91,13 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   # extension point for exactly this (imp/tools/build/cmake_templates/ModuleSwig.cmake).
   SET(IMP_SWIG_PATH "${CMAKE_SOURCE_DIR}/pyext/include")
 
+  # Before the module build: its SWIG and library targets read the headers.
+  imp_bff_link_theme_headers("${CMAKE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/include/IMP/bff")
   imp_build_module(${CMAKE_SOURCE_DIR} bff)
 
 else()
+  # Inside IMP's own tree: IMP's setup.py has linked the flat headers already.
+  imp_bff_link_theme_headers("${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/include/IMP/bff")
   INCLUDE(ModuleBuild.cmake)
 endif()
 

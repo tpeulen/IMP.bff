@@ -5,8 +5,8 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/ProbeAccessibleVolumeMeanDistanceRestraint.h>
-#include <IMP/bff/States.h>
+#include <IMP/bff/imp/ProbeAccessibleVolumeMeanDistanceRestraint.h>
+#include <IMP/bff/spectroscopy/States.h>
 #include <cmath>
 #include <limits>
 #include <fstream>

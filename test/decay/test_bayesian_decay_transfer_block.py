@@ -29,7 +29,7 @@ from bayesian_cxx import run_driver
 import bayesian_decay_synthetic as syn
 
 DRIVER = r"""
-#include <IMP/bff/BayesianDecayModel.h>
+#include <IMP/bff/bayesian/BayesianDecayModel.h>
 #include <cstdio>
 using namespace IMP::bff;
 

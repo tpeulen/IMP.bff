@@ -6,19 +6,19 @@
  * Copyright 2007-2022 IMP Inventors. All rights reserved.
  *
  */
-#include <IMP/bff/ProbeAccessibleVolumeDecorator.h>
-#include <IMP/bff/LabelizerFRET.h>
-#include <IMP/bff/IMPHierarchyBridge.h>
-#include <IMP/bff/ProbeAccessibleVolumeBuilder.h>
-#include <IMP/bff/StripMask.h>
+#include <IMP/bff/imp/ProbeAccessibleVolumeDecorator.h>
+#include <IMP/bff/fret/LabelizerFRET.h>
+#include <IMP/bff/imp/IMPHierarchyBridge.h>
+#include <IMP/bff/probe/ProbeAccessibleVolumeBuilder.h>
+#include <IMP/bff/fit/StripMask.h>
 #include <IMP/atom/Atom.h>
 #include <IMP/atom/Selection.h>
 #include <IMP/atom/pdb.h>
 #include <IMP/bff/internal/json.h>
-#include <IMP/bff/SelectionExpression.h>
+#include <IMP/bff/structure/SelectionExpression.h>
 #include <cmath>
-#include <IMP/bff/ProbeAccessibleVolume.h>
-#include <IMP/bff/StructureIO.h>
+#include <IMP/bff/probe/ProbeAccessibleVolume.h>
+#include <IMP/bff/structure/StructureIO.h>
 #include <IMP/bff/internal/OutputView.h>
 
 #include <chrono>

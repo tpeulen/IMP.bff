@@ -1,6 +1,6 @@
 """Rapidly-exploring random trees over rigid placements and torsions.
 
-The planners are C++ (`IMP/bff/RRT.h`) and the collision test crosses back
+The planners are C++ (`IMP/bff/probe/RRT.h`) and the collision test crosses back
 into Python through a director: a caller subclasses `RRTCollision` and the
 growth loop asks it about every candidate step.
 

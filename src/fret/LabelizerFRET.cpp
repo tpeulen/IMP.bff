@@ -6,14 +6,14 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/LabelizerFRET.h>
+#include <IMP/bff/fret/LabelizerFRET.h>
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <map>
 #include <set>
-#include <IMP/bff/ProbeAccessibleVolumeBuilder.h>
-#include <IMP/bff/ProbeAccessibleVolume.h>
+#include <IMP/bff/probe/ProbeAccessibleVolumeBuilder.h>
+#include <IMP/bff/probe/ProbeAccessibleVolume.h>
 #include <IMP/bff/internal/OutputView.h>
 
 #include <limits>

@@ -7,7 +7,7 @@
  * module, its class, and a hash of its source -- so it is answered here.
  */
 
-%include "IMP/bff/GraphEvaluation.h"
+%include "IMP/bff/graph/GraphEvaluation.h"
 
 %pythoncode %{
 import hashlib as _eg_hashlib

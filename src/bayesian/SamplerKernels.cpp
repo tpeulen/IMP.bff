@@ -10,7 +10,7 @@
  * piece is ported from. Helpers live in kernel_detail: this file is compiled into a unity build.
  */
 
-#include <IMP/bff/SamplerKernels.h>
+#include <IMP/bff/bayesian/SamplerKernels.h>
 
 #include <IMP/bff/internal/json.h>
 #include <IMP/bff/internal/ordered_map.h>

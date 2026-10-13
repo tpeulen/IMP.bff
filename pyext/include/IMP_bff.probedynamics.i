@@ -14,7 +14,7 @@
 %feature("kwargs") IMP::bff::AttachedProbeDynamics::run;
 %feature("kwargs") IMP::bff::prepare_particles;
 
-%include "IMP/bff/ProbeDynamics.h"
+%include "IMP/bff/imp/ProbeDynamics.h"
 
 %attribute_np2(IMP::bff::AttachedProbeDynamics, std::vector<double>, coordinates,
                get_coordinates, 3);

@@ -27,7 +27,7 @@ IMP_SWIG_VALUE_SERIALIZE_IMPL(IMP::bff, PathMapTileEdge)
 // The lattice window is a C++ helper of the search (an int& out-parameter,
 // which IMP's typemaps refuse); the array door, get_av, is the Python way in.
 %ignore IMP::bff::lattice_window;
-%include "IMP/bff/PathMap.h"
+%include "IMP/bff/probe/PathMap.h"
 
 %template(VectorPathMapTile) std::vector<IMP::bff::PathMapTile>;
 %template(VectorPathMapTileEdge) std::vector<IMP::bff::PathMapTileEdge>;

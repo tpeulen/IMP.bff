@@ -15,8 +15,8 @@
  * and `log L = sum log Z`. The backward sweep carries the grid vector `rho`
  * to the left of each photon operator (`rho = s` after the last photon).
  */
-#include <IMP/bff/FRETLandscape.h>
-#include <IMP/bff/States.h>
+#include <IMP/bff/fret/FRETLandscape.h>
+#include <IMP/bff/spectroscopy/States.h>
 #include <IMP/bff/internal/pcg_random.h>
 
 #include <Eigen/Dense>

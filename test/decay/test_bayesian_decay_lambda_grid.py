@@ -26,7 +26,7 @@ import bayesian_decay_synthetic as syn
 import tempfile
 
 DRIVER = r"""
-#include <IMP/bff/BayesianDecayPosterior.h>
+#include <IMP/bff/bayesian/BayesianDecayPosterior.h>
 #include <cstdio>
 using namespace IMP::bff;
 int main(int, char** argv) {

@@ -285,17 +285,21 @@ def test_import_works_with_the_optional_dependencies_blocked():
     assert "ok" in result.stdout
 
 
+def _header(name):
+    """The public header `name`, in whichever theme directory holds it, or None."""
+    found = sorted((Path(__file__).resolve().parents[1] / "include").glob(f"*/{name}"))
+    return found[0] if found else None
+
+
 def test_labelizer_headers_have_distinct_public_homes():
-    headers = Path(__file__).resolve().parents[1] / "include"
-    assert not (headers / "Labelizer.h").exists()
+    assert _header("Labelizer.h") is None
     for family in ("Features", "Score", "FRET", "IO"):
-        assert (headers / f"Labelizer{family}.h").is_file()
+        assert _header(f"Labelizer{family}.h") is not None
 
 
 def test_probe_pair_selection_has_a_generic_public_home():
-    headers = Path(__file__).resolve().parents[1] / "include"
-    assert not (headers / "GreedyOlga.h").exists()
-    assert (headers / "ProbePairSelection.h").is_file()
+    assert _header("GreedyOlga.h") is None
+    assert _header("ProbePairSelection.h") is not None
 
 
 @pytest.mark.parametrize("old,new", [
@@ -315,9 +319,8 @@ def test_probe_pair_selection_has_a_generic_public_home():
     ("DataPaths", "ProbeDataPaths"),
 ])
 def test_probe_headers_have_domain_names(old, new):
-    headers = Path(__file__).resolve().parents[1] / "include"
-    assert not (headers / f"{old}.h").exists()
-    assert (headers / f"{new}.h").is_file()
+    assert _header(f"{old}.h") is None
+    assert _header(f"{new}.h") is not None
 
 
 if __name__ == "__main__":

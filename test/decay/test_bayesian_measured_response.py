@@ -25,7 +25,7 @@ import pytest
 from bayesian_cxx import run_driver
 
 DRIVER = r"""
-#include <IMP/bff/BayesianMeasuredResponse.h>
+#include <IMP/bff/bayesian/BayesianMeasuredResponse.h>
 #include <cstdio>
 #include <string>
 using namespace IMP::bff;

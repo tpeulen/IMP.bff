@@ -4,10 +4,10 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/GridDiffusionSolver.h>
+#include <IMP/bff/probe/GridDiffusionSolver.h>
 #include <IMP/bff/internal/GridShape.h>
 #include <IMP/bff/internal/OutputView.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <algorithm>
 #include <string>

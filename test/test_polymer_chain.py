@@ -162,7 +162,7 @@ def test_a_degenerate_chain_is_zero_rather_than_a_nan():
 def test_a_long_strongly_coupled_chain_stays_finite():
     """The transfer product is formed unscaled, so overflow is possible.
 
-    `include/PolymerChain.h` says why it is not rescaled -- a per-k rescaling
+    `include/fret/PolymerChain.h` says why it is not rescaled -- a per-k rescaling
     would change the ratio it is used in. What this pins is the consequence:
     an overflowed phi must leave zeros behind, never a NaN that propagates
     into the FRET rate spectrum downstream.

@@ -1,12 +1,12 @@
 /**\file GaussianDistances.cpp
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/GaussianDistances.h>
+#include <IMP/bff/fret/GaussianDistances.h>
 #include <IMP/bff/internal/DistanceAxis.h>
 #include <IMP/bff/internal/DistanceKernels.h>
 #include <IMP/bff/internal/NodeConfig.h>
 #include "../internal/SpectrumNodeHelpers.h"
-#include <IMP/bff/Distributions.h>
+#include <IMP/bff/bayesian/Distributions.h>
 #include <algorithm>
 #include <cctype>
 #include <cmath>

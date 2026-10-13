@@ -1,13 +1,13 @@
 /** \file IMP/bff/ModelSearch.cpp */
-#include <IMP/bff/ModelSearch.h>
+#include <IMP/bff/search/ModelSearch.h>
 
-#include <IMP/bff/SpecialFunctions.h>
-#include <IMP/bff/FitMinimizer.h>
-#include <IMP/bff/FitJointChiSquared.h>
-#include <IMP/bff/FitObjective.h>
-#include <IMP/bff/GraphNode.h>
-#include <IMP/bff/GraphPort.h>
-#include <IMP/bff/NeuralNet.h>
+#include <IMP/bff/util/SpecialFunctions.h>
+#include <IMP/bff/fit/FitMinimizer.h>
+#include <IMP/bff/fit/FitJointChiSquared.h>
+#include <IMP/bff/fit/FitObjective.h>
+#include <IMP/bff/graph/GraphNode.h>
+#include <IMP/bff/graph/GraphPort.h>
+#include <IMP/bff/learn/NeuralNet.h>
 #include <IMP/bff/internal/NetworkDocument.h>
 
 #include <algorithm>

@@ -20,7 +20,7 @@ import bayesian_decay_synthetic as syn
 from test_bayesian_decay_model import DRIVER
 
 EFFECT = r"""
-#include <IMP/bff/BayesianDecayModel.h>
+#include <IMP/bff/bayesian/BayesianDecayModel.h>
 #include <cstdio>
 using namespace IMP::bff;
 int main(int, char** argv) {

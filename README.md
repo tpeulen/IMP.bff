@@ -254,7 +254,7 @@ is written out in `examples/structure/t4l_pmi.py`.
 
 
 The command line is one compiled program, `imp_bff` (`bin/imp_bff.cpp`, the
-dispatcher in `include/CommandLine.h`). Every program that used to be a script
+dispatcher in `include/util/CommandLine.h`). Every program that used to be a script
 in `bin/` is a group of it, named after the old file without the `imp_bff_`
 prefix -- `imp_bff fps ...`, `imp_bff fps-av`, `imp_bff fps-distance`,
 `imp_bff fps-export ...`, `imp_bff labelizer`, `imp_bff potentials2pto`,

@@ -33,9 +33,9 @@
 #include <string>
 #include <vector>
 
-#include <IMP/bff/HierarchyFrame.h>
-#include <IMP/bff/StructureIO.h>
-#include <IMP/bff/TrajectoryIO.h>
+#include <IMP/bff/structure/HierarchyFrame.h>
+#include <IMP/bff/structure/StructureIO.h>
+#include <IMP/bff/structure/TrajectoryIO.h>
 #include <IMP/bff/internal/NumpyCompat.h>
 #include <IMP/bff/internal/PdbFrames.h>
 #include <IMP/bff/internal/Text.h>

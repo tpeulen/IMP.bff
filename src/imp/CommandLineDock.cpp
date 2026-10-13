@@ -19,8 +19,8 @@
 
 #include <IMP/random.h>
 
-#include <IMP/bff/Docking.h>
-#include <IMP/bff/FlexibleFitting.h>
+#include <IMP/bff/imp/Docking.h>
+#include <IMP/bff/imp/FlexibleFitting.h>
 
 IMPBFF_BEGIN_INTERNAL_NAMESPACE
 namespace cli {

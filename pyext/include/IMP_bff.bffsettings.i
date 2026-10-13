@@ -6,4 +6,4 @@
 IMP_SWIG_VALUE(IMP::bff, SequenceSearchServer, SequenceSearchServers);
 IMP_SWIG_VALUE(IMP::bff, SequenceSearchSettings, SequenceSearchSettingsList);
 
-%include "IMP/bff/BffSettings.h"
+%include "IMP/bff/util/BffSettings.h"

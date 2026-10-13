@@ -4,10 +4,10 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/GeneralizedNormalCurve.h>
+#include <IMP/bff/fit/GeneralizedNormalCurve.h>
 
-#include <IMP/bff/Distributions.h>
-#include <IMP/bff/GraphPort.h>
+#include <IMP/bff/bayesian/Distributions.h>
+#include <IMP/bff/graph/GraphPort.h>
 #include <IMP/bff/internal/NodeConfig.h>
 
 #include <algorithm>

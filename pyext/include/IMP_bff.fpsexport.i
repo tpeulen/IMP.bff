@@ -31,7 +31,7 @@ IMP_SWIG_VALUE(IMP::bff, FPSExportOptions, FPSExportOptionsList);
 %feature("kwargs") IMP::bff::write_fps_screening_r_table;
 %feature("kwargs") IMP::bff::write_fps_screening_chi2_table;
 
-%include "IMP/bff/FPSExport.h"
+%include "IMP/bff/imp/FPSExport.h"
 
 %template(FPSMoleculeList) std::vector<IMP::bff::FPSMolecule>;
 %template(FPSLabelPositionList) std::vector<IMP::bff::FPSLabelPosition>;

@@ -6,7 +6,7 @@
  * Matrices come back flat and row-major; `.reshape(n, n)` restores them.
  */
 %{
-#include <IMP/bff/FRETLandscapeGrid.h>
+#include <IMP/bff/fret/FRETLandscapeGrid.h>
 %}
 
 IMP_SWIG_VALUE(IMP::bff, TridiagonalEigenSystem, TridiagonalEigenSystems);
@@ -14,10 +14,10 @@ IMP_SWIG_VALUE(IMP::bff, NaturalCubicSpline, NaturalCubicSplines);
 
 %ignore IMP::bff::NaturalCubicSpline::evaluate_point;
 
-%include "IMP/bff/FRETLandscapeGrid.h"
+%include "IMP/bff/fret/FRETLandscapeGrid.h"
 
 %{
-#include <IMP/bff/FRETLandscape.h>
+#include <IMP/bff/fret/FRETLandscape.h>
 %}
 
 IMP_SWIG_VALUE(IMP::bff, FRETLandscapeFitOptions, FRETLandscapeFitOptionsList);
@@ -32,13 +32,13 @@ IMP_SWIG_VALUE(IMP::bff, FRETLandscapeModel, FRETLandscapeModels);
 %naturalvar IMP::bff::FRETLandscapeInitialGuessOptions::backgrounds;
 %naturalvar IMP::bff::FRETLandscapeFitOptions::fixed;
 
-%include "IMP/bff/FRETLandscape.h"
+%include "IMP/bff/fret/FRETLandscape.h"
 
 /* Burstwise, microtime-resolved inference of a hidden conformational process
    shared by a network of FRET pairs (FRETNetwork.h). */
 %{
-#include <IMP/bff/FRETNetwork.h>
-#include <IMP/bff/FRETNetworkSimulation.h>
+#include <IMP/bff/fret/FRETNetwork.h>
+#include <IMP/bff/fret/FRETNetworkSimulation.h>
 %}
 
 IMP_SWIG_VALUE(IMP::bff, FRETHiddenProcess, FRETHiddenProcesses);
@@ -50,5 +50,5 @@ IMP_SWIG_VALUE(IMP::bff, FRETNetworkLaplace, FRETNetworkLaplaces);
 IMP_SWIG_VALUE(IMP::bff, FRETNetworkModel, FRETNetworkModels);
 IMP_SWIG_VALUE(IMP::bff, FRETSimulationOptions, FRETSimulationOptionsList);
 
-%include "IMP/bff/FRETNetwork.h"
-%include "IMP/bff/FRETNetworkSimulation.h"
+%include "IMP/bff/fret/FRETNetwork.h"
+%include "IMP/bff/fret/FRETNetworkSimulation.h"

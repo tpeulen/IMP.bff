@@ -5,9 +5,9 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/ProbeDataPaths.h>
+#include <IMP/bff/probe/ProbeDataPaths.h>
 
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <cerrno>
 #include <cstring>

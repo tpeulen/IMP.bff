@@ -8,8 +8,8 @@
  *
  */
 
-#include <IMP/bff/CounterfactualDistanceNetwork.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/bayesian/CounterfactualDistanceNetwork.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <Eigen/Dense>
 

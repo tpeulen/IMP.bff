@@ -2,7 +2,7 @@
  * \file FCS.cpp
  * \brief FCS forward models beyond the closed forms: the MDF and saturation shapes.
  *
- * Sections in the order of IMP/bff/FCS.h; each is marked with the file it
+ * Sections in the order of IMP/bff/spectroscopy/FCS.h; each is marked with the file it
  * came from.
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
@@ -16,7 +16,7 @@
  * \authors Thomas-Otavio Peulen
  *  Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/FCS.h>
+#include <IMP/bff/spectroscopy/FCS.h>
 #include <IMP/bff/internal/NodeConfig.h>
 
 #include <algorithm>

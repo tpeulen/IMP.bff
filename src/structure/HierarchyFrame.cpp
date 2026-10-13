@@ -4,7 +4,7 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/HierarchyFrame.h>
+#include <IMP/bff/structure/HierarchyFrame.h>
 #include <IMP/bff/internal/PdbFrames.h>
 #include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/internal/Text.h>

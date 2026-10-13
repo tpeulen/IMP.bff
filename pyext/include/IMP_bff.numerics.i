@@ -28,4 +28,4 @@
 %apply(double** ARGOUTVIEWM_ARRAY2, int* DIM1, int* DIM2) {
     (double** out_matrix, int* n_out_rows, int* n_out_cols)
 };
-%include "IMP/bff/Numerics.h"
+%include "IMP/bff/util/Numerics.h"

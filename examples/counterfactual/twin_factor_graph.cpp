@@ -11,7 +11,7 @@
     factual one.
 */
 
-#include <IMP/bff/InferenceFactorGraph.h>
+#include <IMP/bff/fit/InferenceFactorGraph.h>
 #include <IMP/flags.h>
 
 #include <cstdio>

@@ -5,29 +5,29 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/GraphNodeRegistry.h>
-#include <IMP/bff/Registry.h>
+#include <IMP/bff/graph/GraphNodeRegistry.h>
+#include <IMP/bff/util/Registry.h>
 
-#include <IMP/bff/Convolution.h>
-#include <IMP/bff/FCS.h>
-#include <IMP/bff/AcceptorDensityDecay.h>
-#include <IMP/bff/DiscreteDistances.h>
-#include <IMP/bff/FRETSpectrumNode.h>
-#include <IMP/bff/FitChiSquared.h>
-#include <IMP/bff/FitJointChiSquared.h>
-#include <IMP/bff/GaussianDistances.h>
-#include <IMP/bff/GeneralizedNormalCurve.h>
-#include <IMP/bff/LifetimeSpectrumMixture.h>
-#include <IMP/bff/MaxEntSpectrum.h>
-#include <IMP/bff/GraphExpression.h>
-#include <IMP/bff/PhotophysicsAnisotropySpectrumNode.h>
-#include <IMP/bff/KineticSchemeNode.h>
-#include <IMP/bff/PhotophysicsLifetimeSpectrumNode.h>
-#include <IMP/bff/PhotophysicsTransferKineticsNode.h>
-#include <IMP/bff/PolymerDistances.h>
-#include <IMP/bff/SpectrumGrid.h>
-#include <IMP/bff/TabulatedDistances.h>
-#include <IMP/bff/TCSPCDecay.h>
+#include <IMP/bff/fit/Convolution.h>
+#include <IMP/bff/spectroscopy/FCS.h>
+#include <IMP/bff/spectroscopy/AcceptorDensityDecay.h>
+#include <IMP/bff/fret/DiscreteDistances.h>
+#include <IMP/bff/fret/FRETSpectrumNode.h>
+#include <IMP/bff/fit/FitChiSquared.h>
+#include <IMP/bff/fit/FitJointChiSquared.h>
+#include <IMP/bff/fret/GaussianDistances.h>
+#include <IMP/bff/fit/GeneralizedNormalCurve.h>
+#include <IMP/bff/spectroscopy/LifetimeSpectrumMixture.h>
+#include <IMP/bff/fit/MaxEntSpectrum.h>
+#include <IMP/bff/graph/GraphExpression.h>
+#include <IMP/bff/spectroscopy/PhotophysicsAnisotropySpectrumNode.h>
+#include <IMP/bff/spectroscopy/KineticSchemeNode.h>
+#include <IMP/bff/spectroscopy/PhotophysicsLifetimeSpectrumNode.h>
+#include <IMP/bff/spectroscopy/PhotophysicsTransferKineticsNode.h>
+#include <IMP/bff/fret/PolymerDistances.h>
+#include <IMP/bff/fit/SpectrumGrid.h>
+#include <IMP/bff/fret/TabulatedDistances.h>
+#include <IMP/bff/spectroscopy/TCSPCDecay.h>
 
 #include <algorithm>
 #include <map>

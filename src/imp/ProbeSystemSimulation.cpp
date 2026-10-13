@@ -12,13 +12,13 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/ProbeSystemSimulation.h>
+#include <IMP/bff/imp/ProbeSystemSimulation.h>
 
-#include <IMP/bff/MolecularGraph.h>
-#include <IMP/bff/Mol2IO.h>
-#include <IMP/bff/ProbeForceFieldCIF.h>
-#include <IMP/bff/ProbeLibrary.h>
-#include <IMP/bff/ProbePotentialRestraints.h>
+#include <IMP/bff/structure/MolecularGraph.h>
+#include <IMP/bff/structure/Mol2IO.h>
+#include <IMP/bff/probe/ProbeForceFieldCIF.h>
+#include <IMP/bff/probe/ProbeLibrary.h>
+#include <IMP/bff/imp/ProbePotentialRestraints.h>
 #include <IMP/bff/internal/Text.h>
 
 #include <IMP/Model.h>

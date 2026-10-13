@@ -4,4 +4,4 @@
 %apply(double** ARGOUTVIEWM_ARRAY1, int* DIM1) {(double** out_delays, int* n_delays)};
 %apply(unsigned char** ARGOUTVIEWM_ARRAY1, int* DIM1) {(unsigned char** out_emitted, int* n_emitted)};
 %apply(double* INPLACE_ARRAY1, int DIM1) {(double* decay, int n_decay)};
-%include "IMP/bff/PhotophysicsPhotonSimulation.h"
+%include "IMP/bff/spectroscopy/PhotophysicsPhotonSimulation.h"

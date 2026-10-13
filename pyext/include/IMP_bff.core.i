@@ -32,13 +32,13 @@ static void bff_handle_released_exception() {
 %}
 
 /* Does this build actually thread? The kernels ask; the compiler may not listen. */
-%include "IMP/bff/OpenMP.h"
+%include "IMP/bff/util/OpenMP.h"
 
 /* STL templates and the numpy typemaps everything below depends on. */
 %include "IMP_bff.types.i"
 
 /* Where the shipped cgprobe data lives. */
-%include "IMP/bff/ProbeDataPaths.h"
+%include "IMP/bff/probe/ProbeDataPaths.h"
 
 /*
  * The factor structure of a model's posterior: variables (free parameters),
@@ -54,7 +54,7 @@ static void bff_handle_released_exception() {
    C++ `int` is 32 bits, so an integer port has to speak int64 or large
    values fall through to the double overload and come back rounded. */
 %template(VectorInt64) std::vector<long long >;
-%include "IMP/bff/InferenceFactorGraph.h"
+%include "IMP/bff/fit/InferenceFactorGraph.h"
 %template(VectorInferenceJunctionTreeEdge) std::vector<IMP::bff::InferenceJunctionTreeEdge>;
 /* Gaussian factors in canonical form and exact variable elimination over the
    factor graph above (aGrUM's CLG inference). */
@@ -124,8 +124,8 @@ static void bff_handle_released_exception() {
    the fitting-data block below. */
 namespace IMP { namespace bff { class FitDataset; } }
 
-%include "IMP/bff/GraphPort.h"
-%include "IMP/bff/GraphNode.h"
+%include "IMP/bff/graph/GraphPort.h"
+%include "IMP/bff/graph/GraphNode.h"
 %template(MapStringPort) std::map<std::string, std::shared_ptr<IMP::bff::GraphPort> >;
 
 /* Node types by name. The std::function factory does not cross; a Python
@@ -210,9 +210,9 @@ std::string bff_python_error_text() {
 /* The registry: what bff can do, by name, as data (PRD-147 A2). The C++ side is tttrlib's
    RegistryCore.h mechanism; the Python accessors are tttrlib's registry_access.py, vendored and
    embedded unchanged, so IMP.bff.registry()/describe()/resolve() are tttrlib's functions. */
-%include "IMP/bff/Registry.h"
+%include "IMP/bff/util/Registry.h"
 %pythoncode "registry_access.py"
-%include "IMP/bff/GraphNodeRegistry.h"
+%include "IMP/bff/graph/GraphNodeRegistry.h"
 %pythoncode %{
 def register_node_type(type_name, factory=None):
     """Let descriptions name a Python GraphNode subclass as a node `type`.
@@ -551,7 +551,7 @@ GraphPort.__init__ = _Port_kwargs_init
  * {"session": ..., "objects": [...]} format is read, not written.
  */
 %shared_ptr(IMP::bff::GraphSession);
-%include "IMP/bff/GraphSession.h"
+%include "IMP/bff/graph/GraphSession.h"
 %template(MapStringNode) std::map<std::string, std::shared_ptr<IMP::bff::GraphNode> >;
 %template(VectorPort) std::vector<std::shared_ptr<IMP::bff::GraphPort> >;
 
@@ -623,7 +623,7 @@ def get_session():
 %ignore IMP::bff::MCMCSampler::set_objective_function;
 %ignore IMP::bff::MCMCSampler::set_observer;
 %ignore IMP::bff::MCMCSampler::get_blocks;
-%include "IMP/bff/MCMCSampler.h"
+%include "IMP/bff/bayesian/MCMCSampler.h"
 
 /*
  * The data misfit of a model curve, as a node in the model graph. Lets a
@@ -649,7 +649,7 @@ def get_session():
 %pythonappend IMP::bff::FitObjective::FitObjective %{
         self.get_residuals_port()
 %}
-%include "IMP/bff/FitObjective.h"
+%include "IMP/bff/fit/FitObjective.h"
 %shared_ptr(IMP::bff::FitChiSquared);
 /* A dataset of any rank, with its noise family. Its variance and residuals
    are managed views for the same reason the solver's are, and its setters
@@ -659,10 +659,10 @@ def get_session():
 %apply(double* IN_ARRAY1, int DIM1) {(double* in_variance, int n_variance)};
 %apply(double* IN_ARRAY1, int DIM1) {(double* in_mask, int n_mask)};
 %apply(double* IN_ARRAY1, int DIM1) {(double* in_coordinate, int n_coordinate)};
-%include "IMP/bff/FitDataset.h"
+%include "IMP/bff/fit/FitDataset.h"
 %include "IMP_bff.fitdataset.i"
 
-%include "IMP/bff/FitChiSquared.h"
+%include "IMP/bff/fit/FitChiSquared.h"
 
 /*
  * The grouping: one misfit over several datasets. Sharing a parameter
@@ -675,16 +675,16 @@ def get_session():
  * underneath it.
  */
 %shared_ptr(IMP::bff::FitJointChiSquared);
-%include "IMP/bff/FitJointChiSquared.h"
+%include "IMP/bff/fit/FitJointChiSquared.h"
 
 /* The factor graph of a running fit, read off its node graph. */
-%include "IMP/bff/InferenceFactorGraphFromFit.h"
+%include "IMP/bff/fit/InferenceFactorGraphFromFit.h"
 
 %include "IMP_bff.tcspcdecay.i"
 
 %include "IMP_bff.photophysicslifetimespectrumnode.i"
 %shared_ptr(IMP::bff::KineticSchemeNode);
-%include "IMP/bff/KineticSchemeNode.h"
+%include "IMP/bff/spectroscopy/KineticSchemeNode.h"
 %include "IMP_bff.photophysicsanisotropyspectrumnode.i"
 %include "IMP_bff.polymerdistances.i"
 %include "IMP_bff.gaussiandistances.i"
@@ -707,7 +707,7 @@ def get_session():
 %apply(double* IN_ARRAY1, int DIM1) {(double* in_axis, int n_axis)};
 
 %shared_ptr(IMP::bff::GraphExpression);
-%include "IMP/bff/GraphExpression.h"
+%include "IMP/bff/graph/GraphExpression.h"
 
 /*
  * The excitation and emission crosstalk matrices a FRET correction is stated
@@ -781,7 +781,7 @@ IMP_SWIG_DIRECTOR(IMP::bff, FitResidualFunction);
   $result.assign(bff_d, bff_d + bff_n);
   Py_DECREF(bff_arr);
 }
-%include "IMP/bff/FitMinimizer.h"
+%include "IMP/bff/fit/FitMinimizer.h"
 
 /* NNLS and BVLS: the constrained linear solves scipy.optimize offers as
    nnls and lsq_linear. */
@@ -911,7 +911,7 @@ BFF_BYTES_TYPEMAPS(IMP::bff::GgufBytes, "a GGUF file",
    returned as None) are wrapped below. */
 %rename(_predict_derivatives) IMP::bff::NeuralNet::predict_derivatives;
 %rename(_backward_derivatives) IMP::bff::NeuralNet::backward_derivatives;
-%include "IMP/bff/NeuralNet.h"
+%include "IMP/bff/learn/NeuralNet.h"
 %extend IMP::bff::NeuralNet {
   %pythoncode %{
     def predict_derivatives(self, X, V=None, order=2):
@@ -1005,7 +1005,7 @@ IMP_SWIG_VALUE(IMP::bff, ModelSearchFitSettings, ModelSearchFitSettingsList);
         SWIG_fail;
     }
 }
-%include "IMP/bff/ModelSearch.h"
+%include "IMP/bff/search/ModelSearch.h"
 // SWIG 4.5 does not infer the vector proxy for this typedef when it first
 // appears as the return type of a virtual method.  Declare the proxy after
 // the header so generated wrappers use std::vector::operator[].
@@ -1013,15 +1013,15 @@ IMP_SWIG_VALUE(IMP::bff, ModelSearchFitSettings, ModelSearchFitSettingsList);
 
 /* A model family read from data rather than compiled in. It hands back the
    same FittingModelSearchProblem a factory used to build. */
-%include "IMP/bff/ModelSearchSpec.h"
+%include "IMP/bff/search/ModelSearchSpec.h"
 
 /* Episodes for one family-agnostic action policy, and its training. */
 IMP_SWIG_VALUE(IMP::bff, ModelSearchPolicyData, ModelSearchPolicyDatas);
 IMP_SWIG_VALUE(IMP::bff, ModelSearchPolicyTraining, ModelSearchPolicyTrainings);
-%include "IMP/bff/ModelSearchPolicy.h"
+%include "IMP/bff/search/ModelSearchPolicy.h"
 
 /* A family generating its own training data, and the proposer it trains. */
-%include "IMP/bff/ModelSearchSelfPlay.h"
+%include "IMP/bff/search/ModelSearchSelfPlay.h"
 
 %feature("nothreadallow", "0") IMP::bff::MCMCSampler::run_releasing_gil;
 
@@ -1256,7 +1256,7 @@ IMP_SWIG_OBJECT(IMP::bff, DensityGrid, DensityGrids);
 // The free write_mrc takes a float buffer; Python writes a grid with
 // DensityGrid.write_mrc(path) and a path map's feature with write_map_feature.
 %ignore IMP::bff::write_mrc;
-%include "IMP/bff/DensityGrid.h"
+%include "IMP/bff/probe/DensityGrid.h"
 
 %include "IMP_bff.pathmap.i"
 /* Olga's name-keyed van der Waals radii and the AV's choice of radii set.
@@ -1267,7 +1267,7 @@ IMP_SWIG_OBJECT(IMP::bff, DensityGrid, DensityGrids);
    `std::vector<double>` at all (IMP_bff.types.i). Python reads the table
    through olga_vdw_radius(), get_olga_vdw_atom_names() and
    olga_vdw_radii_csv(). */
-%include "IMP/bff/VdwRadii.h"
+%include "IMP/bff/structure/VdwRadii.h"
 
 /* A label's states, whatever represents them: the cloud, the kernels it is
    measured with, the distances between two. Every representation and every
@@ -1296,7 +1296,7 @@ IMP_SWIG_VALUE(IMP::bff, ProteinFrame, ProteinFrames);
 // Hidden from SWIG's member wrapping and republished as an `(n, 3)` table:
 // a flat `coords` and a shaped `coords` cannot both be called `coords`.
 %ignore IMP::bff::ProteinFrame::coords;
-%include "IMP/bff/HierarchyFrame.h"
+%include "IMP/bff/structure/HierarchyFrame.h"
 %attribute_np2(IMP::bff::ProteinFrame, std::vector<double>, coords,
                get_coords, 3, set_coords);
 %attribute(IMP::bff::ProteinFrame, int, n_atoms, get_n_atoms);
@@ -1316,14 +1316,14 @@ IMP_SWIG_VALUE(IMP::bff, ProteinFrame, ProteinFrames);
 /* Distances and orientations over point clouds. */
 
 /* Dynamics: the dye's position, then its excited state. */
-%include "IMP/bff/BrownianWalk.h"
+%include "IMP/bff/probe/BrownianWalk.h"
 /* `diffusion_propagate` reports two arrays -- the population at each reported
    step and the final density -- and both are managed numpy views, so Python
    gets a 2-tuple. The population was a `std::vector<double>&` out-parameter,
    which made a caller construct a wrapped vector of a class this module does
    not own (see the note in `IMP_bff.types.i`). */
 %apply(double** ARGOUTVIEWM_ARRAY1, int* DIM1) {(double** out_fluorescence, int* n_out_fluorescence)};
-%include "IMP/bff/DiffusionSolver.h"
+%include "IMP/bff/probe/DiffusionSolver.h"
 /* The evaluation graph: labels naming ports, run on demand. GraphNode is a
    director, so a graph of Python-subclassed nodes works here too. The
    provenance helpers that go with it are Python, so they live in their own
@@ -1339,12 +1339,12 @@ IMP_SWIG_VALUE(IMP::bff, ProteinFrame, ProteinFrames);
 
 /* What comes out: (amplitude, rate) pairs. */
 /* MOL2 in: the atoms and bonds a force-field component is built from. */
-%include "IMP/bff/Mol2IO.h"
+%include "IMP/bff/structure/Mol2IO.h"
 %template(Mol2Atoms) std::vector<IMP::bff::Mol2Atom>;
 %template(MapIntString) std::map<int, std::string>;
 
 /* Local sequence alignment: which template a fusion's domain matches. */
-%include "IMP/bff/SequenceAlignment.h"
+%include "IMP/bff/sequence/SequenceAlignment.h"
 %template(AlignedBlocks) std::vector<IMP::bff::AlignedBlock>;
 
 /* Weighted averaging over a rotamer ensemble. */
@@ -1353,13 +1353,13 @@ IMP_SWIG_VALUE(IMP::bff, ProteinFrame, ProteinFrames);
    Attribution and the non-redistributed library note in the header. */
 
 /* Leader clustering: how a conformer stack becomes a rotamer library. */
-%include "IMP/bff/Clustering.h"
+%include "IMP/bff/structure/Clustering.h"
 
 /* Precision-aware localization scoring and selective 3D particle averaging. */
 %include "IMP_bff.smlm.i"
 
 /* Bond connectivity, and the angles, torsions and rings that follow from it. */
-%include "IMP/bff/MolecularGraph.h"
+%include "IMP/bff/structure/MolecularGraph.h"
 %template(VectorVectorInt) std::vector<std::vector<int> >;
 // `LabelledGraph` answers in labels, so its returns need the string forms.
 // `VectorVectorString` is instantiated in types.i for the multi-dye kernel.
@@ -1371,19 +1371,19 @@ IMP_SWIG_VALUE(IMP::bff, ProteinFrame, ProteinFrames);
    vector, rebuild coordinates from one (FASPR's construction, IUPAC
    convention). The .drot dye-rotamer store and the side-chain packer share
    this kernel. */
-%include "IMP/bff/ZMatrix.h"
+%include "IMP/bff/structure/ZMatrix.h"
 %template(VectorPairIntInt) std::vector<std::pair<int, int> >;
 %template(VectorVector3D) std::vector<IMP::algebra::Vector3D>;
 
 /* The force-field system in, through the ihm C reader IMP vendors. */
-%include "IMP/bff/ProbeForceFieldCIF.h"
+%include "IMP/bff/probe/ProbeForceFieldCIF.h"
 
 /* The force-field system out, template CIF, and rotamer library IO. */
 /* MMFDB vocabulary precedes typed library provenance. */
 IMP_SWIG_VALUE(IMP::bff, MfdbTag, MfdbTags);
 IMP_SWIG_VALUE(IMP::bff, MfdbColumn, MfdbColumns);
 IMP_SWIG_VALUE(IMP::bff, MfdbAttribution, MfdbAttributions);
-%include "IMP/bff/MMFDBProfile.h"
+%include "IMP/bff/structure/MMFDBProfile.h"
 %include "IMP_bff.proberotamerlibrary.i"
 %include "IMP_bff.proteinsidechainrotamerlibrary.i"
 
@@ -1521,7 +1521,7 @@ IMP_SWIG_VALUE(IMP::bff, MfdbAttribution, MfdbAttributions);
 
 /* TTTRLib's photon simulator, as a model search drives it. */
 IMP_SWIG_VALUE(IMP::bff, PhotonExperimentResult, PhotonExperimentResults);
-%include "IMP/bff/PhotonExperiment.h"
+%include "IMP/bff/search/PhotonExperiment.h"
 
 /*
  * The flat user-facing surface: every public name is an attribute of `IMP.bff`
@@ -1546,7 +1546,7 @@ IMP_SWIG_VALUE(IMP::bff, PhotonExperimentResult, PhotonExperimentResults);
  * the bin/ scripts whose subject is the IMP-free core, callable from a
  * wheel with no IMP at all (PRD-137; the owner's ruling of 2026-09-09 that
  * the command line belongs to the library). The subs and their grammar live
- * in include/CommandLine.h and src/CommandLine.cpp; the console script is the few lines
+ * in include/util/CommandLine.h and src/CommandLine.cpp; the console script is the few lines
  * below.
  */
 namespace IMP {

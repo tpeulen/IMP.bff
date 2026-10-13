@@ -72,8 +72,8 @@ IMP_SWIG_VALUE(IMP::bff, ResidueSites, ResidueSitesList);
   std::vector<int>& radius_idx
 };
 
-%include "IMP/bff/SolventAccessibleSurface.h"
-%include "IMP/bff/PhotophysicsQuenching.h"
+%include "IMP/bff/structure/SolventAccessibleSurface.h"
+%include "IMP/bff/spectroscopy/PhotophysicsQuenching.h"
 
 %template(QuencherMap) std::map<std::string, IMP::bff::Quencher>;
 %template(PETParametersMap) std::map<std::string, IMP::bff::PETParameters>;

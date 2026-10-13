@@ -4,8 +4,8 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/DiffusionSolver.h>
-#include <IMP/bff/ComputeBackend.h>
+#include <IMP/bff/probe/DiffusionSolver.h>
+#include <IMP/bff/util/ComputeBackend.h>
 #include <IMP/bff/internal/OutputView.h>
 // The solver and its adjoint are tttrlib's LatticeDiffusion.h, vendored
 // verbatim (test/test_vendored_headers.py keeps the copy identical). This file

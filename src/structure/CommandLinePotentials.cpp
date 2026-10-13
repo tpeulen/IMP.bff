@@ -20,7 +20,7 @@
 #include <utility>
 #include <vector>
 
-#include <IMP/bff/ProbePotentialTables.h>
+#include <IMP/bff/probe/ProbePotentialTables.h>
 #include <IMP/bff/internal/Npy.h>
 #include <IMP/bff/internal/Sha256.h>
 #include <IMP/bff/internal/Text.h>

@@ -14,8 +14,8 @@
 #include <IMP/Particle.h>
 #include <IMP/algebra/Vector3D.h>
 #include <IMP/algebra/VectorD.h>
-#include <IMP/bff/ProbeAccessibleVolumeOccupancyMap.h>
-#include <IMP/bff/PathMap.h>
+#include <IMP/bff/imp/ProbeAccessibleVolumeOccupancyMap.h>
+#include <IMP/bff/probe/PathMap.h>
 
 #include <array>
 #include <cstdint>

@@ -1,7 +1,7 @@
 /** \file SMLMIO.cpp
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/SMLMIO.h>
+#include <IMP/bff/smlm/SMLMIO.h>
 
 #include <algorithm>
 #include <cctype>

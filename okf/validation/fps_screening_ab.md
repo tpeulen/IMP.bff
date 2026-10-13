@@ -263,7 +263,7 @@ axis at once from **every** node it reaches (`av_routines.cpp:156-209`, the
 7x7x7 cube, landing on any free voxel across whatever lies between), not only
 out of the seed sphere. Declared once (`AV_DEFAULT_LINK_SEARCH = "fps"`,
 `AV_DEFAULT_SEARCH_STENCIL = AV_SEARCH_STENCIL_FPS = 342`,
-`include/ProbeAccessibleVolumeDefaults.h`); the seed-only search stays
+`include/probe/ProbeAccessibleVolumeDefaults.h`); the seed-only search stays
 selectable as `link_search = "fast"` (stencil 74): decorator
 `set_link_search`, fps.json position field `link_search` (schema 1.8), array
 doors `search_stencil`. `ProbeNetworkRestraint`'s `search_stencil` default is
@@ -345,7 +345,7 @@ radii (1 014 -> 15 605 voxels). The greedy-selector parity test asks for the
 Owner, 2026-10-11: *"av defaults should be fps/olga defaults, take from
 there."* Read from FPS's and Olga's source (headers in `chisurf/junk/fps`,
 `chisurf/junk/olga`) and declared once in
-[`include/ProbeAccessibleVolumeDefaults.h`](../../include/ProbeAccessibleVolumeDefaults.h),
+[`include/probe/ProbeAccessibleVolumeDefaults.h`](../../include/probe/ProbeAccessibleVolumeDefaults.h),
 which every door reads (decorator, array/PDB builders, both fps.json readers,
 schema, `av-export`, model comparison):
 

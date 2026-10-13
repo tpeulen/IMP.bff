@@ -7,7 +7,7 @@
  * where `import wgpu` is a natural thing to write.
  */
 
-%include "IMP/bff/ComputeBackend.h"
+%include "IMP/bff/util/ComputeBackend.h"
 
 %pythoncode %{
 import os as _gpu_os

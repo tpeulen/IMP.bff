@@ -4,6 +4,6 @@ Learned components: dense networks (`NeuralNet`, training, ONNX/safetensors), th
 
 - **Inputs:** sequences, feature vectors.
 - **Relations:** Standalone; consumed by `sequence` and `fret`.
-- **Layout:** sources in `src/learn/`; the public headers stay flat in `include/` (IMP links only `include/*.h`) and are assigned to this theme in `src/learn/Headers.cmake`.
+- **Layout:** sources in `src/learn/`, public headers in `include/learn/` (reached as `<IMP/bff/learn/X.h>`; `<IMP/bff/learn.h>` includes them all). The directory is the assignment; `cmake/ThemeHeaders.cmake` links the headers into the build tree.
 
 Public headers: `EmbeddingIndex.h`, `HMMSurrogate.h`, `NeuralNet.h`, `NeuralNetTraining.h`, `ProteinLanguageModel.h`.

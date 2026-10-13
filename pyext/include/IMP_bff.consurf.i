@@ -10,7 +10,7 @@ IMP_SWIG_VALUE(IMP::bff, ConsurfResult, ConsurfResults);
 %feature("compactdefaultargs") IMP::bff::get_consurf_grades_text;
 %feature("compactdefaultargs") IMP::bff::write_consurf_grades;
 
-%include "IMP/bff/Consurf.h"
+%include "IMP/bff/structure/Consurf.h"
 
 /* The container compute_consurf returns, instantiated after the header as
    labelizer.i does; the standalone (Pyodide) wrapper needs it named. */

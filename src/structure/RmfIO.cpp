@@ -22,7 +22,7 @@
 #include <IMP/bff/bff_config.h>
 #ifndef IMPBFF_NO_RMF
 
-#include <IMP/bff/RmfIO.h>
+#include <IMP/bff/structure/RmfIO.h>
 #include <IMP/bff/internal/Text.h>
 #include <IMP/bff/internal/json.h>
 

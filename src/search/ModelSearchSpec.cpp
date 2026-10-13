@@ -5,12 +5,12 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/ModelSearchSpec.h>
-#include <IMP/bff/FitObjective.h>
+#include <IMP/bff/search/ModelSearchSpec.h>
+#include <IMP/bff/fit/FitObjective.h>
 
-#include <IMP/bff/GraphExpression.h>
-#include <IMP/bff/GraphNodeRegistry.h>
-#include <IMP/bff/ProbeDataPaths.h>
+#include <IMP/bff/graph/GraphExpression.h>
+#include <IMP/bff/graph/GraphNodeRegistry.h>
+#include <IMP/bff/probe/ProbeDataPaths.h>
 #include <IMP/bff/internal/json.h>
 #include <IMP/bff/internal/ordered_map.h>
 

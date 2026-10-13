@@ -1,7 +1,7 @@
 /** \file SMLMRestraint.cpp
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/SMLMRestraint.h>
+#include <IMP/bff/imp/SMLMRestraint.h>
 #include <IMP/core/XYZ.h>
 #include <IMP/algebra/Vector3D.h>
 #include <cmath>

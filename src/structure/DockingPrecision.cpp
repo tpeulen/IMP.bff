@@ -5,11 +5,11 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/DockingPrecision.h>
+#include <IMP/bff/structure/DockingPrecision.h>
 
 #include <IMP/bff/internal/OutputView.h>
 
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <Eigen/Dense>
 

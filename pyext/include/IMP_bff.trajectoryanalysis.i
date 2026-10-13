@@ -9,4 +9,4 @@
 %feature("kwargs") IMP::bff::write_radial_histogram;
 %feature("kwargs") IMP::bff::write_orientation_profile;
 
-%include "IMP/bff/TrajectoryAnalysis.h"
+%include "IMP/bff/structure/TrajectoryAnalysis.h"

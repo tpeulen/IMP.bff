@@ -4,6 +4,6 @@ Objectives and minimizers (chi-squared, joint chi-squared, L-BFGS-B, NNLS/BVLS),
 
 - **Inputs:** curves (decay, FCS) and their weights.
 - **Relations:** `bayesian`, `spectroscopy`, `fret` use it for their likelihoods.
-- **Layout:** sources in `src/fit/`; the public headers stay flat in `include/` (IMP links only `include/*.h`) and are assigned to this theme in `src/fit/Headers.cmake`.
+- **Layout:** sources in `src/fit/`, public headers in `include/fit/` (reached as `<IMP/bff/fit/X.h>`; `<IMP/bff/fit.h>` includes them all). The directory is the assignment; `cmake/ThemeHeaders.cmake` links the headers into the build tree.
 
 Public headers: `Convolution.h`, `FitChiSquared.h`, `FitDataset.h`, `FitJointChiSquared.h`, `FitMinimizer.h`, `FitObjective.h`, `FitStatistics.h`, `GeneralizedNormalCurve.h`, `InferenceCanonicalForm.h`, `InferenceFactorGraph.h`, `InferenceFactorGraphFromFit.h`, `InferenceGaussianElimination.h`, `LinearLeastSquares.h`, `MaxEnt.h`, `MaxEntSpectrum.h`, `Minimize.h`, `Optimization.h`, `SpectrumGrid.h`, `StripMask.h`.

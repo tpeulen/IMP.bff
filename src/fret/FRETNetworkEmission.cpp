@@ -6,8 +6,8 @@
  * (PhotophysicsCrosstalkMatrix.h) and the instrument response, integrated
  * over each hidden state's distance distribution. See FRETNetwork.h.
  */
-#include <IMP/bff/FRETNetwork.h>
-#include <IMP/bff/PhotophysicsTransferKinetics.h>
+#include <IMP/bff/fret/FRETNetwork.h>
+#include <IMP/bff/spectroscopy/PhotophysicsTransferKinetics.h>
 
 #include <algorithm>
 #include <cmath>

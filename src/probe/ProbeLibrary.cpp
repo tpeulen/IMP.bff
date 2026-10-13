@@ -4,7 +4,7 @@
  * \file ProbeLibrary.cpp
  * \brief The dye as a species, its .pto library, and its coarse-grained system.
  *
- * Sections in the order of IMP/bff/ProbeLibrary.h; each is marked with the
+ * Sections in the order of IMP/bff/probe/ProbeLibrary.h; each is marked with the
  * file it came from.
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
@@ -13,9 +13,9 @@
 // -------- from ProbeLibrary.cpp --------
 
 #include <IMP/bff/internal/Text.h>
-#include <IMP/bff/ProbeLibrary.h>
+#include <IMP/bff/probe/ProbeLibrary.h>
 
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 // Vendored with IMP and exported by libimp_atom; ProbeForceFieldCIF.cpp reads its
 // eighteen `_ff_*` categories through the same parser, in the same text mode.
@@ -601,7 +601,7 @@ IMPBFF_END_NAMESPACE
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/MMFDBProfile.h>
+#include <IMP/bff/structure/MMFDBProfile.h>
 #include <IMP/bff/internal/ptolib.h>
 #include <IMP/bff/bff_config.h>
 #include <IMP/bff/internal/json.h>
@@ -1089,7 +1089,7 @@ IMPBFF_END_NAMESPACE
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/MolecularGraph.h>
+#include <IMP/bff/structure/MolecularGraph.h>
 
 
 #include <set>

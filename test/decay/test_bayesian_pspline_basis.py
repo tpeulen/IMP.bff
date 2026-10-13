@@ -22,7 +22,7 @@ scipy_interpolate = pytest.importorskip("scipy.interpolate")
 CASES = [(128, 25, 3), (64, 10, 3), (200, 40, 2), (33, 8, 1)]
 
 DRIVER = r"""
-#include <IMP/bff/BayesianPSpline.h>
+#include <IMP/bff/bayesian/BayesianPSpline.h>
 #include <cstdio>
 #include <string>
 int main() {

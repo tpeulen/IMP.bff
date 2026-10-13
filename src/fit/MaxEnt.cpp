@@ -4,7 +4,7 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/MaxEnt.h>
+#include <IMP/bff/fit/MaxEnt.h>
 
 #include <IMP/bff/internal/MaxEntQp.h>
 

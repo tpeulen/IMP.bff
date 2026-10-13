@@ -5,9 +5,9 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/FRETExchange.h>
+#include <IMP/bff/fret/FRETExchange.h>
 
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>

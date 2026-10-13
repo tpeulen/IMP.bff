@@ -4,20 +4,20 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/ProbeDynamics.h>
+#include <IMP/bff/imp/ProbeDynamics.h>
 // IMP::atom::Atom, used by value below and so needed complete
 #include <IMP/atom/Atom.h>
 // atom_name
-#include <IMP/bff/IMPHierarchyBridge.h>
+#include <IMP/bff/imp/IMPHierarchyBridge.h>
 // create_probe_restraints
-#include <IMP/bff/ProbePotentialRestraints.h>
+#include <IMP/bff/imp/ProbePotentialRestraints.h>
 
-#include <IMP/bff/ProbeAccessibleVolumeBuilder.h>
-#include <IMP/bff/Mol2IO.h>
-#include <IMP/bff/RotamerScoring.h>
-#include <IMP/bff/ProbeTopology.h>
+#include <IMP/bff/probe/ProbeAccessibleVolumeBuilder.h>
+#include <IMP/bff/structure/Mol2IO.h>
+#include <IMP/bff/structure/RotamerScoring.h>
+#include <IMP/bff/probe/ProbeTopology.h>
 #include <IMP/bff/internal/OutputView.h>
-#include <IMP/bff/HierarchyFrame.h>
+#include <IMP/bff/structure/HierarchyFrame.h>
 #include <IMP/bff/internal/Text.h>
 
 #include <IMP/atom/BrownianDynamics.h>
@@ -35,7 +35,7 @@
 #include <IMP/core/RestraintsScoringFunction.h>
 #include <IMP/core/SphereDistancePairScore.h>
 #include <IMP/core/XYZR.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 #include <IMP/random.h>
 
 #include <algorithm>

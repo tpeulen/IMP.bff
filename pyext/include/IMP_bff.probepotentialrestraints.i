@@ -40,7 +40,7 @@ IMP_SWIG_VALUE(IMP::bff, GoContacts, GoContactsList);
         ::IMP::core::StatisticalPairScore<IMP::bff::ResidueContactType, false,
                                           false>;
 
-%include "IMP/bff/ProbePotentialRestraints.h"
+%include "IMP/bff/imp/ProbePotentialRestraints.h"
 
 %template(ResidueContactType) ::IMP::Key<8064531>;
 

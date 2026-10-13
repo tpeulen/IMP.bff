@@ -11,11 +11,11 @@
  * \authors Thomas-Otavio Peulen
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/MolecularProbeSimulation.h>
+#include <IMP/bff/imp/MolecularProbeSimulation.h>
 
-#include <IMP/bff/IMPHierarchyBridge.h>
-#include <IMP/bff/ProbeAttachment.h>
-#include <IMP/bff/ProbeDynamics.h>
+#include <IMP/bff/imp/IMPHierarchyBridge.h>
+#include <IMP/bff/imp/ProbeAttachment.h>
+#include <IMP/bff/imp/ProbeDynamics.h>
 #include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/internal/json.h>
 

@@ -29,7 +29,7 @@ IMP_SWIG_VALUE(IMP::bff, FRETPairEfficiencies, FRETPairEfficienciesList);
 %ignore IMP::bff::FRETPairEfficiencies::rate_ratio;
 %ignore IMP::bff::FRETPairEfficiencies::k_fret;
 
-%include "IMP/bff/FRET.h"
+%include "IMP/bff/fret/FRET.h"
 
 // The FRETPair values' statistics are public member variables, which SWIG
 // exposes directly as members; their arrays are read back through the existing

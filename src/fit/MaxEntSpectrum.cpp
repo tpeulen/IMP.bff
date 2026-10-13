@@ -4,9 +4,9 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/MaxEntSpectrum.h>
+#include <IMP/bff/fit/MaxEntSpectrum.h>
 
-#include <IMP/bff/GraphPort.h>
+#include <IMP/bff/graph/GraphPort.h>
 #include <IMP/bff/internal/MaxEntQp.h>
 #include <IMP/bff/internal/NodeConfig.h>
 

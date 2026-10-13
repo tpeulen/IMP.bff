@@ -12,7 +12,7 @@
     ligand drives closure) it is large.
 */
 
-#include <IMP/bff/CounterfactualMarkovChain.h>
+#include <IMP/bff/bayesian/CounterfactualMarkovChain.h>
 #include <IMP/flags.h>
 
 #include <cmath>

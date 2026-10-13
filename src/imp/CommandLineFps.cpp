@@ -24,9 +24,9 @@
 #include <IMP/log.h>
 #include <IMP/random.h>
 
-#include <IMP/bff/Docking.h>
-#include <IMP/bff/FPS.h>
-#include <IMP/bff/FPSProject.h>
+#include <IMP/bff/imp/Docking.h>
+#include <IMP/bff/probe/FPS.h>
+#include <IMP/bff/imp/FPSProject.h>
 #include <IMP/bff/internal/Text.h>
 #include <IMP/bff/internal/json.h>
 

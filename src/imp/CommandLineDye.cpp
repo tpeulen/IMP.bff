@@ -42,16 +42,16 @@
 #include <IMP/core/XYZ.h>
 #include <IMP/core/XYZR.h>
 
-#include <IMP/bff/Clustering.h>
-#include <IMP/bff/IMPHierarchyBridge.h>
-#include <IMP/bff/Linker.h>
-#include <IMP/bff/ProbeAttachment.h>
-#include <IMP/bff/ProbeDataPaths.h>
-#include <IMP/bff/ProbeDynamics.h>
-#include <IMP/bff/ProbeSampling.h>
-#include <IMP/bff/RmfIO.h>
-#include <IMP/bff/SequenceAlignment.h>
-#include <IMP/bff/StructureTable.h>
+#include <IMP/bff/structure/Clustering.h>
+#include <IMP/bff/imp/IMPHierarchyBridge.h>
+#include <IMP/bff/probe/Linker.h>
+#include <IMP/bff/imp/ProbeAttachment.h>
+#include <IMP/bff/probe/ProbeDataPaths.h>
+#include <IMP/bff/imp/ProbeDynamics.h>
+#include <IMP/bff/probe/ProbeSampling.h>
+#include <IMP/bff/structure/RmfIO.h>
+#include <IMP/bff/sequence/SequenceAlignment.h>
+#include <IMP/bff/structure/StructureTable.h>
 #include <IMP/bff/internal/Text.h>
 
 IMPBFF_BEGIN_INTERNAL_NAMESPACE

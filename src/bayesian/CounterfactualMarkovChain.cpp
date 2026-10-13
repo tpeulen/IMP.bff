@@ -8,8 +8,8 @@
  *
  */
 
-#include <IMP/bff/CounterfactualMarkovChain.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/bayesian/CounterfactualMarkovChain.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <cmath>
 #include <limits>

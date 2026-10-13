@@ -4,8 +4,8 @@
  * process, the dyes' photophysics, and their joint generator through
  * KineticNetwork amalgamation. See FRETNetwork.h.
  */
-#include <IMP/bff/FRETNetwork.h>
-#include <IMP/bff/FRETLandscapeGrid.h>
+#include <IMP/bff/fret/FRETNetwork.h>
+#include <IMP/bff/fret/FRETLandscapeGrid.h>
 
 #include <algorithm>
 #include <cmath>

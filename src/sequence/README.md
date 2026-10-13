@@ -4,7 +4,7 @@ Sequence analysis: alignment, MSA, search, homologs, clusters, conservation and 
 
 - **Inputs:** sequences.
 - **Relations:** Feeds `structure` (ConSurf) and `learn`.
-- **Layout:** sources in `src/sequence/`; the public headers stay flat in `include/` (IMP links only `include/*.h`) and are assigned to this theme in `src/sequence/Headers.cmake`.
+- **Layout:** sources in `src/sequence/`, public headers in `include/sequence/` (reached as `<IMP/bff/sequence/X.h>`; `<IMP/bff/sequence.h>` includes them all). The directory is the assignment; `cmake/ThemeHeaders.cmake` links the headers into the build tree.
 
 Public headers: `SequenceAlignment.h`, `SequenceClusters.h`, `SequenceCoevolution.h`, `SequenceConservation.h`, `SequenceDatabase.h`, `SequenceHomologs.h`, `SequenceMSA.h`, `SequenceSearch.h`, `SequenceServer.h`.
 

@@ -76,7 +76,7 @@ IMP_SWIG_VALUE(IMP::bff, FRETDistanceConverter, FRETDistanceConverters);
 // states.i and proberestraints.i are the same story). The no-output and
 // full-view forms stay; the middle form is refused at wrap time.
 %ignore IMP::bff::histogram_rda(const States&, const States&, const std::vector<double>&, int, bool, double**);
-%include "IMP/bff/States.h"
+%include "IMP/bff/spectroscopy/States.h"
 
 // Scalar state is exposed as native attributes through SWIG's `%attribute`,
 // which maps a C++ getter (and setter) pair to an attribute with no Python in

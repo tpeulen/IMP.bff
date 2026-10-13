@@ -29,10 +29,10 @@
 #include <sys/stat.h>
 #include <vector>
 
-#include <IMP/bff/LabelizerFRET.h>
-#include <IMP/bff/LabelizerIO.h>
-#include <IMP/bff/LabelizerScore.h>
-#include <IMP/bff/ProbeLibrary.h>
+#include <IMP/bff/fret/LabelizerFRET.h>
+#include <IMP/bff/fret/LabelizerIO.h>
+#include <IMP/bff/fret/LabelizerScore.h>
+#include <IMP/bff/probe/ProbeLibrary.h>
 #include <IMP/bff/internal/Text.h>
 #include <IMP/bff/internal/json.h>
 

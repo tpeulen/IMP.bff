@@ -4,7 +4,7 @@
  *
  *  Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/FRETNetworkSimulation.h>
+#include <IMP/bff/fret/FRETNetworkSimulation.h>
 #include <IMP/bff/internal/pcg_random.h>
 
 #include <algorithm>

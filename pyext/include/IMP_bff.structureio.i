@@ -29,8 +29,8 @@ IMP_SWIG_VALUE(IMP::bff, AtomReference, AtomReferences);
 };
 %feature("kwargs") IMP::bff::write_bcif_trajectory;
 
-%include "IMP/bff/TrajectoryIO.h"
-%include "IMP/bff/StructureIO.h"
+%include "IMP/bff/structure/TrajectoryIO.h"
+%include "IMP/bff/structure/StructureIO.h"
 
 %template(AtomBondList) std::vector<IMP::bff::AtomBond>;
 %template(CrossLinkList) std::vector<IMP::bff::CrossLink>;
@@ -46,7 +46,7 @@ IMP_SWIG_VALUE(IMP::bff, AtomReference, AtomReferences);
 %feature("kwargs") IMP::bff::RmfStructureWriter::RmfStructureWriter;
 %feature("kwargs") IMP::bff::RmfStructureWriter::append;
 
-%include "IMP/bff/RmfIO.h"
+%include "IMP/bff/structure/RmfIO.h"
 
 %attribute(IMP::bff::RmfStructureWriter, int, n_atoms, get_n_atoms);
 %attribute(IMP::bff::RmfStructureWriter, int, n_frames, get_number_of_frames);

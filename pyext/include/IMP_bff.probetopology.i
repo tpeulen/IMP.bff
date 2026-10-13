@@ -22,6 +22,6 @@
  * which is what keeps the two scorers from drifting apart.
  */
 
-%include "IMP/bff/ProbeTopology.h"
+%include "IMP/bff/probe/ProbeTopology.h"
 
 %template(FFComponentSpecList) std::vector<IMP::bff::FFComponentSpec>;

@@ -45,4 +45,4 @@ IMP_SWIG_VALUE(IMP::bff, QuenchedDonorDecay, QuenchedDonorDecays);
 %attribute(IMP::bff::QuenchedDonorDecay, double, quantum_yield, get_quantum_yield);
 %attribute(IMP::bff::QuenchedDonorDecay, double, fluorescence_lifetime, get_fluorescence_lifetime);
 
-%include "IMP/bff/PhotophysicsQuenchingModel.h"
+%include "IMP/bff/spectroscopy/PhotophysicsQuenchingModel.h"

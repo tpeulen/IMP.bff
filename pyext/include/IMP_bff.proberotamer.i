@@ -10,7 +10,7 @@ IMP_SWIG_VALUE(IMP::bff, ProbeRotamerEnsemble, ProbeRotamerEnsembles);
 %feature("kwargs") IMP::bff::ProbeRotamerSiteOptions::ProbeRotamerSiteOptions;
 
 
-%include "IMP/bff/ProbeRotamer.h"
+%include "IMP/bff/probe/ProbeRotamer.h"
 
 // The shapes, on the C++ getters (see the note in avmodel.i): the flat view is
 // what the C++ callers want and the table shape is what a numpy caller cannot

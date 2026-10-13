@@ -9,7 +9,7 @@ generalised along the three axes the owner asked for (2026-09-23/24): **bursts
 with microtimes**, not only interphoton times; a **FRET state that is not one
 index**, since dye photophysics and conformation are different processes; and
 **several label pairs observing one hidden process**, with structure priors.
-All C++ (`include/FRETNetwork.h`, `include/FRETNetworkSimulation.h`,
+All C++ (`include/fret/FRETNetwork.h`, `include/fret/FRETNetworkSimulation.h`,
 `src/FRETNetwork*.cpp`), wrapped in `pyext/include/IMP_bff.fretlandscape.i`.
 
 ## Where to pick this up
@@ -110,7 +110,7 @@ All C++ (`include/FRETNetwork.h`, `include/FRETNetworkSimulation.h`,
 ## Choosing the pairs
 
 Which pairs to measure is decided by `ProbeNetworkSelection`
-(`include/ProbeNetworkSelection.h`), and this model supplies its dynamics
+(`include/probe/ProbeNetworkSelection.h`), and this model supplies its dynamics
 term. Each pair is its own double mutant, measured on its own molecules, so
 the pairs of a network share the hidden process's rates but no trajectory.
 `ProbeKineticsTerm` therefore simulates bursts per candidate

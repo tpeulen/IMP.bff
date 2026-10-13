@@ -15,7 +15,7 @@ IMP_SWIG_VALUE(IMP::bff, NPSMeasurement, NPSMeasurements);
 %shared_ptr(IMP::bff::NPSNetworkObjective);
 /* The convergence estimators (Vehtari et al. 2021), already used by the
    C++ samplers; the chain type is the shared rows-of-doubles template. */
-%include "IMP/bff/SamplerDiagnostics.h"
+%include "IMP/bff/bayesian/SamplerDiagnostics.h"
 %feature("kwargs") IMP::bff::nps_isotropic_direct_score;
 %feature("kwargs") IMP::bff::nps_cloud_prior_score;
-%include "IMP/bff/NPS.h"
+%include "IMP/bff/probe/NPS.h"

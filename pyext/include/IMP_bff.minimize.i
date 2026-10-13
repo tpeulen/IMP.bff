@@ -22,4 +22,4 @@ IMP_SWIG_DIRECTOR(IMP::bff, MinimizeObjective);
   $result.assign(bff_d, bff_d + bff_n);
   Py_DECREF(bff_arr);
 }
-%include "IMP/bff/Minimize.h"
+%include "IMP/bff/fit/Minimize.h"

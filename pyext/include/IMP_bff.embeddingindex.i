@@ -7,4 +7,4 @@ IMP_SWIG_VALUE(IMP::bff, EmbeddingIndex, EmbeddingIndexes);
 
 %feature("compactdefaultargs") IMP::bff::create_embedding_index;
 
-%include "IMP/bff/EmbeddingIndex.h"
+%include "IMP/bff/learn/EmbeddingIndex.h"

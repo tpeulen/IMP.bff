@@ -4,11 +4,11 @@
  *
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/PhotophysicsTransferKineticsNode.h>
+#include <IMP/bff/spectroscopy/PhotophysicsTransferKineticsNode.h>
 
-#include <IMP/bff/GraphPort.h>
-#include <IMP/bff/PhotophysicsCrosstalkMatrix.h>
-#include <IMP/bff/PhotophysicsTransferKinetics.h>
+#include <IMP/bff/graph/GraphPort.h>
+#include <IMP/bff/spectroscopy/PhotophysicsCrosstalkMatrix.h>
+#include <IMP/bff/spectroscopy/PhotophysicsTransferKinetics.h>
 #include <IMP/bff/internal/NodeConfig.h>
 
 #include <algorithm>

@@ -5,13 +5,13 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/ModelSearchSelfPlay.h>
+#include <IMP/bff/search/ModelSearchSelfPlay.h>
 #include <IMP/bff/internal/AdamUpdate.h>
 
-#include <IMP/bff/GraphNode.h>
-#include <IMP/bff/GraphPort.h>
-#include <IMP/bff/NeuralNet.h>
-#include <IMP/bff/PhotonExperiment.h>
+#include <IMP/bff/graph/GraphNode.h>
+#include <IMP/bff/graph/GraphPort.h>
+#include <IMP/bff/learn/NeuralNet.h>
+#include <IMP/bff/search/PhotonExperiment.h>
 #include <IMP/bff/internal/MlpCore.h>
 #include <IMP/bff/internal/NetworkDocument.h>
 

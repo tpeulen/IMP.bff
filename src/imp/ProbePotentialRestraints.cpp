@@ -5,10 +5,10 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/ProbePotentialRestraints.h>
-#include <IMP/bff/ProbePotentialTables.h>
-#include <IMP/bff/SolventAccessibleSurface.h>
-#include <IMP/bff/ZMatrix.h>
+#include <IMP/bff/imp/ProbePotentialRestraints.h>
+#include <IMP/bff/probe/ProbePotentialTables.h>
+#include <IMP/bff/structure/SolventAccessibleSurface.h>
+#include <IMP/bff/structure/ZMatrix.h>
 #include <IMP/bff/internal/ContactKernels.h>
 #include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/internal/Text.h>
@@ -27,11 +27,11 @@
 #include <IMP/core/Harmonic.h>
 #include <IMP/core/SphereDistancePairScore.h>
 #include <IMP/core/XYZR.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 // for the restraint factories that came from RotamerScoring.cpp
-#include <IMP/bff/Mol2IO.h>
-#include <IMP/bff/ProbeRotamer.h>
+#include <IMP/bff/structure/Mol2IO.h>
+#include <IMP/bff/probe/ProbeRotamer.h>
 #include <IMP/algebra/vector_generators.h>
 #include <IMP/constants.h>
 #include <boost/random/mersenne_twister.hpp>

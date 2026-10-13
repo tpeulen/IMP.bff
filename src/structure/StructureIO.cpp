@@ -5,8 +5,8 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 
-#include <IMP/bff/StructureIO.h>
-#include <IMP/bff/DensityGrid.h>
+#include <IMP/bff/structure/StructureIO.h>
+#include <IMP/bff/probe/DensityGrid.h>
 #include <IMP/bff/internal/PdbFrames.h>
 #include <iomanip>
 
@@ -15,7 +15,7 @@
 #include <IMP/bff/internal/Text.h>
 
 #include <IMP/bff/internal/json.h>
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <Eigen/Dense>
 

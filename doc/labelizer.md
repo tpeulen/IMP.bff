@@ -77,7 +77,7 @@ structure properties, `LabelizerScore.h` computes labelability,
 `LabelizerFRET.h` scores pairs, and `LabelizerIO.h` reads and writes scored
 containers. Each header includes the lower-level declarations it needs.
 
-    #include <IMP/bff/LabelizerFRET.h>
+    #include <IMP/bff/fret/LabelizerFRET.h>
 
     const std::vector<LabelizerScore> scores = labelizer_score_structure(
             "protein.pdb", labelizer_model_paper(), LabelizerOptions(), "grades.txt");

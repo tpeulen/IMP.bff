@@ -4,11 +4,11 @@
  *         written through this module's one CIF writer.
  */
 
-#include <IMP/bff/ProbeComponentTemplate.h>
+#include <IMP/bff/probe/ProbeComponentTemplate.h>
 
 #include <IMP/bff/internal/Cif.h>
 
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include "ihm_format.h"
 

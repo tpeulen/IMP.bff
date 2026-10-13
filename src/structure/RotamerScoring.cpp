@@ -8,16 +8,16 @@
  */
 
 #include <numeric>
-#include <IMP/bff/RotamerScoring.h>
-#include <IMP/bff/Mol2IO.h>
-#include <IMP/bff/ProbeRotamer.h>
-#include <IMP/bff/ZMatrix.h>
+#include <IMP/bff/structure/RotamerScoring.h>
+#include <IMP/bff/structure/Mol2IO.h>
+#include <IMP/bff/probe/ProbeRotamer.h>
+#include <IMP/bff/structure/ZMatrix.h>
 
 #include <IMP/bff/internal/OutputView.h>
 
 #include <IMP/bff/internal/Text.h>
 
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <algorithm>
 #include <cctype>

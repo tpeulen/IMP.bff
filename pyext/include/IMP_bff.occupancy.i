@@ -12,4 +12,4 @@
 %ignore IMP::bff::OccupancyGrid::read_window_strided;
 %ignore IMP::bff::OccupancyGrid::set_coordinate_snapshot;
 IMP_SWIG_OBJECT(IMP::bff, OccupancyGrid, OccupancyGrids);
-%include "IMP/bff/OccupancyGrid.h"
+%include "IMP/bff/probe/OccupancyGrid.h"

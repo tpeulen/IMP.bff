@@ -4,7 +4,7 @@ Model search: the MCTS policy, self-play, search specification and the photon ex
 
 - **Inputs:** a model space and an experiment.
 - **Relations:** Uses `fit` and `bayesian`.
-- **Layout:** sources in `src/search/`; the public headers stay flat in `include/` (IMP links only `include/*.h`) and are assigned to this theme in `src/search/Headers.cmake`.
+- **Layout:** sources in `src/search/`, public headers in `include/search/` (reached as `<IMP/bff/search/X.h>`; `<IMP/bff/search.h>` includes them all). The directory is the assignment; `cmake/ThemeHeaders.cmake` links the headers into the build tree.
 
 Public headers: `ModelSearch.h`, `ModelSearchPolicy.h`, `ModelSearchSelfPlay.h`, `ModelSearchSpec.h`, `PhotonExperiment.h`.
 

@@ -14,7 +14,7 @@
     hinge-locking intervention, do(M), does not.
 */
 
-#include <IMP/bff/CausalLinearGaussian.h>
+#include <IMP/bff/bayesian/CausalLinearGaussian.h>
 #include <IMP/flags.h>
 
 #include <cmath>

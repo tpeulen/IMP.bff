@@ -87,7 +87,7 @@ The exceptions are exact:
   where it ships;
 * **programs** are C++ too: one executable, `bin/imp_bff.cpp`, whose
   subcommand groups are the former `bin/` scripts (owner ruling 2026-09-14;
-  grammar in `include/CommandLine.h`, one `src/CommandLine<Group>.cpp` or
+  grammar in `include/util/CommandLine.h`, one `src/CommandLine<Group>.cpp` or
   `src/imp/CommandLine<Group>.cpp` per group). No Python program is left in
   `bin/`;
 * what is genuinely neither — a `%pythoncode` shim restoring a caller's array

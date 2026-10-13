@@ -8,4 +8,4 @@ IMP_SWIG_VALUE(IMP::bff, SequenceConservation, SequenceConservations);
 
 %feature("compactdefaultargs") IMP::bff::compute_sequence_conservation;
 
-%include "IMP/bff/SequenceConservation.h"
+%include "IMP/bff/sequence/SequenceConservation.h"

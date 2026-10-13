@@ -28,9 +28,9 @@
 #include <IMP/atom/pdb.h>
 #include <IMP/log.h>
 
-#include <IMP/bff/FPS.h>
-#include <IMP/bff/PathMap.h>
-#include <IMP/bff/ProbeAccessibleVolumeDecorator.h>
+#include <IMP/bff/probe/FPS.h>
+#include <IMP/bff/probe/PathMap.h>
+#include <IMP/bff/imp/ProbeAccessibleVolumeDecorator.h>
 
 IMPBFF_BEGIN_INTERNAL_NAMESPACE
 namespace cli {

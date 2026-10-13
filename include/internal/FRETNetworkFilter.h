@@ -9,7 +9,7 @@
 #define IMPBFF_INTERNAL_FRETNETWORKFILTER_H
 
 #include <IMP/bff/bff_config.h>
-#include <IMP/bff/FRETNetwork.h>
+#include <IMP/bff/fret/FRETNetwork.h>
 
 #include <vector>
 

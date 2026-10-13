@@ -10,9 +10,9 @@
  * are photon-free, so a derivative costs two small rebuilds, not a pass over
  * the photons.
  */
-#include <IMP/bff/FRETNetwork.h>
-#include <IMP/bff/FRETLandscapeGrid.h>
-#include <IMP/bff/States.h>
+#include <IMP/bff/fret/FRETNetwork.h>
+#include <IMP/bff/fret/FRETLandscapeGrid.h>
+#include <IMP/bff/spectroscopy/States.h>
 #include <IMP/bff/internal/FRETNetworkFilter.h>
 
 #include <Eigen/Dense>

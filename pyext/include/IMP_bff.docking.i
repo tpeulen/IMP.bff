@@ -38,7 +38,7 @@
  * still the pointer form. The reason is ordering -- SWIG needs
  * `std::vector<PairDistance>` to be a *known, copyable* class when it parses
  * `DockingResult::pairs`, and the `%template` below necessarily comes after
- * `%include "IMP/bff/Docking.h"`, which is where `PairDistance` is declared in
+ * `%include "IMP/bff/imp/Docking.h"`, which is where `PairDistance` is declared in
  * the first place. Fixing it means splitting the header or forward-declaring
  * into a `%template`, neither of which belongs in a change about FPS scoring.
  */
@@ -75,7 +75,7 @@ IMP_SWIG_OBJECT(IMP::bff, ScoreTrace, ScoreTraces);
 %feature("kwargs") IMP::bff::pose_rmsd;
 %feature("kwargs") IMP::bff::pose_superposition;
 
-%include "IMP/bff/Docking.h"
+%include "IMP/bff/imp/Docking.h"
 
 %template(PairDistanceList) std::vector<IMP::bff::PairDistance>;
 %template(ScreenedStructureList) std::vector<IMP::bff::ScreenedStructure>;

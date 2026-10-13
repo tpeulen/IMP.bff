@@ -5,7 +5,7 @@
  * \authors Thomas-Otavio Peulen
  *  Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
-#include <IMP/bff/PhotophysicsCrosstalkMatrix.h>
+#include <IMP/bff/spectroscopy/PhotophysicsCrosstalkMatrix.h>
 #include <IMP/bff/internal/CrosstalkMixing.h>
 #include <IMP/bff/internal/DampedNewton.h>
 

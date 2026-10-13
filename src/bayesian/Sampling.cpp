@@ -8,8 +8,8 @@
  * PRD-147 amendment A2 (R2): a sampler exists by being registered; nothing here lists samplers.
  */
 
-#include <IMP/bff/Sampling.h>
-#include <IMP/bff/Registry.h>
+#include <IMP/bff/bayesian/Sampling.h>
+#include <IMP/bff/util/Registry.h>
 
 #include <IMP/bff/internal/json.h>
 #include <IMP/bff/internal/ordered_map.h>

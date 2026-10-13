@@ -1,4 +1,4 @@
-#include <IMP/bff/MMFDBProfile.h>
+#include <IMP/bff/structure/MMFDBProfile.h>
 /**
  * \file MMFDBProfile.cpp
  * \brief PTO.MFDB — the vocabulary layer over the PTO container.

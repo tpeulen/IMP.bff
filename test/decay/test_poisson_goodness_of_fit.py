@@ -20,7 +20,7 @@ import pytest
 from bayesian_cxx import run_driver
 
 DRIVER = r"""
-#include <IMP/bff/FitStatistics.h>
+#include <IMP/bff/fit/FitStatistics.h>
 #include <cstdio>
 #include <iostream>
 using namespace IMP::bff;

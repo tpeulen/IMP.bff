@@ -13,10 +13,10 @@
 #else
 #include <unistd.h>
 #endif
-#include <IMP/bff/StripMask.h>
+#include <IMP/bff/fit/StripMask.h>
 
 
-#include <IMP/bff/IMPCompatibility.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <cctype>
 #include <cstdio>
