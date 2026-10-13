@@ -14,3 +14,9 @@ src/ and include/ are laid out by the same themes: sources in `src/<theme>/`, pu
 * [structure](structure.md) - Structure and trajectory I/O, selections, clustering, surfaces
 * [sequence](sequence.md) - Sequences: alignment, MSA, conservation, coevolution
 * [smlm](smlm.md) - Single-molecule localisation: particles, likelihoods, registration
+
+## Where to pick this up
+
+1. **Standalone wheel build not compiled after the header split.** Measured: `cmake -S standalone` configures and stages `IMP/bff/<theme>/` (165 headers in the wrapper aggregate = 186 public − 20 `imp/` − `IMPCompatibility.h`), and `test/expensive_test_standalone_core_compiles.py` syntax-checks the whole core against the themed tree; a full `pip wheel .` was not run. It is what chisurf installs (`imp-bff` from git, branch `dev`), so the split reaches chisurf only after a push and a pin bump -- run the wheel build before pushing.
+2. **Existing build trees on case-insensitive disks.** The first configure after the split lost `fret.h`/`smlm.h` to IMP's stale-link cleanup (old `FRET.h`/`SMLM.h`); `cmake/ThemeHeaders.cmake` re-links missing umbrellas. Also: `git add` of the removed `include/FRET.h` on macOS staged the new `fret.h` content under the old name -- check `git ls-tree HEAD include/` after any case-only rename.
+3. **Out-of-repo C++ that includes flat paths** still compiles only against an old install: `ucfret/investigation/pinn_pR_anisotropy/s89_cpp/*` names `<IMP/bff/X.h>`. Rewrite with the theme of `include/<theme>/X.h` when that investigation is next built.
