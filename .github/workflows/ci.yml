@@ -234,7 +234,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: imp-bld
-          key: custom-imp-bff-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('conda-recipe/imp/**', 'CMakeLists.txt', 'Headers.cmake', 'src/**', 'include/**', 'pyext/**', 'thirdparty/ptolib/**', 'data/**', 'examples/**', 'bin/**', 'cmake/**') }}
+          key: custom-imp-bff-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('conda-recipe/imp/**', 'CMakeLists.txt', 'Setup.cmake', 'src/**', 'include/**', 'pyext/**', 'thirdparty/ptolib/**', 'data/**', 'examples/**', 'bin/**', 'cmake/**') }}
       - name: Build our imp
         if: steps.imp-package-cache.outputs.cache-hit != 'true'
         shell: bash -e {0}
@@ -257,7 +257,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: imp-bld
-          key: custom-imp-bff-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('conda-recipe/imp/**', 'CMakeLists.txt', 'Headers.cmake', 'src/**', 'include/**', 'pyext/**', 'thirdparty/ptolib/**', 'data/**', 'examples/**', 'bin/**', 'cmake/**') }}
+          key: custom-imp-bff-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('conda-recipe/imp/**', 'CMakeLists.txt', 'Setup.cmake', 'src/**', 'include/**', 'pyext/**', 'thirdparty/ptolib/**', 'data/**', 'examples/**', 'bin/**', 'cmake/**') }}
       - name: Compiler cache statistics
         if: always()
         continue-on-error: true
