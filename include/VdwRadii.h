@@ -146,8 +146,13 @@ IMPBFFEXPORT std::string olga_vdw_radii_csv();
     numbers (owner, 2026-10-12: one atom-radius set for accessible volumes
     everywhere, IMP's radii times #IMP::bff::AV_DEFAULT_RADIUS_SCALE). A key
     the table does not carry takes IMP's own default for an untyped atom,
-    #IMP::bff::get_imp_atom_default_radius() (1.7 A) -- ligands, waters and
-    unusual residues, exactly as `read_pdb` treats them.
+    #IMP::bff::get_imp_atom_default_radius() (1.7 A) -- waters, and ligands
+    and unusual residues the CHARMM topology does not know, exactly as
+    `read_pdb` treats them. Cofactors it does know (ATP, GTP, HEME, NAD, MG,
+    ...) are typed from HETATM records too, and carry their rows.
+
+    \p atom_name is the name in the file (`C1'`). IMP's own spelling of a
+    HETATM type, `HET: C1'`, names the same atom and is accepted.
     `test/representation/test_imp_atom_radii.py` holds every atom of the
     shipped fixtures equal to `read_pdb`'s radius.
 

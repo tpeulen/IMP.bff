@@ -9,13 +9,19 @@ without linking IMP. Two sources, unioned:
 
 1. every standard residue built from IMP's CHARMM topology, once inside a
    GLY-X-GLY (or DA-X-DA / A-X-A) segment and once alone (both termini
-   patched), read back under the names IMP writes;
+   patched), read back under the names IMP writes; and every other residue
+   of that topology (``top.lib``: ATP, GTP, HEME, MG, NAD, ...) alone;
 2. every ``*.pdb`` under the given roots read with ``read_pdb`` and a
    ``NonWaterPDBSelector`` -- the spellings real files use (``C5*``, ``O1P``,
    ``1HG2``), which IMP maps onto the same CHARMM types.
 
 The topology build wins where they disagree. Rows equal to IMP's default are
 dropped, because the lookup returns the default for a missing key anyway.
+
+Atom names are keyed **bare**: IMP spells a HETATM record's type ``HET: C1'``,
+and CHARMM types it by residue and name all the same (an ADP from a HETATM
+record gets the ADP topology's radii), so the key is the name in the file,
+``C1'`` -- what every caller without IMP has.
 
 Run in an environment with the full IMP (the ``arm64`` env here)::
 
@@ -47,6 +53,9 @@ def collect(hierarchy, out):
             continue
         res = IMP.atom.Residue(parent).get_residue_type().get_string()
         name = IMP.atom.Atom(a).get_atom_type().get_string()
+        if name.startswith("HET:"):
+            name = name[4:]
+        name = name.strip()
         out[(res, name)][round(IMP.core.XYZR(a).get_radius(), 6)] += 1
 
 
@@ -68,11 +77,32 @@ def topology_radii():
         ff.add_radii(h)
         collect(h, out)
 
+    done = set()
     for family in (AMINO.split(), ["DA", "DC", "DG", "DT"], ["A", "C", "G", "U"]):
         for x in family:
             build([family[0], x, family[0]])
             build([x])
+            done.add(x)
+    # the rest of the topology -- ligands, cofactors, ions -- alone
+    for x in topology_residues():
+        if x in done:
+            continue
+        try:
+            build([x])
+        except Exception:
+            continue
     return out
+
+
+def topology_residues():
+    """Every RESI of the all-atom topology, under the name IMP keys it by."""
+    names = []
+    with open(IMP.atom.get_data_path("top.lib")) as fh:
+        for line in fh:
+            if line.startswith("RESI"):
+                name = line.split()[1]
+                names.append("HIS" if name == "HSD" else name)
+    return names
 
 
 def file_radii(roots):

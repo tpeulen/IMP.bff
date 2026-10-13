@@ -11,7 +11,9 @@
  * when the radius has to be the one a docking score measures clashes against,
  * which is the particle's radius after `IMP::atom::read_pdb`
  * (see #IMP/bff/VdwRadii.h for why the two may not be mixed), and it does not
- * read mmCIF at all.
+ * read mmCIF at all. #IMP::bff::parse_structure_table is the core's twin of
+ * this reader: IMP's selection, ordering, element and radius rules restated
+ * without IMP, filling the same table, for a build that has no IMP to link.
  *
  * This is the other road. It belongs to the connection layer -- it exists
  * only where IMP is linked -- but it names no IMP type, which is what lets it

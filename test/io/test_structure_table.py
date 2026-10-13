@@ -152,3 +152,45 @@ def test_is_standard_residue_knows_both_nucleotide_spellings():
         assert not IMP.bff.is_standard_residue(name)
     # whitespace and case are the file's business, not the caller's
     assert IMP.bff.is_standard_residue(" ala ")
+
+
+# --- the core's twin: parse_structure_table ---------------------------------
+# The same table without IMP (test_parse_structure_table.py has the rules on
+# synthetic files). Here the two readers meet on every shipped structure.
+
+_TWIN_FIXTURES = sorted(
+    p for p in list((REPO / "examples" / "structure").rglob("*.pdb"))
+    + list((REPO / "examples" / "structure").rglob("*.cif"))
+    + list((REPO / "test" / "input" / "labelizer").glob("*.pdb"))
+    if p.stat().st_size < 3_000_000)
+
+
+@pytest.mark.parametrize("path", _TWIN_FIXTURES, ids=lambda p: p.name)
+@pytest.mark.parametrize("keep_water", [False, True])
+def test_the_core_reader_is_imps_reader(path, keep_water):
+    """Every column, atom for atom: IMP's reader and the core's restatement of it.
+
+    Radii are IMP's at single precision except where CHARMM leaves an atom
+    untyped (IMP: exactly 1.7; the core: 1.7 at single precision), hence 1e-6.
+    Equal residue numbers (insertion codes) are ordered by IMP's unstable
+    sort there and by file order here, so rows are compared as sorted sets
+    within each (chain, residue number)."""
+    kw = dict(keep_water=keep_water, only_standard_residues=False,
+              radius_no_interaction=False)
+    imp = IMP.bff.read_structure_table(str(path), **kw)
+    core = IMP.bff.parse_structure_table(str(path), **kw)
+    assert core.n_atoms == imp.n_atoms
+
+    def rows(t):
+        xyz = np.asarray(t.xyz).reshape(-1, 3)
+        return [(c, int(r), i, rn, a, e, int(aid), tuple(x), float(b), float(m), float(rad))
+                for c, r, i, rn, a, e, aid, x, b, m, rad in zip(
+                    t.chain, t.res_id, t.insertion_code, t.res_name, t.atom_name,
+                    t.element, t.atom_id, xyz, t.bfactor, t.mass, t.radius)]
+
+    got, want = rows(core), rows(imp)
+    assert [r[:2] for r in got] == [r[:2] for r in want]
+    for a, b in zip(sorted(got), sorted(want)):
+        assert a[:9] == b[:9]
+        assert a[9] == b[9]
+        assert a[10] == pytest.approx(b[10], abs=1e-6)

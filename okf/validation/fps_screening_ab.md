@@ -39,6 +39,16 @@ tags: [validation, fps, screening, av, acv, radii, radius-scale, prd-121]
    SASA, the dye sampler's label particles). Still different between the two
    doors: the atom *set* (the file door keeps waters at IMP's 1.7 A default;
    the structure door drops them).
+   **Fixed 2026-10-13:** the table keyed hetero atoms by IMP's internal
+   spelling (`("ADP", "HET: C1'")`, 92 rows), which no file-door caller has, so
+   every typed cofactor atom (ADP, HEME, Mg2+ ...) read from a file took 1.7 A
+   instead of IMP's radius (1F5N's Mg: 1.7 vs 1.65). Keys are the bare name
+   now (`HET:` still accepted), and the generator also builds every other
+   residue of IMP's CHARMM topology (ATP, GTP, GDP, NAD, ...): 662 -> 1186
+   rows, none changed, equal to `read_pdb`/`read_mmcif` by bare name on every
+   atom of 17 fixtures. `parse_structure_table` (StructureTable.h) is the
+   core's twin of the structure door's reader -- its atom set, order and
+   numbers without IMP -- for an install that has no IMP to link.
 0. **The attachment atom and the allowed sphere were never what emptied the
    sites (2026-10-12, owner: "the attachment site must be excluded, also
    allowed sphere radius must be enabled by default").** Both were already in

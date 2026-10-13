@@ -114,6 +114,7 @@ StructureTable read_structure_table(const std::string& path, bool keep_water,
     table.res_name.reserve(n);
     table.atom_name.reserve(n);
     table.element.reserve(n);
+    table.insertion_code.reserve(n);
 
     // The radius at which the 6-12 potential is zero rather than its minimum:
     // E = eij ((Rmin/rij)^12 - 2 (Rmin/rij)^6) is zero at 2^(-1/6) Rmin.
@@ -176,6 +177,10 @@ StructureTable read_structure_table(const std::string& path, bool keep_water,
         table.res_name.push_back(res_name);
         table.atom_name.push_back(bare_atom_name(atom));
         table.element.push_back(element_it->second);
+        const char icode = residue.get_insertion_code();
+        table.insertion_code.push_back(
+                (icode == ' ' || icode == '\0') ? std::string()
+                                                 : std::string(1, icode));
     }
 
     return table;
