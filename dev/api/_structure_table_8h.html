@@ -115,6 +115,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a5c023a8db2e39dfc74fec85b355bf686" id="r_a5c023a8db2e39dfc74fec85b355bf686"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_structure_table_8h.html#a5c023a8db2e39dfc74fec85b355bf686">is_standard_residue</a> (const std::string &amp;res_name)</td></tr>
 <tr class="memdesc:a5c023a8db2e39dfc74fec85b355bf686"><td class="mdescLeft">&#160;</td><td class="mdescRight">Is this a standard amino-acid or nucleotide residue name?  <br /></td></tr>
 <tr class="separator:a5c023a8db2e39dfc74fec85b355bf686"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a63eea7ff38d653d874495071173ec66b" id="r_a63eea7ff38d653d874495071173ec66b"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT <a class="el" href="struct_structure_table.html">StructureTable</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_structure_table_8h.html#a63eea7ff38d653d874495071173ec66b">parse_structure_table</a> (const std::string &amp;path, bool keep_water=false, bool only_standard_residues=true, bool radius_no_interaction=true)</td></tr>
+<tr class="memdesc:a63eea7ff38d653d874495071173ec66b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a PDB or mmCIF into a #IMP::bff::StructureTable without <a class="el" href="namespace_i_m_p.html">IMP</a>.  <br /></td></tr>
+<tr class="separator:a63eea7ff38d653d874495071173ec66b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="ac708c4e790366d9ad832b8995d93b0d2" name="ac708c4e790366d9ad832b8995d93b0d2"></a>
@@ -166,10 +169,78 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a63eea7ff38d653d874495071173ec66b" name="a63eea7ff38d653d874495071173ec66b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a63eea7ff38d653d874495071173ec66b">&#9670;&#160;</a></span>parse_structure_table()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">IMPBFFEXPORT <a class="el" href="struct_structure_table.html">StructureTable</a> parse_structure_table </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>path</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>keep_water</em> = <code>false</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>only_standard_residues</em> = <code>true</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>radius_no_interaction</em> = <code>true</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read a PDB or mmCIF into a #IMP::bff::StructureTable without <a class="el" href="namespace_i_m_p.html">IMP</a>. </p>
+<p>The core's reader for the table <a class="el" href="_structure_reader_8h.html#a6fb57f048068e7852b19acf3c15a6b54" title="Read a PDB or mmCIF into a #IMP::bff::StructureTable through IMP&#39;s readers.">read_structure_table</a> fills through <code>IMP::atom</code> &ndash; the same atoms, in the same order, with the same numbers, so a caller that has only the core reads a structure the way the <a class="el" href="namespace_i_m_p.html">IMP</a> module build does. What it reproduces, rule by rule:</p>
+<ul>
+<li><b>the atom set</b> of <a class="el" href="namespace_i_m_p.html">IMP</a>'s default selector: every ATOM and HETATM record, hydrogens and ligands included, except water (<code>HOH</code>, <code>DOD</code>) unless <code>keep_water</code>, and except alternate locations other than blank or <code>A</code>. Only the first model: a PDB is read up to its second <code>MODEL</code> record, an mmCIF's rows of any other <code>pdbx_PDB_model_num</code> are skipped.</li>
+<li><b>the order</b>: chains in file order and residues sorted by number within a chain. A PDB chain is a run of one chain identifier, so a chain that comes back after another (ligands after <code>TER</code>) is a chain of its own; an mmCIF chain is one author chain identifier however its rows are spread. The sort is stable, so residues sharing a number (insertion codes) keep their file order.</li>
+<li><b>the numbers</b>: coordinates and B-factors at single precision, as <a class="el" href="namespace_i_m_p.html">IMP</a> stores them; the residue number of a PDB as a 16-bit integer; an mmCIF residue's number and insertion code from <code>auth_seq_id</code> (<code>12B</code> is 12, <code>B</code>), falling back to <code>label_seq_id</code>.</li>
+<li><b>the element</b> from the element column, else from the atom name by <a class="el" href="namespace_i_m_p.html">IMP</a>'s rule (the first letter of an ATOM name, the first two of a HETATM name); <code>Un</code>, mass 0, when neither names one. The mass is <a class="el" href="namespace_i_m_p.html">IMP</a>'s element table.</li>
+<li><b>the radius</b> #IMP::bff::imp_atom_radius by residue and atom name &ndash; the radius <code>IMP::atom::read_pdb</code> gives the particle &ndash; rounded to single precision as <a class="el" href="namespace_i_m_p.html">IMP</a>'s CHARMM table stores it. An atom CHARMM leaves untyped (a ligand's) <a class="el" href="namespace_i_m_p.html">IMP</a> gives exactly 1.7 where this gives 1.7 at single precision, 5e-8 A apart.</li>
+<li><b>the atom name</b> without <a class="el" href="namespace_i_m_p.html">IMP</a>'s <code>HET:</code> prefix, as <a class="el" href="_structure_reader_8h.html#a6fb57f048068e7852b19acf3c15a6b54" title="Read a PDB or mmCIF into a #IMP::bff::StructureTable through IMP&#39;s readers.">read_structure_table</a> reports it.</li>
+</ul>
+<p><code>atom_id</code> is the record's serial number (<code>_atom_site.id</code>).</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">path</td><td>the coordinate file; <code>.pdb</code>/<code>.ent</code> or <code>.cif</code>/<code>.mmcif</code> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">keep_water</td><td>keep <code>HOH</code>/<code>DOD</code> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">only_standard_residues</td><td>drop residues that are not <a class="el" href="_structure_table_8h.html#a5c023a8db2e39dfc74fec85b355bf686" title="Is this a standard amino-acid or nucleotide residue name?">is_standard_residue</a> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">radius_no_interaction</td><td>report <picture><source srcset="form_426_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$2^{-1/6} R_{min}$" src="form_426.png"/></picture> rather than <picture><source srcset="form_374_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_{min}$" src="form_374.png"/></picture>, as <a class="el" href="_structure_reader_8h.html#a6fb57f048068e7852b19acf3c15a6b54" title="Read a PDB or mmCIF into a #IMP::bff::StructureTable through IMP&#39;s readers.">read_structure_table</a> does </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">ValueException</td><td>for an extension this does not read, including a compressed one </td></tr>
+    <tr><td class="paramname">IOException</td><td>when the file cannot be opened or parsed </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Oct 12 2026 14:13:14 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Oct 13 2026 07:40:35 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

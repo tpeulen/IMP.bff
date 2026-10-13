@@ -86,13 +86,13 @@ Collaboration diagram for StructureTable:</div>
 <div class="dyncontent">
 <div class="center"><img src="struct_structure_table__coll__graph.png" border="0" usemap="#a_structure_table_coll__map" alt="Collaboration graph"/></div>
 <map name="a_structure_table_coll__map" id="a_structure_table_coll__map">
-<area shape="rect" title="A coordinate file as parallel columns, one entry per atom." alt="" coords="155,435,349,780"/>
+<area shape="rect" title="A coordinate file as parallel columns, one entry per atom." alt="" coords="155,449,349,795"/>
 <area shape="rect" title=" " alt="" coords="5,263,163,328"/>
-<area shape="poly" title=" " alt="" coords="103,327,153,419,149,422,99,329"/>
+<area shape="poly" title=" " alt="" coords="103,327,158,433,153,436,98,330"/>
 <area shape="rect" title=" " alt="" coords="187,263,317,328"/>
-<area shape="poly" title=" " alt="" coords="255,328,255,418,249,418,249,328"/>
+<area shape="poly" title=" " alt="" coords="255,328,255,433,249,433,249,328"/>
 <area shape="rect" title=" " alt="" coords="341,263,520,328"/>
-<area shape="poly" title=" " alt="" coords="415,329,359,426,354,423,410,327"/>
+<area shape="poly" title=" " alt="" coords="416,330,357,436,352,434,411,327"/>
 <area shape="rect" title=" " alt="" coords="391,135,470,200"/>
 <area shape="poly" title=" " alt="" coords="433,200,433,246,428,246,428,200"/>
 <area shape="rect" title=" " alt="" coords="365,5,496,85"/>
@@ -162,6 +162,9 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a157ec850e4878e7c093dc76cd09ddaa3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8f778206c1b9101081a4da4893be61a7" id="r_a8f778206c1b9101081a4da4893be61a7"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_structure_table.html#a8f778206c1b9101081a4da4893be61a7">element</a></td></tr>
 <tr class="separator:a8f778206c1b9101081a4da4893be61a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf52d198f2c2ba4163ca3835e8a56306" id="r_adf52d198f2c2ba4163ca3835e8a56306"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_structure_table.html#adf52d198f2c2ba4163ca3835e8a56306">insertion_code</a></td></tr>
+<tr class="memdesc:adf52d198f2c2ba4163ca3835e8a56306"><td class="mdescLeft">&#160;</td><td class="mdescRight">The residue's insertion code, one character or empty when it has none.  <br /></td></tr>
+<tr class="separator:adf52d198f2c2ba4163ca3835e8a56306"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A coordinate file as parallel columns, one entry per atom. </p>
@@ -648,6 +651,23 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="adf52d198f2c2ba4163ca3835e8a56306" name="adf52d198f2c2ba4163ca3835e8a56306"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adf52d198f2c2ba4163ca3835e8a56306">&#9670;&#160;</a></span>insertion_code</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;std::string&gt; StructureTable::insertion_code</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The residue's insertion code, one character or empty when it has none. </p>
+<p>A residue is <code>(chain, res_id, insertion_code)</code>: <code>res_id</code> alone names two residues wherever a file inserts one (<code>60</code>, <code>60A</code>). </p>
+
+</div>
+</div>
 <a id="aa918438525e12b25933fe8caae7ce197" name="aa918438525e12b25933fe8caae7ce197"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa918438525e12b25933fe8caae7ce197">&#9670;&#160;</a></span>mass</h2>
 
@@ -732,7 +752,7 @@ Public Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Oct 12 2026 14:13:15 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Tue Oct 13 2026 07:40:35 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
