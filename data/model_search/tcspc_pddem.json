@@ -61,7 +61,7 @@
     "label": "Rotational correlation times"
    },
    "static_orientation": {
-    "label": "Static isotropic κ²",
+    "label": "Static κ²",
     "kind": "flag"
    },
    "kappa2_bins": {
@@ -271,6 +271,12 @@
   "background_pattern",
   "linearization_curve"
  ],
+ "ports": {
+  "kappa2_distribution": {
+   "label": "Static κ² distribution, interleaved (w, κ²); empty is isotropic",
+   "default": []
+  }
+ },
  "axes": {
   "d": {
    "from": "donor_lifetimes",
@@ -669,7 +675,7 @@
      "orientation": {
       "options": [
        "dynamic",
-       "static_isotropic"
+       "static"
       ],
       "index": "static_orientation"
      },
@@ -680,7 +686,8 @@
      "distance_distribution": "distances",
      "forster_radius": "#fret.forster_radius",
      "tau0": "#fret.tau0",
-     "kappa2": "#fret.kappa2"
+     "kappa2": "#fret.kappa2",
+     "kappa2_distribution": "$kappa2_distribution"
     },
     "outputs": {
      "@name": "float_vector",

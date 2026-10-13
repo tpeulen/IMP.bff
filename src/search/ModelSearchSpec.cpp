@@ -1522,16 +1522,40 @@ std::shared_ptr<FittingModelSearchProblem> ModelSearchSpec::build_over(
           }
           std::map<std::string, std::shared_ptr<GraphPort> >::const_iterator
               bound = impl_->ports.find(name);
-          if (bound == impl_->ports.end()) {
-            refuse(input_where + " reads the port '" + name +
-                   "', which nothing bound");
+          std::shared_ptr<GraphPort> source;
+          if (bound != impl_->ports.end()) {
+            source = bound->second;
+          } else {
+            // A port the description gives a default for (a prior, an
+            // orientation-factor distribution whose absence means isotropic)
+            // reads that default until something is bound to it.
+            const SpecJson& info = (*declared)[name];
+            SpecJson::const_iterator fallback =
+                info.is_object() ? info.find("default") : info.end();
+            if (fallback == info.end() || !fallback->is_array()) {
+              refuse(input_where + " reads the port '" + name +
+                     "', which nothing bound");
+            }
+            std::vector<double> values;
+            for (SpecJson::const_iterator v = fallback->begin();
+                 v != fallback->end(); ++v) {
+              if (!v->is_number()) {
+                refuse(input_where + ": the default of the port '" + name +
+                       "' is not a list of numbers");
+              }
+              values.push_back(v->get<double>());
+            }
+            source = std::make_shared<GraphPort>(
+                values, false, false, false, false, 0.0, 0.0,
+                GRAPH_PORT_FLOAT_VECTOR);
+            source->set_sanitize(false);
           }
           std::shared_ptr<GraphPort> port = node->get_input_port(port_name);
           if (!port) {
             port = std::make_shared<GraphPort>(std::vector<double>(1, 0.0));
             node->add_input_port(port_name, port);
           }
-          port->set_link(bound->second);
+          port->set_link(source);
           continue;
         }
 

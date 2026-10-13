@@ -52,7 +52,8 @@ IMPBFF_BEGIN_NAMESPACE
  * | `x_donly` | fraction of the sample carrying no acceptor |
  * | `forster_radius` | $R_0$, in the units of the distances |
  * | `tau0` | the donor lifetime $R_0$ was determined at |
- * | `kappa2` | the orientation factor |
+ * | `kappa2` | the orientation factor (`dynamic`) |
+ * | `kappa2_distribution` | interleaved `(w, kappa^2)` (`static`); empty is isotropic |
  *
  * \par R0 and tau0 are a pair
  * The transfer rate uses the node's own `tau0` -- the donor lifetime at which
@@ -68,12 +69,17 @@ IMPBFF_BEGIN_NAMESPACE
  * kappa^2 from a distribution, and a distance and an orientation factor make
  * one transfer rate together, `k = 3/2 kappa^2 / tau0 (R0/r)^6`. The
  * distribution arrives on the port `kappa2_distribution` as interleaved
- * `(w, kappa^2)`, or is the isotropic one (`"static_isotropic"`, the density on
- * `kappa2_points` points over `[0.01, 4]`, 128 as ChiSurf samples it). With
+ * `(w, kappa^2)` -- a histogram or weighted samples, any normalisation, such
+ * as one computed from accessible-volume orientations -- or is the isotropic
+ * one: the density on `kappa2_points` points over `[0.01, 4]`, 128 as ChiSurf
+ * samples it. `"static"` with the port empty (its default) is isotropic, and
+ * `"static_isotropic"` is isotropic whatever the port holds. With
  * `kappa2_bins` 0 every pair is its own species; otherwise the pairs are
  * histogrammed by apparent distance `r (<kappa^2>/kappa^2)^(1/6)` into that
  * many linear bins, whose rates use `<kappa^2>` -- the same rate for a pair at
- * a bin centre, and far fewer species for the instrument to reconvolve.
+ * a bin centre, and far fewer species for the instrument to reconvolve. Only
+ * where there are more pairs than bins: fewer pairs stay exact, so a delta
+ * distribution at `kappa^2` is the dynamic model at `kappa^2`.
  *
  * Besides the lifetime spectrum (the output keyed by the node's name), an
  * output named `fret_rates`, where one exists, receives the interleaved

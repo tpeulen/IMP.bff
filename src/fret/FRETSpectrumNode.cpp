@@ -36,8 +36,14 @@ void FRETSpectrumNode::build_ports() {
   spectrum_node_detail::add_scalar_port(this, "forster_radius", 52.0, &forster_radius_port_);
   spectrum_node_detail::add_scalar_port(this, "tau0", 4.0, &tau0_port_);
   spectrum_node_detail::add_scalar_port(this, "kappa2", 2.0 / 3.0, &kappa2_port_);
-  // Read only under `orientation: "static"`.
-  std::shared_ptr<GraphPort> kappa2s(new GraphPort(std::vector<double>{1.0, 2.0 / 3.0}));
+  // Read only under `orientation: "static"`. Empty, the default, is the
+  // isotropic distribution: a static average nobody gave a distribution for
+  // is the one of randomly and rigidly oriented dipoles.
+  // Float-typed explicitly: an empty vector port is otherwise an integer one,
+  // and a distribution written into it later would be truncated.
+  std::shared_ptr<GraphPort> kappa2s(new GraphPort(
+      std::vector<double>(), false, false, false, false, 0.0, 0.0,
+      GRAPH_PORT_FLOAT_VECTOR));
   kappa2s->set_sanitize(false);
   add_input_port("kappa2_distribution", kappa2s);
   set_valid(false);
@@ -188,7 +194,10 @@ std::vector<double> FRETSpectrumNode::transfer_rates(
 
   // The orientation factors, as normalised masses.
   std::vector<double> k2, mass;
-  if (orientation_ == "static_isotropic") {
+  const std::shared_ptr<GraphPort> given = get_input_port("kappa2_distribution");
+  const bool isotropic = orientation_ == "static_isotropic" || !given ||
+                         given->get_values_ref().empty();
+  if (isotropic) {
     const std::vector<double> grid = [&] {
       std::vector<double> g(static_cast<std::size_t>(kappa2_points_));
       for (int i = 0; i < kappa2_points_; ++i) {
@@ -209,8 +218,7 @@ std::vector<double> FRETSpectrumNode::transfer_rates(
     mass.assign(view, view + n_view);
     std::free(view);
   } else {
-    const std::shared_ptr<GraphPort> port = get_input_port("kappa2_distribution");
-    const std::vector<double>& values = port->get_values_ref();
+    const std::vector<double>& values = given->get_values_ref();
     spectrum_node_detail::check_interleaved(
         "FRETSpectrumNode '" + get_name() + "' (kappa2)", values);
     for (std::size_t i = 0; i < values.size(); i += 2) {
@@ -230,7 +238,13 @@ std::vector<double> FRETSpectrumNode::transfer_rates(
     k2_mean += mass[k] * k2[k];
   }
 
-  if (kappa2_bins_ == 0) {
+  // Binning exists to cut the number of species; where the pairs are no more
+  // than the bins it would only move each rate to a bin centre. So a narrow
+  // computed distribution -- a delta above all, which is then exactly the
+  // dynamic model -- stays exact, and the isotropic one (128 points times a
+  // distance axis) is binned as before.
+  if (kappa2_bins_ == 0 ||
+      n_distances * k2.size() <= static_cast<std::size_t>(kappa2_bins_)) {
     // Every (distance, orientation factor) pair is a species of its own.
     std::vector<double> rates;
     rates.reserve(2 * n_distances * k2.size());
