@@ -452,7 +452,7 @@ std::vector<ParsedChain> parse_mmcif(const std::string& path, bool keep_water) {
     return rows.chains;
 }
 
-std::string lower_extension(const std::string& path) {
+std::string structure_file_extension(const std::string& path) {
     const std::size_t dot = path.find_last_of('.');
     if (dot == std::string::npos) return std::string();
     std::string ext = path.substr(dot);
@@ -470,7 +470,7 @@ StructureTable parse_structure_table(const std::string& path, bool keep_water,
                                      bool only_standard_residues,
                                      bool radius_no_interaction) {
     using namespace parse_structure_detail;
-    const std::string ext = lower_extension(path);
+    const std::string ext = structure_file_extension(path);
     if (ext == ".gz" || ext == ".bz2" || ext == ".zip" || ext == ".xz") {
         IMP_THROW("parse_structure_table: " << path
                   << " is compressed; decompress it first.",
