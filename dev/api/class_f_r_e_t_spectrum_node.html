@@ -305,10 +305,12 @@ Additional Inherited Members</h2></td></tr>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>tau0</code>   </td><td class="markdownTableBodyNone">the donor lifetime $R_0$ was determined at    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>kappa2</code>   </td><td class="markdownTableBodyNone">the orientation factor   </td></tr>
+<td class="markdownTableBodyNone"><code>kappa2</code>   </td><td class="markdownTableBodyNone">the orientation factor (<code>dynamic</code>)    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>kappa2_distribution</code>   </td><td class="markdownTableBodyNone">interleaved <code>(w, kappa^2)</code> (<code>static</code>); empty is isotropic   </td></tr>
 </table>
 <dl class="section user"><dt>R0 and tau0 are a pair</dt><dd>The transfer rate uses the node's own <code>tau0</code> &ndash; the donor lifetime at which <code>forster_radius</code> was determined &ndash; for every donor component, never each component's lifetime: R0^6 scales with the donor quantum yield and Q_D/tau_D is the radiative rate, so one (R0, tau0) pair fixes k_FRET at a distance. Pass the two together. <a class="el" href="_photophysics_transfer_kinetics_8h.html">PhotophysicsTransferKinetics.h</a> takes these rates.</dd></dl>
-<dl class="section user"><dt>Orientation</dt><dd><code>kappa2</code> is one orientation factor for every molecule &ndash; dipoles that reorient fast against the donor's lifetime (<code>orientation: "dynamic"</code>, the default). For dipoles that stay put (<code>"static"</code>), each molecule has its own kappa^2 from a distribution, and a distance and an orientation factor make one transfer rate together, <code>k = 3/2 kappa^2 / tau0 (R0/r)^6</code>. The distribution arrives on the port <code>kappa2_distribution</code> as interleaved <code>(w, kappa^2)</code>, or is the isotropic one (<code>"static_isotropic"</code>, the density on <code>kappa2_points</code> points over <code>[0.01, 4]</code>, 128 as ChiSurf samples it). With <code>kappa2_bins</code> 0 every pair is its own species; otherwise the pairs are histogrammed by apparent distance <code>r (&lt;kappa^2&gt;/kappa^2)^(1/6)</code> into that many linear bins, whose rates use <code>&lt;kappa^2&gt;</code> &ndash; the same rate for a pair at a bin centre, and far fewer species for the instrument to reconvolve.</dd></dl>
+<dl class="section user"><dt>Orientation</dt><dd><code>kappa2</code> is one orientation factor for every molecule &ndash; dipoles that reorient fast against the donor's lifetime (<code>orientation: "dynamic"</code>, the default). For dipoles that stay put (<code>"static"</code>), each molecule has its own kappa^2 from a distribution, and a distance and an orientation factor make one transfer rate together, <code>k = 3/2 kappa^2 / tau0 (R0/r)^6</code>. The distribution arrives on the port <code>kappa2_distribution</code> as interleaved <code>(w, kappa^2)</code> &ndash; a histogram or weighted samples, any normalisation, such as one computed from accessible-volume orientations &ndash; or is the isotropic one: the density on <code>kappa2_points</code> points over <code>[0.01, 4]</code>, 128 as ChiSurf samples it. <code>"static"</code> with the port empty (its default) is isotropic, and <code>"static_isotropic"</code> is isotropic whatever the port holds. With <code>kappa2_bins</code> 0 every pair is its own species; otherwise the pairs are histogrammed by apparent distance <code>r (&lt;kappa^2&gt;/kappa^2)^(1/6)</code> into that many linear bins, whose rates use <code>&lt;kappa^2&gt;</code> &ndash; the same rate for a pair at a bin centre, and far fewer species for the instrument to reconvolve. Only where there are more pairs than bins: fewer pairs stay exact, so a delta distribution at <code>kappa^2</code> is the dynamic model at <code>kappa^2</code>.</dd></dl>
 <p>Besides the lifetime spectrum (the output keyed by the node's name), an output named <code>fret_rates</code>, where one exists, receives the interleaved <code>(p, k_FRET)</code> transfer rates per distance, before any donor is combined. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a0510a0a0c3ef6dedc687a82dcd123a84" name="a0510a0a0c3ef6dedc687a82dcd123a84"></a>
@@ -627,12 +629,12 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>/home/runner/work/IMP.bff/IMP.bff/include/<a class="el" href="_f_r_e_t_spectrum_node_8h_source.html">FRETSpectrumNode.h</a></li>
+<li>/home/runner/work/IMP.bff/IMP.bff/include/fret/<a class="el" href="_f_r_e_t_spectrum_node_8h_source.html">FRETSpectrumNode.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 13 2026 07:43:58 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 18:57:00 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

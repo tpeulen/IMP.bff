@@ -721,7 +721,7 @@ published four.</p>
 structure properties, <code class="docutils literal notranslate"><span class="pre">LabelizerScore.h</span></code> computes labelability,
 <code class="docutils literal notranslate"><span class="pre">LabelizerFRET.h</span></code> scores pairs, and <code class="docutils literal notranslate"><span class="pre">LabelizerIO.h</span></code> reads and writes scored
 containers. Each header includes the lower-level declarations it needs.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>#include &lt;IMP/bff/LabelizerFRET.h&gt;
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>#include &lt;IMP/bff/fret/LabelizerFRET.h&gt;
 
 const std::vector&lt;LabelizerScore&gt; scores = labelizer_score_structure(
         "protein.pdb", labelizer_model_paper(), LabelizerOptions(), "grades.txt");

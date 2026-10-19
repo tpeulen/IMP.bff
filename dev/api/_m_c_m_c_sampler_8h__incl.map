@@ -1,21 +1,21 @@
-<map id="/home/runner/work/IMP.bff/IMP.bff/include/MCMCSampler.h" name="/home/runner/work/IMP.bff/IMP.bff/include/MCMCSampler.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="515,5,745,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,196,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="515,46,192,94,191,89,514,41"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="221,93,367,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="550,48,357,93,356,88,549,43"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="392,93,479,119"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="584,48,478,91,476,86,582,43"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="503,93,562,119"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="608,48,559,87,556,82,605,43"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="587,93,673,119"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="633,46,633,79,627,79,627,46"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="698,93,775,119"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="657,43,711,83,708,87,654,48"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="799,93,871,119"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="680,43,793,86,791,91,678,48"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="895,93,954,119"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="703,43,883,90,881,96,701,48"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="979,93,1041,119"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="733,43,966,91,965,96,732,48"/>
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/bayesian/MCMCSampler.h" name="/home/runner/work/IMP.bff/IMP.bff/include/bayesian/MCMCSampler.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="531,5,723,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,193,148"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="532,54,207,110,206,105,531,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="218,115,365,141"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="534,63,346,114,345,109,532,57"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="389,115,476,141"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="574,62,470,112,467,107,571,58"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="501,115,559,141"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="602,62,554,107,550,104,598,58"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="584,115,671,141"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="630,60,630,101,625,101,625,60"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="695,115,773,141"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="659,58,712,104,708,108,656,62"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="797,115,869,141"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="686,58,796,107,794,112,684,62"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="893,115,951,141"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="724,56,802,79,882,105,887,107,885,112,880,111,800,84,723,61"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="976,115,1039,141"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="724,48,840,72,964,105,971,108,969,113,963,111,838,77,723,53"/>
 </map>

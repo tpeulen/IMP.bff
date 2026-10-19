@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/HMMSurrogate.h Source File</title>
+<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/learn/HMMSurrogate.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -74,7 +74,7 @@ $(document).ready(function() { init_codefold(0); });
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_0b4666781d0c0c442dce1eed3d7e0bdb.html">learn</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -89,9 +89,9 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="preprocessor">#if IMP_BFF_HAS_TTTRLIB</span></div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="preprocessor">#include &lt;IMP/bff/IMPCompatibility.h&gt;</span></div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="preprocessor">#include &lt;IMP/bff/NeuralNet.h&gt;</span></div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="preprocessor">#include &lt;IMP/bff/NeuralNetTraining.h&gt;</span></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="preprocessor">#include &lt;IMP/bff/util/IMPCompatibility.h&gt;</span></div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="preprocessor">#include &lt;IMP/bff/learn/NeuralNet.h&gt;</span></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="preprocessor">#include &lt;IMP/bff/learn/NeuralNetTraining.h&gt;</span></div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="preprocessor">#include &lt;string&gt;</span></div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
@@ -131,7 +131,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>  std::vector&lt;double&gt; prior_, trans_, obs_;</div>
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>  <span class="keywordtype">long</span> <span class="keywordtype">long</span> n_photons_ = 0;</div>
 <div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>};</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span><a class="code hl_function" href="_bff_settings_8h.html#ab3a9cc6636d5fa756635bee41898fb7e">IMP_VALUES</a>(HmmSurrogateEstimate, HmmSurrogateEstimates);</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span><a class="code hl_function" href="_strip_mask_8h.html#a3283587dad5f3826c6abcc3c31c88850">IMP_VALUES</a>(HmmSurrogateEstimate, HmmSurrogateEstimates);</div>
 <div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span> </div>
 <div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span> </div>
 <div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span><span class="keyword">class </span>IMPBFFEXPORT HmmSurrogate {</div>
@@ -226,14 +226,14 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span><span class="preprocessor">#endif  </span><span class="comment">// IMP_BFF_HAS_TTTRLIB</span></div>
 <div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span> </div>
 <div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span><span class="preprocessor">#endif  </span><span class="comment">// IMPBFF_HMMSURROGATE_H</span></div>
-<div class="ttc" id="a_bff_settings_8h_html_ab3a9cc6636d5fa756635bee41898fb7e"><div class="ttname"><a href="_bff_settings_8h.html#ab3a9cc6636d5fa756635bee41898fb7e">IMP_VALUES</a></div><div class="ttdeci">IMP_VALUES(SequenceSearchServer, SequenceSearchServers)</div></div>
 <div class="ttc" id="a_neural_net_8h_html_a33a774d9d60bb570caf1bdd9efc39546"><div class="ttname"><a href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a></div><div class="ttdeci">IMPBFF_BEGIN_NAMESPACE typedef std::string MsgpackBytes</div><div class="ttdoc">A msgpack document as raw bytes: bff's native format for networks.</div><div class="ttdef"><b>Definition</b> NeuralNet.h:59</div></div>
+<div class="ttc" id="a_strip_mask_8h_html_a3283587dad5f3826c6abcc3c31c88850"><div class="ttname"><a href="_strip_mask_8h.html#a3283587dad5f3826c6abcc3c31c88850">IMP_VALUES</a></div><div class="ttdeci">IMP_VALUES(StripReport, StripReports)</div></div>
 <div class="ttc" id="aclass_neural_net_html"><div class="ttname"><a href="class_neural_net.html">NeuralNet</a></div><div class="ttdoc">A dense multilayer perceptron: evaluated in batches, and differentiable.</div><div class="ttdef"><b>Definition</b> NeuralNet.h:100</div></div>
 <div class="ttc" id="aclass_neural_net_train_options_html"><div class="ttname"><a href="class_neural_net_train_options.html">NeuralNetTrainOptions</a></div><div class="ttdoc">Hyper-parameters for train_neural_net().</div><div class="ttdef"><b>Definition</b> NeuralNetTraining.h:38</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 13 2026 07:43:58 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 18:57:00 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

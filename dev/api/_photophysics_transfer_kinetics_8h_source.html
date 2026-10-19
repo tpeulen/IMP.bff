@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/PhotophysicsTransferKinetics.h Source File</title>
+<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/spectroscopy/PhotophysicsTransferKinetics.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -74,7 +74,7 @@ $(document).ready(function() { init_codefold(0); });
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_7b388d6d3c0cd5a5810c0a1fba37465f.html">spectroscopy</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -86,7 +86,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span><span class="preprocessor">#define IMPBFF_PHOTOPHYSICSTRANSFERKINETICS_H</span></div>
 <div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span> </div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span><span class="preprocessor">#include &lt;IMP/bff/bff_config.h&gt;</span></div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span><span class="preprocessor">#include &lt;IMP/bff/PhotophysicsCrosstalkMatrix.h&gt;</span></div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span><span class="preprocessor">#include &lt;IMP/bff/spectroscopy/PhotophysicsCrosstalkMatrix.h&gt;</span></div>
 <div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
 <div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span><span class="preprocessor">#include &lt;cmath&gt;</span></div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span><span class="preprocessor">#include &lt;string&gt;</span></div>
@@ -113,8 +113,7 @@ $(document).ready(function() { init_codefold(0); });
 </div>
 <div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span> </div>
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span><span class="preprocessor">#ifndef SWIG</span></div>
-<div class="foldopen" id="foldopen00082" data-start="{" data-end="}">
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno"><a class="line" href="namespaceinternal.html">   82</a></span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceinternal.html">internal</a> {</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceinternal.html">internal</a> {</div>
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span> </div>
 <div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="foldopen" id="foldopen00085" data-start="{" data-end="};">
@@ -211,7 +210,6 @@ $(document).ready(function() { init_codefold(0); });
 </div>
 <div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span> </div>
 <div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>}  <span class="comment">// namespace internal</span></div>
-</div>
 <div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span><span class="preprocessor">#endif  </span><span class="comment">// SWIG</span></div>
 <div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span> </div>
 <div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span> </div>
@@ -268,7 +266,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="a_photophysics_transfer_kinetics_8h_html_af0b7ef1d2364d0b7c2867b576632e918a1b395cd26b62656d086a949cf54e8835"><div class="ttname"><a href="_photophysics_transfer_kinetics_8h.html#af0b7ef1d2364d0b7c2867b576632e918a1b395cd26b62656d086a949cf54e8835">TRANSFER_EXACT</a></div><div class="ttdeci">@ TRANSFER_EXACT</div><div class="ttdoc">Putzer, degeneracy as a t e^{-kt} term.</div><div class="ttdef"><b>Definition</b> PhotophysicsTransferKinetics.h:77</div></div>
 <div class="ttc" id="a_photophysics_transfer_kinetics_8h_html_af0b7ef1d2364d0b7c2867b576632e918afe049638b02f95bc529a46df09c211d1"><div class="ttname"><a href="_photophysics_transfer_kinetics_8h.html#af0b7ef1d2364d0b7c2867b576632e918afe049638b02f95bc529a46df09c211d1">TRANSFER_CHISURF_REGULARISED</a></div><div class="ttdeci">@ TRANSFER_CHISURF_REGULARISED</div><div class="ttdoc">ChiSurf's pddem divisor Delta + 1e-9.</div><div class="ttdef"><b>Definition</b> PhotophysicsTransferKinetics.h:78</div></div>
 <div class="ttc" id="aclass_photophysics_crosstalk_matrix_html"><div class="ttname"><a href="class_photophysics_crosstalk_matrix.html">PhotophysicsCrosstalkMatrix</a></div><div class="ttdoc">A labelled crosstalk matrix: sources as rows, detectors as columns.</div><div class="ttdef"><b>Definition</b> PhotophysicsCrosstalkMatrix.h:62</div></div>
-<div class="ttc" id="anamespaceinternal_html"><div class="ttname"><a href="namespaceinternal.html">internal</a></div><div class="ttdef"><b>Definition</b> PhotophysicsTransferKinetics.h:82</div></div>
+<div class="ttc" id="anamespaceinternal_html"><div class="ttname"><a href="namespaceinternal.html">internal</a></div><div class="ttdef"><b>Definition</b> SamplerKernels.h:33</div></div>
 <div class="ttc" id="anamespaceinternal_html_a20c5b8df4768548849d375250713e51b"><div class="ttname"><a href="namespaceinternal.html#a20c5b8df4768548849d375250713e51b">internal::transfer_pair_components_t</a></div><div class="ttdeci">void transfer_pair_components_t(const T &amp;tau_a, const T &amp;tau_b, const T &amp;k_ab, const T &amp;k_ba, const T &amp;p_a, const T &amp;p_b, const T &amp;m_a, const T &amp;m_b, int mode, double eps, TransferComponent&lt; T &gt; out[2])</div><div class="ttdoc">The two components of m^T exp(K t) p0 for one chromophore pair and rate pair.</div><div class="ttdef"><b>Definition</b> PhotophysicsTransferKinetics.h:119</div></div>
 <div class="ttc" id="anamespaceinternal_html_a3685b8bb57203af5c3e9c4e50fc5d5be"><div class="ttname"><a href="namespaceinternal.html#a3685b8bb57203af5c3e9c4e50fc5d5be">internal::transfer_pair_t</a></div><div class="ttdeci">TransferPair&lt; T &gt; transfer_pair_t(const T &amp;tau_a, const T &amp;tau_b, const T &amp;k_ab, const T &amp;k_ba, const T &amp;p_a, const T &amp;p_b, const T &amp;m_a, const T &amp;m_b)</div><div class="ttdef"><b>Definition</b> PhotophysicsTransferKinetics.h:98</div></div>
 <div class="ttc" id="anamespaceinternal_html_a5607694ec1e4d371d9337f05a24656be"><div class="ttname"><a href="namespaceinternal.html#a5607694ec1e4d371d9337f05a24656be">internal::transfer_pair_decay_t</a></div><div class="ttdeci">T transfer_pair_decay_t(double t, const T &amp;tau_a, const T &amp;tau_b, const T &amp;k_ab, const T &amp;k_ba, const T &amp;p_a, const T &amp;p_b, const T &amp;m_a, const T &amp;m_b)</div><div class="ttdoc">m^T exp(K t) p0 at one time, exact at the degeneracy (Putzer's form).</div><div class="ttdef"><b>Definition</b> PhotophysicsTransferKinetics.h:161</div></div>
@@ -289,7 +287,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 13 2026 07:43:58 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 18:57:00 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

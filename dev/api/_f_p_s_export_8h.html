@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/FPSExport.h File Reference</title>
+<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/imp/FPSExport.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -69,7 +69,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_24dca8aa7f7f46490cd4a5280a563951.html">imp</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -80,7 +80,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;IMP/bff/bff_config.h&gt;</code><br />
-<code>#include &lt;IMP/bff/Docking.h&gt;</code><br />
+<code>#include &lt;IMP/bff/imp/Docking.h&gt;</code><br />
 <code>#include &lt;IMP/algebra/Transformation3D.h&gt;</code><br />
 <code>#include &lt;IMP/algebra/Vector3D.h&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
@@ -88,21 +88,21 @@ $(function() {
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for FPSExport.h:</div>
 <div class="dyncontent">
-<div class="center"><img src="_f_p_s_export_8h__incl.png" border="0" usemap="#a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_f_p_s_export_8h" alt=""/></div>
-<map name="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_f_p_s_export_8h" id="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_f_p_s_export_8h">
-<area shape="rect" title=" " alt="" coords="464,5,667,45"/>
+<div class="center"><img src="_f_p_s_export_8h__incl.png" border="0" usemap="#a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2imp_2_f_p_s_export_8h" alt=""/></div>
+<map name="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2imp_2_f_p_s_export_8h" id="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2imp_2_f_p_s_export_8h">
+<area shape="rect" title=" " alt="" coords="479,5,710,45"/>
 <area shape="rect" title=" " alt="" coords="5,93,152,119"/>
-<area shape="poly" title=" " alt="" coords="464,46,164,94,163,88,463,40"/>
-<area shape="rect" title=" " alt="" coords="176,93,312,119"/>
-<area shape="poly" title=" " alt="" coords="489,48,305,93,304,87,488,43"/>
-<area shape="rect" title=" " alt="" coords="337,93,567,119"/>
-<area shape="poly" title=" " alt="" coords="539,48,482,87,479,83,536,43"/>
-<area shape="rect" title=" " alt="" coords="591,93,766,119"/>
-<area shape="poly" title=" " alt="" coords="594,43,652,83,649,87,591,48"/>
-<area shape="rect" title=" " alt="" coords="791,93,849,119"/>
-<area shape="poly" title=" " alt="" coords="627,43,778,89,777,94,626,48"/>
-<area shape="rect" title=" " alt="" coords="874,93,937,119"/>
-<area shape="poly" title=" " alt="" coords="652,43,861,91,860,96,651,48"/>
+<area shape="poly" title=" " alt="" coords="479,47,166,94,165,89,478,42"/>
+<area shape="rect" title=" " alt="" coords="176,93,341,119"/>
+<area shape="poly" title=" " alt="" coords="515,48,322,93,320,88,514,43"/>
+<area shape="rect" title=" " alt="" coords="366,93,597,119"/>
+<area shape="poly" title=" " alt="" coords="569,48,511,87,508,83,566,43"/>
+<area shape="rect" title=" " alt="" coords="621,93,795,119"/>
+<area shape="poly" title=" " alt="" coords="624,43,681,83,678,87,621,48"/>
+<area shape="rect" title=" " alt="" coords="820,93,879,119"/>
+<area shape="poly" title=" " alt="" coords="656,43,808,89,806,94,655,48"/>
+<area shape="rect" title=" " alt="" coords="903,93,966,119"/>
+<area shape="poly" title=" " alt="" coords="682,43,891,91,889,96,680,48"/>
 </map>
 </div>
 </div>
@@ -261,7 +261,7 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>the rows, whose <code>poses</code> must be set </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">assembly</td><td>an assembly built from the same inputs </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">fps_sign_convention</td><td>accumulate FPS's <picture><source srcset="form_86_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$|Ur - t|^2$" src="form_86.png"/></picture> instead of <picture><source srcset="form_132_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$|Ur + t|^2$" src="form_132.png"/></picture> (#IMP::bff::pose_rmsd)</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">fps_sign_convention</td><td>accumulate FPS's <picture><source srcset="form_123_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$|Ur - t|^2$" src="form_123.png"/></picture> instead of <picture><source srcset="form_137_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$|Ur + t|^2$" src="form_137.png"/></picture> (#IMP::bff::pose_rmsd)</td></tr>
   </table>
   </dd>
 </dl>
@@ -756,7 +756,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p><code>&lt;dir&gt;/&lt;prefix&gt;&lt;number&gt;.pml</code>: one docking solution, reconstructed in PyMOL. </p>
-<p>Loads the untransformed inputs and applies the pose as <code>rotate</code>/<code>translate</code> commands. **All <picture><source srcset="form_133_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$N$" src="form_133.png"/></picture> transforms are written**, including molecule 0's: FPS skips it, which is valid only while its own engine normalises the pose so that molecule 0 is the identity, and is wrong for any pose that does not come from that engine. </p><dl class="section return"><dt>Returns</dt><dd>the path written </dd></dl>
+<p>Loads the untransformed inputs and applies the pose as <code>rotate</code>/<code>translate</code> commands. **All <picture><source srcset="form_138_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$N$" src="form_138.png"/></picture> transforms are written**, including molecule 0's: FPS skips it, which is valid only while its own engine normalises the pose so that molecule 0 is the identity, and is wrong for any pose that does not come from that engine. </p><dl class="section return"><dt>Returns</dt><dd>the path written </dd></dl>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
     <tr><td class="paramname">IOException</td><td>when it cannot be written </td></tr>
@@ -929,7 +929,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 13 2026 07:43:58 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 18:57:00 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

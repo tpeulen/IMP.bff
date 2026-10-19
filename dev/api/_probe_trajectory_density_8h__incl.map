@@ -1,7 +1,7 @@
-<map id="/home/runner/work/IMP.bff/IMP.bff/include/ProbeTrajectoryDensity.h" name="/home/runner/work/IMP.bff/IMP.bff/include/ProbeTrajectoryDensity.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="385,5,610,60"/>
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/imp/ProbeTrajectoryDensity.h" name="/home/runner/work/IMP.bff/IMP.bff/include/imp/ProbeTrajectoryDensity.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="370,5,625,60"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,108,152,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="385,60,148,108,147,103,384,54"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="370,63,148,108,147,103,369,57"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="177,108,287,133"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="417,63,281,106,279,101,415,58"/>
 <area shape="rect" id="Node000004" title=" " alt="" coords="312,108,448,133"/>

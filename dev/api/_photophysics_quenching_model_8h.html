@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/PhotophysicsQuenchingModel.h File Reference</title>
+<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/spectroscopy/PhotophysicsQuenchingModel.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -69,7 +69,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_7b388d6d3c0cd5a5810c0a1fba37465f.html">spectroscopy</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -80,13 +80,13 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;IMP/bff/bff_config.h&gt;</code><br />
-<code>#include &lt;IMP/bff/ProbeAccessibleVolume.h&gt;</code><br />
-<code>#include &lt;IMP/bff/ProbeSampling.h&gt;</code><br />
-<code>#include &lt;IMP/bff/ProbeDiffusionSimulation.h&gt;</code><br />
-<code>#include &lt;IMP/bff/GridDiffusionSolver.h&gt;</code><br />
-<code>#include &lt;IMP/bff/PhotophysicsLifetimeSpectrum.h&gt;</code><br />
-<code>#include &lt;IMP/bff/PhotophysicsQuenching.h&gt;</code><br />
-<code>#include &lt;IMP/bff/IMPCompatibility.h&gt;</code><br />
+<code>#include &lt;IMP/bff/probe/ProbeAccessibleVolume.h&gt;</code><br />
+<code>#include &lt;IMP/bff/probe/ProbeSampling.h&gt;</code><br />
+<code>#include &lt;IMP/bff/probe/ProbeDiffusionSimulation.h&gt;</code><br />
+<code>#include &lt;IMP/bff/probe/GridDiffusionSolver.h&gt;</code><br />
+<code>#include &lt;IMP/bff/spectroscopy/PhotophysicsLifetimeSpectrum.h&gt;</code><br />
+<code>#include &lt;IMP/bff/spectroscopy/PhotophysicsQuenching.h&gt;</code><br />
+<code>#include &lt;IMP/bff/util/IMPCompatibility.h&gt;</code><br />
 <code>#include &lt;limits&gt;</code><br />
 <code>#include &lt;map&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
@@ -94,33 +94,33 @@ $(function() {
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for PhotophysicsQuenchingModel.h:</div>
 <div class="dyncontent">
-<div class="center"><img src="_photophysics_quenching_model_8h__incl.png" border="0" usemap="#a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_photophysics_quenching_model_8h" alt=""/></div>
-<map name="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_photophysics_quenching_model_8h" id="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_photophysics_quenching_model_8h">
-<area shape="rect" title=" " alt="" coords="1239,5,1518,60"/>
+<div class="center"><img src="_photophysics_quenching_model_8h__incl.png" border="0" usemap="#a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2spectroscopy_2_photophysics_quenching_model_8h" alt=""/></div>
+<map name="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2spectroscopy_2_photophysics_quenching_model_8h" id="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2spectroscopy_2_photophysics_quenching_model_8h">
+<area shape="rect" title=" " alt="" coords="1242,5,1475,60"/>
 <area shape="rect" title=" " alt="" coords="5,115,152,141"/>
-<area shape="poly" title=" " alt="" coords="1239,38,1030,44,762,56,464,77,164,111,138,115,137,110,164,105,463,72,761,50,1030,38,1239,33"/>
-<area shape="rect" title=" " alt="" coords="177,115,415,141"/>
-<area shape="poly" title=" " alt="" coords="1239,45,872,70,428,111,384,116,384,111,428,105,872,65,1239,39"/>
-<area shape="rect" title=" " alt="" coords="440,115,621,141"/>
-<area shape="poly" title=" " alt="" coords="1239,47,959,72,634,111,602,116,601,110,633,105,959,67,1239,42"/>
-<area shape="rect" title=" " alt="" coords="645,115,893,141"/>
-<area shape="poly" title=" " alt="" coords="1240,58,858,116,857,111,1239,53"/>
-<area shape="rect" title=" " alt="" coords="917,115,1125,141"/>
-<area shape="poly" title=" " alt="" coords="1279,63,1079,115,1077,109,1278,57"/>
-<area shape="rect" title=" " alt="" coords="1149,108,1360,148"/>
-<area shape="poly" title=" " alt="" coords="1345,62,1292,102,1289,98,1342,58"/>
-<area shape="rect" title=" " alt="" coords="1385,115,1623,141"/>
-<area shape="poly" title=" " alt="" coords="1415,58,1479,105,1476,109,1412,62"/>
-<area shape="rect" title=" " alt="" coords="1647,115,1841,141"/>
-<area shape="poly" title=" " alt="" coords="1482,57,1687,109,1686,115,1481,63"/>
-<area shape="rect" title=" " alt="" coords="1865,115,1924,141"/>
-<area shape="poly" title=" " alt="" coords="1519,43,1681,66,1769,83,1854,105,1861,108,1859,113,1853,111,1767,89,1680,71,1518,48"/>
-<area shape="rect" title=" " alt="" coords="1948,115,1999,141"/>
-<area shape="poly" title=" " alt="" coords="1518,37,1613,45,1719,58,1829,78,1937,105,1942,107,1940,112,1935,111,1828,83,1718,63,1612,50,1518,42"/>
-<area shape="rect" title=" " alt="" coords="2023,115,2081,141"/>
-<area shape="poly" title=" " alt="" coords="1519,35,1627,43,1752,56,1883,76,2011,105,2018,108,2017,113,2010,111,1882,81,1751,61,1627,48,1518,41"/>
-<area shape="rect" title=" " alt="" coords="2106,115,2169,141"/>
-<area shape="poly" title=" " alt="" coords="1518,34,1642,40,1787,52,1942,74,2094,105,2102,108,2100,113,2093,111,1941,79,1787,58,1642,45,1518,39"/>
+<area shape="poly" title=" " alt="" coords="1242,38,1038,43,770,55,468,77,315,92,164,111,138,115,137,110,164,105,314,87,468,71,770,50,1038,38,1242,33"/>
+<area shape="rect" title=" " alt="" coords="176,108,395,148"/>
+<area shape="poly" title=" " alt="" coords="1242,43,875,67,644,87,409,111,408,105,644,81,874,62,1242,38"/>
+<area shape="rect" title=" " alt="" coords="419,115,642,141"/>
+<area shape="poly" title=" " alt="" coords="1242,47,973,74,654,111,615,116,615,111,653,105,972,69,1242,42"/>
+<area shape="rect" title=" " alt="" coords="666,108,873,148"/>
+<area shape="poly" title=" " alt="" coords="1242,55,887,110,886,105,1242,49"/>
+<area shape="rect" title=" " alt="" coords="897,108,1095,148"/>
+<area shape="poly" title=" " alt="" coords="1257,63,1083,107,1081,102,1256,57"/>
+<area shape="rect" title=" " alt="" coords="1119,108,1359,148"/>
+<area shape="poly" title=" " alt="" coords="1326,62,1275,102,1272,98,1323,58"/>
+<area shape="rect" title=" " alt="" coords="1383,108,1577,148"/>
+<area shape="poly" title=" " alt="" coords="1395,58,1446,98,1443,102,1391,62"/>
+<area shape="rect" title=" " alt="" coords="1601,115,1820,141"/>
+<area shape="poly" title=" " alt="" coords="1458,57,1655,109,1654,114,1457,63"/>
+<area shape="rect" title=" " alt="" coords="1844,115,1903,141"/>
+<area shape="poly" title=" " alt="" coords="1476,41,1646,64,1740,82,1833,105,1839,108,1838,113,1831,111,1739,87,1645,69,1475,46"/>
+<area shape="rect" title=" " alt="" coords="1927,115,1977,141"/>
+<area shape="poly" title=" " alt="" coords="1476,36,1572,43,1683,56,1801,76,1915,105,1921,107,1919,112,1914,111,1799,82,1682,61,1571,48,1475,41"/>
+<area shape="rect" title=" " alt="" coords="2001,115,2060,141"/>
+<area shape="poly" title=" " alt="" coords="1476,34,1586,41,1715,54,1854,75,1990,105,1997,108,1995,113,1989,111,1853,80,1715,59,1585,46,1476,40"/>
+<area shape="rect" title=" " alt="" coords="2085,115,2147,141"/>
+<area shape="poly" title=" " alt="" coords="1476,33,1600,39,1750,51,1913,72,2073,105,2081,108,2079,113,2071,111,1912,78,1750,56,1600,44,1475,38"/>
 </map>
 </div>
 </div>
@@ -235,7 +235,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 13 2026 07:43:58 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 18:57:00 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

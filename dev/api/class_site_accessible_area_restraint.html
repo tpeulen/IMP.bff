@@ -114,7 +114,7 @@ Public Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Shrake-Rupley accessible area of one site per residue (Restraint). </p>
-<p>Each site is sampled at <code>radius</code> on <code>n_sphere</code> points of #IMP::bff::sphere_points; a sample is buried when it lies within <picture><source srcset="form_22_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$radius + probe$" src="form_22.png"/></picture> of another site closer than <code>occluder_cutoff</code> to its own. The score is the total area, <picture><source srcset="form_357_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\sum_i 4\pi\, radius^2\, n_i^{acc} / n_{sphere}$" src="form_357.png"/></picture>, A^2 &ndash; a burial term whose weight sets its sign and strength. No derivatives: the area is a count of samples.</p>
+<p>Each site is sampled at <code>radius</code> on <code>n_sphere</code> points of #IMP::bff::sphere_points; a sample is buried when it lies within <picture><source srcset="form_170_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$radius + probe$" src="form_170.png"/></picture> of another site closer than <code>occluder_cutoff</code> to its own. The score is the total area, <picture><source srcset="form_171_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\sum_i 4\pi\, radius^2\, n_i^{acc} / n_{sphere}$" src="form_171.png"/></picture>, A^2 &ndash; a burial term whose weight sets its sign and strength. No derivatives: the area is a count of samples.</p>
 <p>The arithmetic is <a class="el" href="_contact_potentials_8h.html#ad2579074c464abbfd95dd171c382e849" title="Shrake-Rupley accessible area of sites, with occluders chosen by a gate.">get_site_accessible_area</a>'s; that function takes the occluder gate as a matrix (a caller's C-alpha distances), this one measures the sites. <a class="el" href="_probe_potential_restraints_8h.html#acfffc3d3b721699cdff5606e6b165912" title="Residue-level solvent-accessible surface area of a hierarchy, A^2.">residue_solvent_accessible_surface</a> is the exact form, where every site occludes. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ac314be733f87f42f7e3617338345f765" name="ac314be733f87f42f7e3617338345f765"></a>
@@ -172,7 +172,7 @@ Public Member Functions</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">n_sphere</td><td>samples per site </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">probe</td><td>the probe radius, A </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">radius</td><td>the radius every site is sampled at, A </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">occluder_cutoff</td><td>sites further apart than this do not occlude each other, A; the default is <picture><source srcset="form_376_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$2(radius + probe)$" src="form_376.png"/></picture>, beyond which none can </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">occluder_cutoff</td><td>sites further apart than this do not occlude each other, A; the default is <picture><source srcset="form_190_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$2(radius + probe)$" src="form_190.png"/></picture>, beyond which none can </td></tr>
   </table>
   </dd>
 </dl>
@@ -250,12 +250,12 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>/home/runner/work/IMP.bff/IMP.bff/include/<a class="el" href="_probe_potential_restraints_8h_source.html">ProbePotentialRestraints.h</a></li>
+<li>/home/runner/work/IMP.bff/IMP.bff/include/imp/<a class="el" href="_probe_potential_restraints_8h_source.html">ProbePotentialRestraints.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 13 2026 07:43:58 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 18:57:01 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

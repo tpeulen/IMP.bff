@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/InferenceFactorGraphFromFit.h File Reference</title>
+<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/fit/InferenceFactorGraphFromFit.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -69,7 +69,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_acc739ef1e96d57d4d2313e3187cbdb5.html">fit</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -79,32 +79,32 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;IMP/bff/bff_config.h&gt;</code><br />
-<code>#include &lt;IMP/bff/FitObjective.h&gt;</code><br />
-<code>#include &lt;IMP/bff/GraphPort.h&gt;</code><br />
-<code>#include &lt;IMP/bff/InferenceFactorGraph.h&gt;</code><br />
+<code>#include &lt;IMP/bff/fit/FitObjective.h&gt;</code><br />
+<code>#include &lt;IMP/bff/graph/GraphPort.h&gt;</code><br />
+<code>#include &lt;IMP/bff/fit/InferenceFactorGraph.h&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for InferenceFactorGraphFromFit.h:</div>
 <div class="dyncontent">
-<div class="center"><img src="_inference_factor_graph_from_fit_8h__incl.png" border="0" usemap="#a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_inference_factor_graph_from_fit_8h" alt=""/></div>
-<map name="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_inference_factor_graph_from_fit_8h" id="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_inference_factor_graph_from_fit_8h">
-<area shape="rect" title=" " alt="" coords="533,5,757,60"/>
-<area shape="rect" title=" " alt="" coords="5,108,152,133"/>
-<area shape="poly" title=" " alt="" coords="533,54,166,109,165,104,533,48"/>
-<area shape="rect" title=" " alt="" coords="177,108,338,133"/>
-<area shape="poly" title=" " alt="" coords="534,61,323,108,322,102,533,56"/>
-<area shape="rect" title=" " alt="" coords="362,108,510,133"/>
-<area shape="poly" title=" " alt="" coords="582,63,478,105,476,100,580,58"/>
-<area shape="rect" title=" " alt="" coords="534,108,757,133"/>
-<area shape="poly" title=" " alt="" coords="648,60,648,94,643,94,643,60"/>
-<area shape="rect" title=" " alt="" coords="780,108,857,133"/>
-<area shape="poly" title=" " alt="" coords="699,58,784,99,782,104,697,62"/>
-<area shape="rect" title=" " alt="" coords="881,108,940,133"/>
-<area shape="poly" title=" " alt="" coords="727,58,869,103,867,108,726,63"/>
-<area shape="rect" title=" " alt="" coords="965,108,1027,133"/>
-<area shape="poly" title=" " alt="" coords="756,57,952,105,951,110,754,63"/>
+<div class="center"><img src="_inference_factor_graph_from_fit_8h__incl.png" border="0" usemap="#a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2fit_2_inference_factor_graph_from_fit_8h" alt=""/></div>
+<map name="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2fit_2_inference_factor_graph_from_fit_8h" id="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2fit_2_inference_factor_graph_from_fit_8h">
+<area shape="rect" title=" " alt="" coords="585,5,788,60"/>
+<area shape="rect" title=" " alt="" coords="5,115,152,141"/>
+<area shape="poly" title=" " alt="" coords="585,49,390,75,164,111,142,115,141,110,164,105,389,69,585,43"/>
+<area shape="rect" title=" " alt="" coords="176,115,355,141"/>
+<area shape="poly" title=" " alt="" coords="586,59,331,115,330,110,585,54"/>
+<area shape="rect" title=" " alt="" coords="379,115,568,141"/>
+<area shape="poly" title=" " alt="" coords="628,63,513,112,511,108,626,58"/>
+<area shape="rect" title=" " alt="" coords="593,108,781,148"/>
+<area shape="poly" title=" " alt="" coords="689,60,689,94,684,94,684,60"/>
+<area shape="rect" title=" " alt="" coords="805,115,883,141"/>
+<area shape="poly" title=" " alt="" coords="732,58,814,106,811,111,730,62"/>
+<area shape="rect" title=" " alt="" coords="907,115,965,141"/>
+<area shape="poly" title=" " alt="" coords="766,58,896,106,900,107,898,112,894,110,764,63"/>
+<area shape="rect" title=" " alt="" coords="990,115,1053,141"/>
+<area shape="poly" title=" " alt="" coords="789,53,881,76,978,105,984,108,982,113,977,111,880,82,788,58"/>
 </map>
 </div>
 </div>
@@ -157,7 +157,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 13 2026 07:43:58 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 18:57:00 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -8,7 +8,7 @@ var searchData=
   ['kappa2_5frot_5',['kappa2_rot',['../struct_a_v_rotamer_pair.html#a46a8d938ec7a57f012a7e6ae7496b427',1,'AVRotamerPair']]],
   ['keep_5freplica_5fdirs_6',['keep_replica_dirs',['../struct_bootstrap_parameters.html#acbb9eec28c7051e8bdd82790a00edd14',1,'BootstrapParameters']]],
   ['kernel_7',['kernel',['../struct_sample_result.html#ad52ec12e5f60bc71183a67d50be9c04a',1,'SampleResult']]],
-  ['kind_8',['kind',['../structinternal_1_1_transfer_component.html#a29636b35a2f75d6d8a5160b8ee6121ba',1,'internal::TransferComponent::kind'],['../struct_potential_table.html#ac9b7059b86453043c7667d07aa6e3026',1,'PotentialTable::kind'],['../struct_sequence_segment.html#ab7f7b2adec0f350412d4c502267384c5',1,'SequenceSegment::kind']]],
+  ['kind_8',['kind',['../struct_potential_table.html#ac9b7059b86453043c7667d07aa6e3026',1,'PotentialTable::kind'],['../struct_sequence_segment.html#ab7f7b2adec0f350412d4c502267384c5',1,'SequenceSegment::kind'],['../structinternal_1_1_transfer_component.html#a29636b35a2f75d6d8a5160b8ee6121ba',1,'internal::TransferComponent::kind']]],
   ['kinetic_5fenergy_9',['kinetic_energy',['../struct_probe_simulation_trajectory.html#aaec45bb0f844b44a05ad92d065d7c8cf',1,'ProbeSimulationTrajectory']]],
   ['kmer_5ffallback_5fmin_5fhomologs_10',['kmer_fallback_min_homologs',['../class_consurf_options.html#ae1b22c81911acb596b069d17145d24f7',1,'ConsurfOptions']]],
   ['kmer_5fthreshold_11',['kmer_threshold',['../class_sequence_search_options.html#a004508a07c1469b25da7ca55c3cca30e',1,'SequenceSearchOptions']]],

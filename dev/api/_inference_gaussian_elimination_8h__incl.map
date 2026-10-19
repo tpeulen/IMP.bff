@@ -1,15 +1,15 @@
-<map id="/home/runner/work/IMP.bff/IMP.bff/include/InferenceGaussianElimination.h" name="/home/runner/work/IMP.bff/IMP.bff/include/InferenceGaussianElimination.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="465,5,711,60"/>
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/fit/InferenceGaussianElimination.h" name="/home/runner/work/IMP.bff/IMP.bff/include/fit/InferenceGaussianElimination.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="479,5,681,60"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,115,152,141"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="466,57,165,111,143,115,142,110,163,105,465,51"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="177,108,373,148"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="501,63,352,107,350,102,499,58"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="397,115,619,141"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="567,62,529,106,525,103,563,59"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="643,115,693,141"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="613,59,651,103,647,106,609,62"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="717,115,776,141"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="634,58,717,106,714,111,631,62"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="801,115,863,141"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="662,58,789,106,794,107,792,112,787,110,660,63"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="479,54,165,111,143,115,142,110,163,105,478,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="176,108,389,148"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="497,63,356,107,355,101,496,58"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="414,108,602,148"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="562,62,533,99,529,96,557,59"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="627,115,677,141"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="603,59,637,103,633,106,598,62"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="701,115,760,141"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="624,58,702,106,699,111,621,62"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="785,115,847,141"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="651,58,773,106,778,108,776,112,771,110,649,63"/>
 </map>

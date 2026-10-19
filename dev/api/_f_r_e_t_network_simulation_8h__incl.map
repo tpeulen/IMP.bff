@@ -1,9 +1,9 @@
-<map id="/home/runner/work/IMP.bff/IMP.bff/include/FRETNetworkSimulation.h" name="/home/runner/work/IMP.bff/IMP.bff/include/FRETNetworkSimulation.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="114,5,409,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,152,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="219,48,119,90,117,85,217,43"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="176,93,347,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="264,46,264,79,259,79,259,46"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="371,93,434,119"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="296,43,371,84,368,89,294,48"/>
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/fret/FRETNetworkSimulation.h" name="/home/runner/work/IMP.bff/IMP.bff/include/fret/FRETNetworkSimulation.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="157,5,395,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,152,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="217,63,119,105,117,100,215,58"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="177,108,375,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="279,60,279,94,273,94,273,60"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="399,108,462,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="325,58,399,99,397,104,322,62"/>
 </map>

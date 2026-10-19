@@ -1,9 +1,9 @@
-<map id="/home/runner/work/IMP.bff/IMP.bff/include/ElasticNetwork.h" name="/home/runner/work/IMP.bff/IMP.bff/include/ElasticNetwork.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="156,5,391,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,152,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="228,48,121,91,119,86,226,43"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="177,93,370,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="276,46,276,79,271,79,271,46"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="394,93,457,119"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="311,43,392,84,389,89,309,48"/>
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/probe/ElasticNetwork.h" name="/home/runner/work/IMP.bff/IMP.bff/include/probe/ElasticNetwork.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="189,5,381,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,152,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,63,120,105,118,100,221,58"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="176,108,395,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="288,60,288,94,283,94,283,60"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="419,108,482,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="337,58,418,99,415,104,335,62"/>
 </map>

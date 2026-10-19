@@ -7,7 +7,7 @@ var searchData=
   ['has_5fevidence_4',['has_evidence',['../class_inference_gaussian_elimination.html#ac38337a24a8ee7ade3d6e4569fc19058',1,'InferenceGaussianElimination']]],
   ['has_5ffactor_5',['has_factor',['../class_inference_gaussian_elimination.html#ae26b45254a01acce09218d1b3325ec9b',1,'InferenceGaussianElimination']]],
   ['has_5fgradient_6',['has_gradient',['../struct_sampling_target.html#a2dfa335785b47f105656cd917ae9e825',1,'SamplingTarget']]],
-  ['has_5fobjective_7',['has_objective',['../class_fit_minimizer.html#ad4c7d531254fef86671b769fd749fe49',1,'FitMinimizer::has_objective()'],['../class_m_c_m_c_sampler.html#a3b332718df7191191cec2150011e80a8',1,'MCMCSampler::has_objective()']]],
+  ['has_5fobjective_7',['has_objective',['../class_m_c_m_c_sampler.html#a3b332718df7191191cec2150011e80a8',1,'MCMCSampler::has_objective()'],['../class_fit_minimizer.html#ad4c7d531254fef86671b769fd749fe49',1,'FitMinimizer::has_objective()']]],
   ['has_5fparameter_5fbinding_8',['has_parameter_binding',['../class_graph_expression.html#ab55a9b8fa1f5ce14fbac5ed69ba6b1a8',1,'GraphExpression']]],
   ['has_5fspectrum_9',['has_spectrum',['../struct_probe.html#a3a8d4be39318f7b1148b0c691f93c7aa',1,'Probe']]],
   ['has_5ftype_10',['has_type',['../class_graph_node_registry.html#ae11b44d157409dab72983fc761490b4b',1,'GraphNodeRegistry']]],

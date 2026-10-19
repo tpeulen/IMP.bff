@@ -1,7 +1,7 @@
-<map id="/home/runner/work/IMP.bff/IMP.bff/include/Optimization.h" name="/home/runner/work/IMP.bff/IMP.bff/include/Optimization.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="113,5,333,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,199,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,48,133,88,130,84,193,43"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="223,93,466,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="254,43,317,84,314,88,251,48"/>
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/fit/Optimization.h" name="/home/runner/work/IMP.bff/IMP.bff/include/fit/Optimization.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="123,5,360,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,224,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,48,146,88,143,84,209,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="248,93,491,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="274,43,340,84,338,88,271,48"/>
 </map>

@@ -1,13 +1,13 @@
-<map id="/home/runner/work/IMP.bff/IMP.bff/include/NeuralNetTraining.h" name="/home/runner/work/IMP.bff/IMP.bff/include/NeuralNetTraining.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="343,5,596,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,152,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="376,48,150,93,149,88,375,43"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="177,93,370,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="423,48,316,91,314,86,421,43"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="395,93,544,119"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="472,46,472,79,467,79,467,46"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="568,93,627,119"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="502,43,568,84,566,88,499,48"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="651,93,714,119"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="521,43,639,86,637,91,520,48"/>
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/learn/NeuralNetTraining.h" name="/home/runner/work/IMP.bff/IMP.bff/include/learn/NeuralNetTraining.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="416,5,608,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,152,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="416,56,151,108,150,103,415,50"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="176,108,395,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="444,63,329,106,327,101,442,58"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="419,108,605,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="515,60,515,94,509,94,509,60"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="629,108,688,133"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="558,58,628,99,626,103,555,62"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="713,108,775,133"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="584,58,701,101,699,106,582,63"/>
 </map>

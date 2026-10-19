@@ -1,15 +1,15 @@
-<map id="/home/runner/work/IMP.bff/IMP.bff/include/BayesianTransformedGaussianPrior.h" name="/home/runner/work/IMP.bff/IMP.bff/include/BayesianTransformedGaussianPrior.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="263,5,528,60"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,199,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="306,63,155,107,153,102,305,58"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="223,108,285,133"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="354,62,286,103,284,98,351,58"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="309,108,380,133"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="382,61,361,97,356,95,378,59"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="404,108,491,133"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="413,59,436,95,431,98,409,61"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="515,108,577,133"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="443,58,515,99,512,103,440,62"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="601,108,816,133"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="492,57,654,102,653,107,490,63"/>
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/bayesian/BayesianTransformedGaussianPrior.h" name="/home/runner/work/IMP.bff/IMP.bff/include/bayesian/BayesianTransformedGaussianPrior.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="287,5,555,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,115,224,141"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="336,63,166,114,164,109,334,58"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="249,115,311,141"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="383,62,310,110,307,106,380,58"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="335,115,406,141"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="409,62,386,104,381,102,405,59"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="430,115,517,141"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="438,59,462,102,458,104,434,62"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="541,115,603,141"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="465,58,543,106,541,111,462,62"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="628,108,823,148"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="508,58,652,101,650,107,506,63"/>
 </map>

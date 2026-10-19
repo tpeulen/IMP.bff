@@ -1,17 +1,17 @@
-<map id="/home/runner/work/IMP.bff/IMP.bff/include/Convolution.h" name="/home/runner/work/IMP.bff/IMP.bff/include/Convolution.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="498,5,713,45"/>
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/fit/Convolution.h" name="/home/runner/work/IMP.bff/IMP.bff/include/fit/Convolution.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="569,5,799,45"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,101,152,126"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="498,44,340,67,164,96,142,100,141,95,164,91,340,61,498,38"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="177,101,327,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="528,48,313,100,312,95,527,43"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="351,101,507,126"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="568,48,466,97,464,92,566,43"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="531,101,679,126"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="608,46,608,87,603,87,603,46"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="703,93,891,133"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="649,43,744,85,742,90,646,48"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="916,101,975,126"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="713,43,807,63,905,91,911,93,909,98,903,96,806,68,712,48"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="999,101,1062,126"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="713,36,845,57,987,91,994,93,993,98,986,96,844,63,712,41"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="569,41,379,64,164,96,141,100,140,95,164,91,378,59,568,36"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="177,101,343,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="591,48,330,101,329,95,590,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="368,101,565,126"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="637,48,509,98,507,93,635,43"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="589,101,779,126"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="687,46,687,87,681,87,681,46"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="803,93,991,133"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="732,43,839,86,837,91,730,48"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="1016,101,1075,126"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="800,42,901,62,1005,91,1011,93,1009,98,1003,96,899,68,799,47"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="1099,101,1162,126"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="800,36,939,57,1014,72,1087,91,1094,93,1093,98,1086,96,1013,77,938,62,799,41"/>
 </map>

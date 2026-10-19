@@ -1,7 +1,7 @@
 var searchData=
 [
   ['m_0',['m',['../struct_n_p_s_direct_dye.html#af1fff213094ca9569a1a7326ba662a54',1,'NPSDirectDye']]],
-  ['mask_1',['mask',['../struct_a_a_b_b_filter_result.html#a70ff1c5bea891473e97abeda78378880',1,'AABBFilterResult::mask'],['../struct_strip_report.html#adab7acf9405ac8607269a23f017b286a',1,'StripReport::mask'],['../struct_energy_mask_result.html#a4758965bf218301276ce3c20e5487db9',1,'EnergyMaskResult::mask']]],
+  ['mask_1',['mask',['../struct_strip_report.html#adab7acf9405ac8607269a23f017b286a',1,'StripReport::mask'],['../struct_energy_mask_result.html#a4758965bf218301276ce3c20e5487db9',1,'EnergyMaskResult::mask'],['../struct_a_a_b_b_filter_result.html#a70ff1c5bea891473e97abeda78378880',1,'AABBFilterResult::mask']]],
   ['mass_2',['mass',['../struct_f_f_site.html#abe73539648306e17e57aa96fc386e6e5',1,'FFSite::mass'],['../struct_structure_table.html#aa918438525e12b25933fe8caae7ce197',1,'StructureTable::mass']]],
   ['max_5fbacktracks_3',['max_backtracks',['../struct_s_m_l_m_likelihood_fit_options.html#a9f0c818aa4f9f343c4af459b3547d376',1,'SMLMLikelihoodFitOptions']]],
   ['max_5fcandidates_4',['max_candidates',['../class_sequence_search_options.html#a2a2bacc913c1e7cac41a6d9a2d3488a6',1,'SequenceSearchOptions']]],
@@ -13,8 +13,8 @@ var searchData=
   ['max_5fhomologs_10',['max_homologs',['../class_sequence_homolog_options.html#a62b2a128b44d0ff70095d3517281bcec',1,'SequenceHomologOptions']]],
   ['max_5fidentity_11',['max_identity',['../class_sequence_homolog_options.html#ac983a738c3f72568c442bcbd3f76a5b9',1,'SequenceHomologOptions']]],
   ['max_5fiter_12',['max_iter',['../class_neural_net_train_options.html#aecad50fcb98dcf6fddbc1e90f7e32a58',1,'NeuralNetTrainOptions']]],
-  ['max_5fiterations_13',['max_iterations',['../struct_f_p_s_mode_parameters.html#af509292fd682aa251af31071787d7b4a',1,'FPSModeParameters::max_iterations'],['../class_f_r_e_t_landscape_fit_options.html#abed79d08b7121a689256b0960553227d',1,'FRETLandscapeFitOptions::max_iterations'],['../struct_s_m_l_m_registration_options.html#ade5b26a5f59147fbed8674d20cbd3850',1,'SMLMRegistrationOptions::max_iterations'],['../struct_s_m_l_m_likelihood_fit_options.html#aa79115716461e8c57a56cb1e092fb868',1,'SMLMLikelihoodFitOptions::max_iterations'],['../struct_s_m_l_m_particle_registration_options.html#a42ba9eff3a90a426cf90e4516fcb0f9f',1,'SMLMParticleRegistrationOptions::max_iterations']]],
-  ['max_5fkappa2_14',['MAX_KAPPA2',['../_f_r_e_t_8h.html#a056b06d31e1a7fe6e6b7a94c470eb760',1,'FRET.h']]],
+  ['max_5fiterations_13',['max_iterations',['../class_f_r_e_t_landscape_fit_options.html#abed79d08b7121a689256b0960553227d',1,'FRETLandscapeFitOptions::max_iterations'],['../struct_f_p_s_mode_parameters.html#af509292fd682aa251af31071787d7b4a',1,'FPSModeParameters::max_iterations'],['../struct_s_m_l_m_registration_options.html#ade5b26a5f59147fbed8674d20cbd3850',1,'SMLMRegistrationOptions::max_iterations'],['../struct_s_m_l_m_likelihood_fit_options.html#aa79115716461e8c57a56cb1e092fb868',1,'SMLMLikelihoodFitOptions::max_iterations'],['../struct_s_m_l_m_particle_registration_options.html#a42ba9eff3a90a426cf90e4516fcb0f9f',1,'SMLMParticleRegistrationOptions::max_iterations']]],
+  ['max_5fkappa2_14',['MAX_KAPPA2',['../fret_2_f_r_e_t_8h.html#a056b06d31e1a7fe6e6b7a94c470eb760',1,'FRET.h']]],
   ['max_5flocalizations_15',['max_localizations',['../struct_s_m_l_m_average_options.html#a7719701e2402c7cc7b9005a53b91e509',1,'SMLMAverageOptions']]],
   ['max_5fparallel_5ftrajectories_16',['MAX_PARALLEL_TRAJECTORIES',['../_probe_sampling_8h.html#a11bafea04d899303b2b86b6fc9bed6ea',1,'ProbeSampling.h']]],
   ['max_5frepresentative_5fevalue_17',['max_representative_evalue',['../class_sequence_cluster_search_options.html#a9a586a0882b9630d530ada304b4dd272',1,'SequenceClusterSearchOptions']]],

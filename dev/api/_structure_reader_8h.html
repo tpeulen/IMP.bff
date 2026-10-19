@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/StructureReader.h File Reference</title>
+<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/imp/StructureReader.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -69,7 +69,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_24dca8aa7f7f46490cd4a5280a563951.html">imp</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -79,23 +79,23 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;IMP/bff/bff_config.h&gt;</code><br />
-<code>#include &lt;IMP/bff/IMPCompatibility.h&gt;</code><br />
-<code>#include &lt;IMP/bff/StructureTable.h&gt;</code><br />
+<code>#include &lt;IMP/bff/util/IMPCompatibility.h&gt;</code><br />
+<code>#include &lt;IMP/bff/structure/StructureTable.h&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for StructureReader.h:</div>
 <div class="dyncontent">
-<div class="center"><img src="_structure_reader_8h__incl.png" border="0" usemap="#a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_structure_reader_8h" alt=""/></div>
-<map name="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_structure_reader_8h" id="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_structure_reader_8h">
-<area shape="rect" title=" " alt="" coords="257,5,497,45"/>
-<area shape="rect" title=" " alt="" coords="5,93,152,119"/>
-<area shape="poly" title=" " alt="" coords="306,48,136,92,135,87,305,43"/>
-<area shape="rect" title=" " alt="" coords="177,93,370,119"/>
-<area shape="poly" title=" " alt="" coords="354,48,301,87,298,83,351,43"/>
-<area shape="rect" title=" " alt="" coords="395,93,571,119"/>
-<area shape="poly" title=" " alt="" coords="404,43,458,83,454,87,401,48"/>
-<area shape="rect" title=" " alt="" coords="595,93,653,119"/>
-<area shape="poly" title=" " alt="" coords="437,43,583,89,581,94,436,48"/>
+<div class="center"><img src="_structure_reader_8h__incl.png" border="0" usemap="#a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2imp_2_structure_reader_8h" alt=""/></div>
+<map name="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2imp_2_structure_reader_8h" id="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2imp_2_structure_reader_8h">
+<area shape="rect" title=" " alt="" coords="294,5,506,60"/>
+<area shape="rect" title=" " alt="" coords="5,115,152,141"/>
+<area shape="poly" title=" " alt="" coords="310,63,132,114,130,109,309,57"/>
+<area shape="rect" title=" " alt="" coords="176,115,395,141"/>
+<area shape="poly" title=" " alt="" coords="369,62,312,108,309,104,366,58"/>
+<area shape="rect" title=" " alt="" coords="419,108,611,148"/>
+<area shape="poly" title=" " alt="" coords="434,58,483,97,479,101,431,62"/>
+<area shape="rect" title=" " alt="" coords="635,115,693,141"/>
+<area shape="poly" title=" " alt="" coords="486,58,624,106,628,107,626,112,622,110,484,63"/>
 </map>
 </div>
 </div>
@@ -154,7 +154,7 @@ Functions</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">path</td><td>the coordinate file </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">keep_water</td><td>keep solvent. The default drops it, which is what the modelling code wants; a viewer showing the deposited model wants it. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">only_standard_residues</td><td>drop residues that are not standard amino acids or nucleotides &ndash; ligands, sugars, modified residues. The list is #IMP::bff::is_standard_residue. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">radius_no_interaction</td><td>report the radius at which the 6-12 Lennard-Jones potential is <b>zero</b>, which is <picture><source srcset="form_426_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$2^{-1/6} R_{min}$" src="form_426.png"/></picture>, rather than <picture><source srcset="form_374_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_{min}$" src="form_374.png"/></picture> itself. The default matches what the accessible-volume code has always been given. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">radius_no_interaction</td><td>report the radius at which the 6-12 Lennard-Jones potential is <b>zero</b>, which is <picture><source srcset="form_191_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$2^{-1/6} R_{min}$" src="form_191.png"/></picture>, rather than <picture><source srcset="form_188_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$R_{min}$" src="form_188.png"/></picture> itself. The default matches what the accessible-volume code has always been given. </td></tr>
   </table>
   </dd>
 </dl>
@@ -171,7 +171,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 13 2026 07:43:58 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 18:57:00 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

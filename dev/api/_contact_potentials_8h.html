@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/ContactPotentials.h File Reference</title>
+<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/probe/ContactPotentials.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -69,7 +69,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_aea81a86ad6880574d1681e547728e82.html">probe</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -83,13 +83,13 @@ $(function() {
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for ContactPotentials.h:</div>
 <div class="dyncontent">
-<div class="center"><img src="_contact_potentials_8h__incl.png" border="0" usemap="#a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_contact_potentials_8h" alt=""/></div>
-<map name="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_contact_potentials_8h" id="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_contact_potentials_8h">
-<area shape="rect" title=" " alt="" coords="17,5,268,45"/>
-<area shape="rect" title=" " alt="" coords="5,93,152,119"/>
-<area shape="poly" title=" " alt="" coords="129,47,99,84,95,81,125,44"/>
-<area shape="rect" title=" " alt="" coords="177,93,239,119"/>
-<area shape="poly" title=" " alt="" coords="161,44,192,81,188,84,156,47"/>
+<div class="center"><img src="_contact_potentials_8h__incl.png" border="0" usemap="#a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2probe_2_contact_potentials_8h" alt=""/></div>
+<map name="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2probe_2_contact_potentials_8h" id="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2probe_2_contact_potentials_8h">
+<area shape="rect" title=" " alt="" coords="47,5,239,60"/>
+<area shape="rect" title=" " alt="" coords="5,108,152,133"/>
+<area shape="poly" title=" " alt="" coords="125,62,98,99,93,95,121,58"/>
+<area shape="rect" title=" " alt="" coords="177,108,239,133"/>
+<area shape="poly" title=" " alt="" coords="165,58,193,95,189,99,161,62"/>
 </map>
 </div>
 </div>
@@ -255,7 +255,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Four-channel tabulated backbone hydrogen-bond energy. </p>
-<p>A residue donates through its H (with its N) and accepts through its O (with its C). For each gated residue pair both directions are tried; a direction d -&gt; a counts when the donor's H index is positive, the acceptor's H index is non-zero, and <picture><source srcset="form_11_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$|H_d - O_a|^2 &lt; $" src="form_11.png"/></picture> <code>cutoff_h2</code>. Each counted bond adds <code>table[c, floor(r / bin_width)]</code> (skipped past the table end) for the channels c = 0: C_a-H_d, 1: N_d-O_a, 2: H_d-O_a, 3: N_d-C_a. The table is row-major <picture><source srcset="form_12_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(4, n_{bins})$" src="form_12.png"/></picture>. A direction whose residues lack the N, C or O atom (index &lt; 0) is not a bond.</p>
+<p>A residue donates through its H (with its N) and accepts through its O (with its C). For each gated residue pair both directions are tried; a direction d -&gt; a counts when the donor's H index is positive, the acceptor's H index is non-zero, and <picture><source srcset="form_201_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$|H_d - O_a|^2 &lt; $" src="form_201.png"/></picture> <code>cutoff_h2</code>. Each counted bond adds <code>table[c, floor(r / bin_width)]</code> (skipped past the table end) for the channels c = 0: C_a-H_d, 1: N_d-O_a, 2: H_d-O_a, 3: N_d-C_a. The table is row-major <picture><source srcset="form_202_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(4, n_{bins})$" src="form_202.png"/></picture>. A direction whose residues lack the N, C or O atom (index &lt; 0) is not a bond.</p>
 <dl class="section return"><dt>Returns</dt><dd><code>[n_bonds, energy]</code> </dd></dl>
 
 </div>
@@ -341,9 +341,9 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Generalized-Born pair sum with a shifted reference term (cell list). </p>
-<p><picture><source srcset="form_19_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$E = \frac{1}{8\pi}\left(\frac{1}{\epsilon_{out}} - \frac{1}{\epsilon_{in}}\right)
-\sum_{i \le j,\, d_{ij} \le r_c} q_i q_j \left(f(d_{ij}^2) - f(\rho)\right)$" src="form_19.png"/></picture>, <picture><source srcset="form_20_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$f(x) = 1/\sqrt{x + a_i a_j e^{-d_{ij}^2 / 4 a_i a_j}}$" src="form_20.png"/></picture>, self pairs included, uncharged atoms skipped.</p>
-<p><code>reference_distance2</code> is <picture><source srcset="form_21_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\rho$" src="form_21.png"/></picture>, the squared distance the reference term is taken at. The cutoff squared is the consistent choice; the coarse-grained kernel this replaces passed the <em>unsquared</em> cutoff, and a caller reproducing it passes that. </p>
+<p><picture><source srcset="form_209_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$E = \frac{1}{8\pi}\left(\frac{1}{\epsilon_{out}} - \frac{1}{\epsilon_{in}}\right)
+\sum_{i \le j,\, d_{ij} \le r_c} q_i q_j \left(f(d_{ij}^2) - f(\rho)\right)$" src="form_209.png"/></picture>, <picture><source srcset="form_210_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$f(x) = 1/\sqrt{x + a_i a_j e^{-d_{ij}^2 / 4 a_i a_j}}$" src="form_210.png"/></picture>, self pairs included, uncharged atoms skipped.</p>
+<p><code>reference_distance2</code> is <picture><source srcset="form_211_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\rho$" src="form_211.png"/></picture>, the squared distance the reference term is taken at. The cutoff squared is the consistent choice; the coarse-grained kernel this replaces passed the <em>unsquared</em> cutoff, and a caller reproducing it passes that. </p>
 
 </div>
 </div>
@@ -416,7 +416,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Truncated 6-12 well with per-pair depth and minimum (Go-type model). </p>
-<p>Over the upper triangle of the site distance matrix <code>in_distance:</code> for <picture><source srcset="form_15_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r_m &lt; r &lt; 2.5\,r_m$" src="form_15.png"/></picture> the pair adds <picture><source srcset="form_16_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\epsilon(-s + s^2/4 + 0.00818)$" src="form_16.png"/></picture> with <picture><source srcset="form_17_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$s = 2 (r_m/r)^6$" src="form_17.png"/></picture>, and <picture><source srcset="form_18_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$-\epsilon$" src="form_18.png"/></picture> otherwise. </p>
+<p>Over the upper triangle of the site distance matrix <code>in_distance:</code> for <picture><source srcset="form_205_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$r_m &lt; r &lt; 2.5\,r_m$" src="form_205.png"/></picture> the pair adds <picture><source srcset="form_206_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\epsilon(-s + s^2/4 + 0.00818)$" src="form_206.png"/></picture> with <picture><source srcset="form_207_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$s = 2 (r_m/r)^6$" src="form_207.png"/></picture>, and <picture><source srcset="form_208_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$-\epsilon$" src="form_208.png"/></picture> otherwise. </p>
 
 </div>
 </div>
@@ -519,7 +519,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Shrake-Rupley accessible area of sites, with occluders chosen by a gate. </p>
-<p>Each present site is sampled at <code>radius</code> on the unit-sphere <code>points</code> (flat, three per point); a sample is buried when it lies within <picture><source srcset="form_22_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$radius + probe$" src="form_22.png"/></picture> of the atom of another site <picture><source srcset="form_23_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$j$" src="form_23.png"/></picture> with <code>gate[i, j] &lt; gate_cutoff</code> (strict). Returns <picture><source srcset="form_24_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\sum_i 4\pi\, radius^2\, n_i^{acc} / n_{points}$" src="form_24.png"/></picture>.</p>
+<p>Each present site is sampled at <code>radius</code> on the unit-sphere <code>points</code> (flat, three per point); a sample is buried when it lies within <picture><source srcset="form_170_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$radius + probe$" src="form_170.png"/></picture> of the atom of another site <picture><source srcset="form_212_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$j$" src="form_212.png"/></picture> with <code>gate[i, j] &lt; gate_cutoff</code> (strict). Returns <picture><source srcset="form_213_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\sum_i 4\pi\, radius^2\, n_i^{acc} / n_{points}$" src="form_213.png"/></picture>.</p>
 <p>Not <a class="el" href="_solvent_accessible_surface_8h.html#ad1e5eda178f209e7c1049d48dac9b938" title="Solvent-accessible surface area of selected atoms (Shrake-Rupley).">solvent_accessible_surface_area()</a>: there every atom occludes, here only the gated sites do, which is the residue-level burial term a coarse-grained model scores. </p>
 
 </div>
@@ -653,7 +653,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Tabulated type-pair energy binned in the site-site distance. </p>
-<p>For each site pair passing the gate: below <code>min_distance</code> the pair adds <code>repulsion</code>; otherwise it adds <code>table[t_i, t_j, b]</code> with <picture><source srcset="form_9_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$b = \lfloor \min(d, d_{max}) / w \rfloor$" src="form_9.png"/></picture>. The table is passed flat, row-major <picture><source srcset="form_10_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(n_{types}, n_{types}, n_{bins})$" src="form_10.png"/></picture>.</p>
+<p>For each site pair passing the gate: below <code>min_distance</code> the pair adds <code>repulsion</code>; otherwise it adds <code>table[t_i, t_j, b]</code> with <picture><source srcset="form_199_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$b = \lfloor \min(d, d_{max}) / w \rfloor$" src="form_199.png"/></picture>. The table is passed flat, row-major <picture><source srcset="form_200_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(n_{types}, n_{types}, n_{bins})$" src="form_200.png"/></picture>.</p>
 <dl class="section return"><dt>Returns</dt><dd><code>[n_pairs, energy]</code> &ndash; every gated pair counts, close or not </dd></dl>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
@@ -769,7 +769,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Tabulated type-pair contact energy between sites closer than a cutoff. </p>
-<p><picture><source srcset="form_8_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$E = \sum_{i&lt;j} T[t_i, t_j]$" src="form_8.png"/></picture> over site pairs passing the gate whose atoms are closer than <code>cutoff</code> (strictly).</p>
+<p><picture><source srcset="form_198_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$E = \sum_{i&lt;j} T[t_i, t_j]$" src="form_198.png"/></picture> over site pairs passing the gate whose atoms are closer than <code>cutoff</code> (strictly).</p>
 <dl class="section return"><dt>Returns</dt><dd><code>[n_contacts, energy]</code> </dd></dl>
 
 </div>
@@ -831,14 +831,14 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Soft-sphere overlap energy over all atom pairs (cell list). </p>
-<p><picture><source srcset="form_13_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$E = \sum_{i&lt;j} ((r_i + r_j - d_{ij}) / s)^2$" src="form_13.png"/></picture> for <picture><source srcset="form_14_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$d_{min} &lt; d_{ij} &lt; r_i + r_j$" src="form_14.png"/></picture>; pairs at or below <code>min_distance</code> (bonded neighbours) are left out. </p>
+<p><picture><source srcset="form_203_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$E = \sum_{i&lt;j} ((r_i + r_j - d_{ij}) / s)^2$" src="form_203.png"/></picture> for <picture><source srcset="form_204_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$d_{min} &lt; d_{ij} &lt; r_i + r_j$" src="form_204.png"/></picture>; pairs at or below <code>min_distance</code> (bonded neighbours) are left out. </p>
 
 </div>
 </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 13 2026 07:43:58 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 18:57:00 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

@@ -1,0 +1,21 @@
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/sequence.h" name="/home/runner/work/IMP.bff/IMP.bff/include/sequence.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="902,5,1101,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,205,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="902,35,601,57,412,74,219,96,219,91,412,69,600,52,901,30"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="229,93,429,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="902,40,695,63,443,96,443,90,694,58,901,34"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="453,93,653,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="904,48,665,93,664,88,903,43"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="677,93,877,133"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="953,48,840,91,838,86,951,43"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="901,93,1101,133"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="1004,46,1004,79,999,79,999,46"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="1125,93,1325,133"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="1051,43,1165,86,1163,91,1050,48"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="1349,93,1549,133"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="1100,43,1338,88,1337,93,1099,48"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="1573,93,1773,133"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="1101,34,1308,58,1560,90,1559,96,1308,63,1101,40"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="1797,93,1997,133"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="1101,30,1403,52,1591,69,1784,91,1783,96,1590,74,1402,57,1101,35"/>
+</map>

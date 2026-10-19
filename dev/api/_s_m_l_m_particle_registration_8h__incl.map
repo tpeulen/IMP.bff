@@ -1,7 +1,7 @@
-<map id="/home/runner/work/IMP.bff/IMP.bff/include/SMLMParticleRegistration.h" name="/home/runner/work/IMP.bff/IMP.bff/include/SMLMParticleRegistration.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="45,5,348,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,183,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,48,122,87,118,83,170,43"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="207,93,395,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="223,43,276,83,273,87,220,48"/>
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/smlm/SMLMParticleRegistration.h" name="/home/runner/work/IMP.bff/IMP.bff/include/smlm/SMLMParticleRegistration.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="113,5,365,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,224,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,62,145,102,142,98,199,58"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="248,108,477,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="278,58,336,98,333,102,275,62"/>
 </map>

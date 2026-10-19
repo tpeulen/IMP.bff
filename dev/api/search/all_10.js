@@ -21,7 +21,7 @@ var searchData=
   ['quenching_5frate_5fmap_18',['quenching_rate_map',['../_photophysics_quenching_8h.html#ad2c9b38eb7a8c0bbc8271c3b847efb14',1,'PhotophysicsQuenching.h']]],
   ['quenching_5frate_5fper_5fframe_19',['quenching_rate_per_frame',['../_solvent_accessible_surface_8h.html#aef2f7d5d8e83c5e694c6d74595b28b52',1,'SolventAccessibleSurface.h']]],
   ['quenching_5frates_5ffor_5fresidues_20',['quenching_rates_for_residues',['../_photophysics_quenching_8h.html#a577a7bd32de23c584a7664d38e4d6306',1,'PhotophysicsQuenching.h']]],
-  ['query_21',['query',['../class_sequence_search_hit.html#acf72e307eb5373eb550ced9d5671ded6',1,'SequenceSearchHit::query'],['../class_consurf_result.html#a93011b5c175d4d24ab869b8bc51a62d8',1,'ConsurfResult::query']]],
+  ['query_21',['query',['../class_consurf_result.html#a93011b5c175d4d24ab869b8bc51a62d8',1,'ConsurfResult::query'],['../class_sequence_search_hit.html#acf72e307eb5373eb550ced9d5671ded6',1,'SequenceSearchHit::query']]],
   ['query_5fend_22',['query_end',['../class_sequence_search_hit.html#ac50c6aff01c9894eadcc064e4d9b63bf',1,'SequenceSearchHit::query_end'],['../struct_aligned_block.html#a5b2e43af1f3a1ac1c06268eca6c81643',1,'AlignedBlock::query_end']]],
   ['query_5flength_23',['query_length',['../class_sequence_search_hit.html#a13138b0aba223c427ca680015e6217e2',1,'SequenceSearchHit']]],
   ['query_5fstart_24',['query_start',['../class_sequence_search_hit.html#afe965df8a2d474f2485ade72d27a575b',1,'SequenceSearchHit::query_start'],['../struct_aligned_block.html#aa517bfe064af96c337c7e6a06f532477',1,'AlignedBlock::query_start']]]

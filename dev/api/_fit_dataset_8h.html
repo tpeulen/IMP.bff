@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/FitDataset.h File Reference</title>
+<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/fit/FitDataset.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -69,7 +69,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_acc739ef1e96d57d4d2313e3187cbdb5.html">fit</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -80,23 +80,23 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;IMP/bff/bff_config.h&gt;</code><br />
-<code>#include &lt;IMP/bff/IMPCompatibility.h&gt;</code><br />
+<code>#include &lt;IMP/bff/util/IMPCompatibility.h&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for FitDataset.h:</div>
 <div class="dyncontent">
-<div class="center"><img src="_fit_dataset_8h__incl.png" border="0" usemap="#a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_fit_dataset_8h" alt=""/></div>
-<map name="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_fit_dataset_8h" id="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_fit_dataset_8h">
-<area shape="rect" title=" " alt="" coords="247,5,449,45"/>
+<div class="center"><img src="_fit_dataset_8h__incl.png" border="0" usemap="#a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2fit_2_fit_dataset_8h" alt=""/></div>
+<map name="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2fit_2_fit_dataset_8h" id="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2fit_2_fit_dataset_8h">
+<area shape="rect" title=" " alt="" coords="257,5,477,45"/>
 <area shape="rect" title=" " alt="" coords="5,93,152,119"/>
-<area shape="poly" title=" " alt="" coords="284,48,132,92,130,87,283,43"/>
-<area shape="rect" title=" " alt="" coords="177,93,370,119"/>
-<area shape="poly" title=" " alt="" coords="332,47,296,85,292,81,328,44"/>
-<area shape="rect" title=" " alt="" coords="395,93,453,119"/>
-<area shape="poly" title=" " alt="" coords="368,44,405,81,401,85,364,47"/>
-<area shape="rect" title=" " alt="" coords="478,93,541,119"/>
-<area shape="poly" title=" " alt="" coords="388,43,474,85,472,90,385,48"/>
+<area shape="poly" title=" " alt="" coords="298,48,135,92,133,87,297,43"/>
+<area shape="rect" title=" " alt="" coords="176,93,395,119"/>
+<area shape="poly" title=" " alt="" coords="349,47,309,85,306,82,345,44"/>
+<area shape="rect" title=" " alt="" coords="419,93,477,119"/>
+<area shape="poly" title=" " alt="" coords="388,44,428,82,424,85,385,47"/>
+<area shape="rect" title=" " alt="" coords="502,93,565,119"/>
+<area shape="poly" title=" " alt="" coords="408,43,498,85,495,90,405,48"/>
 </map>
 </div>
 </div>
@@ -139,7 +139,7 @@ Enumerations</h2></td></tr>
 
 <p>How the variance of a measured value is known. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aaaa5c9789017dd50271fa2d195eb843da8fb4034df934594ef582752e9614c779" name="aaaa5c9789017dd50271fa2d195eb843da8fb4034df934594ef582752e9614c779"></a>FIT_NOISE_FAMILY_POISSON&#160;</td><td class="fielddoc"><p>Counts. <picture><source srcset="form_118_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\mathrm{var} = \lambda$" src="form_118.png"/></picture>, the model's own prediction. </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aaaa5c9789017dd50271fa2d195eb843da8fb4034df934594ef582752e9614c779" name="aaaa5c9789017dd50271fa2d195eb843da8fb4034df934594ef582752e9614c779"></a>FIT_NOISE_FAMILY_POISSON&#160;</td><td class="fielddoc"><p>Counts. <picture><source srcset="form_11_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\mathrm{var} = \lambda$" src="form_11.png"/></picture>, the model's own prediction. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="aaaa5c9789017dd50271fa2d195eb843da7ea6d87391ded83e1e8545075ac6c5a2" name="aaaa5c9789017dd50271fa2d195eb843da7ea6d87391ded83e1e8545075ac6c5a2"></a>FIT_NOISE_FAMILY_STORED&#160;</td><td class="fielddoc"><p>A measurement with its own per-point variance, supplied with the data. </p>
 </td></tr>
@@ -166,11 +166,11 @@ Enumerations</h2></td></tr>
 
 <p>Which residual, named for how it is weighted rather than that it is. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a694b48f321fd42b7233a652530fc5dcaa8146fffe2d85b0a67ceb0df1b23e749b" name="a694b48f321fd42b7233a652530fc5dcaa8146fffe2d85b0a67ceb0df1b23e749b"></a>RESIDUAL_PEARSON&#160;</td><td class="fielddoc"><p><picture><source srcset="form_119_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(y-\mu)/\sqrt{\mathrm{var}(\mu)}$" src="form_119.png"/></picture> &ndash; weighted by the <em>model</em>. </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a694b48f321fd42b7233a652530fc5dcaa8146fffe2d85b0a67ceb0df1b23e749b" name="a694b48f321fd42b7233a652530fc5dcaa8146fffe2d85b0a67ceb0df1b23e749b"></a>RESIDUAL_PEARSON&#160;</td><td class="fielddoc"><p><picture><source srcset="form_12_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(y-\mu)/\sqrt{\mathrm{var}(\mu)}$" src="form_12.png"/></picture> &ndash; weighted by the <em>model</em>. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a694b48f321fd42b7233a652530fc5dcaa8cdcb7312c1a266f65617af339491ae9" name="a694b48f321fd42b7233a652530fc5dcaa8cdcb7312c1a266f65617af339491ae9"></a>RESIDUAL_DEVIANCE&#160;</td><td class="fielddoc"><p>Signed square root of the Poisson deviance; the likelihood's own residual. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a694b48f321fd42b7233a652530fc5dcaa9793b73b192052c00caa2380f6bab6bf" name="a694b48f321fd42b7233a652530fc5dcaa9793b73b192052c00caa2380f6bab6bf"></a>RESIDUAL_NEYMAN&#160;</td><td class="fielddoc"><p><picture><source srcset="form_120_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(y-\mu)/\sqrt{y}$" src="form_120.png"/></picture> &ndash; weighted by the <em>data</em>, and biased. </p>
+<tr><td class="fieldname"><a id="a694b48f321fd42b7233a652530fc5dcaa9793b73b192052c00caa2380f6bab6bf" name="a694b48f321fd42b7233a652530fc5dcaa9793b73b192052c00caa2380f6bab6bf"></a>RESIDUAL_NEYMAN&#160;</td><td class="fielddoc"><p><picture><source srcset="form_13_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$(y-\mu)/\sqrt{y}$" src="form_13.png"/></picture> &ndash; weighted by the <em>data</em>, and biased. </p>
 <p>Offered because it is what a great deal of existing analysis used, and named so that nobody reaches for it without meaning to. </p>
 </td></tr>
 </table>
@@ -180,7 +180,7 @@ Enumerations</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 13 2026 07:43:58 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 18:57:00 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

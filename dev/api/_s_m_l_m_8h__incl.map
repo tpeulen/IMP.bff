@@ -1,11 +1,15 @@
-<map id="/home/runner/work/IMP.bff/IMP.bff/include/SMLM.h" name="/home/runner/work/IMP.bff/IMP.bff/include/SMLM.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="251,5,443,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,152,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="283,48,131,92,130,87,282,43"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="177,93,370,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="331,47,296,85,292,81,327,44"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="395,93,445,119"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="366,44,402,81,398,85,362,47"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="470,93,533,119"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="385,43,468,85,465,89,383,48"/>
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/smlm.h" name="/home/runner/work/IMP.bff/IMP.bff/include/smlm.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="533,5,725,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,101,168,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="534,42,180,96,155,101,154,95,180,91,533,37"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="192,93,403,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="557,48,384,93,382,87,556,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="427,101,605,126"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="606,48,544,94,541,90,603,43"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="629,101,859,126"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="656,43,719,90,716,94,653,48"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="883,93,1082,133"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="707,43,893,88,892,93,706,48"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="1107,101,1325,126"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="726,38,1095,91,1130,96,1129,101,1094,96,725,43"/>
 </map>

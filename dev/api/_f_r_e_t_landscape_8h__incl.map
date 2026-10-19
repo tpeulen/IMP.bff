@@ -1,15 +1,15 @@
-<map id="/home/runner/work/IMP.bff/IMP.bff/include/FRETLandscape.h" name="/home/runner/work/IMP.bff/IMP.bff/include/FRETLandscape.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="459,5,698,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,152,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="459,48,165,94,165,89,458,43"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="177,93,370,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="506,48,332,92,331,87,505,43"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="394,93,606,119"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="562,47,523,85,520,82,558,44"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="629,93,688,119"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="600,44,639,82,635,85,596,47"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="712,93,771,119"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="619,43,706,85,704,90,616,48"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="795,93,858,119"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="639,43,783,88,781,93,637,48"/>
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/fret/FRETLandscape.h" name="/home/runner/work/IMP.bff/IMP.bff/include/fret/FRETLandscape.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="462,5,727,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,101,152,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="462,48,164,96,142,100,141,95,164,91,461,42"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="176,101,395,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="527,48,341,100,339,94,526,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="419,93,619,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="580,47,547,85,543,81,576,44"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="643,101,701,126"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="614,44,654,88,650,92,610,47"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="725,101,784,126"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="631,43,723,92,720,97,629,48"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="809,101,871,126"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="656,43,797,91,803,93,801,98,795,96,655,48"/>
 </map>

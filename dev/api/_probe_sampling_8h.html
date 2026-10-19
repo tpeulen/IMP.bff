@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/ProbeSampling.h File Reference</title>
+<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/probe/ProbeSampling.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -69,7 +69,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_aea81a86ad6880574d1681e547728e82.html">probe</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -81,26 +81,26 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;IMP/bff/bff_config.h&gt;</code><br />
-<code>#include &lt;IMP/bff/IMPCompatibility.h&gt;</code><br />
-<code>#include &lt;IMP/bff/ProbeRotamerLibrary.h&gt;</code><br />
+<code>#include &lt;IMP/bff/util/IMPCompatibility.h&gt;</code><br />
+<code>#include &lt;IMP/bff/probe/ProbeRotamerLibrary.h&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for ProbeSampling.h:</div>
 <div class="dyncontent">
-<div class="center"><img src="_probe_sampling_8h__incl.png" border="0" usemap="#a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_probe_sampling_8h" alt=""/></div>
-<map name="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_probe_sampling_8h" id="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_probe_sampling_8h">
-<area shape="rect" title=" " alt="" coords="387,5,621,45"/>
-<area shape="rect" title=" " alt="" coords="5,93,152,119"/>
-<area shape="poly" title=" " alt="" coords="403,48,155,93,154,88,402,43"/>
-<area shape="rect" title=" " alt="" coords="177,93,370,119"/>
-<area shape="poly" title=" " alt="" coords="450,48,321,91,319,86,448,43"/>
-<area shape="rect" title=" " alt="" coords="395,93,613,119"/>
-<area shape="poly" title=" " alt="" coords="507,46,507,79,501,79,501,46"/>
-<area shape="rect" title=" " alt="" coords="637,93,696,119"/>
-<area shape="poly" title=" " alt="" coords="544,43,631,85,629,90,542,48"/>
-<area shape="rect" title=" " alt="" coords="721,93,783,119"/>
-<area shape="poly" title=" " alt="" coords="564,43,708,88,707,93,563,48"/>
+<div class="center"><img src="_probe_sampling_8h__incl.png" border="0" usemap="#a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2probe_2_probe_sampling_8h" alt=""/></div>
+<map name="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2probe_2_probe_sampling_8h" id="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2probe_2_probe_sampling_8h">
+<area shape="rect" title=" " alt="" coords="425,5,617,60"/>
+<area shape="rect" title=" " alt="" coords="5,115,152,141"/>
+<area shape="poly" title=" " alt="" coords="426,56,165,111,144,115,143,110,163,105,424,51"/>
+<area shape="rect" title=" " alt="" coords="176,115,395,141"/>
+<area shape="poly" title=" " alt="" coords="456,63,328,113,326,108,454,58"/>
+<area shape="rect" title=" " alt="" coords="419,108,624,148"/>
+<area shape="poly" title=" " alt="" coords="524,60,524,94,519,94,519,60"/>
+<area shape="rect" title=" " alt="" coords="648,115,707,141"/>
+<area shape="poly" title=" " alt="" coords="567,58,648,106,645,111,564,62"/>
+<area shape="rect" title=" " alt="" coords="731,115,794,141"/>
+<area shape="poly" title=" " alt="" coords="594,58,720,106,725,107,723,112,718,110,592,63"/>
 </map>
 </div>
 </div>
@@ -219,8 +219,8 @@ Variables</h2></td></tr>
 <p>The stationary occupancy of the volume, in closed form. </p>
 <p>Which closed form depends on how the flux is discretised, and the two disagree completely:</p>
 <ul>
-<li><code>"smoluchowski"</code> (default, and the physics): <picture><source srcset="form_382_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$p_{eq} \propto 1$" src="form_382.png"/></picture> on the accessible domain — <b>independent of D</b>.</li>
-<li><p class="startli"><code>"ito"</code> (the inherited ChiSurf behaviour): <picture><source srcset="form_383_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$p_{eq} \propto 1/D$" src="form_383.png"/></picture>, so the dye piles up wherever it moves slowly.</p>
+<li><code>"smoluchowski"</code> (default, and the physics): <picture><source srcset="form_311_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$p_{eq} \propto 1$" src="form_311.png"/></picture> on the accessible domain — <b>independent of D</b>.</li>
+<li><p class="startli"><code>"ito"</code> (the inherited ChiSurf behaviour): <picture><source srcset="form_312_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$p_{eq} \propto 1/D$" src="form_312.png"/></picture>, so the dye piles up wherever it moves slowly.</p>
 <p class="startli">The default is Smoluchowski because equilibrium is thermodynamics and mobility is kinetics.** A dye slowed by friction near a surface, with no attractive interaction, must still be found uniformly across its accessible volume at equilibrium — it merely takes longer to get around. Letting a friction field set the distribution asserts a potential that was never specified. On T4L site 132 the difference is a factor of ~75 between peak and mean occupancy.</p>
 </li>
 </ul>
@@ -597,7 +597,7 @@ Variables</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 13 2026 07:43:58 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 18:57:00 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

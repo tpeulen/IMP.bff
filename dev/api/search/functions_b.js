@@ -82,7 +82,7 @@ var searchData=
   ['lj_5fpairs_5fsum_79',['lj_pairs_sum',['../_rotamer_scoring_8h.html#af66904b19f6f2a0278db35ddfe9634a2',1,'RotamerScoring.h']]],
   ['lj_5fparameter_5farrays_80',['lj_parameter_arrays',['../_rotamer_scoring_8h.html#acfd65c593a95fad5f04c139c55150468',1,'RotamerScoring.h']]],
   ['lj_5fscore_81',['lj_score',['../_rotamer_scoring_8h.html#a3d7ee2a6a39fb6a43356a03838407a35',1,'RotamerScoring.h']]],
-  ['load_82',['load',['../class_inference_factor_graph.html#af28b84b22e14fd3a867aa0f400334129',1,'InferenceFactorGraph::load()'],['../class_graph_session.html#a007c32e32a14fe0a6c10cc499b41b071',1,'GraphSession::load()']]],
+  ['load_82',['load',['../class_graph_session.html#a007c32e32a14fe0a6c10cc499b41b071',1,'GraphSession::load()'],['../class_inference_factor_graph.html#af28b84b22e14fd3a867aa0f400334129',1,'InferenceFactorGraph::load()']]],
   ['load_5fcompute_5fbackend_83',['load_compute_backend',['../_compute_backend_8h.html#ace8d48be708ef49011ecaa8a943edaf6',1,'ComputeBackend.h']]],
   ['load_5fprobe_5frotamer_5flibrary_84',['load_probe_rotamer_library',['../_probe_rotamer_8h.html#a1173fad285fc09f6f3e06810b6cd8cd8',1,'ProbeRotamer.h']]],
   ['load_5fprotein_5fframes_85',['load_protein_frames',['../_hierarchy_frame_8h.html#a6d3902c452eaeba2b204e85119d61eee',1,'HierarchyFrame.h']]],

@@ -120,8 +120,8 @@ Public Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Soft-sphere overlap between two spheres, bonded neighbours left out. </p>
-<p><picture><source srcset="form_345_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$E = ((\sigma - r)/s)^2$" src="form_345.png"/></picture> on <picture><source srcset="form_346_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$d_{min} &lt; r &lt; \sigma$" src="form_346.png"/></picture> with <picture><source srcset="form_347_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\sigma = r_i + r_j$" src="form_347.png"/></picture> from #IMP::core::XYZR, and 0 otherwise &ndash; the coarse-grained clash term, with derivatives. Score a #IMP::container::ClosePairContainer of distance <picture><source srcset="form_348_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$2 r_{max}$" src="form_348.png"/></picture> with it.</p>
-<p>#IMP::core::SoftSpherePairScore is the same overlap with <picture><source srcset="form_349_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k = 2/s^2$" src="form_349.png"/></picture>, but it has no <picture><source srcset="form_350_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$d_{min}$" src="form_350.png"/></picture>: the pairs closer than that, which this potential counts as bonded and skips, it scores. The arithmetic is the one <a class="el" href="_contact_potentials_8h.html#aa994bb0153ab1d82fa6486e8416481d3" title="Soft-sphere overlap energy over all atom pairs (cell list).">get_soft_sphere_overlap_energy</a> sums on arrays. </p>
+<p><picture><source srcset="form_158_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$E = ((\sigma - r)/s)^2$" src="form_158.png"/></picture> on <picture><source srcset="form_159_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$d_{min} &lt; r &lt; \sigma$" src="form_159.png"/></picture> with <picture><source srcset="form_160_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\sigma = r_i + r_j$" src="form_160.png"/></picture> from #IMP::core::XYZR, and 0 otherwise &ndash; the coarse-grained clash term, with derivatives. Score a #IMP::container::ClosePairContainer of distance <picture><source srcset="form_161_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$2 r_{max}$" src="form_161.png"/></picture> with it.</p>
+<p>#IMP::core::SoftSpherePairScore is the same overlap with <picture><source srcset="form_162_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$k = 2/s^2$" src="form_162.png"/></picture>, but it has no <picture><source srcset="form_163_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$d_{min}$" src="form_163.png"/></picture>: the pairs closer than that, which this potential counts as bonded and skips, it scores. The arithmetic is the one <a class="el" href="_contact_potentials_8h.html#aa994bb0153ab1d82fa6486e8416481d3" title="Soft-sphere overlap energy over all atom pairs (cell list).">get_soft_sphere_overlap_energy</a> sums on arrays. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a605123986ecdae971d4035a3b25a4e76" name="a605123986ecdae971d4035a3b25a4e76"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a605123986ecdae971d4035a3b25a4e76">&#9670;&#160;</a></span>SoftSphereOverlapPairScore()</h2>
@@ -150,7 +150,7 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">scale</td><td>the overlap's denominator <picture><source srcset="form_375_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$s$" src="form_375.png"/></picture>: larger is softer </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">scale</td><td>the overlap's denominator <picture><source srcset="form_189_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$s$" src="form_189.png"/></picture>: larger is softer </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">min_distance</td><td>pairs this close or closer are not scored, A </td></tr>
   </table>
   </dd>
@@ -324,12 +324,12 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>/home/runner/work/IMP.bff/IMP.bff/include/<a class="el" href="_probe_potential_restraints_8h_source.html">ProbePotentialRestraints.h</a></li>
+<li>/home/runner/work/IMP.bff/IMP.bff/include/imp/<a class="el" href="_probe_potential_restraints_8h_source.html">ProbePotentialRestraints.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 13 2026 07:43:58 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 18:57:01 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

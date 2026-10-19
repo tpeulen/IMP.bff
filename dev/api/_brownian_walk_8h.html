@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/BrownianWalk.h File Reference</title>
+<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/probe/BrownianWalk.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -69,7 +69,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_aea81a86ad6880574d1681e547728e82.html">probe</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -83,13 +83,13 @@ $(function() {
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for BrownianWalk.h:</div>
 <div class="dyncontent">
-<div class="center"><img src="_brownian_walk_8h__incl.png" border="0" usemap="#a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_brownian_walk_8h" alt=""/></div>
-<map name="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_brownian_walk_8h" id="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_brownian_walk_8h">
-<area shape="rect" title=" " alt="" coords="28,5,257,45"/>
-<area shape="rect" title=" " alt="" coords="5,93,152,119"/>
-<area shape="poly" title=" " alt="" coords="129,47,99,84,95,81,125,44"/>
-<area shape="rect" title=" " alt="" coords="177,93,239,119"/>
-<area shape="poly" title=" " alt="" coords="161,44,192,81,188,84,156,47"/>
+<div class="center"><img src="_brownian_walk_8h__incl.png" border="0" usemap="#a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2probe_2_brownian_walk_8h" alt=""/></div>
+<map name="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2probe_2_brownian_walk_8h" id="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2probe_2_brownian_walk_8h">
+<area shape="rect" title=" " alt="" coords="47,5,239,60"/>
+<area shape="rect" title=" " alt="" coords="5,108,152,133"/>
+<area shape="poly" title=" " alt="" coords="125,62,98,99,93,95,121,58"/>
+<area shape="rect" title=" " alt="" coords="177,108,239,133"/>
+<area shape="poly" title=" " alt="" coords="165,58,193,95,189,99,161,62"/>
 </map>
 </div>
 </div>
@@ -195,7 +195,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>One Brownian trajectory of a point particle confined to an occupancy grid. </p>
-<p>Steps are isotropic Gaussians of standard deviation <picture><source srcset="form_2_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\sqrt{2 D \Delta t}/dg$" src="form_2.png"/></picture> <b>in voxel units</b> &ndash; the variance of one Cartesian component, so that <picture><source srcset="form_3_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\langle \Delta x^2\rangle = 2 D t$" src="form_3.png"/></picture> and #DiffusionSolver, which is the same dynamics as a density, agrees at the same <picture><source srcset="form_4_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$D$" src="form_4.png"/></picture>. Scaled per step by <picture><source srcset="form_5_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\sqrt{m}$" src="form_5.png"/></picture> for the mobility <picture><source srcset="form_6_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$m$" src="form_6.png"/></picture> at the particle's current voxel. A step that would leave the accessible region is <b>rejected</b>: the particle stays where it was and the frame is still emitted, so the trajectory has one entry per time step whether or not it moved. That is what makes a rejection walk sample the uniform equilibrium on the region &ndash; dropping rejected frames would bias it away from the boundary.</p>
+<p>Steps are isotropic Gaussians of standard deviation <picture><source srcset="form_192_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\sqrt{2 D \Delta t}/dg$" src="form_192.png"/></picture> <b>in voxel units</b> &ndash; the variance of one Cartesian component, so that <picture><source srcset="form_193_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\langle \Delta x^2\rangle = 2 D t$" src="form_193.png"/></picture> and #DiffusionSolver, which is the same dynamics as a density, agrees at the same <picture><source srcset="form_194_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$D$" src="form_194.png"/></picture>. Scaled per step by <picture><source srcset="form_195_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$\sqrt{m}$" src="form_195.png"/></picture> for the mobility <picture><source srcset="form_196_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$m$" src="form_196.png"/></picture> at the particle's current voxel. A step that would leave the accessible region is <b>rejected</b>: the particle stays where it was and the frame is still emitted, so the trajectory has one entry per time step whether or not it moved. That is what makes a rejection walk sample the uniform equilibrium on the region &ndash; dropping rejected frames would bias it away from the boundary.</p>
 <p>The starting voxel is drawn uniformly from the grid and retried up to 1000 times until it lands inside the accessible region.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -205,7 +205,7 @@ Functions</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">dg</td><td>voxel edge, Angstrom </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">t_max</td><td>total simulated time, ns </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">t_step</td><td>time step, ns </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">diffusion_coefficient</td><td><picture><source srcset="form_4_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$D$" src="form_4.png"/></picture>, A^2/ns </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">diffusion_coefficient</td><td><picture><source srcset="form_194_dark.png" media="(prefers-color-scheme: dark)"/><img class="formulaInl" alt="$D$" src="form_194.png"/></picture>, A^2/ns </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">seed</td><td>reproducible when non-negative; drawn from the system otherwise </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">counts</td><td>two entries, accepted and rejected </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">out_view,n_out_view</td><td><b>four</b> values per step: x, y, z in Angstrom <b>relative to the grid anchor</b> (add the attachment point for the structure's frame), then 1.0 if the step was taken and 0.0 if it was rejected. Empty if no accessible starting voxel was found.</td></tr>
@@ -220,7 +220,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 13 2026 07:43:58 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 18:57:00 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

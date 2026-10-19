@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/MCMCSampler.h File Reference</title>
+<title>IMP.bff: /home/runner/work/IMP.bff/IMP.bff/include/bayesian/MCMCSampler.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -69,7 +69,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_d9d05ba577adf54385c9904724b48be3.html">bayesian</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -78,7 +78,7 @@ $(function() {
   <div class="headertitle"><div class="title">MCMCSampler.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;IMP/bff/SamplerWarmup.h&gt;</code><br />
+<div class="textblock"><code>#include &lt;IMP/bff/bayesian/SamplerWarmup.h&gt;</code><br />
 <code>#include &lt;IMP/bff/bff_config.h&gt;</code><br />
 <code>#include &lt;functional&gt;</code><br />
 <code>#include &lt;limits&gt;</code><br />
@@ -90,27 +90,27 @@ $(function() {
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for MCMCSampler.h:</div>
 <div class="dyncontent">
-<div class="center"><img src="_m_c_m_c_sampler_8h__incl.png" border="0" usemap="#a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_m_c_m_c_sampler_8h" alt=""/></div>
-<map name="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_m_c_m_c_sampler_8h" id="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2_m_c_m_c_sampler_8h">
-<area shape="rect" title=" " alt="" coords="515,5,745,45"/>
-<area shape="rect" title=" " alt="" coords="5,93,196,119"/>
-<area shape="poly" title=" " alt="" coords="515,46,192,94,191,89,514,41"/>
-<area shape="rect" title=" " alt="" coords="221,93,367,119"/>
-<area shape="poly" title=" " alt="" coords="550,48,357,93,356,88,549,43"/>
-<area shape="rect" title=" " alt="" coords="392,93,479,119"/>
-<area shape="poly" title=" " alt="" coords="584,48,478,91,476,86,582,43"/>
-<area shape="rect" title=" " alt="" coords="503,93,562,119"/>
-<area shape="poly" title=" " alt="" coords="608,48,559,87,556,82,605,43"/>
-<area shape="rect" title=" " alt="" coords="587,93,673,119"/>
-<area shape="poly" title=" " alt="" coords="633,46,633,79,627,79,627,46"/>
-<area shape="rect" title=" " alt="" coords="698,93,775,119"/>
-<area shape="poly" title=" " alt="" coords="657,43,711,83,708,87,654,48"/>
-<area shape="rect" title=" " alt="" coords="799,93,871,119"/>
-<area shape="poly" title=" " alt="" coords="680,43,793,86,791,91,678,48"/>
-<area shape="rect" title=" " alt="" coords="895,93,954,119"/>
-<area shape="poly" title=" " alt="" coords="703,43,883,90,881,96,701,48"/>
-<area shape="rect" title=" " alt="" coords="979,93,1041,119"/>
-<area shape="poly" title=" " alt="" coords="733,43,966,91,965,96,732,48"/>
+<div class="center"><img src="_m_c_m_c_sampler_8h__incl.png" border="0" usemap="#a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2bayesian_2_m_c_m_c_sampler_8h" alt=""/></div>
+<map name="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2bayesian_2_m_c_m_c_sampler_8h" id="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2bayesian_2_m_c_m_c_sampler_8h">
+<area shape="rect" title=" " alt="" coords="531,5,723,60"/>
+<area shape="rect" title=" " alt="" coords="5,108,193,148"/>
+<area shape="poly" title=" " alt="" coords="532,54,207,110,206,105,531,48"/>
+<area shape="rect" title=" " alt="" coords="218,115,365,141"/>
+<area shape="poly" title=" " alt="" coords="534,63,346,114,345,109,532,57"/>
+<area shape="rect" title=" " alt="" coords="389,115,476,141"/>
+<area shape="poly" title=" " alt="" coords="574,62,470,112,467,107,571,58"/>
+<area shape="rect" title=" " alt="" coords="501,115,559,141"/>
+<area shape="poly" title=" " alt="" coords="602,62,554,107,550,104,598,58"/>
+<area shape="rect" title=" " alt="" coords="584,115,671,141"/>
+<area shape="poly" title=" " alt="" coords="630,60,630,101,625,101,625,60"/>
+<area shape="rect" title=" " alt="" coords="695,115,773,141"/>
+<area shape="poly" title=" " alt="" coords="659,58,712,104,708,108,656,62"/>
+<area shape="rect" title=" " alt="" coords="797,115,869,141"/>
+<area shape="poly" title=" " alt="" coords="686,58,796,107,794,112,684,62"/>
+<area shape="rect" title=" " alt="" coords="893,115,951,141"/>
+<area shape="poly" title=" " alt="" coords="724,56,802,79,882,105,887,107,885,112,880,111,800,84,723,61"/>
+<area shape="rect" title=" " alt="" coords="976,115,1039,141"/>
+<area shape="poly" title=" " alt="" coords="724,48,840,72,964,105,971,108,969,113,963,111,838,77,723,53"/>
 </map>
 </div>
 </div>
@@ -126,7 +126,7 @@ Classes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 13 2026 07:43:58 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Mon Oct 19 2026 18:57:00 for IMP.bff by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
