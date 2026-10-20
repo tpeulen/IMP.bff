@@ -115,7 +115,14 @@ and 1.97 ns, so the PDE and the walk agree well inside the transport effect.
    not compared at 1e-9. To reproduce the prototype exactly, build the volume with
    `grid_origin = attachment - ((ng-1)//2 - 0.5) dg` from the prototype's voxel set. The
    reproduction test does this.
-2. **The "pde" ensemble is ready for ChiSurf WP9 to wire** (section above). Build
+2. **Wired in ChiSurf WP9 (2026-10-20)**: `quenching_estimator/core/ensembles.py` builds
+   `w = 1/m` from the plugin's own slow-factor map (`m = prod s^n`, the walk's mobility) and
+   calls the solver below; MalE APO 95 (AF488 table, dg 0.9) PDE 3.637 / 2.494 / 0.890 ns at
+   slow 1 / 0.3 / 0.1, and a p(x)-started walk agrees (3.638 +- 0.007, 2.487 +- 0.014). **New
+   gap it found:** `simulate_probe_diffusion` and `quenched_donor_photons` take no start
+   distribution (`internal/RandomWalk.h` draws a uniform voxel), so ChiSurf's p(x)-started
+   walk is numpy until the walk takes a start weight (rebuild needed). The items below stay
+   open. Original note: build
    `w = prod_t s_t^(-n_t)` from `residue_type_neighbour_counts`. For the walk's own physics,
    D is `D0 prod s^n`; D can also be set independently. Then call
    `GridDiffusionSolver(D, bounds, w*bounds, k, dg, t_step, "detailed_balance", False, w)`,
