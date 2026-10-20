@@ -94,3 +94,38 @@ def test_the_density_outside_the_domain_stays_zero():
     _, dn = IMP.bff.diffusion_propagate(cur, d, decay, bounds, ng,
                                         IMP.bff.FLUX_SMOLUCHOWSKI, 500, 100)
     assert np.abs(np.asarray(dn)[b == 0.0]).max() == 0.0
+
+
+def test_the_detailed_balance_form_agrees_with_the_cpu():
+    """The weight reaches the plugin (ABI 4) and builds the same stencil.
+
+    Through GridDiffusionSolver, the only caller that carries a weight; a
+    weight spanning a decade makes the sweep unsymmetric, so the plugin runs
+    it in f32 as it does Ito."""
+    ng = 25
+    cur, d, decay, bounds = (np.asarray(a) for a in _fields(ng))
+    rng = np.random.default_rng(4)
+    w = 10.0 ** (rng.random(ng ** 3) - 0.5)
+    dg, dt = 1.0, 0.01 * 0.25
+
+    def run():
+        s = IMP.bff.GridDiffusionSolver(d / dt * dg * dg * 0.25, bounds, cur * w,
+                                        -np.log(decay) / dt, dg, dt,
+                                        "detailed_balance", True, w)
+        r = s.run(1000, 100)
+        return np.asarray(r.get_fluorescence()), np.asarray(r.get_density())
+
+    fl_g, dn_g = run()
+    IMP.bff.reset_compute_backend()
+    try:
+        fl_c, dn_c = run()
+    finally:
+        IMP.bff.enable_gpu(quiet=True)
+    assert np.abs(fl_g - fl_c).max() / np.abs(fl_c).max() < TRACE_TOL
+    assert np.abs(dn_g - dn_c).max() / np.abs(dn_c).max() < DENSITY_TOL
+    # and the weight field stays put on the device too
+    p = w * bounds / (w * bounds).sum()
+    s = IMP.bff.GridDiffusionSolver(d / dt * 0.25, bounds, p, np.zeros(ng ** 3), dg, dt,
+                                    "detailed_balance", True, w)
+    dn = np.asarray(s.run(500, 500).get_density())
+    assert np.abs(dn - p).max() / p.max() < 1e-5

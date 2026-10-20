@@ -62,6 +62,50 @@ All four are owner rulings for FPS parity (log 2026-10-11/12). Step 1 cannot be 
 any argument. `get_av(xyzr_bondi, cb, L, 0.5, 3.5, 0, 0, 0.5, -1.0, 74)` reaches 97 898, not
 97 722.
 
+## The diffusion PDE with detailed balance (the "pde" ensemble, 2026-10-20)
+
+`GridDiffusionSolver(..., flux_form="detailed_balance", weight_map=w)` is the
+Smoluchowski equation with a potential. The flux on the edge between voxel c and voxel m is
+
+    J_cm = 0.5 (D_c + D_m) sqrt(w_c w_m) (p_c/w_c - p_m/w_m) b_m
+
+so the equilibrium weight `w` and the mobility `D` are separate inputs. The flux is zero on
+every edge at `p = w`, which makes `w` the discrete scheme's exact stationary state. With
+`w = 1` it is the plain Smoluchowski form. The kernel is tttrlib's `LatticeDiffusion.h`
+(`LATTICE_FLUX_DETAILED_BALANCE`, `lattice_sweep_weighted`, `lattice_adjoint_sweep_weighted`,
+tttrlib `6097ec431`), vendored verbatim. It is implemented in four places, all consistent:
+
+| route | entry | units |
+|---|---|---|
+| explicit stepper + adjoint | `run(n_steps, n_out)`, `gradient(dL_dF, n_steps, n_out, p0)` (dL/dD, dL/dk, dL/dp0; w held fixed) | D A^2/ns, k 1/ns, dg A, t_step ns |
+| Lanczos exponential | `run_krylov(n_steps, n_out, krylov_dim=128)`; symmetric in `u = p/sqrt(w)` | report grid `n_out t_step` ns |
+| donor decay | `donor_decay(tau0, n_steps, n_out, krylov_dim=128)`: `I(t)/I(0) = e^(-t/tau0) sum p(t)` | ns |
+| lifetimes | `lifetime(tau0, tolerance=1e-10, max_iterations=0)`: two Jacobi-PCG solves of `(L + K + 1/tau0)`; `lifetime_static(tau0)` (D -> 0); `lifetime_fast_exchange(tau0)` (D -> inf) | `GridLifetime`: `get_tau_x()` = int F dt (ns), `get_tau_f()` = int tF / int F (ns), `get_quantum_yield()` = tau_x/tau0 (Phi/Phi0), `get_iterations()`, `get_residual()`, `get_method()` |
+| GPU (wgpu plugin) | backend ABI 4: `ImpBffPropagateFn` gains `const double* weight`; f32 for this form, like Ito | same as run() |
+
+Also: `get_stationary_occupancy()`, `get_weight_map()`/`set_weight_map()`,
+`equilibrium_occupancy(D, bounds, "detailed_balance", w)`, `FLUX_DETAILED_BALANCE = 2`.
+An empty or zero start density means "start from the stationary occupancy", which is an
+ensemble excited out of its equilibrium. The explicit step's stability bound now reads the
+weights: `dt <= dg^2 / max_c sum_m D_cm sqrt(w_m/w_c)`. Run_krylov, donor_decay and lifetime
+have no step limit. Tests: `test/quenching/test_detailed_balance_pde.py` (16, 9 s) and
+`expensive_test_detailed_balance_walk.py` (2, 70 s). tttrlib `test/cpp/test_lattice_diffusion.cpp`.
+
+**Measured.** On the toy grid the weight field is a fixed point to 1e-13 after 2000 steps.
+An arbitrary start relaxes onto it: Krylov to 1e-8, and `equilibrium()` to 1e-9. On the MalE
+1OMP/72 AV (the prototype's 97 722 voxels padded to 83^3, since that volume touches the grid
+edge) w is stationary to 1e-12 at slow 1, 0.3 and 0.1. The adjoint's dot-product identity
+holds to 1e-6. The stepper minus Krylov is first order in dt (5e-4 at 0.02 ns, halving).
+The linear solve matches the integrated decay to 1e-5. MalE, slow 0.3, tau0 4 ns, k = 1/ns
+per Trp/Tyr/Met/Pro in range: static 3.232 ns, D0 = 10 A^2/ns 2.900 ns, fast exchange
+1.676 ns. The approach to fast exchange goes as 1/D: 0.44 % at 1e4 D, 0.06 % at 1e5 D.
+D -> 0 is static to 1e-6. PCG takes 750-1900 iterations, 1-3 s.
+
+**Against the walk** (40 000 walkers started from p(x), dt 2 ps / 0.5 ps): slow 1.0 -0.02 % /
+-0.04 %; slow 0.3 +0.75 % / +0.41 % (the walk's time-step bias: it shrinks with dt); slow 0.1
++0.75 % / +0.81 % (1.7-1.9 sigma, reported, not asserted). The static values are 3.75, 3.23
+and 1.97 ns, so the PDE and the walk agree well inside the transport effect.
+
 # Where to pick this up
 
 1. **ChiSurf WP3 decides the re-pin.** Both effects are real code changes: the AV changes are
@@ -71,16 +115,23 @@ any argument. `get_av(xyzr_bondi, cb, L, 0.5, 3.5, 0, 0, 0.5, -1.0, 74)` reaches
    not compared at 1e-9. To reproduce the prototype exactly, build the volume with
    `grid_origin = attachment - ((ng-1)//2 - 0.5) dg` from the prototype's voxel set. The
    reproduction test does this.
-2. **Diffusion solver gaps for a Smoluchowski model with stickiness (WP9).**
-   - There is no potential/weight field in the lattice flux. Smoluchowski is uniform at
-     equilibrium and Itô gives p ∝ 1/D, so p ∝ ∏ s_t^(−n_t) is reachable only by tying the
-     mobility to the equilibrium.
-   - `equilibrium_occupancy` has no weights option.
-   - The Brownian walk is Itô in mobility.
-   - There is no grid ⟨τ⟩ or quantum yield, neither static nor via a solve.
-   - `GridDiffusionSolver` only steps explicitly.
-
-   A detailed-balance flux `D_cm √(w_c w_m)(p_c/w_c − p_m/w_m)` would touch the stepper, the
-   adjoint, the Krylov symmetrisation and the GPU kernel together. It is not started.
+2. **The "pde" ensemble is ready for ChiSurf WP9 to wire** (section above). Build
+   `w = prod_t s_t^(-n_t)` from `residue_type_neighbour_counts`. For the walk's own physics,
+   D is `D0 prod s^n`; D can also be set independently. Then call
+   `GridDiffusionSolver(D, bounds, w*bounds, k, dg, t_step, "detailed_balance", False, w)`,
+   followed by `.lifetime(tau0)` / `.donor_decay(tau0, ...)`. The open items:
+   - The adjoint holds w fixed. There is no dL/dw, so fitting slow factors through the
+     gradient needs either that term in `lattice_adjoint_sweep_weighted` (tttrlib first,
+     then re-vendor) or finite differences through `lifetime()`.
+   - `DynamicAccessibleVolume` and `QuenchedDonorDecay` still accept only "smoluchowski"
+     and "ito". Their `flux_form` validation and `equilibrium_occupancy` call (which passes
+     an empty weight) need the weight wired in if they should run this form.
+   - The PDE's own lattice error at dg 0.5 A was not separated from the walk's dt bias.
+     A dg 0.35 A run would show how much of slow 0.1's +0.8 % belongs to each.
+   - Trap: an AV that touches its grid's outer shell is refused by every solver path. Pad
+     it by one voxel (the MalE prototype volume needs this).
+   - Unrelated and pre-existing: `test_vendored_headers.py::test_ptolib_sources_match_checkout_when_present`
+     is red because the sibling ptolib checkout (98497f1, 2026-10-19) is newer than
+     `include/ptolib`. Refresh the vendored copy.
 3. Water radii in `probe_solvent_exposure` are the caller's. The notebook used C 1.70, N 1.55,
    O 1.52, S 1.80 (Bondi, `vdw_radius(element)` gives the same).

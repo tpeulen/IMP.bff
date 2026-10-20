@@ -220,7 +220,8 @@ void DynamicAccessibleVolume::update_occupancy() {
 
     double* out = NULL;
     int n_out = 0;
-    equilibrium_occupancy(diffusion_map_, mask, flux_form_, &out, &n_out);
+    equilibrium_occupancy(diffusion_map_, mask, flux_form_, std::vector<double>(),
+                          &out, &n_out);
     occupancy_ = qmodel::drained(out, n_out);
 }
 

@@ -71,7 +71,8 @@ shared index.
 * [QuEst site-table kernels](quest-site-kernels.md) - Probe solvent exposure,
   rotamer quencher ensembles, residue-type neighbour counts, the voxel frame
   (fixed 2026-10-20), stretched linker length; why today's AV is not the MalE
-  notebook's (bisected).
+  notebook's (bisected); the detailed-balance diffusion PDE and grid
+  lifetimes (the "pde" ensemble).
 * [cgprobe](cgprobe.md) - The explicit-dye layer: what it does, where the physics
   lives (R0/κ² in `fret`), the flat `IMP.bff.*` surface, conventions (CB
   strip), tests and pins.

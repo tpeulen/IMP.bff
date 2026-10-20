@@ -4,12 +4,15 @@
  * The solver takes its four ng^3 grids straight from numpy and folds `dt` into
  * them itself -- `d = D dt/dg^2` and `decay = exp(-k dt)` -- so a caller never
  * carries pre-scaled grids across the boundary. `run()` and `gradient()`
- * return C++ values whose arrays are managed numpy views.
+ * return C++ values whose arrays are managed numpy views. `run_krylov()`,
+ * `donor_decay()` and the three `lifetime*()` methods are the same solver
+ * without stepping; `lifetime*()` return a GridLifetime of plain numbers.
  */
 
 IMP_SWIG_VALUE(IMP::bff, GridDiffusionSolver, GridDiffusionSolvers);
 IMP_SWIG_VALUE(IMP::bff, GridDiffusionResult, GridDiffusionResults);
 IMP_SWIG_VALUE(IMP::bff, GridDiffusionGradient, GridDiffusionGradients);
+IMP_SWIG_VALUE(IMP::bff, GridLifetime, GridLifetimes);
 
 // Every grid field and result array publishes as a 1-D managed numpy view:
 // get_density(), get_time(), get_fluorescence(), get_d_diffusion(), ... all

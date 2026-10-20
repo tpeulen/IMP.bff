@@ -37,7 +37,16 @@ enum FluxForm {
         potential -- halving the local mobility doubles the local population --
         which turned `slow_factor` into a disguised attraction to the quenchers.
         Kept so the old behaviour can be reproduced and compared. */
-    FLUX_ITO = 1
+    FLUX_ITO = 1,
+    //! \f$D_{ij}\sqrt{w_i w_j}\,(p_i/w_i - p_j/w_j)\f$: equilibrium \f$p \propto w\f$.
+    /*! Smoluchowski with a potential, \f$w = e^{-U/kT}\f$ the equilibrium
+        weight and \f$D_{ij}\f$ the arithmetic-mean mobility. Equilibrium and
+        mobility are then two separate inputs: the flux vanishes on every edge at
+        \f$p = w\f$ (detailed balance), so the discrete scheme's stationary state
+        *is* the weight field, and \f$D\f$ sets only how fast it is reached.
+        With \f$w = 1\f$ it is FLUX_SMOLUCHOWSKI. The free functions take no
+        weight and so run it with \f$w = 1\f$; #GridDiffusionSolver carries one. */
+    FLUX_DETAILED_BALANCE = 2
 };
 
 //! One explicit Euler step of \f$\partial p/\partial t = \nabla\cdot(D\nabla p) - kp\f$.
@@ -293,6 +302,61 @@ IMPBFFEXPORT void diffusion_propagate_adjoint(
         double** out_view,
         int* n_out_view
 );
+
+#ifndef SWIG
+namespace internal {
+
+//! diffusion_propagate() for any flux form, with the weight field the
+//! detailed-balance form reads (empty: w = 1). GPU backend when one takes it.
+IMPBFFEXPORT void lattice_propagate_any(
+        const std::vector<double>& cur, const std::vector<double>& d,
+        const std::vector<double>& decay, const std::vector<double>& bounds,
+        const std::vector<double>& weight, int ng, int flux_form, int n_steps,
+        int n_out, std::vector<double>& fluorescence,
+        std::vector<double>& density);
+
+//! The adjoint of lattice_propagate_any() (the weights held fixed).
+IMPBFFEXPORT void lattice_propagate_adjoint_any(
+        const std::vector<double>& cur, const std::vector<double>& d,
+        const std::vector<double>& decay, const std::vector<double>& bounds,
+        const std::vector<double>& weight, int ng, int flux_form, int n_steps,
+        int n_out, const std::vector<double>& dL_dF,
+        std::vector<double>& dL_dd, std::vector<double>& dL_ddecay,
+        std::vector<double>& dL_dcur);
+
+//! diffusion_propagate_krylov() for any flux form; \p density may be null.
+IMPBFFEXPORT void lattice_krylov(
+        const std::vector<double>& cur, const std::vector<double>& d,
+        const std::vector<double>& decay, const std::vector<double>& bounds,
+        const std::vector<double>& weight, int ng, int flux_form, int n_steps,
+        int n_out, int krylov_dim, std::vector<double>& fluorescence,
+        std::vector<double>* density);
+
+//! What lattice_moment_solve() returns, in units of the step.
+struct LatticeMoments {
+    double zeroth;     //!< \f$\sum_c [M^{-1}p_0]_c = \int_0^\infty F(t)\,dt\f$
+    double first;      //!< \f$\sum_c [M^{-2}p_0]_c = \int_0^\infty t\,F(t)\,dt\f$
+    int iterations;    //!< conjugate-gradient iterations, both solves together
+    double residual;   //!< the larger relative residual of the two solves
+};
+
+//! The time moments of the decay, by two linear solves instead of a run.
+/*!
+    \f$M = L + \mathrm{diag}(k)\f$ is the generator of \f$dp/dt = -Mp\f$, with
+    \p d carrying \f$D\,dt/dg^2\f$ and \p rate carrying \f$k\,dt\f$ (every rate,
+    the radiative one included), so time is in steps. \f$M\f$ is symmetrisable
+    in every flux form, and positive definite once some rate is non-zero, so
+    each solve is a Jacobi-preconditioned conjugate gradient in the symmetric
+    variables.
+*/
+IMPBFFEXPORT LatticeMoments lattice_moment_solve(
+        const std::vector<double>& cur, const std::vector<double>& d,
+        const std::vector<double>& rate, const std::vector<double>& bounds,
+        const std::vector<double>& weight, int ng, int flux_form,
+        double tolerance, int max_iterations);
+
+}  // namespace internal
+#endif
 
 IMPBFF_END_NAMESPACE
 

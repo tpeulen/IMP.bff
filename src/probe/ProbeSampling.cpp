@@ -168,12 +168,19 @@ ProbeDiffusionTrajectory simulate_probe_diffusion(
 
 void equilibrium_occupancy(const std::vector<double>& diffusion_map,
                            const std::vector<int>& bounds,
-                           const std::string& flux_form, double** out_view,
-                           int* n_out_view) {
+                           const std::string& flux_form,
+                           const std::vector<double>& weight_map,
+                           double** out_view, int* n_out_view) {
     const bool smoluchowski = flux_form == "smoluchowski";
-    if (!smoluchowski && flux_form != "ito") {
-        IMP_THROW("flux_form must be 'smoluchowski' or 'ito', not '"
-                          << flux_form << "'",
+    const bool weighted = flux_form == "detailed_balance";
+    if (!smoluchowski && !weighted && flux_form != "ito") {
+        IMP_THROW("flux_form must be 'smoluchowski', 'ito' or "
+                  "'detailed_balance', not '" << flux_form << "'",
+                  ValueException);
+    }
+    if (weighted && !weight_map.empty() && weight_map.size() != bounds.size()) {
+        IMP_THROW("the weight map must have the bounds' shape: "
+                          << bounds.size() << " against " << weight_map.size(),
                   ValueException);
     }
     if (diffusion_map.size() != bounds.size()) {
@@ -183,6 +190,17 @@ void equilibrium_occupancy(const std::vector<double>& diffusion_map,
     }
 
     const int n = static_cast<int>(diffusion_map.size());
+    if (weighted && !weight_map.empty()) {
+        for (int i = 0; i < n; ++i) {
+            if (bounds[i] <= 0) continue;
+            const double w = weight_map[i];
+            if (!(w > 0.0) || !std::isfinite(w)) {
+                IMP_THROW("the equilibrium weight must be positive and finite "
+                          "inside the domain; voxel " << i << " has " << w,
+                          ValueException);
+            }
+        }
+    }
     double* out = internal::new_double_view(n, out_view, n_out_view);
     if (out == NULL) return;
 
@@ -190,7 +208,9 @@ void equilibrium_occupancy(const std::vector<double>& diffusion_map,
     for (int i = 0; i < n; ++i) {
         out[i] = 0.0;
         if (bounds[i] <= 0) continue;
-        if (smoluchowski) {
+        if (weighted) {
+            out[i] = weight_map.empty() ? 1.0 : weight_map[i];
+        } else if (smoluchowski) {
             out[i] = 1.0;
         } else if (diffusion_map[i] > 0.0) {
             out[i] = 1.0 / diffusion_map[i];

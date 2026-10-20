@@ -136,6 +136,10 @@ IMPBFFEXPORT ProbeDiffusionTrajectory simulate_probe_diffusion(
       accessible domain — **independent of D**.
     - `"ito"` (the inherited ChiSurf behaviour): \f$p_{eq} \propto 1/D\f$, so the
       dye piles up wherever it moves slowly.
+    - `"detailed_balance"` (Smoluchowski with a potential): \f$p_{eq} \propto w\f$,
+      the \p weight_map -- an equilibrium the caller states, such as the sticky
+      ensemble \f$\prod_t s_t^{-n_t}\f$, independent of \p diffusion_map. An
+      empty \p weight_map is \f$w = 1\f$.
 
     **The default is Smoluchowski because equilibrium is thermodynamics and
     mobility is kinetics.** A dye slowed by friction near a surface, with no
@@ -145,13 +149,15 @@ IMPBFFEXPORT ProbeDiffusionTrajectory simulate_probe_diffusion(
     specified. On T4L site 132 the difference is a factor of ~75 between peak
     and mean occupancy.
 
-    \throw ValueException for any other \p flux_form
+    \throw ValueException for any other \p flux_form, or a weight that is not
+           positive and finite inside the domain
 */
 IMPBFFEXPORT void equilibrium_occupancy(
         const std::vector<double>& diffusion_map,
         const std::vector<int>& bounds,
-        const std::string& flux_form = "smoluchowski", double** out_view = NULL,
-        int* n_out_view = NULL);
+        const std::string& flux_form = "smoluchowski",
+        const std::vector<double>& weight_map = std::vector<double>(),
+        double** out_view = NULL, int* n_out_view = NULL);
 
 //! Load a rotamer library from a PDB plus a trajectory.
 /*!

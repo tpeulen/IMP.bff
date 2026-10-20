@@ -16,7 +16,9 @@
  *  * **It is symmetrisable.** The Smoluchowski flux form is symmetric as it
  *    stands. The Ito form is not, but `q = sqrt(d) p` makes it so: with
  *    `A[c,m] = -d_m b_m`, the similar matrix `D^(1/2) A D^(-1/2)` has entries
- *    `-sqrt(d_c d_m) b_m`, which is symmetric. So one Lanczos serves both.
+ *    `-sqrt(d_c d_m) b_m`, which is symmetric. The detailed-balance form
+ *    becomes so under `u = p / sqrt(w)`: off-diagonal `-0.5 (d_c + d_m) b_m`,
+ *    the plain Smoluchowski one. So one Lanczos serves all three.
  *
  * So: project `L` onto an `m`-dimensional Krylov space, take the exponential
  * of the resulting `m x m` tridiagonal, and read **every** reported time out
@@ -50,12 +52,18 @@
 // the standalone definitions otherwise. Both live behind IMPCompatibility.h.
 #include <IMP/bff/util/IMPCompatibility.h>
 #include <IMP/bff/internal/TridiagonalEigen.h>
+#include <IMP/bff/internal/OutputView.h>
+#ifndef TTTRLIB_LATTICE_NAMESPACE
+#define TTTRLIB_LATTICE_NAMESPACE IMP::bff::internal
+#endif
+#include <IMP/bff/internal/LatticeDiffusion.h>
 
 
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <stdexcept>
 #include <vector>
 
 IMPBFF_BEGIN_NAMESPACE
@@ -76,16 +84,19 @@ inline bool active(std::size_t ix, std::size_t iy, std::size_t iz, std::size_t n
     Smoluchowski: `(Ax)[c] = sum_q w_q (x_c - x_m)`, `w_q = 0.5(d_c+d_m) b_m`.
     Ito, already symmetrised by `q = sqrt(d) p`:
     `(Ax)[c] = d_c (sum_q b_m) x_c - sum_q sqrt(d_c d_m) b_m x_m`.
-    Both plus `k_c x_c`. Rows outside the active set are zero.
+    Detailed balance, symmetrised by `u = p / r` with `r = sqrt(w)`:
+    `(Ax)[c] = (sum_q h_q r_m / r_c) x_c - sum_q h_q x_m`, `h_q = 0.5(d_c+d_m) b_m`.
+    All plus `k_c x_c`. Rows outside the active set are zero. `aux` is
+    `sqrt(d)` for Ito and `r` for detailed balance.
 
     This is the same memory traffic as one `lattice_sweep`, so a matvec here
     and a step there cost the same -- which is what makes the count of them
     the whole story.
 */
-template <bool kSmoluchowski>
+template <int kForm>
 void generator_apply(const double* x, const std::vector<double>& d,
                      const std::vector<double>& k, const std::vector<double>& bounds,
-                     const std::vector<double>& rootd, std::size_t n, double* y) {
+                     const std::vector<double>& aux, std::size_t n, double* y) {
     // Zeroing the whole grid every matvec is a full pass of writes for the
     // sake of the shell: 1 GB over 256 matvecs at ng = 81. The interior loop
     // below writes every interior voxel, so only the shell needs it.
@@ -107,25 +118,129 @@ void generator_apply(const double* x, const std::vector<double>& d,
                 const std::size_t c = (ix * n + iy) * n + iz;
                 if (bounds[c] == 0.0) { y[c] = 0.0; continue; }
                 const double x0 = x[c], d0 = d[c];
+                const double inv0 = kForm == FLUX_DETAILED_BALANCE ? 1.0 / aux[c] : 0.0;
                 double diag = 0.0, off = 0.0;
                 for (int q = 0; q < 6; ++q) {
                     const std::size_t m = static_cast<std::size_t>(
                         static_cast<long>(c) + stride[q]);
                     const double bm = bounds[m];
                     if (bm == 0.0) continue;              // reflecting wall
-                    if (kSmoluchowski) {
+                    if (kForm == FLUX_SMOLUCHOWSKI) {
                         const double w = 0.5 * (d0 + d[m]) * bm;
                         diag += w;
                         off += w * x[m];
-                    } else {
+                    } else if (kForm == FLUX_ITO) {
                         diag += d0 * bm;
-                        off += rootd[c] * rootd[m] * bm * x[m];
+                        off += aux[c] * aux[m] * bm * x[m];
+                    } else {
+                        const double h = 0.5 * (d0 + d[m]) * bm;
+                        diag += h * aux[m] * inv0;
+                        off += h * x[m];
                     }
                 }
                 y[c] = (diag + k[c]) * x0 - off;
             }
         }
     }
+}
+
+/// The diagonal of the symmetric generator, for a Jacobi preconditioner.
+template <int kForm>
+double generator_diagonal(std::size_t c, const std::vector<double>& d,
+                          const std::vector<double>& k, const std::vector<double>& bounds,
+                          const std::vector<double>& aux, std::size_t n) {
+    const long ngl = static_cast<long>(n);
+    const long stride[6] = {-ngl * ngl, ngl * ngl, -ngl, ngl, -1, 1};
+    double diag = 0.0;
+    for (int q = 0; q < 6; ++q) {
+        const std::size_t m = static_cast<std::size_t>(static_cast<long>(c) + stride[q]);
+        const double bm = bounds[m];
+        if (bm == 0.0) continue;
+        if (kForm == FLUX_SMOLUCHOWSKI) diag += 0.5 * (d[c] + d[m]) * bm;
+        else if (kForm == FLUX_ITO)     diag += d[c] * bm;
+        else                            diag += 0.5 * (d[c] + d[m]) * bm * aux[m] / aux[c];
+    }
+    return diag + k[c];
+}
+
+/// The generator in its symmetric variables: `v = p * to_sym`, `p = v * from_sym`.
+/*! `from_sym` is also what the population sum weighs a voxel by, and is zero
+    outside the active set, so it masks the shell in the same multiply. */
+struct SymmetricGenerator {
+    std::size_t n = 0, nv = 0;
+    int form = FLUX_SMOLUCHOWSKI;
+    const std::vector<double>* d = nullptr;
+    const std::vector<double>* bounds = nullptr;
+    std::vector<double> k, aux, to_sym, from_sym;
+    std::vector<std::size_t> act;
+
+    void apply(const double* x, double* y) const {
+        if (form == FLUX_SMOLUCHOWSKI) generator_apply<FLUX_SMOLUCHOWSKI>(x, *d, k, *bounds, aux, n, y);
+        else if (form == FLUX_ITO)     generator_apply<FLUX_ITO>(x, *d, k, *bounds, aux, n, y);
+        else                           generator_apply<FLUX_DETAILED_BALANCE>(x, *d, k, *bounds, aux, n, y);
+    }
+    double diagonal(std::size_t c) const {
+        if (form == FLUX_SMOLUCHOWSKI) return generator_diagonal<FLUX_SMOLUCHOWSKI>(c, *d, k, *bounds, aux, n);
+        if (form == FLUX_ITO)          return generator_diagonal<FLUX_ITO>(c, *d, k, *bounds, aux, n);
+        return generator_diagonal<FLUX_DETAILED_BALANCE>(c, *d, k, *bounds, aux, n);
+    }
+};
+
+/// Set up the symmetric generator; `rate` is k in the units `d` carries.
+/*! \param name the caller, for the messages */
+SymmetricGenerator make_generator(const char* name, const std::vector<double>& d,
+                                  const std::vector<double>& rate,
+                                  const std::vector<double>& bounds,
+                                  const std::vector<double>& weight, int ng,
+                                  int flux_form) {
+    SymmetricGenerator g;
+    const std::size_t n = static_cast<std::size_t>(ng);
+    const std::size_t nv = n * n * n;
+    if (ng < 3) IMP_THROW(name << ": ng must be >= 3", IMP::ValueException);
+    if (d.size() != nv || rate.size() != nv || bounds.size() != nv)
+        IMP_THROW(name << ": grids must be ng^3 long", IMP::ValueException);
+    if (flux_form != FLUX_SMOLUCHOWSKI && flux_form != FLUX_ITO &&
+        flux_form != FLUX_DETAILED_BALANCE)
+        IMP_THROW(name << ": unknown flux form " << flux_form, IMP::ValueException);
+    g.n = n; g.nv = nv; g.form = flux_form; g.d = &d; g.bounds = &bounds;
+    g.k = rate;
+    // Ito's sqrt(d) is set on the active set only, zero elsewhere, as it
+    // always was; the weight's root is 1 outside the domain.
+    g.aux.assign(nv, flux_form == FLUX_ITO ? 0.0 : 1.0);
+    if (flux_form == FLUX_DETAILED_BALANCE) {
+        try {
+            g.aux = internal::lattice_root_weight(weight, bounds);
+        } catch (const std::invalid_argument& e) {
+            IMP_THROW(name << ": " << e.what(), IMP::ValueException);
+        }
+    }
+    g.to_sym.assign(nv, 0.0);
+    g.from_sym.assign(nv, 0.0);
+    g.act.reserve(nv / 2);
+    for (std::size_t ix = 0; ix < n; ++ix)
+        for (std::size_t iy = 0; iy < n; ++iy)
+            for (std::size_t iz = 0; iz < n; ++iz) {
+                const std::size_t c = (ix * n + iy) * n + iz;
+                if (!active(ix, iy, iz, n, bounds, c)) { g.k[c] = 0.0; continue; }
+                g.act.push_back(c);
+                if (flux_form == FLUX_ITO) {
+                    if (d[c] <= 0.0)
+                        IMP_THROW(name << ": the Ito flux form needs d > 0 "
+                            "everywhere in the domain -- the change of variables that makes "
+                            "it symmetric is q = sqrt(d) p. Use FLUX_SMOLUCHOWSKI, or "
+                            "diffusion_propagate().", IMP::ValueException);
+                    g.aux[c] = std::sqrt(d[c]);
+                    g.to_sym[c] = g.aux[c];
+                    g.from_sym[c] = 1.0 / g.aux[c];
+                } else if (flux_form == FLUX_DETAILED_BALANCE) {
+                    g.to_sym[c] = 1.0 / g.aux[c];
+                    g.from_sym[c] = g.aux[c];
+                } else {
+                    g.to_sym[c] = 1.0;
+                    g.from_sym[c] = 1.0;
+                }
+            }
+    return g;
 }
 
 /// Eigenvalues and eigenvectors of a symmetric tridiagonal, QL with implicit shifts.
@@ -137,72 +252,47 @@ inline void tridiagonal_eigen(std::vector<double>& diag, std::vector<double>& of
 
 }  // namespace
 
-void diffusion_propagate_krylov(
+namespace internal {
+
+void lattice_krylov(
         const std::vector<double>& cur, const std::vector<double>& d,
         const std::vector<double>& decay, const std::vector<double>& bounds,
-        int ng, int flux_form, int n_steps, int n_out, int krylov_dim,
-        double** out_fluorescence, int* n_out_fluorescence,
-        double** out_view, int* n_out_view) {
+        const std::vector<double>& weight, int ng, int flux_form, int n_steps,
+        int n_out, int krylov_dim, std::vector<double>& fluorescence,
+        std::vector<double>* density) {
     const std::size_t n = static_cast<std::size_t>(ng);
     const std::size_t nv = n * n * n;
-    if (ng < 3) IMP_THROW("diffusion_propagate_krylov: ng must be >= 3", IMP::ValueException);
-    if (cur.size() != nv || d.size() != nv || decay.size() != nv || bounds.size() != nv)
+    if (cur.size() != nv || decay.size() != nv)
         IMP_THROW("diffusion_propagate_krylov: grids must be ng^3 long", IMP::ValueException);
     if (n_steps < 0 || n_out <= 0)
         IMP_THROW("diffusion_propagate_krylov: n_steps >= 0, n_out > 0", IMP::ValueException);
-    const bool smol = (flux_form == FLUX_SMOLUCHOWSKI);
 
     // k from the decay factor: decay = exp(-k dt), and the generator wants k.
-    std::vector<double> k(nv, 0.0), rootd(nv, 0.0), weight(nv, 0.0);
-    for (std::size_t ix = 0; ix < n; ++ix)
-        for (std::size_t iy = 0; iy < n; ++iy)
-            for (std::size_t iz = 0; iz < n; ++iz) {
-                const std::size_t c = (ix * n + iy) * n + iz;
-                if (!active(ix, iy, iz, n, bounds, c)) continue;
-                if (decay[c] <= 0.0)
-                    IMP_THROW("diffusion_propagate_krylov: decay must be positive in the domain "
-                        "(it is exp(-k dt))", IMP::ValueException);
-                k[c] = -std::log(decay[c]);
-                if (!smol) {
-                    if (d[c] <= 0.0)
-                        IMP_THROW("diffusion_propagate_krylov: the Ito flux form needs d > 0 "
-                            "everywhere in the domain -- the change of variables that makes "
-                            "it symmetric is q = sqrt(d) p. Use FLUX_SMOLUCHOWSKI, or "
-                            "diffusion_propagate().", IMP::ValueException);
-                    rootd[c] = std::sqrt(d[c]);
-                }
-                // What the population sum weighs this voxel by. In q-space the
-                // density is q/sqrt(d), so the plain sum becomes a weighted one.
-                weight[c] = smol ? 1.0 : 1.0 / rootd[c];
-            }
+    std::vector<double> k(nv, 0.0);
+    for (std::size_t c = 0; c < nv; ++c) {
+        if (bounds.size() == nv && bounds[c] != 0.0) {
+            if (decay[c] <= 0.0)
+                IMP_THROW("diffusion_propagate_krylov: decay must be positive in the domain "
+                    "(it is exp(-k dt))", IMP::ValueException);
+            k[c] = -std::log(decay[c]);
+        }
+    }
+    const SymmetricGenerator g = make_generator("diffusion_propagate_krylov", d, k,
+                                                bounds, weight, ng, flux_form);
 
     // The initial vector, in whichever space the operator is symmetric in,
     // masked to the active set so nothing outside can leak into the sums.
     std::vector<double> v0(nv, 0.0);
-    for (std::size_t ix = 0; ix < n; ++ix)
-        for (std::size_t iy = 0; iy < n; ++iy)
-            for (std::size_t iz = 0; iz < n; ++iz) {
-                const std::size_t c = (ix * n + iy) * n + iz;
-                if (active(ix, iy, iz, n, bounds, c))
-                    v0[c] = smol ? cur[c] : cur[c] * rootd[c];
-            }
+    for (std::size_t c : g.act) v0[c] = cur[c] * g.to_sym[c];
 
     const int n_rep = n_steps / n_out + 1;
-    *n_out_fluorescence = n_rep;
-    *out_fluorescence = static_cast<double*>(std::malloc(sizeof(double) * n_rep));
-    const bool want_density = (out_view != nullptr && n_out_view != nullptr);
-    if (want_density) {
-        *n_out_view = static_cast<int>(nv);
-        *out_view = static_cast<double*>(std::calloc(nv, sizeof(double)));
-    }
+    fluorescence.assign(static_cast<std::size_t>(n_rep), 0.0);
+    if (density) density->assign(nv, 0.0);
 
     double beta0 = 0.0;
     for (std::size_t c = 0; c < nv; ++c) beta0 += v0[c] * v0[c];
     beta0 = std::sqrt(beta0);
-    if (beta0 == 0.0) {                       // nothing to propagate
-        for (int i = 0; i < n_rep; ++i) (*out_fluorescence)[i] = 0.0;
-        return;
-    }
+    if (beta0 == 0.0) return;                 // nothing to propagate
 
     int m = krylov_dim > 0 ? krylov_dim : 128;
     m = std::min<int>(m, static_cast<int>(nv));
@@ -212,21 +302,8 @@ void diffusion_propagate_krylov(
     // 43% of it at ng = 81 -- and walks it in parallel. Serial full-grid
     // versions of these made eight threads worth nothing here: the generator
     // scaled and they did not, so they became the whole cost.
-    std::vector<std::size_t> act;
-    act.reserve(nv / 2);
-    for (std::size_t ix = 0; ix < n; ++ix)
-        for (std::size_t iy = 0; iy < n; ++iy)
-            for (std::size_t iz = 0; iz < n; ++iz) {
-                const std::size_t c = (ix * n + iy) * n + iz;
-                if (active(ix, iy, iz, n, bounds, c)) act.push_back(c);
-            }
-    const long na = static_cast<long>(act.size());
-    const std::size_t* AC = act.data();
-
-    auto apply = [&](const double* x, double* y) {
-        if (smol) generator_apply<true>(x, d, k, bounds, rootd, n, y);
-        else      generator_apply<false>(x, d, k, bounds, rootd, n, y);
-    };
+    const long na = static_cast<long>(g.act.size());
+    const std::size_t* AC = g.act.data();
 
     // --- pass one: alpha, beta, and one scalar per Krylov vector ------------
     std::vector<double> vj(nv), vp(nv, 0.0), w(nv);
@@ -234,9 +311,9 @@ void diffusion_propagate_krylov(
     std::vector<double> al, be, u;
     int mm = m;
     double* VJ = vj.data(); double* VP = vp.data(); double* W = w.data();
-    const double* WT = weight.data();
+    const double* WT = g.from_sym.data();
     for (int j = 0; j < m; ++j) {
-        apply(VJ, W);
+        g.apply(VJ, W);
         // One pass, two accumulators: the projection alpha_j and the scalar
         // this Krylov vector leaves behind for the trace.
         double a = 0.0, s = 0.0;
@@ -294,10 +371,10 @@ void diffusion_propagate_krylov(
         const double t = static_cast<double>(r) * n_out;
         double f = 0.0;
         for (int i = 0; i < mm; ++i) f += amp[i] * std::exp(-lam[i] * t);
-        (*out_fluorescence)[r] = f;
+        fluorescence[static_cast<std::size_t>(r)] = f;
     }
 
-    if (!want_density) return;
+    if (!density) return;
 
     // --- pass two: the density at the final time, without storing the basis --
     const double tend = static_cast<double>(n_steps);
@@ -321,7 +398,7 @@ void diffusion_propagate_krylov(
 #endif
         for (long t = 0; t < na; ++t) ACC[AC[t]] += yj * VJ[AC[t]];
         if (j + 1 >= mm) break;
-        apply(VJ, W);
+        g.apply(VJ, W);
         const double aj = al[j], bp = j ? be[j - 1] : 0.0, inv = 1.0 / be[j];
         double* NV = VP;                      // the vector about to be overwritten
 #ifdef _OPENMP
@@ -333,10 +410,124 @@ void diffusion_propagate_krylov(
         }
         std::swap(VP, VJ);
     }
-    // `weight` is 1 inside the domain for Smoluchowski and 1/sqrt(d) for Ito,
-    // and zero outside either way, so it undoes the change of variables and
-    // masks the shell in one multiply.
-    for (std::size_t c = 0; c < nv; ++c) (*out_view)[c] = acc[c] * weight[c];
+    // `from_sym` undoes the change of variables and masks the shell in one
+    // multiply: zero outside the domain, 1, 1/sqrt(d) or sqrt(w) inside.
+    for (std::size_t c = 0; c < nv; ++c) (*density)[c] = acc[c] * g.from_sym[c];
+}
+
+LatticeMoments lattice_moment_solve(
+        const std::vector<double>& cur, const std::vector<double>& d,
+        const std::vector<double>& rate, const std::vector<double>& bounds,
+        const std::vector<double>& weight, int ng, int flux_form,
+        double tolerance, int max_iterations) {
+    const SymmetricGenerator g = make_generator("lattice_moment_solve", d, rate,
+                                                bounds, weight, ng, flux_form);
+    const std::size_t nv = g.nv;
+    if (cur.size() != nv)
+        IMP_THROW("lattice_moment_solve: the density must be ng^3 long", IMP::ValueException);
+    if (tolerance <= 0.0) tolerance = 1e-10;
+    if (max_iterations <= 0) max_iterations = 20000;
+    const long na = static_cast<long>(g.act.size());
+    const std::size_t* AC = g.act.data();
+
+    std::vector<double> inv_diag(nv, 0.0);
+    for (long t = 0; t < na; ++t) {
+        const std::size_t c = AC[t];
+        const double dg = g.diagonal(c);
+        if (!(dg > 0.0))
+            IMP_THROW("lattice_moment_solve: the generator is singular -- a voxel "
+                      "with no rate and no neighbour; every voxel needs a rate "
+                      "(the radiative one) for the moments to exist",
+                      IMP::ValueException);
+        inv_diag[c] = 1.0 / dg;
+    }
+
+    LatticeMoments out{0.0, 0.0, 0, 0.0};
+    // Jacobi-preconditioned conjugate gradient for A y = b, A symmetric
+    // positive definite, on the active set; vectors are full grids so that
+    // apply() can read neighbours, zero outside.
+    auto solve = [&](const std::vector<double>& b, std::vector<double>& yv) {
+        yv.assign(nv, 0.0);
+        std::vector<double> r = b, z(nv, 0.0), pv(nv, 0.0), ap(nv, 0.0);
+        double bnorm = 0.0, rz = 0.0;
+        for (long t = 0; t < na; ++t) {
+            const std::size_t c = AC[t];
+            bnorm += b[c] * b[c];
+            z[c] = r[c] * inv_diag[c];
+            pv[c] = z[c];
+            rz += r[c] * z[c];
+        }
+        bnorm = std::sqrt(bnorm);
+        if (bnorm == 0.0) return 0.0;
+        double rel = 1.0;
+        int it = 0;
+        for (; it < max_iterations; ++it) {
+            g.apply(pv.data(), ap.data());
+            double pap = 0.0;
+#ifdef _OPENMP
+#pragma omp parallel for reduction(+ : pap) schedule(static)
+#endif
+            for (long t = 0; t < na; ++t) pap += pv[AC[t]] * ap[AC[t]];
+            const double alpha = rz / pap;
+            double rr = 0.0, rz_new = 0.0;
+#ifdef _OPENMP
+#pragma omp parallel for reduction(+ : rr, rz_new) schedule(static)
+#endif
+            for (long t = 0; t < na; ++t) {
+                const std::size_t c = AC[t];
+                yv[c] += alpha * pv[c];
+                r[c] -= alpha * ap[c];
+                z[c] = r[c] * inv_diag[c];
+                rr += r[c] * r[c];
+                rz_new += r[c] * z[c];
+            }
+            rel = std::sqrt(rr) / bnorm;
+            if (rel < tolerance) { ++it; break; }
+            const double beta = rz_new / rz;
+            rz = rz_new;
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static)
+#endif
+            for (long t = 0; t < na; ++t) {
+                const std::size_t c = AC[t];
+                pv[c] = z[c] + beta * pv[c];
+            }
+        }
+        out.iterations += it;
+        return rel;
+    };
+
+    // M^-1 p0 in the symmetric variables, then M^-2 p0 = M^-1 (M^-1 p0):
+    // since to_sym * from_sym = 1 on the active set, the second right-hand
+    // side is the first solution as it stands.
+    std::vector<double> b(nv, 0.0), y0, y1;
+    for (long t = 0; t < na; ++t) b[AC[t]] = cur[AC[t]] * g.to_sym[AC[t]];
+    const double r0 = solve(b, y0);
+    const double r1 = solve(y0, y1);
+    for (long t = 0; t < na; ++t) {
+        const std::size_t c = AC[t];
+        out.zeroth += g.from_sym[c] * y0[c];
+        out.first += g.from_sym[c] * y1[c];
+    }
+    out.residual = std::max(r0, r1);
+    return out;
+}
+
+}  // namespace internal
+
+void diffusion_propagate_krylov(
+        const std::vector<double>& cur, const std::vector<double>& d,
+        const std::vector<double>& decay, const std::vector<double>& bounds,
+        int ng, int flux_form, int n_steps, int n_out, int krylov_dim,
+        double** out_fluorescence, int* n_out_fluorescence,
+        double** out_view, int* n_out_view) {
+    const bool want_density = (out_view != nullptr && n_out_view != nullptr);
+    std::vector<double> fluorescence, density;
+    internal::lattice_krylov(cur, d, decay, bounds, std::vector<double>(), ng,
+                             flux_form, n_steps, n_out, krylov_dim, fluorescence,
+                             want_density ? &density : nullptr);
+    internal::copy_to_view(fluorescence, out_fluorescence, n_out_fluorescence);
+    if (want_density) internal::copy_to_view(density, out_view, n_out_view);
 }
 
 void diffusion_trace_krylov(

@@ -63,8 +63,12 @@ extern "C" {
     backend that took one step would repeat that across a wider gap.
 
     \param[in] cur,d,decay,bounds the four input grids, each `ng*ng*ng`
+    \param[in] weight the equilibrium weight `w` the detailed-balance form
+                reads, `ng*ng*ng` and positive in the domain, or null for
+                `w = 1`; the other forms ignore it
     \param[in] ng voxels per axis
-    \param[in] flux_form `FLUX_SMOLUCHOWSKI` or `FLUX_ITO`
+    \param[in] flux_form `FLUX_SMOLUCHOWSKI`, `FLUX_ITO` or
+                `FLUX_DETAILED_BALANCE`
     \param[in] n_steps steps to take
     \param[in] n_out report the surviving population every this many steps
     \param[out] out_fluorescence the reported populations, `n_fluorescence` of
@@ -79,6 +83,7 @@ extern "C" {
 */
 typedef int (*ImpBffPropagateFn)(const double* cur, const double* d,
                                  const double* decay, const double* bounds,
+                                 const double* weight,
                                  int ng, int flux_form, int n_steps, int n_out,
                                  double* out_fluorescence, int n_fluorescence,
                                  double* out_density);
@@ -171,9 +176,10 @@ struct ImpBffComputeBackend {
 
 //! Bumped whenever #ImpBffComputeBackend changes shape.
 /*! 2 added #ImpBffMlpForwardFn, 3 the resident network (#ImpBffMlpUploadFn,
-    #ImpBffMlpRunFn, #ImpBffMlpReleaseFn). A plugin built against another
-    version declines cleanly rather than being read a field short. */
-#define IMPBFF_COMPUTE_BACKEND_ABI 3
+    #ImpBffMlpRunFn, #ImpBffMlpReleaseFn), 4 the `weight` argument of
+    #ImpBffPropagateFn (the detailed-balance flux). A plugin built against
+    another version declines cleanly rather than being read a field short. */
+#define IMPBFF_COMPUTE_BACKEND_ABI 4
 
 //! The symbol a plugin exports: `const ImpBffComputeBackend* (*)(void)`.
 #define IMPBFF_COMPUTE_BACKEND_SYMBOL "imp_bff_compute_backend"

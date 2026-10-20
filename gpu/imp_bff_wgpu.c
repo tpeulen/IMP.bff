@@ -44,9 +44,10 @@
 #endif
 
 /* ---- the contract, mirroring IMP/bff/util/ComputeBackend.h -------------------------- */
-#define IMPBFF_COMPUTE_BACKEND_ABI 3
+#define IMPBFF_COMPUTE_BACKEND_ABI 4
 typedef int (*ImpBffPropagateFn)(const double* cur, const double* d,
                                  const double* decay, const double* bounds,
+                                 const double* weight,
                                  int ng, int flux_form, int n_steps, int n_out,
                                  double* out_fluorescence, int n_fluorescence,
                                  double* out_density);
@@ -72,8 +73,10 @@ struct ImpBffComputeBackend {
     ImpBffMlpReleaseFn mlp_release;
 };
 
-/* FLUX_SMOLUCHOWSKI = 0, FLUX_ITO = 1, as DiffusionSolver.h defines them. */
+/* FLUX_SMOLUCHOWSKI = 0, FLUX_ITO = 1, FLUX_DETAILED_BALANCE = 2, as
+   DiffusionSolver.h defines them. */
 #define FLUX_SMOLUCHOWSKI 0
+#define FLUX_DETAILED_BALANCE 2
 
 /* How many partial sums the population reduction uses. One workgroup for the
    whole grid cost 16% of the run; anything from 16 to 256 measures the same. */
@@ -470,10 +473,14 @@ static int read_back(WGPUBuffer staging, size_t bytes, void* dst) {
 }
 
 static int propagate(const double* cur, const double* d, const double* decay,
-                     const double* bounds, int ng, int flux_form,
-                     int n_steps, int n_out, double* out_fluorescence,
-                     int n_fluorescence, double* out_density) {
-    const int smol = (flux_form == FLUX_SMOLUCHOWSKI);
+                     const double* bounds, const double* weight, int ng,
+                     int flux_form, int n_steps, int n_out,
+                     double* out_fluorescence, int n_fluorescence,
+                     double* out_density) {
+    /* Detailed balance with no weight is w = 1: the Smoluchowski form. */
+    const int db = (flux_form == FLUX_DETAILED_BALANCE) && weight != NULL;
+    const int smol = (flux_form == FLUX_SMOLUCHOWSKI) ||
+                     (flux_form == FLUX_DETAILED_BALANCE && weight == NULL);
     const size_t n = (size_t)ng * (size_t)ng * (size_t)ng;
     long str[6];
     uint32_t* idx = NULL;
@@ -538,9 +545,19 @@ static int propagate(const double* cur, const double* d, const double* decay,
             const double bm = bounds[m];
             /* Smoluchowski takes the interface mobility, Ito the neighbour's;
                the self term is the sum that leaves, which is not the same sum
-               for the two forms. */
-            a[q] = smol ? 0.5 * (d0 + d[m]) * bm : d[m] * bm;
-            out_sum += smol ? a[q] : d0 * bm;
+               for the two forms. Detailed balance takes the interface
+               mobility times sqrt(w_c/w_m) in, sqrt(w_m/w_c) out -- the CPU's
+               lattice_sweep_weighted() -- and is not symmetric, so it runs
+               f32 like Ito (use_f16_for). */
+            if (db) {
+                const double h = 0.5 * (d0 + d[m]) * bm;
+                const double ratio = bm != 0.0 ? sqrt(weight[m] / weight[c]) : 1.0;
+                a[q] = h / ratio;
+                out_sum += h * ratio;
+            } else {
+                a[q] = smol ? 0.5 * (d0 + d[m]) * bm : d[m] * bm;
+                out_sum += smol ? a[q] : d0 * bm;
+            }
             in_sum += a[q];
         }
         rowsum = k0 * (1.0 - out_sum) + k0 * in_sum;
