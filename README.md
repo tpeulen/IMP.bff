@@ -709,11 +709,17 @@ _Author(s)_: Thomas-Otavio Peulen
 
 _Maintainer_: `tpeulen`
 
-_License_: [LGPL](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
+_License_: [LGPL-2.1-or-later](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
-version 2 of the License, or (at your option) any later version.
+version 2.1 of the License, or (at your option) any later version.
+The full text is in `COPYING.LGPL`. This is the licence IMP gives its
+LGPL modules, and the one every package of this module declares
+(`pyproject.toml`, `conda-recipe/recipe.yaml`, `conda-recipe/recipe-core.yaml`).
+Files under `thirdparty/` and the vendored headers in `include/internal/`
+keep their own permissive licences (MIT, BSD, Apache-2.0), all of which may
+be combined into an LGPL library.
 
 _Publications_:
 - None

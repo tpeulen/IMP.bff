@@ -75,7 +75,7 @@ tests:
 
 about:
   homepage: https://github.com/fluorescence-tools/imp.bff
-  license: MPL-2.0
+  license: LGPL-2.1-or-later
   license_file: COPYING.LGPL
   summary: Bayesian Framework for Fluorescence -- the IMP-free core, importable as IMP.bff
   description: |

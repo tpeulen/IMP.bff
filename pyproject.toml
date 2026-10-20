@@ -18,7 +18,7 @@ requires-python = ">=3.9"
 description = "Bayesian Framework for Fluorescence: the IMP-free core, importable as IMP.bff"
 readme = "README.md"
 authors = [{ name = "Thomas-Otavio Peulen", email = "thomas.otavio.peulen@gmail.com" }]
-license = { text = "MPL-2.0" }
+license = { text = "LGPL-2.1-or-later" }
 keywords = ["fluorescence", "FRET", "accessible volume", "spectroscopy", "integrative modeling"]
 classifiers = [
     "Intended Audience :: Science/Research",

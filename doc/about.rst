@@ -34,5 +34,8 @@ citations to the following paper(s) (depending on the used functionality.
 
 License
 -------
-``IMP.bff`` is a module of the integrative modeling platform (IMP) and released
-as open source `LGPL-3 license <https://www.gnu.org/licenses/lgpl-3.0.html>`_.
+``IMP.bff`` is a module of the integrative modeling platform (IMP) and is
+released under the `GNU Lesser General Public License, version 2.1 or (at your
+option) any later version <https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html>`_
+(SPDX ``LGPL-2.1-or-later``), the licence of IMP's LGPL modules. The full text
+is in ``COPYING.LGPL``.
