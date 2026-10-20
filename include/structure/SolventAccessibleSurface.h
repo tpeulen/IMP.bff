@@ -112,6 +112,58 @@ IMPBFFEXPORT std::vector<double> quenching_rate_per_frame(
         const std::vector<double>& k_quench
 );
 
+//! \p n points on the unit sphere, by the Fibonacci lattice.
+/*!
+    Point \f$k\f$ sits at polar angle \f$\arccos(1 - 2(k + \tfrac12)/n)\f$ and
+    azimuth \f$\pi(1 + \sqrt5)(k + \tfrac12)\f$, so the points are
+    equal-area and none sits on a pole. Returned flat, three doubles per
+    point, as (x, y, z) with z along the polar axis.
+
+    A second golden spiral beside sphere_points(), and deliberately so: this
+    is the point set probe_solvent_exposure() samples, and the quenching
+    analysis it was ported from (Shrake-Rupley water exposure of a dye at
+    every accessible-volume voxel) pinned its exposures against this one. The
+    two sets differ by a rotation, so a covered/uncovered count is not the
+    same for both.
+
+    \param[in] n number of points
+*/
+IMPBFFEXPORT std::vector<double> fibonacci_sphere_points(int n);
+
+//! Solvent exposure of a spherical probe at each of many centres.
+/*!
+    The Shrake-Rupley test for a probe that is *not* one of the atoms: the
+    probe (a dye, radius \p probe_radius) sits at a centre, a water molecule
+    (radius \p water_radius) touches it where the water's centre lies on the
+    sphere of radius \f$probe\_radius + water\_radius\f$ around that centre,
+    and a sample point there is **covered** when it is closer than
+    \f$r_j + water\_radius\f$ to some atom \f$j\f$ (strict). The exposure is
+    the uncovered fraction of the \p n_points samples of
+    fibonacci_sphere_points(): 1 in open water, 0 buried.
+
+    The probe itself, its linker and any other probe do not cover anything;
+    only the listed atoms do. Neighbours come from a cell list, so the cost is
+    linear in the number of centres.
+
+    \param[in] centres flat, three per centre, Angstrom
+    \param[in] atom_xyz flat, three per atom, Angstrom
+    \param[in] atom_radii one van der Waals radius per atom, Angstrom
+    \param[out] out_view,n_out_view one exposure in [0, 1] per centre
+    \param[in] probe_radius the probe sphere, Angstrom
+    \param[in] water_radius the solvent sphere, Angstrom
+    \param[in] n_points samples on the contact sphere
+    \throw ValueException when the radii do not match the atoms
+*/
+IMPBFFEXPORT void probe_solvent_exposure(
+        const std::vector<double>& centres,
+        const std::vector<double>& atom_xyz,
+        const std::vector<double>& atom_radii,
+        double** out_view, int* n_out_view,
+        double probe_radius = 3.5,
+        double water_radius = 1.4,
+        int n_points = 64
+);
+
 //! The default number of unit-sphere samples per atom.
 extern IMPBFFEXPORT const int DEFAULT_SPHERE_POINTS;
 

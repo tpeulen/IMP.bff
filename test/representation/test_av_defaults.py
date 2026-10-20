@@ -111,6 +111,18 @@ class Tests(IMP.test.TestCase):
         self.assertEqual((av.get_radius1(), av.get_radius2(), av.get_radius3()),
                          (5.0, 4.5, 1.5))
 
+    def test_an_av3_keeps_its_three_radii(self):
+        """fps.json radius2/radius3 are read, not overwritten with radius1.
+
+        The reader once did `set_radius2(r[0]); set_radius3(r[0])`, so every
+        three-radius position became a one-radius AV (QuEst known issue,
+        2026-08-10). Distinct values make a regression visible."""
+        av = _particle_av(self.mdl, self.hier)
+        av.set_av_parameter(json.dumps({"simulation_type": "AV3", "radius1": 6.0,
+                                        "radius2": 4.0, "radius3": 2.0}))
+        self.assertEqual((av.get_radius1(), av.get_radius2(), av.get_radius3()),
+                         (6.0, 4.0, 2.0))
+
     def test_the_schema_states_the_defaults(self):
         schema = json.loads(IMP.bff.fps_json_schema())
         text = json.dumps(schema)

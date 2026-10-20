@@ -5,6 +5,8 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 #include <IMP/bff/structure/SolventAccessibleSurface.h>
+#include <IMP/bff/internal/OutputView.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <algorithm>
 #include <cmath>
@@ -151,6 +153,123 @@ std::vector<double> quenching_rate_per_frame(
         out[f] = total;
     }
     return out;
+}
+
+std::vector<double> fibonacci_sphere_points(int n) {
+    std::vector<double> out;
+    if (n <= 0) return out;
+    out.resize(static_cast<std::size_t>(n) * 3);
+    const double turn = M_PI * (1.0 + std::sqrt(5.0));
+    for (int k = 0; k < n; ++k) {
+        const double i = k + 0.5;
+        const double polar = std::acos(1.0 - 2.0 * i / static_cast<double>(n));
+        const double azimuth = turn * i;
+        out[3 * k + 0] = std::cos(azimuth) * std::sin(polar);
+        out[3 * k + 1] = std::sin(azimuth) * std::sin(polar);
+        out[3 * k + 2] = std::cos(polar);
+    }
+    return out;
+}
+
+void probe_solvent_exposure(const std::vector<double>& centres,
+                            const std::vector<double>& atom_xyz,
+                            const std::vector<double>& atom_radii,
+                            double** out_view, int* n_out_view,
+                            double probe_radius, double water_radius,
+                            int n_points) {
+    const std::size_t n_centres = centres.size() / 3;
+    const std::size_t n_atoms = atom_xyz.size() / 3;
+    if (atom_radii.size() != n_atoms) {
+        IMP_THROW("probe_solvent_exposure: " << atom_radii.size()
+                  << " radii for " << n_atoms << " atoms", ValueException);
+    }
+    if (n_points <= 0) {
+        IMP_THROW("probe_solvent_exposure: n_points must be positive",
+                  ValueException);
+    }
+    double* out = internal::new_double_view(n_centres, out_view, n_out_view);
+    if (out == nullptr) return;
+    if (n_atoms == 0) {
+        for (std::size_t c = 0; c < n_centres; ++c) out[c] = 1.0;
+        return;
+    }
+
+    // The contact sphere, sampled once.
+    const double shell = probe_radius + water_radius;
+    std::vector<double> offset = fibonacci_sphere_points(n_points);
+    for (std::size_t k = 0; k < offset.size(); ++k) offset[k] *= shell;
+
+    // Per-atom reach (r_j + water) and a cell list of edge = the largest one,
+    // so a sample's covering atoms lie in its own cell or the 26 around it.
+    std::vector<double> reach(n_atoms);
+    double cell = 0.0;
+    double lo[3] = {atom_xyz[0], atom_xyz[1], atom_xyz[2]};
+    double hi[3] = {lo[0], lo[1], lo[2]};
+    for (std::size_t a = 0; a < n_atoms; ++a) {
+        reach[a] = atom_radii[a] + water_radius;
+        cell = std::max(cell, reach[a]);
+        for (int d = 0; d < 3; ++d) {
+            lo[d] = std::min(lo[d], atom_xyz[3 * a + d]);
+            hi[d] = std::max(hi[d], atom_xyz[3 * a + d]);
+        }
+    }
+    if (!(cell > 0.0)) {
+        for (std::size_t c = 0; c < n_centres; ++c) out[c] = 1.0;
+        return;
+    }
+    int nc[3];
+    for (int d = 0; d < 3; ++d) {
+        nc[d] = static_cast<int>(std::floor((hi[d] - lo[d]) / cell)) + 1;
+    }
+    const std::size_t n_cells =
+            static_cast<std::size_t>(nc[0]) * nc[1] * nc[2];
+    std::vector<int> head(n_cells, -1), next(n_atoms, -1);
+    for (std::size_t a = 0; a < n_atoms; ++a) {
+        const int ix = static_cast<int>(std::floor((atom_xyz[3 * a + 0] - lo[0]) / cell));
+        const int iy = static_cast<int>(std::floor((atom_xyz[3 * a + 1] - lo[1]) / cell));
+        const int iz = static_cast<int>(std::floor((atom_xyz[3 * a + 2] - lo[2]) / cell));
+        const std::size_t k = (static_cast<std::size_t>(ix) * nc[1] + iy) * nc[2] + iz;
+        next[a] = head[k];
+        head[k] = static_cast<int>(a);
+    }
+
+    for (std::size_t c = 0; c < n_centres; ++c) {
+        int covered = 0;
+        for (int p = 0; p < n_points; ++p) {
+            const double sx = centres[3 * c + 0] + offset[3 * p + 0];
+            const double sy = centres[3 * c + 1] + offset[3 * p + 1];
+            const double sz = centres[3 * c + 2] + offset[3 * p + 2];
+            const int cx = static_cast<int>(std::floor((sx - lo[0]) / cell));
+            const int cy = static_cast<int>(std::floor((sy - lo[1]) / cell));
+            const int cz = static_cast<int>(std::floor((sz - lo[2]) / cell));
+            bool hit = false;
+            for (int ix = std::max(0, cx - 1); !hit && ix <= std::min(nc[0] - 1, cx + 1); ++ix) {
+                for (int iy = std::max(0, cy - 1); !hit && iy <= std::min(nc[1] - 1, cy + 1); ++iy) {
+                    for (int iz = std::max(0, cz - 1); !hit && iz <= std::min(nc[2] - 1, cz + 1); ++iz) {
+                        const std::size_t k =
+                                (static_cast<std::size_t>(ix) * nc[1] + iy) * nc[2] + iz;
+                        for (int a = head[k]; a >= 0; a = next[a]) {
+                            const double dx = atom_xyz[3 * a + 0] - sx;
+                            const double dy = atom_xyz[3 * a + 1] - sy;
+                            const double dz = atom_xyz[3 * a + 2] - sz;
+                            // The distance itself, not its square: the
+                            // analysis this reproduces compared norms, and a
+                            // sample on the boundary must fall the same way.
+                            const double xx = dx * dx;
+                            const double yy = dy * dy;
+                            const double zz = dz * dz;
+                            if (std::sqrt((xx + yy) + zz) < reach[a]) {
+                                hit = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            if (hit) ++covered;
+        }
+        out[c] = 1.0 - static_cast<double>(covered) / static_cast<double>(n_points);
+    }
 }
 
 const int DEFAULT_SPHERE_POINTS = 590;

@@ -1,4 +1,5 @@
 #include <IMP/bff/probe/ProbeRotamer.h>
+#include <deque>
 #include <IMP/bff/probe/ProbeDataPaths.h>
 #include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/internal/Text.h>
@@ -826,6 +827,221 @@ ProbeRotamerLibrary load_probe_rotamer_library(const std::string& name,
         lib.resnames = infer_probe_rotamer_resnames(lib.atom_names, lib.metadata);
     }
     return lib;
+}
+
+
+// --------------------------------------------------------------------------
+// The stretched linker
+// --------------------------------------------------------------------------
+
+namespace stretched {
+
+double bond_radius(const std::string& element) {
+    if (element == "C") return 0.76;
+    if (element == "N") return 0.71;
+    if (element == "O") return 0.66;
+    if (element == "S") return 1.05;
+    if (element == "H") return 0.31;
+    return 0.8;
+}
+
+typedef std::vector<std::vector<int> > Graph;
+
+//! Breadth-first parents from `a`, neighbours visited ascending.
+std::vector<int> parents_from(const Graph& g, int a) {
+    std::vector<int> parent(g.size(), -2);
+    parent[a] = -1;
+    std::deque<int> queue(1, a);
+    while (!queue.empty()) {
+        const int u = queue.front();
+        queue.pop_front();
+        for (std::size_t k = 0; k < g[u].size(); ++k) {
+            const int v = g[u][k];
+            if (parent[v] == -2) {
+                parent[v] = u;
+                queue.push_back(v);
+            }
+        }
+    }
+    return parent;
+}
+
+std::vector<int> path(const std::vector<int>& parent, int b) {
+    std::vector<int> out;
+    if (parent[b] == -2) return out;
+    for (int v = b; v != -1; v = parent[v]) out.push_back(v);
+    std::reverse(out.begin(), out.end());
+    return out;
+}
+
+//! Whether the bond a-b lies on a ring: a and b stay joined without it.
+bool in_ring(const Graph& g, int a, int b) {
+    std::vector<bool> seen(g.size(), false);
+    seen[a] = true;
+    std::deque<int> queue(1, a);
+    while (!queue.empty()) {
+        const int u = queue.front();
+        queue.pop_front();
+        for (std::size_t k = 0; k < g[u].size(); ++k) {
+            const int v = g[u][k];
+            if ((u == a && v == b) || (u == b && v == a) || seen[v]) continue;
+            if (v == b) return true;
+            seen[v] = true;
+            queue.push_back(v);
+        }
+    }
+    return false;
+}
+
+}  // namespace stretched
+
+double stretched_linker_length(const ProbeRotamerLibrary& lib,
+                               const std::string& linker_residue,
+                               const std::string& dye_residue) {
+    using stretched::Graph; using stretched::parents_from; using stretched::path; using stretched::in_ring;
+    const int n = lib.n_atoms;
+    if (n <= 0 || lib.coords.size() < static_cast<std::size_t>(3 * n) ||
+        lib.atom_names.size() != static_cast<std::size_t>(n) ||
+        lib.elements.size() != static_cast<std::size_t>(n) ||
+        lib.resnames.size() != static_cast<std::size_t>(n)) {
+        IMP_THROW("stretched_linker_length: the library needs coordinates, "
+                  "atom names, elements and residue names per atom", ValueException);
+    }
+    std::vector<std::string> el(n);
+    for (int i = 0; i < n; ++i) {
+        el[i] = lib.elements[i];
+        for (std::size_t c = 0; c < el[i].size(); ++c) {
+            el[i][c] = static_cast<char>(std::toupper(static_cast<unsigned char>(el[i][c])));
+        }
+    }
+    const double* x = &lib.coords[0];   // the first conformer
+    auto dist = [&](int i, int j) {
+        const double dx = x[3 * i] - x[3 * j], dy = x[3 * i + 1] - x[3 * j + 1],
+                     dz = x[3 * i + 2] - x[3 * j + 2];
+        return std::sqrt(dx * dx + dy * dy + dz * dz);
+    };
+    Graph g(n);
+    for (int i = 0; i < n; ++i) {
+        for (int j = i + 1; j < n; ++j) {
+            if (dist(i, j) < stretched::bond_radius(el[i]) + stretched::bond_radius(el[j]) + 0.45) {
+                g[i].push_back(j);
+                g[j].push_back(i);
+            }
+        }
+    }
+    for (int i = 0; i < n; ++i) std::sort(g[i].begin(), g[i].end());
+
+    int ca = -1;
+    for (int i = 0; i < n && ca < 0; ++i) {
+        if (lib.atom_names[i] == "CA" && lib.resnames[i] == linker_residue) ca = i;
+    }
+    if (ca < 0) {
+        IMP_THROW("stretched_linker_length: no CA in residue " << linker_residue,
+                  ValueException);
+    }
+    int cb = -1;
+    for (std::size_t k = 0; k < g[ca].size() && cb < 0; ++k) {
+        const int v = g[ca][k];
+        if (el[v] != "C") continue;
+        for (std::size_t m = 0; m < g[v].size(); ++m) {
+            if (el[g[v][m]] == "S") { cb = v; break; }
+        }
+    }
+    if (cb < 0) {
+        IMP_THROW("stretched_linker_length: no CB (a carbon on CA bonded to S)",
+                  ValueException);
+    }
+
+    // Ring atoms of the dye, then fused systems joined by ring bonds.
+    std::vector<bool> ring(n, false), left(n, false);
+    for (int i = 0; i < n; ++i) {
+        if (lib.resnames[i] != dye_residue) continue;
+        for (std::size_t k = 0; k < g[i].size(); ++k) {
+            if (in_ring(g, i, g[i][k])) { ring[i] = true; break; }
+        }
+        left[i] = ring[i];
+    }
+    std::vector<std::vector<int> > systems;
+    for (int seed = 0; seed < n; ++seed) {
+        if (!left[seed]) continue;
+        left[seed] = false;
+        std::vector<int> group(1, seed);
+        std::deque<int> queue(1, seed);
+        while (!queue.empty()) {
+            const int u = queue.front();
+            queue.pop_front();
+            for (std::size_t k = 0; k < g[u].size(); ++k) {
+                const int v = g[u][k];
+                if (left[v] && in_ring(g, u, v)) {
+                    left[v] = false;
+                    group.push_back(v);
+                    queue.push_back(v);
+                }
+            }
+        }
+        systems.push_back(group);
+    }
+    if (systems.empty()) {
+        IMP_THROW("stretched_linker_length: no ring in residue " << dye_residue,
+                  ValueException);
+    }
+    std::size_t best = 0;
+    for (std::size_t s = 1; s < systems.size(); ++s) {
+        if (systems[s].size() > systems[best].size()) best = s;
+    }
+    std::vector<int> chromophore = systems[best];
+    std::sort(chromophore.begin(), chromophore.end());
+    double centre[3] = {0.0, 0.0, 0.0};
+    int n_heavy = 0;
+    for (std::size_t k = 0; k < chromophore.size(); ++k) {
+        const int i = chromophore[k];
+        if (el[i] == "H") continue;
+        for (int d = 0; d < 3; ++d) centre[d] += x[3 * i + d];
+        ++n_heavy;
+    }
+    for (int d = 0; d < 3; ++d) centre[d] /= n_heavy;
+
+    const std::vector<int> parent = parents_from(g, cb);
+    int entry = -1;
+    std::size_t entry_len = 0;
+    for (std::size_t k = 0; k < chromophore.size(); ++k) {
+        const std::vector<int> p = path(parent, chromophore[k]);
+        if (p.empty()) continue;
+        if (entry < 0 || p.size() < entry_len) {
+            entry = chromophore[k];
+            entry_len = p.size();
+        }
+    }
+    if (entry < 0) {
+        IMP_THROW("stretched_linker_length: the chromophore is not bonded to CB",
+                  ValueException);
+    }
+    const std::vector<int> route = path(parent, entry);
+    const double zigzag = std::sin(109.5 * M_PI / 180.0 / 2.0);
+    double length = 0.0;
+    std::size_t i = 0;
+    while (i + 1 < route.size()) {
+        const int u = route[i], v = route[i + 1];
+        if (in_ring(g, u, v)) {
+            std::size_t j = i;
+            while (j + 1 < route.size() && in_ring(g, route[j], route[j + 1])) ++j;
+            length += dist(route[j], u);
+            i = j;
+        } else {
+            length += dist(v, u) * zigzag;
+            ++i;
+        }
+    }
+    const double ex = centre[0] - x[3 * entry], ey = centre[1] - x[3 * entry + 1],
+                 ez = centre[2] - x[3 * entry + 2];
+    return length + std::sqrt(ex * ex + ey * ey + ez * ez);
+}
+
+double stretched_linker_length(const std::string& library_name,
+                               const std::string& linker_residue,
+                               const std::string& dye_residue) {
+    return stretched_linker_length(load_probe_rotamer_library(library_name),
+                                   linker_residue, dye_residue);
 }
 
 IMPBFF_END_NAMESPACE

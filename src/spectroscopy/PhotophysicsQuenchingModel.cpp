@@ -17,6 +17,9 @@
 
 #include <IMP/bff/util/IMPCompatibility.h>
 
+#include <cctype>
+#include <map>
+
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -33,12 +36,21 @@ std::vector<double> drained(double* buffer, int n) {
     return out;
 }
 
-//! The grid anchor of a volume, as a vector.
+//! The walk/stamp anchor: voxel i is centred at x0 + (i - half + 0.5) dg.
+/*! The frame #center_grid_indices floors into and the walk reports in. It
+    used to be the attachment point, which put every stamped sphere and every
+    walker up to half a voxel per axis away from the voxel the volume itself
+    means (`grid_origin + i dg`): the volume's lattice is snapped to the grid,
+    the attachment point is not. */
 std::vector<double> anchor(const ProbeAccessibleVolume& av) {
-    double* p = NULL;
-    int n = 0;
-    av.get_attachment_point(&p, &n);
-    return drained(p, n);
+    return av.get_walk_anchor();
+}
+
+//! The voxel-centre anchor of the #grid_axis maps: centre x0 + (i - half) dg.
+std::vector<double> centre_anchor(const ProbeAccessibleVolume& av) {
+    std::vector<double> x0 = av.get_walk_anchor();
+    for (std::size_t d = 0; d < x0.size(); ++d) x0[d] += 0.5 * av.get_grid_step();
+    return x0;
 }
 
 //! The density of a volume, as a vector.
@@ -83,7 +95,7 @@ void DynamicAccessibleVolume::get_density(double** out_view,
 }
 
 void DynamicAccessibleVolume::get_x0(double** out_view, int* n_out_view) const {
-    internal::copy_to_view(qmodel::anchor(av_), out_view, n_out_view);
+    internal::copy_to_view(qmodel::centre_anchor(av_), out_view, n_out_view);
 }
 
 std::vector<double> DynamicAccessibleVolume::bounds() const {
@@ -110,7 +122,7 @@ void DynamicAccessibleVolume::update_diffusion_map(
 
     double* out = NULL;
     int n_out = 0;
-    diffusion_coefficient_map(density, qmodel::anchor(av_),
+    diffusion_coefficient_map(density, qmodel::centre_anchor(av_),
                               av_.get_grid_step(), atoms_.coords,
                               free_diffusion_, contact_distance_, slow_factor_,
                               base, &out, &n_out);
@@ -147,7 +159,7 @@ void DynamicAccessibleVolume::update_quenching_map(
 
     double* out = NULL;
     int n_out = 0;
-    quenching_rate_map(density, qmodel::anchor(av_),
+    quenching_rate_map(density, qmodel::centre_anchor(av_),
                        av_.get_grid_step(), atoms_.coords, kQ_v, rC_v, tau0_,
                        probe_radius_, &out, &n_out);
     quenching_rate_map_ = qmodel::drained(out, n_out);
@@ -176,8 +188,8 @@ void DynamicAccessibleVolume::update_fret_map(
 
     double* out = NULL;
     int n_out = 0;
-    fret_rate_map(density_d, density_a, qmodel::anchor(av_),
-                  qmodel::anchor(acceptor.av_), av_.get_grid_step(),
+    fret_rate_map(density_d, density_a, qmodel::centre_anchor(av_),
+                  qmodel::centre_anchor(acceptor.av_), av_.get_grid_step(),
                   acceptor.av_.get_grid_step(), forster_radius, 1.0 / tau0_,
                   acceptor_step, &out, &n_out);
     fret_rate_map_ = qmodel::drained(out, n_out);
@@ -671,4 +683,86 @@ double QuenchedDonorDecay::fret_efficiency(
     return 1.0 - paired_yield / donor_yield;
 }
 
+namespace {
+std::string upper_trimmed(const std::string& name) {
+    std::size_t b = 0, e = name.size();
+    while (b < e && std::isspace(static_cast<unsigned char>(name[b]))) ++b;
+    while (e > b && std::isspace(static_cast<unsigned char>(name[e - 1]))) --e;
+    std::string out = name.substr(b, e - b);
+    for (std::size_t i = 0; i < out.size(); ++i) {
+        out[i] = static_cast<char>(std::toupper(static_cast<unsigned char>(out[i])));
+    }
+    return out;
+}
+}  // namespace
+
+void residue_type_neighbour_counts(
+        const ProbeAccessibleVolume& av, const ObstacleAtoms& atoms,
+        const std::vector<std::string>& residue_types,
+        int** out_matrix_i, int* n_out_rows, int* n_out_cols,
+        double radius) {
+    const std::vector<double>& density = av.get_density_vector();
+    const int ng = av.get_ng();
+    const double dg = av.get_grid_step();
+    if (density.empty() || ng <= 0) {
+        IMP_THROW("residue_type_neighbour_counts: the volume carries no grid",
+                  ValueException);
+    }
+    const std::size_t n_types = residue_types.size();
+    // Rows: the occupied voxels, ascending flat index.
+    std::vector<int> row_of(density.size(), -1);
+    std::size_t n_rows = 0;
+    for (std::size_t k = 0; k < density.size(); ++k) {
+        if (density[k] != 0.0) row_of[k] = static_cast<int>(n_rows++);
+    }
+    int n_flat = 0;
+    int* out = internal::new_int_view(n_rows * n_types, out_matrix_i, &n_flat);
+    *n_out_cols = static_cast<int>(n_types);
+    *n_out_rows = 0;
+    if (out == nullptr) return;
+    *n_out_rows = static_cast<int>(n_rows);
+    if (n_types == 0 || atoms.coords.empty()) return;
+
+    std::map<std::string, int> column;
+    for (std::size_t t = 0; t < n_types; ++t) {
+        column[upper_trimmed(residue_types[t])] = static_cast<int>(t);
+    }
+    const ResidueSites sites = residue_sites(
+            atoms.chains, atoms.res_ids, atoms.res_names, atoms.atom_names,
+            const_cast<double*>(&atoms.coords[0]),
+            static_cast<int>(atoms.coords.size() / 3), 3);
+    const std::vector<std::string> names = sites.get_residue_names();
+    double* c = NULL;
+    int n_c = 0;
+    sites.get_slow_centers(&c, &n_c);
+    const std::vector<double> centres = qmodel::drained(c, n_c);
+
+    std::vector<int> ix0, iy0, iz0, r_idx;
+    center_grid_indices(centres, qmodel::anchor(av), dg, ng,
+                        std::vector<double>(names.size(), radius), ix0, iy0,
+                        iz0, r_idx);
+    for (std::size_t r = 0; r < names.size(); ++r) {
+        const std::map<std::string, int>::const_iterator col =
+                column.find(upper_trimmed(names[r]));
+        if (col == column.end()) continue;
+        const int ri = r_idx[r];
+        const int r2 = ri * ri;
+        for (int ix = std::max(0, ix0[r] - ri); ix <= std::min(ng - 1, ix0[r] + ri); ++ix) {
+            const int dx = ix - ix0[r];
+            for (int iy = std::max(0, iy0[r] - ri); iy <= std::min(ng - 1, iy0[r] + ri); ++iy) {
+                const int dy = iy - iy0[r];
+                for (int iz = std::max(0, iz0[r] - ri); iz <= std::min(ng - 1, iz0[r] + ri); ++iz) {
+                    const int dz = iz - iz0[r];
+                    if (dx * dx + dy * dy + dz * dz >= r2) continue;
+                    const std::size_t k =
+                            (static_cast<std::size_t>(ix) * ng + iy) * ng + iz;
+                    const int row = row_of[k];
+                    if (row >= 0) ++out[static_cast<std::size_t>(row) * n_types + col->second];
+                }
+            }
+        }
+    }
+}
+
 IMPBFF_END_NAMESPACE
+

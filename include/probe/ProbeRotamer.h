@@ -319,6 +319,40 @@ IMPBFFEXPORT ProbeRotamerLibrary load_probe_rotamer_library(const std::string& n
                                                  const std::string& lib_dir =
                                                          "");
 
+//! The fully stretched linker of a probe, from CB to the chromophore centre.
+/*!
+    The linker length an accessible volume wants, measured on the probe's
+    own structure (the library's first conformer) instead of quoted:
+
+    1. bonds are atom pairs closer than the sum of their covalent radii plus
+       0.45 A (C 0.76, N 0.71, O 0.66, S 1.05, H 0.31; others 0.8);
+    2. the chromophore is the largest fused ring system of \p dye_residue (a
+       bond is in a ring when the graph without it still joins its atoms), and
+       its centre the mean of its heavy atoms;
+    3. the route is the shortest bond path from the linker's CB (the carbon
+       on \p linker_residue's CA that is bonded to a sulphur) to the ring atom
+       nearest it in bonds;
+    4. along the route a flexible bond counts its length times
+       \f$\sin(109.5^\circ / 2)\f$, the all-trans zig-zag projection; a run of
+       ring bonds counts the straight distance across it; and the entry
+       atom-to-centre distance is added.
+
+    \param[in] lib the probe's rotamer library (load_probe_rotamer_library())
+    \param[in] linker_residue the residue that carries CA/CB, e.g. `"C1R"`
+    \param[in] dye_residue the chromophore's residue, e.g. `"A48"`
+    \return Angstrom
+    \throw ValueException when the library has no such CA, no CB on it, or
+           no ring in the dye residue
+*/
+IMPBFFEXPORT double stretched_linker_length(const ProbeRotamerLibrary& lib,
+                                            const std::string& linker_residue,
+                                            const std::string& dye_residue);
+
+//! The same, for a library name (`"AlexaFluor 488 C1R"`) or path.
+IMPBFFEXPORT double stretched_linker_length(const std::string& library_name,
+                                            const std::string& linker_residue,
+                                            const std::string& dye_residue);
+
 //! Residue names per atom, inferred from a library's registry metadata.
 /*!
     The fallback for a library whose container carries no residue names and

@@ -54,6 +54,60 @@ void ProbeAccessibleVolume::get_grid_origin(double** out_view,
     internal::copy_to_view(grid_origin_, out_view, n_out_view);
 }
 
+void ProbeAccessibleVolume::get_voxel_indices(int** out_view_i,
+                                              int* n_out_view_i) const {
+    if (density_.empty()) {
+        IMP_THROW("no density grid carried", IMP::ValueException);
+    }
+    std::size_t n = 0;
+    for (std::size_t k = 0; k < density_.size(); ++k) {
+        if (density_[k] != 0.0) ++n;
+    }
+    int* out = internal::new_int_view(n, out_view_i, n_out_view_i);
+    if (out == nullptr) return;
+    std::size_t w = 0;
+    for (std::size_t k = 0; k < density_.size(); ++k) {
+        if (density_[k] != 0.0) out[w++] = static_cast<int>(k);
+    }
+}
+
+void ProbeAccessibleVolume::get_voxel_centres(double** out_matrix,
+                                              int* n_out_rows,
+                                              int* n_out_cols) const {
+    if (density_.empty() || grid_origin_.size() != 3 || ng_ <= 0) {
+        IMP_THROW("no density grid carried", IMP::ValueException);
+    }
+    std::size_t n = 0;
+    for (std::size_t k = 0; k < density_.size(); ++k) {
+        if (density_[k] != 0.0) ++n;
+    }
+    int n_flat = 0;
+    double* out = internal::new_double_view(3 * n, out_matrix, &n_flat);
+    *n_out_cols = 3;
+    *n_out_rows = 0;
+    if (out == nullptr) return;
+    const std::size_t ng = static_cast<std::size_t>(ng_);
+    std::size_t w = 0;
+    for (std::size_t k = 0; k < density_.size(); ++k) {
+        if (density_[k] == 0.0) continue;
+        const std::size_t i = k / (ng * ng), j = (k / ng) % ng, l = k % ng;
+        out[w++] = grid_origin_[0] + static_cast<double>(i) * grid_step_;
+        out[w++] = grid_origin_[1] + static_cast<double>(j) * grid_step_;
+        out[w++] = grid_origin_[2] + static_cast<double>(l) * grid_step_;
+    }
+    *n_out_rows = static_cast<int>(n);
+}
+
+std::vector<double> ProbeAccessibleVolume::get_walk_anchor() const {
+    if (grid_origin_.size() == 3 && ng_ > 0) {
+        const double shift = ((ng_ - 1) / 2 - 0.5) * grid_step_;
+        return std::vector<double>{grid_origin_[0] + shift,
+                                   grid_origin_[1] + shift,
+                                   grid_origin_[2] + shift};
+    }
+    return attachment_point_;
+}
+
 void ProbeAccessibleVolume::update_points() {
     if (density_.empty() || grid_origin_.size() != 3) {
         IMP_THROW("no density grid available to convert", IMP::ValueException);

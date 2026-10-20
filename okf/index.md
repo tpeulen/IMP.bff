@@ -68,6 +68,10 @@ shared index.
   co-evolution (DCA) for the FRET network's pair cost: model sizes against DCA
   on 20 chains (650M: 0.84 vs 0.38 long-range precision on the same chains),
   and why contact maps do *not* predict which pairs change distance.
+* [QuEst site-table kernels](quest-site-kernels.md) - Probe solvent exposure,
+  rotamer quencher ensembles, residue-type neighbour counts, the voxel frame
+  (fixed 2026-10-20), stretched linker length; why today's AV is not the MalE
+  notebook's (bisected).
 * [cgprobe](cgprobe.md) - The explicit-dye layer: what it does, where the physics
   lives (R0/κ² in `fret`), the flat `IMP.bff.*` surface, conventions (CB
   strip), tests and pins.

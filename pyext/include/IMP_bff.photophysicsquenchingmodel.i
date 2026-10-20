@@ -30,6 +30,14 @@ IMP_SWIG_VALUE(IMP::bff, QuenchedDonorDecay, QuenchedDonorDecays);
     (double* coords, int n_atoms, int n_dim)
 };
 
+// Per-voxel tables: voxel centres (n, 3) and residue-type counts (n, types).
+%apply(double** ARGOUTVIEWM_ARRAY2, int* DIM1, int* DIM2) {
+    (double** out_matrix, int* n_out_rows, int* n_out_cols)
+};
+%apply(int** ARGOUTVIEWM_ARRAY2, int* DIM1, int* DIM2) {
+    (int** out_matrix_i, int* n_out_rows, int* n_out_cols)
+};
+
 // Scalar statistics as native attributes (no Python in the wrapper).
 %attribute(IMP::bff::DynamicAccessibleVolume, double, tau0, get_tau0);
 %attribute(IMP::bff::DynamicAccessibleVolume, double, dg, get_dg);

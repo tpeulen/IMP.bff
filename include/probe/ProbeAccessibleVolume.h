@@ -101,6 +101,35 @@ public:
     int get_ng() const { return ng_; }
     double get_grid_step() const { return grid_step_; }
 
+    //! The flat indices of the voxels the volume occupies, ascending.
+    /*! The same order as get_voxel_centres(), and the row order of every
+        per-voxel table built over this volume (residue_type_neighbour_counts(),
+        probe exposure). A field published over the whole grid -- a
+        QuenchedDonorDecay map, the density -- is indexed by these. A voxel is
+        occupied when its density is non-zero.
+        \throws IMP::ValueException when no grid is carried */
+    void get_voxel_indices(int** out_view_i, int* n_out_view_i) const;
+
+    //! The centre of every occupied voxel, `(n, 3)`, in Angstrom.
+    /*! Voxel `(i, j, k)` of the flat C-order index `(i * ng + j) * ng + k`
+        is centred at `grid_origin + (i, j, k) * grid_step`: the grid's own
+        convention, the one get_points() uses, so the centres are exactly
+        the cloud's positions. Callers used to re-derive them from the
+        attachment point, which is only right when the grid happens to be
+        anchored there.
+        \throws IMP::ValueException when no grid is carried */
+    void get_voxel_centres(double** out_matrix, int* n_out_rows,
+                           int* n_out_cols) const;
+
+    //! The anchor of the walk/stamp frame used by the quenching models.
+    /*! The point `x0` for which `x0 + (i - (ng - 1) / 2 + 0.5) * grid_step`
+        is voxel `i`'s centre along each axis -- the frame in which
+        #IMP::bff::center_grid_indices floors a coordinate onto a voxel and in
+        which the Brownian walk reports its positions. It is
+        `grid_origin + ((ng - 1) / 2 - 0.5) * grid_step` (integer division),
+        or the attachment point when the volume carries no grid origin. */
+    std::vector<double> get_walk_anchor() const;
+
     //! Rebuild the cloud from the density grid.
     /*! \throws IMP::ValueException when no grid is carried */
     void update_points();

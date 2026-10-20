@@ -121,7 +121,11 @@ public:
 
     //! Binary occupancy of the accessible volume, flat.
     void get_density(double** out_view, int* n_out_view) const;
-    //! The grid anchor — the attachment point.
+    //! The anchor of this model's maps: voxel `i` is centred at
+    //! `x0 + (i - (ng - 1) / 2) * dg` along each axis (integer division).
+    /*! Derived from the volume's grid, not its attachment point, so the maps
+        sit on the voxels the volume means
+        (#IMP::bff::ProbeAccessibleVolume::get_voxel_centres). */
     void get_x0(double** out_view, int* n_out_view) const;
     //! Where the dye may be: the domain mask for the solver.
     void get_bounds(double** out_view, int* n_out_view) const;
@@ -253,7 +257,15 @@ public:
         return table_;
     }
     void get_density(double** out_view, int* n_out_view) const;
+    //! The walk/stamp anchor: voxel `i` is centred at
+    //! `x0 + (i - (ng - 1) / 2 + 0.5) * dg` (#IMP::bff::ProbeAccessibleVolume::get_walk_anchor).
     void get_x0(double** out_view, int* n_out_view) const;
+    //! The centres of the occupied voxels, `(n, 3)`, in the order of
+    //! #IMP::bff::ProbeAccessibleVolume::get_voxel_indices.
+    void get_voxel_centres(double** out_matrix, int* n_out_rows,
+                           int* n_out_cols) const {
+        av_.get_voxel_centres(out_matrix, n_out_rows, n_out_cols);
+    }
 
     //! The slow and quench centres of every residue in the structure.
     const ResidueSites& get_sites() const;
@@ -389,6 +401,37 @@ public:
 };
 IMP_VALUES(QuenchedDonorDecay, QuenchedDonorDecays);
 
+//! How many residues of each type are near every voxel of a volume.
+/*!
+    Row `r` is the `r`-th occupied voxel (#IMP::bff::ProbeAccessibleVolume::get_voxel_indices
+    order), column `t` the residue type \p residue_types[t]; the entry counts
+    the residues of that type -- keyed `(chain, res_id, res_name)`, as
+    #IMP::bff::residue_sites groups them -- whose slow centre (CB, else CA,
+    else the residue's first atom) lies within \p radius of the voxel.
+
+    The geometry is the stickiness stamp's, exactly: a centre is floored onto
+    a voxel in the walk frame (#IMP::bff::center_grid_indices with
+    #IMP::bff::ProbeAccessibleVolume::get_walk_anchor) and a voxel is within
+    reach when its index offset satisfies
+    \f$\Delta i^2 + \Delta j^2 + \Delta k^2 < \lfloor radius / dg \rfloor^2\f$.
+    So a residue type's slow factor map with factor \f$s\f$ equals
+    \f$s^{n_t}\f$ voxel by voxel; this returns the exponents, one stamp per
+    type rather than one map per type, which is what an equilibrium ensemble
+    \f$p \propto \prod_t s_t^{-n_t}\f$ over many stickiness sets needs.
+
+    \param[in] av the volume; its density decides which voxels are rows
+    \param[in] atoms the structure, as the quenching model takes it
+    \param[in] residue_types residue names, upper case, one column each
+    \param[out] out_matrix,n_out_rows,n_out_cols `(n_voxels, n_types)` int32
+    \param[in] radius Angstrom
+*/
+IMPBFFEXPORT void residue_type_neighbour_counts(
+        const ProbeAccessibleVolume& av, const ObstacleAtoms& atoms,
+        const std::vector<std::string>& residue_types,
+        int** out_matrix_i, int* n_out_rows, int* n_out_cols,
+        double radius = 8.5);
+
 IMPBFF_END_NAMESPACE
+
 
 #endif //IMPBFF_PHOTOPHYSICSQUENCHINGMODEL_H

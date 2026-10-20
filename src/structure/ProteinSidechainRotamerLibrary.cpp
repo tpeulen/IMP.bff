@@ -5,6 +5,13 @@
 #include <IMP/bff/structure/ProteinSidechainRotamerLibrary.h>
 #include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/internal/ptolib.h>
+#include <IMP/bff/structure/ZMatrix.h>
+#include <IMP/algebra/Vector3D.h>
+#include <algorithm>
+#include <limits>
+#include <map>
+#include <set>
+#include <cctype>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -281,4 +288,382 @@ ProteinSidechainDunbrackRotamers read_protein_sidechain_dunbrack_rotamers(const 
     return out;
 }
 
+// --------------------------------------------------------------------------
+// Quencher rotamer ensembles
+// --------------------------------------------------------------------------
+
+void QuencherRotamerEnsemble::get_crystal(double** out_view,
+                                          int* n_out_view) const {
+    internal::copy_to_view(crystal, out_view, n_out_view);
+}
+
+void QuencherRotamerEnsemble::get_centres(double** out_matrix, int* n_out_rows,
+                                          int* n_out_cols) const {
+    int n_flat = 0;
+    double* out = internal::new_double_view(centres.size(), out_matrix, &n_flat);
+    *n_out_cols = 3;
+    *n_out_rows = 0;
+    if (out == nullptr) return;
+    if (!centres.empty()) {
+        std::memcpy(out, centres.data(), centres.size() * sizeof(double));
+    }
+    *n_out_rows = static_cast<int>(centres.size() / 3);
+}
+
+void QuencherRotamerEnsemble::get_probabilities(double** out_view,
+                                                int* n_out_view) const {
+    internal::copy_to_view(probabilities, out_view, n_out_view);
+}
+
+namespace qrot {
+
+std::string key(const std::string& name) {
+    std::size_t b = 0, e = name.size();
+    while (b < e && std::isspace(static_cast<unsigned char>(name[b]))) ++b;
+    while (e > b && std::isspace(static_cast<unsigned char>(name[e - 1]))) --e;
+    std::string out = name.substr(b, e - b);
+    for (std::size_t i = 0; i < out.size(); ++i) {
+        out[i] = static_cast<char>(std::toupper(static_cast<unsigned char>(out[i])));
+    }
+    return out;
+}
+
+//! One residue's atoms, in structure order.
+struct Residue {
+    std::string chain, name;
+    int res_id;
+    std::vector<std::size_t> atoms;
+};
+
+//! A chi angle: the four atoms, and which side-chain atoms turn with it.
+struct Chi {
+    const char* a[4];
+    //! The side-chain atoms (beyond CB) that stay put; null-terminated.
+    const char* fixed[3];
+};
+
+//! chi1 then chi2, as far as this residue has them.
+std::vector<Chi> chis_of(const std::string& residue) {
+    std::vector<Chi> out;
+    const Chi c1g = {{"N", "CA", "CB", "CG"}, {nullptr, nullptr, nullptr}};
+    auto chi1 = [&](const char* g) {
+        Chi c = {{"N", "CA", "CB", g}, {nullptr, nullptr, nullptr}};
+        out.push_back(c);
+    };
+    auto chi2 = [&](const char* d) {
+        // Pivot CG: CG stays, everything beyond it turns.
+        Chi c = {{"CA", "CB", "CG", d}, {"CG", nullptr, nullptr}};
+        out.push_back(c);
+    };
+    if (residue == "CYS") chi1("SG");
+    else if (residue == "SER") chi1("OG");
+    else if (residue == "THR") chi1("OG1");
+    else if (residue == "VAL") chi1("CG1");
+    else if (residue == "ILE") {
+        chi1("CG1");
+        Chi c = {{"CA", "CB", "CG1", "CD1"}, {"CG1", "CG2", nullptr}};
+        out.push_back(c);
+    } else {
+        const char* d = nullptr;
+        if (residue == "MET") d = "SD";
+        else if (residue == "TRP" || residue == "TYR" || residue == "PHE" ||
+                 residue == "LEU") d = "CD1";
+        else if (residue == "HIS") d = "ND1";
+        else if (residue == "ASP" || residue == "ASN") d = "OD1";
+        else if (residue == "GLU" || residue == "GLN" || residue == "LYS" ||
+                 residue == "ARG") d = "CD";
+        if (d != nullptr) {
+            out.push_back(c1g);
+            chi2(d);
+        }
+    }
+    return out;
+}
+
+char one_letter(const std::string& residue) {
+    static const char* names[] = {"ALA", "ARG", "ASN", "ASP", "CYS", "GLN",
+                                  "GLU", "GLY", "HIS", "ILE", "LEU", "LYS",
+                                  "MET", "PHE", "PRO", "SER", "THR", "TRP",
+                                  "TYR", "VAL"};
+    static const char letters[] = "ARNDCQEGHILKMFPSTWYV";
+    for (int i = 0; i < 20; ++i) {
+        if (residue == names[i]) return letters[i];
+    }
+    return 0;
+}
+
+bool is_backbone(const std::string& atom) {
+    return atom == "N" || atom == "CA" || atom == "C" || atom == "O";
+}
+
+algebra::Vector3D at(const std::vector<double>& xyz, std::size_t i) {
+    return algebra::Vector3D(xyz[3 * i + 0], xyz[3 * i + 1], xyz[3 * i + 2]);
+}
+
+//! The residues of a structure, in order, keyed (chain, res_id, res_name).
+std::vector<Residue> residues(const std::vector<std::string>& chains,
+                              const std::vector<int>& res_ids,
+                              const std::vector<std::string>& res_names) {
+    std::vector<Residue> out;
+    std::map<std::pair<std::pair<std::string, int>, std::string>, std::size_t> index;
+    for (std::size_t i = 0; i < res_ids.size(); ++i) {
+        const std::pair<std::pair<std::string, int>, std::string> k(
+                std::make_pair(key(chains[i]), res_ids[i]), key(res_names[i]));
+        std::map<std::pair<std::pair<std::string, int>, std::string>,
+                 std::size_t>::const_iterator f = index.find(k);
+        if (f == index.end()) {
+            index[k] = out.size();
+            Residue r;
+            r.chain = k.first.first;
+            r.res_id = k.first.second;
+            r.name = k.second;
+            r.atoms.push_back(i);
+            out.push_back(r);
+        } else {
+            out[f->second].atoms.push_back(i);
+        }
+    }
+    return out;
+}
+
+int find_atom(const Residue& r, const std::vector<std::string>& atom_names,
+              const std::string& name) {
+    for (std::size_t k = 0; k < r.atoms.size(); ++k) {
+        if (key(atom_names[r.atoms[k]]) == name) return static_cast<int>(k);
+    }
+    return -1;
+}
+
+//! phi and psi of every residue (degrees), the chain-end defaults applied.
+/*! Bonded when both are standard amino acids with N, CA and C, follow one
+    another in the same chain, and C(i) - N(i+1) < 1.8 A -- the peptide
+    builder's rule, so a gap in the deposited chain is a chain end. */
+void backbone_angles(const std::vector<Residue>& rs,
+                     const std::vector<std::string>& atom_names,
+                     const std::vector<double>& xyz,
+                     std::vector<double>& phi, std::vector<double>& psi) {
+    const std::size_t n = rs.size();
+    phi.assign(n, -60.0);
+    psi.assign(n, -45.0);
+    std::vector<int> N(n), CA(n), C(n);
+    std::vector<bool> ok(n);
+    for (std::size_t i = 0; i < n; ++i) {
+        N[i] = find_atom(rs[i], atom_names, "N");
+        CA[i] = find_atom(rs[i], atom_names, "CA");
+        C[i] = find_atom(rs[i], atom_names, "C");
+        ok[i] = one_letter(rs[i].name) != 0 && N[i] >= 0 && CA[i] >= 0 && C[i] >= 0;
+    }
+    auto pos = [&](std::size_t r, int k) { return at(xyz, rs[r].atoms[k]); };
+    for (std::size_t i = 0; i + 1 < n; ++i) {
+        if (!ok[i] || !ok[i + 1] || rs[i].chain != rs[i + 1].chain) continue;
+        if (algebra::get_distance(pos(i, C[i]), pos(i + 1, N[i + 1])) >= 1.8) continue;
+        psi[i] = dihedral_deg(pos(i, N[i]), pos(i, CA[i]), pos(i, C[i]),
+                              pos(i + 1, N[i + 1]));
+        phi[i + 1] = dihedral_deg(pos(i, C[i]), pos(i + 1, N[i + 1]),
+                                  pos(i + 1, CA[i + 1]), pos(i + 1, C[i + 1]));
+    }
+}
+
+//! Rodrigues: turn `p` about the axis through `origin` along `axis`.
+algebra::Vector3D turned(const algebra::Vector3D& p,
+                         const algebra::Vector3D& origin,
+                         const algebra::Vector3D& axis_in, double degrees) {
+    const algebra::Vector3D axis = axis_in.get_unit_vector();
+    const double a = degrees * M_PI / 180.0;
+    const algebra::Vector3D q = p - origin;
+    const double c = std::cos(a), s = std::sin(a);
+    return origin + q * c + algebra::get_vector_product(axis, q) * s +
+           axis * ((q * axis) * (1.0 - c));
+}
+
+//! Set one chi of the residue's coordinates (in place) to `target` degrees.
+void set_chi(std::vector<algebra::Vector3D>& xyz,
+             const std::vector<std::string>& names, const Chi& chi,
+             double target) {
+    int idx[4];
+    for (int k = 0; k < 4; ++k) {
+        idx[k] = -1;
+        for (std::size_t j = 0; j < names.size(); ++j) {
+            if (names[j] == chi.a[k]) { idx[k] = static_cast<int>(j); break; }
+        }
+        if (idx[k] < 0) return;   // an incomplete side chain stays as deposited
+    }
+    const double current = dihedral_deg(xyz[idx[0]], xyz[idx[1]], xyz[idx[2]], xyz[idx[3]]);
+    const algebra::Vector3D origin = xyz[idx[2]];
+    const algebra::Vector3D axis = origin - xyz[idx[1]];
+    for (std::size_t j = 0; j < names.size(); ++j) {
+        const std::string& n = names[j];
+        if (is_backbone(n) || n == "CB") continue;
+        bool fixed = false;
+        for (int f = 0; f < 3 && chi.fixed[f] != nullptr; ++f) {
+            if (n == chi.fixed[f]) fixed = true;
+        }
+        if (fixed) continue;
+        xyz[j] = turned(xyz[j], origin, axis, target - current);
+    }
+}
+
+QuencherRotamerEnsemble build(const std::vector<Residue>& rs, std::size_t r,
+                              const std::vector<std::string>& atom_names,
+                              const std::vector<double>& coords,
+                              double phi, double psi,
+                              const std::string& library_path,
+                              const std::vector<std::string>& quench_atoms,
+                              double clash, bool* has_centre) {
+    const Residue& res = rs[r];
+    QuencherRotamerEnsemble out;
+    out.chain = res.chain;
+    out.res_id = res.res_id;
+    out.res_name = res.name;
+    out.phi = std::numeric_limits<double>::quiet_NaN();
+    out.psi = std::numeric_limits<double>::quiet_NaN();
+
+    std::vector<std::string> names(res.atoms.size());
+    std::vector<algebra::Vector3D> xyz(res.atoms.size());
+    for (std::size_t k = 0; k < res.atoms.size(); ++k) {
+        names[k] = key(atom_names[res.atoms[k]]);
+        xyz[k] = at(coords, res.atoms[k]);
+    }
+    std::set<std::string> wanted;
+    for (std::size_t k = 0; k < quench_atoms.size(); ++k) wanted.insert(key(quench_atoms[k]));
+    std::vector<std::size_t> centre_atoms;
+    for (std::size_t k = 0; k < names.size(); ++k) {
+        if (wanted.count(names[k])) centre_atoms.push_back(k);
+    }
+    *has_centre = !centre_atoms.empty();
+    if (centre_atoms.empty()) return out;
+    auto centroid = [&](const std::vector<algebra::Vector3D>& p) {
+        algebra::Vector3D c(0.0, 0.0, 0.0);
+        for (std::size_t k = 0; k < centre_atoms.size(); ++k) c += p[centre_atoms[k]];
+        return c / static_cast<double>(centre_atoms.size());
+    };
+    const algebra::Vector3D crystal = centroid(xyz);
+    out.crystal.assign(crystal.begin(), crystal.end());
+
+    const std::vector<Chi> chis = chis_of(res.name);
+    const char letter = one_letter(res.name);
+    if (!chis.empty() && letter != 0) {
+        out.phi = phi;
+        out.psi = psi;
+        const ProteinSidechainDunbrackRotamers rot =
+                read_protein_sidechain_dunbrack_rotamers(library_path, letter, phi, psi);
+        out.n_library = rot.n_rotamers;
+        const int n_set = std::min<int>(rot.n_chi, static_cast<int>(chis.size()));
+        // Every atom of every other residue may clash.
+        std::vector<std::size_t> others;
+        {
+            std::vector<bool> mine(coords.size() / 3, false);
+            for (std::size_t k = 0; k < res.atoms.size(); ++k) mine[res.atoms[k]] = true;
+            for (std::size_t a = 0; a < mine.size(); ++a) if (!mine[a]) others.push_back(a);
+        }
+        std::vector<std::size_t> side;
+        for (std::size_t k = 0; k < names.size(); ++k) {
+            if (!is_backbone(names[k]) && names[k] != "CB") side.push_back(k);
+        }
+        double total = 0.0;
+        for (int q = 0; q < rot.n_rotamers; ++q) {
+            std::vector<algebra::Vector3D> built = xyz;
+            for (int c = 0; c < n_set; ++c) {
+                set_chi(built, names, chis[c], rot.chi[q * rot.n_chi + c]);
+            }
+            double closest = std::numeric_limits<double>::infinity();
+            for (std::size_t k = 0; k < side.size(); ++k) {
+                for (std::size_t o = 0; o < others.size(); ++o) {
+                    closest = std::min(closest,
+                                       algebra::get_distance(built[side[k]], at(coords, others[o])));
+                }
+            }
+            if (!(closest > clash)) continue;
+            const algebra::Vector3D c = centroid(built);
+            out.centres.insert(out.centres.end(), c.begin(), c.end());
+            out.probabilities.push_back(rot.probability[q]);
+            total += rot.probability[q];
+        }
+        if (!out.probabilities.empty() && total > 0.0) {
+            for (std::size_t k = 0; k < out.probabilities.size(); ++k) out.probabilities[k] /= total;
+            out.from_library = true;
+            return out;
+        }
+        out.centres.clear();
+        out.probabilities.clear();
+    }
+    out.centres = out.crystal;
+    out.probabilities.assign(1, 1.0);
+    out.from_library = false;
+    return out;
+}
+
+void check_atoms(const std::vector<std::string>& chains,
+                 const std::vector<int>& res_ids,
+                 const std::vector<std::string>& res_names,
+                 const std::vector<std::string>& atom_names,
+                 const std::vector<double>& coords) {
+    const std::size_t n = res_ids.size();
+    if (chains.size() != n || res_names.size() != n || atom_names.size() != n ||
+        coords.size() != 3 * n) {
+        IMP_THROW("one chain, residue id, residue name, atom name and three "
+                  "coordinates per atom", ValueException);
+    }
+}
+
+}  // namespace qrot
+
+QuencherRotamerEnsemble quencher_rotamer_ensemble(
+        const std::vector<std::string>& chains, const std::vector<int>& res_ids,
+        const std::vector<std::string>& res_names,
+        const std::vector<std::string>& atom_names,
+        const std::vector<double>& coords, const std::string& chain,
+        int res_id, const std::string& library_path,
+        const std::vector<std::string>& quench_atoms, double clash) {
+    qrot::check_atoms(chains, res_ids, res_names, atom_names, coords);
+    const std::vector<qrot::Residue> rs = qrot::residues(chains, res_ids, res_names);
+    std::vector<double> phi, psi;
+    qrot::backbone_angles(rs, atom_names, coords, phi, psi);
+    const std::string c = qrot::key(chain);
+    for (std::size_t r = 0; r < rs.size(); ++r) {
+        if (rs[r].res_id != res_id || (!c.empty() && rs[r].chain != c)) continue;
+        bool has_centre = false;
+        QuencherRotamerEnsemble out = qrot::build(rs, r, atom_names, coords, phi[r], psi[r],
+                                                  library_path, quench_atoms, clash,
+                                                  &has_centre);
+        if (!has_centre) {
+            IMP_THROW("residue " << chain << res_id << " has none of the "
+                      "quenching atoms", ValueException);
+        }
+        return out;
+    }
+    IMP_THROW("no residue " << chain << res_id << " in the structure", ValueException);
+}
+
+QuencherRotamerEnsembles quencher_rotamer_ensembles(
+        const std::vector<std::string>& chains, const std::vector<int>& res_ids,
+        const std::vector<std::string>& res_names,
+        const std::vector<std::string>& atom_names,
+        const std::vector<double>& coords,
+        const std::vector<std::string>& residue_types,
+        const std::string& library_path,
+        const std::map<std::string, ResidueQuenching>& table, double clash) {
+    qrot::check_atoms(chains, res_ids, res_names, atom_names, coords);
+    const std::map<std::string, ResidueQuenching> full =
+            table.empty() ? amino_acid_quenching_defaults() : table;
+    std::set<std::string> types;
+    for (std::size_t t = 0; t < residue_types.size(); ++t) types.insert(qrot::key(residue_types[t]));
+    const std::vector<qrot::Residue> rs = qrot::residues(chains, res_ids, res_names);
+    std::vector<double> phi, psi;
+    qrot::backbone_angles(rs, atom_names, coords, phi, psi);
+    QuencherRotamerEnsembles out;
+    for (std::size_t r = 0; r < rs.size(); ++r) {
+        if (!types.count(rs[r].name)) continue;
+        std::map<std::string, ResidueQuenching>::const_iterator e = full.find(rs[r].name);
+        if (e == full.end() || e->second.quench_atoms.empty()) continue;
+        bool has_centre = false;
+        QuencherRotamerEnsemble q = qrot::build(rs, r, atom_names, coords, phi[r], psi[r],
+                                                library_path, e->second.quench_atoms,
+                                                clash, &has_centre);
+        if (has_centre) out.push_back(q);
+    }
+    return out;
+}
+
 IMPBFF_END_NAMESPACE
+

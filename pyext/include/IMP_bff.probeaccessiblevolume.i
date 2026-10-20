@@ -33,6 +33,15 @@ IMP_SWIG_VALUE(IMP::bff, ACV, ACVs);
 // module constants -- IMP.bff.AV_DEFAULT_LINKER_WIDTH and so on -- so a
 // Python caller reads them rather than restating them.
 %include "IMP/bff/probe/ProbeAccessibleVolumeDefaults.h"
+
+// The occupied voxels: their flat indices (1-D int32) and their centres
+// (n, 3) -- the row order of every per-voxel table over the volume.
+%apply(int** ARGOUTVIEWM_ARRAY1, int* DIM1) {
+    (int** out_view_i, int* n_out_view_i)
+};
+%apply(double** ARGOUTVIEWM_ARRAY2, int* DIM1, int* DIM2) {
+    (double** out_matrix, int* n_out_rows, int* n_out_cols)
+};
 %include "IMP/bff/probe/ProbeAccessibleVolume.h"
 
 %attribute(IMP::bff::ProbeAccessibleVolume, int, ng, get_ng);
