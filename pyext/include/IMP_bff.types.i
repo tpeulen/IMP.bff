@@ -388,6 +388,9 @@ static PyObject* imp_bff_adopt_vector_double(std::vector<double>* v) {
 %apply(int* IN_ARRAY1, int DIM1) {(int* occupancy, int n_occupancy)}
 %apply(double* IN_ARRAY1, int DIM1) {(double* mobility, int n_mobility)}
 %apply(double* IN_ARRAY1, int DIM1) {(double* rate_map, int n_rate_map)}
+// The Brownian walk's start weight, the field the PDE path spells
+// `weight_map`: flat ng^3, or an empty array for the uniform start.
+%apply(double* IN_ARRAY1, int DIM1) {(double* weight_map, int n_weight_map)}
 %apply(double* IN_ARRAY1, int DIM1) {(double* coords, int n_coords)}
 %apply(double* IN_ARRAY1, int DIM1) {(double* rotamer_coords, int n_rotamer_coords)}
 %apply(double* IN_ARRAY1, int DIM1) {(double* rotamer_weights, int n_rotamer_weights)}

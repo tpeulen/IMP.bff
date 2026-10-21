@@ -17,6 +17,7 @@
 #define IMPBFF_INTERNAL_RANDOMWALK_H
 
 #include <IMP/bff/bff_config.h>
+#include <IMP/exception.h>
 
 #include <cmath>
 #include <random>
@@ -29,6 +30,13 @@ IMPBFF_BEGIN_INTERNAL_NAMESPACE
     \param sink called once per step as
            `sink(step, px, py, pz, accepted, voxel)` -- positions in **voxel
            units**, `voxel` the flat index of the voxel occupied after the step.
+    \param start_weight,n_start_weight the start weight, flat `ng^3` -- the
+           field the PDE path spells `weight_map` (for the sticky ensemble,
+           `w = prod_t s_t^(-n_t)`). The starting voxel is drawn in proportion
+           to it over the occupied voxels. An absent field -- a null pointer or
+           any length other than `ng^3` -- leaves the walk exactly as it was,
+           draws included: it starts uniformly and retries up to 1000 times
+           until it lands inside the accessible region.
     \return true if a starting voxel was found
 */
 template <class Sink>
@@ -36,7 +44,9 @@ inline bool run_walk(const int* occupancy, std::size_t n_occupancy,
                      const double* mobility, std::size_t n_mobility,
                      int ng, double t_step, double diffusion_coefficient,
                      double dg, int seed, int n_steps,
-                     int& n_accepted, int& n_rejected, Sink&& sink) {
+                     int& n_accepted, int& n_rejected,
+                     const double* start_weight, std::size_t n_start_weight,
+                     Sink&& sink) {
     n_accepted = 0;
     n_rejected = 0;
     if (n_steps <= 0 || ng <= 0) return false;
@@ -49,20 +59,69 @@ inline bool run_walk(const int* occupancy, std::size_t n_occupancy,
     std::uniform_int_distribution<int> pick(0, ng - 1);
 
     const std::size_t n = static_cast<std::size_t>(ng);
-    const bool has_mobility = n_mobility == n * n * n;
+    const std::size_t n_vox = n * n * n;
+    const bool has_mobility = n_mobility == n_vox;
+    // A field of the wrong length is ignored -- the rule mobility already
+    // follows, so an optional grid is one kind of thing here, not two.
+    const bool has_start_weight =
+            start_weight != nullptr && n_start_weight == n_vox;
     (void)n_occupancy;
 
     double px = 0.0, py = 0.0, pz = 0.0;
     std::size_t voxel = 0;
     bool found = false;
-    for (int attempt = 0; attempt < 1000; ++attempt) {
-        const int ix = pick(rng), iy = pick(rng), iz = pick(rng);
-        const std::size_t k = (static_cast<std::size_t>(ix) * n + iy) * n + iz;
-        if (occupancy[k] > 0) {
-            px = ix; py = iy; pz = iz;
-            voxel = k;
-            found = true;
-            break;
+    if (has_start_weight) {
+        // The inverse-CDF draw: one uniform double, the grid scanned in index
+        // order -- the order the weights were accumulated in, so the partial
+        // sums below end exactly on `total`. A voxel with no weight is never
+        // picked; a voxel outside the accessible volume never is either, the
+        // walk cannot stand there. One scan per walk, against steps numbered
+        // in the millions: nothing here is on the walk's hot path.
+        double total = 0.0;
+        for (std::size_t k = 0; k < n_vox; ++k) {
+            if (occupancy[k] <= 0) continue;
+            const double w = start_weight[k];
+            // NaN fails `w >= 0.0`, so the PDE path's rule -- a weight field
+            // is real and non-negative -- holds here too.
+            if (!(w >= 0.0) || !std::isfinite(w)) {
+                IMP_THROW("the start weight must be finite and non-negative "
+                          "on the accessible voxels; voxel " << k << " has "
+                          << w, ValueException);
+            }
+            total += w;
+        }
+        if (total > 0.0) {
+            std::uniform_real_distribution<double> in_cdf(0.0, total);
+            const double u = in_cdf(rng);
+            double accumulated = 0.0;
+            for (std::size_t k = 0; k < n_vox; ++k) {
+                if (occupancy[k] <= 0) continue;
+                accumulated += start_weight[k];
+                if (start_weight[k] > 0.0 && accumulated >= u) {
+                    const std::size_t iz = k % n;
+                    const std::size_t iy = (k / n) % n;
+                    const std::size_t ix = k / (n * n);
+                    px = static_cast<double>(ix);
+                    py = static_cast<double>(iy);
+                    pz = static_cast<double>(iz);
+                    voxel = k;
+                    found = true;
+                    break;
+                }
+            }
+        }
+        // total == 0.0 leaves `found` unset: nothing to start on, the same
+        // answer an empty volume gets.
+    } else {
+        for (int attempt = 0; attempt < 1000; ++attempt) {
+            const int ix = pick(rng), iy = pick(rng), iz = pick(rng);
+            const std::size_t k = (static_cast<std::size_t>(ix) * n + iy) * n + iz;
+            if (occupancy[k] > 0) {
+                px = ix; py = iy; pz = iz;
+                voxel = k;
+                found = true;
+                break;
+            }
         }
     }
     if (!found) return false;

@@ -502,7 +502,9 @@ void QuenchedDonorDecay::photons_fused() {
             rate_map.empty() ? NULL : &rate_map[0],
             static_cast<int>(rate_map.size()), av_.get_ng(),
             av_.get_grid_step(), t_max_, t_step_, diffusion_coefficient_, seeds,
-            tau0_, n_photons_, get_photon_seed(), stats, &flat, &n_flat);
+            tau0_, n_photons_, get_photon_seed(),
+            NULL, 0,
+            stats, &flat, &n_flat);
 
     const int n = n_flat / 2;
     delays_.assign(n, 0.0);

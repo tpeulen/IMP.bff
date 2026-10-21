@@ -877,6 +877,7 @@ std::vector<double> quenched_donor_photons_impl(
         double diffusion_coefficient,
         const std::vector<int>& walk_seeds,
         double tau0, int n_photons, int photon_seed,
+        double* weight_map, int n_weight_map,
         std::vector<double>& stats) {
     stats.assign(5, 0.0);
     const int n_steps = static_cast<int>(t_max / t_step);
@@ -906,6 +907,7 @@ std::vector<double> quenched_donor_photons_impl(
                 mobility, static_cast<std::size_t>(n_mobility),
                 ng, t_step, diffusion_coefficient, dg,
                 walk_seeds[s], n_steps, acc, rej,
+                weight_map, static_cast<std::size_t>(n_weight_map),
                 [&](int /*i*/, double /*px*/, double /*py*/, double /*pz*/,
                     bool /*accepted*/, std::size_t voxel) {
                     k_quench.push_back(has_rates ? static_cast<float>(rate_map[voxel]) : 0.0f);
@@ -959,8 +961,9 @@ void quenched_donor_photons(int* occupancy, int n_occupancy,
         double diffusion_coefficient,
         const std::vector<int>& walk_seeds,
         double tau0, int n_photons, int photon_seed,
+        double* weight_map, int n_weight_map,
         std::vector<double>& stats, double** out_view, int* n_out_view) {
-    internal::copy_to_view(quenched_donor_photons_impl(occupancy, n_occupancy, mobility, n_mobility, rate_map, n_rate_map, ng, dg, t_max, t_step, diffusion_coefficient, walk_seeds, tau0, n_photons, photon_seed, stats),
+    internal::copy_to_view(quenched_donor_photons_impl(occupancy, n_occupancy, mobility, n_mobility, rate_map, n_rate_map, ng, dg, t_max, t_step, diffusion_coefficient, walk_seeds, tau0, n_photons, photon_seed, weight_map, n_weight_map, stats),
                            out_view, n_out_view);
 }
 

@@ -118,14 +118,25 @@ IMP_VALUES(ProbeDiffusionTrajectory, ProbeDiffusionTrajectories);
                starting values.
     \param[in] slow_fact scalar or per-voxel field, see the mobility rule above
     \param[in] random_seed negative draws freely
-    \throw ValueException when the density has no integer cube root
+    \param[in] weight_map flat `ng^3` start weight, or empty for the walk's
+               own start -- uniform over the accessible voxels, the default it
+               has always drawn. This is the field the PDE path spells
+               `weight_map` (#GridDiffusionSolver's equilibrium weight, `w =
+               1/m` for the sticky ensemble), so a walker started from it
+               begins in the ensemble the solver integrates. Finite and
+               non-negative on the accessible voxels; a total of zero is an
+               empty volume -- no start, an empty trajectory.
+    \throw ValueException when the density has no integer cube root, when a
+           field has the wrong shape, or when the weight is negative or not
+           finite on an accessible voxel
 */
 IMPBFFEXPORT ProbeDiffusionTrajectory simulate_probe_diffusion(
         const std::vector<int>& density,
         const std::vector<int>& slow_density = std::vector<int>(), double dg = 0.5,
         double t_max = 10000.0, double t_step = 0.002, double D = 40.0,
         const std::vector<double>& slow_fact = std::vector<double>(),
-        int random_seed = -1);
+        int random_seed = -1,
+        const std::vector<double>& weight_map = std::vector<double>());
 
 //! The stationary occupancy of the volume, in closed form.
 /*!

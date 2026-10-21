@@ -97,7 +97,8 @@ int grid_side(const std::vector<int>& density) {
 ProbeDiffusionTrajectory simulate_probe_diffusion(
         const std::vector<int>& density, const std::vector<int>& slow_density,
         double dg, double t_max, double t_step, double D,
-        const std::vector<double>& slow_fact, int random_seed) {
+        const std::vector<double>& slow_fact, int random_seed,
+        const std::vector<double>& weight_map) {
     const int ng = grid_side(density);
     if (ng == 0) {
         IMP_THROW("the density must be a flat cube of accessible voxels, "
@@ -115,6 +116,12 @@ ProbeDiffusionTrajectory simulate_probe_diffusion(
         IMP_THROW("slow_fact has " << slow_fact.size()
                                    << " entries and must be the flat ng^3 field "
                                       "or one scalar",
+                  ValueException);
+    }
+    if (!weight_map.empty() && weight_map.size() != n_vox) {
+        IMP_THROW("weight_map has " << weight_map.size()
+                                    << " entries and must be the flat ng^3 "
+                                       "field or empty",
                   ValueException);
     }
 
@@ -137,7 +144,10 @@ ProbeDiffusionTrajectory simulate_probe_diffusion(
             density.empty() ? NULL : const_cast<int*>(&density[0]),
             static_cast<int>(density.size()), mobility.data(),
             static_cast<int>(mobility.size()), ng, dg, t_max, t_step, D,
-            random_seed, counts, &packed, &n_packed);
+            random_seed,
+            const_cast<double*>(weight_map.empty() ? NULL : &weight_map[0]),
+            static_cast<int>(weight_map.size()),
+            counts, &packed, &n_packed);
 
     std::vector<double> xyz;
     std::vector<int> accepted;

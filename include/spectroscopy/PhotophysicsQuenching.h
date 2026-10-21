@@ -699,6 +699,13 @@ IMPBFF_BEGIN_NAMESPACE
     \param[in] occupancy,n_occupancy flat ng^3, nonzero where the dye may be
     \param[in] mobility,n_mobility flat ng^3 step-variance scaling, or length 0
     \param[in] rate_map,n_rate_map flat ng^3 quenching rate, 1/ns
+    \param[in] weight_map,n_weight_map flat ng^3 start weight, or length 0 for
+               the uniform start the walk has always drawn -- the field the PDE
+               path spells `weight_map`, so the fused path can begin its walks
+               in the same ensemble the solver integrates. Finite and
+               non-negative on the accessible voxels; a total of zero leaves a
+               walk without a start, and a walk without a start contributes
+               nothing.
 
     The three grids are taken as raw buffers so numpy's arrays pass straight
     through; converting them into `std::vector`s costs ~34 ns per element, and
@@ -724,6 +731,7 @@ IMPBFFEXPORT void quenched_donor_photons(
         double diffusion_coefficient,
         const std::vector<int>& walk_seeds,
         double tau0, int n_photons, int photon_seed,
+        double* weight_map, int n_weight_map,
         std::vector<double>& stats,
         double** out_view, int* n_out_view);
 

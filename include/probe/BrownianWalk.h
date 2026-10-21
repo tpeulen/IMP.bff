@@ -40,7 +40,13 @@ IMPBFF_BEGIN_NAMESPACE
     frames would bias it away from the boundary.
 
     The starting voxel is drawn uniformly from the grid and retried up to 1000
-    times until it lands inside the accessible region.
+    times until it lands inside the accessible region -- unless a
+    \p weight_map is given, in which case it is drawn in proportion to that
+    field over the accessible region instead. The weight is the field the PDE
+    path spells `weight_map` (#GridDiffusionSolver's equilibrium weight, for
+    the sticky ensemble `w = prod_t s_t^(-n_t)`); an absent or wrongly sized
+    one -- the rule every optional grid in the walk core obeys -- is the
+    uniform start, unchanged.
 
     \param[in] occupancy,n_occupancy flat ng^3; nonzero marks accessible.
                Taken as a raw buffer so numpy's array is handed straight through
@@ -57,6 +63,10 @@ IMPBFF_BEGIN_NAMESPACE
     \param[in] diffusion_coefficient \f$D\f$, A^2/ns
     \param[in] seed reproducible when non-negative; drawn from the system
                otherwise
+    \param[in] weight_map,n_weight_map flat ng^3 start weight, or length 0 for
+               the uniform start. Values must be finite and non-negative on the
+               accessible voxels; a total of zero is an empty volume -- no
+               start, and the walk reports that the way it reports one.
     \param[out] counts two entries, accepted and rejected
     \param[out] out_view,n_out_view **four** values per step: x, y, z in
                 Angstrom **relative to the grid anchor** (add the attachment
@@ -85,6 +95,7 @@ IMPBFFEXPORT void brownian_walk_in_volume(
         double* mobility, int n_mobility,
         int ng, double dg, double t_max, double t_step,
         double diffusion_coefficient, int seed,
+        double* weight_map, int n_weight_map,
         std::vector<int>& counts,
         double** out_view, int* n_out_view);
 

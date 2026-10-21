@@ -430,6 +430,98 @@ class ProbeDiffusionTests(IMP.test.TestCase):
         spread = lambda w: float(np.linalg.norm(self._xyz(w).std(axis=0)))
         self.assertGreater(spread(fast), spread(slow))
 
+    # ------------------------------------------------------------------
+    # the start weight: what the PDE path spells `weight_map`, and what a
+    # caller such as ChiSurf's QuEst ensemble hands the walk so the walkers
+    # start from its equilibrium weight w = 1/m instead of uniformly.
+    # ------------------------------------------------------------------
+
+    def test_omitting_the_start_weight_is_bit_compatible(self):
+        """No argument, an empty map and None are the same walk, bit for bit."""
+        plain = self.run_walk()
+        for absent in ([], None):
+            self.assertTrue(
+                np.array_equal(self._xyz(plain), self._xyz(self.run_walk(weight_map=absent))),
+                msg=f"weight_map={absent!r} perturbed the default walk")
+
+    def test_a_mismatched_start_weight_map_is_rejected(self):
+        """A weight field of the wrong shape is a bug, and this function says
+        so -- the same rule its slow_fact field already follows. (The raw
+        walk core inside, where the length rides separately, keeps mobility's
+        quieter rule: wrong size, not used.)"""
+        with self.assertRaises(ValueError):
+            self.run_walk(weight_map=[1.0, 2.0])
+
+    def test_a_concentrated_start_weight_moves_the_ensemble(self):
+        """All weight on one voxel: every walk starts there, whatever the seed."""
+        ng = self.density.shape[0]
+        weight = np.zeros(self.density.shape, dtype=np.float64)
+        weight[ng // 2, ng // 2, ng // 2] = 1.0
+        # the centre voxel in Angstrom, as BrownianWalk.cpp packs it:
+        # (index - (ng - 1)//2) * dg, the offset integral like grid_center_index
+        centre = np.full(3, (ng // 2 - (ng - 1) // 2) * self.dg)
+        for seed in range(4):
+            walk = self.run_walk(weight_map=weight, t_max=2.0, random_seed=seed)
+            np.testing.assert_array_equal(self._xyz(walk)[0], centre)
+        # and the default ensemble, whose starts spread over the volume,
+        # does not do that
+        default_first = self._xyz(self.run_walk(t_max=2.0, random_seed=0))[0]
+        self.assertFalse(np.allclose(default_first, centre))
+
+    def test_the_start_weight_never_starts_outside_the_volume(self):
+        """A weight everywhere still starts on an occupied voxel."""
+        weight = np.ones(self.density.shape, dtype=np.float64)
+        for seed in range(4):
+            walk = self.run_walk(weight_map=weight, t_max=2.0, random_seed=seed)
+            start = self._xyz(walk)[0]
+            idx = np.floor(start / self.dg).astype(int) + _q.grid_center_index(self.density.shape[0])
+            self.assertTrue(np.all((idx >= 0) & (idx < self.density.shape[0])))
+            self.assertGreater(
+                self.density[idx[0], idx[1], idx[2]], 0,
+                msg=f"seed {seed} started on an inaccessible voxel")
+
+    def test_a_start_weight_matching_the_default_start_law_reproduces_it(self):
+        """w = 1/m with a unit mobility field *is* the uniform start.
+
+        The walk draws its default start uniformly over the accessible voxels
+        (BrownianWalk.h), and its long-run law under a mobility field is the
+        one QuEst spells w = 1/m. With m = 1 everywhere the two coincide, so
+        the weighted start must land where the default start lands: same law,
+        voxel histogram over many seeds, not the same generator stream.
+        """
+        n_seeds, t_max = 300, 0.002   # int(t_max/t_step) == 1 step: the start
+        starts_default, starts_weighted = [], []
+        weight = np.ones(self.density.shape, dtype=np.float64)
+        for s in range(n_seeds):
+            starts_default.append(self._xyz(self.run_walk(t_max=t_max, random_seed=s))[0])
+            starts_weighted.append(
+                self._xyz(self.run_walk(weight_map=weight, t_max=t_max, random_seed=s))[0])
+        starts_default = np.array(starts_default)
+        starts_weighted = np.array(starts_weighted)
+        # both spread (a degenerate weight would collapse onto one voxel)
+        for starts in (starts_default, starts_weighted):
+            self.assertGreater(len(np.unique(np.floor(starts / self.dg).astype(int), axis=0)), 30)
+        # and the two start laws agree on the mean radius from the anchor.
+        # 1.0 A is several standard errors of a 300-draw two-sample
+        # comparison on this volume, and still far inside any real shift.
+        radii = [np.linalg.norm(s, axis=1).mean()
+                 for s in (starts_default, starts_weighted)]
+        self.assertAlmostEqual(radii[0], radii[1], delta=1.0,
+                               msg=f"start laws disagree: {radii[0]:.3f} vs {radii[1]:.3f} A")
+
+    def test_a_zero_total_start_weight_starts_nowhere(self):
+        """No weight anywhere is no start, like an empty volume."""
+        weight = np.zeros(self.density.shape, dtype=np.float64)
+        walk = self.run_walk(weight_map=weight, t_max=2.0)
+        self.assertEqual(walk.n_accepted, 0)
+
+    def test_a_negative_start_weight_is_rejected(self):
+        """The PDE path's rule for a weight field: negative is a mistake."""
+        weight = np.ones(self.density.shape, dtype=np.float64)
+        weight[20, 20, 20] = -1.0   # the centre voxel, inside the sphere
+        with self.assertRaises(ValueError):
+            self.run_walk(weight_map=weight, t_max=2.0)
+
 
 class FretRateTraceTests(IMP.test.TestCase):
 

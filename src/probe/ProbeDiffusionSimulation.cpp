@@ -94,7 +94,9 @@ int ProbeDiffusionSimulation::simulate(double D, double slow_fact, double t_step
                 static_cast<int>(density_.size()),
                 mobility.empty() ? nullptr : mobility.data(),
                 static_cast<int>(mobility.size()),
-                ng_, dg_, t_max, t_step, D, seeds[i], counts[i], &buf, &n);
+                ng_, dg_, t_max, t_step, D, seeds[i],
+                nullptr, 0,
+                counts[i], &buf, &n);
         if (buf != nullptr) {
             parts[i].assign(buf, buf + n);
             std::free(buf);
