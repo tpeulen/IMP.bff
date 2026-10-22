@@ -17,7 +17,7 @@
 #define IMPBFF_INTERNAL_RANDOMWALK_H
 
 #include <IMP/bff/bff_config.h>
-#include <IMP/exception.h>
+#include <IMP/bff/util/IMPCompatibility.h>
 
 #include <cmath>
 #include <random>

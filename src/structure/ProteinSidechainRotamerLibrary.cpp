@@ -538,7 +538,8 @@ QuencherRotamerEnsemble build(const std::vector<Residue>& rs, std::size_t r,
         return c / static_cast<double>(centre_atoms.size());
     };
     const algebra::Vector3D crystal = centroid(xyz);
-    out.crystal.assign(crystal.begin(), crystal.end());
+    // VectorD has no begin()/end() -- write the three coordinates by index
+    out.crystal.assign({crystal[0], crystal[1], crystal[2]});
 
     const std::vector<Chi> chis = chis_of(res.name);
     const char letter = one_letter(res.name);
@@ -575,7 +576,7 @@ QuencherRotamerEnsemble build(const std::vector<Residue>& rs, std::size_t r,
             }
             if (!(closest > clash)) continue;
             const algebra::Vector3D c = centroid(built);
-            out.centres.insert(out.centres.end(), c.begin(), c.end());
+            out.centres.insert(out.centres.end(), {c[0], c[1], c[2]});
             out.probabilities.push_back(rot.probability[q]);
             total += rot.probability[q];
         }
