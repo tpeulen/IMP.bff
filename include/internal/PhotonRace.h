@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <random>
 #include <vector>
+#include <IMP/bff/internal/PortableRandom.h>
 
 IMPBFF_BEGIN_INTERNAL_NAMESPACE
 
@@ -44,7 +45,7 @@ inline double race_one_photon(const std::vector<Rate>& k_quench, double t_step,
     if (n_frames == 0) return 0.0;
 
     std::mt19937_64 rng = photon_stream(seed, index);
-    std::uniform_real_distribution<double> uni(0.0, 1.0);
+    IMP::bff::internal::portable::uniform_real_distribution<double> uni(0.0, 1.0);
     const long long shift = n_frames > 1
             ? static_cast<long long>(uni(rng) * static_cast<double>(n_frames))
             : 0;

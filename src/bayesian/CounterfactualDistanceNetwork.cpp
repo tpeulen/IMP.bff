@@ -10,6 +10,7 @@
 
 #include <IMP/bff/bayesian/CounterfactualDistanceNetwork.h>
 #include <IMP/bff/util/IMPCompatibility.h>
+#include <IMP/bff/internal/PortableRandom.h>
 
 #include <Eigen/Dense>
 
@@ -305,7 +306,7 @@ std::vector<int> CounterfactualDistanceNetwork::get_counterfactual_replay() cons
 std::vector<int> CounterfactualDistanceNetwork::get_fresh_noise_replay(unsigned int seed) const {
   check_ready("get_fresh_noise_replay");
   std::mt19937_64 rng(seed);
-  std::normal_distribution<double> z(0.0, 1.0);
+  IMP::bff::internal::portable::normal_distribution<double> z(0.0, 1.0);
   std::vector<int> out(static_cast<std::size_t>(n_candidates_));
   std::vector<double> yv(static_cast<std::size_t>(n_pairs_));
   for (int f = 0; f < n_candidates_; ++f) {

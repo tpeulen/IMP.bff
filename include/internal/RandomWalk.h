@@ -22,6 +22,7 @@
 #include <cmath>
 #include <random>
 #include <vector>
+#include <IMP/bff/internal/PortableRandom.h>
 
 IMPBFF_BEGIN_INTERNAL_NAMESPACE
 
@@ -55,8 +56,8 @@ inline bool run_walk(const int* occupancy, std::size_t n_occupancy,
                                   : std::random_device{}());
     // Per Cartesian component: 2 D dt. See BrownianWalk.h on why not 6 D dt.
     const double sigma = std::sqrt(2.0 * diffusion_coefficient * t_step) / dg;
-    std::normal_distribution<double> gauss(0.0, sigma);
-    std::uniform_int_distribution<int> pick(0, ng - 1);
+    IMP::bff::internal::portable::normal_distribution<double> gauss(0.0, sigma);
+    IMP::bff::internal::portable::uniform_int_distribution<int> pick(0, ng - 1);
 
     const std::size_t n = static_cast<std::size_t>(ng);
     const std::size_t n_vox = n * n * n;
@@ -91,7 +92,7 @@ inline bool run_walk(const int* occupancy, std::size_t n_occupancy,
             total += w;
         }
         if (total > 0.0) {
-            std::uniform_real_distribution<double> in_cdf(0.0, total);
+            IMP::bff::internal::portable::uniform_real_distribution<double> in_cdf(0.0, total);
             const double u = in_cdf(rng);
             double accumulated = 0.0;
             for (std::size_t k = 0; k < n_vox; ++k) {

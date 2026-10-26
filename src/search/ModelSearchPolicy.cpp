@@ -9,6 +9,7 @@
 #include <IMP/bff/search/ModelSearch.h>
 #include <IMP/bff/bff_config.h>
 #include <IMP/bff/internal/AdamUpdate.h>
+#include <IMP/bff/internal/PortableRandom.h>
 
 #include <IMP/bff/internal/MlpCore.h>
 #include <IMP/bff/internal/NetworkDocument.h>
@@ -268,7 +269,7 @@ ModelSearchPolicyTraining train_action_policy(const ModelSearchPolicyData& data,
   std::mt19937 rng(seed);
   std::vector<int> order(static_cast<std::size_t>(n));
   for (int i = 0; i < n; ++i) order[static_cast<std::size_t>(i)] = i;
-  std::shuffle(order.begin(), order.end(), rng);
+  IMP::bff::internal::portable::shuffle(order.begin(), order.end(), rng);
   // Held-out episodes split in two: one half chooses when to stop, the other
   // is only ever scored, so the reported accuracy is not the one optimised.
   const int n_held = static_cast<int>(validation_fraction * n);
@@ -294,7 +295,7 @@ ModelSearchPolicyTraining train_action_policy(const ModelSearchPolicyData& data,
     layer.activation = l + 1 == widths.size() ? internal::Activation::Identity
                                                 : internal::Activation::Tanh;
     const double limit = std::sqrt(6.0 / (layer.n_in + layer.n_out));
-    std::uniform_real_distribution<double> init(-limit, limit);
+    IMP::bff::internal::portable::uniform_real_distribution<double> init(-limit, limit);
     layer.weight.resize(static_cast<std::size_t>(layer.n_in) * layer.n_out);
     for (double& value : layer.weight) value = init(rng);
     // The output starts at zero, so an untrained policy is the declared priors.

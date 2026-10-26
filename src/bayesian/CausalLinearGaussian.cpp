@@ -16,6 +16,7 @@
 
 #include <IMP/bff/bayesian/CausalLinearGaussian.h>
 #include <IMP/bff/util/IMPCompatibility.h>
+#include <IMP/bff/internal/PortableRandom.h>
 
 #include <Eigen/Dense>
 
@@ -309,7 +310,7 @@ std::vector<double> CausalLinearGaussian::get_samples(unsigned int n_samples, un
   const std::size_t n = names_.size();
   const AffineWorld w = make_world(n, parents_, indices_of(do_names, index_, "intervention"), do_values);
   std::mt19937_64 rng(seed);
-  std::normal_distribution<double> z(0.0, 1.0);
+  IMP::bff::internal::portable::normal_distribution<double> z(0.0, 1.0);
   std::vector<double> out(static_cast<std::size_t>(n_samples) * n);
   Eigen::VectorXd u(static_cast<Eigen::Index>(n));
   for (unsigned int s = 0; s < n_samples; ++s) {

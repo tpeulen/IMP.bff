@@ -40,6 +40,7 @@
 #include <random>
 #include <string>
 #include <vector>
+#include <IMP/bff/internal/PortableRandom.h>
 
 IMPBFF_BEGIN_NAMESPACE
 
@@ -119,7 +120,7 @@ class NutsKernel : public SamplerKernel {
     int n_leapfrog = 0, depth = 0;
     double sum_metro_prob = 0.0;
     divergent_ = false;
-    std::uniform_real_distribution<double> U(0.0, 1.0);
+    IMP::bff::internal::portable::uniform_real_distribution<double> U(0.0, 1.0);
     const double step = eps_;
     while (depth < opt_.max_depth) {
       std::vector<double> rho_fwd(n_, 0.0), rho_bck(n_, 0.0);
@@ -284,7 +285,7 @@ class NutsKernel : public SamplerKernel {
   }
   //! p ~ N(0, S^-1): p = L^-T u, S = L L'
   void sample_momentum(std::vector<double>& p, std::mt19937_64& rng) const {
-    std::normal_distribution<double> N(0.0, 1.0);
+    IMP::bff::internal::portable::normal_distribution<double> N(0.0, 1.0);
     std::vector<double> u(n_);
     for (double& v : u) v = N(rng);
     for (std::size_t ii = n_; ii-- > 0;) {
@@ -334,7 +335,7 @@ class NutsKernel : public SamplerKernel {
       return false;
     const double log_sum_weight_subtree = log_sum_exp(log_sum_weight_init, log_sum_weight_final);
     log_sum_weight = log_sum_exp(log_sum_weight, log_sum_weight_subtree);
-    std::uniform_real_distribution<double> U(0.0, 1.0);
+    IMP::bff::internal::portable::uniform_real_distribution<double> U(0.0, 1.0);
     if (log_sum_weight_final > log_sum_weight_subtree) {
       z_propose = z_propose_final;
     } else {

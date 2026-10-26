@@ -6,6 +6,7 @@
  */
 
 #include <IMP/bff/probe/NPS.h>
+#include <IMP/bff/internal/PortableRandom.h>
 
 #include <IMP/bff/bayesian/Distributions.h>
 #include <IMP/bff/fret/FRETOrientationFactor.h>
@@ -775,8 +776,8 @@ std::vector<std::vector<double> > nps_convolved_efficiency_table(
     // once and reused by every slot and every bin. The reference instead
     // re-draws (with rejection from a hardcoded sphere) per bin.
     std::mt19937_64 rng(static_cast<std::uint64_t>(seed));
-    std::uniform_int_distribution<std::size_t> draw1(0, n1 - 1);
-    std::uniform_int_distribution<std::size_t> draw2(0, n2 - 1);
+    IMP::bff::internal::portable::uniform_int_distribution<std::size_t> draw1(0, n1 - 1);
+    IMP::bff::internal::portable::uniform_int_distribution<std::size_t> draw2(0, n2 - 1);
     const std::size_t ns = static_cast<std::size_t>(n_samples);
     std::vector<double> vx(ns), vy(ns), vz(ns), vw(ns);
     for (std::size_t s = 0; s < ns; ++s) {

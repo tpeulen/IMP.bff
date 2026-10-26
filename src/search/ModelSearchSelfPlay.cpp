@@ -7,6 +7,7 @@
 
 #include <IMP/bff/search/ModelSearchSelfPlay.h>
 #include <IMP/bff/internal/AdamUpdate.h>
+#include <IMP/bff/internal/PortableRandom.h>
 
 #include <IMP/bff/graph/GraphNode.h>
 #include <IMP/bff/graph/GraphPort.h>
@@ -39,7 +40,7 @@ bool is_log_scaled(double lower, double upper, double reference);
 void sample_ports(const std::shared_ptr<FittingModelSearchProblem>& problem,
                   double spread, std::mt19937& rng) {
   const std::vector<std::string> ids = problem->get_parameter_ids();
-  std::uniform_real_distribution<double> uniform(-1.0, 1.0);
+  IMP::bff::internal::portable::uniform_real_distribution<double> uniform(-1.0, 1.0);
   for (std::size_t i = 0; i < ids.size(); ++i) {
     const std::shared_ptr<GraphPort> port = problem->get_parameter(ids[i]);
     if (port->get_fixed()) continue;
@@ -58,7 +59,7 @@ void add_matching_noise(FitDataset& dataset, std::vector<double>& values,
   if (!enabled) return;
   if (dataset.get_noise_family() == FIT_NOISE_FAMILY_POISSON) {
     for (std::size_t i = 0; i < values.size(); ++i) {
-      std::poisson_distribution<int> draw(std::max(0.0, values[i]));
+      IMP::bff::internal::portable::poisson_distribution<int> draw(std::max(0.0, values[i]));
       values[i] = static_cast<double>(draw(rng));
     }
     return;
@@ -67,7 +68,7 @@ void add_matching_noise(FitDataset& dataset, std::vector<double>& values,
   int n = 0;
   dataset.variance(values, &view, &n);
   for (int i = 0; i < n; ++i) {
-    std::normal_distribution<double> draw(0.0, std::sqrt(std::max(0.0, view[i])));
+    IMP::bff::internal::portable::normal_distribution<double> draw(0.0, std::sqrt(std::max(0.0, view[i])));
     values[static_cast<std::size_t>(i)] += draw(rng);
   }
   std::free(view);
@@ -248,7 +249,7 @@ void ModelSearchSelfPlay::generate(int episodes, unsigned int seed) {
   impl_->targets.reserve(static_cast<std::size_t>(episodes) * ports.size());
 
   std::mt19937 rng(seed);
-  std::uniform_real_distribution<double> uniform(-1.0, 1.0);
+  IMP::bff::internal::portable::uniform_real_distribution<double> uniform(-1.0, 1.0);
   for (int episode = 0; episode < episodes; ++episode) {
     // Sample around the family's own declared start rather than across the
     // whole bound: an episode has to remain a measurement someone could have
@@ -278,7 +279,7 @@ void ModelSearchSelfPlay::generate(int episodes, unsigned int seed) {
       if (impl_->poisson) {
         for (std::size_t i = 0; i < curve.size(); ++i) {
           const double mean = std::max(0.0, curve[i]);
-          std::poisson_distribution<int> counts(mean);
+          IMP::bff::internal::portable::poisson_distribution<int> counts(mean);
           curve[i] = static_cast<double>(counts(rng));
         }
       }
@@ -315,7 +316,7 @@ MsgpackBytes ModelSearchSelfPlay::train(const std::vector<int>& hidden,
     // outside the parameter's own bounds -- the proposal is admissible by
     // construction rather than by a clamp afterwards.
     const double limit = std::sqrt(6.0 / (layer.n_in + layer.n_out));
-    std::uniform_real_distribution<double> init(-limit, limit);
+    IMP::bff::internal::portable::uniform_real_distribution<double> init(-limit, limit);
     layer.weight.resize(static_cast<std::size_t>(layer.n_in) * layer.n_out);
     for (std::size_t k = 0; k < layer.weight.size(); ++k) layer.weight[k] = init(rng);
     layer.bias.assign(layer.n_out, 0.0);
@@ -494,7 +495,7 @@ ModelSearchPolicyData ModelSearchSelfPlay::generate_policy(int episodes,
   std::mt19937 rng(seed);
   for (int measurement = 0; measurement < episodes; ++measurement) {
     const std::string& generating =
-        keys[std::uniform_int_distribution<std::size_t>(0, keys.size() - 1)(rng)];
+        keys[IMP::bff::internal::portable::uniform_int_distribution<std::size_t>(0, keys.size() - 1)(rng)];
     const unsigned int simulation_seed = rng();
     try {
       const std::shared_ptr<FittingModelSearchProblem> fitted =

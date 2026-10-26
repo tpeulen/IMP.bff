@@ -6,6 +6,7 @@
  */
 #include <IMP/bff/search/PhotonExperiment.h>
 #include <IMP/bff/internal/json.h>
+#include <IMP/bff/internal/PortableRandom.h>
 
 #if IMP_BFF_HAS_TTTRLIB
 #include <tttrlib/SimEngine.h>
@@ -102,7 +103,7 @@ std::vector<double> PhotonExperiment::record_pattern(const std::vector<double>& 
     total += pattern[i];
   }
   std::mt19937 rng(seed);
-  std::poisson_distribution<long long> draw(total);
+  IMP::bff::internal::portable::poisson_distribution<long long> draw(total);
   const long long photons = total > 0.0 ? draw(rng) : 0;
   if (photons == 0) return std::vector<double>(expected.size(), 0.0);
   const int bins = static_cast<int>(expected.size());

@@ -15,6 +15,7 @@
  *
  */
 #include <IMP/bff/bayesian/MCMCSampler.h>
+#include <IMP/bff/internal/PortableRandom.h>
 
 #include <IMP/bff/fit/InferenceFactorGraph.h>
 #include <IMP/bff/bayesian/NutsKernel.h>
@@ -661,7 +662,7 @@ std::vector<std::vector<double> > MCMCSampler::spread_walkers(int n) const {
   }
   std::vector<std::vector<double> > start(
       static_cast<std::size_t>(n), std::vector<double>(ndim_));
-  std::normal_distribution<double> normal(0.0, 1.0);
+  IMP::bff::internal::portable::normal_distribution<double> normal(0.0, 1.0);
   for (int w = 0; w < n; ++w)
     for (unsigned int i = 0; i < ndim_; ++i) {
       double v = initial_values_[i] + spread[i] * normal(rng_);
@@ -742,7 +743,7 @@ void MCMCSampler::initialize_ensemble() {
     const int n = get_number_of_chains();
     walkers.assign(static_cast<std::size_t>(n), std::vector<double>(ndim_, 0.0));
     const double floor_scale = std::max(jitter_, 1e-3);
-    std::normal_distribution<double> normal(0.0, 1.0);
+    IMP::bff::internal::portable::normal_distribution<double> normal(0.0, 1.0);
     for (int c = 0; c < n; ++c)
       for (unsigned int i = 0; i < ndim_; ++i) {
         double scale = std::fabs(initial_values_[i]) * std::max(jitter_, 1e-3) * 10.0;

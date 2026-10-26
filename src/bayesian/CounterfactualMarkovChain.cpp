@@ -10,6 +10,7 @@
 
 #include <IMP/bff/bayesian/CounterfactualMarkovChain.h>
 #include <IMP/bff/util/IMPCompatibility.h>
+#include <IMP/bff/internal/PortableRandom.h>
 
 #include <cmath>
 #include <limits>
@@ -22,7 +23,7 @@ namespace {
 const double kNegInf = -std::numeric_limits<double>::infinity();
 
 double gumbel(std::mt19937_64& rng, double location) {
-  std::uniform_real_distribution<double> u(std::nextafter(0.0, 1.0), 1.0);
+  IMP::bff::internal::portable::uniform_real_distribution<double> u(std::nextafter(0.0, 1.0), 1.0);
   return location - std::log(-std::log(u(rng)));
 }
 

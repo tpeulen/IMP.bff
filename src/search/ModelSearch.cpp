@@ -1,5 +1,6 @@
 /** \file IMP/bff/ModelSearch.cpp */
 #include <IMP/bff/search/ModelSearch.h>
+#include <IMP/bff/internal/PortableRandom.h>
 
 #include <IMP/bff/util/SpecialFunctions.h>
 #include <IMP/bff/fit/FitMinimizer.h>
@@ -2399,7 +2400,7 @@ ModelSearchResult ModelSearch::run() {
     }
     if (node == root.get() && actions.size() > 1 &&
         cfg.get_dirichlet_fraction() > 0.0) {
-      std::gamma_distribution<double> gamma(cfg.get_dirichlet_alpha(), 1.0);
+      IMP::bff::internal::portable::gamma_distribution<double> gamma(cfg.get_dirichlet_alpha(), 1.0);
       std::vector<double> noise(actions.size());
       double noise_sum = 0.0;
       for (std::size_t i = 0; i < noise.size(); ++i) {

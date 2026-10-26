@@ -11,6 +11,7 @@
  */
 
 #include <IMP/bff/bayesian/SamplerKernels.h>
+#include <IMP/bff/internal/PortableRandom.h>
 
 #include <IMP/bff/internal/json.h>
 #include <IMP/bff/internal/ordered_map.h>
@@ -108,7 +109,7 @@ std::vector<int> sample_without_replacement(const std::vector<int>& population, 
   std::vector<int> pool = population;
   if (k > pool.size()) k = pool.size();
   for (std::size_t i = 0; i < k; ++i) {
-    std::uniform_int_distribution<std::size_t> pick(i, pool.size() - 1);
+    IMP::bff::internal::portable::uniform_int_distribution<std::size_t> pick(i, pool.size() - 1);
     const std::size_t j = pick(rng);
     std::swap(pool[i], pool[j]);
   }
@@ -267,8 +268,8 @@ void StretchKernel::transition(std::mt19937_64& rng) {
   const int half = n / 2;
   std::vector<int> order(static_cast<std::size_t>(n));
   for (int i = 0; i < n; ++i) order[static_cast<std::size_t>(i)] = i;
-  std::shuffle(order.begin(), order.end(), rng);
-  std::uniform_real_distribution<double> uniform(0.0, 1.0);
+  IMP::bff::internal::portable::shuffle(order.begin(), order.end(), rng);
+  IMP::bff::internal::portable::uniform_real_distribution<double> uniform(0.0, 1.0);
   std::vector<double> q(ndim_), blobs;
   last_accepted_.assign(walkers_.size(), 0.0);
   for (int pass = 0; pass < 2; ++pass) {
@@ -276,7 +277,7 @@ void StretchKernel::transition(std::mt19937_64& rng) {
       const int a = pass == 0 ? order[static_cast<std::size_t>(s)] : order[static_cast<std::size_t>(half + s)];
       const int comp_offset = pass == 0 ? half : 0;
       const int comp_size = pass == 0 ? n - half : half;
-      std::uniform_int_distribution<int> comp_pick(0, comp_size - 1);
+      IMP::bff::internal::portable::uniform_int_distribution<int> comp_pick(0, comp_size - 1);
       const int p = order[static_cast<std::size_t>(comp_offset + comp_pick(rng))];
       // z ~ g(z) propto 1/sqrt(z) on [1/a, a], by inverting its CDF
       const double u = uniform(rng);
@@ -340,7 +341,7 @@ void EnsembleSliceKernel::stats(std::vector<double>& out) const {
 std::vector<double> EnsembleSliceKernel::slice_along(const std::vector<double>& x, const std::vector<double>& direction,
                                                      double log_p_x, int* expansions, int* contractions, bool* truncated,
                                                      std::mt19937_64& rng) {
-  std::uniform_real_distribution<double> uniform(0.0, 1.0);
+  IMP::bff::internal::portable::uniform_real_distribution<double> uniform(0.0, 1.0);
   std::vector<double> scratch;
   // The slice height, in log space: y = log p(x) + log u, u ~ U(0, 1).
   const double threshold = log_p_x + std::log(uniform(rng));
@@ -401,7 +402,7 @@ void EnsembleSliceKernel::transition(std::mt19937_64& rng) {
   const int half = n / 2;
   std::vector<int> order(static_cast<std::size_t>(n));
   for (int i = 0; i < n; ++i) order[static_cast<std::size_t>(i)] = i;
-  std::shuffle(order.begin(), order.end(), rng);
+  IMP::bff::internal::portable::shuffle(order.begin(), order.end(), rng);
   long expansions = 0, contractions = 0, truncated_now = 0;
   std::vector<double> direction(ndim_);
   for (int pass = 0; pass < 2; ++pass) {
@@ -415,7 +416,7 @@ void EnsembleSliceKernel::transition(std::mt19937_64& rng) {
       // Measured on the correlated Gaussian the (partner - self) version samples 20% narrow with no
       // truncation and no other symptom.
       if (comp_size < 2) continue;
-      std::uniform_int_distribution<int> comp_pick(0, comp_size - 1);
+      IMP::bff::internal::portable::uniform_int_distribution<int> comp_pick(0, comp_size - 1);
       const int i1 = comp_pick(rng);
       int i2 = comp_pick(rng);
       while (i2 == i1) i2 = comp_pick(rng);
@@ -493,9 +494,9 @@ void DifferentialEvolutionKernel::transition(std::mt19937_64& rng) {
   const int n = static_cast<int>(walkers_.size());
   std::vector<int> order(static_cast<std::size_t>(n));
   for (int i = 0; i < n; ++i) order[static_cast<std::size_t>(i)] = i;
-  std::shuffle(order.begin(), order.end(), rng);
-  std::uniform_real_distribution<double> uniform(0.0, 1.0);
-  std::normal_distribution<double> normal(0.0, 1.0);
+  IMP::bff::internal::portable::shuffle(order.begin(), order.end(), rng);
+  IMP::bff::internal::portable::uniform_real_distribution<double> uniform(0.0, 1.0);
+  IMP::bff::internal::portable::normal_distribution<double> normal(0.0, 1.0);
   std::vector<double> proposal(ndim_, 0.0), direction(ndim_, 0.0), blobs;
   last_accepted_.assign(walkers_.size(), 0.0);
   for (int oi = 0; oi < n; ++oi) {
@@ -707,8 +708,8 @@ void BlockedMetropolisKernel::sweep(bool adapt, std::mt19937_64& rng) {
   std::vector<double> current = walkers_[0];
   double lp = lps_[0];
   std::vector<double> blobs = blobs_[0], trial_blobs;
-  std::uniform_real_distribution<double> uniform(0.0, 1.0);
-  std::normal_distribution<double> normal(0.0, 1.0);
+  IMP::bff::internal::portable::uniform_real_distribution<double> uniform(0.0, 1.0);
+  IMP::bff::internal::portable::normal_distribution<double> normal(0.0, 1.0);
   double accepted_blocks = 0.0;
   for (Block& block : blocks_) {
     const std::size_t k = block.indices.size();

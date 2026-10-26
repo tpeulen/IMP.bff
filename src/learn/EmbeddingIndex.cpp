@@ -6,6 +6,7 @@
  *  Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 #include <IMP/bff/learn/EmbeddingIndex.h>
+#include <IMP/bff/internal/PortableRandom.h>
 
 #include <ptolib/ptolib.h>
 #include <IMP/bff/internal/json.h>
@@ -129,7 +130,7 @@ std::vector<float> kmeans(const std::vector<float>& points, std::size_t n, int d
     std::mt19937 rng(seed);
     std::vector<std::size_t> pick(n);
     for (std::size_t i = 0; i < n; ++i) pick[i] = i;
-    std::shuffle(pick.begin(), pick.end(), rng);
+    IMP::bff::internal::portable::shuffle(pick.begin(), pick.end(), rng);
     for (int k = 0; k < kCentroids; ++k)
         std::copy_n(&points[pick[k % n] * dsub], dsub, &c[std::size_t(k) * dsub]);
     std::vector<int> assign(n);

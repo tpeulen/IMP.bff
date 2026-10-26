@@ -7,6 +7,7 @@
 #include <IMP/bff/spectroscopy/PhotophysicsPhotonSimulation.h>
 #include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/internal/PhotonRace.h>
+#include <IMP/bff/internal/PortableRandom.h>
 
 #include <cmath>
 #include <random>
@@ -107,7 +108,7 @@ std::vector<double> quenched_decay(
         double* row = &partial[static_cast<std::size_t>(block) * n_bins];
         for (int i = lo; i < hi; ++i) {
             std::mt19937_64 rng = internal::photon_stream(seed, i);
-            std::uniform_real_distribution<double> uni(0.0, 1.0);
+            IMP::bff::internal::portable::uniform_real_distribution<double> uni(0.0, 1.0);
             const long long span = n_frames > 1 ? n_frames / 2 : 1;
             const long long shift = span > 0
                     ? static_cast<long long>(uni(rng) * static_cast<double>(span))

@@ -20,6 +20,7 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <thread>
+#include <IMP/bff/internal/PortableRandom.h>
 
 IMPBFF_BEGIN_NAMESPACE
 
@@ -391,7 +392,7 @@ int sample_weighted_index(const std::vector<double>& weights, int seed) {
     if (weights.empty()) return 0;
     std::mt19937 engine(seed < 0 ? std::random_device()() 
                                  : static_cast<unsigned int>(seed));
-    std::discrete_distribution<int> draw(weights.begin(), weights.end());
+    IMP::bff::internal::portable::discrete_distribution<int> draw(weights.begin(), weights.end());
     return draw(engine);
 }
 

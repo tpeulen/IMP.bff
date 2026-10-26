@@ -8,6 +8,7 @@
 #include <IMP/bff/spectroscopy/PhotophysicsCrosstalkMatrix.h>
 #include <IMP/bff/internal/CrosstalkMixing.h>
 #include <IMP/bff/internal/DampedNewton.h>
+#include <IMP/bff/internal/PortableRandom.h>
 
 #include <algorithm>
 #include <cmath>
@@ -482,7 +483,7 @@ void crosstalk_shuffle_unmix(const std::vector<double>& matrix, int n_sources,
         const double denom = 1.0 - cumulative;
         double cond = denom > 1e-12 ? w(k, item) / denom : 0.0;
         cond = std::min(1.0, std::max(0.0, cond));
-        std::binomial_distribution<long long> draw(remaining, cond);
+        IMP::bff::internal::portable::binomial_distribution<long long> draw(remaining, cond);
         const long long assigned = draw(generator);
         out(k, item) += static_cast<double>(assigned);
         remaining -= assigned;

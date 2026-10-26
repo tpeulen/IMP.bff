@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <vector>
+#include <IMP/bff/internal/PortableRandom.h>
 
 IMPBFF_BEGIN_NAMESPACE
 
@@ -159,7 +160,7 @@ inline PoissonGoodnessOfFit poisson_goodness_of_fit(const std::vector<double>& y
       yd.clear(); md.clear();
       for (std::size_t i : sel[k]) {
         const double mu = std::max(m[k * n + i], 1e-12);
-        yd.push_back(double(std::poisson_distribution<long long>(mu)(rng)));
+        yd.push_back(double(IMP::bff::internal::portable::poisson_distribution<long long>(mu)(rng)));
         md.push_back(mu);
       }
       const double dk = poisson_deviance(yd.data(), md.data(), yd.size());

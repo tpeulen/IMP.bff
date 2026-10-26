@@ -5,6 +5,7 @@
  * Copyright 2007-2026 IMP Inventors. All rights reserved.
  */
 #include <IMP/bff/imp/Docking.h>
+#include <IMP/bff/internal/PortableRandom.h>
 // olga_vdw_particle_radius
 #include <IMP/bff/imp/IMPHierarchyBridge.h>
 
@@ -2045,7 +2046,7 @@ std::vector<double> sample_distance_perturbations(double error_neg,
     out.reserve(static_cast<std::size_t>(n));
 
     std::mt19937 rng(seed);
-    std::normal_distribution<double> normal(0.0, 1.0);
+    IMP::bff::internal::portable::normal_distribution<double> normal(0.0, 1.0);
     if (model == FPS_SIGN_SPLIT_NORMAL) {
         // `ErrorEstimation.cs:56-57`: one standard normal draw, scaled by the
         // error bar the *sign of the draw* selects. Each side therefore gets
@@ -2062,7 +2063,7 @@ std::vector<double> sample_distance_perturbations(double error_neg,
     // exactly the proportion that compensates its lower peak.
     const double total = s_minus + s_plus;
     const double p_up = total > 0.0 ? s_plus / total : 0.5;
-    std::uniform_real_distribution<double> uniform(0.0, 1.0);
+    IMP::bff::internal::portable::uniform_real_distribution<double> uniform(0.0, 1.0);
     for (int i = 0; i < n; ++i) {
         const double half = std::fabs(normal(rng));
         out.push_back(uniform(rng) < p_up ? half * s_plus : -half * s_minus);

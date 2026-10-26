@@ -18,6 +18,7 @@
 #include <IMP/bff/spectroscopy/States.h>
 #include <IMP/bff/internal/OutputView.h>
 #include <IMP/bff/util/IMPCompatibility.h>
+#include <IMP/bff/internal/PortableRandom.h>
 
 #include <cmath>
 #include <limits>
@@ -88,8 +89,8 @@ void sample_pairs(const std::vector<double>& p1, const std::vector<double>& p2,
     const std::size_t n2 = p2.size() / 4;
     if (n_samples <= 0 || n1 == 0 || n2 == 0) return;
     std::mt19937_64 rng(static_cast<std::uint64_t>(seed));
-    std::uniform_int_distribution<std::size_t> d1(0, n1 - 1);
-    std::uniform_int_distribution<std::size_t> d2(0, n2 - 1);
+    IMP::bff::internal::portable::uniform_int_distribution<std::size_t> d1(0, n1 - 1);
+    IMP::bff::internal::portable::uniform_int_distribution<std::size_t> d2(0, n2 - 1);
     for (int i = 0; i < n_samples; ++i) {
         const std::size_t i1 = d1(rng);
         const std::size_t i2 = d2(rng);
@@ -407,7 +408,7 @@ void sample_separation_vectors(const std::vector<double>& p1,
     dvec.reserve(static_cast<std::size_t>(n_samples) * 3);
     weight.reserve(static_cast<std::size_t>(n_samples));
     std::mt19937_64 rng(static_cast<std::uint64_t>(seed));
-    std::uniform_int_distribution<std::size_t> d1(0, n1 - 1), d2(0, n2 - 1);
+    IMP::bff::internal::portable::uniform_int_distribution<std::size_t> d1(0, n1 - 1), d2(0, n2 - 1);
     for (int i = 0; i < n_samples; ++i) {
         const std::size_t a = d1(rng), b = d2(rng);
         dvec.push_back(p1[4 * a + 0] - p2[4 * b + 0]);
