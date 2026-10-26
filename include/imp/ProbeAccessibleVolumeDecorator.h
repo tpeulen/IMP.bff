@@ -1067,73 +1067,8 @@ IMPBFFEXPORT ProbeAccessibleVolume resample_av(
         int search_stencil = 0,
         double radius_scale = IMP::bff::AV_DEFAULT_RADIUS_SCALE);
 
-//! An accessible volume from a structure and an fps position definition.
-/*!
-    The **structure** front door. It applies the FPS strip before measuring
-    anything: fps.json positions are calibrated for a structure whose attachment
-    residue does not wall in its own dye. A declared `strip_mask` outside the
-    fps dialect raises here — loudly, because the alternative is computing
-    against obstacles the document said to remove.
-
-    Source clearance scales with the linker: the path search inflates obstacles
-    by half the linker width, so the free sphere has to clear that inflation
-    plus a grid step of slack or the source tile is walled in and the volume
-    comes back empty. A position that declares `allowed_sphere_radius` keeps its
-    own value — honoured exactly, never escalated: an empty volume at the
-    declared parameters is the answer, not a signal to retry at invented ones.
-
-    \param[in] pdb_path the structure
-    \param[in] chain,resseq,atom_name the attachment site
-    \param[in] linker_length,linker_width,r1,r2,r3,disc_step the AV parameters
-    \param[in] strip_mask an fps `strip_mask`; empty means the default strip
-    \param[in] allowed_sphere_radius the allowed sphere, A, on by default
-               (#IMP::bff::AV_DEFAULT_ALLOWED_SPHERE); negative derives it from
-               the linker width
-    \param[in] contact_volume_thickness,contact_volume_trapped_fraction the ACV
-               split, when one is wanted; see
-               #IMP::bff::PathMap::apply_contact_weighting for the rule. **This
-               door's uniform-weight convention is suspended when one is
-               asked for** -- an accessible contact volume *is* the weighting,
-               and flattening it would return a volume that ignored the
-               request.
-    \param[in] radius_scale the factor on IMP's radii as the obstacle set
-               (#IMP::bff::AV_DEFAULT_RADIUS_SCALE, fitted to FPS); the
-               position field `radius_scale` at the fps.json door
-    \throw ValueException when the attachment site is not in the structure
-*/
-IMPBFFEXPORT ProbeAccessibleVolume get_av_from_structure(
-        const std::string& pdb_path, const std::string& chain, int resseq,
-        const std::string& atom_name, double linker_length, double linker_width,
-        double r1, double r2, double r3,
-        double disc_step = IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION,
-        const std::string& strip_mask = "",
-        double allowed_sphere_radius = IMP::bff::AV_DEFAULT_ALLOWED_SPHERE,
-        double contact_volume_thickness = 0.0,
-        double contact_volume_trapped_fraction = -1.0,
-        double radius_scale = IMP::bff::AV_DEFAULT_RADIUS_SCALE);
-
-//! The same front door, from an fps.json `Positions` entry.
-/*!
-    A position is data, so this takes it as data (a nlohmann JSON value), not
-    as separate keywords. The entry's fields -- chain_identifier,
-    residue_seq_number, atom_name, linker_length, linker_width, radius1..
-    radius3, strip_mask, allowed_sphere_radius, contact_volume_*, and
-    simulation_grid_resolution -- are read the way the fps dictionary states
-    them, and a declared `simulation_grid_resolution` that disagrees with
-    \p disc_step raises: that field is *written into* the particle from
-    \p disc_step, so a caller who declares it and omits the step would silently
-    build at the default grid (#IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION).
-
-    \param[in] position_json one entry of an fps.json `Positions` section,
-               serialised as JSON text
-    \param[in] disc_step the voxel spacing, A; `<= 0` derives it from the entry's
-               `simulation_grid_resolution` and then refuses a declared one that
-               disagrees
-    \throw ValueException on a disagreeing resolution or a missing attachment site
-*/
-IMPBFFEXPORT ProbeAccessibleVolume get_av_from_structure(
-        const std::string& pdb_path, const std::string& position_json,
-        double disc_step = -1.0);
+// get_av_from_structure (both doors, the typed call and the fps.json entry) is core:
+// ProbeAccessibleVolumeBuilder.h, one implementation for the standalone and the IMP build.
 
 //! Every position of an fps.json `Positions` section, keyed by name.
 /*!

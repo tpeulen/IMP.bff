@@ -1252,19 +1252,6 @@ void ProbeAccessibleVolumeDecorator::resample_lattice_finish(){
     }
 }
 
-namespace {
-//! A position's dye radii, the absent ones from its model's defaults.
-/*! An AV3 position that leaves its radii out gets FPS's three (5, 4.5, 1.5),
-    not the AV1 radius and two zeros: zero is this library's "unused" sentinel,
-    so an AV3 read with AV1 defaults would silently become an AV1. */
-algebra::Vector3D position_radii(const nlohmann::json& j) {
-    const bool av3 = j.value("simulation_type", std::string("AV1")) == "AV3";
-    return algebra::Vector3D(
-            j.value("radius1", av3 ? AV_DEFAULT_AV3_RADIUS1 : AV_DEFAULT_RADIUS1),
-            j.value("radius2", av3 ? AV_DEFAULT_AV3_RADIUS2 : 0.0),
-            j.value("radius3", av3 ? AV_DEFAULT_AV3_RADIUS3 : 0.0));
-}
-}  // namespace
 
 void ProbeAccessibleVolumeDecorator::set_av_parameter(const std::string &json_text){
     const nlohmann::json j = nlohmann::json::parse(json_text);
@@ -1285,7 +1272,7 @@ void ProbeAccessibleVolumeDecorator::set_av_parameter(const std::string &json_te
     // (ProbeAccessibleVolumeDefaults.h), the same at every door; this one
     // used to read radius1 3.0 where the others read 3.5.
     set_linker_length(j.value("linker_length", AV_DEFAULT_LINKER_LENGTH));
-    const algebra::Vector3D r = position_radii(j);
+    const algebra::Vector3D r = av_position_radii(json_text);
     set_radius1(r[0]);
     set_radius2(r[1]);
     set_radius3(r[2]);
@@ -1975,130 +1962,7 @@ ProbeAccessibleVolume resample_av(IMP::Model* model, IMP::Particle* source_parti
                             attachment);
 }
 
-ProbeAccessibleVolume get_av_from_structure(
-        const std::string& pdb_path, const std::string& chain, int resseq,
-        const std::string& atom_name, double linker_length, double linker_width,
-        double r1, double r2, double r3, double disc_step,
-        const std::string& strip_mask, double allowed_sphere_radius,
-        double contact_volume_thickness,
-        double contact_volume_trapped_fraction, double radius_scale) {
-    const std::string stripped =
-            stripped_pdb_for(pdb_path, chain, resseq, atom_name, strip_mask);
-
-    IMP_NEW(IMP::Model, model, ());
-    IMP::atom::Hierarchy hierarchy = IMP::atom::read_pdb(
-            stripped, model, new IMP::atom::NonWaterPDBSelector());
-
-    IMP::atom::Selection sel(hierarchy);
-    if (!chain.empty()) sel.set_chain_id(chain);
-    sel.set_residue_index(resseq);
-    sel.set_atom_type(IMP::atom::AtomType(atom_name));
-    const IMP::ParticlesTemp particles = sel.get_selected_particles();
-    if (particles.empty()) {
-        IMP_THROW("Attachment site " << chain << ":" << resseq << ":"
-                                     << atom_name << " not found",
-                  ValueException);
-    }
-
-    // Source clearance. The path search inflates obstacles by half the linker
-    // width, so the free sphere around the attachment atom has to clear that
-    // inflation (plus a grid step of slack) or the source tile is walled in and
-    // the volume comes back empty. The strip above already removes the
-    // attachment residue's side chain, which is what lets FPS-calibrated small
-    // clearances (`allowed_sphere_radius: 1`) compute a real cloud.
-    // Passed straight through, the declared default and a negative "derive"
-    // alike: AV resolves it, and the rule lives there alone now. It used to be duplicated here, which is how the two
-    // doors onto one volume came to disagree.
-    const double clearance = allowed_sphere_radius;
-
-    ProbeAccessibleVolume av = resample_av(
-            model, particles[0], linker_length, linker_width, r1, r2, r3,
-            disc_step, clearance, contact_volume_thickness,
-            contact_volume_trapped_fraction, 0, radius_scale);
-
-    // This door's convention: the point weights are forced to one. The array
-    // door keeps whatever IMP reported.
-    //
-    // Except when the weights are the answer. An accessible *contact* volume
-    // is nothing but a weighting -- its cloud is the plain one, voxel for
-    // voxel -- so flattening it here would hand back a volume that had
-    // silently ignored `contact_volume_thickness`, which is the defect this
-    // was fixed for (PRD-121 G9). Same for chain weighting, if this door ever
-    // gains it.
-    const bool weighted = contact_volume_thickness > 0.0 &&
-                          contact_volume_trapped_fraction >= 0.0 &&
-                          contact_volume_trapped_fraction < 1.0;
-    if (!weighted) {
-        double* points = NULL;
-        int n_points = 0;
-        av.get_points(&points, &n_points);
-        std::vector<double> uniform(points, points + n_points);
-        for (int i = 3; i < n_points; i += 4) uniform[i] = 1.0;
-        std::free(points);
-        av.set_points(uniform);
-    }
-    return av;
-}
-
-namespace {
-//! One fps.json `Positions` entry, as the typed call.
-/*! Reads the fields the fps dictionary states for a position. A declared
-    `simulation_grid_resolution` that disagrees with `disc_step` raises: that
-    field is *written into* the particle from `disc_step`, so a caller who
-    declares it and omits the step would silently build at the default grid. */
-ProbeAccessibleVolume av_from_position(const std::string& pdb_path,
-                                  const nlohmann::json& position,
-                                  double disc_step) {
-    const std::string chain = position.value("chain_identifier", "");
-    const int resseq = position.value("residue_seq_number", 0);
-    const std::string atom = position.value("atom_name", "CA");
-    const double linker_length =
-            position.value("linker_length", AV_DEFAULT_LINKER_LENGTH);
-    // was 1.0 here, 0.5 at the decorator door: one default now
-    const double linker_width =
-            position.value("linker_width", AV_DEFAULT_LINKER_WIDTH);
-    const algebra::Vector3D radii = position_radii(position);
-    const double r1 = radii[0], r2 = radii[1], r3 = radii[2];
-    const double declared =
-            position.contains("simulation_grid_resolution")
-                    ? position.at("simulation_grid_resolution").get<double>()
-                    : 0.0;
-    double step = AV_DEFAULT_SIMULATION_GRID_RESOLUTION;
-    if (disc_step > 0.0) {
-        step = disc_step;
-        if (position.contains("simulation_grid_resolution") &&
-            std::abs(declared - step) > 1e-9) {
-            IMP_THROW("simulation_grid_resolution=" << declared
-                              << " in the position disagrees with disc_step="
-                              << step,
-                      ValueException);
-        }
-    } else if (position.contains("simulation_grid_resolution")) {
-        IMP_THROW("the position declares simulation_grid_resolution="
-                          << declared
-                          << " but no disc_step was given, so the AV would be "
-                             "built at the default disc_step",
-                  ValueException);
-    }
-    return get_av_from_structure(
-            pdb_path, chain, resseq, atom, linker_length, linker_width, r1, r2,
-            r3, step, position.value("strip_mask", ""),
-            // absent: FPS's allowed sphere for this position's own width
-            position.contains("allowed_sphere_radius")
-                    ? position.at("allowed_sphere_radius").get<double>()
-                    : av_derived_allowed_sphere_radius(linker_width),
-            position.value("contact_volume_thickness", 0.0),
-            position.value("contact_volume_trapped_fraction", -1.0),
-            position.value("radius_scale", AV_DEFAULT_RADIUS_SCALE));
-}
-}
-
-ProbeAccessibleVolume get_av_from_structure(
-        const std::string& pdb_path, const std::string& position_json,
-        double disc_step) {
-    return av_from_position(pdb_path, nlohmann::json::parse(position_json),
-                            disc_step);
-}
+// get_av_from_structure lives in core (probe/ProbeAccessibleVolumeBuilder.cpp).
 
 std::map<std::string, ProbeAccessibleVolume> get_avs_for_structure(
         const std::string& positions_json, const std::string& pdb_path_or_json,
@@ -2152,7 +2016,7 @@ std::map<std::string, ProbeAccessibleVolume> get_avs_for_structure(
                                          std::vector<double>(), step, name);
         } else {
             std::free(found);
-            ProbeAccessibleVolume av = av_from_position(path, p, step);
+            ProbeAccessibleVolume av = get_av_from_structure(path, p.dump(), step);
             av.set_position_name(name);
             std::map<std::string, std::string> params;
             for (auto it2 = p.begin(); it2 != p.end(); ++it2) {

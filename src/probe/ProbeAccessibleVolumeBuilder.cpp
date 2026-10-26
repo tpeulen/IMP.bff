@@ -110,13 +110,21 @@ std::vector<PDBAtomRecord> parse_pdb(const std::string& path) {
 
     std::vector<PDBAtomRecord> rows;
     std::string line;
+    int model_records = 0;
     while (std::getline(in, line)) {
+        if (line.compare(0, 6, "MODEL ") == 0) {
+            ++model_records;
+            continue;
+        }
         if (line.compare(0, 6, "ATOM  ") != 0 &&
             line.compare(0, 6, "HETATM") != 0) {
             continue;
         }
         if (line.size() < 54) continue;
         PDBAtomRecord row;
+        row.hetatm = line.compare(0, 6, "HETATM") == 0;
+        row.alt_loc = internal::trimmed(line.substr(16, 1));
+        row.model = model_records;
         const std::string res = internal::trimmed(line.substr(22, 4));
         char* end = 0;
         row.resseq = static_cast<int>(std::strtol(res.c_str(), &end, 10));
@@ -605,6 +613,147 @@ ProbeAccessibleVolume get_av_from_pdb(
     std::free(atoms);
     std::free(src);
     return av;
+}
+
+namespace {
+//! What `IMP::atom::read_pdb` with a `NonWaterPDBSelector` keeps of a file:
+//! the first model, alternate location blank or `A`, no water.
+bool read_like_imp_non_water(const PDBAtomRecord& row) {
+    if (row.model > 1) return false;
+    if (!(row.alt_loc.empty() || row.alt_loc == "A")) return false;
+    return row.res_name != "HOH" && row.res_name != "DOD";
+}
+
+//! `IMP::atom::Selection` by atom type: a HETATM atom's type is `HET:<name>`.
+bool names_the_atom(const PDBAtomRecord& row, const std::string& atom_name) {
+    if (!row.hetatm) return row.atom_name == atom_name;
+    const std::string prefix = "HET:";
+    if (atom_name.compare(0, prefix.size(), prefix) != 0) return false;
+    return internal::trimmed(atom_name.substr(prefix.size())) == row.atom_name;
+}
+}  // namespace
+
+IMP::algebra::Vector3D av_position_radii(const std::string& position_json) {
+    const nlohmann::json j = nlohmann::json::parse(position_json);
+    const bool av3 = j.value("simulation_type", std::string("AV1")) == "AV3";
+    return IMP::algebra::Vector3D(
+            j.value("radius1", av3 ? AV_DEFAULT_AV3_RADIUS1 : AV_DEFAULT_RADIUS1),
+            j.value("radius2", av3 ? AV_DEFAULT_AV3_RADIUS2 : 0.0),
+            j.value("radius3", av3 ? AV_DEFAULT_AV3_RADIUS3 : 0.0));
+}
+
+ProbeAccessibleVolume get_av_from_structure(
+        const std::string& pdb_path, const std::string& chain, int resseq,
+        const std::string& atom_name, double linker_length, double linker_width,
+        double r1, double r2, double r3, double disc_step,
+        const std::string& strip_mask, double allowed_sphere_radius,
+        double contact_volume_thickness,
+        double contact_volume_trapped_fraction, double radius_scale) {
+    if (!(radius_scale > 0.0)) {
+        IMP_THROW("get_av_from_structure: radius_scale must be positive, got "
+                          << radius_scale, ValueException);
+    }
+    const std::string stripped =
+            stripped_pdb_for(pdb_path, chain, resseq, atom_name, strip_mask);
+    const std::vector<PDBAtomRecord> rows = read_pdb_records(stripped);
+
+    // The obstacles in file order, each at IMP's radius times the one scale
+    // (#imp_atom_radius is read_pdb's radius); the attachment atom is the first
+    // one the selection names, and it stays an obstacle the raster subtracts.
+    std::vector<IMP::algebra::Vector4D> spheres;
+    spheres.reserve(rows.size());
+    bool found = false;
+    IMP::algebra::Vector3D source(0.0, 0.0, 0.0);
+    double source_radius = 0.0;
+    for (std::size_t i = 0; i < rows.size(); ++i) {
+        const PDBAtomRecord& row = rows[i];
+        if (!read_like_imp_non_water(row)) continue;
+        const double radius = imp_atom_radius(row.res_name, row.atom_name) * radius_scale;
+        // read_pdb keeps a coordinate as a float (IMP's atom_xcoord); the same
+        // rounding here, or a coordinate on a voxel boundary lands differently.
+        const double x = static_cast<float>(row.x), y = static_cast<float>(row.y),
+                     z = static_cast<float>(row.z);
+        spheres.push_back(IMP::algebra::Vector4D(x, y, z, radius));
+        if (!found && row.resseq == resseq && (chain.empty() || row.chain == chain) &&
+            names_the_atom(row, atom_name)) {
+            found = true;
+            source = IMP::algebra::Vector3D(x, y, z);
+            source_radius = radius;
+        }
+    }
+    if (!found) {
+        IMP_THROW("Attachment site " << chain << ":" << resseq << ":" << atom_name
+                                     << " not found",
+                  ValueException);
+    }
+
+    ProbeAccessibleVolume av = get_av_lattice(
+            spheres, source, source_radius, linker_length, linker_width, r1, r2, r3,
+            disc_step, allowed_sphere_radius, AV_DEFAULT_SEARCH_STENCIL,
+            contact_volume_thickness, contact_volume_trapped_fraction);
+    std::vector<double> attachment(3);
+    attachment[0] = source[0];
+    attachment[1] = source[1];
+    attachment[2] = source[2];
+    av.set_attachment_point(attachment);
+
+    // This door's convention: the point weights are forced to one -- except when
+    // the weights are the answer. An accessible *contact* volume is nothing but a
+    // weighting (its cloud is the plain one, voxel for voxel), so flattening it
+    // would hand back a volume that had silently ignored the thickness.
+    const bool weighted = contact_volume_thickness > 0.0 &&
+                          contact_volume_trapped_fraction >= 0.0 &&
+                          contact_volume_trapped_fraction < 1.0;
+    if (!weighted) {
+        double* points = NULL;
+        int n_points = 0;
+        av.get_points(&points, &n_points);
+        std::vector<double> uniform(points, points + n_points);
+        for (int i = 3; i < n_points; i += 4) uniform[i] = 1.0;
+        std::free(points);
+        av.set_points(uniform);
+    }
+    return av;
+}
+
+ProbeAccessibleVolume get_av_from_structure(
+        const std::string& pdb_path, const std::string& position_json,
+        double disc_step) {
+    const nlohmann::json position = nlohmann::json::parse(position_json);
+    const std::string chain = position.value("chain_identifier", "");
+    const int resseq = position.value("residue_seq_number", 0);
+    const std::string atom = position.value("atom_name", "CA");
+    const double linker_length = position.value("linker_length", AV_DEFAULT_LINKER_LENGTH);
+    const double linker_width = position.value("linker_width", AV_DEFAULT_LINKER_WIDTH);
+    const IMP::algebra::Vector3D radii = av_position_radii(position_json);
+    const double declared = position.contains("simulation_grid_resolution")
+                                    ? position.at("simulation_grid_resolution").get<double>()
+                                    : 0.0;
+    double step = AV_DEFAULT_SIMULATION_GRID_RESOLUTION;
+    if (disc_step > 0.0) {
+        step = disc_step;
+        if (position.contains("simulation_grid_resolution") &&
+            std::abs(declared - step) > 1e-9) {
+            IMP_THROW("simulation_grid_resolution=" << declared
+                              << " in the position disagrees with disc_step=" << step,
+                      ValueException);
+        }
+    } else if (position.contains("simulation_grid_resolution")) {
+        IMP_THROW("the position declares simulation_grid_resolution=" << declared
+                          << " but no disc_step was given, so the AV would be "
+                             "built at the default disc_step",
+                  ValueException);
+    }
+    return get_av_from_structure(
+            pdb_path, chain, resseq, atom, linker_length, linker_width, radii[0],
+            radii[1], radii[2], step, position.value("strip_mask", ""),
+            // absent: FPS's allowed sphere for this position's own width
+            position.contains("allowed_sphere_radius")
+                    ? position.at("allowed_sphere_radius").get<double>()
+                    : av_derived_allowed_sphere_radius(linker_width),
+            position.value("contact_volume_thickness", 0.0),
+            position.value("contact_volume_trapped_fraction", -1.0),
+            position.value("radius_scale", AV_DEFAULT_RADIUS_SCALE));
 }
 
 IMPBFF_END_NAMESPACE

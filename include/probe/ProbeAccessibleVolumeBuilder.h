@@ -93,8 +93,15 @@ struct IMPBFFEXPORT PDBAtomRecord {
     double bfactor;
     //! The element symbol — see #IMP::bff::element_symbol_from_pdb_line.
     std::string element;
+    //! A HETATM record (an ATOM one when false).
+    bool hetatm;
+    //! The alternate-location indicator, column 17; empty when blank.
+    std::string alt_loc;
+    //! How many `MODEL` records precede the atom: 0 or 1 is the first model.
+    int model;
     PDBAtomRecord()
-        : serial(0), resseq(0), x(0), y(0), z(0), vdw_radius(1.70), bfactor(0) {}
+        : serial(0), resseq(0), x(0), y(0), z(0), vdw_radius(1.70), bfactor(0),
+          hetatm(false), model(0) {}
     IMP_SHOWABLE_INLINE(PDBAtomRecord,
                         out << "PDBAtomRecord(" << chain << resseq << ":"
                             << atom_name << ")");
@@ -230,6 +237,66 @@ IMPBFFEXPORT ProbeAccessibleVolume get_av_from_pdb(
         double grid_resolution = IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION,
         double allowed_sphere_radius = IMP::bff::AV_DEFAULT_ALLOWED_SPHERE, int search_stencil = 0,
         double radius_scale = IMP::bff::AV_DEFAULT_RADIUS_SCALE);
+
+//! An accessible volume from a structure as IMP reads it: the **structure** front door.
+/*!
+    The attachment residue is stripped (#IMP::bff::stripped_pdb_for, with
+    \p strip_mask), then the atoms are read the way `IMP::atom::read_pdb`
+    with a `NonWaterPDBSelector` reads them -- the first model only, the
+    alternate location blank or `A`, no `HOH`/`DOD` -- each inflated by IMP's
+    radius (#IMP::bff::imp_atom_radius) times \p radius_scale, and the
+    lattice search (#get_av_lattice) runs from the attachment atom. The point
+    weights are forced to one except for an accessible *contact* volume
+    (\p contact_volume_thickness > 0 and a trapped fraction in [0, 1)), whose
+    weights are the answer.
+
+    One implementation for both builds: the IMP module build used to read the
+    structure into an IMP::Model and resample a decorated particle, which made
+    contact volumes unreachable from the standalone build; that route computes
+    the same volume (`test/test_av_structure_door.py` holds them equal).
+
+    \param[in] disc_step the voxel spacing, A
+    \param[in] allowed_sphere_radius the allowed sphere; < 0 derives it from
+               the linker width (#IMP::bff::av_derived_allowed_sphere_radius)
+    \throw ValueException when the attachment atom is not in the structure
+*/
+IMPBFFEXPORT ProbeAccessibleVolume get_av_from_structure(
+        const std::string& pdb_path, const std::string& chain, int resseq,
+        const std::string& atom_name, double linker_length, double linker_width,
+        double r1, double r2, double r3,
+        double disc_step = IMP::bff::AV_DEFAULT_SIMULATION_GRID_RESOLUTION,
+        const std::string& strip_mask = "",
+        double allowed_sphere_radius = IMP::bff::AV_DEFAULT_ALLOWED_SPHERE,
+        double contact_volume_thickness = 0.0,
+        double contact_volume_trapped_fraction = -1.0,
+        double radius_scale = IMP::bff::AV_DEFAULT_RADIUS_SCALE);
+
+//! The same front door, from an fps.json `Positions` entry.
+/*!
+    A position is data, so this takes it as data (JSON text), not as separate
+    keywords. The entry's fields -- chain_identifier, residue_seq_number,
+    atom_name, linker_length, linker_width, radius1..radius3 (an AV3 position's
+    absent radii are FPS's three, #av_position_radii), strip_mask,
+    allowed_sphere_radius, contact_volume_*, radius_scale and
+    simulation_grid_resolution -- are read the way the fps dictionary states
+    them, and a declared `simulation_grid_resolution` that disagrees with
+    \p disc_step raises: that field would otherwise be silently overridden.
+
+    \param[in] disc_step the voxel spacing, A; `<= 0` derives it from the
+               entry's `simulation_grid_resolution` and then refuses a declared
+               one that disagrees
+    \throw ValueException on a disagreeing resolution or a missing attachment site
+*/
+IMPBFFEXPORT ProbeAccessibleVolume get_av_from_structure(
+        const std::string& pdb_path, const std::string& position_json,
+        double disc_step = -1.0);
+
+//! A position's dye radii (radius1..3), the absent ones from its model's defaults.
+/*! An AV3 position that leaves its radii out gets FPS's three (5, 4.5, 1.5),
+    not the AV1 radius and two zeros: zero is this library's "unused"
+    sentinel, so an AV3 read with AV1 defaults would silently become an AV1.
+    \param[in] position_json one fps.json `Positions` entry, as JSON text */
+IMPBFFEXPORT IMP::algebra::Vector3D av_position_radii(const std::string& position_json);
 
 //! The shortest linker path to every voxel, LabelLib's `minLinkerLength`.
 /*!
