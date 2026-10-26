@@ -57,6 +57,9 @@
    (get_data_path, which throws) comes next. */
 %include "IMP_bff_standalone.macros.i"
 
+/* get_data_path() reaches the Python data registry through a DataFetcher the
+   module installs (IMP_bff.data.i): a director, so Python can implement it. */
+%feature("director") IMP::bff::DataFetcher;
 %include <IMP/bff/bff_config.h>
 
 #ifndef IMPBFF_WITH_IMP

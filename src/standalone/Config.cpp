@@ -74,7 +74,20 @@ std::string find_under(const char* env, const char* built_in, const std::string&
 }  // namespace
 
 std::string get_module_version() { return IMPBFF_STANDALONE_VERSION; }
+namespace {
+DataFetcher* data_fetcher = nullptr;
+}  // namespace
+
+void set_data_fetcher(DataFetcher* fetcher) { data_fetcher = fetcher; }
+
 std::string get_data_path(std::string file_name) {
+    try {
+        return find_under("IMP_BFF_DATA", IMPBFF_STANDALONE_DATA_DIR, file_name);
+    } catch (const IOException&) {
+        // Not installed: the registry's large data is fetched on first use (a file, or
+        // every registry file under a directory), then looked up again.
+        if (!data_fetcher || !data_fetcher->fetch(file_name)) throw;
+    }
     return find_under("IMP_BFF_DATA", IMPBFF_STANDALONE_DATA_DIR, file_name);
 }
 std::string get_example_path(std::string file_name) {

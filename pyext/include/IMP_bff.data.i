@@ -106,6 +106,32 @@ def fetch_data(file_names=None, progressbar=False):
     return [pup.fetch(n, progressbar=progressbar) for n in file_names]
 
 
+def _registry_names_under(file_name):
+    """The registry files *file_name* stands for: itself, or every file under it
+    when it is a directory (C++ asks for ``rotamer_library``, not its files).
+    Academic files stay out unless BFF_ACADEMIC is set, as in an all-fetch."""
+    registry = get_data_registry()
+    name = file_name.replace(_os.sep, "/").rstrip("/")
+    if name in registry:
+        return [name]
+    under = [n for n in registry if n.startswith(name + "/")]
+    if not _academic_on():
+        under = [n for n in under if not _is_academic(n)]
+    return under
+
+
+def _fetch_into_cache(file_name):
+    """Fetch what *file_name* stands for into the cache; False when the registry
+    has nothing for it."""
+    names = _registry_names_under(file_name)
+    if not names:
+        return False
+    missing = [n for n in names if not _os.path.isfile(_os.path.join(get_data_cache_dir(), n))]
+    if missing:
+        fetch_data(missing)
+    return True
+
+
 def _fetching_get_data_path(file_name):
     try:
         return _installed_get_data_path(file_name)
@@ -113,9 +139,8 @@ def _fetching_get_data_path(file_name):
         cached = _os.path.join(get_data_cache_dir(), file_name)
         if _os.path.isfile(cached):
             return cached
-        if file_name not in get_data_registry():
+        if not _fetch_into_cache(file_name):
             raise
-    fetch_data([file_name])
     return _os.path.join(get_data_cache_dir(), file_name)
 
 
@@ -125,11 +150,25 @@ from the fetch cache, fetched first when it is one of the registry's
 _IMP_bff.get_data_path = _fetching_get_data_path
 
 # the standalone module reads IMP_BFF_DATA as a PATH-like list: the caller's
-# directories, the wheel's own data, the fetch cache
-if _package_data_dir():
-    _own = _os.environ.get("IMP_BFF_DATA", "")
-    _os.environ["IMP_BFF_DATA"] = _os.pathsep.join(
-        ([_own] if _own else []) + [_package_data_dir(), get_data_cache_dir()])
+# directories, the wheel's own data, the fetch cache -- the cache always, since a
+# source build without the large data looks there for what it fetched
+_own = _os.environ.get("IMP_BFF_DATA", "")
+_os.environ["IMP_BFF_DATA"] = _os.pathsep.join(
+    ([_own] if _own else []) + ([_package_data_dir()] if _package_data_dir() else [])
+    + [get_data_cache_dir()])
+
+# C++ callers reach the registry through get_data_path()'s fetcher (standalone
+# build: the IMP build's get_data_path is IMP's own and reads an installed data/).
+if hasattr(_IMP_bff, "set_data_fetcher"):
+    class _RegistryFetcher(DataFetcher):
+        def fetch(self, file_name):
+            try:
+                return _fetch_into_cache(file_name)
+            except Exception:  # noqa: BLE001 - the C++ caller reports its own miss
+                return False
+
+    _registry_fetcher = _RegistryFetcher()   # the C++ side does not own it
+    set_data_fetcher(_registry_fetcher)
 
 
 # IMP's own data (top.lib, par.lib, the element table) where this build links

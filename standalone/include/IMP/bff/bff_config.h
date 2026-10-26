@@ -50,6 +50,22 @@ IMPBFFEXPORT std::string get_module_version();
 IMPBFFEXPORT std::string get_data_path(std::string file_name);
 //! A file under the module's examples directory.
 IMPBFFEXPORT std::string get_example_path(std::string file_name);
+
+//! What get_data_path() asks when a data file or directory is not where it looks.
+/** The large data (rotamer_library/, cgprobe/) is not in a wheel: it is fetched
+    on first use, sha-checked, from the data registry. Fetching is the Python
+    side's (it owns the registry, the cache and the download); C++ callers ask
+    for whole directories (`get_data_path("rotamer_library")`), so the lookup
+    itself has to reach it. fetch() puts \a file_name -- a file, or every
+    registry file under a directory -- where get_data_path() looks and returns
+    true; false when it has nothing to offer. The Python module installs one. */
+class IMPBFFEXPORT DataFetcher {
+ public:
+  virtual ~DataFetcher() {}
+  virtual bool fetch(std::string file_name) = 0;
+};
+//! Install the fetcher get_data_path() asks on a miss (nullptr: none). Not owned.
+IMPBFFEXPORT void set_data_fetcher(DataFetcher* fetcher);
 } }
 
 #endif  // IMPBFF_CONFIG_H
