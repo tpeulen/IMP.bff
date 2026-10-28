@@ -51,6 +51,14 @@
 
 #include <math.h>
 
+// <windows.h> (wingdi.h) defines ERROR as a macro; in the unity build it
+// reaches this file and turns the Status enumerator below into a constant.
+#ifdef ERROR
+#pragma push_macro("ERROR")
+#undef ERROR
+#define IMPBFF_LBFGSB_POP_ERROR
+#endif
+
 IMPBFF_BEGIN_INTERNAL_NAMESPACE
 
 namespace lbfgsb {
@@ -3932,3 +3940,8 @@ dcstep (double* stx, double* fx, double* dx, double* sty, double* fy, double* dy
 }  // namespace lbfgsb
 
 IMPBFF_END_INTERNAL_NAMESPACE
+
+#ifdef IMPBFF_LBFGSB_POP_ERROR
+#pragma pop_macro("ERROR")
+#undef IMPBFF_LBFGSB_POP_ERROR
+#endif
