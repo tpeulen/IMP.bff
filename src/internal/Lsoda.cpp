@@ -62,7 +62,10 @@ namespace lsoda {
 
 // A pointer to a temporary that lives until the end of the full expression
 // -- the enclosing LAPACK call -- standing in for C99's `&(int){x}`.
-static inline int* lsoda_tmp(int&& v) { return &v; }
+// const& rather than &&: MSVC treats `int(i)` of an int lvalue as an lvalue
+// (C2664 against int&&). The arguments are input-only, so pointing at the
+// original in that case is harmless.
+static inline int* lsoda_tmp(const int& v) { return const_cast<int*>(&v); }
 
 // LU factorisation with partial pivoting, column major (LAPACK dgetf2
 // order). ipiv is 1-based; info = j + 1 for the first exactly-zero pivot.
