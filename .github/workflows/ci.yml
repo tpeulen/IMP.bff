@@ -22,6 +22,19 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      wheel_os:
+        description: >-
+          Build wheels only for the runner images whose name starts with this
+          (e.g. "windows"). Empty: every wheel lane.
+        required: false
+        default: ''
+      cibw_build:
+        description: >-
+          cibuildwheel CIBW_BUILD selector (e.g. "cp312-*"). Empty: every
+          interpreter.
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -62,6 +75,13 @@ jobs:
             echo "lane=fast" >> "$GITHUB_OUTPUT"
             echo 'os_matrix={"os":["ubuntu-latest"]}' >> "$GITHUB_OUTPUT"
             echo 'wheel_matrix={"include":[{"os":"ubuntu-latest","arch":"x86_64"}]}' >> "$GITHUB_OUTPUT"
+          fi
+          # A manual run may narrow the wheel lanes (e.g. one Windows wheel
+          # for a lab machine); the last wheel_matrix line written wins.
+          if [[ -n "${{ inputs.wheel_os }}" ]]; then
+            echo 'wheel_matrix={"include":[{"os":"ubuntu-latest","arch":"x86_64"},{"os":"macos-14","arch":"arm64"},{"os":"macos-15-intel","arch":"x86_64"},{"os":"windows-2022","arch":"AMD64"}]}' \
+              | jq -c --arg p "${{ inputs.wheel_os }}" '{include: [.include[] | select(.os | startswith($p))]}' \
+              | sed 's/^/wheel_matrix=/' >> "$GITHUB_OUTPUT"
           fi
 
   # ── 0. The FP4 kernel variants, x86 ──────────────────────────────────────
@@ -445,6 +465,7 @@ jobs:
           python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
+          CIBW_BUILD: ${{ inputs.cibw_build || '*' }}
       - name: Compiler cache statistics
         if: always()
         continue-on-error: true
