@@ -64,25 +64,26 @@ jobs:
       - id: check
         run: |
           BRANCH="${{ github.ref }}"
+          ALL_WHEELS='{"include":[{"os":"ubuntu-latest","arch":"x86_64"},{"os":"macos-14","arch":"arm64"},{"os":"macos-15-intel","arch":"x86_64"},{"os":"windows-2022","arch":"AMD64"}]}'
           if [[ "$BRANCH" == "refs/heads/main" || "$BRANCH" == "refs/heads/dev" || \
                 "$BRANCH" == refs/tags/* || \
                 "${{ github.event_name }}" == "release" || \
                 "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "lane=full" >> "$GITHUB_OUTPUT"
             echo 'os_matrix={"os":["ubuntu-latest","macos-14","windows-latest"]}' >> "$GITHUB_OUTPUT"
-            echo 'wheel_matrix={"include":[{"os":"ubuntu-latest","arch":"x86_64"},{"os":"macos-14","arch":"arm64"},{"os":"macos-15-intel","arch":"x86_64"},{"os":"windows-2022","arch":"AMD64"}]}' >> "$GITHUB_OUTPUT"
+            WHEELS="$ALL_WHEELS"
           else
             echo "lane=fast" >> "$GITHUB_OUTPUT"
             echo 'os_matrix={"os":["ubuntu-latest"]}' >> "$GITHUB_OUTPUT"
-            echo 'wheel_matrix={"include":[{"os":"ubuntu-latest","arch":"x86_64"}]}' >> "$GITHUB_OUTPUT"
+            WHEELS='{"include":[{"os":"ubuntu-latest","arch":"x86_64"}]}'
           fi
           # A manual run may narrow the wheel lanes (e.g. one Windows wheel
-          # for a lab machine); the last wheel_matrix line written wins.
+          # for a lab machine).
           if [[ -n "${{ inputs.wheel_os }}" ]]; then
-            echo 'wheel_matrix={"include":[{"os":"ubuntu-latest","arch":"x86_64"},{"os":"macos-14","arch":"arm64"},{"os":"macos-15-intel","arch":"x86_64"},{"os":"windows-2022","arch":"AMD64"}]}' \
-              | jq -c --arg p "${{ inputs.wheel_os }}" '{include: [.include[] | select(.os | startswith($p))]}' \
-              | sed 's/^/wheel_matrix=/' >> "$GITHUB_OUTPUT"
+            WHEELS=$(echo "$ALL_WHEELS" | jq -c --arg p "${{ inputs.wheel_os }}" \
+              '{include: [.include[] | select(.os | startswith($p))]}')
           fi
+          echo "wheel_matrix=$WHEELS" >> "$GITHUB_OUTPUT"
 
   # ── 0. The FP4 kernel variants, x86 ──────────────────────────────────────
   #
