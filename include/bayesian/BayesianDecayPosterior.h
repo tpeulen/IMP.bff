@@ -206,7 +206,8 @@ inline double bayesian_decay_log_likelihood(const BayesianDecayExperiment& f, co
  *     d2f/dz dz' = M' diag(g) M - (M'g)(M'p)' - (M'p)(M'g)'
  *
  * Only the block of `c` is non-zero; `dz`, `d2z` hold that block (size `nz`, `nz x nz`)
- * and `off` is its offset in theta. The mean-R/R0 tilt and the observations both use it.
+ * and `off` is its offset in theta. The mean-R/R0 tilt uses it, and so do the external FRET
+ * observations of the decay factor graph (BayesianDecayFactorGraph.h).
  */
 struct BayesianDecayWeightedSum {
     double f = 0.0;
@@ -255,44 +256,16 @@ inline BayesianDecayWeightedSum bayesian_decay_weighted_sum(const BayesianDecayE
     return S;
 }
 
-//! The observations' log-likelihood (PRD-155), sum over `f.observations` of
-//! `-(f_k - value_k)^2 / (2 sigma_k^2) - log(sigma_k sqrt(2 pi))`. With `grad` (size dim,
-//! added to) and `A` (dim x dim, added to) also its gradient and its expected
-//! information `dfk dfk' / sigma_k^2` -- the Fisher information of a Gaussian
-//! measurement, the same kind of matrix scoring uses for the counts.
-inline double bayesian_decay_log_observations(const BayesianDecayExperiment& f, const BayesianDecayTensors& e,
-                                              const std::vector<double>& th, double* grad = nullptr, double* A = nullptr) {
-    if (f.observations.empty()) return 0.0;
-    const double half_log_2pi = 0.5 * std::log(2.0 * 3.14159265358979323846);
-    const std::size_t dim = f.dim;
-    double lo = 0.0;
-    for (const BayesianDecayObservation& o : f.observations) {
-        const BayesianDecayWeightedSum S = bayesian_decay_weighted_sum(f, e, th, o.weights, false);
-        const double r = (S.f - o.value) / o.sigma;
-        lo += -0.5 * r * r - std::log(o.sigma) - half_log_2pi;
-        const std::size_t nz = S.dz.size();
-        if (grad) for (std::size_t b = 0; b < nz; ++b) grad[S.off + b] += -(r / o.sigma) * S.dz[b];
-        if (A) {
-            const double is2 = 1.0 / (o.sigma * o.sigma);
-            for (std::size_t a = 0; a < nz; ++a) for (std::size_t b = 0; b < nz; ++b)
-                A[(S.off + a) * dim + S.off + b] += is2 * S.dz[a] * S.dz[b];
-        }
-    }
-    return lo;
-}
-
 inline double bayesian_decay_log_posterior(const BayesianDecayExperiment& f, const BayesianDecayTensors& e, const std::vector<double>& th) {
     const BayesianDecayValues v = bayesian_decay_unpack(f, th);
-    return bayesian_decay_log_likelihood(f, bayesian_decay_expected_counts(f, e, v)) + bayesian_decay_log_prior(f, th, false).lp
-           + bayesian_decay_log_observations(f, e, th);
+    return bayesian_decay_log_likelihood(f, bayesian_decay_expected_counts(f, e, v)) + bayesian_decay_log_prior(f, th, false).lp;
 }
 
 //! everything one scoring step needs at theta
 struct BayesianDecayPoint {
-    std::vector<double> theta, lam, J, grad, A;   // grad of log posterior; A = J'WJ - H_prior (+ observations' information)
-    //! logpost = loglik + logprior + logobs: the counts' Poisson log-likelihood, the log prior, and
-    //! the external observations' log-likelihood (PRD-155; 0 without observations)
-    double logpost = 0.0, logprior = 0.0, loglik = 0.0, logobs = 0.0;
+    std::vector<double> theta, lam, J, grad, A;   // grad of log posterior; A = J'WJ - H_prior
+    //! logpost = loglik + logprior: the counts' Poisson log-likelihood and the log prior (PRD-155)
+    double logpost = 0.0, logprior = 0.0, loglik = 0.0;
 };
 
 inline BayesianDecayPoint bayesian_decay_evaluate(const BayesianDecayExperiment& f, const BayesianDecayTensors& e, const std::vector<double>& th) {
@@ -317,10 +290,6 @@ inline BayesianDecayPoint bayesian_decay_evaluate(const BayesianDecayExperiment&
                                   [](std::size_t n, const std::function<void(std::size_t)>& body) { internal::bayesian_parallel_for(n, body); });
     for (std::size_t a = 0; a < dim; ++a) p.grad[a] += P.g[a];
     for (std::size_t k = 0; k < dim * dim; ++k) p.A[k] -= P.H[k];
-    if (!f.observations.empty()) {
-        p.logobs = bayesian_decay_log_observations(f, e, th, p.grad.data(), p.A.data());
-        p.logpost += p.logobs;
-    }
     return p;
 }
 
@@ -350,8 +319,7 @@ inline double bayesian_decay_log_posterior_and_gradient(const BayesianDecayExper
         for (std::size_t c = 0; c < dim; ++c) grad[c] += u * row[c];
     }
     for (std::size_t c = 0; c < dim; ++c) grad[c] += P.g[c];
-    const double lo = bayesian_decay_log_observations(f, e, th, grad.data());
-    return ll + P.lp + lo;
+    return ll + P.lp;
 }
 
 //! the Laplace evidence at a point: log p(y | lambda) = log p(y, theta*) + d/2 log 2 pi - 1/2 log det A

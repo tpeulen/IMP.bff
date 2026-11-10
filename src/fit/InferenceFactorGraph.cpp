@@ -1049,9 +1049,118 @@ InferenceFactorGraph InferenceFactorGraph::copy_with_factors(
     g.add_factor(f.key, f.kind, scope, f.fit_index, f.size);
     if (!f.evidence.empty()) g.set_factor_evidence(f.key, get_factor_evidence(f.key));
     if (!f.children.empty()) g.set_factor_children(f.key, get_factor_children(f.key));
+    if (f.score) g.set_factor_score(f.key, f.score);
   }
   g.intervened_ = intervened_;
   return g;
+}
+
+// ------------------------------------------------------------ evaluation (PRD-155)
+
+void InferenceFactorGraph::set_factor_score(const std::string& factor_key,
+                                                InferenceFactorScore* score) {
+  const auto found = factor_index_of_.find(factor_key);
+  if (found == factor_index_of_.end()) {
+    throw std::invalid_argument("unknown factor: " + factor_key);
+  }
+  factors_[static_cast<std::size_t>(found->second)].score = score;
+}
+
+InferenceFactorScore* InferenceFactorGraph::get_factor_score(
+    const std::string& factor_key) const {
+  const auto found = factor_index_of_.find(factor_key);
+  if (found == factor_index_of_.end()) return nullptr;
+  return factors_[static_cast<std::size_t>(found->second)].score.get();
+}
+
+bool InferenceFactorGraph::get_is_evaluable() const {
+  if (factors_.empty()) return false;
+  for (const Factor& f : factors_) {
+    if (f.kind != INFERENCE_FACTOR_LINK && !f.score) return false;
+  }
+  return true;
+}
+
+unsigned int InferenceFactorGraph::get_parameter_dimension() const {
+  int n = 0;
+  for (const Variable& v : variables_) n = std::max(n, v.index + v.size);
+  return static_cast<unsigned int>(n);
+}
+
+std::vector<int> InferenceFactorGraph::factor_positions(const Factor& f) const {
+  std::vector<int> pos;
+  for (int p : f.scope) {
+    const Variable& v = variables_[static_cast<std::size_t>(p)];
+    for (int k = 0; k < v.size; ++k) pos.push_back(v.index + k);
+  }
+  return pos;
+}
+
+std::vector<double> InferenceFactorGraph::get_factor_values(
+    const std::string& factor_key, const std::vector<double>& theta) const {
+  const auto found = factor_index_of_.find(factor_key);
+  if (found == factor_index_of_.end()) {
+    throw std::invalid_argument("unknown factor: " + factor_key);
+  }
+  const std::vector<int> pos = factor_positions(factors_[static_cast<std::size_t>(found->second)]);
+  std::vector<double> x(pos.size());
+  for (std::size_t i = 0; i < pos.size(); ++i) {
+    if (pos[i] < 0 || static_cast<std::size_t>(pos[i]) >= theta.size()) {
+      throw std::invalid_argument("parameter vector too short for factor " + factor_key);
+    }
+    x[i] = theta[static_cast<std::size_t>(pos[i])];
+  }
+  return x;
+}
+
+InferenceScore InferenceFactorGraph::eval(const std::vector<double>& theta,
+                                                   bool derivatives) const {
+  const std::size_t dim = get_parameter_dimension();
+  if (theta.size() != dim) {
+    throw std::invalid_argument("InferenceFactorGraph::eval: theta has " +
+                                std::to_string(theta.size()) + " values, the graph " +
+                                std::to_string(dim));
+  }
+  InferenceScore out;
+  if (derivatives) {
+    out.gradient.assign(dim, 0.0);
+    out.information.assign(dim * dim, 0.0);
+  }
+  for (const Factor& f : factors_) {
+    if (f.kind == INFERENCE_FACTOR_LINK) continue;
+    if (!f.score) {
+      throw std::domain_error("InferenceFactorGraph::eval: factor " + f.key +
+                              " has no score");
+    }
+    const std::vector<int> pos = factor_positions(f);
+    const std::size_t n = pos.size();
+    std::vector<double> x(n);
+    for (std::size_t i = 0; i < n; ++i) x[i] = theta[static_cast<std::size_t>(pos[i])];
+    const std::vector<double> r = f.score->eval(x, derivatives);
+    const std::size_t want = derivatives ? 1 + n + n * n : 1;
+    if (r.size() != want) {
+      throw std::domain_error("InferenceFactorGraph::eval: factor " + f.key + " returned " +
+                              std::to_string(r.size()) + " values, expected " +
+                              std::to_string(want));
+    }
+    const double lp = r[0];
+    out.log_density += lp;
+    if (f.kind == INFERENCE_FACTOR_PRIOR) out.log_prior += lp;
+    else if (f.kind == INFERENCE_FACTOR_LIKELIHOOD) out.log_likelihood += lp;
+    else if (f.kind == INFERENCE_FACTOR_HYPER) out.log_hyper += lp;
+    out.factor_keys.push_back(f.key);
+    out.factor_log_densities.push_back(lp);
+    if (derivatives) {
+      for (std::size_t a = 0; a < n; ++a) {
+        const std::size_t pa = static_cast<std::size_t>(pos[a]);
+        out.gradient[pa] += r[1 + a];
+        for (std::size_t b = 0; b < n; ++b) {
+          out.information[pa * dim + static_cast<std::size_t>(pos[b])] += r[1 + n + a * n + b];
+        }
+      }
+    }
+  }
+  return out;
 }
 
 InferenceFactorGraph InferenceFactorGraph::get_intervened(

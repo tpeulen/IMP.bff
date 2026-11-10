@@ -140,38 +140,6 @@ struct BayesianDecayPSpline {
  * spline, the data (`y`, `mask`), the measured responses (`response_<i>`) and
  * whatever else the manifest carries. `kernel()` is built at load and shared.
  */
-/**
- * \brief An external measurement of a weighted sum of the distance distribution
- *        (PRD-155): `value = sum_j p_j w_j +- sigma`.
- *
- * The distribution `p` lives on the experiment's grid `rel` (R/R0). An ensemble
- * FRET efficiency measured elsewhere is `w_j = 1 / (1 + rel_j^6)`; a mean distance
- * in units of R0 is `w_j = rel_j`. Each observation adds one Gaussian
- * log-likelihood term to the log posterior, so it is a likelihood factor of the
- * graphical model on the distribution variable `c`, beside the histograms --
- * not a constraint and not a different fit. An exact equality is the
- * `sigma -> 0` limit and is deliberately not provided as a mechanism.
- */
-struct BayesianDecayObservation {
-  std::string name;
-  std::vector<double> weights;   //!< one per point of the `rel` grid
-  double value = 0.0, sigma = 1.0;
-};
-
-//! The weights of a named summary on the grid `rel` (R/R0): `fret_efficiency`
-//! (`1 / (1 + rel^6)`, the efficiency of a donor-acceptor pair at R) or `rel`.
-inline std::vector<double> bayesian_decay_named_weights(const std::string& kind, const std::vector<double>& rel) {
-  std::vector<double> w(rel.size());
-  if (kind == "fret_efficiency") {
-    for (std::size_t j = 0; j < rel.size(); ++j) { const double r3 = rel[j] * rel[j] * rel[j]; w[j] = 1.0 / (1.0 + r3 * r3); }
-  } else if (kind == "rel") {
-    w = rel;
-  } else {
-    throw std::runtime_error("bayesian decay observation: weights must be an array, \"fret_efficiency\" or \"rel\", not \"" + kind + "\"");
-  }
-  return w;
-}
-
 struct BayesianDecayExperiment {
   std::size_t n_bins = 0, dim = 0;
   double dt = 0.0, period = 0.0, soft = 0.05, ref_spec_sd = 0.05, spec_smooth_logdet = 0.0;
@@ -193,8 +161,6 @@ struct BayesianDecayExperiment {
   //! (n_data x n_bins). Both in internal/TCSPCInstrument.h's order.
   bool pile_up = false;
   double repetition_rate_mhz = 0.0, dead_time_ns = 0.0, measurement_time_s = 0.0;
-  //! external measurements of weighted sums of p(R) (manifest block `observations`, PRD-155)
-  std::vector<BayesianDecayObservation> observations;
 
   const BayesianDecayArray& operator[](const std::string& name) const {
     auto it = arrays.find(name);
@@ -208,37 +174,6 @@ struct BayesianDecayExperiment {
   BayesianDecayAxis axis() const { return BayesianDecayAxis{n_bins, dt, std::size_t(std::llround(period / dt))}; }
   const BayesianPeriodicKernel& kernel() const { return *kernel_ptr; }
 };
-
-/**
- * \brief Add observations from a JSON list (PRD-155) to an experiment whose `rel` grid is loaded.
- *
- * Each entry: `name`, `weights` (an array with one value per `rel` point, or the name
- * `"fret_efficiency"` or `"rel"`), `value` and `sigma` (finite, `sigma > 0`). Refused
- * loudly when malformed: an observation that silently does nothing is a fit that
- * silently ignores a measurement.
- */
-inline void bayesian_decay_add_observations(const nlohmann::json& list, BayesianDecayExperiment& ex) {
-  if (!list.is_array()) throw std::runtime_error("bayesian decay observations: expected a list");
-  const std::vector<double>& rel = ex["rel"].d;
-  for (const auto& o : list) {
-    BayesianDecayObservation ob;
-    ob.name = o.at("name").get<std::string>();
-    const auto& w = o.at("weights");
-    ob.weights = w.is_string() ? bayesian_decay_named_weights(w.get<std::string>(), rel) : w.get<std::vector<double>>();
-    ob.value = o.at("value").get<double>();
-    ob.sigma = o.at("sigma").get<double>();
-    if (ob.weights.size() != rel.size())
-      throw std::runtime_error("bayesian decay observation " + ob.name + ": " + std::to_string(ob.weights.size()) +
-                               " weights for " + std::to_string(rel.size()) + " grid points");
-    if (!std::isfinite(ob.value) || !std::isfinite(ob.sigma) || !(ob.sigma > 0.0))
-      throw std::runtime_error("bayesian decay observation " + ob.name + ": value must be finite and sigma > 0");
-    for (double x : ob.weights)
-      if (!std::isfinite(x)) throw std::runtime_error("bayesian decay observation " + ob.name + ": non-finite weight");
-    for (const auto& prev : ex.observations)
-      if (prev.name == ob.name) throw std::runtime_error("bayesian decay observation " + ob.name + " given twice");
-    ex.observations.push_back(std::move(ob));
-  }
-}
 
 /**
  * \brief Build the transfer tensors an experiment's model reads, from its manifest's
@@ -400,7 +335,6 @@ inline nlohmann::json bayesian_decay_experiment_load(const std::string& dir, Bay
     ex.arrays.emplace("spl", std::move(spl));
   }
   ex.kernel_ptr = std::make_shared<BayesianPeriodicKernel>(ex.axis(), ex["tau_c"].d);
-  if (m.count("observations")) bayesian_decay_add_observations(m["observations"], ex);
   return m;
 }
 

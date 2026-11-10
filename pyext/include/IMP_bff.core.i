@@ -54,8 +54,39 @@ static void bff_handle_released_exception() {
    C++ `int` is 32 bits, so an integer port has to speak int64 or large
    values fall through to the double overload and come back rounded. */
 %template(VectorInt64) std::vector<long long >;
+/* PRD-155 (2026-11-10): a factor may carry a score -- its log density, gradient and
+   information over its scope -- so the graph is a log posterior and
+   inference_fitting finds its mode. InferenceFactorScore is subclassed in Python
+   (a director: the graph holds it for its whole life, hence IMP_SWIG_DIRECTOR);
+   eval/predict/get_data return ndarrays, read through the buffer as `evaluate`
+   is below. InferenceFunctionScore is the C++ closure adapter and is not wrapped. */
+IMP_SWIG_OBJECT(IMP::bff, InferenceFactorScore, InferenceFactorScores);
+IMP_SWIG_DIRECTOR(IMP::bff, InferenceFactorScore);
+%ignore IMP::bff::InferenceFunctionScore;
+%typemap(directorout) std::vector<double> IMP::bff::InferenceFactorScore::eval,
+                      std::vector<double> IMP::bff::InferenceFactorScore::predict,
+                      std::vector<double> IMP::bff::InferenceFactorScore::get_data {
+  PyObject* bff_arr = PyArray_FROMANY($input, NPY_DOUBLE, 0, 1,
+                                      NPY_ARRAY_IN_ARRAY | NPY_ARRAY_FORCECAST);
+  if (!bff_arr) throw Swig::DirectorMethodException();
+  const npy_intp bff_n = PyArray_SIZE(reinterpret_cast<PyArrayObject*>(bff_arr));
+  const double* bff_d =
+      static_cast<const double*>(PyArray_DATA(reinterpret_cast<PyArrayObject*>(bff_arr)));
+  $result.assign(bff_d, bff_d + bff_n);
+  Py_DECREF(bff_arr);
+}
 %include "IMP/bff/fit/InferenceFactorGraph.h"
 %template(VectorInferenceJunctionTreeEdge) std::vector<IMP::bff::InferenceJunctionTreeEdge>;
+/* One generic fitting of a scored graph, and the Bayesian decay model as a scored
+   graph (PRD-155). */
+%include "IMP/bff/fit/InferenceFitting.h"
+%include "IMP/bff/bayesian/BayesianDecayFactorGraph.h"
+/* The fit statistic every fitted number has to carry (Poisson deviance per degree of
+   freedom against its reference, runs test on the residual signs), for Python callers
+   of inference_fitting. The raw-pointer runs_test stays C++. */
+%ignore IMP::bff::runs_test;
+%include "IMP/bff/fit/FitStatistics.h"
+%template(VectorPoissonHistogramFit) std::vector<IMP::bff::PoissonHistogramFit>;
 /* Gaussian factors in canonical form and exact variable elimination over the
    factor graph above (aGrUM's CLG inference). */
 %include "IMP_bff.inferencegaussian.i"

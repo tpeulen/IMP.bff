@@ -45,7 +45,12 @@
 #define IMPBFF_INFERENCEFACTORGRAPH_H
 
 #include <IMP/bff/bff_config.h>
+// IMP_OBJECT_METHODS in either configuration (see FitMinimizer.h)
+#include <IMP/bff/util/IMPCompatibility.h>
+#include <IMP/Object.h>
+#include <IMP/Pointer.h>
 
+#include <functional>
 #include <ostream>
 #include <set>
 #include <string>
@@ -104,6 +109,83 @@ inline std::ostream& operator<<(std::ostream& out,
   out << "]";
   return out;
 }
+
+//! The numbers of a factor: what makes a structural factor evaluable (PRD-155).
+/*!
+    A factor of InferenceFactorGraph is a term of the log posterior over its
+    scope. A score computes it. `x` is the factor's scope values in scope
+    order, each variable contributing `size` numbers from the flat parameter
+    vector (positions `index .. index + size - 1`); `n = x.size()`.
+
+    eval() returns `[log p]` without derivatives, and with them
+    `[log p, d log p / dx (n), I (n x n, row-major)]`, where `I` is the factor's
+    information: a symmetric positive semi-definite stand-in for minus the
+    Hessian (the expected information of a likelihood, minus the Hessian of a
+    Gaussian prior). The generic fit (`inference_fitting`) steps with the sum
+    of the factors' `I`, which is Fisher scoring when every factor gives its
+    expected information.
+
+    predict() and get_data() are optional: what the factor expects its data to
+    be at `x` and the data themselves, aligned, so a caller can form residuals
+    without knowing the model. Both empty when the factor has no data (a prior).
+
+    Subclass in C++, or in Python (a SWIG director), for any model; the graph
+    never knows which model a factor belongs to. Written 2026-11-10 by
+    claude-code/Opus 5.5 for tpeulen.
+*/
+class IMPBFFEXPORT InferenceFactorScore : public IMP::Object {
+ public:
+  explicit InferenceFactorScore(std::string name = "InferenceFactorScore%1%")
+      : IMP::Object(name) {}
+  //! `[log p]`, or with derivatives `[log p, gradient (n), information (n x n)]`.
+  virtual std::vector<double> eval(const std::vector<double>& x, bool derivatives) {
+    (void)x; (void)derivatives;
+    return std::vector<double>();
+  }
+  //! What the factor expects its data to be at `x`; empty if it has no data.
+  virtual std::vector<double> predict(const std::vector<double>& x) {
+    (void)x;
+    return std::vector<double>();
+  }
+  //! The factor's data, aligned with predict(); empty if it has none.
+  virtual std::vector<double> get_data() { return std::vector<double>(); }
+  IMP_OBJECT_METHODS(InferenceFactorScore);
+};
+
+//! A score from plain functions, for C++ callers that build a graph from closures.
+/*! Not wrapped for Python (a Python caller subclasses InferenceFactorScore). */
+class IMPBFFEXPORT InferenceFunctionScore : public InferenceFactorScore {
+ public:
+  typedef std::function<std::vector<double>(const std::vector<double>&, bool)> Eval;
+  typedef std::function<std::vector<double>(const std::vector<double>&)> Predict;
+  InferenceFunctionScore(Eval eval, Predict predict = Predict(),
+                             std::vector<double> data = std::vector<double>(),
+                             std::string name = "InferenceFunctionScore%1%")
+      : InferenceFactorScore(name), eval_(eval), predict_(predict), data_(data) {}
+  std::vector<double> eval(const std::vector<double>& x, bool derivatives) override {
+    return eval_(x, derivatives);
+  }
+  std::vector<double> predict(const std::vector<double>& x) override {
+    return predict_ ? predict_(x) : std::vector<double>();
+  }
+  std::vector<double> get_data() override { return data_; }
+ private:
+  Eval eval_;
+  Predict predict_;
+  std::vector<double> data_;
+};
+
+//! The log posterior of an evaluable graph at one point, by factor and by kind.
+struct IMPBFFEXPORT InferenceScore {
+  double log_density = 0.0;     //!< sum over the factors
+  double log_prior = 0.0;       //!< the INFERENCE_FACTOR_PRIOR factors
+  double log_likelihood = 0.0;  //!< the INFERENCE_FACTOR_LIKELIHOOD factors
+  double log_hyper = 0.0;       //!< the INFERENCE_FACTOR_HYPER factors
+  std::vector<std::string> factor_keys;      //!< every scored factor, in graph order
+  std::vector<double> factor_log_densities;  //!< aligned with factor_keys
+  std::vector<double> gradient;              //!< d log density / d theta (if asked)
+  std::vector<double> information;           //!< sum of the factors' I, dim x dim (if asked)
+};
 
 //! The variables and factors of a model's posterior, with graph queries.
 /*!
@@ -236,6 +318,32 @@ class IMPBFFEXPORT InferenceFactorGraph {
 
   //! Drop every cached derived structure (moral graph, orders, cliques).
   void invalidate();
+
+  /** \name Scores (PRD-155)
+      A factor may carry an InferenceFactorScore; then the graph is a log
+      posterior that can be evaluated and fitted (`inference_fitting`). A graph
+      without scores answers every structural query exactly as before.
+      Scores are carried by copies (including #get_intervened and
+      #get_twin) but not by #to_json, which writes structure only.
+      @{
+  */
+  //! Give a factor its numbers. \throws std::invalid_argument for an unknown factor
+  void set_factor_score(const std::string& factor_key, InferenceFactorScore* score);
+  //! A factor's score, or nullptr.
+  InferenceFactorScore* get_factor_score(const std::string& factor_key) const;
+  //! Whether every factor that is not a LINK has a score.
+  bool get_is_evaluable() const;
+  //! Length of the flat parameter vector: the largest `index + size` over the variables.
+  unsigned int get_parameter_dimension() const;
+  //! A factor's scope values, gathered from the flat parameter vector.
+  std::vector<double> get_factor_values(const std::string& factor_key,
+                                        const std::vector<double>& theta) const;
+  //! The log posterior at `theta`: every non-LINK factor's score, summed.
+  /*! \throws std::domain_error if a factor has no score (a factor silently
+      left out is a posterior silently missing a term), or if a score
+      returns the wrong number of values. */
+  InferenceScore eval(const std::vector<double>& theta, bool derivatives = true) const;
+  /** @} */
 
   //! Number of variables (free parameters).
   unsigned int get_number_of_variables() const;
@@ -417,7 +525,10 @@ class IMPBFFEXPORT InferenceFactorGraph {
     int size;
     std::vector<int> evidence;  // held variable positions read, not in scope
     std::vector<int> children;  // generated variable positions (subset of scope)
+    IMP::Pointer<InferenceFactorScore> score;  // optional (PRD-155)
   };
+  //! A factor's flat-parameter positions, scope order, `size` per variable.
+  std::vector<int> factor_positions(const Factor& f) const;
 
   //! A copy keeping only the factors flagged in keep (variables, evidence,
   //! children and intervened marks carried over).

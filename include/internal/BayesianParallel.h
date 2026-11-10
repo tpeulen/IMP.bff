@@ -35,6 +35,11 @@ inline bool& bayesian_serial_here() { static thread_local bool s = false; return
 template <typename Body>
 inline void bayesian_parallel_for(std::size_t n, Body body) {
     if (n == 0) return;
+#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
+    //: the Pyodide wheel has no threads (PRD-155): a pool would fail to start its workers
+    for (std::size_t i = 0; i < n; ++i) body(i);
+    return;
+#endif
     if (bayesian_serial_here() || n == 1) { for (std::size_t i = 0; i < n; ++i) body(i); return; }
     const std::function<void(std::size_t)> fn = body;
     bayesian_thread_pool().run(n, fn);
