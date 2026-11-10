@@ -130,6 +130,10 @@ if(TARGET IMP.bff-lib)
   # only: private, never installed, no public header includes them.
   target_include_directories(IMP.bff-lib PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/xsf/include")
+  # pocketfft (thirdparty/pocketfft, PRD-155): the Bayesian decay headers
+  # compile only where it is on the path; private, never installed.
+  target_include_directories(IMP.bff-lib PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/pocketfft/include")
   # Optional: zlib reads gzip-compressed FASTA into a sequence database.
   find_package(ZLIB QUIET)
   if(ZLIB_FOUND)

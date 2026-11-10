@@ -363,6 +363,9 @@ else()
 endif()
 # SciPy's special-function headers, private to src/Numerics.cpp.
 target_include_directories(imp_bff PRIVATE "${IMPBFF_ROOT}/thirdparty/xsf/include")
+# pocketfft (thirdparty/pocketfft, PRD-155): the Bayesian decay headers compile only
+# where it is on the path, so without it neither wheel has the Bayesian decay fit.
+target_include_directories(imp_bff PRIVATE "${IMPBFF_ROOT}/thirdparty/pocketfft/include")
 if(IMPBFF_OPENMP_FLAGS)
   target_compile_options(imp_bff PRIVATE ${IMPBFF_OPENMP_FLAGS})
   target_link_libraries(imp_bff PRIVATE ${IMPBFF_OPENMP_LIBS})
