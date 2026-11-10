@@ -1,15 +1,15 @@
 <map id="/home/runner/work/IMP.bff/IMP.bff/include/fit/FitObjective.h" name="/home/runner/work/IMP.bff/IMP.bff/include/fit/FitObjective.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="234,5,465,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,152,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="285,48,132,92,130,87,284,43"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="176,93,253,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="318,48,248,89,245,84,316,43"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="277,93,336,119"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="341,47,322,83,317,80,337,44"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="361,93,423,119"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="362,44,382,80,377,83,357,47"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="448,93,645,119"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="398,43,506,86,504,91,396,48"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="669,93,859,119"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="449,43,690,88,689,93,448,48"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="231,5,461,50"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,151,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="276,53,136,96,135,91,274,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="174,98,251,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="313,50,248,92,246,87,308,51"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="276,98,334,126"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="337,49,320,86,316,82,333,52"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="358,98,420,126"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="359,48,377,85,372,83,356,53"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="444,98,640,126"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="399,48,499,92,494,92,397,53"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="664,98,852,126"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="456,48,680,94,675,95,455,53"/>
 </map>

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['mcmcchains_0',['McmcChains',['../_sampler_diagnostics_8h.html#a5186cfeeba4081619cd92a644652afae',1,'SamplerDiagnostics.h']]]
+  ['labelizeravdoor_0',['LabelizerAvDoor',['../_labelizer_f_r_e_t_8h.html#a9617ea6d46e57cf623b645a1740b4b58',1,'LabelizerFRET.h']]]
 ];

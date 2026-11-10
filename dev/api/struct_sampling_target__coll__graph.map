@@ -1,11 +1,11 @@
 <map id="SamplingTarget" name="SamplingTarget">
-<area shape="rect" id="Node000001" title="What is sampled." alt="" coords="69,405,235,551"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,263,163,328"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,327,122,389,117,391,93,329"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="187,263,365,328"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="257,330,213,393,208,390,252,327"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="237,135,315,200"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="279,200,279,246,273,246,273,200"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="211,5,341,85"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="279,99,279,134,273,134,273,99"/>
+<area shape="rect" id="Node000001" title="What is sampled." alt="" coords="69,457,232,619"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,289,159,362"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,359,122,441,116,441,93,364"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="183,289,358,362"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="252,360,206,444,202,441,249,363"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="232,144,308,216"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="271,214,273,273,268,272,269,219"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="206,5,334,95"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="271,107,273,145,268,144,269,112"/>
 </map>

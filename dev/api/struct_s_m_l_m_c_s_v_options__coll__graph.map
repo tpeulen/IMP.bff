@@ -1,9 +1,9 @@
 <map id="SMLMCSVOptions" name="SMLMCSVOptions">
-<area shape="rect" id="Node000001" title="Explicit CSV opt&#45;ins; defaults require measured 3D and retain every row." alt="" coords="61,277,254,437"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,135,163,200"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,200,83,226,88,253,91,261,86,263,83,254,78,227,77,200"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="191,135,270,200"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="223,201,204,254,200,263,195,261,199,252,218,199"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="165,5,296,85"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="233,99,233,134,228,134,228,99"/>
+<area shape="rect" id="Node000001" title="Explicit CSV opt&#45;ins; defaults require measured 3D and retain every row." alt="" coords="63,312,254,490"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,144,159,216"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="78,214,81,251,87,287,90,296,84,296,82,288,75,251,78,219"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="198,144,273,216"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="229,214,209,288,205,297,201,295,204,287,226,218"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="172,5,299,95"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="236,107,238,145,233,143,235,112"/>
 </map>

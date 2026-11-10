@@ -8,5 +8,6 @@ var searchData=
   ['inferencecanonicalform_2eh_5',['InferenceCanonicalForm.h',['../_inference_canonical_form_8h.html',1,'']]],
   ['inferencefactorgraph_2eh_6',['InferenceFactorGraph.h',['../_inference_factor_graph_8h.html',1,'']]],
   ['inferencefactorgraphfromfit_2eh_7',['InferenceFactorGraphFromFit.h',['../_inference_factor_graph_from_fit_8h.html',1,'']]],
-  ['inferencegaussianelimination_2eh_8',['InferenceGaussianElimination.h',['../_inference_gaussian_elimination_8h.html',1,'']]]
+  ['inferencefitting_2eh_8',['InferenceFitting.h',['../_inference_fitting_8h.html',1,'']]],
+  ['inferencegaussianelimination_2eh_9',['InferenceGaussianElimination.h',['../_inference_gaussian_elimination_8h.html',1,'']]]
 ];

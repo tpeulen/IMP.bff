@@ -1,7 +1,7 @@
 <map id="SequenceConservationOptions" name="SequenceConservationOptions">
-<area shape="rect" id="Node000001" title="How #IMP::bff::compute_sequence_conservation fits and infers." alt="" coords="5,292,219,457"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="73,135,151,200"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,200,115,275,109,275,109,200"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="47,5,177,85"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="115,99,115,134,109,134,109,99"/>
+<area shape="rect" id="Node000001" title="How IMP::bff::compute_sequence_conservation fits and infers." alt="" coords="5,334,215,518"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="72,144,148,216"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,213,113,318,108,317,109,218"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="46,5,174,95"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="111,107,113,144,108,144,110,112"/>
 </map>

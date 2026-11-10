@@ -1,13 +1,13 @@
 <map id="/home/runner/work/IMP.bff/IMP.bff/include/probe/ProbeRotamerLibrary.h" name="/home/runner/work/IMP.bff/IMP.bff/include/probe/ProbeRotamerLibrary.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="451,5,643,60"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,152,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="451,54,155,108,154,103,450,49"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="176,108,413,133"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="471,63,342,106,341,101,469,58"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="437,108,656,133"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="549,60,549,94,544,94,544,60"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="680,108,739,133"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="598,58,677,99,674,104,595,62"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="763,108,826,133"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="623,58,751,102,750,107,622,63"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="448,5,639,67"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,115,151,143"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="448,59,161,114,160,109,447,53"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="174,115,411,143"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="462,67,344,112,342,107,457,68"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="435,115,652,143"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="545,66,545,101,541,97,541,69"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="676,115,734,143"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="598,65,671,108,666,107,596,70"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="758,115,820,143"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="626,65,745,111,740,111,625,70"/>
 </map>

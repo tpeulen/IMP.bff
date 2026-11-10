@@ -1,7 +1,7 @@
 <map id="/home/runner/work/IMP.bff/IMP.bff/include/fret/FRETRotamer.h" name="/home/runner/work/IMP.bff/IMP.bff/include/fret/FRETRotamer.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="89,5,340,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,221,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,48,141,87,138,82,189,43"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="246,93,389,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="241,43,293,83,290,87,238,48"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="89,5,340,50"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,221,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="190,50,143,90,140,86,185,51"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="245,98,386,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="242,48,290,88,285,88,240,53"/>
 </map>

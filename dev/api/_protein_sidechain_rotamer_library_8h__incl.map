@@ -1,9 +1,13 @@
 <map id="/home/runner/work/IMP.bff/IMP.bff/include/structure/ProteinSidechainRotamerLibrary.h" name="/home/runner/work/IMP.bff/IMP.bff/include/structure/ProteinSidechainRotamerLibrary.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="154,5,401,60"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,224,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="229,62,150,104,147,99,226,58"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="248,108,307,133"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="280,60,280,94,275,94,275,60"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="331,108,394,133"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="305,58,343,96,339,100,302,62"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="366,5,611,67"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,124,223,151"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="375,70,179,122,178,116,373,65"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="247,115,440,160"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="447,67,389,108,386,104,442,68"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="464,124,514,151"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="491,66,491,109,487,106,487,69"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="538,124,596,151"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="514,65,550,112,545,110,512,70"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="620,124,682,151"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="539,65,619,115,614,115,538,70"/>
 </map>

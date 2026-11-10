@@ -6,14 +6,16 @@ var searchData=
   ['quantizedneuralnet_3',['QuantizedNeuralNet',['../class_quantized_neural_net.html#ad72ac79da9da38f9797e0896a1103b29',1,'QuantizedNeuralNet']]],
   ['quench_5fradii_5ffor_5fresidues_4',['quench_radii_for_residues',['../_photophysics_quenching_8h.html#a027f8f3593098a40526ff8eb1a82048d',1,'PhotophysicsQuenching.h']]],
   ['quenched_5fdecay_5',['quenched_decay',['../_photophysics_photon_simulation_8h.html#ac0062deedeeb4647aea5c9c18d85eb14',1,'PhotophysicsPhotonSimulation.h']]],
-  ['quenched_5fdonor_5fphotons_6',['quenched_donor_photons',['../_photophysics_quenching_8h.html#a7f12c8a747626a34a8238a6a7bf604fd',1,'PhotophysicsQuenching.h']]],
+  ['quenched_5fdonor_5fphotons_6',['quenched_donor_photons',['../_photophysics_quenching_8h.html#a905bd3108e84011bf4bb03e9e814b485',1,'PhotophysicsQuenching.h']]],
   ['quencheddonordecay_7',['QuenchedDonorDecay',['../class_quenched_donor_decay.html#a8a584fc3cbe64acc525051919fc508f1',1,'QuenchedDonorDecay']]],
   ['quencher_8',['Quencher',['../struct_quencher.html#a0581e4001f49b03958e9b0c7db54c523',1,'Quencher']]],
   ['quencher_5fatoms_9',['quencher_atoms',['../_photophysics_quenching_8h.html#ad991aeceb14e62af6b5cda22947f0048',1,'PhotophysicsQuenching.h']]],
   ['quencher_5fflrcif_5fitems_10',['quencher_flrcif_items',['../_probe_attachment_8h.html#a0f52fed3d525c23c3d900b8ae79fe20a',1,'ProbeAttachment.h']]],
-  ['quenching_5fmap_11',['quenching_map',['../_photophysics_quenching_8h.html#a97a81c950f6015a34e42745538c87c18',1,'PhotophysicsQuenching.h']]],
-  ['quenching_5frate_5fgrid_12',['quenching_rate_grid',['../_photophysics_quenching_8h.html#a5a200b573b890343006316d4c0ce5020',1,'PhotophysicsQuenching.h']]],
-  ['quenching_5frate_5fmap_13',['quenching_rate_map',['../_photophysics_quenching_8h.html#ad2c9b38eb7a8c0bbc8271c3b847efb14',1,'PhotophysicsQuenching.h']]],
-  ['quenching_5frate_5fper_5fframe_14',['quenching_rate_per_frame',['../_solvent_accessible_surface_8h.html#aef2f7d5d8e83c5e694c6d74595b28b52',1,'SolventAccessibleSurface.h']]],
-  ['quenching_5frates_5ffor_5fresidues_15',['quenching_rates_for_residues',['../_photophysics_quenching_8h.html#a577a7bd32de23c584a7664d38e4d6306',1,'PhotophysicsQuenching.h']]]
+  ['quencher_5frotamer_5fensemble_11',['quencher_rotamer_ensemble',['../_protein_sidechain_rotamer_library_8h.html#a5e5f748414dfc1aef68d44e3a5489e97',1,'ProteinSidechainRotamerLibrary.h']]],
+  ['quencher_5frotamer_5fensembles_12',['quencher_rotamer_ensembles',['../_protein_sidechain_rotamer_library_8h.html#a1b119ebf1eb96c7dd97f06affe3a045d',1,'ProteinSidechainRotamerLibrary.h']]],
+  ['quencherrotamerensemble_13',['QuencherRotamerEnsemble',['../struct_quencher_rotamer_ensemble.html#ae1d1642d68c424c0ed75cc4129f487b1',1,'QuencherRotamerEnsemble']]],
+  ['quenching_5fmap_14',['quenching_map',['../_photophysics_quenching_8h.html#a97a81c950f6015a34e42745538c87c18',1,'PhotophysicsQuenching.h']]],
+  ['quenching_5frate_5fgrid_15',['quenching_rate_grid',['../_photophysics_quenching_8h.html#a5a200b573b890343006316d4c0ce5020',1,'PhotophysicsQuenching.h']]],
+  ['quenching_5frate_5fper_5fframe_16',['quenching_rate_per_frame',['../_solvent_accessible_surface_8h.html#aef2f7d5d8e83c5e694c6d74595b28b52',1,'SolventAccessibleSurface.h']]],
+  ['quenching_5frates_5ffor_5fresidues_17',['quenching_rates_for_residues',['../_photophysics_quenching_8h.html#a577a7bd32de23c584a7664d38e4d6306',1,'PhotophysicsQuenching.h']]]
 ];

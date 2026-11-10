@@ -1,7 +1,7 @@
 <map id="/home/runner/work/IMP.bff/IMP.bff/include/probe/ProbeDataPaths.h" name="/home/runner/work/IMP.bff/IMP.bff/include/probe/ProbeDataPaths.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="45,5,237,60"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,152,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="124,62,98,98,93,95,120,58"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="176,108,235,133"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="163,58,191,95,186,99,159,62"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="45,5,236,67"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,115,151,143"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,66,98,104,94,100,117,69"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="174,115,232,143"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="163,65,188,102,183,102,160,70"/>
 </map>

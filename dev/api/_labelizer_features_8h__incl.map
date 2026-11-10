@@ -1,15 +1,15 @@
 <map id="/home/runner/work/IMP.bff/IMP.bff/include/fret/LabelizerFeatures.h" name="/home/runner/work/IMP.bff/IMP.bff/include/fret/LabelizerFeatures.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="484,5,695,60"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,152,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="484,54,161,108,160,103,483,49"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="176,108,395,133"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="497,63,339,107,338,102,496,57"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="419,108,613,133"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="569,62,537,99,533,96,565,58"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="637,108,688,133"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="614,58,646,96,642,99,610,62"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="712,108,771,133"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="637,58,711,99,708,104,634,62"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="795,108,858,133"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="663,58,783,101,781,106,661,63"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="480,5,689,67"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,115,151,143"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="480,59,166,114,166,109,479,54"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="175,115,392,143"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="487,67,343,113,341,107,481,68"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="416,115,609,143"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="563,66,534,105,531,101,558,69"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="633,115,683,143"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="610,65,640,104,635,102,608,70"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="708,115,766,143"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="636,65,705,107,699,107,635,70"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="790,115,852,143"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="664,65,777,110,772,110,663,70"/>
 </map>

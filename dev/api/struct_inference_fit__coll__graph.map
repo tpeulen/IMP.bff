@@ -1,0 +1,14 @@
+<map id="InferenceFit" name="InferenceFit">
+<area shape="rect" id="Node000001" title="What inference_fitting found." alt="" coords="7,692,162,876"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,289,159,362"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,359,78,479,78,619,81,675,75,675,73,619,73,479,80,364"/>
+<area shape="rect" id="Node000003" href="$struct_inference_score.html" title="The log posterior of an evaluable graph at one point, by factor and by kind." alt="" coords="141,479,258,619"/>
+<area shape="poly" id="edge6_Node000003_Node000002" title=" " alt="" coords="82,359,91,407,106,454,132,485,127,486,102,457,85,408,82,364"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="167,616,139,678,135,676,165,620"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="202,289,376,362"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="285,359,278,407,262,456,258,466,253,463,257,454,273,406,283,364"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="251,144,327,216"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="289,213,291,273,286,272,288,219"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="225,5,353,95"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="289,107,291,145,286,144,288,112"/>
+</map>

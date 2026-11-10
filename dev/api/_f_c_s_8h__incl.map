@@ -1,13 +1,13 @@
 <map id="/home/runner/work/IMP.bff/IMP.bff/include/spectroscopy/FCS.h" name="/home/runner/work/IMP.bff/IMP.bff/include/spectroscopy/FCS.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="165,5,416,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,152,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="241,48,124,91,122,86,239,43"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="176,93,235,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="272,48,230,86,226,82,268,44"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="259,93,322,119"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="293,46,293,79,288,79,288,46"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="347,93,544,119"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="329,43,412,85,409,89,327,48"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="568,93,757,119"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="380,43,596,88,595,93,379,48"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="162,5,412,50"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,151,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="234,51,127,94,125,89,229,50"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="174,98,232,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="268,49,229,89,226,85,263,51"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="256,98,318,126"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="289,48,290,84,285,81,285,52"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="342,98,539,126"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="329,48,406,90,400,90,327,53"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="562,98,751,126"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="386,48,585,94,580,95,385,53"/>
 </map>

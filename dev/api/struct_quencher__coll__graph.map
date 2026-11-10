@@ -1,10 +1,10 @@
 <map id="Quencher" name="Quencher">
-<area shape="rect" id="Node000001" title="A quenching moiety: which residue, which atoms. No rate." alt="" coords="5,391,148,516"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="37,135,116,200"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="75,201,70,263,72,374,67,374,65,263,70,200"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="150,263,329,328"/>
-<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="118,197,187,251,184,255,114,201"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="11,5,142,85"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="79,99,79,134,74,134,74,99"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="208,330,155,381,151,377,205,326"/>
+<area shape="rect" id="Node000001" title="A quenching moiety: which residue, which atoms. No rate.." alt="" coords="5,435,146,574"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="38,144,114,216"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="73,213,70,289,72,418,67,417,65,289,72,219"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="152,289,327,362"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="113,212,190,277,185,279,113,217"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="12,5,140,95"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="76,107,78,144,73,144,76,112"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="209,360,153,424,149,420,206,364"/>
 </map>

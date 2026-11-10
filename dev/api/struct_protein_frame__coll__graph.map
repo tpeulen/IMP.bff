@@ -1,13 +1,13 @@
 <map id="ProteinFrame" name="ProteinFrame">
-<area shape="rect" id="Node000001" title="An atom&#39;s name as its structure spells it, without a HET: prefix." alt="" coords="179,435,373,580"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,263,163,328"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,326,201,421,197,424,111,330"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="187,263,365,328"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="279,328,279,418,273,418,273,328"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="237,135,315,200"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="279,200,279,246,273,246,273,200"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="211,5,341,85"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="279,99,279,134,273,134,273,99"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="389,263,520,328"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="440,330,416,370,385,412,374,424,370,421,381,409,411,367,436,327"/>
+<area shape="rect" id="Node000001" title="An atom&#39;s name as its structure spells it, without a HET: prefix." alt="" coords="175,502,366,663"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,289,159,362"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,359,204,488,199,489,107,364"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="183,289,358,362"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="272,360,273,486,268,484,268,364"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="232,144,308,216"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="271,214,273,273,268,272,269,219"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="206,5,334,95"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="271,107,273,145,268,144,270,112"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="382,289,508,362"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="436,359,415,419,382,479,373,491,369,487,377,476,410,417,433,363"/>
 </map>

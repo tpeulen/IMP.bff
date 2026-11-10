@@ -1,7 +1,7 @@
 <map id="FPSRotamerPosition" name="FPSRotamerPosition">
-<area shape="rect" id="Node000001" title="fps.json and rotamer ensembles: reading a labelled pair out of a file, and writing predicted distance..." alt="" coords="5,336,199,421"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="63,135,141,200"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,200,105,320,99,320,99,200"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="37,5,167,85"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="105,99,105,134,99,134,99,99"/>
+<area shape="rect" id="Node000001" title="fps.json and rotamer ensembles: reading a labelled pair out of a file, and writing predicted distance..." alt="" coords="5,401,196,496"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="63,144,139,216"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,215,103,384,98,384,99,218"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="37,5,165,95"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="101,107,103,144,98,144,100,112"/>
 </map>

@@ -1,11 +1,11 @@
 <map id="/home/runner/work/IMP.bff/IMP.bff/include/fret/LabelizerFRET.h" name="/home/runner/work/IMP.bff/IMP.bff/include/fret/LabelizerFRET.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="203,5,413,60"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,115,64,141"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="219,63,77,111,72,112,70,107,75,105,217,58"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="88,115,293,141"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="276,62,218,108,215,104,273,58"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="317,108,536,148"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="343,58,393,97,390,102,340,62"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="561,115,647,141"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="395,58,549,105,558,108,557,114,547,111,393,63"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="203,5,412,67"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,124,64,151"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="208,70,77,117,73,119,71,114,75,113,207,65"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="88,124,293,151"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="274,67,219,116,216,111,269,69"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="316,115,534,160"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="345,65,391,105,386,105,343,70"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="558,124,644,151"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="405,65,547,112,556,118,551,117,546,118,404,70"/>
 </map>

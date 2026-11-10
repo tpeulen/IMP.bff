@@ -1,9 +1,9 @@
 <map id="/home/runner/work/IMP.bff/IMP.bff/include/spectroscopy/PhotophysicsPolarisation.h" name="/home/runner/work/IMP.bff/IMP.bff/include/spectroscopy/PhotophysicsPolarisation.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="175,5,385,60"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,224,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,62,150,104,148,99,228,58"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="249,108,311,133"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="283,60,283,94,277,94,277,60"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="335,108,406,133"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="310,58,350,96,347,100,306,62"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="173,5,383,67"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,115,223,143"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,67,152,110,150,105,221,68"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="247,115,309,143"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="280,66,280,101,276,98,276,69"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="333,115,402,143"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="309,65,346,104,341,103,307,70"/>
 </map>

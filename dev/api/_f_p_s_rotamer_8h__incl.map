@@ -1,7 +1,7 @@
 <map id="/home/runner/work/IMP.bff/IMP.bff/include/probe/FPSRotamer.h" name="/home/runner/work/IMP.bff/IMP.bff/include/probe/FPSRotamer.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="85,5,277,60"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,204,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,62,126,99,122,96,155,58"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="228,108,288,133"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="206,58,240,96,236,99,202,62"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="84,5,276,67"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,115,203,143"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,66,127,105,123,101,152,69"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="226,115,286,143"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="206,65,238,103,232,102,204,70"/>
 </map>

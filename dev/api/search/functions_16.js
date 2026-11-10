@@ -32,7 +32,7 @@ var searchData=
   ['write_5ffps_5fscreening_5fr_5ftable_29',['write_fps_screening_r_table',['../_f_p_s_export_8h.html#a2f9af9343f9ac6cf6687b31f2dc12f43',1,'FPSExport.h']]],
   ['write_5fmap_5ffeature_30',['write_map_feature',['../_path_map_8h.html#a722525fd3da6e15c6e1ef90844d2712f',1,'PathMap.h']]],
   ['write_5fmol2_31',['write_mol2',['../_structure_i_o_8h.html#af522c3074c9370f08da6be06471a7af8',1,'StructureIO.h']]],
-  ['write_5fmrc_32',['write_mrc',['../_density_grid_8h.html#a4b5b286d60a59a938081d526802f36e5',1,'write_mrc():&#160;DensityGrid.h'],['../class_density_grid.html#aa0fb135cd46869d8c0ee6db4a91861c8',1,'DensityGrid::write_mrc()']]],
+  ['write_5fmrc_32',['write_mrc',['../class_density_grid.html#aa0fb135cd46869d8c0ee6db4a91861c8',1,'DensityGrid::write_mrc()'],['../_density_grid_8h.html#a4b5b286d60a59a938081d526802f36e5',1,'write_mrc(const std::string &amp;path, const GridHeader &amp;header, const float *values, std::size_t n):&#160;DensityGrid.h']]],
   ['write_5fmrc_5fgrid_33',['write_mrc_grid',['../_structure_i_o_8h.html#a379b23594dd47b0c3bfb3137a70157cb',1,'StructureIO.h']]],
   ['write_5fopendx_34',['write_opendx',['../_structure_i_o_8h.html#ad4acb6672db7efe0956ba2f680352808',1,'StructureIO.h']]],
   ['write_5fopenmm_5frestraints_35',['write_openmm_restraints',['../_probe_accessible_volume_mean_distance_restraint_8h.html#a06e2178ccdcd12aea24515187d4c0678',1,'ProbeAccessibleVolumeMeanDistanceRestraint.h']]],

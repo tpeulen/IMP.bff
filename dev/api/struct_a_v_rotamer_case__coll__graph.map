@@ -1,17 +1,20 @@
 <map id="AVRotamerCase" name="AVRotamerCase">
-<area shape="rect" id="Node000001" title="One comparison: a structure, its positions, a library per position, the pairs." alt="" coords="56,688,249,753"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="132,135,210,200"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,202,114,249,76,310,39,381,12,457,8,488,11,518,20,549,33,578,68,631,107,675,103,678,64,634,28,580,15,550,6,519,3,488,7,455,34,379,71,308,110,246,144,199"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="82,456,260,521"/>
-<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="174,200,174,439,168,439,168,200"/>
-<area shape="rect" id="Node000007" href="$struct_a_v_rotamer_experiment.html" title="A measured distance a comparison is scored against." alt="" coords="217,307,410,432"/>
-<area shape="poly" id="edge8_Node000007_Node000002" title=" " alt="" coords="212,186,235,202,256,222,278,255,294,290,289,293,273,258,252,226,232,206,209,191"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="106,5,236,85"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="174,99,174,134,168,134,168,99"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="111,523,91,547,82,567,81,584,91,624,102,650,117,674,112,676,97,652,86,626,76,585,77,566,86,544,106,520"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="491,545,688,625"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="492,624,480,628,266,691,264,686,478,623,490,619"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="206,553,467,618"/>
-<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="294,620,211,680,208,676,291,616"/>
-<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="323,432,334,536,329,537,318,433"/>
+<area shape="rect" id="Node000001" title="One comparison: a structure, its positions, a library per position, the pairs." alt="" coords="5,778,196,851"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="207,144,283,216"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,204,185,221,163,242,107,311,70,370,45,435,22,520,17,553,17,586,28,652,50,712,74,763,69,764,45,714,23,653,12,586,12,552,17,519,40,433,66,367,103,308,159,239,181,217,209,200"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="99,520,274,592"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="206,214,190,242,179,275,172,309,166,380,170,447,178,503,172,503,164,447,161,380,166,309,174,273,185,239,209,209"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="231,381,379,471"/>
+<area shape="poly" id="edge7_Node000006_Node000002" title=" " alt="" coords="263,214,275,240,291,303,301,365,296,364,286,304,270,241,263,219"/>
+<area shape="rect" id="Node000008" href="$struct_a_v_rotamer_experiment.html" title="A measured distance a comparison is scored against." alt="" coords="417,356,608,496"/>
+<area shape="poly" id="edge10_Node000008_Node000002" title=" " alt="" coords="281,186,342,204,373,219,401,238,425,261,445,286,479,341,474,341,441,289,421,264,398,242,370,224,340,209,283,191"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="181,5,309,95"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="245,107,247,145,242,144,244,112"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="111,594,94,617,81,652,77,690,80,727,87,762,82,762,75,728,72,690,76,651,89,615,114,589"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="216,616,410,705"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="254,704,165,771,162,766,250,706"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="308,468,313,600,308,598,305,473"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="433,624,691,697"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="457,699,213,779,212,774,456,694"/>
+<area shape="poly" id="edge9_Node000007_Node000008" title=" " alt="" coords="529,493,554,609,549,607,526,497"/>
 </map>

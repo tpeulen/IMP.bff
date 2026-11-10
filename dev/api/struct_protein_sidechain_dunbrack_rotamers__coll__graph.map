@@ -1,5 +1,5 @@
 <map id="ProteinSidechainDunbrackRotamers" name="ProteinSidechainDunbrackRotamers">
-<area shape="rect" id="Node000001" title="The rotamers of one residue type at one backbone conformation." alt="" coords="5,163,205,357"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="27,5,184,71"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,71,108,146,103,146,103,71"/>
+<area shape="rect" id="Node000001" title="The rotamers of one residue type at one backbone conformation." alt="" coords="5,195,203,413"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="28,5,181,78"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,75,107,179,102,178,103,80"/>
 </map>

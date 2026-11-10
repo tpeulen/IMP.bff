@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['k_0',['k',['../struct_f_f_nonbonded.html#a34d4f2b4253d017e4fd51a9b3f66bf4e',1,'FFNonbonded::k'],['../struct_f_f_torsion_type.html#a63397f11f34779fec9592d02481f9f80',1,'FFTorsionType::k']]],
+  ['k_0',['k',['../struct_f_f_torsion_type.html#a63397f11f34779fec9592d02481f9f80',1,'FFTorsionType::k'],['../struct_f_f_nonbonded.html#a34d4f2b4253d017e4fd51a9b3f66bf4e',1,'FFNonbonded::k']]],
   ['k_5ffret_1',['k_fret',['../struct_f_r_e_t_pair_efficiencies.html#a011be80ca77e75473d9e3529ad3141cf',1,'FRETPairEfficiencies']]],
   ['k_5ftolerance_2',['k_tolerance',['../struct_f_p_s_mode_parameters.html#ac26cde2748a684eac15e4e6502c08370',1,'FPSModeParameters']]],
   ['kappa2_3',['kappa2',['../struct_f_r_e_t_pair_geometry.html#afaa5ee8f7e34c69cd4e9336aaafcdbe8',1,'FRETPairGeometry::kappa2'],['../struct_f_r_e_t_pair_efficiencies.html#ab8c7fc24eee04880fbc71079fd1b9812',1,'FRETPairEfficiencies::kappa2']]],
@@ -12,5 +12,5 @@ var searchData=
   ['kinetic_5fenergy_9',['kinetic_energy',['../struct_probe_simulation_trajectory.html#aaec45bb0f844b44a05ad92d065d7c8cf',1,'ProbeSimulationTrajectory']]],
   ['kmer_5ffallback_5fmin_5fhomologs_10',['kmer_fallback_min_homologs',['../class_consurf_options.html#ae1b22c81911acb596b069d17145d24f7',1,'ConsurfOptions']]],
   ['kmer_5fthreshold_11',['kmer_threshold',['../class_sequence_search_options.html#a004508a07c1469b25da7ca55c3cca30e',1,'SequenceSearchOptions']]],
-  ['kq_12',['kq',['../struct_residue_quenching.html#a5a8dc692ab69b37ba249558fc6fc3a50',1,'ResidueQuenching::kQ'],['../struct_p_e_t_reference.html#a8b0c4867a1c47f84479a3fd4e0727998',1,'PETReference::kQ']]]
+  ['kq_12',['kQ',['../struct_residue_quenching.html#a5a8dc692ab69b37ba249558fc6fc3a50',1,'ResidueQuenching::kQ'],['../struct_p_e_t_reference.html#a8b0c4867a1c47f84479a3fd4e0727998',1,'PETReference::kQ'],['../_photophysics_quenching_8h.html#abdc32089ff07cfd05abe2da4c92e4a09',1,'kQ:&#160;PhotophysicsQuenching.h']]]
 ];

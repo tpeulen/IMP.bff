@@ -5,7 +5,7 @@ var searchData=
   ['warmup_5fstat_5fsums_2',['warmup_stat_sums',['../struct_sample_result.html#a3c528121ac807a75584527038f822193',1,'SampleResult']]],
   ['warnings_3',['warnings',['../struct_sample_result.html#a559acb7b77ee476fd5303c69691ed29c',1,'SampleResult::warnings'],['../struct_f_p_s_validation.html#a590bc7ed3e1de471ecb8409bdeb34aca',1,'FPSValidation::warnings']]],
   ['wavelength_4',['wavelength',['../struct_spectrum.html#ad187ecd2b573ca1ce7ff062a210cfaba',1,'Spectrum']]],
-  ['weight_5',['weight',['../struct_labelizer_parameter.html#a01944a7516988ed9e4640311256991b2',1,'LabelizerParameter::weight'],['../struct_f_r_e_t_pair_efficiencies.html#a8f1428782022f3e401771eb02664892b',1,'FRETPairEfficiencies::weight'],['../struct_f_r_e_t_pair_geometry.html#aa8614242c2d3bdae7e899ca833432e80',1,'FRETPairGeometry::weight']]],
+  ['weight_5',['weight',['../struct_f_r_e_t_pair_geometry.html#aa8614242c2d3bdae7e899ca833432e80',1,'FRETPairGeometry::weight'],['../struct_f_r_e_t_pair_efficiencies.html#a8f1428782022f3e401771eb02664892b',1,'FRETPairEfficiencies::weight'],['../struct_labelizer_parameter.html#a01944a7516988ed9e4640311256991b2',1,'LabelizerParameter::weight']]],
   ['weight_5fcolumn_6',['weight_column',['../struct_s_m_l_m_c_s_v_options.html#af1f3e02d9f0e882e8fa1ea6becd55ba3',1,'SMLMCSVOptions']]],
   ['weighted_5flog_5flikelihood_7',['weighted_log_likelihood',['../struct_s_m_l_m_likelihood_result.html#abf1be8bf5f7814e77b781cd7264d4ae4',1,'SMLMLikelihoodResult']]],
   ['weighted_5fresiduals_8',['weighted_residuals',['../struct_poisson_histogram_fit.html#a2c5610480bfe639764885bc18d41ab0d',1,'PoissonHistogramFit']]],

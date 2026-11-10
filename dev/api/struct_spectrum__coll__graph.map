@@ -1,5 +1,5 @@
 <map id="Spectrum" name="Spectrum">
-<area shape="rect" id="Node000001" title="Excitation and emission on a shared wavelength grid." alt="" coords="5,163,199,268"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="23,5,181,71"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,71,105,146,99,146,99,71"/>
+<area shape="rect" id="Node000001" title="Excitation and emission on a shared wavelength grid." alt="" coords="5,195,196,312"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="24,5,178,78"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,75,103,179,98,178,99,80"/>
 </map>

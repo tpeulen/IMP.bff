@@ -1,13 +1,13 @@
 <map id="ObstacleAtoms" name="ObstacleAtoms">
-<area shape="rect" id="Node000001" title="The obstacles a quenching model needs of a structure, named." alt="" coords="177,420,370,525"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,263,184,328"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,327,140,361,169,394,183,408,180,412,165,398,135,364,112,330"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="55,135,134,200"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="97,200,97,246,92,246,92,200"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="29,5,160,85"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="97,99,97,134,92,134,92,99"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="208,263,339,328"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="276,328,276,404,271,404,271,328"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="363,263,520,328"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="413,330,336,410,332,406,409,326"/>
+<area shape="rect" id="Node000001" title="The obstacles a quenching model needs of a structure, named." alt="" coords="172,479,363,596"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,289,180,362"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,359,129,407,160,454,172,468,167,468,156,457,125,410,105,364"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="55,144,130,216"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="93,213,95,273,90,272,92,219"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="29,5,156,95"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="93,107,95,144,90,144,92,112"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="204,289,331,362"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="269,359,270,464,265,462,266,363"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="354,289,508,362"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="410,360,340,457,331,468,328,464,336,454,405,363"/>
 </map>

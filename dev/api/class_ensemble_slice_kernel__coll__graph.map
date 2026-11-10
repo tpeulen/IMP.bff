@@ -1,21 +1,20 @@
 <map id="EnsembleSliceKernel" name="EnsembleSliceKernel">
-<area shape="rect" id="Node000001" title="The ensemble slice sampler (Karamanis &amp; Beutler 2021; what zeus runs), differential directions." alt="" coords="259,1083,436,1388"/>
-<area shape="rect" id="Node000002" href="$classinternal_1_1_walker_kernel_base.html" title="Walkers, their log densities and blobs, and the target they are evaluated on." alt="" coords="253,748,442,1033"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="350,1047,350,1083,345,1083,345,1047"/>
-<area shape="rect" id="Node000003" href="$class_sampler_kernel.html" title="One transition of every walker a kernel holds." alt="" coords="5,405,151,671"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="161,663,165,669,255,780,250,784,161,672,156,666"/>
-<area shape="rect" id="Node000004" href="$struct_sampling_target.html" title="What is sampled." alt="" coords="175,465,341,611"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="279,610,310,731,305,733,274,612"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="314,263,471,328"/>
-<area shape="poly" id="edge10_Node000002_Node000005" title=" " alt="" coords="394,328,387,498,371,724,371,732,365,731,366,724,382,497,389,328"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="343,330,320,354,294,400,277,450,272,449,289,398,316,350,339,326"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="527,498,693,578"/>
-<area shape="poly" id="edge9_Node000009_Node000005" title=" " alt="" coords="430,326,509,404,574,483,570,486,505,407,427,330"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="111,263,290,328"/>
-<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="211,327,240,448,234,450,206,329"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="161,135,240,200"/>
-<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="203,200,203,246,198,246,198,200"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="135,5,266,85"/>
-<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="203,99,203,134,198,134,198,99"/>
-<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="583,580,454,751,450,748,579,577"/>
+<area shape="rect" id="Node000001" title="The ensemble slice sampler (Karamanis &amp; Beutler 2021; what zeus runs), differential directions." alt="" coords="176,1215,351,1556"/>
+<area shape="rect" id="Node000002" href="$classinternal_1_1_walker_kernel_base.html" title="Walkers, their log densities and blobs, and the target they are evaluated on." alt="" coords="171,848,356,1166"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="264,1178,266,1216,261,1215,263,1183"/>
+<area shape="rect" id="Node000003" href="$class_sampler_kernel.html" title="One transition of every walker a kernel holds." alt="" coords="5,457,148,753"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="151,763,181,823,192,848,187,848,176,825,151,768"/>
+<area shape="rect" id="Node000004" href="$struct_sampling_target.html" title="What is sampled." alt="" coords="337,524,500,686"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="388,683,333,834,328,832,386,688"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="137,289,291,362"/>
+<area shape="poly" id="edge9_Node000002_Node000005" title=" " alt="" coords="213,359,211,457,205,605,205,670,211,752,223,832,218,831,206,753,200,670,200,605,206,457,212,364"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="243,359,320,455,358,509,353,510,316,459,244,364"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="331,289,506,362"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="419,359,421,508,416,507,418,364"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="380,144,456,216"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="419,213,421,273,416,272,418,219"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="354,5,482,95"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="419,107,421,145,416,144,418,112"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="524,560,688,650"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="583,647,552,701,514,754,443,836,370,910,366,907,439,832,509,751,547,698,580,652"/>
 </map>

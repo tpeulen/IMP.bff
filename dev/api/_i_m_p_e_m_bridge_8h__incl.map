@@ -1,9 +1,9 @@
 <map id="/home/runner/work/IMP.bff/IMP.bff/include/imp/IMPEMBridge.h" name="/home/runner/work/IMP.bff/IMP.bff/include/imp/IMPEMBridge.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="152,5,403,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,152,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,48,121,91,119,86,229,43"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="177,93,378,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="280,46,280,79,275,79,275,46"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="403,93,568,119"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="328,43,443,86,441,91,326,48"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="150,5,400,50"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,151,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,51,125,94,123,89,220,51"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="175,98,376,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="277,48,278,84,273,81,273,52"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="400,98,564,126"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="331,48,438,92,432,92,330,53"/>
 </map>

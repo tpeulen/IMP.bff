@@ -1,9 +1,9 @@
 <map id="SamplerConfigurationError" name="SamplerConfigurationError">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,345,216,411"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="46,232,175,297"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,311,113,345,108,345,108,311"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="55,119,166,184"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="113,198,113,232,108,232,108,198"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="57,5,164,71"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="113,84,113,119,108,119,108,84"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,366,214,439"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="47,246,173,318"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,331,112,367,107,365,108,336"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="56,126,164,198"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="111,211,112,247,107,245,109,216"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="58,5,161,78"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="110,90,112,126,107,125,109,95"/>
 </map>

@@ -8,7 +8,7 @@ var searchData=
   ['goal_5fnode_5',['goal_node',['../struct_r_r_t_tree.html#a0fd44b2e3d4392e330840963076ef198',1,'RRTTree']]],
   ['grade_6',['grade',['../struct_labelizer_conservation.html#ae901d4773bc3dc9953706c8537203208',1,'LabelizerConservation']]],
   ['grades_7',['grades',['../class_consurf_result.html#a95382b45cb9d1c27141ec2ab7de7b890',1,'ConsurfResult']]],
-  ['gradient_8',['gradient',['../struct_s_m_l_m_gaussian_overlap_result.html#abb3a86230fb5b33417978d0502928631',1,'SMLMGaussianOverlapResult::gradient'],['../struct_s_m_l_m_score_result.html#aeca797e0cabca788b3c3905a4793958b',1,'SMLMScoreResult::gradient']]],
+  ['gradient_8',['gradient',['../struct_inference_score.html#a262a8d7da2b77f9737ed249d4779b53c',1,'InferenceScore::gradient'],['../struct_s_m_l_m_score_result.html#aeca797e0cabca788b3c3905a4793958b',1,'SMLMScoreResult::gradient'],['../struct_s_m_l_m_gaussian_overlap_result.html#abb3a86230fb5b33417978d0502928631',1,'SMLMGaussianOverlapResult::gradient']]],
   ['gradient_5fangle_9',['gradient_angle',['../class_max_ent_solution.html#a9a94ffc9885341bf20b030ab66336066',1,'MaxEntSolution']]],
   ['grid_5fa_10',['grid_a',['../struct_probe_rotamer_drot_encoding.html#aeffef57b39b8f79765074f92ce0860ac',1,'ProbeRotamerDrotEncoding']]],
   ['grid_5fdeg_11',['grid_deg',['../struct_probe_rotamer_drot_encoding.html#a5209a5fec42b8907471d48b55148cd52',1,'ProbeRotamerDrotEncoding']]],

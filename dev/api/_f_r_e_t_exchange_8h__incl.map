@@ -1,9 +1,9 @@
 <map id="/home/runner/work/IMP.bff/IMP.bff/include/fret/FRETExchange.h" name="/home/runner/work/IMP.bff/IMP.bff/include/fret/FRETExchange.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="156,5,415,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,152,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="237,48,123,91,121,86,235,43"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="176,93,395,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="288,46,288,79,283,79,283,46"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="419,93,482,119"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="326,43,415,85,413,90,324,48"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="154,5,412,50"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,151,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,51,126,94,124,89,226,51"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="175,98,392,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="285,48,286,84,281,81,281,52"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="416,98,478,126"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="327,48,410,91,405,91,326,53"/>
 </map>

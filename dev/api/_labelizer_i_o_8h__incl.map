@@ -1,7 +1,7 @@
 <map id="/home/runner/work/IMP.bff/IMP.bff/include/fret/LabelizerIO.h" name="/home/runner/work/IMP.bff/IMP.bff/include/fret/LabelizerIO.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="109,5,345,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,207,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,48,137,88,134,84,197,43"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="231,93,469,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="258,43,322,84,319,88,256,48"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="109,5,344,50"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,98,206,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,50,139,91,136,87,192,51"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="230,98,466,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="259,48,319,89,313,89,258,53"/>
 </map>

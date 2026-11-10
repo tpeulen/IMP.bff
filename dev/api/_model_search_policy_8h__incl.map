@@ -1,15 +1,15 @@
 <map id="/home/runner/work/IMP.bff/IMP.bff/include/search/ModelSearchPolicy.h" name="/home/runner/work/IMP.bff/IMP.bff/include/search/ModelSearchPolicy.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="487,5,679,60"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,152,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="487,53,160,108,159,103,486,48"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="176,108,395,133"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="493,63,339,107,337,102,491,58"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="419,108,605,133"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="563,62,532,99,528,96,559,58"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="629,108,680,133"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="607,58,638,96,634,99,603,62"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="704,108,763,133"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="630,58,702,99,700,103,627,62"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="787,108,850,133"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="656,58,775,101,773,106,654,63"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="484,5,675,67"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,115,151,143"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="484,57,166,114,165,109,483,52"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="175,115,392,143"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="486,66,341,113,340,107,481,67"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="416,115,601,143"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="558,66,530,105,527,100,553,69"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="625,115,675,143"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="604,65,633,103,628,102,602,70"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="700,115,758,143"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="630,65,697,107,691,106,628,70"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="782,115,844,143"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="658,65,770,110,765,110,657,70"/>
 </map>

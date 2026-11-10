@@ -1,14 +1,14 @@
 <map id="PathMapTile" name="PathMapTile">
-<area shape="rect" id="Node000001" title=" " alt="" coords="81,465,274,671"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="276,543,293,552,301,568,298,578,291,586,287,582,293,576,295,568,290,556,273,548"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,323,160,403"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="103,402,125,449,120,451,99,404"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="43,165,122,230"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="85,230,85,307,80,307,80,230"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="17,5,148,85"/>
-<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="85,99,85,164,80,164,80,99"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="184,323,363,403"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="257,404,235,451,230,449,252,402"/>
-<area shape="rect" id="Node000006" href="$class_path_map_tile_edge.html" title=" " alt="" coords="177,135,370,260"/>
-<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="276,260,276,306,271,306,271,260"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="79,519,270,747"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="270,605,289,615,297,633,294,644,287,653,284,649,289,642,291,633,285,618,270,610"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,356,157,446"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="99,443,125,503,120,503,98,448"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="43,178,119,250"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="81,247,84,340,79,339,81,252"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="17,5,145,95"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="81,107,84,178,79,178,81,112"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="180,356,355,446"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="252,443,229,504,224,502,249,448"/>
+<area shape="rect" id="Node000006" href="$class_path_map_tile_edge.html" title=" " alt="" coords="172,144,363,283"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="269,281,270,340,265,339,267,286"/>
 </map>

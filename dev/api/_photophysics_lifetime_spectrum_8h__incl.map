@@ -1,13 +1,13 @@
 <map id="/home/runner/work/IMP.bff/IMP.bff/include/spectroscopy/PhotophysicsLifetimeSpectrum.h" name="/home/runner/work/IMP.bff/IMP.bff/include/spectroscopy/PhotophysicsLifetimeSpectrum.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="424,5,664,60"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,115,152,141"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="424,59,165,111,144,115,143,110,163,105,423,54"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="177,108,410,148"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="474,63,357,106,356,101,473,58"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="435,115,653,141"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="547,60,547,101,541,101,541,60"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="677,115,736,141"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="591,58,676,106,674,111,588,62"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="761,115,823,141"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="620,58,749,106,754,107,752,112,747,110,618,63"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="421,5,660,67"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,124,151,151"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="421,64,164,118,145,122,144,117,163,112,420,58"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="175,115,408,160"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="467,67,361,111,359,106,462,68"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="432,124,649,151"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="543,66,543,109,539,106,539,69"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="673,124,731,151"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="591,65,670,115,665,115,589,70"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="755,124,817,151"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="625,65,744,113,750,117,744,116,742,117,624,70"/>
 </map>

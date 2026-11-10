@@ -19,5 +19,6 @@ var searchData=
   ['griddiffusionresult_16',['GridDiffusionResult',['../class_grid_diffusion_result.html',1,'']]],
   ['griddiffusionsolver_17',['GridDiffusionSolver',['../class_grid_diffusion_solver.html',1,'']]],
   ['gridheader_18',['GridHeader',['../class_grid_header.html',1,'']]],
-  ['gridsphere_19',['GridSphere',['../class_grid_sphere.html',1,'']]]
+  ['gridlifetime_19',['GridLifetime',['../class_grid_lifetime.html',1,'']]],
+  ['gridsphere_20',['GridSphere',['../class_grid_sphere.html',1,'']]]
 ];

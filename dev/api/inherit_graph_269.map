@@ -1,3 +1,9 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$class_tridiagonal_eigen_system.html" title="The eigen&#45;decomposition of a real symmetric tridiagonal matrix." alt="" coords="5,5,184,31"/>
+<area shape="rect" id="Node000000" href="$class_states.html" title="A weighted set of states of one label." alt="" coords="5,32,68,60"/>
+<area shape="rect" id="Node000001" href="$class_probe_accessible_volume.html" title="States enumerated as a voxel grid, plus the grid itself." alt="" coords="117,5,293,33"/>
+<area shape="poly" id="edge54_Node000000_Node000001" title=" " alt="" coords="82,36,119,32,114,34,84,41"/>
+<area shape="rect" id="Node000003" href="$class_probe_rotamer_ensemble.html" title="A rotamer library placed and screened at one labelling site." alt="" coords="116,57,294,85"/>
+<area shape="poly" id="edge56_Node000000_Node000003" title=" " alt="" coords="83,50,118,57,113,58,83,55"/>
+<area shape="rect" id="Node000002" href="$class_a_c_v.html" title="Accessible contact volume: the cloud split by proximity to a surface." alt="" coords="342,5,390,33"/>
+<area shape="poly" id="edge55_Node000001_Node000002" title=" " alt="" coords="308,17,344,19,339,19,309,22"/>
 </map>

@@ -1,9 +1,9 @@
 <map id="InferenceJunctionTreeEdge" name="InferenceJunctionTreeEdge">
-<area shape="rect" id="Node000001" title="One edge of a junction (clique) tree, joining two maximal cliques." alt="" coords="5,391,192,476"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="9,263,188,328"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,328,101,374,96,374,96,328"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="59,135,138,200"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="101,200,101,246,96,246,96,200"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="33,5,164,85"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="101,99,101,134,96,134,96,99"/>
+<area shape="rect" id="Node000001" title="One edge of a junction (clique) tree, joining two maximal cliques." alt="" coords="5,435,188,529"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="9,289,184,362"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,359,99,418,94,417,95,364"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="59,144,134,216"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="97,213,99,273,94,272,96,219"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="33,5,160,95"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="97,107,99,144,94,144,96,112"/>
 </map>

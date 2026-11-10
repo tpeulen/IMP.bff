@@ -1,13 +1,13 @@
 <map id="/home/runner/work/IMP.bff/IMP.bff/include/bayesian/SamplerWarmup.h" name="/home/runner/work/IMP.bff/IMP.bff/include/bayesian/SamplerWarmup.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="221,5,413,60"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,152,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="245,63,124,106,123,101,244,58"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="176,108,261,133"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="289,62,244,101,241,97,285,58"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="286,108,349,133"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="320,60,320,94,315,94,315,60"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="373,108,443,133"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="347,58,388,96,384,100,343,62"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="467,108,530,133"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="374,58,463,100,461,105,372,62"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="218,5,410,67"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,115,151,143"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="238,68,127,112,125,107,233,67"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="174,115,259,143"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="284,66,243,106,240,102,279,68"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="283,115,345,143"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="316,66,316,101,312,98,312,69"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="369,115,438,143"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="345,65,382,104,377,103,343,70"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="462,115,524,143"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="374,65,456,108,451,108,373,70"/>
 </map>

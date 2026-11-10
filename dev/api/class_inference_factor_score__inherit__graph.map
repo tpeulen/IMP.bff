@@ -1,0 +1,7 @@
+<map id="InferenceFactorScore" name="InferenceFactorScore">
+<area shape="rect" id="Node000001" title="The numbers of a factor: what makes a structural factor evaluable (PRD&#45;155)." alt="" coords="5,126,194,287"/>
+<area shape="rect" id="Node000003" href="$class_inference_function_score.html" title="A score from plain functions, for C++ callers that build a graph from closures." alt="" coords="5,335,194,475"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="101,300,102,336,97,335,99,305"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="58,5,142,78"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="100,90,102,126,97,125,99,95"/>
+</map>

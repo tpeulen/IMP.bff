@@ -1,9 +1,9 @@
 <map id="/home/runner/work/IMP.bff/IMP.bff/include/fret/FRETLandscapeGrid.h" name="/home/runner/work/IMP.bff/IMP.bff/include/fret/FRETLandscapeGrid.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="159,5,412,60"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,152,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,63,120,105,118,100,221,58"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="176,108,395,133"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="288,60,288,94,283,94,283,60"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="419,108,482,133"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="337,58,418,99,415,104,335,62"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="157,5,410,67"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,115,151,143"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="218,67,122,111,120,106,212,68"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="175,115,392,143"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="285,66,286,101,281,98,281,69"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="416,115,478,143"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="339,65,413,107,408,107,337,70"/>
 </map>

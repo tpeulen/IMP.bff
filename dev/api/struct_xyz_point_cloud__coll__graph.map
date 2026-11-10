@@ -1,5 +1,5 @@
 <map id="XyzPointCloud" name="XyzPointCloud">
-<area shape="rect" id="Node000001" title="A dye cloud read from an .xyz file, with what the file says about itself." alt="" coords="15,148,153,213"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,163,71"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,71,87,131,81,131,81,71"/>
+<area shape="rect" id="Node000001" title="A dye cloud read from an .xyz file, with what the file says about itself." alt="" coords="15,173,150,245"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,159,78"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="84,75,85,156,80,156,80,79"/>
 </map>

@@ -10,7 +10,7 @@ var searchData=
   ['has_5funcertainty_7',['has_uncertainty',['../struct_docking_spread.html#a6b179b427af64e56ca198d821a5880c0',1,'DockingSpread']]],
   ['has_5funit_5fcell_8',['has_unit_cell',['../struct_d_c_d_header.html#a445fb9049f98506c10a25db65d692f44',1,'DCDHeader']]],
   ['header_5f_9',['header_',['../class_density_grid.html#a372fc477ed101d7abd0ddfc5e63bbad5',1,'DensityGrid']]],
-  ['hetatm_10',['hetatm',['../struct_selection_atom.html#a21535043f4aa75d883929cf4a0f000bd',1,'SelectionAtom']]],
+  ['hetatm_10',['hetatm',['../struct_p_d_b_atom_record.html#a1b24c147e199493e3904f36cf02c9531',1,'PDBAtomRecord::hetatm'],['../struct_selection_atom.html#a21535043f4aa75d883929cf4a0f000bd',1,'SelectionAtom::hetatm']]],
   ['hi_11',['hi',['../struct_bayesian_logit_transform.html#af4d4b46e1bfa7daeb534dc950a651672',1,'BayesianLogitTransform']]],
   ['hidden_5flayer_5fsizes_12',['hidden_layer_sizes',['../class_neural_net_train_options.html#a84b0c3004d5a3e9ebb98f4dc063f0da3',1,'NeuralNetTrainOptions']]],
   ['hist_13',['hist',['../struct_kappa2_distribution.html#ad2206d57244edfb931855dd67de17ec3',1,'Kappa2Distribution']]],

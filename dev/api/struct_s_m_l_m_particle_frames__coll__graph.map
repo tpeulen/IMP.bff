@@ -1,7 +1,7 @@
 <map id="SMLMParticleFrames" name="SMLMParticleFrames">
-<area shape="rect" id="Node000001" title="Per&#45;particle source&#45;to&#45;reference frames and measured shape diagnostics." alt="" coords="59,163,253,228"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,136,71"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="67,71,65,105,68,122,74,137,83,150,79,153,70,140,63,123,60,105,61,71"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="164,5,321,71"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="240,72,231,106,216,140,207,152,203,149,211,137,226,104,235,70"/>
+<area shape="rect" id="Node000001" title="Per&#45;particle source&#45;to&#45;reference frames and measured shape diagnostics." alt="" coords="60,195,251,268"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,132,78"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="62,75,61,123,64,148,72,170,81,183,75,183,68,173,59,149,55,124,60,80"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="166,5,320,78"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="242,75,235,124,216,173,209,184,205,180,212,170,230,123,239,80"/>
 </map>
