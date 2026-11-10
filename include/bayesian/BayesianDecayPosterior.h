@@ -196,15 +196,103 @@ inline double bayesian_decay_log_likelihood(const BayesianDecayExperiment& f, co
     return ll;
 }
 
+/**
+ * \brief A weighted sum of the distance distribution, `f = sum_j p_j w_j`, with its exact
+ *        derivatives in the free coordinates of the distribution (PRD-155).
+ *
+ * `p = softmax(spl @ Q z)`, so with `M = spl @ Q` and `g_j = p_j (w_j - f)`:
+ *
+ *     df/dz      = M' g
+ *     d2f/dz dz' = M' diag(g) M - (M'g)(M'p)' - (M'p)(M'g)'
+ *
+ * Only the block of `c` is non-zero; `dz`, `d2z` hold that block (size `nz`, `nz x nz`)
+ * and `off` is its offset in theta. The mean-R/R0 tilt and the observations both use it.
+ */
+struct BayesianDecayWeightedSum {
+    double f = 0.0;
+    std::size_t off = 0;
+    std::vector<double> dz, d2z;
+};
+
+inline BayesianDecayWeightedSum bayesian_decay_weighted_sum(const BayesianDecayExperiment& f, const BayesianDecayTensors& e,
+                                                            const std::vector<double>& th, const std::vector<double>& w,
+                                                            bool want_hessian = true) {
+    BayesianDecayWeightedSum S;
+    const std::vector<double> p = bayesian_decay_distribution(e, bayesian_decay_unpack(f, th));
+    const BayesianDecayVariableInfo vc = bayesian_decay_variable_info(f, "c");
+    const BayesianDecayArray& Q = f["Q_c"];
+    const std::size_t nR = p.size(), nc = e.spl->shape[1], nz = Q.shape[1];
+    if (w.size() != nR) throw std::invalid_argument("bayesian_decay_weighted_sum: one weight per grid point");
+    S.off = vc.off;
+    std::vector<double> M(nR * nz, 0.0);                      // spl @ Q, so u = M z
+    for (std::size_t j = 0; j < nR; ++j) for (std::size_t a = 0; a < nc; ++a) {
+        const double s_ = e.spl->d[j * nc + a];
+        if (s_ != 0.0) for (std::size_t b = 0; b < nz; ++b) M[j * nz + b] += s_ * Q.d[a * nz + b];
+    }
+    double fv = 0.0;
+    for (std::size_t j = 0; j < nR; ++j) fv += p[j] * w[j];
+    S.f = fv;
+    std::vector<double> gj(nR), P(nz, 0.0);
+    S.dz.assign(nz, 0.0);
+    for (std::size_t j = 0; j < nR; ++j) gj[j] = p[j] * (w[j] - fv);
+    for (std::size_t j = 0; j < nR; ++j) for (std::size_t b = 0; b < nz; ++b) {
+        S.dz[b] += gj[j] * M[j * nz + b];
+        P[b] += p[j] * M[j * nz + b];
+    }
+    if (want_hessian) {
+        std::vector<double> W(nz * nz, 0.0);                  // M' diag(g) M
+        for (std::size_t j = 0; j < nR; ++j) {
+            if (gj[j] == 0.0) continue;
+            for (std::size_t a = 0; a < nz; ++a) {
+                const double t = gj[j] * M[j * nz + a];
+                for (std::size_t b = 0; b < nz; ++b) W[a * nz + b] += t * M[j * nz + b];
+            }
+        }
+        S.d2z.assign(nz * nz, 0.0);
+        for (std::size_t a = 0; a < nz; ++a) for (std::size_t b = 0; b < nz; ++b)
+            S.d2z[a * nz + b] = W[a * nz + b] - S.dz[a] * P[b] - P[a] * S.dz[b];
+    }
+    return S;
+}
+
+//! The observations' log-likelihood (PRD-155), sum over `f.observations` of
+//! `-(f_k - value_k)^2 / (2 sigma_k^2) - log(sigma_k sqrt(2 pi))`. With `grad` (size dim,
+//! added to) and `A` (dim x dim, added to) also its gradient and its expected
+//! information `dfk dfk' / sigma_k^2` -- the Fisher information of a Gaussian
+//! measurement, the same kind of matrix scoring uses for the counts.
+inline double bayesian_decay_log_observations(const BayesianDecayExperiment& f, const BayesianDecayTensors& e,
+                                              const std::vector<double>& th, double* grad = nullptr, double* A = nullptr) {
+    if (f.observations.empty()) return 0.0;
+    const double half_log_2pi = 0.5 * std::log(2.0 * 3.14159265358979323846);
+    const std::size_t dim = f.dim;
+    double lo = 0.0;
+    for (const BayesianDecayObservation& o : f.observations) {
+        const BayesianDecayWeightedSum S = bayesian_decay_weighted_sum(f, e, th, o.weights, false);
+        const double r = (S.f - o.value) / o.sigma;
+        lo += -0.5 * r * r - std::log(o.sigma) - half_log_2pi;
+        const std::size_t nz = S.dz.size();
+        if (grad) for (std::size_t b = 0; b < nz; ++b) grad[S.off + b] += -(r / o.sigma) * S.dz[b];
+        if (A) {
+            const double is2 = 1.0 / (o.sigma * o.sigma);
+            for (std::size_t a = 0; a < nz; ++a) for (std::size_t b = 0; b < nz; ++b)
+                A[(S.off + a) * dim + S.off + b] += is2 * S.dz[a] * S.dz[b];
+        }
+    }
+    return lo;
+}
+
 inline double bayesian_decay_log_posterior(const BayesianDecayExperiment& f, const BayesianDecayTensors& e, const std::vector<double>& th) {
     const BayesianDecayValues v = bayesian_decay_unpack(f, th);
-    return bayesian_decay_log_likelihood(f, bayesian_decay_expected_counts(f, e, v)) + bayesian_decay_log_prior(f, th, false).lp;
+    return bayesian_decay_log_likelihood(f, bayesian_decay_expected_counts(f, e, v)) + bayesian_decay_log_prior(f, th, false).lp
+           + bayesian_decay_log_observations(f, e, th);
 }
 
 //! everything one scoring step needs at theta
 struct BayesianDecayPoint {
-    std::vector<double> theta, lam, J, grad, A;   // grad of log posterior; A = J'WJ - H_prior
-    double logpost = 0.0, logprior = 0.0;
+    std::vector<double> theta, lam, J, grad, A;   // grad of log posterior; A = J'WJ - H_prior (+ observations' information)
+    //! logpost = loglik + logprior + logobs: the counts' Poisson log-likelihood, the log prior, and
+    //! the external observations' log-likelihood (PRD-155; 0 without observations)
+    double logpost = 0.0, logprior = 0.0, loglik = 0.0, logobs = 0.0;
 };
 
 inline BayesianDecayPoint bayesian_decay_evaluate(const BayesianDecayExperiment& f, const BayesianDecayTensors& e, const std::vector<double>& th) {
@@ -217,7 +305,8 @@ inline BayesianDecayPoint bayesian_decay_evaluate(const BayesianDecayExperiment&
     p.lam = bayesian_decay_expected_counts(f, e, v, &p.J, &Ja, &a2, &cols);
     const BayesianDecayPrior P = bayesian_decay_log_prior(f, th, true);
     p.logprior = P.lp;
-    p.logpost = bayesian_decay_log_likelihood(f, p.lam) + P.lp;
+    p.loglik = bayesian_decay_log_likelihood(f, p.lam);
+    p.logpost = p.loglik + P.lp;
     //: the likelihood's gradient and Fisher matrix through tttrlib::poisson_score_blocks:
     //: each histogram on its live columns, the histograms on the thread pool
     const BayesianDecayArray& y = f["y"], & mask = f["mask"];
@@ -228,6 +317,10 @@ inline BayesianDecayPoint bayesian_decay_evaluate(const BayesianDecayExperiment&
                                   [](std::size_t n, const std::function<void(std::size_t)>& body) { internal::bayesian_parallel_for(n, body); });
     for (std::size_t a = 0; a < dim; ++a) p.grad[a] += P.g[a];
     for (std::size_t k = 0; k < dim * dim; ++k) p.A[k] -= P.H[k];
+    if (!f.observations.empty()) {
+        p.logobs = bayesian_decay_log_observations(f, e, th, p.grad.data(), p.A.data());
+        p.logpost += p.logobs;
+    }
     return p;
 }
 
@@ -257,7 +350,8 @@ inline double bayesian_decay_log_posterior_and_gradient(const BayesianDecayExper
         for (std::size_t c = 0; c < dim; ++c) grad[c] += u * row[c];
     }
     for (std::size_t c = 0; c < dim; ++c) grad[c] += P.g[c];
-    return ll + P.lp;
+    const double lo = bayesian_decay_log_observations(f, e, th, grad.data());
+    return ll + P.lp + lo;
 }
 
 //! the Laplace evidence at a point: log p(y | lambda) = log p(y, theta*) + d/2 log 2 pi - 1/2 log det A
@@ -344,46 +438,20 @@ struct BayesianDecayTilt {
 inline BayesianDecayTilt bayesian_decay_mean_rel_tilt(const BayesianDecayExperiment& f, const BayesianDecayTensors& e,
                                                       const std::vector<double>& th, double power, double eps,
                                                       bool want_hessian = true) {
-    const std::size_t dim = f.dim;
+    //: the summary is the weighted sum with weights rel (PRD-155 factored it out; same arithmetic)
+    const BayesianDecayWeightedSum W = bayesian_decay_weighted_sum(f, e, th, f["rel"].d, want_hessian);
+    const std::size_t dim = f.dim, nz = W.dz.size(), off = W.off;
     BayesianDecayTilt T;
     T.grad.assign(dim, 0.0);
     if (want_hessian) T.hess.assign(dim * dim, 0.0);
-    const std::vector<double> p = bayesian_decay_distribution(e, bayesian_decay_unpack(f, th));
-    const std::vector<double>& rel = f["rel"].d;
-    const BayesianDecayVariableInfo vc = bayesian_decay_variable_info(f, "c");
-    const BayesianDecayArray& Q = f["Q_c"];
-    const std::size_t nR = p.size(), nc = e.spl->shape[1], nz = Q.shape[1];
-    std::vector<double> M(nR * nz, 0.0);                      // spl @ Q, so u = M z
-    for (std::size_t j = 0; j < nR; ++j) for (std::size_t a = 0; a < nc; ++a) {
-        const double s_ = e.spl->d[j * nc + a];
-        if (s_ != 0.0) for (std::size_t b = 0; b < nz; ++b) M[j * nz + b] += s_ * Q.d[a * nz + b];
-    }
-    double fv = 0.0;
-    for (std::size_t j = 0; j < nR; ++j) fv += p[j] * rel[j];
-    T.f = fv;
-    std::vector<double> gj(nR), G(nz, 0.0), P(nz, 0.0);
-    for (std::size_t j = 0; j < nR; ++j) gj[j] = p[j] * (rel[j] - fv);
-    for (std::size_t j = 0; j < nR; ++j) for (std::size_t b = 0; b < nz; ++b) {
-        G[b] += gj[j] * M[j * nz + b];
-        P[b] += p[j] * M[j * nz + b];
-    }
-    const double d = fv + eps, k1 = power / d;
+    T.f = W.f;
+    const double d = W.f + eps, k1 = power / d;
     T.value = power * std::log(d);
-    for (std::size_t b = 0; b < nz; ++b) T.grad[vc.off + b] = k1 * G[b];
+    for (std::size_t b = 0; b < nz; ++b) T.grad[off + b] = k1 * W.dz[b];
     if (want_hessian) {
-        std::vector<double> W(nz * nz, 0.0);                  // M' diag(g) M
-        for (std::size_t j = 0; j < nR; ++j) {
-            if (gj[j] == 0.0) continue;
-            for (std::size_t a = 0; a < nz; ++a) {
-                const double t = gj[j] * M[j * nz + a];
-                for (std::size_t b = 0; b < nz; ++b) W[a * nz + b] += t * M[j * nz + b];
-            }
-        }
         const double k2 = power / (d * d);
-        for (std::size_t a = 0; a < nz; ++a) for (std::size_t b = 0; b < nz; ++b) {
-            const double d2f = W[a * nz + b] - G[a] * P[b] - P[a] * G[b];
-            T.hess[(vc.off + a) * dim + vc.off + b] = k1 * d2f - k2 * G[a] * G[b];
-        }
+        for (std::size_t a = 0; a < nz; ++a) for (std::size_t b = 0; b < nz; ++b)
+            T.hess[(off + a) * dim + off + b] = k1 * W.d2z[a * nz + b] - k2 * W.dz[a] * W.dz[b];
     }
     return T;
 }

@@ -134,14 +134,37 @@ struct BayesianResponseBasis {
 //! How the shifted response and the kernel columns are kept non-negative (PRD-148).
 enum class BayesianResponseFloor {
   hard,  //!< clamp at zero (the forward model gated against the torch prototype)
-  none   //!< no floor; for diagnosis only (PRD-148 step 1: NUTS diverges without it as well)
+  none,  //!< no floor; for diagnosis only (PRD-148 step 1: NUTS diverges without it as well)
+  //! `s log(1 + exp(t / s))`, smooth, with derivative `1 / (1 + exp(-t / s))` (PRD-155;
+  //! tpeulen 2026-11-10). At zero shift the FFT returns the bins outside the pulse as
+  //! +-1e-20, so the hard clamp's choice of which to cut, and its zero derivative there,
+  //! is round-off; softplus has one smooth answer. Its price is a positive offset of
+  //! about `s ln 2` per bin where the response is zero, before the unit sum.
+  softplus
 };
+
+//! softplus with scale `s`, stable for both signs, and its derivative (the logistic function)
+inline double bayesian_softplus(double t, double s) {
+  const double x = t / s;
+  return x > 0.0 ? t + s * std::log1p(std::exp(-x)) : s * std::log1p(std::exp(x));
+}
+inline double bayesian_softplus_slope(double t, double s) {
+  const double x = t / s;
+  if (x >= 0.0) return 1.0 / (1.0 + std::exp(-x));
+  const double ex = std::exp(x);
+  return ex / (1.0 + ex);
+}
 
 //! What `bayesian_response_basis` does besides the defaults.
 struct BayesianResponseOptions {
   double soft = 0.05;                   //!< the soft floor of the background removal, in units of `1e-4 * max`
   bool clamp = true;                    //!< floor the shifted response (false: no floor there; the columns keep `floor`)
   BayesianResponseFloor floor = BayesianResponseFloor::hard;  //!< which floor (PRD-148)
+  //! softplus floor's scale, relative to the total: `s = softplus_scale * sum(measured)` on the
+  //! shifted response (in counts) and `s = softplus_scale` on the kernel columns (whose sum is
+  //! that of a unit-sum response times a kernel's). Fixed by the data, never by the
+  //! parameters, so the tangents stay exact.
+  double softplus_scale = 1e-6;
   bool clamp_in_tangent = true;         //!< mask the tangents where the clamp bites; false only to test that it matters
   //! false for a response that carries no background (an analytic one): step 1 is
   //! skipped, so the soft floor does not touch its tails, and d B / d b is zero
@@ -205,6 +228,12 @@ inline BayesianResponseBasis bayesian_response_basis(const BayesianPeriodicKerne
   std::vector<double> y(n), dy_b(tangents ? n : 0), dy_s(tangents ? n : 0);
   bayesian_irfft(T.data(), n, y.data());
   const BayesianResponseFloor fmode = opt.clamp ? opt.floor : BayesianResponseFloor::none;
+  double s_resp = 0.0;
+  if (fmode == BayesianResponseFloor::softplus) {
+    for (double x : measured) s_resp += x;
+    s_resp *= opt.softplus_scale;
+    if (!(s_resp > 0.0)) throw std::invalid_argument("bayesian_response_basis: softplus floor needs a response with positive total");
+  }
   if (tangents) {
     bayesian_rfft(du_b.data(), n, T.data());
     for (std::size_t k = 0; k <= n / 2; ++k) T[k] *= ramp[k];
@@ -215,6 +244,12 @@ inline BayesianResponseBasis bayesian_response_basis(const BayesianPeriodicKerne
       for (std::size_t i = 0; i < n; ++i) if (!(y[i] >= 0.0)) { dy_b[i] = 0.0; dy_s[i] = 0.0; }
   }
   if (fmode == BayesianResponseFloor::hard) for (double& t : y) t = std::max(t, 0.0);
+  if (fmode == BayesianResponseFloor::softplus) {
+    for (std::size_t i = 0; i < n; ++i) {
+      if (tangents) { const double sl = bayesian_softplus_slope(y[i], s_resp); dy_b[i] *= sl; dy_s[i] *= sl; }
+      y[i] = bayesian_softplus(y[i], s_resp);
+    }
+  }
   // 3. unit sum, through internal/ResponseFunction.h
   internal::normalize_unit_sum(y.data(), n, tangents ? std::vector<double*>{dy_b.data(), dy_s.data()} : std::vector<double*>{}, 0.0);
   out.response = y;
@@ -264,7 +299,9 @@ inline BayesianResponseBasis bayesian_response_basis(const BayesianPeriodicKerne
     //: internal/ResponseFunction.h's normalize_unit_sum
     std::vector<double> cc(n), d_b(tangents ? n : 0), d_s(tangents ? n : 0), d_a(tail_t ? n : 0), d_t(tail_t ? n : 0);
     const bool col_floor = opt.floor == BayesianResponseFloor::hard;
-    for (std::size_t i = 0; i < n; ++i) cc[i] = col_floor ? std::max(col[i], 0.0) : col[i];
+    const bool col_soft = opt.floor == BayesianResponseFloor::softplus;
+    for (std::size_t i = 0; i < n; ++i)
+      cc[i] = col_floor ? std::max(col[i], 0.0) : col_soft ? bayesian_softplus(col[i], opt.softplus_scale) : col[i];
     if (tangents) {
       const int n_which = tail_t ? 4 : 2;
       for (int which = 0; which < n_which; ++which) {
@@ -272,7 +309,9 @@ inline BayesianResponseBasis bayesian_response_basis(const BayesianPeriodicKerne
         std::vector<double>& d = which == 0 ? d_b : which == 1 ? d_s : which == 2 ? d_a : d_t;
         for (std::size_t k = 0; k < h; ++k) tmp[k] = KF[k] * D[k];
         bayesian_irfft(tmp.data(), np, dcol.data());
-        for (std::size_t i = 0; i < n; ++i) d[i] = (!col_floor || col[i] >= 0.0) ? dcol[i] : 0.0;
+        for (std::size_t i = 0; i < n; ++i)
+          d[i] = col_soft ? bayesian_softplus_slope(col[i], opt.softplus_scale) * dcol[i]
+                          : (!col_floor || col[i] >= 0.0) ? dcol[i] : 0.0;
       }
     }
     std::vector<double*> tg;
