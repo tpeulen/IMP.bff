@@ -50,3 +50,6 @@ def test_the_wasm_fitting_equals_the_native_fitting():
         assert abs(a - b) <= 1e-8 * max(1.0, abs(b))
     p = bff.bayesian_decay_distribution_at(d, list(f.theta))
     np.testing.assert_allclose(w["p"], list(p), rtol=0, atol=1e-8)
+    # the fit statistic in the browser: Poisson deviance against its reference, runs test
+    print({"wasm_deviance_per_dof": w["deviance_per_dof"], "wasm_z": w["z"], "wasm_runs_p": w["runs_p"]})
+    assert max(abs(v) for v in w["z"]) < 3 and min(w["runs_p"]) > 0.001

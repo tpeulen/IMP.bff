@@ -85,7 +85,10 @@ IMP_SWIG_DIRECTOR(IMP::bff, InferenceFactorScore);
    freedom against its reference, runs test on the residual signs), for Python callers
    of inference_fitting. The raw-pointer runs_test stays C++. */
 %ignore IMP::bff::runs_test;
+/* the `seed` of poisson_goodness_of_fit is a std::uint64_t: a Python int */
+%apply unsigned long long { std::uint64_t };
 %include "IMP/bff/fit/FitStatistics.h"
+%clear std::uint64_t;
 %template(VectorPoissonHistogramFit) std::vector<IMP::bff::PoissonHistogramFit>;
 /* Gaussian factors in canonical form and exact variable elimination over the
    factor graph above (aGrUM's CLG inference). */

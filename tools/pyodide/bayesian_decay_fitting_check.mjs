@@ -37,11 +37,17 @@ import IMP.bff as bff
 g = bff.bayesian_decay_factor_graph("/exp")
 f = bff.inference_fitting(g, np.fromfile("/exp/theta.bin", dtype="<f8").tolist())
 s = f.at_mode
+counts = g.get_factor_score("counts")
+m = json.load(open("/exp/manifest.json"))
+mask = np.fromfile("/exp/" + m["arrays"]["mask"]["file"], dtype="<f8").tolist()
+q = bff.poisson_goodness_of_fit(list(counts.get_data()), list(counts.predict(g.get_factor_values("counts", list(f.theta)))),
+                                mask, len(m["data_keys"]), float(len(f.theta)))
 out = dict(version=bff.get_module_version(), converged=bool(f.converged), iterations=f.iterations,
            theta=list(f.theta), log_density=s.log_density, log_likelihood=s.log_likelihood,
            log_prior=s.log_prior, laplace_evidence=f.laplace_evidence,
            factor_keys=list(s.factor_keys), factor_log_densities=list(s.factor_log_densities),
-           p=list(bff.bayesian_decay_distribution_at("/exp", list(f.theta))))
+           p=list(bff.bayesian_decay_distribution_at("/exp", list(f.theta))),
+           deviance_per_dof=q.deviance_per_dof, z=[h.z for h in q.histograms], runs_p=[h.runs_p for h in q.histograms])
 "RESULT " + json.dumps(out)
 `;
 console.log(await pyodide.runPythonAsync(script));
