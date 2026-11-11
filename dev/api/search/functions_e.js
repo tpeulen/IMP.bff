@@ -14,7 +14,7 @@ var searchData=
   ['openmp_5fthread_5fcount_11',['openmp_thread_count',['../_open_m_p_8h.html#a73f73625d7eff877562824edb005d690',1,'OpenMP.h']]],
   ['operator_21_3d_12',['operator!=',['../struct_probe_position.html#ab5dc0f55e841aefcdf155d05c92e08e5',1,'ProbePosition']]],
   ['operator_3c_13',['operator&lt;',['../struct_atom_bond.html#a19e9bf8cc4eb7a47fc8ab26143c3dcef',1,'AtomBond']]],
-  ['operator_3c_3c_14',['operator&lt;&lt;',['../_inference_factor_graph_8h.html#a47492c6307478349bfb154c1c254ee7c',1,'InferenceFactorGraph.h']]],
+  ['operator_3c_3c_14',['operator&lt;&lt;',['../_fit_statistics_8h.html#a1afc0dab375c20467f3a8977a650a52e',1,'operator&lt;&lt;(std::ostream &amp;out, const PoissonHistogramFit &amp;f):&#160;FitStatistics.h'],['../_inference_factor_graph_8h.html#a47492c6307478349bfb154c1c254ee7c',1,'operator&lt;&lt;(std::ostream &amp;out, const InferenceJunctionTreeEdge &amp;e):&#160;InferenceFactorGraph.h']]],
   ['operator_3d_15',['operator=',['../class_model_search_spec.html#a395b20ef93096e369f1bd0d7cba50765',1,'ModelSearchSpec::operator=()'],['../class_selection_expression.html#a2e47b5803095c12c1a9d05e8f4a7c5a9',1,'SelectionExpression::operator=()']]],
   ['operator_3d_3d_16',['operator==',['../struct_probe_position.html#a621cbbe48bd75591af283c4532845bb3',1,'ProbePosition::operator==()'],['../struct_atom_bond.html#a4d656b2d3b40297cdf20b5e91825df86',1,'AtomBond::operator==()']]],
   ['options_17',['options',['../class_nuts_kernel.html#ad5f29d9da209b9c6740f3b9433e9f6e3',1,'NutsKernel']]],

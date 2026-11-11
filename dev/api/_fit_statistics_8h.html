@@ -87,6 +87,7 @@ $(function() {
 <code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
 <code>#include &lt;cstddef&gt;</code><br />
+<code>#include &lt;ostream&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 <code>#include &lt;IMP/bff/internal/PortableRandom.h&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
@@ -94,25 +95,27 @@ Include dependency graph for FitStatistics.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="_fit_statistics_8h__incl.png" border="0" usemap="#a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2fit_2_fit_statistics_8h" loading="lazy" alt=""/></div>
 <map name="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2fit_2_fit_statistics_8h" id="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2fit_2_fit_statistics_8h">
-<area shape="rect" title=" " alt="" coords="545,5,774,50"/>
+<area shape="rect" title=" " alt="" coords="594,5,823,50"/>
 <area shape="rect" title=" " alt="" coords="5,106,223,134"/>
-<area shape="poly" title=" " alt="" coords="545,50,236,101,204,106,203,101,235,95,544,45"/>
+<area shape="poly" title=" " alt="" coords="595,47,236,101,203,106,202,101,235,95,594,42"/>
 <area shape="rect" title=" " alt="" coords="247,98,421,143"/>
-<area shape="poly" title=" " alt="" coords="584,50,427,96,425,91,579,51"/>
+<area shape="poly" title=" " alt="" coords="622,50,437,97,436,92,616,51"/>
 <area shape="rect" title=" " alt="" coords="446,106,508,134"/>
-<area shape="poly" title=" " alt="" coords="618,50,517,102,516,97,613,51"/>
+<area shape="poly" title=" " alt="" coords="647,50,520,100,516,102,515,97,518,96,641,51"/>
 <area shape="rect" title=" " alt="" coords="532,106,603,134"/>
-<area shape="poly" title=" " alt="" coords="640,49,593,98,590,93,635,51"/>
+<area shape="poly" title=" " alt="" coords="677,50,602,100,600,95,672,51"/>
 <area shape="rect" title=" " alt="" coords="627,106,692,134"/>
-<area shape="poly" title=" " alt="" coords="661,48,661,93,657,89,657,52"/>
+<area shape="poly" title=" " alt="" coords="699,49,675,95,672,90,695,52"/>
 <area shape="rect" title=" " alt="" coords="716,106,800,134"/>
-<area shape="poly" title=" " alt="" coords="684,48,735,96,730,95,682,53"/>
+<area shape="poly" title=" " alt="" coords="722,48,746,94,741,92,719,53"/>
 <area shape="rect" title=" " alt="" coords="825,106,894,134"/>
-<area shape="poly" title=" " alt="" coords="708,48,819,100,814,99,707,53"/>
-<area shape="rect" title=" " alt="" coords="918,106,980,134"/>
-<area shape="poly" title=" " alt="" coords="752,48,829,69,907,95,913,100,908,99,905,101,827,74,752,53"/>
-<area shape="rect" title=" " alt="" coords="1004,98,1182,143"/>
-<area shape="poly" title=" " alt="" coords="763,48,991,97,986,97,763,53"/>
+<area shape="poly" title=" " alt="" coords="745,48,827,99,822,98,744,53"/>
+<area shape="rect" title=" " alt="" coords="918,106,993,134"/>
+<area shape="poly" title=" " alt="" coords="774,48,907,96,915,101,909,100,905,100,773,53"/>
+<area shape="rect" title=" " alt="" coords="1018,106,1080,134"/>
+<area shape="poly" title=" " alt="" coords="824,47,914,68,1006,95,1013,100,1007,100,1004,101,912,73,823,52"/>
+<area shape="rect" title=" " alt="" coords="1104,98,1282,143"/>
+<area shape="poly" title=" " alt="" coords="823,46,1091,97,1086,98,823,51"/>
 </map>
 </div>
 </div>
@@ -132,10 +135,41 @@ Functions</h2></td></tr>
 <tr id="func-members-0" class="groupHeader"><td colspan="2"><div class="groupHeader">Fit statistics</div></td></tr>
 <tr class="memitem:a43208befe58cf51631db98dbfa54ecb6" id="r_a43208befe58cf51631db98dbfa54ecb6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="struct_runs_test.html">RunsTest</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a43208befe58cf51631db98dbfa54ecb6">runs_test</a> (const double *x, std::size_t n, double cutoff=0.0, bool continuity_correction=false)</td></tr>
 <tr class="memdesc:a43208befe58cf51631db98dbfa54ecb6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Are the residuals arranged in runs, or do their signs alternate like coin flips?  <br /></td></tr>
+<tr class="memitem:a1afc0dab375c20467f3a8977a650a52e" id="r_a1afc0dab375c20467f3a8977a650a52e"><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1afc0dab375c20467f3a8977a650a52e">operator&lt;&lt;</a> (std::ostream &amp;out, const <a class="el" href="struct_poisson_histogram_fit.html">PoissonHistogramFit</a> &amp;f)</td></tr>
 <tr class="memitem:a921c1cee278299fc22a205710e7aac1d" id="r_a921c1cee278299fc22a205710e7aac1d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="struct_poisson_goodness_of_fit.html">PoissonGoodnessOfFit</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a921c1cee278299fc22a205710e7aac1d">poisson_goodness_of_fit</a> (const std::vector&lt; double &gt; &amp;y, const std::vector&lt; double &gt; &amp;m, const std::vector&lt; double &gt; &amp;mask, std::size_t n_hist, double n_params, int n_draws=150, std::uint64_t seed=0)</td></tr>
 <tr class="memdesc:a921c1cee278299fc22a205710e7aac1d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deviance per degree of freedom against a reference measured from the model, and the runs test, for <span class="tt">n_hist</span> histograms.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a id="a1afc0dab375c20467f3a8977a650a52e" name="a1afc0dab375c20467f3a8977a650a52e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1afc0dab375c20467f3a8977a650a52e">&#9670;&#160;</a></span>operator&lt;&lt;()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::ostream &amp; operator&lt;&lt; </td>
+          <td>(</td>
+          <td class="paramtype">std::ostream &amp;</td>          <td class="paramname"><span class="paramname"><em>out</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_poisson_histogram_fit.html">PoissonHistogramFit</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>f</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Printable: <a class="el" href="namespace_i_m_p.html">IMP</a>'s SWIG layer (RMF::Showable) gives every wrapped std::vector a <b>str</b> that streams its elements, so the <a class="el" href="namespace_i_m_p.html">IMP</a> build needs this; the standalone build does not (2026-11-11). </p>
+
+</div>
+</div>
 <a id="a921c1cee278299fc22a205710e7aac1d" name="a921c1cee278299fc22a205710e7aac1d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a921c1cee278299fc22a205710e7aac1d">&#9670;&#160;</a></span>poisson_goodness_of_fit()</h2>
 
