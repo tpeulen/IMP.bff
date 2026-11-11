@@ -10,6 +10,7 @@ var searchData=
   ['inferencegaussianelimination_7',['InferenceGaussianElimination',['../class_inference_gaussian_elimination.html',1,'']]],
   ['inferencejunctiontreeedge_8',['InferenceJunctionTreeEdge',['../struct_inference_junction_tree_edge.html',1,'']]],
   ['inferencescore_9',['InferenceScore',['../struct_inference_score.html',1,'']]],
-  ['interactionterm_10',['InteractionTerm',['../class_interaction_term.html',1,'']]],
-  ['intramolecularenergy_11',['IntramolecularEnergy',['../class_intramolecular_energy.html',1,'']]]
+  ['inferencetierneykadane_10',['InferenceTierneyKadane',['../struct_inference_tierney_kadane.html',1,'']]],
+  ['interactionterm_11',['InteractionTerm',['../class_interaction_term.html',1,'']]],
+  ['intramolecularenergy_12',['IntramolecularEnergy',['../class_intramolecular_energy.html',1,'']]]
 ];

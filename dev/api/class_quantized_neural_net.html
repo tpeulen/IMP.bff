@@ -97,7 +97,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ad72ac79da9da38f9797e0896a1103b29" id="r_ad72ac79da9da38f9797e0896a1103b29"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad72ac79da9da38f9797e0896a1103b29">QuantizedNeuralNet</a> (const <a class="el" href="class_neural_net.html">NeuralNet</a> &amp;net, const std::string &amp;format=&quot;int8&quot;, bool quantize_activations=false)</td></tr>
 <tr class="memdesc:ad72ac79da9da38f9797e0896a1103b29"><td class="mdescLeft">&#160;</td><td class="mdescRight">Quantise <span class="tt">net</span> (its current parameters) in <span class="tt">format</span>.  <br /></td></tr>
 <tr class="memitem:ac71157938cab3bdc84d5d43f63c37583" id="r_ac71157938cab3bdc84d5d43f63c37583"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac71157938cab3bdc84d5d43f63c37583">~QuantizedNeuralNet</a> ()</td></tr>
-<tr class="memitem:a5f59ae9ea16a31477645513bf3361f70" id="r_a5f59ae9ea16a31477645513bf3361f70"><td class="memItemLeft" align="right" valign="top"><a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5f59ae9ea16a31477645513bf3361f70">to_msgpack</a> () const</td></tr>
+<tr class="memitem:a5f59ae9ea16a31477645513bf3361f70" id="r_a5f59ae9ea16a31477645513bf3361f70"><td class="memItemLeft" align="right" valign="top"><a class="el" href="_msgpack_bytes_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5f59ae9ea16a31477645513bf3361f70">to_msgpack</a> () const</td></tr>
 <tr class="memdesc:a5f59ae9ea16a31477645513bf3361f70"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <span class="tt">bff.quantized_neural_net</span> msgpack document (bit-exact round trip).  <br /></td></tr>
 <tr class="memitem:a8d8967f2ec6284d4a71790e52caa78c8" id="r_a8d8967f2ec6284d4a71790e52caa78c8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="_neural_net_8h.html#ab8b4c077e8f6d0dd43f7f8359c44b99a">GgufBytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8d8967f2ec6284d4a71790e52caa78c8">to_gguf</a> () const</td></tr>
 <tr class="memitem:a7c0c03fe67f926f5d31c8717fd8f14ab" id="r_a7c0c03fe67f926f5d31c8717fd8f14ab"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7c0c03fe67f926f5d31c8717fd8f14ab">to_gguf_file</a> (const std::string &amp;path) const</td></tr>
@@ -123,7 +123,7 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:ab995598925dd2681eceddcc948a363d3" id="r_ab995598925dd2681eceddcc948a363d3"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_quantized_neural_net.html">QuantizedNeuralNet</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab995598925dd2681eceddcc948a363d3">from_msgpack</a> (const <a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp;document)</td></tr>
+<tr class="memitem:ab995598925dd2681eceddcc948a363d3" id="r_ab995598925dd2681eceddcc948a363d3"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_quantized_neural_net.html">QuantizedNeuralNet</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab995598925dd2681eceddcc948a363d3">from_msgpack</a> (const <a class="el" href="_msgpack_bytes_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp;document)</td></tr>
 <tr class="memdesc:ab995598925dd2681eceddcc948a363d3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a <span class="tt">bff.quantized_neural_net</span> msgpack document.  <br /></td></tr>
 <tr class="memitem:a3d7e81babb05e6774961d85f240b2850" id="r_a3d7e81babb05e6774961d85f240b2850"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_quantized_neural_net.html">QuantizedNeuralNet</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3d7e81babb05e6774961d85f240b2850">from_gguf</a> (const <a class="el" href="_neural_net_8h.html#ab8b4c077e8f6d0dd43f7f8359c44b99a">GgufBytes</a> &amp;data)</td></tr>
 <tr class="memdesc:a3d7e81babb05e6774961d85f240b2850"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a GGUF file holding a quantised <span class="tt">bff.mlp</span> network.  <br /></td></tr>
@@ -283,7 +283,7 @@ Static Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="class_quantized_neural_net.html">QuantizedNeuralNet</a> QuantizedNeuralNet::from_msgpack </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>document</em></span></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="_msgpack_bytes_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>document</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -596,7 +596,7 @@ Static Public Member Functions</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> QuantizedNeuralNet::to_msgpack </td>
+          <td class="memname"><a class="el" href="_msgpack_bytes_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> QuantizedNeuralNet::to_msgpack </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td> const</td>

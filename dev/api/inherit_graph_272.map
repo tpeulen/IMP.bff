@@ -1,3 +1,17 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$struct_strip_report.html" title="The obstacles a volume sees: (x, y, z, r) per atom, flat." alt="" coords="5,5,100,33"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,134,119,162"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="167,134,285,162"/>
+<area shape="poly" id="edge85_Node000000_Node000001" title=" " alt="" coords="133,145,169,146,164,149,135,150"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="333,134,469,162"/>
+<area shape="poly" id="edge86_Node000001_Node000002" title=" " alt="" coords="300,145,335,147,330,148,301,150"/>
+<area shape="rect" id="Node000003" href="$class_fit_minimizer_configuration_error.html" title=" " alt="" coords="525,5,714,50"/>
+<area shape="poly" id="edge87_Node000002_Node000003" title=" " alt="" coords="428,121,468,90,516,60,541,52,546,49,519,65,471,95,431,126"/>
+<area shape="rect" id="Node000004" href="$class_graph_link_cycle_error.html" title="Raised when linking two ports would create a cycle in the link graph." alt="" coords="542,74,697,102"/>
+<area shape="poly" id="edge88_Node000002_Node000004" title=" " alt="" coords="462,126,517,110,561,101,556,103,518,116,464,131"/>
+<area shape="rect" id="Node000005" href="$class_m_c_m_c_sampler_configuration_error.html" title=" " alt="" coords="517,125,722,170"/>
+<area shape="poly" id="edge89_Node000002_Node000005" title=" " alt="" coords="484,145,519,147,514,148,485,150"/>
+<area shape="rect" id="Node000006" href="$class_model_search_configuration_error.html" title=" " alt="" coords="523,195,716,239"/>
+<area shape="poly" id="edge90_Node000002_Node000006" title=" " alt="" coords="462,164,549,194,544,194,461,169"/>
+<area shape="rect" id="Node000007" href="$class_sampler_configuration_error.html" title=" " alt="" coords="523,263,716,291"/>
+<area shape="poly" id="edge91_Node000002_Node000007" title=" " alt="" coords="425,171,466,212,492,232,519,249,546,263,541,262,516,254,488,236,463,216,423,176"/>
 </map>

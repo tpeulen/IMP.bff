@@ -1,3 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$class_model_search_result.html" title="The best evaluated state and an auditable summary of one run." alt="" coords="5,5,152,33"/>
+<area shape="rect" id="Node000000" href="$class_model_search_problem.html" title="Model&#45;specific topology and evaluation, implemented entirely in C++." alt="" coords="5,32,165,60"/>
+<area shape="rect" id="Node000001" href="$class_fitting_model_search_problem.html" title="A callback&#45;free fitting search whose structures have different graphs." alt="" coords="216,5,416,33"/>
+<area shape="poly" id="edge44_Node000000_Node000001" title=" " alt="" coords="179,32,218,30,213,31,180,38"/>
+<area shape="rect" id="Node000002" href="$class_tabular_model_search_problem.html" title="A callback&#45;free finite problem, useful for persisted/pre&#45;scored graphs." alt="" coords="213,57,419,85"/>
+<area shape="poly" id="edge45_Node000000_Node000002" title=" " alt="" coords="180,54,215,60,209,60,180,59"/>
 </map>

@@ -94,7 +94,7 @@ Collaboration diagram for NeuralNetTraining:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a1bbd05ffc7eba40edd9d6a189ed81207" id="r_a1bbd05ffc7eba40edd9d6a189ed81207"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1bbd05ffc7eba40edd9d6a189ed81207">NeuralNetTraining</a> ()</td></tr>
-<tr class="memitem:aa7ed1539496fb6e4bf9a2610ad8e35bd" id="r_aa7ed1539496fb6e4bf9a2610ad8e35bd"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa7ed1539496fb6e4bf9a2610ad8e35bd">get_network</a> () const</td></tr>
+<tr class="memitem:aa7ed1539496fb6e4bf9a2610ad8e35bd" id="r_aa7ed1539496fb6e4bf9a2610ad8e35bd"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="_msgpack_bytes_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa7ed1539496fb6e4bf9a2610ad8e35bd">get_network</a> () const</td></tr>
 <tr class="memdesc:aa7ed1539496fb6e4bf9a2610ad8e35bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <span class="tt">bff.neural_net</span> msgpack document; <span class="tt">IMP.bff.NeuralNet(get_network())</span> loads it.  <br /></td></tr>
 <tr class="memitem:a276c2894226ac32d279a4821b820cb83" id="r_a276c2894226ac32d279a4821b820cb83"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; double &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a276c2894226ac32d279a4821b820cb83">get_loss_curve</a> () const</td></tr>
 <tr class="memdesc:a276c2894226ac32d279a4821b820cb83"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mean half squared error per epoch on the training rows (standardised units).  <br /></td></tr>
@@ -104,7 +104,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:af2e262f54f73a7337df589f69d8ceb22"><td class="mdescLeft">&#160;</td><td class="mdescRight">Epochs run.  <br /></td></tr>
 <tr class="memitem:a7b0d542878e4db3e54f0902fc2cacee1" id="r_a7b0d542878e4db3e54f0902fc2cacee1"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7b0d542878e4db3e54f0902fc2cacee1">get_precision</a> () const</td></tr>
 <tr class="memdesc:a7b0d542878e4db3e54f0902fc2cacee1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The options' precision: "float64", "nvfp4", "mxfp4" or "ternary".  <br /></td></tr>
-<tr class="memitem:adbba3651633e97b708078cb1aa98d0a3" id="r_adbba3651633e97b708078cb1aa98d0a3"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adbba3651633e97b708078cb1aa98d0a3">get_quantized_network</a> () const</td></tr>
+<tr class="memitem:adbba3651633e97b708078cb1aa98d0a3" id="r_adbba3651633e97b708078cb1aa98d0a3"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="_msgpack_bytes_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adbba3651633e97b708078cb1aa98d0a3">get_quantized_network</a> () const</td></tr>
 <tr class="memitem:a3c8a0e19e1a345cf1d1cb7a038d545a7" id="r_a3c8a0e19e1a345cf1d1cb7a038d545a7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3c8a0e19e1a345cf1d1cb7a038d545a7">IMP_SHOWABLE_INLINE</a> (<a class="el" href="class_neural_net_training.html">NeuralNetTraining</a>, out&lt;&lt; &quot;NeuralNetTraining(&quot;&lt;&lt; loss_curve_.size()&lt;&lt; &quot; epochs)&quot;)</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -173,7 +173,7 @@ Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp; NeuralNetTraining::get_network </td>
+          <td class="memname">const <a class="el" href="_msgpack_bytes_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp; NeuralNetTraining::get_network </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td> const</td>
@@ -254,7 +254,7 @@ Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp; NeuralNetTraining::get_quantized_network </td>
+          <td class="memname">const <a class="el" href="_msgpack_bytes_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp; NeuralNetTraining::get_quantized_network </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td> const</td>

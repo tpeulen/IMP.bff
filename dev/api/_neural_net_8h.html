@@ -84,6 +84,7 @@ $(function() {
 <div class="contents">
 <div class="textblock"><code>#include &lt;IMP/bff/bff_config.h&gt;</code><br />
 <code>#include &lt;IMP/bff/util/IMPCompatibility.h&gt;</code><br />
+<code>#include &lt;IMP/bff/util/MsgpackBytes.h&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
@@ -92,17 +93,19 @@ Include dependency graph for NeuralNet.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="_neural_net_8h__incl.png" border="0" usemap="#a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2learn_2_neural_net_8h" loading="lazy" alt=""/></div>
 <map name="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2learn_2_neural_net_8h" id="a_2home_2runner_2work_2_i_m_p_8bff_2_i_m_p_8bff_2include_2learn_2_neural_net_8h">
-<area shape="rect" title=" " alt="" coords="358,5,550,67"/>
+<area shape="rect" title=" " alt="" coords="502,5,694,67"/>
 <area shape="rect" title=" " alt="" coords="5,115,151,143"/>
-<area shape="poly" title=" " alt="" coords="359,63,148,113,147,108,357,58"/>
+<area shape="poly" title=" " alt="" coords="502,57,167,115,166,110,502,51"/>
 <area shape="rect" title=" " alt="" coords="175,115,392,143"/>
-<area shape="poly" title=" " alt="" coords="400,67,322,110,320,105,395,68"/>
-<area shape="rect" title=" " alt="" coords="416,115,492,143"/>
-<area shape="poly" title=" " alt="" coords="456,66,456,101,452,98,452,69"/>
-<area shape="rect" title=" " alt="" coords="517,115,575,143"/>
-<area shape="poly" title=" " alt="" coords="486,65,524,105,519,103,484,70"/>
-<area shape="rect" title=" " alt="" coords="599,115,661,143"/>
-<area shape="poly" title=" " alt="" coords="513,65,594,108,588,107,512,70"/>
+<area shape="poly" title=" " alt="" coords="505,65,344,113,343,108,499,65"/>
+<area shape="rect" title=" " alt="" coords="416,115,618,143"/>
+<area shape="poly" title=" " alt="" coords="573,66,540,105,537,101,568,69"/>
+<area shape="rect" title=" " alt="" coords="642,115,719,143"/>
+<area shape="poly" title=" " alt="" coords="627,65,661,104,656,103,624,70"/>
+<area shape="rect" title=" " alt="" coords="744,115,802,143"/>
+<area shape="poly" title=" " alt="" coords="657,65,737,108,731,107,656,70"/>
+<area shape="rect" title=" " alt="" coords="826,115,888,143"/>
+<area shape="poly" title=" " alt="" coords="685,65,814,112,809,112,684,70"/>
 </map>
 </div>
 </div>
@@ -117,16 +120,14 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-typedef-members" class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:af728b35d06d93bdfd5bda36f18f8bc7c" id="r_af728b35d06d93bdfd5bda36f18f8bc7c"><td class="memItemLeft" align="right" valign="top">typedef std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af728b35d06d93bdfd5bda36f18f8bc7c">OnnxBytes</a></td></tr>
-<tr class="memdesc:af728b35d06d93bdfd5bda36f18f8bc7c"><td class="mdescLeft">&#160;</td><td class="mdescRight">An ONNX model (<span class="tt">.onnx</span> file contents) as raw bytes; an import format.  <br /></td></tr>
 <tr class="memitem:aea7353cfa29000bff77d7dc987ebc179" id="r_aea7353cfa29000bff77d7dc987ebc179"><td class="memItemLeft" align="right" valign="top">typedef std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aea7353cfa29000bff77d7dc987ebc179">SafetensorsBytes</a></td></tr>
 <tr class="memdesc:aea7353cfa29000bff77d7dc987ebc179"><td class="mdescLeft">&#160;</td><td class="mdescRight">A safetensors file's contents as raw bytes; an import format.  <br /></td></tr>
 <tr class="memitem:ab8b4c077e8f6d0dd43f7f8359c44b99a" id="r_ab8b4c077e8f6d0dd43f7f8359c44b99a"><td class="memItemLeft" align="right" valign="top">typedef std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab8b4c077e8f6d0dd43f7f8359c44b99a">GgufBytes</a></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a33a774d9d60bb570caf1bdd9efc39546" id="r_a33a774d9d60bb570caf1bdd9efc39546"><td class="memItemLeft" align="right" valign="top">IMPBFF_BEGIN_NAMESPACE typedef std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a></td></tr>
-<tr class="memdesc:a33a774d9d60bb570caf1bdd9efc39546"><td class="mdescLeft">&#160;</td><td class="mdescRight">A msgpack document as raw bytes: bff's native format for networks.  <br /></td></tr>
+<tr class="memitem:abe2d48f53ceede132a88707164439764" id="r_abe2d48f53ceede132a88707164439764"><td class="memItemLeft" align="right" valign="top">IMPBFF_BEGIN_NAMESPACE typedef std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abe2d48f53ceede132a88707164439764">OnnxBytes</a></td></tr>
+<tr class="memdesc:abe2d48f53ceede132a88707164439764"><td class="mdescLeft">&#160;</td><td class="mdescRight">MsgpackBytes (a msgpack document as raw bytes) is <a class="el" href="_msgpack_bytes_8h.html">util/MsgpackBytes.h</a>.  <br /></td></tr>
 </table>
 <a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Typedef Documentation</h2>
 <a id="ab8b4c077e8f6d0dd43f7f8359c44b99a" name="ab8b4c077e8f6d0dd43f7f8359c44b99a"></a>
@@ -140,24 +141,7 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>As <a class="el" href="#af728b35d06d93bdfd5bda36f18f8bc7c" title="An ONNX model (.onnx file contents) as raw bytes; an import format.">OnnxBytes</a>: bytes-like in Python, a <span class="tt">str</span> refused with a TypeError. </p>
-
-</div>
-</div>
-<a id="af728b35d06d93bdfd5bda36f18f8bc7c" name="af728b35d06d93bdfd5bda36f18f8bc7c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af728b35d06d93bdfd5bda36f18f8bc7c">&#9670;&#160;</a></span>OnnxBytes</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef std::string <a class="el" href="#af728b35d06d93bdfd5bda36f18f8bc7c">OnnxBytes</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>An ONNX model (<span class="tt">.onnx</span> file contents) as raw bytes; an import format. </p>
-<p>Binary-safe in C++; in Python <span class="tt">bytes</span>, <span class="tt">bytearray</span> or <span class="tt">memoryview</span> &ndash; <span class="tt">open(path, "rb").read()</span>. A <span class="tt">str</span> is refused with a TypeError. </p>
+<p>As OnnxBytes: bytes-like in Python, a <span class="tt">str</span> refused with a TypeError. </p>
 
 </div>
 </div>
@@ -174,26 +158,26 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>A safetensors file's contents as raw bytes; an import format. </p>
-<p>As <a class="el" href="#af728b35d06d93bdfd5bda36f18f8bc7c" title="An ONNX model (.onnx file contents) as raw bytes; an import format.">OnnxBytes</a>: bytes-like in Python, a <span class="tt">str</span> refused with a TypeError. </p>
+<p>As OnnxBytes: bytes-like in Python, a <span class="tt">str</span> refused with a TypeError. </p>
 
 </div>
 </div>
 <a name="doc-var-members" id="doc-var-members"></a><h2 id="header-doc-var-members" class="groupheader">Variable Documentation</h2>
-<a id="a33a774d9d60bb570caf1bdd9efc39546" name="a33a774d9d60bb570caf1bdd9efc39546"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a33a774d9d60bb570caf1bdd9efc39546">&#9670;&#160;</a></span>MsgpackBytes</h2>
+<a id="abe2d48f53ceede132a88707164439764" name="abe2d48f53ceede132a88707164439764"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abe2d48f53ceede132a88707164439764">&#9670;&#160;</a></span>OnnxBytes</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">IMPBFF_BEGIN_NAMESPACE typedef std::string MsgpackBytes</td>
+          <td class="memname">IMPBFF_BEGIN_NAMESPACE typedef std::string OnnxBytes</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>A msgpack document as raw bytes: bff's native format for networks. </p>
-<p>Binary-safe in C++ (a <span class="tt">std::string</span> holds any byte, including zero); in Python it is <span class="tt">bytes</span> both ways &ndash; a bytes, bytearray or memoryview goes in, <span class="tt">bytes</span> comes out, and a <span class="tt">str</span> is refused with a TypeError. Build or read one with the <span class="tt">msgpack</span> package: <span class="tt">msgpack.packb(doc,
-use_bin_type=True)</span> / <span class="tt">msgpack.unpackb(data, raw=False)</span>. </p>
+<p>MsgpackBytes (a msgpack document as raw bytes) is <a class="el" href="_msgpack_bytes_8h.html">util/MsgpackBytes.h</a>. </p>
+<p>An ONNX model (<span class="tt">.onnx</span> file contents) as raw bytes; an import format.</p>
+<p>Binary-safe in C++; in Python <span class="tt">bytes</span>, <span class="tt">bytearray</span> or <span class="tt">memoryview</span> &ndash; <span class="tt">open(path, "rb").read()</span>. A <span class="tt">str</span> is refused with a TypeError. </p>
 
 </div>
 </div>

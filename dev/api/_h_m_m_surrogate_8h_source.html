@@ -138,13 +138,13 @@ $(function() {
 <div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>  <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">int</span> N_FEATURES = 24;</div>
 <div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span></div>
 <div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span></div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>  HmmSurrogate(<span class="keyword">const</span> <a class="code hl_variable" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a>&amp; net, <span class="keywordtype">int</span> n_states, <span class="keywordtype">int</span> n_streams,</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>  HmmSurrogate(<span class="keyword">const</span> <a class="code hl_variable" href="_msgpack_bytes_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a>&amp; net, <span class="keywordtype">int</span> n_states, <span class="keywordtype">int</span> n_streams,</div>
 <div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>               <span class="keywordtype">int</span> features_version = FEATURES_VERSION);</div>
 <div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span> </div>
 <div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>  <span class="comment">// --- serialisation ------------------------------------------------------</span></div>
 <div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span></div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>  <span class="keyword">static</span> HmmSurrogate from_msgpack(<span class="keyword">const</span> <a class="code hl_variable" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a>&amp; document);</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>  <a class="code hl_variable" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> to_msgpack() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>  <span class="keyword">static</span> HmmSurrogate from_msgpack(<span class="keyword">const</span> <a class="code hl_variable" href="_msgpack_bytes_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a>&amp; document);</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>  <a class="code hl_variable" href="_msgpack_bytes_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> to_msgpack() <span class="keyword">const</span>;</div>
 <div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>  <span class="keyword">static</span> HmmSurrogate from_file(<span class="keyword">const</span> std::string&amp; path);</div>
 <div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>  <span class="keywordtype">void</span> to_file(<span class="keyword">const</span> std::string&amp; path) <span class="keyword">const</span>;</div>
 <div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span> </div>
@@ -197,7 +197,7 @@ $(function() {
 <div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span> </div>
 <div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>  <span class="comment">// --- introspection ------------------------------------------------------</span></div>
 <div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>  <span class="keyword">const</span> NeuralNet&amp; get_net()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> net_; }</div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>  <span class="keyword">const</span> <a class="code hl_variable" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a>&amp; get_net_document()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> net_document_; }</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>  <span class="keyword">const</span> <a class="code hl_variable" href="_msgpack_bytes_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a>&amp; get_net_document()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> net_document_; }</div>
 <div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>  <span class="keywordtype">int</span> get_n_states()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> n_states_; }</div>
 <div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>  <span class="keywordtype">int</span> get_n_streams()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> n_streams_; }</div>
 <div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>  <span class="keywordtype">int</span> get_features_version()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> features_version_; }</div>
@@ -210,7 +210,7 @@ $(function() {
 <div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>                          &lt;&lt; <span class="stringliteral">&quot;, features_version=&quot;</span> &lt;&lt; features_version_ &lt;&lt; <span class="stringliteral">&quot;)&quot;</span>);</div>
 <div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span> </div>
 <div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span> <span class="keyword">private</span>:</div>
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>  <a class="code hl_variable" href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> net_document_;</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>  <a class="code hl_variable" href="_msgpack_bytes_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> net_document_;</div>
 <div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>  NeuralNet net_;</div>
 <div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>  <span class="keywordtype">int</span> n_states_;</div>
 <div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>  <span class="keywordtype">int</span> n_streams_;</div>
@@ -224,7 +224,7 @@ $(function() {
 <div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span><span class="preprocessor">#endif  </span><span class="comment">// IMP_BFF_HAS_TTTRLIB</span></div>
 <div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span> </div>
 <div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span><span class="preprocessor">#endif  </span><span class="comment">// IMPBFF_HMMSURROGATE_H</span></div>
-<div class="ttc" id="a_neural_net_8h_html_a33a774d9d60bb570caf1bdd9efc39546"><div class="ttname"><a href="_neural_net_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a></div><div class="ttdeci">IMPBFF_BEGIN_NAMESPACE typedef std::string MsgpackBytes</div><div class="ttdoc">A msgpack document as raw bytes: bff&#39;s native format for networks.</div><div class="ttdef"><b>Definition</b> NeuralNet.h:59</div></div>
+<div class="ttc" id="a_msgpack_bytes_8h_html_a33a774d9d60bb570caf1bdd9efc39546"><div class="ttname"><a href="_msgpack_bytes_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a></div><div class="ttdeci">IMPBFF_BEGIN_NAMESPACE typedef std::string MsgpackBytes</div><div class="ttdoc">A msgpack document as raw bytes: bff&#39;s native format for networks and saved factor graphs.</div><div class="ttdef"><b>Definition</b> MsgpackBytes.h:25</div></div>
 <div class="ttc" id="a_strip_mask_8h_html_a3283587dad5f3826c6abcc3c31c88850"><div class="ttname"><a href="_strip_mask_8h.html#a3283587dad5f3826c6abcc3c31c88850">IMP_VALUES</a></div><div class="ttdeci">IMP_VALUES(StripReport, StripReports)</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->

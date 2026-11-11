@@ -128,10 +128,14 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:aa0482891049d5c0a479d825c783775d3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The graph as a JSON document: every variable and factor, nothing derived.  <br /></td></tr>
 <tr class="memitem:a1cc43053df21f223d5a65ff1a84cbe46" id="r_a1cc43053df21f223d5a65ff1a84cbe46"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1cc43053df21f223d5a65ff1a84cbe46">from_json</a> (const std::string &amp;json)</td></tr>
 <tr class="memdesc:a1cc43053df21f223d5a65ff1a84cbe46"><td class="mdescLeft">&#160;</td><td class="mdescRight">Replace this graph with one read from <a class="el" href="#aa0482891049d5c0a479d825c783775d3" title="The graph as a JSON document: every variable and factor, nothing derived.">to_json</a>'s output.  <br /></td></tr>
-<tr class="memitem:aea2ebba57dd06300f7b3f87e4b429d56" id="r_aea2ebba57dd06300f7b3f87e4b429d56"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aea2ebba57dd06300f7b3f87e4b429d56">save</a> (const std::string &amp;path) const</td></tr>
-<tr class="memdesc:aea2ebba57dd06300f7b3f87e4b429d56"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="#aa0482891049d5c0a479d825c783775d3" title="The graph as a JSON document: every variable and factor, nothing derived.">to_json</a> to a file.  <br /></td></tr>
+<tr class="memitem:adb89f6c73b2d8204c17a6266370f20bf" id="r_adb89f6c73b2d8204c17a6266370f20bf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="_msgpack_bytes_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adb89f6c73b2d8204c17a6266370f20bf">to_msgpack</a> (bool embed_data=false) const</td></tr>
+<tr class="memdesc:adb89f6c73b2d8204c17a6266370f20bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The graph as msgpack: the structure (<a class="el" href="#aa0482891049d5c0a479d825c783775d3" title="The graph as a JSON document: every variable and factor, nothing derived.">to_json</a>'s text) and, with <code class="param">embed_data</code>, every score's data.  <br /></td></tr>
+<tr class="memitem:ab6f4c2597ff76990e413fff14dc7f208" id="r_ab6f4c2597ff76990e413fff14dc7f208"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab6f4c2597ff76990e413fff14dc7f208">from_msgpack</a> (const <a class="el" href="_msgpack_bytes_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp;bytes)</td></tr>
+<tr class="memdesc:ab6f4c2597ff76990e413fff14dc7f208"><td class="mdescLeft">&#160;</td><td class="mdescRight">Replace this graph with one read from <a class="el" href="#adb89f6c73b2d8204c17a6266370f20bf" title="The graph as msgpack: the structure (to_json&#39;s text) and, with embed_data, every score&#39;s data.">to_msgpack</a>'s output; with data, it is evaluable again.  <br /></td></tr>
+<tr class="memitem:a1c3b78391f1c9faf42636ab46c8fd833" id="r_a1c3b78391f1c9faf42636ab46c8fd833"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1c3b78391f1c9faf42636ab46c8fd833">save</a> (const std::string &amp;path, bool embed_data=false) const</td></tr>
+<tr class="memdesc:a1c3b78391f1c9faf42636ab46c8fd833"><td class="mdescLeft">&#160;</td><td class="mdescRight">Save to a file: <a class="el" href="#aa0482891049d5c0a479d825c783775d3" title="The graph as a JSON document: every variable and factor, nothing derived.">to_json</a>'s text (the default, unchanged), or with <code class="param">embed_data</code> <a class="el" href="#adb89f6c73b2d8204c17a6266370f20bf" title="The graph as msgpack: the structure (to_json&#39;s text) and, with embed_data, every score&#39;s data.">to_msgpack</a>.  <br /></td></tr>
 <tr class="memitem:af28b84b22e14fd3a867aa0f400334129" id="r_af28b84b22e14fd3a867aa0f400334129"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af28b84b22e14fd3a867aa0f400334129">load</a> (const std::string &amp;path)</td></tr>
-<tr class="memdesc:af28b84b22e14fd3a867aa0f400334129"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="#a1cc43053df21f223d5a65ff1a84cbe46" title="Replace this graph with one read from to_json&#39;s output.">from_json</a> from a file.  <br /></td></tr>
+<tr class="memdesc:af28b84b22e14fd3a867aa0f400334129"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load what <a class="el" href="#a1c3b78391f1c9faf42636ab46c8fd833" title="Save to a file: to_json&#39;s text (the default, unchanged), or with embed_data to_msgpack.">save</a> wrote, either format (told apart by the first byte: JSON is an object).  <br /></td></tr>
 <tr class="memitem:aab4ad447396ffe2439fddc967bb0080b" id="r_aab4ad447396ffe2439fddc967bb0080b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aab4ad447396ffe2439fddc967bb0080b">index_of</a> (const std::string &amp;key) const</td></tr>
 <tr class="memdesc:aab4ad447396ffe2439fddc967bb0080b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flat-parameter-vector position of a variable key, or -1 if absent.  <br /></td></tr>
 <tr class="memitem:a99162305e9477c3ad9d222ed57e5522a" id="r_a99162305e9477c3ad9d222ed57e5522a"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a99162305e9477c3ad9d222ed57e5522a">key_at</a> (int index) const</td></tr>
@@ -193,7 +197,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a32cdd8fbc823c0526a8d59274b38eac0" id="r_a32cdd8fbc823c0526a8d59274b38eac0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_inference_factor_graph.html">InferenceFactorGraph</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a32cdd8fbc823c0526a8d59274b38eac0">get_twin</a> (const std::vector&lt; std::string &gt; &amp;keys, const std::string &amp;suffix=&quot;@cf&quot;) const</td></tr>
 <tr class="memdesc:a32cdd8fbc823c0526a8d59274b38eac0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The twin network for do(keys): this graph plus a counterfactual world.  <br /></td></tr>
 <tr id="pub-methods-1" class="groupHeader"><td colspan="2"><div class="groupHeader">Scores (PRD-155)</div></td></tr>
-<tr><td colspan="2" class="ititle"><div class="groupText"><p>A factor may carry an <a class="el" href="class_inference_factor_score.html" title="The numbers of a factor: what makes a structural factor evaluable (PRD-155).">InferenceFactorScore</a>; then the graph is a log posterior that can be evaluated and fitted (<span class="tt"><a class="el" href="_inference_fitting_8h.html#aa7c84124276087f40024abcd142a1549" title="Fit the mode of an evaluable graph from theta0.">inference_fitting</a></span>). A graph without scores answers every structural query exactly as before. Scores are carried by copies (including <a class="el" href="#a5253a87611f616163bbfa453e325baba" title="The mutilated graph of do(keys): their mechanisms removed, the keys held.">get_intervened</a> and <a class="el" href="#a32cdd8fbc823c0526a8d59274b38eac0" title="The twin network for do(keys): this graph plus a counterfactual world.">get_twin</a>) but not by <a class="el" href="#aa0482891049d5c0a479d825c783775d3" title="The graph as a JSON document: every variable and factor, nothing derived.">to_json</a>, which writes structure only. </p>
+<tr><td colspan="2" class="ititle"><div class="groupText"><p>A factor may carry an <a class="el" href="class_inference_factor_score.html" title="The numbers of a factor: what makes a structural factor evaluable (PRD-155).">InferenceFactorScore</a>; then the graph is a log posterior that can be evaluated and fitted (<span class="tt"><a class="el" href="_inference_fitting_8h.html#ada171f951e192fad0b96df3712941c6f" title="Fit the mode of an evaluable graph from theta0.">inference_fitting</a></span>). A graph without scores answers every structural query exactly as before. Scores are carried by copies (including <a class="el" href="#a5253a87611f616163bbfa453e325baba" title="The mutilated graph of do(keys): their mechanisms removed, the keys held.">get_intervened</a> and <a class="el" href="#a32cdd8fbc823c0526a8d59274b38eac0" title="The twin network for do(keys): this graph plus a counterfactual world.">get_twin</a>) but not by <a class="el" href="#aa0482891049d5c0a479d825c783775d3" title="The graph as a JSON document: every variable and factor, nothing derived.">to_json</a>, which writes structure only. </p>
 </div></td></tr>
 <tr class="memitem:a9aa66f52e8f967b894abb94320226f25" id="r_a9aa66f52e8f967b894abb94320226f25"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9aa66f52e8f967b894abb94320226f25">set_factor_score</a> (const std::string &amp;factor_key, <a class="el" href="class_inference_factor_score.html">InferenceFactorScore</a> *score)</td></tr>
 <tr class="memdesc:a9aa66f52e8f967b894abb94320226f25"><td class="mdescLeft">&#160;</td><td class="mdescRight">Give a factor its numbers.  <br /></td></tr>
@@ -517,6 +521,26 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Replace this graph with one read from <a class="el" href="#aa0482891049d5c0a479d825c783775d3" title="The graph as a JSON document: every variable and factor, nothing derived.">to_json</a>'s output. </p>
+
+</div>
+</div>
+<a id="ab6f4c2597ff76990e413fff14dc7f208" name="ab6f4c2597ff76990e413fff14dc7f208"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6f4c2597ff76990e413fff14dc7f208">&#9670;&#160;</a></span>from_msgpack()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void InferenceFactorGraph::from_msgpack </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="_msgpack_bytes_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>bytes</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Replace this graph with one read from <a class="el" href="#adb89f6c73b2d8204c17a6266370f20bf" title="The graph as msgpack: the structure (to_json&#39;s text) and, with embed_data, every score&#39;s data.">to_msgpack</a>'s output; with data, it is evaluable again. </p>
+<p>Every score is rebuilt by the factory registered for its type. An unknown type, a factory that does not return a named factor, a factor the structure does not have, or a malformed document is refused, and the graph is left unchanged. </p>
 
 </div>
 </div>
@@ -1228,12 +1252,12 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p><a class="el" href="#a1cc43053df21f223d5a65ff1a84cbe46" title="Replace this graph with one read from to_json&#39;s output.">from_json</a> from a file. </p>
+<p>Load what <a class="el" href="#a1c3b78391f1c9faf42636ab46c8fd833" title="Save to a file: to_json&#39;s text (the default, unchanged), or with embed_data to_msgpack.">save</a> wrote, either format (told apart by the first byte: JSON is an object). </p>
 
 </div>
 </div>
-<a id="aea2ebba57dd06300f7b3f87e4b429d56" name="aea2ebba57dd06300f7b3f87e4b429d56"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aea2ebba57dd06300f7b3f87e4b429d56">&#9670;&#160;</a></span>save()</h2>
+<a id="a1c3b78391f1c9faf42636ab46c8fd833" name="a1c3b78391f1c9faf42636ab46c8fd833"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1c3b78391f1c9faf42636ab46c8fd833">&#9670;&#160;</a></span>save()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1241,13 +1265,17 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">void InferenceFactorGraph::save </td>
           <td>(</td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>path</em></span></td><td>)</td>
-          <td> const</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>path</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>embed_data</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span>&#160;) const</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p><a class="el" href="#aa0482891049d5c0a479d825c783775d3" title="The graph as a JSON document: every variable and factor, nothing derived.">to_json</a> to a file. </p>
+<p>Save to a file: <a class="el" href="#aa0482891049d5c0a479d825c783775d3" title="The graph as a JSON document: every variable and factor, nothing derived.">to_json</a>'s text (the default, unchanged), or with <code class="param">embed_data</code> <a class="el" href="#adb89f6c73b2d8204c17a6266370f20bf" title="The graph as msgpack: the structure (to_json&#39;s text) and, with embed_data, every score&#39;s data.">to_msgpack</a>. </p>
 
 </div>
 </div>
@@ -1355,6 +1383,31 @@ Public Member Functions</h2></td></tr>
 
 <p>The graph as a JSON document: every variable and factor, nothing derived. </p>
 <p>Round trips exactly through <a class="el" href="#a1cc43053df21f223d5a65ff1a84cbe46" title="Replace this graph with one read from to_json&#39;s output.">from_json</a>. Structure only &ndash; the moral graph, the orders and the cliques are recomputed on demand and are not written, because they are answers rather than state. </p>
+
+</div>
+</div>
+<a id="adb89f6c73b2d8204c17a6266370f20bf" name="adb89f6c73b2d8204c17a6266370f20bf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb89f6c73b2d8204c17a6266370f20bf">&#9670;&#160;</a></span>to_msgpack()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="_msgpack_bytes_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> InferenceFactorGraph::to_msgpack </td>
+          <td>(</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>embed_data</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The graph as msgpack: the structure (<a class="el" href="#aa0482891049d5c0a479d825c783775d3" title="The graph as a JSON document: every variable and factor, nothing derived.">to_json</a>'s text) and, with <code class="param">embed_data</code>, every score's data. </p>
+<p>With <code class="param">embed_data</code> each scored factor's score is written as its registered type and document (<a class="el" href="class_inference_factor_score.html#a812ebd5b7cdec98f8b527ae377848285" title="The registered type that rebuilds this score from get_score_document(); empty if it cannot be written...">InferenceFactorScore::get_score_type</a> / get_score_document); scores sharing a type and identical document bytes are written once. A score that cannot be written (no type &ndash; a Python subclass, an unregistered closure) is refused, naming the factor: nothing is dropped silently. Factors without a score stay without one. Without <code class="param">embed_data</code> the document holds the structure only. The point a graph was fitted at is not graph state; store it beside the file (PRD-156). </p><dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">IMP::ValueException</td><td>for a score that cannot be written </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

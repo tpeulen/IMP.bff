@@ -107,16 +107,16 @@ Include dependency graph for InferenceFitting.h:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:InferenceFit" id="r_InferenceFit"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_inference_fit.html">InferenceFit</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What <span class="tt"><a class="el" href="#aa7c84124276087f40024abcd142a1549" title="Fit the mode of an evaluable graph from theta0.">inference_fitting</a></span> found.  <a href="struct_inference_fit.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What <span class="tt"><a class="el" href="#ada171f951e192fad0b96df3712941c6f" title="Fit the mode of an evaluable graph from theta0.">inference_fitting</a></span> found.  <a href="struct_inference_fit.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aa7c84124276087f40024abcd142a1549" id="r_aa7c84124276087f40024abcd142a1549"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT <a class="el" href="struct_inference_fit.html">InferenceFit</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa7c84124276087f40024abcd142a1549">inference_fitting</a> (const <a class="el" href="class_inference_factor_graph.html">InferenceFactorGraph</a> &amp;graph, const std::vector&lt; double &gt; &amp;theta0, int max_iterations=300, double tolerance=1e-6, double line_search_below=1.0)</td></tr>
-<tr class="memdesc:aa7c84124276087f40024abcd142a1549"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fit the mode of an evaluable graph from <span class="tt">theta0</span>.  <br /></td></tr>
+<tr class="memitem:ada171f951e192fad0b96df3712941c6f" id="r_ada171f951e192fad0b96df3712941c6f"><td class="memItemLeft" align="right" valign="top">IMPBFFEXPORT <a class="el" href="struct_inference_fit.html">InferenceFit</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ada171f951e192fad0b96df3712941c6f">inference_fitting</a> (const <a class="el" href="class_inference_factor_graph.html">InferenceFactorGraph</a> &amp;graph, const std::vector&lt; double &gt; &amp;theta0, int max_iterations=300, double tolerance=1e-6, double line_search_below=1.0, const std::vector&lt; std::string &gt; &amp;fixed=std::vector&lt; std::string &gt;())</td></tr>
+<tr class="memdesc:ada171f951e192fad0b96df3712941c6f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fit the mode of an evaluable graph from <span class="tt">theta0</span>.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
-<a id="aa7c84124276087f40024abcd142a1549" name="aa7c84124276087f40024abcd142a1549"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa7c84124276087f40024abcd142a1549">&#9670;&#160;</a></span>inference_fitting()</h2>
+<a id="ada171f951e192fad0b96df3712941c6f" name="ada171f951e192fad0b96df3712941c6f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ada171f951e192fad0b96df3712941c6f">&#9670;&#160;</a></span>inference_fitting()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -144,15 +144,22 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>line_search_below</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1.0</span>&#160;)</td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>line_search_below</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1.0</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>fixed</em></span><span class="paramdefsep"> = </span><span class="paramdefval">std::vector&lt;&#160;std::string&#160;&gt;()</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Fit the mode of an evaluable graph from <span class="tt">theta0</span>. </p>
-<p>Stops when the decrement is below <span class="tt">tolerance</span> (then <span class="tt">converged</span>), when a step is not accepted (converged if the last decrement was below 1e-3, as <span class="tt">bayesian_decay_fit_node</span> decides), or after <span class="tt">max_iterations</span>. </p><dl class="exception"><dt>Exceptions</dt><dd>
+<p>Stops when the decrement is below <span class="tt">tolerance</span> (then <span class="tt">converged</span>), when a step is not accepted (converged if the last decrement was below 1e-3, as <span class="tt">bayesian_decay_fit_node</span> decides), or after <span class="tt">max_iterations</span>.</p>
+<p><span class="tt">fixed</span> names variables held at their <span class="tt">theta0</span> values (PRD-156 D1). The steps and the Laplace evidence then run over the free coordinates only, so with a hyperparameter held (e.g. the P-spline weight <span class="tt">log10_lam</span>) <span class="tt">laplace_evidence</span> is log p(y | hyperparameter) &ndash; what a user's hyperparameter loop weights by. <span class="tt">at_mode</span> keeps the full gradient and information. With <span class="tt">fixed</span> empty the result is the one of a fit without the argument, bit for bit. </p><dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
     <tr><td class="paramname">std::domain_error</td><td>if the graph is not evaluable </td></tr>
+    <tr><td class="paramname">std::invalid_argument</td><td>for an unknown variable in <span class="tt">fixed</span>, or if nothing is free </td></tr>
   </table>
   </dd>
 </dl>

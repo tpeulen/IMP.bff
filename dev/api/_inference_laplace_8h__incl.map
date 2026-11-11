@@ -1,0 +1,13 @@
+<map id="/home/runner/work/IMP.bff/IMP.bff/include/fit/InferenceLaplace.h" name="/home/runner/work/IMP.bff/IMP.bff/include/fit/InferenceLaplace.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="387,5,588,67"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,124,151,151"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="387,64,164,118,147,122,145,117,163,112,386,59"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="175,115,362,160"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="423,67,331,111,330,106,418,68"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="387,124,588,151"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="489,66,489,109,485,106,485,69"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="612,124,670,151"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="535,65,611,115,605,115,533,70"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="694,124,756,151"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="568,65,683,113,688,117,683,116,681,117,566,70"/>
+</map>

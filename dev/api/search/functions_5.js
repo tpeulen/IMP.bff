@@ -152,7 +152,7 @@ var searchData=
   ['from_5fjson_149',['from_json',['../class_inference_factor_graph.html#a1cc43053df21f223d5a65ff1a84cbe46',1,'InferenceFactorGraph::from_json()'],['../class_graph_evaluation.html#aea9bb43400d6982f8ad75195535b1721',1,'GraphEvaluation::from_json()'],['../class_model_search_policy_data.html#af69e349e0da70562661edc92e2478ad8',1,'ModelSearchPolicyData::from_json()'],['../class_model_search_spec.html#a124043e14ec05121d3f17c1f065d20d6',1,'ModelSearchSpec::from_json()']]],
   ['from_5flinear_5fgaussian_150',['from_linear_gaussian',['../class_inference_canonical_form.html#a879f7a96890d3d87838516727cb91d84',1,'InferenceCanonicalForm']]],
   ['from_5fmoments_151',['from_moments',['../class_inference_canonical_form.html#a4172c574523e6d98371eaef353ddfae5',1,'InferenceCanonicalForm']]],
-  ['from_5fmsgpack_152',['from_msgpack',['../class_quantized_neural_net.html#ab995598925dd2681eceddcc948a363d3',1,'QuantizedNeuralNet']]],
+  ['from_5fmsgpack_152',['from_msgpack',['../class_inference_factor_graph.html#ab6f4c2597ff76990e413fff14dc7f208',1,'InferenceFactorGraph::from_msgpack()'],['../class_quantized_neural_net.html#ab995598925dd2681eceddcc948a363d3',1,'QuantizedNeuralNet::from_msgpack()']]],
   ['from_5fname_153',['from_name',['../class_model_search_spec.html#a0b31bdbbe2bc1878ad73a4a183227cbb',1,'ModelSearchSpec']]],
   ['from_5fonnx_154',['from_onnx',['../class_neural_net.html#a345d7a50f2b61e9c1d5f57972a837077',1,'NeuralNet']]],
   ['from_5fonnx_5ffile_155',['from_onnx_file',['../class_neural_net.html#aedd28dbdb13bb62d1f409bc7d21b80ff',1,'NeuralNet']]],

@@ -87,11 +87,11 @@ Inheritance diagram for InferenceFactorScore:</div>
 <div class="dyncontent">
 <div class="center"><img src="class_inference_factor_score__inherit__graph.png" border="0" usemap="#a_inference_factor_score_inherit__map" loading="lazy" alt="Inheritance graph"/></div>
 <map name="a_inference_factor_score_inherit__map" id="a_inference_factor_score_inherit__map">
-<area shape="rect" title="The numbers of a factor: what makes a structural factor evaluable (PRD&#45;155)." alt="" coords="5,126,194,287"/>
-<area shape="rect" href="class_inference_function_score.html" title="A score from plain functions, for C++ callers that build a graph from closures." alt="" coords="5,335,194,475"/>
-<area shape="poly" title=" " alt="" coords="101,300,102,336,97,335,99,305"/>
+<area shape="rect" title="The numbers of a factor: what makes a structural factor evaluable (PRD&#45;155)." alt="" coords="5,126,194,332"/>
+<area shape="rect" href="class_inference_function_score.html" title="A score from plain functions, for C++ callers that build a graph from closures." alt="" coords="5,380,194,586"/>
+<area shape="poly" title=" " alt="" coords="100,344,102,381,97,380,99,349"/>
 <area shape="rect" title=" " alt="" coords="58,5,142,78"/>
-<area shape="poly" title=" " alt="" coords="100,90,102,126,97,125,99,95"/>
+<area shape="poly" title=" " alt="" coords="100,90,102,126,97,126,100,95"/>
 </map>
 </div>
 <div class="dynheader">
@@ -99,9 +99,9 @@ Collaboration diagram for InferenceFactorScore:</div>
 <div class="dyncontent">
 <div class="center"><img src="class_inference_factor_score__coll__graph.png" border="0" usemap="#a_inference_factor_score_coll__map" loading="lazy" alt="Collaboration graph"/></div>
 <map name="a_inference_factor_score_coll__map" id="a_inference_factor_score_coll__map">
-<area shape="rect" title="The numbers of a factor: what makes a structural factor evaluable (PRD&#45;155)." alt="" coords="5,126,194,287"/>
+<area shape="rect" title="The numbers of a factor: what makes a structural factor evaluable (PRD&#45;155)." alt="" coords="5,126,194,332"/>
 <area shape="rect" title=" " alt="" coords="58,5,142,78"/>
-<area shape="poly" title=" " alt="" coords="101,90,102,126,97,125,99,95"/>
+<area shape="poly" title=" " alt="" coords="100,90,102,126,97,125,99,95"/>
 </map>
 </div>
 <table class="memberdecls">
@@ -114,12 +114,16 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:af57db9b37bf949bb320c92e6bc8d8339"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the factor expects its data to be at <span class="tt">x</span>; empty if it has no data.  <br /></td></tr>
 <tr class="memitem:a0d3ff7aeabda9db3995c11cae0c6415a" id="r_a0d3ff7aeabda9db3995c11cae0c6415a"><td class="memItemLeft" align="right" valign="top">virtual std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0d3ff7aeabda9db3995c11cae0c6415a">get_data</a> ()</td></tr>
 <tr class="memdesc:a0d3ff7aeabda9db3995c11cae0c6415a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The factor's data, aligned with <a class="el" href="#af57db9b37bf949bb320c92e6bc8d8339" title="What the factor expects its data to be at x; empty if it has no data.">predict()</a>; empty if it has none.  <br /></td></tr>
+<tr class="memitem:a812ebd5b7cdec98f8b527ae377848285" id="r_a812ebd5b7cdec98f8b527ae377848285"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a812ebd5b7cdec98f8b527ae377848285">get_score_type</a> ()</td></tr>
+<tr class="memdesc:a812ebd5b7cdec98f8b527ae377848285"><td class="mdescLeft">&#160;</td><td class="mdescRight">The registered type that rebuilds this score from <a class="el" href="#a9b1fe54ef3b4b8c84906595ba1906fe6" title="Everything the factory of get_score_type() needs to rebuild this score, as msgpack bytes.">get_score_document()</a>; empty if it cannot be written.  <br /></td></tr>
+<tr class="memitem:a9b1fe54ef3b4b8c84906595ba1906fe6" id="r_a9b1fe54ef3b4b8c84906595ba1906fe6"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="_msgpack_bytes_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9b1fe54ef3b4b8c84906595ba1906fe6">get_score_document</a> ()</td></tr>
+<tr class="memdesc:a9b1fe54ef3b4b8c84906595ba1906fe6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Everything the factory of <a class="el" href="#a812ebd5b7cdec98f8b527ae377848285" title="The registered type that rebuilds this score from get_score_document(); empty if it cannot be written...">get_score_type()</a> needs to rebuild this score, as msgpack bytes.  <br /></td></tr>
 <tr class="memitem:a88bc3849ca214202e31e3b362479897a" id="r_a88bc3849ca214202e31e3b362479897a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a88bc3849ca214202e31e3b362479897a">IMP_OBJECT_METHODS</a> (<a class="el" href="class_inference_factor_score.html">InferenceFactorScore</a>)</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The numbers of a factor: what makes a structural factor evaluable (PRD-155). </p>
 <p>A factor of <a class="el" href="class_inference_factor_graph.html" title="The variables and factors of a model&#39;s posterior, with graph queries.">InferenceFactorGraph</a> is a term of the log posterior over its scope. A score computes it. <span class="tt">x</span> is the factor's scope values in scope order, each variable contributing <span class="tt">size</span> numbers from the flat parameter vector (positions <span class="tt">index .. index + size - 1</span>); <span class="tt">n = x.size()</span>.</p>
-<p><a class="el" href="#a2b602dc9bde40ea86b004af810632efb" title="[log p], or with derivatives [log p, gradient (n), information (n x n)].">eval()</a> returns <span class="tt">[log p]</span> without derivatives, and with them <span class="tt">[log p, d log p / dx (n), I (n x n, row-major)]</span>, where <span class="tt">I</span> is the factor's information: a symmetric positive semi-definite stand-in for minus the Hessian (the expected information of a likelihood, minus the Hessian of a Gaussian prior). The generic fit (<span class="tt"><a class="el" href="_inference_fitting_8h.html#aa7c84124276087f40024abcd142a1549" title="Fit the mode of an evaluable graph from theta0.">inference_fitting</a></span>) steps with the sum of the factors' <span class="tt">I</span>, which is Fisher scoring when every factor gives its expected information.</p>
+<p><a class="el" href="#a2b602dc9bde40ea86b004af810632efb" title="[log p], or with derivatives [log p, gradient (n), information (n x n)].">eval()</a> returns <span class="tt">[log p]</span> without derivatives, and with them <span class="tt">[log p, d log p / dx (n), I (n x n, row-major)]</span>, where <span class="tt">I</span> is the factor's information: a symmetric positive semi-definite stand-in for minus the Hessian (the expected information of a likelihood, minus the Hessian of a Gaussian prior). The generic fit (<span class="tt"><a class="el" href="_inference_fitting_8h.html#ada171f951e192fad0b96df3712941c6f" title="Fit the mode of an evaluable graph from theta0.">inference_fitting</a></span>) steps with the sum of the factors' <span class="tt">I</span>, which is Fisher scoring when every factor gives its expected information.</p>
 <p><a class="el" href="#af57db9b37bf949bb320c92e6bc8d8339" title="What the factor expects its data to be at x; empty if it has no data.">predict()</a> and <a class="el" href="#a0d3ff7aeabda9db3995c11cae0c6415a" title="The factor&#39;s data, aligned with predict(); empty if it has none.">get_data()</a> are optional: what the factor expects its data to be at <span class="tt">x</span> and the data themselves, aligned, so a caller can form residuals without knowing the model. Both empty when the factor has no data (a prior).</p>
 <p>Subclass in C++, or in Python (a SWIG director), for any model; the graph never knows which model a factor belongs to. Written 2026-11-10 by claude-code/Opus 5.5 for tpeulen. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
@@ -208,6 +212,65 @@ Public Member Functions</h2></td></tr>
 <p>The factor's data, aligned with <a class="el" href="#af57db9b37bf949bb320c92e6bc8d8339" title="What the factor expects its data to be at x; empty if it has no data.">predict()</a>; empty if it has none. </p>
 
 <p>Reimplemented in <a class="el" href="class_inference_function_score.html#ac1e7245f101c69fed4f7bde7ec95a8cf">InferenceFunctionScore</a>.</p>
+
+</div>
+</div>
+<a id="a9b1fe54ef3b4b8c84906595ba1906fe6" name="a9b1fe54ef3b4b8c84906595ba1906fe6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9b1fe54ef3b4b8c84906595ba1906fe6">&#9670;&#160;</a></span>get_score_document()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="_msgpack_bytes_8h.html#a33a774d9d60bb570caf1bdd9efc39546">MsgpackBytes</a> InferenceFactorScore::get_score_document </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Everything the factory of <a class="el" href="#a812ebd5b7cdec98f8b527ae377848285" title="The registered type that rebuilds this score from get_score_document(); empty if it cannot be written...">get_score_type()</a> needs to rebuild this score, as msgpack bytes. </p>
+
+<p>Reimplemented in <a class="el" href="class_inference_function_score.html#a7f77bb5228b3e74f5f87105edb465b01">InferenceFunctionScore</a>.</p>
+
+</div>
+</div>
+<a id="a812ebd5b7cdec98f8b527ae377848285" name="a812ebd5b7cdec98f8b527ae377848285"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a812ebd5b7cdec98f8b527ae377848285">&#9670;&#160;</a></span>get_score_type()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual std::string InferenceFactorScore::get_score_type </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The registered type that rebuilds this score from <a class="el" href="#a9b1fe54ef3b4b8c84906595ba1906fe6" title="Everything the factory of get_score_type() needs to rebuild this score, as msgpack bytes.">get_score_document()</a>; empty if it cannot be written. </p>
+<p>A graph saved with its data (<a class="el" href="class_inference_factor_graph.html#a1c3b78391f1c9faf42636ab46c8fd833" title="Save to a file: to_json&#39;s text (the default, unchanged), or with embed_data to_msgpack.">InferenceFactorGraph::save</a> with <span class="tt">embed_data</span>) writes each score as this type and document; loading calls the factory registered under the type (register_factor_score, registry capability <span class="tt">factor_score</span>). Scores that return the same type and the same document bytes are written once and rebuilt by one factory call (PRD-156). </p>
+
+<p>Reimplemented in <a class="el" href="class_inference_function_score.html#ae4488160ba59e9b24f49218716b9cb50">InferenceFunctionScore</a>.</p>
 
 </div>
 </div>
