@@ -72,14 +72,24 @@ InferenceFit inference_fitting(const InferenceFactorGraph& graph,
   for (; it < max_iterations; ++it) {
     const OptimizationStepResult r =
         stepper.step(A.data(), g.data(), nf, -pt.log_density, x.data(), objective);
-    if (!r.accepted) { R.converged = std::isfinite(R.decrement) && R.decrement < 1e-3; break; }
+    if (!r.accepted) {
+      R.converged = std::isfinite(R.decrement) && R.decrement < 1e-3;
+      R.stop_reason = "no_accepted_step";
+      break;
+    }
     R.n_gradient_fallback += r.gradient_fallback ? 1 : 0;
     R.decrement = r.decrement;
     for (std::size_t a = 0; a < nf; ++a) th[F[a]] = x[a];
     pt = graph.eval(th, true);
     reduce();
-    if (R.decrement < tolerance) { R.converged = true; ++it; break; }
+    if (R.decrement < tolerance) {
+      R.converged = R.converged_at_tolerance = true;
+      R.stop_reason = "tolerance";
+      ++it;
+      break;
+    }
   }
+  if (R.stop_reason.empty()) R.stop_reason = "max_iterations";
   if (!R.converged && std::isfinite(R.decrement) && R.decrement < 1e-3) R.converged = true;
   R.iterations = it;
   double ev = 0.0;

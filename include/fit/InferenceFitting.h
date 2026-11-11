@@ -42,6 +42,16 @@ struct IMPBFFEXPORT InferenceFit {
   bool laplace_ok = false;            //!< the information was positive definite there
   //! the variables held at their `theta0` values (`fixed`); the steps and the evidence ran over the rest
   std::vector<std::string> fixed;
+  //! why the fit stopped: "tolerance" (the decrement fell below the requested tolerance),
+  //! "no_accepted_step" (the stepper found no improving step) or "max_iterations".
+  /*! `converged` is also true for "no_accepted_step" and "max_iterations" when the last accepted
+      decrement was below 1e-3 -- the rule `bayesian_decay_fit_node` used and the stored results
+      were made with. That is a weaker statement than the requested tolerance: use
+      `converged_at_tolerance` and this field to tell them apart (PRD-156, drieger's review
+      question under ucfret F1, 2026-11-11). */
+  std::string stop_reason;
+  //! the decrement fell below the requested tolerance (`stop_reason == "tolerance"`)
+  bool converged_at_tolerance = false;
 };
 
 //! Fit the mode of an evaluable graph from `theta0`.

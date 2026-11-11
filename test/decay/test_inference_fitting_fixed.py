@@ -75,6 +75,8 @@ int main() {
   g.set_factor_score("z", sum_obs(z, s));
   const InferenceFit F = inference_fitting(g, {-3.0, y0}, 300, 1e-12, 1.0, {"y"});
   const InferenceFit B = inference_fitting(g, {-3.0, y0}, 300, 1e-12);
+  //: one Newton step cannot reach 1e-30 on a far start: stops at the iteration cap, not at tolerance
+  const InferenceFit C = inference_fitting(g, {-30.0, 0.0}, 1, 1e-30);
   // conditional on y = y0: x ~ N(0, 1) * N(z - y0, s^2) in x
   const double P = 1.0 + 1.0 / (s * s);
   const double mode = ((z - y0) / (s * s)) / P;
@@ -85,9 +87,11 @@ int main() {
   try { inference_fitting(g, {0.0, 0.0}, 10, 1e-6, 1.0, {"x", "y"}); } catch (const std::invalid_argument&) { all = 1; }
   std::printf("{\"x\": %.17g, \"y\": %.17g, \"mode\": %.17g, \"evidence\": %.17g, \"evidence_exact\": %.17g,"
               " \"both_y\": %.17g, \"both_evidence\": %.17g, \"n_fixed\": %zu, \"n_fixed_none\": %zu,"
-              " \"converged\": %d, \"unknown_refused\": %d, \"all_refused\": %d}\n",
+              " \"converged\": %d, \"unknown_refused\": %d, \"all_refused\": %d,"
+              " \"stop\": \"%s\", \"at_tol\": %d, \"capped_stop\": \"%s\", \"capped_at_tol\": %d}\n",
               F.theta[0], F.theta[1], mode, F.laplace_evidence, logZ, B.theta[1], B.laplace_evidence,
-              F.fixed.size(), B.fixed.size(), int(F.converged), unknown, all);
+              F.fixed.size(), B.fixed.size(), int(F.converged), unknown, all,
+              F.stop_reason.c_str(), int(F.converged_at_tolerance), C.stop_reason.c_str(), int(C.converged_at_tolerance));
 }
 """
 
@@ -163,6 +167,13 @@ def test_toy_evidence_is_over_the_free_coordinate_only(toy):
     # the control: fitting both moves y and gives a different evidence
     assert abs(toy["both_y"] - 0.7) > 1e-3
     assert abs(toy["both_evidence"] - toy["evidence"]) > 1e-3
+
+
+def test_the_stop_reason_tells_tolerance_from_the_fallbacks(toy):
+    """drieger's review (ucfret F1, 2026-11-11): `converged` also counts a stop below decrement 1e-3
+    on a rejected step or at the iteration cap; `stop_reason` and `converged_at_tolerance` say which."""
+    assert toy["stop"] == "tolerance" and toy["at_tol"] == 1
+    assert toy["capped_stop"] == "max_iterations" and toy["capped_at_tol"] == 0
 
 
 def test_unknown_and_all_fixed_are_refused(toy):
