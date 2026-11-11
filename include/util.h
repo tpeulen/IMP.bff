@@ -14,6 +14,7 @@
 #include <IMP/bff/util/CommandLine.h>
 #include <IMP/bff/util/ComputeBackend.h>
 #include <IMP/bff/util/IMPCompatibility.h>
+#include <IMP/bff/util/MsgpackBytes.h>
 #include <IMP/bff/util/Numerics.h>
 #include <IMP/bff/util/Odeint.h>
 #include <IMP/bff/util/OpenMP.h>

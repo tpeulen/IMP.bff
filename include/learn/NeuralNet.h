@@ -43,6 +43,7 @@
 
 #include <IMP/bff/bff_config.h>
 #include <IMP/bff/util/IMPCompatibility.h>
+#include <IMP/bff/util/MsgpackBytes.h>
 
 #include <memory>
 #include <string>
@@ -50,13 +51,7 @@
 
 IMPBFF_BEGIN_NAMESPACE
 
-//! A msgpack document as raw bytes: bff's native format for networks.
-/*! Binary-safe in C++ (a `std::string` holds any byte, including zero); in
-    Python it is `bytes` both ways -- a bytes, bytearray or memoryview goes
-    in, `bytes` comes out, and a `str` is refused with a TypeError. Build or
-    read one with the `msgpack` package: `msgpack.packb(doc,
-    use_bin_type=True)` / `msgpack.unpackb(data, raw=False)`. */
-typedef std::string MsgpackBytes;
+//! MsgpackBytes (a msgpack document as raw bytes) is util/MsgpackBytes.h.
 
 //! An ONNX model (`.onnx` file contents) as raw bytes; an import format.
 /*! Binary-safe in C++; in Python `bytes`, `bytearray` or `memoryview` --

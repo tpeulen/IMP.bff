@@ -11,8 +11,13 @@
 #include <IMP/bff/util/IMPCompatibility.h>
 
 #include <IMP/bff/internal/json.h>
+#include <IMP/bff/internal/Msgpack.h>
+#include <IMP/bff/util/Registry.h>
 
 #include <algorithm>
+#include <deque>
+#include <iterator>
+#include <mutex>
 #include <cmath>
 #include <fstream>
 #include <limits>
@@ -1221,19 +1226,167 @@ InferenceFactorGraph InferenceFactorGraph::get_twin(const std::vector<std::strin
   return g.get_intervened(targets);
 }
 
-void InferenceFactorGraph::save(const std::string& path) const {
-  std::ofstream out(path.c_str());
+// ------------------------------------------------- saving with data (PRD-156)
+
+namespace {
+std::deque<InferenceFactorScoreFactory>& score_factories() {
+  static std::deque<InferenceFactorScoreFactory> f;
+  return f;
+}
+std::mutex& score_factories_mutex() {
+  static std::mutex m;
+  return m;
+}
+const char* const kGraphFormat = "imp.bff.factorgraph";
+}  // namespace
+
+bool register_factor_score(const std::string& type, const std::string& entry_json,
+                           InferenceFactorScoreFactory factory) {
+  InferenceFactorScoreFactory* handle;
+  {
+    std::lock_guard<std::mutex> lock(score_factories_mutex());
+    score_factories().push_back(std::move(factory));
+    handle = &score_factories().back();
+  }
+  return register_algorithm_json("factor_score", type, entry_json, handle);
+}
+
+MsgpackBytes InferenceFactorGraph::to_msgpack(bool embed_data) const {
+  namespace mpk = internal::mpk;
+  struct Group { std::string type; MsgpackBytes document; std::vector<std::string> keys; };
+  std::vector<Group> groups;
+  if (embed_data) {
+    for (const auto& f : factors_) {
+      if (!f.score) continue;
+      const std::string type = f.score->get_score_type();
+      if (type.empty()) {
+        IMP_THROW("InferenceFactorGraph::to_msgpack: the score of factor '" << f.key
+                  << "' cannot be written (no registered score type); save without embed_data, "
+                     "or give the score a type and a document", IMP::ValueException);
+      }
+      MsgpackBytes doc = f.score->get_score_document();
+      auto same = std::find_if(groups.begin(), groups.end(),
+                               [&](const Group& g) { return g.type == type && g.document == doc; });
+      if (same != groups.end()) {
+        same->keys.push_back(f.key);
+      } else {
+        groups.push_back(Group{type, std::move(doc), {f.key}});
+      }
+    }
+  }
+  std::string o;
+  mpk::put_map(o, embed_data ? 4 : 3);
+  mpk::put_str(o, "format");
+  mpk::put_str(o, kGraphFormat);
+  mpk::put_str(o, "version");
+  mpk::put_int(o, 1);
+  mpk::put_str(o, "structure");
+  mpk::put_str(o, to_json());
+  if (embed_data) {
+    mpk::put_str(o, "data");
+    mpk::put_array(o, groups.size());
+    for (const Group& g : groups) {
+      mpk::put_map(o, 3);
+      mpk::put_str(o, "type");
+      mpk::put_str(o, g.type);
+      mpk::put_str(o, "document");
+      mpk::put_bin(o, reinterpret_cast<const std::uint8_t*>(g.document.data()), g.document.size());
+      mpk::put_str(o, "factors");
+      mpk::put_array(o, g.keys.size());
+      for (const std::string& k : g.keys) mpk::put_str(o, k);
+    }
+  }
+  return o;
+}
+
+void InferenceFactorGraph::from_msgpack(const MsgpackBytes& bytes) {
+  namespace mpk = internal::mpk;
+  mpk::Value doc;
+  try {
+    doc = mpk::parse(bytes);
+    if (doc.kind != mpk::Value::Map) throw std::runtime_error("not a map");
+    if (doc.at("format").str() != kGraphFormat) throw std::runtime_error("format is not " + std::string(kGraphFormat));
+    if (doc.at("version").integer() != 1) throw std::runtime_error("unknown version");
+  } catch (const std::exception& e) {
+    IMP_THROW("InferenceFactorGraph::from_msgpack: not a saved factor graph (" << e.what() << ")",
+              IMP::ValueException);
+  }
+  InferenceFactorGraph fresh;
+  fresh.from_json(doc.at("structure").str());
+  const mpk::Value* data = doc.find("data");
+  if (data != nullptr) {
+    if (data->kind != mpk::Value::Array)
+      IMP_THROW("InferenceFactorGraph::from_msgpack: 'data' is not a list", IMP::ValueException);
+    const std::string registered = registry_category_json("factor_score");
+    const nlohmann::json entries = nlohmann::json::parse(registered);
+    for (const mpk::Value& g : data->a) {
+      std::string type;
+      MsgpackBytes document;
+      std::vector<std::string> keys;
+      try {
+        type = g.at("type").str();
+        document = g.at("document").bin();
+        const mpk::Value& ks = g.at("factors");
+        if (ks.kind != mpk::Value::Array) throw std::runtime_error("'factors' is not a list");
+        for (const mpk::Value& k : ks.a) keys.push_back(k.str());
+      } catch (const std::exception& e) {
+        IMP_THROW("InferenceFactorGraph::from_msgpack: a malformed data entry (" << e.what() << ")",
+                  IMP::ValueException);
+      }
+      //: only an entry of THIS capability is a score factory -- the impl handles of other
+      //: capabilities (a sampler's kernel factory) are other types behind the same void*
+      auto* factory = entries.count(type) ? static_cast<InferenceFactorScoreFactory*>(registry_impl(type)) : nullptr;
+      if (factory == nullptr || !*factory) {
+        IMP_THROW("InferenceFactorGraph::from_msgpack: no factor score type '" << type
+                  << "' is registered (registry capability factor_score)", IMP::ValueException);
+      }
+      for (const std::string& k : keys) {
+        if (fresh.factor_index_of_.find(k) == fresh.factor_index_of_.end())
+          IMP_THROW("InferenceFactorGraph::from_msgpack: data for factor '" << k
+                    << "', which the structure does not have", IMP::ValueException);
+      }
+      std::map<std::string, IMP::Pointer<InferenceFactorScore> > scores;
+      try {
+        scores = (*factory)(document, keys);
+      } catch (const std::exception& e) {
+        IMP_THROW("InferenceFactorGraph::from_msgpack: factor score type '" << type
+                  << "' could not rebuild its scores (" << e.what() << ")", IMP::ValueException);
+      }
+      for (const std::string& k : keys) {
+        auto it = scores.find(k);
+        if (it == scores.end() || !it->second)
+          IMP_THROW("InferenceFactorGraph::from_msgpack: factor score type '" << type
+                    << "' returned no score for factor '" << k << "'", IMP::ValueException);
+        fresh.set_factor_score(k, it->second);
+      }
+    }
+  }
+  *this = fresh;
+}
+
+void InferenceFactorGraph::save(const std::string& path, bool embed_data) const {
+  //: build the bytes first, so a refused score leaves no half-written file
+  const std::string bytes = embed_data ? to_msgpack(true) : to_json();
+  std::ofstream out(path.c_str(), embed_data ? std::ios::binary : std::ios::out);
   if (!out) IMP_THROW("cannot write " << path, IMP::ValueException);
-  out << to_json();
+  out << bytes;
   if (!out) IMP_THROW("failed while writing " << path, IMP::ValueException);
 }
 
 void InferenceFactorGraph::load(const std::string& path) {
-  std::ifstream in(path.c_str());
+  std::ifstream in(path.c_str(), std::ios::binary);
   if (!in) IMP_THROW("cannot read " << path, IMP::ValueException);
   std::ostringstream all;
   all << in.rdbuf();
-  from_json(all.str());
+  const std::string bytes = all.str();
+  //: #to_json's text is an object, so its first non-blank byte is '{'; a msgpack map starts
+  //: with 0x80-0x8f, 0xde or 0xdf
+  const std::size_t first = bytes.find_first_not_of(" \t\r\n");
+  if (first != std::string::npos && bytes[first] == '{') {
+    from_json(bytes);
+  } else {
+    from_msgpack(bytes);
+  }
 }
 
 std::vector<std::string> InferenceFactorGraph::affected_factors(

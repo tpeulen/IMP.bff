@@ -6,6 +6,7 @@
 // test/test_theme_headers.py checks the list is complete.
 
 #include "spectroscopy/AcceptorDensityDecay.cpp"
+#include "bayesian/BayesianDecayFactorGraph.cpp"
 #include "util/BffSettings.cpp"
 #include "probe/BrownianWalk.cpp"
 #include "bayesian/CausalLinearGaussian.cpp"
@@ -67,7 +68,9 @@
 #include "fit/InferenceCanonicalForm.cpp"
 #include "fit/InferenceFactorGraph.cpp"
 #include "fit/InferenceFactorGraphFromFit.cpp"
+#include "fit/InferenceFitting.cpp"
 #include "fit/InferenceGaussianElimination.cpp"
+#include "fit/InferenceLaplace.cpp"
 #include "spectroscopy/KineticNetwork.cpp"
 #include "spectroscopy/KineticSchemeNode.cpp"
 #include "fret/LabelizerFRET.cpp"

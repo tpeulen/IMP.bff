@@ -21,7 +21,9 @@
 #include <IMP/bff/fit/InferenceCanonicalForm.h>
 #include <IMP/bff/fit/InferenceFactorGraph.h>
 #include <IMP/bff/fit/InferenceFactorGraphFromFit.h>
+#include <IMP/bff/fit/InferenceFitting.h>
 #include <IMP/bff/fit/InferenceGaussianElimination.h>
+#include <IMP/bff/fit/InferenceLaplace.h>
 #include <IMP/bff/fit/LinearLeastSquares.h>
 #include <IMP/bff/fit/MaxEnt.h>
 #include <IMP/bff/fit/MaxEntSpectrum.h>

@@ -47,6 +47,7 @@
 #include <IMP/bff/bff_config.h>
 // IMP_OBJECT_METHODS in either configuration (see FitMinimizer.h)
 #include <IMP/bff/util/IMPCompatibility.h>
+#include <IMP/bff/util/MsgpackBytes.h>
 #include <IMP/Object.h>
 #include <IMP/Pointer.h>
 
@@ -149,6 +150,14 @@ class IMPBFFEXPORT InferenceFactorScore : public IMP::Object {
   }
   //! The factor's data, aligned with predict(); empty if it has none.
   virtual std::vector<double> get_data() { return std::vector<double>(); }
+  //! The registered type that rebuilds this score from get_score_document(); empty if it cannot be written.
+  /*! A graph saved with its data (InferenceFactorGraph::save with `embed_data`) writes each
+      score as this type and document; loading calls the factory registered under the type
+      (register_factor_score, registry capability `factor_score`). Scores that return the same
+      type and the same document bytes are written once and rebuilt by one factory call (PRD-156). */
+  virtual std::string get_score_type() { return std::string(); }
+  //! Everything the factory of get_score_type() needs to rebuild this score, as msgpack bytes.
+  virtual MsgpackBytes get_score_document() { return MsgpackBytes(); }
   IMP_OBJECT_METHODS(InferenceFactorScore);
 };
 
@@ -169,11 +178,32 @@ class IMPBFFEXPORT InferenceFunctionScore : public InferenceFactorScore {
     return predict_ ? predict_(x) : std::vector<double>();
   }
   std::vector<double> get_data() override { return data_; }
+  //! Make the score writable: its registered type, and a function producing its document.
+  void set_score_document(const std::string& type, std::function<MsgpackBytes()> document) {
+    type_ = type;
+    document_ = document;
+  }
+  std::string get_score_type() override { return document_ ? type_ : std::string(); }
+  MsgpackBytes get_score_document() override { return document_ ? document_() : MsgpackBytes(); }
  private:
   Eval eval_;
   Predict predict_;
   std::vector<double> data_;
+  std::string type_;
+  std::function<MsgpackBytes()> document_;
 };
+
+#ifndef SWIG
+//! Rebuilds scores from a document: the scores of the factors named, by factor key.
+typedef std::function<std::map<std::string, IMP::Pointer<InferenceFactorScore> >(
+    const MsgpackBytes& document, const std::vector<std::string>& factor_keys)>
+    InferenceFactorScoreFactory;
+
+//! Register a factor-score type under registry capability `factor_score` (PRD-156).
+/*! \p entry_json is the registry entry (label, summary, ...). \return false if the type is taken. */
+IMPBFFEXPORT bool register_factor_score(const std::string& type, const std::string& entry_json,
+                                        InferenceFactorScoreFactory factory);
+#endif
 
 //! The log posterior of an evaluable graph at one point, by factor and by kind.
 struct IMPBFFEXPORT InferenceScore {
@@ -390,9 +420,26 @@ class IMPBFFEXPORT InferenceFactorGraph {
   std::string to_json() const;
   //! Replace this graph with one read from #to_json's output.
   void from_json(const std::string& json);
-  //! #to_json to a file.
-  void save(const std::string& path) const;
-  //! #from_json from a file.
+  //! The graph as msgpack: the structure (#to_json's text) and, with \p embed_data, every score's data.
+  /*!
+      With \p embed_data each scored factor's score is written as its registered type and
+      document (InferenceFactorScore::get_score_type / get_score_document); scores sharing a
+      type and identical document bytes are written once. A score that cannot be written (no
+      type -- a Python subclass, an unregistered closure) is refused, naming the factor:
+      nothing is dropped silently. Factors without a score stay without one. Without
+      \p embed_data the document holds the structure only. The point a graph was fitted at
+      is not graph state; store it beside the file (PRD-156).
+      \throws IMP::ValueException for a score that cannot be written
+  */
+  MsgpackBytes to_msgpack(bool embed_data = false) const;
+  //! Replace this graph with one read from #to_msgpack's output; with data, it is evaluable again.
+  /*! Every score is rebuilt by the factory registered for its type. An unknown type, a
+      factory that does not return a named factor, a factor the structure does not have,
+      or a malformed document is refused, and the graph is left unchanged. */
+  void from_msgpack(const MsgpackBytes& bytes);
+  //! Save to a file: #to_json's text (the default, unchanged), or with \p embed_data #to_msgpack.
+  void save(const std::string& path, bool embed_data = false) const;
+  //! Load what #save wrote, either format (told apart by the first byte: JSON is an object).
   void load(const std::string& path);
 
   //! Flat-parameter-vector position of a variable key, or -1 if absent.

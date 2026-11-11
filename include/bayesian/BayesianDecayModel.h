@@ -243,11 +243,12 @@ inline void bayesian_decay_build_transfer_tensors(const nlohmann::json& t, Bayes
  * `s89_cpp/emit_cbm56_fixture.py` writes this format. Returns the parsed manifest
  * too, for a caller that stores more in it.
  */
-inline nlohmann::json bayesian_decay_experiment_load(const std::string& dir, BayesianDecayExperiment& ex) {
-  std::ifstream mi(dir + "/manifest.json");
-  if (!mi) throw std::runtime_error("cannot open " + dir + "/manifest.json");
-  nlohmann::json m;
-  mi >> m;
+//! The experiment from a parsed manifest, its arrays read by `read_array(name, file, out)`
+//! (`out` sized to the manifest's shape). bayesian_decay_experiment_load reads them from a
+//! directory; a saved factor graph reads them from its document (PRD-156).
+inline void bayesian_decay_experiment_from_manifest(
+    nlohmann::json m, const std::function<void(const std::string&, const std::string&, std::vector<double>&)>& read_array,
+    BayesianDecayExperiment& ex) {
   auto str = [](const nlohmann::json& j) { return j.is_null() ? std::string() : j.get<std::string>(); };
   ex.n_bins = m["axis"]["n"].get<std::size_t>();
   ex.dt = m["axis"]["dt"].get<double>();
@@ -319,9 +320,7 @@ inline nlohmann::json bayesian_decay_experiment_load(const std::string& dir, Bay
     BayesianDecayArray arr;
     for (auto& s : spec["shape"]) arr.shape.push_back(s.get<std::size_t>());
     arr.d.resize(arr.size());
-    std::ifstream in(dir + "/" + spec["file"].get<std::string>(), std::ios::binary);
-    in.read(reinterpret_cast<char*>(arr.d.data()), std::streamsize(arr.d.size() * sizeof(double)));
-    if (!in) throw std::runtime_error("short read of array " + it.key());
+    read_array(it.key(), spec["file"].get<std::string>(), arr.d);
     ex.arrays.emplace(it.key(), std::move(arr));
   }
   if (m.count("transfer")) bayesian_decay_build_transfer_tensors(m["transfer"], ex);
@@ -335,6 +334,20 @@ inline nlohmann::json bayesian_decay_experiment_load(const std::string& dir, Bay
     ex.arrays.emplace("spl", std::move(spl));
   }
   ex.kernel_ptr = std::make_shared<BayesianPeriodicKernel>(ex.axis(), ex["tau_c"].d);
+}
+
+//! The experiment in directory `dir` (`manifest.json` plus one float64 file per array). Returns the
+//! parsed manifest too, for a caller that stores more in it.
+inline nlohmann::json bayesian_decay_experiment_load(const std::string& dir, BayesianDecayExperiment& ex) {
+  std::ifstream mi(dir + "/manifest.json");
+  if (!mi) throw std::runtime_error("cannot open " + dir + "/manifest.json");
+  nlohmann::json m;
+  mi >> m;
+  bayesian_decay_experiment_from_manifest(m, [&dir](const std::string& name, const std::string& file, std::vector<double>& out) {
+    std::ifstream in(dir + "/" + file, std::ios::binary);
+    in.read(reinterpret_cast<char*>(out.data()), std::streamsize(out.size() * sizeof(double)));
+    if (!in) throw std::runtime_error("short read of array " + name);
+  }, ex);
   return m;
 }
 

@@ -54,6 +54,70 @@ static void bff_handle_released_exception() {
    C++ `int` is 32 bits, so an integer port has to speak int64 or large
    values fall through to the double overload and come back rounded. */
 %template(VectorInt64) std::vector<long long >;
+/* Moved here from below on 2026-11-11 (PRD-156 step 3): a factor score's document is msgpack bytes,
+   so the typemap must exist before the factor graph is wrapped. Unchanged. */
+%{
+namespace {
+bool bff_bytes_from_python(PyObject* o, std::string& out) {
+  if (PyUnicode_Check(o) || !PyObject_CheckBuffer(o)) return false;
+  Py_buffer view;
+  if (PyObject_GetBuffer(o, &view, PyBUF_C_CONTIGUOUS) != 0) {
+    PyErr_Clear();
+    return false;
+  }
+  out.assign(static_cast<const char*>(view.buf), static_cast<std::size_t>(view.len));
+  PyBuffer_Release(&view);
+  return true;
+}
+void bff_bytes_type_error(PyObject* o, const char* where, int argnum,
+                          const char* what, const char* str_hint) {
+  PyErr_Format(PyExc_TypeError,
+               "%s: argument %d must be %s as bytes "
+               "(bytes, bytearray or memoryview), not %s%s",
+               where, argnum, what, Py_TYPE(o)->tp_name,
+               PyUnicode_Check(o) ? str_hint : "");
+}
+}
+%}
+/* One typemap set per typedef; WHAT names the format in the TypeError and
+   STR_HINT is appended when a `str` was passed. */
+%define BFF_BYTES_TYPEMAPS(TYPE, WHAT, STR_HINT)
+%typemap(in) TYPE {
+  if (!bff_bytes_from_python($input, $1)) {
+    bff_bytes_type_error($input, "$symname", $argnum, WHAT, STR_HINT);
+    SWIG_fail;
+  }
+}
+%typemap(in) const TYPE& (TYPE temp) {
+  if (!bff_bytes_from_python($input, temp)) {
+    bff_bytes_type_error($input, "$symname", $argnum, WHAT, STR_HINT);
+    SWIG_fail;
+  }
+  $1 = &temp;
+}
+/* std_string.i's freearg (the SWIG_AsPtr res flag) would otherwise reach
+   these through the typedef; the copy above lives in `temp`. */
+%typemap(freearg) TYPE, const TYPE& ""
+%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING) TYPE, const TYPE& {
+  $1 = (PyUnicode_Check($input) || PyObject_CheckBuffer($input)) ? 1 : 0;
+}
+%typemap(out) TYPE {
+  $result = PyBytes_FromStringAndSize($1.data(), static_cast<Py_ssize_t>($1.size()));
+}
+%typemap(out) const TYPE& {
+  $result = PyBytes_FromStringAndSize($1->data(), static_cast<Py_ssize_t>($1->size()));
+}
+%enddef
+BFF_BYTES_TYPEMAPS(IMP::bff::MsgpackBytes, "a msgpack document",
+    " (JSON text is not read; encode the document with msgpack.packb)")
+/* a Python subclass of InferenceFactorScore may return its document as bytes (PRD-156) */
+%typemap(directorout) IMP::bff::MsgpackBytes {
+  if (!bff_bytes_from_python($input, $result)) {
+    Swig::DirectorTypeMismatchException::raise(PyExc_TypeError, "get_score_document must return bytes");
+  }
+}
+%include "IMP/bff/util/MsgpackBytes.h"
+
 /* PRD-155 (2026-11-10): a factor may carry a score -- its log density, gradient and
    information over its scope -- so the graph is a log posterior and
    inference_fitting finds its mode. InferenceFactorScore is subclassed in Python
@@ -80,6 +144,7 @@ IMP_SWIG_DIRECTOR(IMP::bff, InferenceFactorScore);
 /* One generic fitting of a scored graph, and the Bayesian decay model as a scored
    graph (PRD-155). */
 %include "IMP/bff/fit/InferenceFitting.h"
+%include "IMP/bff/fit/InferenceLaplace.h"
 %include "IMP/bff/bayesian/BayesianDecayFactorGraph.h"
 /* The fit statistic every fitted number has to carry (Poisson deviance per degree of
    freedom against its reference, runs test on the residual signs), for Python callers
@@ -853,60 +918,7 @@ IMP_SWIG_DIRECTOR(IMP::bff, FitResidualFunction);
  * alternative, so a `str` should reach the in-typemap and its clear
  * message, not SWIG's generic dispatch failure.
  */
-%{
-namespace {
-bool bff_bytes_from_python(PyObject* o, std::string& out) {
-  if (PyUnicode_Check(o) || !PyObject_CheckBuffer(o)) return false;
-  Py_buffer view;
-  if (PyObject_GetBuffer(o, &view, PyBUF_C_CONTIGUOUS) != 0) {
-    PyErr_Clear();
-    return false;
-  }
-  out.assign(static_cast<const char*>(view.buf), static_cast<std::size_t>(view.len));
-  PyBuffer_Release(&view);
-  return true;
-}
-void bff_bytes_type_error(PyObject* o, const char* where, int argnum,
-                          const char* what, const char* str_hint) {
-  PyErr_Format(PyExc_TypeError,
-               "%s: argument %d must be %s as bytes "
-               "(bytes, bytearray or memoryview), not %s%s",
-               where, argnum, what, Py_TYPE(o)->tp_name,
-               PyUnicode_Check(o) ? str_hint : "");
-}
-}
-%}
-/* One typemap set per typedef; WHAT names the format in the TypeError and
-   STR_HINT is appended when a `str` was passed. */
-%define BFF_BYTES_TYPEMAPS(TYPE, WHAT, STR_HINT)
-%typemap(in) TYPE {
-  if (!bff_bytes_from_python($input, $1)) {
-    bff_bytes_type_error($input, "$symname", $argnum, WHAT, STR_HINT);
-    SWIG_fail;
-  }
-}
-%typemap(in) const TYPE& (TYPE temp) {
-  if (!bff_bytes_from_python($input, temp)) {
-    bff_bytes_type_error($input, "$symname", $argnum, WHAT, STR_HINT);
-    SWIG_fail;
-  }
-  $1 = &temp;
-}
-/* std_string.i's freearg (the SWIG_AsPtr res flag) would otherwise reach
-   these through the typedef; the copy above lives in `temp`. */
-%typemap(freearg) TYPE, const TYPE& ""
-%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING) TYPE, const TYPE& {
-  $1 = (PyUnicode_Check($input) || PyObject_CheckBuffer($input)) ? 1 : 0;
-}
-%typemap(out) TYPE {
-  $result = PyBytes_FromStringAndSize($1.data(), static_cast<Py_ssize_t>($1.size()));
-}
-%typemap(out) const TYPE& {
-  $result = PyBytes_FromStringAndSize($1->data(), static_cast<Py_ssize_t>($1->size()));
-}
-%enddef
-BFF_BYTES_TYPEMAPS(IMP::bff::MsgpackBytes, "a msgpack document",
-    " (JSON text is not read; encode the document with msgpack.packb)")
+/* the bytes helpers and BFF_BYTES_TYPEMAPS are defined before the factor graph (PRD-156 step 3) */
 BFF_BYTES_TYPEMAPS(IMP::bff::OnnxBytes, "an ONNX model",
     " (read the file with open(path, 'rb').read(), or use from_onnx_file)")
 BFF_BYTES_TYPEMAPS(IMP::bff::SafetensorsBytes, "a safetensors file",

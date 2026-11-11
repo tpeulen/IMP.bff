@@ -37,6 +37,7 @@ import bayesian_decay_synthetic as syn
 PRELUDE = r"""
 #include "@ROOT@/src/spectroscopy/States.cpp"
 #include "@ROOT@/src/fit/InferenceFactorGraph.cpp"
+#include "@ROOT@/test/decay/registry_stub.h"
 #include "@ROOT@/src/fit/InferenceFitting.cpp"
 #include "@ROOT@/src/bayesian/BayesianDecayFactorGraph.cpp"
 #include <cstdio>

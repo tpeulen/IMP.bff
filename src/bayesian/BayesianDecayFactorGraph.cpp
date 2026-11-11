@@ -8,12 +8,15 @@
 
 #if __has_include("pocketfft/pocketfft_hdronly.h")
 #include <IMP/bff/bayesian/BayesianDecayPosterior.h>
+#include <IMP/bff/internal/Msgpack.h>
 #define IMPBFF_HAS_BAYESIAN_DECAY 1
 #endif
 
 #include <algorithm>
 #include <cmath>
+#include <map>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 
 IMPBFF_BEGIN_NAMESPACE
@@ -21,10 +24,43 @@ IMPBFF_BEGIN_NAMESPACE
 #ifdef IMPBFF_HAS_BAYESIAN_DECAY
 namespace {
 
+//: the registered type of every score of the decay graph: one document, the whole experiment
+const char* const kScoreType = "bayesian_decay_experiment";
+const char* const kDocumentFormat = "bff.bayesian_decay_experiment";
+
 struct DecayContext {
   BayesianDecayExperiment ex;
   std::unique_ptr<BayesianDecayTensors> E;
+  nlohmann::json manifest;
+  //: the experiment as msgpack, built once on the first save and shared by every score
+  std::once_flag document_once;
+  MsgpackBytes document;
+  const MsgpackBytes& get_document() {
+    std::call_once(document_once, [this] {
+      namespace mpk = internal::mpk;
+      std::string o;
+      mpk::put_map(o, 4);
+      mpk::put_str(o, "format"); mpk::put_str(o, kDocumentFormat);
+      mpk::put_str(o, "version"); mpk::put_int(o, 1);
+      mpk::put_str(o, "manifest"); mpk::put_str(o, manifest.dump());
+      //: the arrays the manifest lists, as read (derived arrays -- a basis built from its degree,
+      //: transfer tensors -- are rebuilt by the loader from the manifest)
+      const nlohmann::json& listed = manifest["arrays"];
+      mpk::put_str(o, "arrays");
+      mpk::put_map(o, listed.size());
+      for (auto it = listed.begin(); it != listed.end(); ++it) {
+        mpk::put_str(o, it.key());
+        mpk::put_value(o, mpk::bin_of_doubles(ex[it.key()].d));
+      }
+      document = o;
+    });
+    return document;
+  }
 };
+
+void make_writable(InferenceFunctionScore* s, std::shared_ptr<DecayContext> C) {
+  s->set_score_document(kScoreType, [C]() { return C->get_document(); });
+}
 
 //! One external FRET measurement of the pair, in the docking restraint's vocabulary (fps.json:
 //! `distance_type`, `distance`, `error_neg`, `error_pos`, `forster_radius`).
@@ -74,10 +110,12 @@ std::vector<double> pack(double lp, const std::vector<double>& g, const std::vec
 }  // namespace
 #endif
 
-InferenceFactorGraph bayesian_decay_factor_graph(const std::string& directory) {
 #ifdef IMPBFF_HAS_BAYESIAN_DECAY
-  std::shared_ptr<DecayContext> C(new DecayContext());
-  const nlohmann::json manifest = bayesian_decay_experiment_load(directory, C->ex);
+namespace {
+
+//! The scored graph of a loaded experiment (`C->ex`, `C->manifest` set).
+InferenceFactorGraph decay_graph(std::shared_ptr<DecayContext> C) {
+  const nlohmann::json& manifest = C->manifest;
   const std::vector<FretMeasurement> observations = read_measurements(manifest);
   C->E.reset(new BayesianDecayTensors(C->ex));
   const BayesianDecayExperiment& ex = C->ex;
@@ -128,6 +166,7 @@ InferenceFactorGraph bayesian_decay_factor_graph(const std::string& directory) {
         return bayesian_decay_expected_counts(C->ex, *C->E, bayesian_decay_unpack(C->ex, th));
       },
       y, "bayesian_decay_counts"));
+  make_writable(static_cast<InferenceFunctionScore*>(counts.get()), C);
   g.add_factor("counts", INFERENCE_FACTOR_LIKELIHOOD, all, -1, int(n_masked));
   g.set_factor_score("counts", counts);
 
@@ -140,6 +179,7 @@ InferenceFactorGraph bayesian_decay_factor_graph(const std::string& directory) {
         return pack(P.lp, P.g, A);
       },
       InferenceFunctionScore::Predict(), std::vector<double>(), "bayesian_decay_prior"));
+  make_writable(static_cast<InferenceFunctionScore*>(prior.get()), C);
   g.add_factor("prior", INFERENCE_FACTOR_PRIOR, all, -1, 0);
   g.set_factor_score("prior", prior);
 
@@ -193,12 +233,62 @@ InferenceFactorGraph bayesian_decay_factor_graph(const std::string& directory) {
           },
           [model_value](const std::vector<double>& xc) { return std::vector<double>{model_value(xc)}; },
           std::vector<double>{o.value}, "bayesian_decay_fret_observation"));
+      make_writable(static_cast<InferenceFunctionScore*>(obs.get()), C);
       const std::string key = "observation:" + o.name;
       g.add_factor(key, INFERENCE_FACTOR_LIKELIHOOD, std::vector<std::string>{"c"}, -1, 1);
       g.set_factor_score(key, obs);
     }
   }
   return g;
+}
+
+const char* const kScoreEntry = R"JSON({
+  "label": "Bayesian decay experiment",
+  "summary": "The scores of a Bayesian decay factor graph (counts, prior, external FRET observations), rebuilt from the experiment they share.",
+  "description": "Every score of bayesian_decay_factor_graph is written as this type with one document: the experiment's manifest and its float64 arrays as msgpack bin. Loading rebuilds the experiment once and returns the scores of the factors named. Written for PRD-156 (graph save/load with embedded data)."
+})JSON";
+
+std::map<std::string, IMP::Pointer<InferenceFactorScore> > rebuild_scores(const MsgpackBytes& document,
+                                                                          const std::vector<std::string>& keys) {
+  namespace mpk = internal::mpk;
+  const mpk::Value doc = mpk::parse(document);
+  if (doc.kind != mpk::Value::Map || doc.at("format").str() != kDocumentFormat || doc.at("version").integer() != 1)
+    throw std::runtime_error("not a " + std::string(kDocumentFormat) + " version 1 document");
+  std::shared_ptr<DecayContext> C(new DecayContext());
+  C->manifest = nlohmann::json::parse(doc.at("manifest").str());
+  const mpk::Value& arrays = doc.at("arrays");
+  bayesian_decay_experiment_from_manifest(
+      C->manifest,
+      [&arrays](const std::string& name, const std::string&, std::vector<double>& out) {
+        const std::vector<double> d = mpk::doubles_of_bin(arrays.at(name));
+        if (d.size() != out.size())
+          throw std::runtime_error("array " + name + " has " + std::to_string(d.size()) + " values, its shape " +
+                                   std::to_string(out.size()));
+        out = d;
+      },
+      C->ex);
+  //: the document is the one read, byte for byte, so a graph saved again writes the same bytes
+  std::call_once(C->document_once, [&C, &document] { C->document = document; });
+  const InferenceFactorGraph g = decay_graph(C);
+  std::map<std::string, IMP::Pointer<InferenceFactorScore> > out;
+  for (const std::string& k : keys) {
+    InferenceFactorScore* s = g.get_factor_score(k);
+    if (s == nullptr) throw std::runtime_error("the experiment has no factor '" + k + "'");
+    out[k] = s;
+  }
+  return out;
+}
+
+const bool registered_decay_scores = register_factor_score(kScoreType, kScoreEntry, rebuild_scores);
+
+}  // namespace
+#endif
+
+InferenceFactorGraph bayesian_decay_factor_graph(const std::string& directory) {
+#ifdef IMPBFF_HAS_BAYESIAN_DECAY
+  std::shared_ptr<DecayContext> C(new DecayContext());
+  C->manifest = bayesian_decay_experiment_load(directory, C->ex);
+  return decay_graph(C);
 #else
   (void)directory;
   throw std::domain_error("bayesian_decay_factor_graph: this build of IMP.bff has no Bayesian decay code (pocketfft missing)");

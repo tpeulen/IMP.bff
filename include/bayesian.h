@@ -10,6 +10,7 @@
 #ifndef IMPBFF_THEME_BAYESIAN_H
 #define IMPBFF_THEME_BAYESIAN_H
 
+#include <IMP/bff/bayesian/BayesianDecayFactorGraph.h>
 #include <IMP/bff/bayesian/BayesianDecayModel.h>
 #include <IMP/bff/bayesian/BayesianDecayPosterior.h>
 #include <IMP/bff/bayesian/BayesianDecaySampling.h>
