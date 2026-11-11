@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <cstddef>
+#include <ostream>
 #include <vector>
 #include <IMP/bff/internal/PortableRandom.h>
 
@@ -94,6 +95,15 @@ struct PoissonHistogramFit {
   double z = 0.0;                //!< (deviance_per_dof - reference_mean) / reference_sd
   std::vector<double> weighted_residuals;   //!< (y - m) / sqrt(m) on the selected bins
 };
+
+#ifndef SWIG
+//! Printable: IMP's SWIG layer (RMF::Showable) gives every wrapped std::vector a __str__ that
+//! streams its elements, so the IMP build needs this; the standalone build does not (2026-11-11).
+inline std::ostream& operator<<(std::ostream& out, const PoissonHistogramFit& f) {
+  return out << "PoissonHistogramFit(deviance_per_dof=" << f.deviance_per_dof << ", dof=" << f.dof
+             << ", z=" << f.z << ", runs_p=" << f.runs_p << ")";
+}
+#endif
 
 //! Several histograms, each and together.
 struct PoissonGoodnessOfFit {
