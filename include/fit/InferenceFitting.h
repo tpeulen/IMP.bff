@@ -40,18 +40,30 @@ struct IMPBFFEXPORT InferenceFit {
   int n_gradient_fallback = 0;        //!< steps the stepper had to take along the gradient
   double laplace_evidence = 0.0;      //!< log evidence of the Laplace approximation at the mode
   bool laplace_ok = false;            //!< the information was positive definite there
+  //! the variables held at their `theta0` values (`fixed`); the steps and the evidence ran over the rest
+  std::vector<std::string> fixed;
 };
 
 //! Fit the mode of an evaluable graph from `theta0`.
 /*! Stops when the decrement is below `tolerance` (then `converged`), when a step
     is not accepted (converged if the last decrement was below 1e-3, as
     `bayesian_decay_fit_node` decides), or after `max_iterations`.
-    \throws std::domain_error if the graph is not evaluable */
+
+    `fixed` names variables held at their `theta0` values (PRD-156 D1). The steps and
+    the Laplace evidence then run over the free coordinates only, so with a
+    hyperparameter held (e.g. the P-spline weight `log10_lam`) `laplace_evidence` is
+    log p(y | hyperparameter) -- what a user's hyperparameter loop weights by.
+    `at_mode` keeps the full gradient and information. With `fixed` empty the result is
+    the one of a fit without the argument, bit for bit.
+    \throws std::domain_error if the graph is not evaluable
+    \throws std::invalid_argument for an unknown variable in `fixed`, or if nothing is free */
 IMPBFFEXPORT InferenceFit inference_fitting(const InferenceFactorGraph& graph,
                                                   const std::vector<double>& theta0,
                                                   int max_iterations = 300,
                                                   double tolerance = 1e-6,
-                                                  double line_search_below = 1.0);
+                                                  double line_search_below = 1.0,
+                                                  const std::vector<std::string>& fixed =
+                                                      std::vector<std::string>());
 
 IMPBFF_END_NAMESPACE
 
