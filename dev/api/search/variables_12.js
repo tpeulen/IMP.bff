@@ -79,9 +79,10 @@ var searchData=
   ['stop_5fevalue_76',['stop_evalue',['../class_sequence_cluster_search_options.html#a0207244b73f086342aecdd4106d326cd',1,'SequenceClusterSearchOptions']]],
   ['stop_5fmax_5fidentity_77',['stop_max_identity',['../class_sequence_cluster_search_options.html#a100cc2ca385ac214aaed08f5ec1b195b',1,'SequenceClusterSearchOptions']]],
   ['stop_5fmin_5fidentity_78',['stop_min_identity',['../class_sequence_cluster_search_options.html#ae8b188bfe7993e72ffba09afaa6d0f75',1,'SequenceClusterSearchOptions']]],
-  ['structures_79',['structures',['../struct_f_p_s_project.html#a79827fd98884201f7dfbc0f81cb5bf35',1,'FPSProject']]],
-  ['success_80',['success',['../class_max_ent_solution.html#ade091fd598c93b3dac717668bcec2775',1,'MaxEntSolution::success'],['../struct_minimize_result.html#a920406636df7ed3c0c7ebfcb525a3a15',1,'MinimizeResult::success'],['../struct_odeint_result.html#a05814548ec7b69abc416f66b7185ce4e',1,'OdeintResult::success']]],
-  ['supported_5flocalizations_81',['supported_localizations',['../struct_s_m_l_m_likelihood_result.html#af39c012d8e4bd8aca1ed94cc633badc9',1,'SMLMLikelihoodResult']]],
-  ['system_82',['system',['../struct_a_v_rotamer_case.html#afee45938ed9b2d27ba1229e1bd55f2dc',1,'AVRotamerCase']]],
-  ['system_5fname_83',['system_name',['../struct_probe_trajectory_density_options.html#a6ff9699a74e891d0de27629d9f30cca7',1,'ProbeTrajectoryDensityOptions']]]
+  ['stop_5freason_79',['stop_reason',['../struct_inference_fit.html#ab9a49c2e54c9bfe9b1281986115e2430',1,'InferenceFit']]],
+  ['structures_80',['structures',['../struct_f_p_s_project.html#a79827fd98884201f7dfbc0f81cb5bf35',1,'FPSProject']]],
+  ['success_81',['success',['../class_max_ent_solution.html#ade091fd598c93b3dac717668bcec2775',1,'MaxEntSolution::success'],['../struct_minimize_result.html#a920406636df7ed3c0c7ebfcb525a3a15',1,'MinimizeResult::success'],['../struct_odeint_result.html#a05814548ec7b69abc416f66b7185ce4e',1,'OdeintResult::success']]],
+  ['supported_5flocalizations_82',['supported_localizations',['../struct_s_m_l_m_likelihood_result.html#af39c012d8e4bd8aca1ed94cc633badc9',1,'SMLMLikelihoodResult']]],
+  ['system_83',['system',['../struct_a_v_rotamer_case.html#afee45938ed9b2d27ba1229e1bd55f2dc',1,'AVRotamerCase']]],
+  ['system_5fname_84',['system_name',['../struct_probe_trajectory_density_options.html#a6ff9699a74e891d0de27629d9f30cca7',1,'ProbeTrajectoryDensityOptions']]]
 ];
