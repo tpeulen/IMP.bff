@@ -132,6 +132,9 @@ int main(int, char** argv) {
       }
       // the model value is the docking statistic of p(R)
       const std::vector<double> p = bayesian_decay_distribution(E, bayesian_decay_unpack(ex, truth));
+      //: 2026-11-12: distribution_at computes p from the spline basis alone (no tensors) -- same numbers
+      const std::vector<double> p_at = bayesian_decay_distribution_at(dir, truth);
+      for (std::size_t j = 0; j < p.size(); ++j) if (p_at[j] != p[j]) throw std::runtime_error("distribution_at differs");
       std::vector<double> R(ex["rel"].size());
       const double R0 = std::atof(argv[2]);
       for (std::size_t j = 0; j < R.size(); ++j) R[j] = ex["rel"].d[j] * R0;

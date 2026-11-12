@@ -301,8 +301,16 @@ std::vector<double> bayesian_decay_distribution_at(const std::string& directory,
   BayesianDecayExperiment ex;
   bayesian_decay_experiment_load(directory, ex);
   if (theta.size() != ex.dim) throw std::invalid_argument("bayesian_decay_distribution_at: theta has the wrong length");
-  const BayesianDecayTensors E(ex);
-  return bayesian_decay_distribution(E, bayesian_decay_unpack(ex, theta));
+  //: p(R/R0) = softmax(spl @ c) reads only the spline basis: no decay tensors are built (2026-11-12;
+  //: building them made every call cost seconds on CBM56)
+  const std::vector<double> c = bayesian_decay_unpack(ex, theta).at("c");
+  const BayesianDecayArray& spl = ex["spl"];
+  const std::size_t nR = spl.shape[0], nc = spl.shape[1];
+  std::vector<double> q(nR, 0.0);
+  for (std::size_t j = 0; j < nR; ++j)
+    for (std::size_t i = 0; i < nc; ++i) q[j] += spl.d[j * nc + i] * c[i];
+  bayesian_softmax_inplace(q);
+  return q;
 #else
   (void)directory; (void)theta;
   throw std::domain_error("bayesian_decay_distribution_at: no Bayesian decay code in this build");
